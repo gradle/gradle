@@ -17,22 +17,22 @@ package org.gradle.language.base.internal.model;
 
 import org.gradle.internal.Cast;
 
-public class DefaultVariantDimensionSelectorFactory implements VariantDimensionSelectorFactory {
+public class DefaultVariantAxisCompatibilityFactory implements VariantAxisCompatibilityFactory {
     private final Class<?> predicate;
-    private final VariantDimensionSelector<?> selector;
+    private final VariantAxisCompatibility<?> selector;
 
-    public static <T> DefaultVariantDimensionSelectorFactory of(Class<T> clazz, VariantDimensionSelector<T> selector) {
-        return new DefaultVariantDimensionSelectorFactory(clazz, selector);
+    public static <T> DefaultVariantAxisCompatibilityFactory of(Class<T> clazz, VariantAxisCompatibility<T> selector) {
+        return new DefaultVariantAxisCompatibilityFactory(clazz, selector);
     }
 
-    private DefaultVariantDimensionSelectorFactory(Class<?> clazz, VariantDimensionSelector<?> selector) {
+    private DefaultVariantAxisCompatibilityFactory(Class<?> clazz, VariantAxisCompatibility<?> selector) {
         this.predicate = clazz;
         this.selector = selector;
     }
 
 
     @Override
-    public <T> VariantDimensionSelector<T> getVariantDimensionSelector(T o) {
+    public <T> VariantAxisCompatibility<T> getVariantAxisCompatibility(T o) {
         if (o!=null && predicate.isAssignableFrom(o.getClass())) {
             return Cast.uncheckedCast(selector);
         }

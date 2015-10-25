@@ -33,7 +33,7 @@ import java.util.Map;
 public interface LibraryResolutionErrorMessageBuilder {
     String multipleCompatibleVariantsErrorMessage(String libraryName, Collection<? extends BinarySpec> binaries);
 
-    String noCompatibleBinaryErrorMessage(String libraryName, Collection<BinarySpec> allBinaries);
+    String noCompatibleVariantErrorMessage(String libraryName, Collection<BinarySpec> allBinaries);
 
     /**
      * Intermediate data structure used to store the result of a resolution and help at building an understandable error message in case resolution fails.

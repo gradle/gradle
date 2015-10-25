@@ -22,14 +22,14 @@ import java.util.Set;
 
 public interface VariantsMetaData {
 
-    Set<String> getAllDimensions();
+    Set<String> getDeclaredVariantAxes();
 
-    Set<String> getNonNullDimensions();
+    Set<String> getNonNullVariantAxes();
 
-    String getValueAsString(String dimension);
+    String getValueAsString(String variantAxis);
 
-    <T extends Named> T getValueAsType(Class<T> clazz, String dimension);
+    <T extends Named> T getValueAsType(Class<T> clazz, String variantAxis);
 
-    ModelType<?> getDimensionType(String dimension);
+    ModelType<?> getVariantAxisType(String variantAxis);
 
 }

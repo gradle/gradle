@@ -34,21 +34,21 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultVariantsMetaData implements VariantsMetaData {
-    private final Map<String, Object> variants;
-    private final Set<String> allVariantDimensions;
-    private final Set<String> nonNullVariantDimensions;
-    private final Map<String, ModelType<?>> variantDimensionTypes;
+    private final Map<String, Object> variantCoordinates;
+    private final Set<String> allVariantAxes;
+    private final Set<String> nonNullVariantAxes;
+    private final Map<String, ModelType<?>> variantAxisTypes;
 
-    private DefaultVariantsMetaData(Map<String, Object> variants, Map<String, ModelType<?>> variantDimensionTypes) {
-        this.variants = variants;
-        this.allVariantDimensions = variants.keySet();
-        this.nonNullVariantDimensions = ImmutableSet.copyOf(Maps.filterEntries(variants, new Predicate<Map.Entry<String, Object>>() {
+    private DefaultVariantsMetaData(Map<String, Object> variantCoordinates, Map<String, ModelType<?>> variantAxisTypes) {
+        this.variantCoordinates = variantCoordinates;
+        this.allVariantAxes = variantCoordinates.keySet();
+        this.nonNullVariantAxes = ImmutableSet.copyOf(Maps.filterEntries(variantCoordinates, new Predicate<Map.Entry<String, Object>>() {
             @Override
             public boolean apply(Map.Entry<String, Object> input) {
                 return input.getValue()!=null;
             }
         }).keySet());
-        this.variantDimensionTypes = variantDimensionTypes;
+        this.variantAxisTypes = variantAxisTypes;
     }
 
     public static VariantsMetaData extractFrom(BinarySpec spec, ModelSchemaStore schemaStore) {
@@ -72,18 +72,18 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
     }
 
     @Override
-    public Set<String> getAllDimensions() {
-        return allVariantDimensions;
+    public Set<String> getDeclaredVariantAxes() {
+        return allVariantAxes;
     }
 
     @Override
-    public Set<String> getNonNullDimensions() {
-        return nonNullVariantDimensions;
+    public Set<String> getNonNullVariantAxes() {
+        return nonNullVariantAxes;
     }
 
     @Override
-    public String getValueAsString(String dimension) {
-        Object o = variants.get(dimension);
+    public String getValueAsString(String variantAxis) {
+        Object o = variantCoordinates.get(variantAxis);
         if (o instanceof Named) {
             return ((Named) o).getName();
         }
@@ -95,12 +95,12 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Named> T getValueAsType(Class<T> clazz, String dimension) {
-        return (T) variants.get(dimension);
+    public <T extends Named> T getValueAsType(Class<T> clazz, String variantAxis) {
+        return (T) variantCoordinates.get(variantAxis);
     }
 
     @Override
-    public ModelType<?> getDimensionType(String dimension) {
-        return variantDimensionTypes.get(dimension);
+    public ModelType<?> getVariantAxisType(String variantAxis) {
+        return variantAxisTypes.get(variantAxis);
     }
 }

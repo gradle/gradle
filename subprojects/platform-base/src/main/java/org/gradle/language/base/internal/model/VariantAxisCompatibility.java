@@ -15,7 +15,7 @@
  */
 package org.gradle.language.base.internal.model;
 
-public interface VariantDimensionSelector<T> {
+public interface VariantAxisCompatibility<T> {
     /**
      * Should return true if a variant value is compatible with the requirement.
      * @param requirement the value of a variant, expressing a specific requirement

@@ -286,13 +286,13 @@ model {
         [5, 6] | ['debug']            | ['free']         | [6, 7] | [java6FirstJar: 'secondFreeDebug6Jar'] | [java5FirstJar: ["Cannot find a compatible variant for library 'second'.",
                                                                                                                               "Required platform 'java5', available: 'java6', 'java7'"]]
         [6]    | ['debug', 'release'] | []               | [6, 7] | [:]                                    | [firstJar: ["Multiple compatible variants found for library 'second':",
-                                                                                                                         "Jar 'secondDefaultDebug6Jar'", "buildType 'debug'", "targetPlatform 'java6'",
-                                                                                                                         "Jar 'secondDefaultRelease6Jar'", "buildType 'release'", "targetPlatform 'java6'"]]
+                                                                                                                         "Jar 'secondDefaultDebug6Jar'", "buildType 'debug'", "platform 'java6'",
+                                                                                                                         "Jar 'secondDefaultRelease6Jar'", "buildType 'release'", "platform 'java6'"]]
         [6]    | ['debug', 'release'] | ['free', 'paid'] | [6, 7] | [:]                                    | [firstJar: ["Multiple compatible variants found for library 'second':",
-                                                                                                                         "Jar 'secondFreeDebug6Jar'", "buildType 'debug'", "flavor 'free'", "targetPlatform 'java6'",
-                                                                                                                         "Jar 'secondFreeRelease6Jar'", "buildType 'release'", "flavor 'free'", "targetPlatform 'java6'",
-                                                                                                                         "Jar 'secondPaidDebug6Jar'", "buildType 'debug'", "flavor 'paid'", "targetPlatform 'java6'",
-                                                                                                                         "Jar 'secondPaidRelease6Jar'", "buildType 'release'", "flavor 'paid'", "targetPlatform 'java6'"]]
+                                                                                                                         "Jar 'secondFreeDebug6Jar'", "buildType 'debug'", "flavor 'free'", "platform 'java6'",
+                                                                                                                         "Jar 'secondFreeRelease6Jar'", "buildType 'release'", "flavor 'free'", "platform 'java6'",
+                                                                                                                         "Jar 'secondPaidDebug6Jar'", "buildType 'debug'", "flavor 'paid'", "platform 'java6'",
+                                                                                                                         "Jar 'secondPaidRelease6Jar'", "buildType 'release'", "flavor 'paid'", "platform 'java6'"]]
 
         and:
         outcome = errors ? 'fails' : 'succeeds'
@@ -372,14 +372,14 @@ model {
                                                                                                                           "Required platform 'java5', available: 'java6', 'java7'",
                                                                                                                           "Required flavor 'free' but no compatible variant was found"]]
         [6]    | []               | ['debug', 'release'] | [6, 7] | [:]                                | [firstDefaultJar: ["Multiple compatible variants found for library 'second':",
-                                                                                                                            "Jar 'secondDebug6Jar'", "buildType 'debug'", "targetPlatform 'java6'",
-                                                                                                                            "Jar 'secondRelease6Jar'", "buildType 'release'", "targetPlatform 'java6'"]]
+                                                                                                                            "Jar 'secondDebug6Jar'", "buildType 'debug'", "platform 'java6'",
+                                                                                                                            "Jar 'secondRelease6Jar'", "buildType 'release'", "platform 'java6'"]]
         [6]    | ['free', 'paid'] | ['debug', 'release'] | [6, 7] | [:]                                | [firstFreeJar: ["Multiple compatible variants found for library 'second':",
-                                                                                                                         "Jar 'secondDebug6Jar'", "buildType 'debug'", "targetPlatform 'java6'",
-                                                                                                                         "Jar 'secondRelease6Jar'", "buildType 'release'", "targetPlatform 'java6'"],
+                                                                                                                         "Jar 'secondDebug6Jar'", "buildType 'debug'", "platform 'java6'",
+                                                                                                                         "Jar 'secondRelease6Jar'", "buildType 'release'", "platform 'java6'"],
                                                                                                           firstPaidJar: ["Multiple compatible variants found for library 'second':",
-                                                                                                                         "Jar 'secondDebug6Jar'", "buildType 'debug'", "targetPlatform 'java6'",
-                                                                                                                         "Jar 'secondRelease6Jar'", "buildType 'release'", "targetPlatform 'java6'"]]
+                                                                                                                         "Jar 'secondDebug6Jar'", "buildType 'debug'", "platform 'java6'",
+                                                                                                                         "Jar 'secondRelease6Jar'", "buildType 'release'", "platform 'java6'"]]
 
         and:
         outcome = errors ? 'fails' : 'succeeds'

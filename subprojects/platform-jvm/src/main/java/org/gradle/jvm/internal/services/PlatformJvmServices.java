@@ -25,11 +25,11 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
-import org.gradle.jvm.internal.DefaultJavaPlatformVariantDimensionSelector;
+import org.gradle.jvm.internal.DefaultJavaPlatformVariantAxisCompatibility;
 import org.gradle.jvm.internal.JarBinaryRenderer;
 import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.language.base.internal.model.DefaultVariantDimensionSelectorFactory;
-import org.gradle.language.base.internal.model.VariantDimensionSelectorFactory;
+import org.gradle.language.base.internal.model.DefaultVariantAxisCompatibilityFactory;
+import org.gradle.language.base.internal.model.VariantAxisCompatibilityFactory;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -37,7 +37,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 public class PlatformJvmServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JarBinaryRenderer.class);
-        registration.add(VariantDimensionSelectorFactory.class, DefaultVariantDimensionSelectorFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantDimensionSelector()));
+        registration.add(VariantAxisCompatibilityFactory.class, DefaultVariantAxisCompatibilityFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantAxisCompatibility()));
     }
 
     public void registerBuildSessionServices(ServiceRegistration registration) {
@@ -82,7 +82,7 @@ public class PlatformJvmServices implements PluginServiceRegistry {
                     new LocalLibraryDependencyResolver<JarBinarySpec>(
                             JarBinarySpec.class,
                             projectModelResolver,
-                            registry.getAll(VariantDimensionSelectorFactory.class),
+                            registry.getAll(VariantAxisCompatibilityFactory.class),
                             variants,
                             schemaStore,
                             libraryMetaDataAdapter,

@@ -15,6 +15,21 @@
  */
 package org.gradle.language.base.internal.model;
 
-public interface VariantDimensionSelectorFactory {
-    <T> VariantDimensionSelector<T> getVariantDimensionSelector(T o);
+import org.gradle.api.Named;
+
+public class DefaultVariantAxisCompatibility implements VariantAxisCompatibility<Object> {
+    @Override
+    public boolean isCompatibleWithRequirement(Object requirement, Object value) {
+        if (requirement instanceof String) {
+            return requirement.equals(value);
+        } else if (requirement instanceof Named) {
+            return ((Named) requirement).getName().equals(((Named) value).getName());
+        }
+        return false;
+    }
+
+    @Override
+    public boolean betterFit(Object requirement, Object oldValue, Object newValue) {
+        return false;
+    }
 }

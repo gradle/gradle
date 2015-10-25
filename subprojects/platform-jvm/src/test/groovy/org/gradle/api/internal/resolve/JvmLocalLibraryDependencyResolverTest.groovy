@@ -33,12 +33,12 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResu
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult
 import org.gradle.jvm.JarBinarySpec
 import org.gradle.jvm.JvmLibrarySpec
-import org.gradle.jvm.internal.DefaultJavaPlatformVariantDimensionSelector
+import org.gradle.jvm.internal.DefaultJavaPlatformVariantAxisCompatibility
 import org.gradle.jvm.internal.JarBinarySpecInternal
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.model.DefaultVariantDimensionSelectorFactory
+import org.gradle.language.base.internal.model.DefaultVariantAxisCompatibilityFactory
 import org.gradle.language.base.internal.model.VariantsMetaData
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
@@ -78,13 +78,13 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         platform = DefaultJavaPlatform.current()
         def variants = Mock(VariantsMetaData)
         variants.getValueAsType(JavaPlatform, 'targetPlatform') >> platform
-        variants.nonNullDimensions >> ['targetPlatform']
-        variants.allDimensions >> ['targetPlatform']
-        variants.getDimensionType(_) >> ModelType.of(JavaPlatform)
+        variants.nonNullVariantAxes >> ['targetPlatform']
+        variants.declaredVariantAxes >> ['targetPlatform']
+        variants.getVariantAxisType(_) >> ModelType.of(JavaPlatform)
         def schemaStore = new DefaultModelSchemaStore(new ModelSchemaExtractor([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
         def libraryAdapter = new JvmLocalLibraryMetaDataAdapter()
         def errorMessageBuilder = new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
-        def variantDimensionSelectorFactories = [DefaultVariantDimensionSelectorFactory.of(JavaPlatform, new DefaultJavaPlatformVariantDimensionSelector())]
+        def variantDimensionSelectorFactories = [DefaultVariantAxisCompatibilityFactory.of(JavaPlatform, new DefaultJavaPlatformVariantAxisCompatibility())]
         resolver = new LocalLibraryDependencyResolver(JarBinarySpec, projectModelResolver, variantDimensionSelectorFactories, variants, schemaStore, libraryAdapter, errorMessageBuilder)
         metadata = Mock(DependencyMetaData)
         selector = Mock(LibraryComponentSelector)

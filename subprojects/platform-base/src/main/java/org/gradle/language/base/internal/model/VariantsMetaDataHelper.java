@@ -21,11 +21,11 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Set;
 
 public class VariantsMetaDataHelper {
-    public static Set<String> incompatibleDimensionTypes(VariantsMetaData reference, VariantsMetaData candidate, Set<String> testedDimensions) {
+    public static Set<String> determineAxesWithIncompatibleTypes(VariantsMetaData reference, VariantsMetaData candidate, Set<String> testedDimensions) {
         Set<String> result = Sets.newHashSet();
         for (String commonDimension : testedDimensions) {
-            ModelType<?> resolveType = reference.getDimensionType(commonDimension);
-            ModelType<?> binaryVariantType = candidate.getDimensionType(commonDimension);
+            ModelType<?> resolveType = reference.getVariantAxisType(commonDimension);
+            ModelType<?> binaryVariantType = candidate.getVariantAxisType(commonDimension);
             if (binaryVariantType != null && !resolveType.isAssignableFrom(binaryVariantType)) {
                 result.add(commonDimension);
             }

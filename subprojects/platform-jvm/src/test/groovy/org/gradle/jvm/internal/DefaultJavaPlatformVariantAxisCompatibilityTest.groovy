@@ -19,15 +19,15 @@ package org.gradle.jvm.internal
 import org.gradle.api.JavaVersion
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
-import org.gradle.language.base.internal.model.VariantDimensionSelector
+import org.gradle.language.base.internal.model.VariantAxisCompatibility
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultJavaPlatformVariantDimensionSelectorTest extends Specification {
+class DefaultJavaPlatformVariantAxisCompatibilityTest extends Specification {
     @Unroll("Java #requirement is compatible with #value : #expected")
     def "should check that Java platform is compatible"() {
         given:
-        VariantDimensionSelector<JavaPlatform> selector = new DefaultJavaPlatformVariantDimensionSelector()
+        VariantAxisCompatibility<JavaPlatform> selector = new DefaultJavaPlatformVariantAxisCompatibility()
 
         when:
         def compatible = selector.isCompatibleWithRequirement(requirement, value)
@@ -51,7 +51,7 @@ class DefaultJavaPlatformVariantDimensionSelectorTest extends Specification {
     @Unroll("Java #newValue is a better fit than #oldValue : #expected")
     def "should check that Java platform is a better fit than one other"() {
         given:
-        VariantDimensionSelector<JavaPlatform> selector = new DefaultJavaPlatformVariantDimensionSelector()
+        VariantAxisCompatibility<JavaPlatform> selector = new DefaultJavaPlatformVariantAxisCompatibility()
 
         when:
         def compatible = selector.betterFit(new DefaultJavaPlatform(JavaVersion.VERSION_1_7), oldValue, newValue)

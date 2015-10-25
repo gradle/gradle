@@ -16,9 +16,9 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.language.base.internal.model.VariantDimensionSelector;
+import org.gradle.language.base.internal.model.VariantAxisCompatibility;
 
-public class DefaultJavaPlatformVariantDimensionSelector implements VariantDimensionSelector<JavaPlatform> {
+public class DefaultJavaPlatformVariantAxisCompatibility implements VariantAxisCompatibility<JavaPlatform> {
     @Override
     public boolean isCompatibleWithRequirement(JavaPlatform requirement, JavaPlatform value) {
         return requirement.getTargetCompatibility().compareTo(value.getTargetCompatibility()) >= 0;

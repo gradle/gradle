@@ -37,7 +37,7 @@ class VariantsMetaDataHelperTest extends Specification {
         def candidate = DefaultVariantsMetaData.extractFrom(binary(candidateClass), schemaStore)
 
         when:
-        def incompatibleDimensions = VariantsMetaDataHelper.incompatibleDimensionTypes(reference, candidate, dimensions as Set)
+        def incompatibleDimensions = VariantsMetaDataHelper.determineAxesWithIncompatibleTypes(reference, candidate, dimensions as Set)
 
         then:
         incompatibleDimensions == (expectedIncompatible as Set)

@@ -1021,7 +1021,13 @@ model {
 
         then:
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
-        failure.assertHasCause("Multiple binaries available for library 'dep' (Java SE 6) : [Jar 'depJar', Jar 'depJar2']")
+        failure.assertHasCause(
+                "Multiple compatible variants found for library 'dep':\n" +
+                "   - Jar 'depJar':\n" +
+                "       * platform 'java6'\n" +
+                "   - Jar 'depJar2':\n" +
+                "       * platform 'java6'"
+        )
 
     }
 
@@ -1086,14 +1092,26 @@ model {
 
         then: "fails because multiple binaries are available for the Java 6 variant of 'dep'"
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java'")
-        failure.assertHasCause("Multiple binaries available for library 'dep' (Java SE 6) : [Jar 'depJar', Jar 'depJar2']")
+        failure.assertHasCause(
+                "Multiple compatible variants found for library 'dep':\n" +
+                        "   - Jar 'depJar':\n" +
+                        "       * platform 'java6'\n" +
+                        "   - Jar 'depJar2':\n" +
+                        "       * platform 'java6'"
+        )
 
         when: "attempt to build main jar Java 7"
         fails ':java7MainJar'
 
         then: "fails because multiple binaries are available for the Java 6 compatible variant of 'dep'"
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java7MainJar'' source set 'Java source 'main:java'")
-        failure.assertHasCause("Multiple binaries available for library 'dep' (Java SE 7) : [Jar 'depJar', Jar 'depJar2']")
+        failure.assertHasCause(
+                "Multiple compatible variants found for library 'dep':\n" +
+                        "   - Jar 'depJar':\n" +
+                        "       * platform 'java6'\n" +
+                        "   - Jar 'depJar2':\n" +
+                        "       * platform 'java6'"
+        )
 
     }
 
@@ -1234,7 +1252,10 @@ model {
         fails 'mainJar'
 
         then:
-        failure.assertHasCause("Cannot find a compatible binary for library 'dep' (Java SE 6). Available platforms: [Java SE 7]")
+        failure.assertHasCause(
+                "Cannot find a compatible variant for library 'dep'.\n" +
+                        "    Required platform 'java6', available: 'java7'"
+        )
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
@@ -1276,7 +1297,10 @@ model {
         fails ':java6MainJar'
 
         then:
-        failure.assertHasCause("Cannot find a compatible binary for library 'dep' (Java SE 6). Available platforms: [Java SE 7, Java SE 8]")
+        failure.assertHasCause(
+                "Cannot find a compatible variant for library 'dep'.\n" +
+                        "    Required platform 'java6', available: 'java7', 'java8'"
+        )
     }
 
     void applyJavaPlugin(File buildFile) {

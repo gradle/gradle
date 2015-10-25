@@ -30,12 +30,12 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
 
     private final VariantsMetaData variantsMetaData;
     private final ModelSchemaStore schemaStore;
-    private final Set<String> resolveDimensions;
+    private final Set<String> variantAxesToResolve;
 
     public DefaultLibraryResolutionErrorMessageBuilder(VariantsMetaData variantsMetaData, ModelSchemaStore schemaStore) {
         this.variantsMetaData = variantsMetaData;
         this.schemaStore = schemaStore;
-        this.resolveDimensions = variantsMetaData.getNonNullDimensions();
+        this.variantAxesToResolve = variantsMetaData.getNonNullVariantAxes();
     }
 
     @Override
@@ -46,14 +46,11 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
             variantDescriptor.setLength(0);
             variantDescriptor.append("   - ").append(variant.getDisplayName()).append(":\n");
             VariantsMetaData metaData = DefaultVariantsMetaData.extractFrom(variant, schemaStore);
-            Set<String> dimensions = new TreeSet<String>(metaData.getNonNullDimensions());
-            if (dimensions.size() > 1) { // 1 because of targetPlatform, which has compatibility rules beyond equality
-                for (String dimension : dimensions) {
-                    variantDescriptor.append("       * ").append(dimension).append(" '").append(metaData.getValueAsString(dimension)).append("'\n");
-
-                }
-                variantDescriptors.add(variantDescriptor.toString());
+            Set<String> nonNullAxesForVariant = new TreeSet<String>(metaData.getNonNullVariantAxes());
+            for (String axis : nonNullAxesForVariant) {
+                variantDescriptor.append("       * ").append(renderAxisName(axis)).append(" '").append(metaData.getValueAsString(axis)).append("'\n");
             }
+            variantDescriptors.add(variantDescriptor.toString());
         }
         StringBuilder sb = new StringBuilder(String.format("Multiple compatible variants found for library '%s':\n", libraryName));
         for (String descriptor : variantDescriptors) {
@@ -63,29 +60,29 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
     }
 
     @Override
-    public String noCompatibleBinaryErrorMessage(String libraryName, Collection<BinarySpec> allBinaries) {
-        HashMultimap<String, String> variants = HashMultimap.create();
+    public String noCompatibleVariantErrorMessage(String libraryName, Collection<BinarySpec> allBinaries) {
+        HashMultimap<String, String> variantAxisMessages = HashMultimap.create();
         for (BinarySpec spec : allBinaries) {
             VariantsMetaData md = DefaultVariantsMetaData.extractFrom(spec, schemaStore);
-            Set<String> incompatibleDimensionTypes = VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData, md, resolveDimensions);
-            for (String dimension : resolveDimensions) {
-                String value = md.getValueAsString(dimension);
+            Set<String> variantAxesWithIncompatibleTypes = VariantsMetaDataHelper.determineAxesWithIncompatibleTypes(variantsMetaData, md, variantAxesToResolve);
+            for (String variantAxis : variantAxesToResolve) {
+                String value = md.getValueAsString(variantAxis);
                 if (value != null) {
                     String message = String.format("'%s'", value);
-                    if (incompatibleDimensionTypes.contains(dimension)) {
-                        message = String.format("%s but with an incompatible type (expected '%s' was '%s')", message, variantsMetaData.getDimensionType(dimension).getConcreteClass().getName(), md.getDimensionType(dimension).getConcreteClass().getName());
+                    if (variantAxesWithIncompatibleTypes.contains(variantAxis)) {
+                        message = String.format("%s but with an incompatible type (expected '%s' was '%s')", message, variantsMetaData.getVariantAxisType(variantAxis).getConcreteClass().getName(), md.getVariantAxisType(variantAxis).getConcreteClass().getName());
                     }
-                    variants.put(dimension, message);
+                    variantAxisMessages.put(variantAxis, message);
                 }
             }
         }
 
         Joiner joiner = Joiner.on(", ").skipNulls();
         StringBuilder error = new StringBuilder(String.format("Cannot find a compatible variant for library '%s'.\n", libraryName));
-        for (String dimension : resolveDimensions) {
-            String dimensionName = isPlatformDimension(dimension) ? "platform" : dimension;
-            error.append("    Required ").append(dimensionName).append(" '").append(variantsMetaData.getValueAsString(dimension)).append("'");
-            Set<String> available = new TreeSet<String>(variants.get(dimension));
+        for (String variantAxis : variantAxesToResolve) {
+            String axisName = renderAxisName(variantAxis);
+            error.append("    Required ").append(axisName).append(" '").append(variantsMetaData.getValueAsString(variantAxis)).append("'");
+            Set<String> available = new TreeSet<String>(variantAxisMessages.get(variantAxis));
             if (!available.isEmpty()) {
                 error.append(", available: ").append(joiner.join(available)).append("\n");
             } else {
@@ -95,8 +92,7 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
         return error.toString();
     }
 
-    private static boolean isPlatformDimension(String dimension) {
-        return TARGET_PLATFORM.equals(dimension);
+    private String renderAxisName(String variantAxis) {
+        return TARGET_PLATFORM.equals(variantAxis) ? "platform" : variantAxis;
     }
-
 }

@@ -34,7 +34,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
-import org.gradle.language.base.internal.model.VariantDimensionSelectorFactory;
+import org.gradle.language.base.internal.model.VariantAxisCompatibilityFactory;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.ModelMap;
@@ -63,7 +63,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
     public LocalLibraryDependencyResolver(
             Class<T> binarySpecType,
             ProjectModelResolver projectModelResolver,
-            List<VariantDimensionSelectorFactory> selectorFactories,
+            List<VariantAxisCompatibilityFactory> selectorFactories,
             VariantsMetaData variantsMetaData,
             ModelSchemaStore schemaStore,
             LocalLibraryMetaDataAdapter libraryMetaDataAdapter,
@@ -95,7 +95,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
                 Collection<? extends BinarySpec> compatibleBinaries = matcher.filterBinaries(variantsMetaData, allBinaries);
                 if (!allBinaries.isEmpty() && compatibleBinaries.isEmpty()) {
                     // no compatible variant found
-                    result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.noCompatibleBinaryErrorMessage(libraryName, allBinaries)));
+                    result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.noCompatibleVariantErrorMessage(libraryName, allBinaries)));
                 } else if (compatibleBinaries.size() > 1) {
                     result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName, compatibleBinaries)));
                 } else {

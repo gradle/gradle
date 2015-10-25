@@ -220,7 +220,7 @@ model {
 
         and: 'error message indicates the available platforms for the target dependency'
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java''")
-        failure.assertHasCause("Cannot find a compatible binary for library 'zdep' (Java SE 6). Available platforms: [Java SE 7]")
+        failure.assertHasCause("Cannot find a compatible variant for library 'zdep'.\n    Required platform 'java6', available: 'java7'")
 
     }
 
@@ -531,7 +531,7 @@ model {
         and: "Trying to compile the Java 6 variant fails"
         fails ':java6MainJar'
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java''")
-        failure.assertHasCause("Cannot find a compatible binary for library 'second' (Java SE 6). Available platforms: [Java SE 7]")
+        failure.assertHasCause("Cannot find a compatible variant for library 'second'.\n    Required platform 'java6', available: 'java7'")
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
