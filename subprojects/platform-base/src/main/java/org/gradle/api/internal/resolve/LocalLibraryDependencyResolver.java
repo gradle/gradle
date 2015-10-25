@@ -97,7 +97,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
                     // no compatible variant found
                     result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.noCompatibleBinaryErrorMessage(libraryName, allBinaries)));
                 } else if (compatibleBinaries.size() > 1) {
-                    result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleBinariesForSameVariantErrorMessage(libraryName, compatibleBinaries)));
+                    result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName, compatibleBinaries)));
                 } else {
                     BinarySpec selectedBinary = compatibleBinaries.iterator().next();
                     DefaultTaskDependency buildDependencies = new DefaultTaskDependency();

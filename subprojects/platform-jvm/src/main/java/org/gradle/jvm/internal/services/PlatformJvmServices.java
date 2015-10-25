@@ -84,8 +84,9 @@ public class PlatformJvmServices implements PluginServiceRegistry {
                             projectModelResolver,
                             registry.getAll(VariantDimensionSelectorFactory.class),
                             variants,
-                            schemaStore, libraryMetaDataAdapter,
-                            new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore, libraryMetaDataAdapter)
+                            schemaStore,
+                            libraryMetaDataAdapter,
+                            new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
                     );
             return DelegatingComponentResolvers.of(delegate);
         }

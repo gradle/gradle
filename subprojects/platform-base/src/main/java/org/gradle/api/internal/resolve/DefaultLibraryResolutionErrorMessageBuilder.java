@@ -15,16 +15,13 @@
  */
 package org.gradle.api.internal.resolve;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaDataHelper;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.Platform;
 
 import java.util.*;
 
@@ -33,117 +30,69 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
 
     private final VariantsMetaData variantsMetaData;
     private final ModelSchemaStore schemaStore;
-    private final Platform platform;
     private final Set<String> resolveDimensions;
-    private final LocalLibraryMetaDataAdapter adapter;
 
-    public DefaultLibraryResolutionErrorMessageBuilder(VariantsMetaData variantsMetaData, ModelSchemaStore schemaStore, LocalLibraryMetaDataAdapter adapter) {
+    public DefaultLibraryResolutionErrorMessageBuilder(VariantsMetaData variantsMetaData, ModelSchemaStore schemaStore) {
         this.variantsMetaData = variantsMetaData;
         this.schemaStore = schemaStore;
-        this.adapter = adapter;
-        this.platform = variantsMetaData.getValueAsType(Platform.class, TARGET_PLATFORM);
         this.resolveDimensions = variantsMetaData.getNonNullDimensions();
     }
 
     @Override
-    public String multipleBinariesForSameVariantErrorMessage(String libraryName, Collection<? extends BinarySpec> binaries) {
-        List<String> binaryDescriptors = new ArrayList<String>(binaries.size());
-        StringBuilder binaryDescriptor = new StringBuilder();
+    public String multipleCompatibleVariantsErrorMessage(String libraryName, Collection<? extends BinarySpec> binaries) {
+        List<String> variantDescriptors = new ArrayList<String>(binaries.size());
+        StringBuilder variantDescriptor = new StringBuilder();
         for (BinarySpec variant : binaries) {
-            binaryDescriptor.setLength(0);
-            binaryDescriptor.append("   - ").append(variant.getDisplayName()).append(":\n");
+            variantDescriptor.setLength(0);
+            variantDescriptor.append("   - ").append(variant.getDisplayName()).append(":\n");
             VariantsMetaData metaData = DefaultVariantsMetaData.extractFrom(variant, schemaStore);
             Set<String> dimensions = new TreeSet<String>(metaData.getNonNullDimensions());
-            if (dimensions.size() > 1) { // 1 because of targetPlatform
+            if (dimensions.size() > 1) { // 1 because of targetPlatform, which has compatibility rules beyond equality
                 for (String dimension : dimensions) {
-                    binaryDescriptor.append("       * ").append(dimension).append(" '").append(metaData.getValueAsString(dimension)).append("'\n");
+                    variantDescriptor.append("       * ").append(dimension).append(" '").append(metaData.getValueAsString(dimension)).append("'\n");
 
                 }
-                binaryDescriptors.add(binaryDescriptor.toString());
+                variantDescriptors.add(variantDescriptor.toString());
             }
         }
-        if (binaryDescriptors.isEmpty()) {
-            return String.format("Multiple binaries available for library '%s' (%s) : %s", libraryName, platform, binaries);
-        } else {
-            // custom variants on binaries
-            StringBuilder sb = new StringBuilder(String.format("Multiple binaries available for library '%s' (%s) :\n", libraryName, platform));
-            for (String descriptor : binaryDescriptors) {
-                sb.append(descriptor);
-            }
-            return sb.toString();
+        StringBuilder sb = new StringBuilder(String.format("Multiple compatible variants found for library '%s':\n", libraryName));
+        for (String descriptor : variantDescriptors) {
+            sb.append(descriptor);
         }
+        return sb.toString();
     }
 
-    // TODO:DAZ Extract the JVM-specific logic out of here: this error message builder should be general to all library types
     @Override
     public String noCompatibleBinaryErrorMessage(String libraryName, Collection<BinarySpec> allBinaries) {
-        if (resolveDimensions.size() == 1) { // 1 because of targetPlatform
-            List<String> availablePlatforms = Lists.transform(
-                Lists.newArrayList(allBinaries), new Function<BinarySpec, String>() {
-                    @Override
-                    public String apply(BinarySpec input) {
-                        return getPlatformDisplayName(input);
-                    }
-                }
-            );
-            return String.format("Cannot find a compatible binary for library '%s' (%s). Available platforms: %s", libraryName, platform, availablePlatforms);
-        } else {
-            final boolean moreThanOneBinary = allBinaries.size() > 1;
-            Set<String> availablePlatforms = new TreeSet<String>(Lists.transform(
-                Lists.newArrayList(allBinaries), new Function<BinarySpec, String>() {
-                    @Override
-                    public String apply(BinarySpec input) {
-                        String platformName = getPlatformDisplayName(input);
-                        if (moreThanOneBinary) {
-                            return String.format("'%s' on %s", platformName, input.getDisplayName());
-                        }
-                        return String.format("'%s'", platformName);
-                    }
-                }
-            ));
-            StringBuilder error = new StringBuilder(String.format("Cannot find a compatible binary for library '%s' (%s).\n", libraryName, platform));
-            Joiner joiner = Joiner.on(",").skipNulls();
-            error.append("    Required platform '").append(platform.getName()).append("', ");
-            error.append("available: ").append(joiner.join(availablePlatforms));
-            error.append("\n");
-            HashMultimap<String, String> variants = HashMultimap.create();
-            for (BinarySpec spec : allBinaries) {
-                VariantsMetaData md = DefaultVariantsMetaData.extractFrom(spec, schemaStore);
-                Set<String> incompatibleDimensionTypes = VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData, md, resolveDimensions);
-                for (String dimension : resolveDimensions) {
-                    String value = md.getValueAsString(dimension);
-                    if (value != null) {
-                        String message;
-                        if (moreThanOneBinary) {
-                            message = String.format("'%s' on %s", value, spec.getDisplayName());
-                        } else {
-                            message = String.format("'%s'", value);
-                        }
-                        if (incompatibleDimensionTypes.contains(dimension)) {
-                            message = String.format("%s but with an incompatible type (expected '%s' was '%s')", message, variantsMetaData.getDimensionType(dimension).getConcreteClass().getName(), md.getDimensionType(dimension).getConcreteClass().getName());
-                        }
-                        variants.put(dimension, message);
-                    }
-                }
-            }
-
+        HashMultimap<String, String> variants = HashMultimap.create();
+        for (BinarySpec spec : allBinaries) {
+            VariantsMetaData md = DefaultVariantsMetaData.extractFrom(spec, schemaStore);
+            Set<String> incompatibleDimensionTypes = VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData, md, resolveDimensions);
             for (String dimension : resolveDimensions) {
-                if (!isPlatformDimension(dimension)) {
-                    error.append("    Required ").append(dimension).append(" '").append(variantsMetaData.getValueAsString(dimension)).append("'");
-                    Set<String> available = new TreeSet<String>(variants.get(dimension));
-                    if (!available.isEmpty()) {
-                        error.append(", available: ").append(joiner.join(available)).append("\n");
-                    } else {
-                        error.append(" but no compatible binary was found\n");
+                String value = md.getValueAsString(dimension);
+                if (value != null) {
+                    String message = String.format("'%s'", value);
+                    if (incompatibleDimensionTypes.contains(dimension)) {
+                        message = String.format("%s but with an incompatible type (expected '%s' was '%s')", message, variantsMetaData.getDimensionType(dimension).getConcreteClass().getName(), md.getDimensionType(dimension).getConcreteClass().getName());
                     }
+                    variants.put(dimension, message);
                 }
             }
-            return error.toString();
         }
-    }
 
-    private String getPlatformDisplayName(BinarySpec input) {
-        return adapter.getPlatformDisplayName(input);
+        Joiner joiner = Joiner.on(", ").skipNulls();
+        StringBuilder error = new StringBuilder(String.format("Cannot find a compatible variant for library '%s'.\n", libraryName));
+        for (String dimension : resolveDimensions) {
+            String dimensionName = isPlatformDimension(dimension) ? "platform" : dimension;
+            error.append("    Required ").append(dimensionName).append(" '").append(variantsMetaData.getValueAsString(dimension)).append("'");
+            Set<String> available = new TreeSet<String>(variants.get(dimension));
+            if (!available.isEmpty()) {
+                error.append(", available: ").append(joiner.join(available)).append("\n");
+            } else {
+                error.append(" but no compatible variant was found\n");
+            }
+        }
+        return error.toString();
     }
 
     private static boolean isPlatformDimension(String dimension) {

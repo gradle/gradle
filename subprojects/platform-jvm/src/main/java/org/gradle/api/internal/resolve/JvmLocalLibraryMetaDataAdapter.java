@@ -38,11 +38,6 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
         return metaData;
     }
 
-    @Override
-    public String getPlatformDisplayName(BinarySpec input) {
-        return input instanceof JarBinarySpec ? ((JarBinarySpec) input).getTargetPlatform().getName() : input.toString();
-    }
-
     private void addExportedDependencies(BinarySpec selectedBinary, DefaultLibraryLocalComponentMetaData metaData, String selectorProjectPath) {
         for (DependentSourceSetInternal sourceSet : selectedBinary.getInputs().withType(DependentSourceSetInternal.class)) {
             for (DependencySpec dependency : sourceSet.getDependencies().getDependencies()) {

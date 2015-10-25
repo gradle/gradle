@@ -22,6 +22,4 @@ import org.gradle.platform.base.BinarySpec;
 
 public interface LocalLibraryMetaDataAdapter {
     LocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, TaskDependency buildDependencies, String projectPath);
-
-    String getPlatformDisplayName(BinarySpec binary);
 }

@@ -83,7 +83,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         variants.getDimensionType(_) >> ModelType.of(JavaPlatform)
         def schemaStore = new DefaultModelSchemaStore(new ModelSchemaExtractor([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
         def libraryAdapter = new JvmLocalLibraryMetaDataAdapter()
-        def errorMessageBuilder = new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore, libraryAdapter)
+        def errorMessageBuilder = new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
         def variantDimensionSelectorFactories = [DefaultVariantDimensionSelectorFactory.of(JavaPlatform, new DefaultJavaPlatformVariantDimensionSelector())]
         resolver = new LocalLibraryDependencyResolver(JarBinarySpec, projectModelResolver, variantDimensionSelectorFactories, variants, schemaStore, libraryAdapter, errorMessageBuilder)
         metadata = Mock(DependencyMetaData)

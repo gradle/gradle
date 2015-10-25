@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface LibraryResolutionErrorMessageBuilder {
-    String multipleBinariesForSameVariantErrorMessage(String libraryName, Collection<? extends BinarySpec> binaries);
+    String multipleCompatibleVariantsErrorMessage(String libraryName, Collection<? extends BinarySpec> binaries);
 
     String noCompatibleBinaryErrorMessage(String libraryName, Collection<BinarySpec> allBinaries);
 
