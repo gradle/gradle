@@ -45,7 +45,7 @@ Source sets
         srcDir: src${File.separator}docs${File.separator}userguide
 
 Binaries
-    DefaultDocumentationBinary 'docsBinary'
+    DefaultDocumentationBinary 'docs:binary'
         build using task: :docsBinary
 """))
 
@@ -57,9 +57,9 @@ Binaries
         when:
         succeeds "assemble"
         then:
-        executedTasks == [":docsBinaryUserguideHtmlCompile", ":zipDocsBinary", ":docsBinary", ":assemble"]
+        executedTasks == [":compileDocsBinaryUserguide", ":zipDocsBinary", ":docsBinary", ":assemble"]
         and:
-        new ZipTestFixture(languageTypeSample.dir.file("build/docsBinary/docsBinary.zip")).containsDescendants(
+        new ZipTestFixture(languageTypeSample.dir.file("build/binary/binary.zip")).containsDescendants(
                 "userguide/chapter1.html",
                 "userguide/chapter2.html",
                 "userguide/index.html")

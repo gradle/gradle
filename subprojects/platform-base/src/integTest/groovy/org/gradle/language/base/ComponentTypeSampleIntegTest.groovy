@@ -55,9 +55,9 @@ model {
         when:
         succeeds "assemble"
         then:
-        executedAndNotSkipped ":renderTitleA14pxSvg", ":imageA14px", ":renderTitleA28pxSvg", ":imageA28px", ":renderTitleA40pxSvg",
-                              ":imageA40px", ":renderTitleB14pxSvg", ":imageB14px", ":renderTitleB28pxSvg", ":imageB28px",
-                              ":renderTitleB40pxSvg", ":imageB40px", ":assemble"
+        executedAndNotSkipped ":renderImageA14pxSvg", ":imageA14px", ":renderImageA28pxSvg", ":imageA28px", ":renderImageA40pxSvg",
+                              ":imageA40px", ":renderImageB14pxSvg", ":imageB14px", ":renderImageB28pxSvg", ":imageB28px",
+                              ":renderImageB40pxSvg", ":imageB40px", ":assemble"
 
         and:
         componentTypeSample.dir.file("build/renderedSvg").assertHasDescendants("TitleA_14px.svg", "TitleA_28px.svg", "TitleA_40px.svg", "TitleB_14px.svg",
