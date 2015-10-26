@@ -528,7 +528,7 @@ coverage and the cost of the coverage
 - Source directory locations
     - Add a `baseDir` property to `FunctionalSourceSet` and default it to `project.projectDir`
     - Add an `abstract` method to `BaseLanguageSourceSet`, `String getSourceDirConvention()`. For a java LSS this would return `"src/main"`
-    - When a `LanguageSourceSet` is created via a `FunctionalSourceSet` the `LSS`'s source directory should be `${fss.baseDir}/${lss.getSourceDirConvention()}/${lss.name}`
+    - When a `LanguageSourceSet` is created via a `FunctionalSourceSet` the `LSS`'s source directory should be `${fss.baseDir}/${lss.getSourceDirConvention()}/${lss.getParentName()}/${lss.name}`
 
 ### Test cases
 Assuming `JavaSourceSet` is registered as a `LanguageType`
