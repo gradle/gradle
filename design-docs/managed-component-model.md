@@ -528,17 +528,6 @@ coverage and the cost of the coverage
 - Source directory locations
     - Add a `baseDir` property to `FunctionalSourceSet` and default it to `project.projectDir`
     - Add an `abstract` method to `BaseLanguageSourceSet`, `String getSourceDirConvention()`. For a java LSS this would return `"src/main"`
-    - When a `LanguageSourceSet` is created via a `FunctionalSourceSet` the `LSS`'s source directory should be `${fss.baseDir}/${lss.getSourceDirConvention()}/${lss.getParentName()}/${lss.name}`
-        - There will be a behavior change here as the below config would result in 2 source sets: "src/myLib/myResources" plus whatever the default (as above) is. Once stuff is node backed an
-        `@Defaults` rule can be used to set a default source dir instead of pre-populating.
-        ```myLib(JvmLibrarySpec) {
-            sources {
-                resources {
-                    source.srcDir "src/myLib/myResources"
-                }
-            }
-        }```
-
 
 ### Test cases
 Assuming `JavaSourceSet` is registered as a `LanguageType`
@@ -571,7 +560,6 @@ model {
 - Are these created LSS's intended to be model elements and appear on the model report? considering FSS is not yet a `ModelMap`.
 - Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has
 no knowledge of where its elements end up being referenced.
-- Are we ok with the behavior change i.e. adding a default src dir until things are node backed.
 
 ## Story: Allow `LanguageSourceSet` instances to be attached to a managed type
 

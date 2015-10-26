@@ -107,10 +107,10 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
                         sources {
                             "$pluginName" {
                                 source {
-                                    srcDirs = ["d3"]
+                                    srcDirs "d3"
                                 }
                                 exportedHeaders {
-                                    srcDirs = ["h3"]
+                                    srcDirs "h3"
                                 }
                             }
                         }
@@ -119,10 +119,10 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
                         sources {
                             "$pluginName" {
                                 source {
-                                    srcDirs = ["d1", "d2"]
+                                    srcDirs "d1", "d2"
                                 }
                                 exportedHeaders {
-                                    srcDirs = ["h1", "h2"]
+                                    srcDirs "h1", "h2"
                                 }
                             }
                         }

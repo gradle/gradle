@@ -255,10 +255,10 @@ object Application extends Controller {
                     play {
                         sources {
                             extraRoutes(RoutesSourceSet) {
-                                source.srcDirs = ["extraRoutes"]
+                                source.srcDir "extraRoutes"
                             }
                             otherRoutes(RoutesSourceSet) {
-                                source.srcDirs = ["otherRoutes"]
+                                source.srcDir "otherRoutes"
                             }
                         }
                     }

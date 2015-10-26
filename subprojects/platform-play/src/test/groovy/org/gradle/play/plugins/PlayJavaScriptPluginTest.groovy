@@ -46,10 +46,7 @@ class PlayJavaScriptPluginTest extends Specification {
         1 * sources.create("javaScript", JavaScriptSourceSet, _ as Action) >> {
             String name, Class type, Action a -> a.execute(sourceSet)
         }
-
-        1 * sourceDirSet.setSrcDirs(_) >> { args ->
-            assert args[0] as List == ["app/assets"]
-        }
+        1 * sourceDirSet.srcDir("app/assets")
         1 * sourceDirSet.include("**/*.js")
         0 * _._
     }

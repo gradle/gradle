@@ -17,6 +17,7 @@
 package org.gradle.language.base.internal.model;
 
 import org.gradle.api.Action;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
@@ -38,6 +39,12 @@ public class ComponentRules extends RuleSource {
             // TODO - allow view as internal type and remove the cast
             ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms).execute((ComponentSpecInternal) component);
         }
+    }
+
+    @Defaults
+    void applyDefaultSourceConventions(final ComponentSpec component) {
+        final FunctionalSourceSet functionalSourceSet = ((ComponentSpecInternal) component).getFunctionalSourceSet();
+        component.getSources().afterEach(new AddDefaultSourceLocation(functionalSourceSet));
     }
 
     // Currently needs to be a separate action since can't have parameterized utility methods in a RuleSource
@@ -62,11 +69,25 @@ public class ComponentRules extends RuleSource {
         void createDefaultSourceSetForComponents(final ComponentSpecInternal component) {
             for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
                 if (languageTransform.getSourceSetType().equals(languageRegistration.getSourceSetType())
-                        && component.getInputTypes().contains(languageTransform.getOutputType())) {
+                    && component.getInputTypes().contains(languageTransform.getOutputType())) {
                     component.getSources().create(languageRegistration.getName(), languageRegistration.getSourceSetType());
                     return;
                 }
             }
+        }
+    }
+
+    private static class AddDefaultSourceLocation implements Action<LanguageSourceSet> {
+        private FunctionalSourceSet functionalSourceSet;
+
+        public AddDefaultSourceLocation(FunctionalSourceSet functionalSourceSet) {
+            this.functionalSourceSet = functionalSourceSet;
+        }
+
+        @Override
+        public void execute(LanguageSourceSet languageSourceSet) {
+            // Only apply default locations when none explicitly configured
+            functionalSourceSet.maybeAddDefaultSrcDirs(languageSourceSet);
         }
     }
 }

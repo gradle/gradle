@@ -15,6 +15,8 @@
  */
 
 package org.gradle.language.base
+
+import groovy.transform.NotYetImplemented
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
@@ -212,6 +214,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         modelNode.sources.@nodeValue[0] == "[Java source 'functionalSources:myJavaSourceSet']"
     }
 
+    @NotYetImplemented
     def "a LSS is initialized with a default source set"() {
         buildFile << """
         ${registerJavaLanguage()}

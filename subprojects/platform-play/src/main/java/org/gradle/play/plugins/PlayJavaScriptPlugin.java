@@ -35,7 +35,6 @@ import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.tasks.JavaScriptMinify;
 
 import java.io.File;
-import java.util.Collections;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -59,7 +58,7 @@ public class PlayJavaScriptPlugin extends RuleSource {
                 playComponent.getSources().create("javaScript", JavaScriptSourceSet.class, new Action<JavaScriptSourceSet>() {
                     @Override
                     public void execute(JavaScriptSourceSet javaScriptSourceSet) {
-                        javaScriptSourceSet.getSource().setSrcDirs(Collections.singleton("app/assets"));
+                        javaScriptSourceSet.getSource().srcDir("app/assets");
                         javaScriptSourceSet.getSource().include("**/*.js");
                     }
                 });

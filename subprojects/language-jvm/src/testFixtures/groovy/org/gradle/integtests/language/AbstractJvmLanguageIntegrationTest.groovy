@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.archive.JarTestFixture
 
-abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpec{
 
     abstract TestJvmComponent getApp()
 
@@ -116,10 +116,10 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
             myLib(JvmLibrarySpec) {
                 sources {
                     ${app.languageName} {
-                        source.srcDirs = ["src/myLib/$customSourceSetName"]
+                        source.srcDir "src/myLib/$customSourceSetName"
                     }
                     resources {
-                        source.setSrcDirs(["src/myLib/myResources"])
+                        source.srcDir "src/myLib/myResources"
                     }
                 }
             }
@@ -168,7 +168,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
     }
 
     def exluceStatementFor(List<String> fileExtensions) {
-        fileExtensions.collect { "exclude '**/*.${it}'" }.join(SystemProperties.instance.lineSeparator)
+        fileExtensions.collect{"exclude '**/*.${it}'"}.join(SystemProperties.instance.lineSeparator)
     }
 
     def "can configure output directories for classes and resources"() {

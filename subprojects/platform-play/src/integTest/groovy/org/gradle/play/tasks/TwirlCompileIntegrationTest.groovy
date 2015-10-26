@@ -189,10 +189,10 @@ Binaries
                     play {
                         sources {
                             extraTwirl(TwirlSourceSet) {
-                                source.srcDirs = ["extraSources"]
+                                source.srcDir "extraSources"
                             }
                             otherTwirl(TwirlSourceSet) {
-                                source.srcDirs = ["otherSources"]
+                                source.srcDir "otherSources"
                             }
                         }
                     }

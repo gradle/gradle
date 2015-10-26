@@ -29,7 +29,6 @@ import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 
 import java.io.File;
-import java.util.Collections;
 
 import static com.google.common.base.Strings.emptyToNull;
 
@@ -45,9 +44,6 @@ public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomai
         this.baseDir = baseDir;
         whenObjectAdded(new Action<LanguageSourceSet>() {
             public void execute(LanguageSourceSet languageSourceSet) {
-                if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
-                    initializeDefaultSrcDir(languageSourceSet);
-                }
                 projectSourceSet.add(languageSourceSet);
             }
         });
@@ -59,9 +55,12 @@ public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomai
         return languageSourceSet;
     }
 
-    private <U extends LanguageSourceSet> void initializeDefaultSrcDir(U languageSourceSet) {
-        String defaultSourceDir = calculateDefaultPath(languageSourceSet);
-        languageSourceSet.getSource().setSrcDirs(Collections.singletonList(defaultSourceDir));
+    @Override
+    public void maybeAddDefaultSrcDirs(LanguageSourceSet languageSourceSet) {
+        if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
+            String defaultSourceDir = calculateDefaultPath(languageSourceSet);
+            languageSourceSet.getSource().srcDir(defaultSourceDir);
+        }
     }
 
     private <U extends LanguageSourceSet> U createLanguageSourceSet(String name, Class<U> type) {

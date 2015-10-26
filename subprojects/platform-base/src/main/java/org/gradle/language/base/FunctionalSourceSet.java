@@ -25,4 +25,5 @@ import org.gradle.api.internal.ExtensiblePolymorphicDomainObjectContainerInterna
  */
 @Incubating
 public interface FunctionalSourceSet extends ExtensiblePolymorphicDomainObjectContainerInternal<LanguageSourceSet>, Named {
+    void maybeAddDefaultSrcDirs(LanguageSourceSet languageSourceSet);
 }

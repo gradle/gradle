@@ -84,20 +84,20 @@ model {
             sources {
                 cpp {
                     source {
-                        srcDirs = ["source"]
+                        srcDirs "source"
                         include "**/*.cpp"
                     }
                     exportedHeaders {
-                        srcDirs = ["source/hello", "include"]
+                        srcDirs "source/hello", "include"
                     }
                 }
                 c {
                     source {
-                        srcDirs = ["source", "include"]
+                        srcDirs "source", "include"
                         include "**/*.c"
                     }
                     exportedHeaders {
-                        srcDirs = ["source/hello", "include"]
+                        srcDirs "source/hello", "include"
                     }
                 }
             }
@@ -167,7 +167,5 @@ model {
         then:
         executable("build/binaries/mainExecutable/main").exec().out == HelloWorldApp.HELLO_WORLD + HelloWorldApp.HELLO_WORLD_FRENCH
     }
-
-
 }
 
