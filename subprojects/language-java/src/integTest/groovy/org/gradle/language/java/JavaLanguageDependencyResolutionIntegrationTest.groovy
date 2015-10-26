@@ -15,11 +15,12 @@
  */
 
 package org.gradle.language.java
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.util.Matchers.containsText
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class JavaLanguageDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -1022,9 +1023,10 @@ model {
 
         then:
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
-        failure.assertHasCause("Multiple compatible variants found for library 'dep':")
-        failure.assertThatCause(containsText("- Jar 'depJar' [platform:'java6']"))
-        failure.assertThatCause(containsText("- Jar 'depJar2' [platform:'java6']"))
+        failure.assertHasCause(normaliseLineSeparators("""Multiple compatible variants found for library 'dep':
+    - Jar 'depJar' [platform:'java6']
+    - Jar 'depJar2' [platform:'java6']"""
+        ))
     }
 
     def "should display reasonable error messages in case of multiple binaries available or no compatible variant is found"() {
@@ -1088,18 +1090,20 @@ model {
 
         then: "fails because multiple binaries are available for the Java 6 variant of 'dep'"
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java'")
-        failure.assertHasCause("Multiple compatible variants found for library 'dep':")
-        failure.assertThatCause(containsText("- Jar 'depJar' [platform:'java6']"))
-        failure.assertThatCause(containsText("- Jar 'depJar2' [platform:'java6']"))
+        failure.assertHasCause(normaliseLineSeparators("""Multiple compatible variants found for library 'dep':
+    - Jar 'depJar' [platform:'java6']
+    - Jar 'depJar2' [platform:'java6']"""
+        ))
 
         when: "attempt to build main jar Java 7"
         fails ':java7MainJar'
 
         then: "fails because multiple binaries are available for the Java 6 compatible variant of 'dep'"
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java7MainJar'' source set 'Java source 'main:java'")
-        failure.assertHasCause("Multiple compatible variants found for library 'dep':")
-        failure.assertThatCause(containsText("- Jar 'depJar' [platform:'java6']"))
-        failure.assertThatCause(containsText("- Jar 'depJar2' [platform:'java6']"))
+        failure.assertHasCause(normaliseLineSeparators("""Multiple compatible variants found for library 'dep':
+    - Jar 'depJar' [platform:'java6']
+    - Jar 'depJar2' [platform:'java6']"""
+        ))
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -1239,10 +1243,10 @@ model {
         fails 'mainJar'
 
         then:
-        failure.assertHasCause(
+        failure.assertHasCause(normaliseLineSeparators(
                 "Cannot find a compatible variant for library 'dep'.\n" +
                         "    Required platform 'java6', available: 'java7'"
-        )
+        ))
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
@@ -1284,10 +1288,10 @@ model {
         fails ':java6MainJar'
 
         then:
-        failure.assertHasCause(
+        failure.assertHasCause(normaliseLineSeparators(
                 "Cannot find a compatible variant for library 'dep'.\n" +
                         "    Required platform 'java6', available: 'java7', 'java8'"
-        )
+        ))
     }
 
     void applyJavaPlugin(File buildFile) {

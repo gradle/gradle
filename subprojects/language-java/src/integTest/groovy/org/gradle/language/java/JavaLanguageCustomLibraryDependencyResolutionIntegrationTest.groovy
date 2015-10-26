@@ -19,6 +19,7 @@ package org.gradle.language.java
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 class JavaLanguageCustomLibraryDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
@@ -220,7 +221,7 @@ model {
 
         and: 'error message indicates the available platforms for the target dependency'
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java''")
-        failure.assertHasCause("Cannot find a compatible variant for library 'zdep'.\n    Required platform 'java6', available: 'java7'")
+        failure.assertHasCause(TextUtil.normaliseLineSeparators("Cannot find a compatible variant for library 'zdep'.\n    Required platform 'java6', available: 'java7'"))
 
     }
 
@@ -531,7 +532,7 @@ model {
         and: "Trying to compile the Java 6 variant fails"
         fails ':java6MainJar'
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java''")
-        failure.assertHasCause("Cannot find a compatible variant for library 'second'.\n    Required platform 'java6', available: 'java7'")
+        failure.assertHasCause(TextUtil.normaliseLineSeparators("Cannot find a compatible variant for library 'second'.\n    Required platform 'java6', available: 'java7'"))
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)

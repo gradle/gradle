@@ -22,6 +22,7 @@ import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaDataHelper;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.util.TextUtil;
 
 import java.util.*;
 
@@ -55,10 +56,10 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
                 }
                 variantDescriptor.append(renderAxisName(axis)).append(":'").append(metaData.getValueAsString(axis)).append("'");
             }
-            variantDescriptor.append("]\n");
+            variantDescriptor.append(TextUtil.toPlatformLineSeparators("]\n"));
             variantDescriptors.add(variantDescriptor.toString());
         }
-        StringBuilder sb = new StringBuilder(String.format("Multiple compatible variants found for library '%s':\n", libraryName));
+        StringBuilder sb = new StringBuilder(String.format(TextUtil.toPlatformLineSeparators("Multiple compatible variants found for library '%s':\n"), libraryName));
         for (String descriptor : variantDescriptors) {
             sb.append(descriptor);
         }
@@ -84,7 +85,7 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
         }
 
         Joiner joiner = Joiner.on(", ").skipNulls();
-        StringBuilder error = new StringBuilder(String.format("Cannot find a compatible variant for library '%s'.\n", libraryName));
+        StringBuilder error = new StringBuilder(String.format(TextUtil.toPlatformLineSeparators("Cannot find a compatible variant for library '%s'.\n"), libraryName));
         for (String variantAxis : variantAxesToResolve) {
             String axisName = renderAxisName(variantAxis);
             error.append("    Required ").append(axisName).append(" '").append(variantsMetaData.getValueAsString(variantAxis)).append("'");
