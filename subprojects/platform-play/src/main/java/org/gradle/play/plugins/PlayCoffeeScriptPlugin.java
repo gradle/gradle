@@ -37,11 +37,10 @@ import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
+import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.PlayCoffeeScriptCompile;
 
 import java.io.File;
-
-import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
  * Plugin for adding coffeescript compilation to a Play application.  Adds support for
@@ -100,7 +99,7 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
     }
 
     @BinaryTasks
-    void createCoffeeScriptTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
+    void createCoffeeScriptTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary, @Path("buildDir") final File buildDir) {
         tasks.beforeEach(PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
             @Override
             public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
@@ -111,11 +110,11 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
 
         for (final CoffeeScriptSourceSet coffeeScriptSourceSet : binary.getInputs().withType(CoffeeScriptSourceSet.class)) {
             if (((LanguageSourceSetInternal) coffeeScriptSourceSet).getMayHaveSources()) {
-                final String compileTaskName = "compile" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
+                final String compileTaskName = binary.getTasks().taskName("compile", coffeeScriptSourceSet.getName());
                 tasks.create(compileTaskName, PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
                     @Override
                     public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
-                        coffeeScriptCompile.setDescription("Compiles coffeescript for the '" + coffeeScriptSourceSet.getName() + "' source set.");
+                        coffeeScriptCompile.setDescription("Compiles coffeescript for the " + coffeeScriptSourceSet.getDisplayName() + ".");
 
                         File outputDirectory = outputDirectory(buildDir, binary, compileTaskName);
                         coffeeScriptCompile.setDestinationDir(outputDirectory);
@@ -130,7 +129,7 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
         }
     }
 
-    private File outputDirectory(File buildDir, PlayApplicationBinarySpec binary, String taskName) {
-        return new File(buildDir, String.format("%s/src/%s", binary.getName(), taskName));
+    private File outputDirectory(File buildDir, PlayApplicationBinarySpecInternal binary, String taskName) {
+        return new File(buildDir, String.format("%s/src/%s", binary.getProjectScopedName(), taskName));
     }
 }

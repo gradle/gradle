@@ -30,13 +30,11 @@ import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
-import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
+import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.JavaScriptMinify;
 
 import java.io.File;
-
-import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
  * Plugin for adding javascript processing to a Play application.  Registers "javascript" language support with the {@link org.gradle.language.javascript.JavaScriptSourceSet}.
@@ -67,7 +65,7 @@ public class PlayJavaScriptPlugin extends RuleSource {
     }
 
     @BinaryTasks
-    void createJavaScriptTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
+    void createJavaScriptTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
         for (JavaScriptSourceSet javaScriptSourceSet : binary.getInputs().withType(JavaScriptSourceSet.class)) {
             if (((LanguageSourceSetInternal) javaScriptSourceSet).getMayHaveSources()) {
                 createJavaScriptMinifyTask(tasks, javaScriptSourceSet, binary, buildDir);
@@ -79,13 +77,13 @@ public class PlayJavaScriptPlugin extends RuleSource {
         }
     }
 
-    void createJavaScriptMinifyTask(ModelMap<Task> tasks, final JavaScriptSourceSet javaScriptSourceSet, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
-        final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(javaScriptSourceSet.getName());
-        final File minifyOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), minifyTaskName));
+    void createJavaScriptMinifyTask(ModelMap<Task> tasks, final JavaScriptSourceSet javaScriptSourceSet, final PlayApplicationBinarySpecInternal binary, @Path("buildDir") final File buildDir) {
+        final String minifyTaskName = binary.getTasks().taskName("minify", javaScriptSourceSet.getName());
+        final File minifyOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getProjectScopedName(), minifyTaskName));
         tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {
             @Override
             public void execute(JavaScriptMinify javaScriptMinify) {
-                javaScriptMinify.setDescription("Minifies javascript for the '" + javaScriptSourceSet.getName() +"' source set.");
+                javaScriptMinify.setDescription("Minifies javascript for the " + javaScriptSourceSet.getDisplayName() + ".");
                 javaScriptMinify.setSource(javaScriptSourceSet.getSource());
                 javaScriptMinify.setDestinationDir(minifyOutputDirectory);
                 javaScriptMinify.setPlayPlatform(binary.getTargetPlatform());

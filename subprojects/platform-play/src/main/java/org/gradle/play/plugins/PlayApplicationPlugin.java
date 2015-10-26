@@ -15,7 +15,6 @@
  */
 package org.gradle.play.plugins;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
@@ -101,7 +100,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             return serviceRegistry.get(PlayToolChainInternal.class);
         }
 
-        @Model
+        @Service
         FileResolver fileResolver(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(FileResolver.class);
         }
@@ -182,13 +181,11 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            final String binaryName = String.format("%sBinary", componentSpec.getName());
 
-            binaries.create(binaryName, new Action<PlayApplicationBinarySpec>() {
+            binaries.create("binary", new Action<PlayApplicationBinarySpec>() {
                 public void execute(PlayApplicationBinarySpec playBinary) {
                     PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
-                    playBinaryInternal.setApplication(componentSpec);
-                    final File binaryBuildDir = new File(buildDir, binaryName);
+                    final File binaryBuildDir = new File(buildDir, playBinaryInternal.getProjectScopedName());
 
                     final PlayPlatform chosenPlatform = resolveTargetPlatform(componentSpec, platforms);
                     initialiseConfigurations(configurations, chosenPlatform);
@@ -274,9 +271,9 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createTwirlCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
+        void createTwirlCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
             for (final TwirlSourceSet twirlSourceSet : binary.getInputs().withType(TwirlSourceSet.class)) {
-                final String twirlCompileTaskName = String.format("compile%s%s", StringUtils.capitalize(binary.getName()), StringUtils.capitalize(twirlSourceSet.getName()));
+                final String twirlCompileTaskName = binary.getTasks().taskName("compile", twirlSourceSet.getName());
                 final File twirlCompileOutputDirectory = srcOutputDirectory(buildDir, binary, twirlCompileTaskName);
 
                 tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
@@ -295,9 +292,9 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createRoutesCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
+        void createRoutesCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
             for (final RoutesSourceSet routesSourceSet : binary.getInputs().withType(RoutesSourceSet.class)) {
-                final String routesCompileTaskName = String.format("compile%s%s", StringUtils.capitalize(binary.getName()), StringUtils.capitalize(routesSourceSet.getName()));
+                final String routesCompileTaskName = binary.getTasks().taskName("compile", routesSourceSet.getName());
                 final File routesCompilerOutputDirectory = srcOutputDirectory(buildDir, binary, routesCompileTaskName);
 
                 tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
@@ -319,10 +316,10 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         @BinaryTasks
         void createScalaCompileTask(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
-            final String scalaCompileTaskName = String.format("compile%s%s", StringUtils.capitalize(binary.getName()), "Scala");
+            final String scalaCompileTaskName = binary.getTasks().taskName("compile", "Scala");
             tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
-                    scalaCompile.setDescription("Compiles all scala and java source sets for the '" + binary.getName() + "' binary.");
+                    scalaCompile.setDescription("Compiles all scala and java source sets for the " + binary.getDisplayName() + ".");
 
                     scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
                     scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
@@ -358,10 +355,10 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         @BinaryTasks
         void createJarTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary) {
-            String jarTaskName = String.format("create%sJar", StringUtils.capitalize(binary.getName()));
+            String jarTaskName = binary.getTasks().taskName("create", "Jar");
             tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
                 public void execute(Jar jar) {
-                    jar.setDescription("Assembles the application jar for the '" + binary.getName() + "' binary.");
+                    jar.setDescription("Assembles the application jar for the " + binary.getDisplayName() + ".");
                     jar.setDestinationDir(binary.getJarFile().getParentFile());
                     jar.setArchiveName(binary.getJarFile().getName());
                     jar.from(binary.getClasses().getClassesDir());
@@ -370,10 +367,10 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                 }
             });
 
-            String assetsJarTaskName = String.format("create%sAssetsJar", StringUtils.capitalize(binary.getName()));
+            String assetsJarTaskName = binary.getTasks().taskName("create", "assetsJar");
             tasks.create(assetsJarTaskName, Jar.class, new Action<Jar>() {
                 public void execute(Jar jar) {
-                    jar.setDescription("Assembles the assets jar for the '" + binary.getName() + "' binary.");
+                    jar.setDescription("Assembles the assets jar for the " + binary.getDisplayName() + ".");
                     jar.setDestinationDir(binary.getAssetsJarFile().getParentFile());
                     jar.setArchiveName(binary.getAssetsJarFile().getName());
                     jar.setClassifier("assets");
@@ -389,7 +386,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         void createPlayRunTask(ModelMap<Task> tasks, ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
 
             for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
-                String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
+                String runTaskName = binary.getTasks().taskName("run");
 
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
@@ -408,8 +405,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             }
         }
 
-        private File srcOutputDirectory(File buildDir, PlayApplicationBinarySpec binary, String taskName) {
-            return new File(buildDir, String.format("%s/src/%s", binary.getName(), taskName));
+        private File srcOutputDirectory(File buildDir, PlayApplicationBinarySpecInternal binary, String taskName) {
+            return new File(buildDir, String.format("%s/src/%s", binary.getProjectScopedName(), taskName));
         }
     }
 }

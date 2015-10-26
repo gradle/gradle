@@ -41,10 +41,10 @@ model {
     components {
         play {
             binaries.all { binary ->
-                tasks.create("addCopyrightTo${binary.name.capitalize()}Assets", AddCopyrights) { copyrightTask ->
+                tasks.create("addCopyrightToPlay${binary.name.capitalize()}Assets", AddCopyrights) { copyrightTask ->
                     source "raw-assets"
                     copyrightFile = project.file('copyright.txt')
-                    destinationDir = project.file("${buildDir}/${binary.name}/addCopyRights")
+                    destinationDir = project.file("${buildDir}/play${binary.name.capitalize()}/addCopyRights")
 
                     // Hook this task into the binary
                     binary.assets.addAssetDir destinationDir

@@ -16,7 +16,6 @@
 
 package org.gradle.play.plugins;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
@@ -53,13 +52,13 @@ public class PlayTestPlugin extends RuleSource {
             final PlayToolProvider playToolProvider = binary.getToolChain().select(binary.getTargetPlatform());
             final FileCollection testCompileClasspath = getTestCompileClasspath(binary, playToolProvider, configurations);
 
-            final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
+            final String testCompileTaskName = binary.getTasks().taskName("compile", "tests");
             final File testSourceDir = fileResolver.resolve("test");
             final FileCollection testSources = new SimpleFileCollection(testSourceDir).getAsFileTree().matching(new PatternSet().include("**/*.scala", "**/*.java"));
-            final File testClassesDir = new File(buildDir, String.format("%s/testClasses", binary.getName()));
+            final File testClassesDir = new File(buildDir, String.format("%s/testClasses", binary.getProjectScopedName()));
             tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
-                    scalaCompile.setDescription("Compiles the scala and java test sources for the '" + binary.getName() + "' binary.");
+                    scalaCompile.setDescription("Compiles the scala and java test sources for the " + binary.getDisplayName() + ".");
 
                     scalaCompile.setClasspath(testCompileClasspath);
 
@@ -78,11 +77,11 @@ public class PlayTestPlugin extends RuleSource {
                 }
             });
 
-            final String testTaskName = String.format("test%s", StringUtils.capitalize(binary.getName()));
-            final File binaryBuildDir = new File(buildDir, binary.getName());
+            final String testTaskName = binary.getTasks().taskName("test");
+            final File binaryBuildDir = new File(buildDir, binary.getProjectScopedName());
             tasks.create(testTaskName, Test.class, new Action<Test>() {
                 public void execute(Test test) {
-                    test.setDescription("Runs tests for the '" + binary.getName() + "' binary.");
+                    test.setDescription("Runs tests for the " + binary.getDisplayName() + ".");
 
                     test.setClasspath(getRuntimeClasspath(testClassesDir, testCompileClasspath));
 

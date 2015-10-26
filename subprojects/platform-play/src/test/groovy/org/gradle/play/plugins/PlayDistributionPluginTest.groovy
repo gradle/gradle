@@ -41,6 +41,7 @@ import org.gradle.platform.base.BinaryTasksCollection
 import org.gradle.play.PlayApplicationBinarySpec
 import org.gradle.play.distribution.PlayDistribution
 import org.gradle.play.distribution.PlayDistributionContainer
+import org.gradle.play.internal.PlayApplicationBinarySpecInternal
 import org.gradle.play.internal.distribution.DefaultPlayDistribution
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
@@ -214,11 +215,12 @@ class PlayDistributionPluginTest extends Specification {
     }
 
     def binary(String name, DomainObjectSet jarTasks) {
-        return Stub(PlayApplicationBinarySpec) {
+        return Stub(PlayApplicationBinarySpecInternal) {
             getTasks() >> Stub(BinaryTasksCollection) {
                 withType(Jar.class) >> jarTasks
             }
             getName() >> name
+            getProjectScopedName() >> name
         }
     }
 

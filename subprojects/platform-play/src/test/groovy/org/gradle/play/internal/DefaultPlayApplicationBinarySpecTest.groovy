@@ -27,7 +27,7 @@ import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
 class DefaultPlayApplicationBinarySpecTest extends Specification {
-    PlayApplicationBinarySpecInternal playBinary = BaseBinarySpec.create(PlayApplicationBinarySpec.class, DefaultPlayApplicationBinarySpec.class, "test", DirectInstantiator.INSTANCE, Stub(ITaskFactory))
+    PlayApplicationBinarySpecInternal playBinary = BaseBinarySpec.create(PlayApplicationBinarySpec.class, DefaultPlayApplicationBinarySpec.class, "test", null, DirectInstantiator.INSTANCE, Stub(ITaskFactory))
 
     def "sets binary build ability for unavailable toolchain" () {
         PlayToolProvider result = Mock(PlayToolProvider) {

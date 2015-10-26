@@ -46,7 +46,6 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     private File jarFile;
     private File assetsJarFile;
     private FileCollection classpath;
-    private PlayApplicationSpec application;
 
     @Override
     protected String getTypeName() {
@@ -55,12 +54,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     @Override
     public PlayApplicationSpec getApplication() {
-        return application;
-    }
-
-    @Override
-    public void setApplication(PlayApplicationSpec application) {
-        this.application = application;
+        return (PlayApplicationSpec) getComponent();
     }
 
     public PlayPlatform getTargetPlatform() {
