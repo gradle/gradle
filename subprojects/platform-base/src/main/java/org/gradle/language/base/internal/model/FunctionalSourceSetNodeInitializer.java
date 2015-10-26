@@ -52,7 +52,7 @@ public class FunctionalSourceSetNodeInitializer implements NodeInitializer {
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
         ProjectSourceSet projectSourceSet = (ProjectSourceSet) inputs.get(0).getInstance();
         LanguageRegistry languageRegistry = (LanguageRegistry) inputs.get(1).getInstance();
-        File baseDir = ((Optional<File>) inputs.get(2).getInstance()).get();
+        File baseDir = (File) ((Optional<?>) inputs.get(4).getInstance()).get();
         DefaultFunctionalSourceSet defaultFunctionalSourceSet = new DefaultFunctionalSourceSet(modelNode.getPath().getName(), instantiator, projectSourceSet, languageRegistry, baseDir);
         modelNode.setPrivateData(DefaultFunctionalSourceSet.class, defaultFunctionalSourceSet);
     }
