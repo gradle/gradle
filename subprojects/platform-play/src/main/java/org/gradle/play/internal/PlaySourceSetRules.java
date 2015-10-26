@@ -26,6 +26,8 @@ import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
 import org.gradle.play.PlayApplicationSpec;
 
+import java.util.Collections;
+
 public class PlaySourceSetRules extends RuleSource {
 
     @Defaults
@@ -33,7 +35,7 @@ public class PlaySourceSetRules extends RuleSource {
         playComponent.getSources().create("scala", ScalaLanguageSourceSet.class, new Action<ScalaLanguageSourceSet>() {
             @Override
             public void execute(ScalaLanguageSourceSet scalaSources) {
-                scalaSources.getSource().srcDir("app");
+                scalaSources.getSource().setSrcDirs(Collections.singleton("app"));
                 scalaSources.getSource().include("**/*.scala");
             }
         });
@@ -41,7 +43,7 @@ public class PlaySourceSetRules extends RuleSource {
         playComponent.getSources().create("java", JavaSourceSet.class, new Action<JavaSourceSet>() {
             @Override
             public void execute(JavaSourceSet javaSources) {
-                javaSources.getSource().srcDir("app");
+                javaSources.getSource().setSrcDirs(Collections.singleton("app"));
                 javaSources.getSource().include("**/*.java");
             }
         });
@@ -49,7 +51,7 @@ public class PlaySourceSetRules extends RuleSource {
         playComponent.getSources().create("resources", JvmResourceSet.class, new Action<JvmResourceSet>() {
             @Override
             public void execute(JvmResourceSet appResources) {
-                appResources.getSource().srcDirs("conf");
+                appResources.getSource().setSrcDirs(Collections.singleton("conf"));
             }
         });
     }
@@ -59,7 +61,7 @@ public class PlaySourceSetRules extends RuleSource {
         playComponent.getSources().create("twirlTemplates", TwirlSourceSet.class, new Action<TwirlSourceSet>() {
             @Override
             public void execute(TwirlSourceSet twirlSourceSet) {
-                twirlSourceSet.getSource().srcDir("app");
+                twirlSourceSet.getSource().setSrcDirs(Collections.singleton("app"));
                 twirlSourceSet.getSource().include("**/*.html");
             }
         });
@@ -70,7 +72,7 @@ public class PlaySourceSetRules extends RuleSource {
         playComponent.getSources().create("routes", RoutesSourceSet.class, new Action<RoutesSourceSet>() {
             @Override
             public void execute(RoutesSourceSet routesSourceSet) {
-                routesSourceSet.getSource().srcDir("conf");
+                routesSourceSet.getSource().setSrcDirs(Collections.singleton("conf"));
                 routesSourceSet.getSource().include("routes");
                 routesSourceSet.getSource().include("*.routes");
             }

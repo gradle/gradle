@@ -40,6 +40,7 @@ import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.tasks.PlayCoffeeScriptCompile;
 
 import java.io.File;
+import java.util.Collections;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -76,7 +77,7 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
                 playComponent.getSources().create("coffeeScript", CoffeeScriptSourceSet.class, new Action<CoffeeScriptSourceSet>() {
                     @Override
                     public void execute(CoffeeScriptSourceSet coffeeScriptSourceSet) {
-                        coffeeScriptSourceSet.getSource().srcDir("app/assets");
+                        coffeeScriptSourceSet.getSource().setSrcDirs(Collections.singleton("app/assets"));
                         coffeeScriptSourceSet.getSource().include("**/*.coffee");
                     }
                 });
