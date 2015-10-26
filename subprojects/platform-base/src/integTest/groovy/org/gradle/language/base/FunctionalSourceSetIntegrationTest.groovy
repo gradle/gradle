@@ -18,8 +18,6 @@ package org.gradle.language.base
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.util.TextUtil.normaliseFileSeparators
-
 class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can not create a top level FSS when the language base plugin has not been applied"() {
@@ -227,7 +225,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
             @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet fss) {
                 tasks.create("verify") {
                   doLast {
-                    assert fss.getByName("myJavaSourceSet").source.getSrcDirs()[0].path == '${normaliseFileSeparators(testDirectory.path + "/src/functionalSources/myJavaSourceSet")}'
+                    assert fss.getByName("myJavaSourceSet").source.getSrcDirs()[0].path == '$testDirectory.path${File.separator}src${File.separator}functionalSources${File.separator}myJavaSourceSet'
                   }
               }
             }

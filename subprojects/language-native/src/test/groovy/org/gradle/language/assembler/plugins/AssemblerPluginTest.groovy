@@ -80,7 +80,7 @@ class AssemblerPluginTest extends Specification {
                         sources {
                             asm {
                                 source {
-                                    srcDirs "d1", "d2"
+                                    srcDirs = ["d1", "d2"]
                                 }
                             }
                         }
