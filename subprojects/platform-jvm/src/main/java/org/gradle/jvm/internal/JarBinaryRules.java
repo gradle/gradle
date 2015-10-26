@@ -31,7 +31,7 @@ public class JarBinaryRules extends RuleSource {
     void configureJarBinaries(final ComponentSpec jvmLibrary, BuildDirHolder buildDirHolder, final JavaToolChainRegistry toolChains) {
         final File binariesDir = new File(buildDirHolder.getDir(), "jars");
         final File classesDir = new File(buildDirHolder.getDir(), "classes");
-        jvmLibrary.getBinaries().withType(JarBinarySpecInternal.class).beforeEach(new Action<JarBinarySpec>() {
+        jvmLibrary.getBinaries().withType(JarBinarySpecInternal.class).beforeEach(new Action<JarBinarySpecInternal>() {
             @Override
             public void execute(JarBinarySpecInternal jarBinary) {
                 String jarBinaryName = jarBinary.getProjectScopedName();
