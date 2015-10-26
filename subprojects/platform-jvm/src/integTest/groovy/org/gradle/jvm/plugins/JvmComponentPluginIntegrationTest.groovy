@@ -132,7 +132,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
                 }
                 binaries {
                     all { jar ->
-                        jar.jarFile = new File($("buildDir"), "bin/${jar.name}.bin")
+                        jar.jarFile = new File($("buildDir"), "bin/${jar.projectScopedName}.bin")
                     }
                 }
             }
@@ -156,7 +156,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
                     myJvmLib(JvmLibrarySpec) {
                         binaries {
                             all { jar ->
-                                jar.jarFile = new File($("buildDir"), "bin/${jar.name}.bin")
+                                jar.jarFile = new File($("buildDir"), "bin/${jar.projectScopedName}.bin")
                             }
                         }
                     }
@@ -183,7 +183,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
                 }
                 tasks {
                     $("binaries").values().each { binary ->
-                        def taskName = "log" + binary.name.capitalize()
+                        def taskName = binary.tasks.taskName('log')
                         create(taskName) { task ->
                             task.doLast {
                                 println "Constructing " + binary.displayName
@@ -201,7 +201,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         executed ":createMyJvmLibJar", ":logMyJvmLibJar", ":myJvmLibJar"
 
         and:
-        output.contains("Constructing Jar 'myJvmLibJar'")
+        output.contains("Constructing Jar 'myJvmLib:jar'")
     }
 
     def "can define multiple jvm libraries in single project"() {

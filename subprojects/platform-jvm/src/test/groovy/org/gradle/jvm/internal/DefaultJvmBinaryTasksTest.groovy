@@ -21,11 +21,12 @@ import org.gradle.api.Task
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.jvm.JvmBinarySpec
 import org.gradle.jvm.tasks.Jar
+import org.gradle.platform.base.internal.BinarySpecInternal
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import spock.lang.Specification
 
 class DefaultJvmBinaryTasksTest extends Specification {
-    def binary = Mock(JvmBinarySpec)
+    def binary = Mock(JvmBinarySpecInternal)
     def taskFactory = Mock(ITaskFactory)
     def tasks = new DefaultJvmBinaryTasks(new DefaultBinaryTasksCollection(binary, taskFactory))
 
@@ -56,5 +57,8 @@ class DefaultJvmBinaryTasksTest extends Specification {
         then:
         def e = thrown GradleException
         e.message == "Multiple tasks with type 'Jar' found."
+    }
+
+    interface JvmBinarySpecInternal extends JvmBinarySpec, BinarySpecInternal {
     }
 }

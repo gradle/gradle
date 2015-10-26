@@ -46,6 +46,16 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
     }
 
     @Override
+    public String taskName(String verb) {
+        return delegate.taskName(verb);
+    }
+
+    @Override
+    public String taskName(String verb, String object) {
+        return delegate.taskName(verb, object);
+    }
+
+    @Override
     public Task getBuild() {
         return delegate.getBuild();
     }

@@ -25,6 +25,16 @@ import org.gradle.api.Task;
  * */
 public interface BinaryTasksCollection extends DomainObjectSet<Task> {
     /**
+     * Generates a name for a task that performs some action on the binary.
+     */
+    String taskName(String verb);
+
+    /**
+     * Generates a name for a task that performs some action on the binary.
+     */
+    String taskName(String verb, String object);
+
+    /**
      * The 'lifecycle' task, that can be used to construct this binary.
      */
     Task getBuild();

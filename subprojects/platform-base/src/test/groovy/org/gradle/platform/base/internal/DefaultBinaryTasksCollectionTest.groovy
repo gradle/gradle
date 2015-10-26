@@ -78,5 +78,12 @@ class DefaultBinaryTasksCollectionTest extends Specification {
         t.message == "Multiple tasks with type 'Copy' found."
     }
     
-    
+    def "generates a task name"() {
+        given:
+        binary.projectScopedName >> "myLibJar"
+
+        expect:
+        tasks.taskName("compile") == "compileMyLibJar"
+        tasks.taskName("compile", "java") == "compileMyLibJarJava"
+    }
 }

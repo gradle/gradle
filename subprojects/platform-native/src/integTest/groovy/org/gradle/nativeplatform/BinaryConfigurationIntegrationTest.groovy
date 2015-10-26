@@ -180,7 +180,7 @@ model {
     tasks { t ->
         $("components.main").binaries { binaries ->
             binaries.values().each { binary ->
-                def preLinkTask = binary.name + "PreLink"
+                def preLinkTask = binary.tasks.taskName("preLink")
                 t.create(preLinkTask) {
                     dependsOn binary.tasks.withType(CppCompile)
                     doLast {
@@ -189,7 +189,7 @@ model {
                 }
                 binary.tasks.link.dependsOn preLinkTask
 
-                def postLinkTask = binary.name + "PostLink"
+                def postLinkTask = binary.tasks.taskName("postLink")
                 t.create(postLinkTask) {
                     dependsOn binary.tasks.link
                     doLast {
@@ -210,7 +210,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executedTasks == [":compileMainExecutableMainCpp", ":mainExecutablePreLink", ":linkMainExecutable", ":mainExecutablePostLink", ":mainExecutable"]
+        executedTasks == [":compileMainExecutableMainCpp", ":preLinkMainExecutable", ":linkMainExecutable", ":postLinkMainExecutable", ":mainExecutable"]
     }
 
     @Issue("GRADLE-2973")
