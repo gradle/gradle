@@ -874,4 +874,17 @@ class ManagedNodeBackedModelMapTest extends Specification {
         registry.realize("map.foo", String) == "bar"
     }
 
+    def "reasonable error message when creating a non-constructible type"() {
+        when:
+        mutate { create("foo", List) }
+        realize()
+
+        then:
+        def e = thrown ModelRuleExecutionException
+        e.cause instanceof ModelTypeInitializationException
+        e.cause.message.contains("A model element of type: 'java.util.List' can not be constructed.")
+        e.cause.message.contains("It must be one of:")
+        e.cause.message.contains("A managed type (annotated with @Managed)")
+    }
+
 }

@@ -477,13 +477,13 @@ scalar type the error message should read:
 
 Allow a read-write property marked with `@Unmanaged` of a `@Managed` type to have type `List<T>` or `Set<T>` for any `T`.
 
-## Story: Report available types for a `ModelMap` or `ModelSet` when element type is not constructable
+## Story: Report available types for a `ModelMap` or `ModelSet` when element type is not constructible
 
-When adding an element to a `ModelMap<T>` or `ModelSet<T>` and `T` is not constructable, use a specific error message that informs
-the user that an element of type `T` cannot be added to the collection. Error message should include the constructable types:
+When adding an element to a `ModelMap<T>` or `ModelSet<T>` and `T` is not constructible, use a specific error message that informs
+the user that an element of type `T` cannot be added to the collection. Error message should include the constructible types:
 
 - When `T` extends BinarySpec or ComponentSpec, report on the registered subtypes.
-- Otherwise, report on the constructable types that are assignable to `T`.
+- Otherwise, report on the constructible types that are assignable to `T`.
 
 ### Test cases
 
@@ -491,12 +491,12 @@ the user that an element of type `T` cannot be added to the collection. Error me
 - Fix `ComponentModelIntegrationTest.reasonable error message when creating component with default implementation`. This used to report the available types.
 - Add `ComponentModelIntegrationTest.reasonable error message when creating binary with no implementation`.
 - Add `ComponentModelIntegrationTest.reasonable error message when creating binary with default implementation`.
-- Add `ManagedNodeBackedModelMapTest.reasonable error message when creating a non-constructable type`.
-- Add `UnmanagedNodeBackedModelMapTest.reasonable error message when creating a non-constructable type`.
-- Add `DomainObjectCollectionBackedModelMapTest.reasonable error message when creating a non-constructable type`.
-- Add `ModelSetIntegrationTest.reasonable error message when creating a non-constructable type`.
+- Add `ManagedNodeBackedModelMapTest.reasonable error message when creating a non-constructible type`.
+- Add `UnmanagedNodeBackedModelMapTest.reasonable error message when creating a non-constructible type`.
+- Add `DomainObjectCollectionBackedModelMapTest.reasonable error message when creating a non-constructible type`.
+- Add `ModelSetIntegrationTest.reasonable error message when creating a non-constructible type`.
 
-For all theses tests, assert that the reported constructable types list contains appropriate types and only them.
+For all theses tests, assert that the reported constructible types list contains appropriate types and only them.
 
 ## Story: Validate model types more eagerly
 

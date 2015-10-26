@@ -24,6 +24,7 @@ import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.reflect.ObjectInstantiationException
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection
 import org.gradle.model.internal.core.*
@@ -893,5 +894,15 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         realize()
     }
 
+    def "reasonable error message when creating a non-constructible type"() {
+        when:
+        mutate { create("foo", List) }
+        realize()
+
+        then:
+        def e = thrown ModelRuleExecutionException
+        e.cause instanceof ObjectInstantiationException
+        e.cause.message.contains("Could not create an instance of type java.util.List.")
+    }
 
 }

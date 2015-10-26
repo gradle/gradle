@@ -18,7 +18,11 @@ package org.gradle.model.internal.core
 
 import com.google.common.collect.Iterators
 import org.gradle.api.DomainObjectCollection
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
+import org.gradle.api.NamedDomainObjectFactory
+import org.gradle.api.internal.DefaultDomainObjectCollection
+import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator
 import org.gradle.internal.Actions
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import spock.lang.Specification
@@ -54,5 +58,24 @@ class DomainObjectCollectionBackedModelMapTest extends Specification {
         then:
         !(groovyWrapper instanceof ManagedInstance)
         !(groovyWrapper.withType(Object) instanceof ManagedInstance)
+    }
+
+    def "reasonable error message when creating a non-constructible type"() {
+        given:
+        def backingCollection = new DefaultDomainObjectCollection(Item, []);
+        def instantiator = new DefaultPolymorphicNamedEntityInstantiator(Item, "Item")
+        instantiator.registerFactory(Item, new NamedDomainObjectFactory<Item>(){
+            public Item create(String name) {
+                return new Item(name: name)
+            }
+        })
+        def modelMap = new DomainObjectCollectionBackedModelMap(Item, backingCollection, instantiator, new Named.Namer(), Actions.doNothing())
+
+        when:
+        modelMap.create("alma", List)
+
+        then:
+        def e = thrown InvalidUserDataException
+        e.message.contains("Cannot create a List because this type is not known to Item. Known types are: Item")
     }
 }

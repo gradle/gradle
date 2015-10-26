@@ -579,6 +579,56 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         failure.assertThatCause(containsText("Cannot create a 'AnotherCustomComponent' because this type is not known to components. Known types are: CustomComponent"))
     }
 
+    def "reasonable error message when creating binary with default implementation"() {
+        given:
+        withBinaries()
+
+        when:
+        buildFile << """
+        model {
+            components {
+                main {
+                    binaries {
+                        another(DefaultCustomBinary)
+                    }
+                }
+            }
+        }
+
+        """
+        then:
+        fails "model"
+
+        and:
+        failure.assertThatCause(containsText("Cannot create a 'DefaultCustomBinary' because this type is not known to binaries. Known types are: CustomBinary"))
+    }
+
+    def "reasonable error message when creating binary with no implementation"() {
+        given:
+        withBinaries()
+
+        when:
+        buildFile << """
+        interface AnotherCustomBinary extends BinarySpec {}
+
+        model {
+            components {
+                main {
+                    binaries {
+                        another(AnotherCustomBinary)
+                    }
+                }
+            }
+        }
+
+        """
+        then:
+        fails "model"
+
+        and:
+        failure.assertThatCause(containsText("Cannot create a 'AnotherCustomBinary' because this type is not known to binaries. Known types are: CustomBinary"))
+    }
+
     def "componentSpecContainer is groovy decorated when used in rules"() {
         given:
         withMainSourceSet()
