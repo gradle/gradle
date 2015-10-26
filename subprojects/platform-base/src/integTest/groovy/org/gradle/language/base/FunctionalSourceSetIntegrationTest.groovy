@@ -17,6 +17,7 @@
 package org.gradle.language.base
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.TextUtil
 
 class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
@@ -225,7 +226,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
             @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet fss) {
                 tasks.create("verify") {
                   doLast {
-                    assert TextUtil.normaliseFileSeparators(fss.getByName("myJavaSourceSet").source.getSrcDirs()[0].path) == '$testDirectory.path/src/functionalSources/myJavaSourceSet'
+                    assert TextUtil.normaliseFileSeparators(fss.getByName("myJavaSourceSet").source.getSrcDirs()[0].path) == '${TextUtil.normaliseFileSeparators(testDirectory.path)}/src/functionalSources/myJavaSourceSet'
                   }
               }
             }
