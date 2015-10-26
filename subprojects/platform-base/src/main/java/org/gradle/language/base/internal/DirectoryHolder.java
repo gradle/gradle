@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal;
+package org.gradle.language.base.internal;
 
 import java.io.File;
 
-public class BuildDirHolder {
-    private final File buildDir;
+//TODO - remove this and all it's subclasses once @Path based DI is improved
+public class DirectoryHolder {
+    private final File dir;
 
-    public BuildDirHolder(File buildDir) {
-        this.buildDir = buildDir;
+    public DirectoryHolder(File dir) {
+        this.dir = dir;
     }
 
-    public File getBuildDir() {
-        return buildDir;
+    public File getDir() {
+        return dir;
     }
 }

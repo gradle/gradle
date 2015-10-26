@@ -15,7 +15,6 @@
  */
 package org.gradle.language.base.plugins;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
@@ -29,6 +28,7 @@ import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
+import org.gradle.language.base.internal.ProjectDirHolder;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.internal.model.FunctionalSourceSetNodeInitializer;
 import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
@@ -172,8 +172,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
 
         @Service
-        Optional<File> baseSourceSetDirectory() {
-            return Optional.of(new File("."));
+        ProjectDirHolder baseSourceSetDirectory() {
+            return new ProjectDirHolder(new File("."));
         }
 
         @Mutate

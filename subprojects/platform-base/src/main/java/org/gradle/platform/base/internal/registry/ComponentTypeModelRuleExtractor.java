@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.Cast;
@@ -24,6 +23,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.ProjectDirHolder;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
@@ -88,7 +88,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
                 ModelReference.of("projectIdentifier", ProjectIdentifier.class),
                 ModelReference.of("sources", ProjectSourceSet.class),
                 ModelReference.of("languages", LanguageRegistry.class),
-                ModelReference.of("baseSourceSetDirectory", Optional.class));
+                ModelReference.of("baseSourceSetDirectory", ProjectDirHolder.class));
             this.publicType = publicType;
             this.implementationType = implementationType;
             this.internalViews = internalViews;
@@ -103,7 +103,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
                 final ProjectIdentifier projectIdentifier = ModelViews.assertType(inputs.get(1), ModelType.of(ProjectIdentifier.class)).getInstance();
                 final ProjectSourceSet projectSourceSet = ModelViews.assertType(inputs.get(2), ModelType.of(ProjectSourceSet.class)).getInstance();
                 final LanguageRegistry languageRegistry = ModelViews.assertType(inputs.get(3), ModelType.of(LanguageRegistry.class)).getInstance();
-                final File baseDir = (File) ((Optional<?>) inputs.get(4).getInstance()).get();
+                final File baseDir =  ((ProjectDirHolder) inputs.get(4).getInstance()).getDir();
 
                 registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new BiFunction<S, String, MutableModelNode>() {
                     @Override
