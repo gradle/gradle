@@ -40,18 +40,17 @@ class DefaultFunctionalSourceSetTest extends Specification {
         lss.getParentName() >> parentName
         lss.getName() >> "lssName"
 
-
         expect:
         functionalSourceSet.calculateDefaultPath(lss) == expectedPath
 
         where:
-        baseDir             | parentName   | sourceSetConvention      | expectedPath
-        new TestFile('top') | null         | 'someConvention/somedir' | new TestFile('top/someConvention/somedir/lssName').path
-        new TestFile('top') | null         | ''                       | new TestFile('top/lssName').path
-        new TestFile('top') | null         | null                     | new TestFile('top/lssName').path
-        new TestFile('top') | 'someParent' | 'someConvention/somedir' | new TestFile('top/someConvention/somedir/someParent/lssName').path
-        new TestFile('top') | 'someParent' | null                     | new TestFile('top/someParent/lssName').path
-        new TestFile('top') | null         | null                     | new TestFile('top/lssName').path
+        baseDir             | parentName   | sourceSetConvention                      | expectedPath
+        new TestFile('top') | null         | "someConvention${File.separator}somedir" | new TestFile('top/someConvention/somedir/lssName').path
+        new TestFile('top') | null         | ''                                       | new TestFile('top/lssName').path
+        new TestFile('top') | null         | null                                     | new TestFile('top/lssName').path
+        new TestFile('top') | 'someParent' | "someConvention${File.separator}somedir" | new TestFile('top/someConvention/somedir/someParent/lssName').path
+        new TestFile('top') | 'someParent' | null                                     | new TestFile('top/someParent/lssName').path
+        new TestFile('top') | null         | null                                     | new TestFile('top/lssName').path
     }
 
 }
