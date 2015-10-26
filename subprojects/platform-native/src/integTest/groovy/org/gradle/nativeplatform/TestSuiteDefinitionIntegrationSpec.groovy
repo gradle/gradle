@@ -89,7 +89,8 @@ model {
         run "model"
 
         then:
-        ModelReportOutput.from(output).hasNodeStructure {
+        def reportOutput = ModelReportOutput.from(output)
+        reportOutput.hasNodeStructure {
             testSuites {
                 unitTests {
                     binaries {
@@ -103,8 +104,74 @@ model {
                 }
             }
         }
+        reportOutput.hasNodeStructure {
+            binaries {
+                unitTestTests {
+                    tasks()
+                }
+            }
+        }
 
+        when:
+        run "check"
 
+        then:
+        noExceptionThrown()
+    }
+
+    def "plugin can define multiple test suites"() {
+        buildFile << """
+
+apply plugin: NativeBinariesTestPlugin
+apply plugin: TestSuitePlugin
+
+model {
+    testSuites {
+        unit(CustomTestSuite)
+        functional(CustomTestSuite)
+    }
+}
+"""
+
+        when:
+        run "model"
+
+        then:
+        def reportOutput = ModelReportOutput.from(output)
+        reportOutput.hasNodeStructure {
+            testSuites {
+                functional {
+                    binaries {
+                        tests {
+                            tasks()
+                        }
+                    }
+                    sources {
+                        tests()
+                    }
+                }
+                unit {
+                    binaries {
+                        tests {
+                            tasks()
+                        }
+                    }
+                    sources {
+                        tests()
+                    }
+                }
+            }
+        }
+        reportOutput.hasNodeStructure {
+            binaries {
+                functionalTests {
+                    tasks()
+                }
+                unitTests {
+                    tasks()
+                }
+            }
+        }
 
         when:
         run "check"
@@ -135,7 +202,6 @@ model {
                 unitTests {
                     binaries()
                     sources()
-
                 }
             }
         }

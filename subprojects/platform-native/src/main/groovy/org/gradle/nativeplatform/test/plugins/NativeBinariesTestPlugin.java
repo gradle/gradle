@@ -41,6 +41,7 @@ import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
@@ -109,8 +110,8 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         @Defaults
         public void copyTestBinariesToGlobalContainer(ModelMap<BinarySpec> binaries, TestSuiteContainer testSuites) {
             for (TestSuiteSpec testSuite : testSuites.withType(TestSuiteSpec.class).values()) {
-                for (BinarySpec binary : testSuite.getBinaries().values()) {
-                    binaries.put(binary.getName(), binary);
+                for (BinarySpecInternal binary : testSuite.getBinaries().withType(BinarySpecInternal.class).values()) {
+                    binaries.put(binary.getProjectScopedName(), binary);
                 }
             }
         }
