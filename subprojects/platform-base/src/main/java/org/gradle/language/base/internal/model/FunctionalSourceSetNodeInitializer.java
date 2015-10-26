@@ -16,6 +16,7 @@
 
 package org.gradle.language.base.internal.model;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.internal.reflect.Instantiator;
@@ -51,7 +52,7 @@ public class FunctionalSourceSetNodeInitializer implements NodeInitializer {
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
         ProjectSourceSet projectSourceSet = (ProjectSourceSet) inputs.get(0).getInstance();
         LanguageRegistry languageRegistry = (LanguageRegistry) inputs.get(1).getInstance();
-        File baseDir = (File) inputs.get(2).getInstance();
+        File baseDir = ((Optional<File>) inputs.get(2).getInstance()).get();
         DefaultFunctionalSourceSet defaultFunctionalSourceSet = new DefaultFunctionalSourceSet(modelNode.getPath().getName(), instantiator, projectSourceSet, languageRegistry, baseDir);
         modelNode.setPrivateData(DefaultFunctionalSourceSet.class, defaultFunctionalSourceSet);
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.Cast;
@@ -87,7 +88,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
                 ModelReference.of("projectIdentifier", ProjectIdentifier.class),
                 ModelReference.of("sources", ProjectSourceSet.class),
                 ModelReference.of("languages", LanguageRegistry.class),
-                ModelReference.of("baseSourceSetDirectory", File.class));
+                ModelReference.of("baseSourceSetDirectory", Optional.class));
             this.publicType = publicType;
             this.implementationType = implementationType;
             this.internalViews = internalViews;
@@ -102,7 +103,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
                 final ProjectIdentifier projectIdentifier = ModelViews.assertType(inputs.get(1), ModelType.of(ProjectIdentifier.class)).getInstance();
                 final ProjectSourceSet projectSourceSet = ModelViews.assertType(inputs.get(2), ModelType.of(ProjectSourceSet.class)).getInstance();
                 final LanguageRegistry languageRegistry = ModelViews.assertType(inputs.get(3), ModelType.of(LanguageRegistry.class)).getInstance();
-                final File baseDir = (File) inputs.get(4).getInstance();
+                final File baseDir = ((Optional<File>) inputs.get(4).getInstance()).get();
 
                 registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new BiFunction<S, String, MutableModelNode>() {
                     @Override

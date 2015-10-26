@@ -15,6 +15,7 @@
  */
 package org.gradle.language.base.plugins;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
@@ -168,8 +169,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Service
-        File baseSourceSetDirectory(){
-            return new File(".");
+        Optional<File> baseSourceSetDirectory() {
+            return Optional.of(new File("."));
         }
 
         @Mutate
