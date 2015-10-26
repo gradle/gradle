@@ -187,30 +187,6 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
         succeeds "validate"
     }
 
-    def "can filter for custom internal view with BinariesContainer.withType()"() {
-        setupRegistration()
-        setupModel()
-        buildFile << """
-        class ValidateTaskRules extends RuleSource {
-            @Mutate
-            void createValidateTask(ModelMap<Task> tasks, BinaryContainer binaries) {
-                tasks.create("validate") {
-                    assert binaries*.name == ["sampleBin", "sampleLibJar"]
-                    assert binaries.withType(BinarySpec)*.name == ["sampleBin", "sampleLibJar"]
-                    assert binaries.withType(JvmBinarySpec)*.name == ["sampleLibJar"]
-                    assert binaries.withType(SampleBinarySpec)*.name == ["sampleBin"]
-                    assert binaries.withType(SampleBinarySpecInternal)*.name == ["sampleBin"]
-                    assert binaries.withType(BareInternal)*.name == ["sampleBin"]
-                }
-            }
-        }
-        apply plugin: ValidateTaskRules
-        """
-
-        expect:
-        succeeds "validate"
-    }
-
     def "can register internal view and default implementation separately"() {
         buildFile << """
             class RegisterBinaryRules extends RuleSource {
