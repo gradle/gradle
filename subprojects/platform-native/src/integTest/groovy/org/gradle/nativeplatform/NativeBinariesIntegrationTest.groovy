@@ -231,7 +231,7 @@ model {
         then:
         fails "mainExecutable"
         failure.assertHasCause("Exception thrown while executing model rule: model.components @ build.gradle line 7, column 5 > create(main) > components.main.getSources() > create(java)");
-        failure.assertHasCause("Cannot create a JavaSourceSet because this type is not known to this container. Known types are: CSourceSet, CppSourceSet")
+        failure.assertHasCause("Cannot create a JavaSourceSet because this type is not known to FunctionalSourceSet. Known types are: CSourceSet, CppSourceSet")
     }
 
     private def useMixedSources() {

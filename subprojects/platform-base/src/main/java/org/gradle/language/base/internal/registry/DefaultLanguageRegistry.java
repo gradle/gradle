@@ -16,8 +16,13 @@
 
 package org.gradle.language.base.internal.registry;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+
+import java.util.Collections;
+import java.util.List;
 
 public class DefaultLanguageRegistry extends DefaultDomainObjectSet<LanguageRegistration<?>> implements LanguageRegistry {
     public DefaultLanguageRegistry() {
@@ -26,7 +31,18 @@ public class DefaultLanguageRegistry extends DefaultDomainObjectSet<LanguageRegi
 
     private static Class<LanguageRegistration<?>> getLanguageRegistrationType() {
         @SuppressWarnings("unchecked")
-        Class<LanguageRegistration<?>> rawType = (Class<LanguageRegistration<?>>) new TypeToken<LanguageRegistration<?>>() {}.getRawType();
+        Class<LanguageRegistration<?>> rawType = (Class<LanguageRegistration<?>>) new TypeToken<LanguageRegistration<?>>() {
+        }.getRawType();
         return rawType;
+    }
+
+    @Override
+    public String getSupportedTypeNames() {
+        List<String> names = Lists.newArrayList();
+        for (LanguageRegistration<?> languageRegistration : this) {
+            names.add(languageRegistration.getSourceSetType().getSimpleName());
+        }
+        Collections.sort(names);
+        return names.isEmpty() ? "(None)" : Joiner.on(", ").join(names);
     }
 }

@@ -17,7 +17,9 @@ package org.gradle.language.base.internal;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.internal.NoFactoryRegisteredForTypeException;
 import org.gradle.api.internal.rules.AddOnlyRuleAwarePolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -64,6 +66,11 @@ public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomai
 
     private <U extends LanguageSourceSet> U createLanguageSourceSet(String name, Class<U> type) {
         NamedDomainObjectFactory<? extends LanguageSourceSet> sourceSetFactory = findSourceSetFactory(type);
+        if (sourceSetFactory == null) {
+            throw new InvalidUserDataException(
+                String.format("Cannot create a %s because this type is not known to %s. Known types are: %s", type.getSimpleName(), getDisplayName(), languageRegistry.getSupportedTypeNames()),
+                new NoFactoryRegisteredForTypeException());
+        }
         return type.cast(sourceSetFactory.create(name));
     }
 
@@ -81,6 +88,11 @@ public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomai
         return null;
     }
 
+
+    @Override
+    public String getDisplayName() {
+        return FunctionalSourceSet.class.getSimpleName();
+    }
 
     @Override
     public String toString() {
