@@ -225,7 +225,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
             @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet fss) {
                 tasks.create("verify") {
                   doLast {
-                    assert fss.getByName("myJavaSourceSet").source.getSrcDirs()[0].path == '$testDirectory.path${File.separator}src${File.separator}functionalSources${File.separator}myJavaSourceSet'
+                    assert TextUtil.normaliseFileSeparators(fss.getByName("myJavaSourceSet").source.getSrcDirs()[0].path) == '$testDirectory.path/src/functionalSources/myJavaSourceSet'
                   }
               }
             }
