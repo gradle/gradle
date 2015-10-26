@@ -109,7 +109,6 @@ BUILD FAILED
 
 Total time: .+ secs
 
------
 Error:
 
 FAILURE: Build failed with an exception.
@@ -123,11 +122,7 @@ Execution failed for task ':helloWorld'.
 
 \\u002A Try:
 Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
-
------
-Reason:
-Unexpected exception
------"""
+"""
         TextUtil.normaliseLineSeparators(t.message) ==~ expectedMessage
         BuildResult result = t.buildResult
         result.standardOutput.contains(':helloWorld FAILED')

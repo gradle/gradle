@@ -208,10 +208,7 @@ class DefaultGradleRunnerTest extends Specification {
         String message = defaultGradleRunner.createDiagnosticsMessage('Gradle build executed', gradleExecutionResult)
 
         then:
-        TextUtil.normaliseLineSeparators(message) == """$basicDiagnosticsMessage
-Reason:
-$expectedReason
------"""
+        TextUtil.normaliseLineSeparators(message) == basicDiagnosticsMessage
 
         where:
         exception                                                                                                                     | expectedReason                | description
@@ -363,9 +360,8 @@ $expectedReason
 
 Output:
 This is some output
-$DefaultGradleRunner.DIAGNOSTICS_MESSAGE_SEPARATOR
+
 Error:
-This is some error
-$DefaultGradleRunner.DIAGNOSTICS_MESSAGE_SEPARATOR"""
+This is some error"""
     }
 }

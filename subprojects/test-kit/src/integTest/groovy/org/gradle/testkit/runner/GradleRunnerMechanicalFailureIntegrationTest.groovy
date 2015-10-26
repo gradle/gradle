@@ -84,8 +84,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
         String message = TextUtil.normaliseLineSeparators(t.message)
-        message.contains("""Reason:
-Unknown command-line option '--unknown'.""")
+        message.contains("Unknown command-line option '--unknown'.")
         message.contains('Problem configuring task :helloWorld from command line.')
         BuildResult result = t.buildResult
         result.standardOutput.contains('BUILD FAILED')
@@ -111,8 +110,7 @@ Unknown command-line option '--unknown'.""")
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
         String message = TextUtil.normaliseLineSeparators(t.message)
-        message.contains("""Reason:
-Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
+        message.contains("Project directory '$nonExistentWorkingDir.absolutePath' does not exist.")
         !message.contains(':helloWorld')
         BuildResult result = t.buildResult
         result.standardOutput.contains('BUILD FAILED')

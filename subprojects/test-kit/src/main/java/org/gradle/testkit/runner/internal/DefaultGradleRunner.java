@@ -184,6 +184,7 @@ public class DefaultGradleRunner extends GradleRunner {
         });
     }
 
+    @SuppressWarnings("StringBufferReplaceableByString")
     private String createDiagnosticsMessage(String trailingMessage, GradleExecutionResult gradleExecutionResult) {
         String lineBreak = SystemProperties.getInstance().getLineSeparator();
         StringBuilder message = new StringBuilder();
@@ -197,22 +198,10 @@ public class DefaultGradleRunner extends GradleRunner {
         message.append(lineBreak);
         message.append(gradleExecutionResult.getStandardOutput());
         message.append(lineBreak);
-        message.append(DIAGNOSTICS_MESSAGE_SEPARATOR);
         message.append(lineBreak);
         message.append("Error:");
         message.append(lineBreak);
         message.append(gradleExecutionResult.getStandardError());
-        message.append(lineBreak);
-        message.append(DIAGNOSTICS_MESSAGE_SEPARATOR);
-
-        if (gradleExecutionResult.getThrowable() != null) {
-            message.append(lineBreak);
-            message.append("Reason:");
-            message.append(lineBreak);
-            message.append(determineExceptionMessage(gradleExecutionResult.getThrowable()));
-            message.append(lineBreak);
-            message.append(DIAGNOSTICS_MESSAGE_SEPARATOR);
-        }
 
         return message.toString();
     }
