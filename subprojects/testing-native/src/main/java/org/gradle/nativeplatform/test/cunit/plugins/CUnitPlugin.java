@@ -51,6 +51,7 @@ import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.test.TestSuiteContainer;
 
 import java.io.File;
+import java.util.Collections;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
@@ -84,7 +85,7 @@ public class CUnitPlugin implements Plugin<Project> {
         }
 
         @ComponentType
-        public  void registerCUnitTestSuiteSpecType(ComponentTypeBuilder<CUnitTestSuiteSpec> builder) {
+        public void registerCUnitTestSuiteSpecType(ComponentTypeBuilder<CUnitTestSuiteSpec> builder) {
             builder.defaultImplementation(DefaultCUnitTestSuiteSpec.class);
         }
 
@@ -95,8 +96,8 @@ public class CUnitPlugin implements Plugin<Project> {
                 FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getFunctionalSourceSet();
                 CSourceSet launcherSources = suiteSourceSet.maybeCreate(CUNIT_LAUNCHER_SOURCE_SET, CSourceSet.class);
                 File baseDir = new File(buildDir, String.format("src/%s/cunitLauncher", suite.getName()));
-                launcherSources.getSource().srcDir(new File(baseDir, "c"));
-                launcherSources.getExportedHeaders().srcDir(new File(baseDir, "headers"));
+                launcherSources.getSource().setSrcDirs(Collections.singleton(new File(baseDir, "c")));
+                launcherSources.getExportedHeaders().setSrcDirs(Collections.singleton(new File(baseDir, "headers")));
 
                 CSourceSet testSources = suiteSourceSet.maybeCreate("c", CSourceSet.class);
                 testSources.lib(launcherSources);
