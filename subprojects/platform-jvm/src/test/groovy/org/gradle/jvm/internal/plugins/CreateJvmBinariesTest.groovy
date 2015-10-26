@@ -34,6 +34,7 @@ import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.platform.base.internal.PlatformResolvers
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
 class CreateJvmBinariesTest extends Specification {
@@ -45,7 +46,7 @@ class CreateJvmBinariesTest extends Specification {
     def instantiator = Mock(Instantiator)
 
     def "adds a binary for each jvm library"() {
-        def library = BaseComponentFixtures.create(DefaultJvmLibrarySpec, new ModelRegistryHelper(), componentId("jvmLibOne", ":project-path"), Stub(ProjectSourceSet), DirectInstantiator.INSTANCE)
+        def library = BaseComponentFixtures.create(DefaultJvmLibrarySpec, new ModelRegistryHelper(), componentId("jvmLibOne", ":project-path"), Stub(ProjectSourceSet), DirectInstantiator.INSTANCE, new TestFile("."))
         def namingScheme = Mock(BinaryNamingScheme)
         def platform = DefaultJavaPlatform.current()
         def source1 = sourceSet("ss1")
