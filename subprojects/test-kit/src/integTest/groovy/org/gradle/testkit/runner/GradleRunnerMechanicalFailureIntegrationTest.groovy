@@ -171,6 +171,6 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         !result.standardError
         // TaskStartEvent is fired, task is still null when daemon JVM is shut down
         result.tasks.size() == 1
-        !result.tasks[0]
+        result.tasks[0] == null
     }
 }
