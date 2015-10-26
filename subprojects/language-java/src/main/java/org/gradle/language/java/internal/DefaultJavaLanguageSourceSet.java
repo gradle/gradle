@@ -47,9 +47,4 @@ public class DefaultJavaLanguageSourceSet extends BaseLanguageSourceSet implemen
         configureAction.execute(getDependencies());
         return getDependencies();
     }
-
-    @Override
-    public String getSourceDirConvention() {
-        return "src/main";
-    }
 }
