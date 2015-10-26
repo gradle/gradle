@@ -43,6 +43,9 @@ public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomai
         this.baseDir = baseDir;
         whenObjectAdded(new Action<LanguageSourceSet>() {
             public void execute(LanguageSourceSet languageSourceSet) {
+                if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
+                    initializeDefaultSrcDir(languageSourceSet);
+                }
                 projectSourceSet.add(languageSourceSet);
             }
         });
@@ -51,12 +54,11 @@ public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomai
     @Override
     protected <U extends LanguageSourceSet> U doCreate(String name, Class<U> type) {
         U languageSourceSet = createLanguageSourceSet(name, type);
-        initializeDefaultSrcDir(name, languageSourceSet);
         return languageSourceSet;
     }
 
-    private <U extends LanguageSourceSet> void initializeDefaultSrcDir(String name, U languageSourceSet) {
-        String defaultSourceDir = calculateDefaultPath(name, languageSourceSet);
+    private <U extends LanguageSourceSet> void initializeDefaultSrcDir(U languageSourceSet) {
+        String defaultSourceDir = calculateDefaultPath(languageSourceSet);
         languageSourceSet.getSource().setSrcDirs(Collections.singletonList(defaultSourceDir));
     }
 
@@ -65,20 +67,8 @@ public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomai
         return type.cast(sourceSetFactory.create(name));
     }
 
-    @Override
-    public <U extends LanguageSourceSet> U create(String name, Class<U> type, Action<? super U> configuration) {
-        U languageSourceSet = createLanguageSourceSet(name, type);
-        if (configuration != null) {
-            configuration.execute(languageSourceSet);
-        } else {
-            initializeDefaultSrcDir(name, languageSourceSet);
-        }
-        add(languageSourceSet);
-        return languageSourceSet;
-    }
-
-    private String calculateDefaultPath(String name, LanguageSourceSet languageSourceSet) {
-        return Joiner.on(File.separator).skipNulls().join(baseDir.getPath(), emptyToNull(languageSourceSet.getSourceDirConvention()), emptyToNull(languageSourceSet.getParentName()), emptyToNull(name));
+    private String calculateDefaultPath(LanguageSourceSet languageSourceSet) {
+        return Joiner.on(File.separator).skipNulls().join(baseDir.getPath(), emptyToNull(languageSourceSet.getSourceDirConvention()), emptyToNull(languageSourceSet.getParentName()), emptyToNull(languageSourceSet.getName()));
     }
 
     private <U extends LanguageSourceSet> NamedDomainObjectFactory<? extends LanguageSourceSet> findSourceSetFactory(Class<U> type) {

@@ -38,9 +38,11 @@ class DefaultFunctionalSourceSetTest extends Specification {
         LanguageSourceSet lss = Mock()
         lss.getSourceDirConvention() >> sourceSetConvention
         lss.getParentName() >> parentName
+        lss.getName() >> "lssName"
+
 
         expect:
-        functionalSourceSet.calculateDefaultPath("lssName", lss) == expectedPath
+        functionalSourceSet.calculateDefaultPath(lss) == expectedPath
 
         where:
         baseDir             | parentName   | sourceSetConvention      | expectedPath

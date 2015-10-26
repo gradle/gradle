@@ -22,6 +22,7 @@ import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
 class BaseComponentSpecTest extends Specification {
@@ -48,7 +49,8 @@ class BaseComponentSpecTest extends Specification {
     }
 
     private <T extends BaseComponentSpec> T create(Class<T> type) {
-        BaseComponentFixtures.create(type, modelRegistry, componentId, Stub(ProjectSourceSet), instantiator)
+        def file = new TestFile(".")
+        BaseComponentFixtures.create(type, modelRegistry, componentId, Stub(ProjectSourceSet), instantiator, file)
     }
 
     def "library has name, path and sensible display name"() {
