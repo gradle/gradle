@@ -63,7 +63,10 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
      * <p>
      * If the Gradle project applies a plugin which is recognized by 'eclipse' Gradle plugin then the corresponding
      * nature will be automatically part of the result. For example, if the project applies the 'java' plugin the
-     * result will contain an {@code "org.eclipse.jdt.core.javanature"} entry.
+     * result will contain the {@code "org.eclipse.jdt.core.javanature"} entry. The 'scala' plugin behaves similarly:
+     * when applied then the result will contain the {@code "org.scala-ide.sdt.core.scalanature"} entry.
+     * <p>
+     * The result can be customized via the 'eclipse' plugin configuration.
      * <p>
      * If an older version of Gradle is used then the method returns the default value supplied in the argument.
      *
@@ -78,7 +81,11 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
      * <p>
      * If the Gradle project applies a plugin which is recognized by 'eclipse' Gradle plugin then the corresponding
      * builder will be automatically part of the result. For example, if the project applies the 'java' plugin the
-     * result will contain a builder instance representing the {@code "org.eclipse.jdt.core.javabuilder"}.
+     * result will contain a builder instance representing the {@code "org.eclipse.jdt.core.javabuilder"}. The
+     * 'scala' plugin behaves similarly: when applied then the result will contain the
+     * {@code "org.scala-ide.sdt.core.scalabuilder"} entry.
+     * <p>
+     * The result can be customized via the 'eclipse' plugin configuration.
      * <p>
      * If an older version of Gradle is used then the method returns a default value supplied in the argument.
      *

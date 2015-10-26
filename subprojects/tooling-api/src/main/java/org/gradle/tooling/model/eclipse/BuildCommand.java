@@ -22,12 +22,15 @@ import java.util.Map;
  * An Eclipse build command is a reference to a project builder object which automatically executes whenever a resource
  * in the associate project changes.
  *
- * * @since 2.9
+ * @since 2.9
  */
 public interface BuildCommand {
 
     /**
      * Returns the name of the build command.
+     * <p>
+     * Corresponds to the {@code org.eclipse.core.resources.ICommand#getBuilderName()} method in the Eclipse platform API.
+     * @see <a href="http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.isv/reference/api/org/eclipse/core/resources/ICommand.html#getBuilderName--">Definition of ICommand#getBuilderName() in the Eclipse documentation</a>
      *
      * @return The name of the build command. Does not return null.
      */
@@ -35,6 +38,9 @@ public interface BuildCommand {
 
     /**
      * The arguments supplied for the build command.
+     * <p>
+     * Corresponds to the {@code org.eclipse.core.resources.ICommand#getBuilderName()} method in the Eclipse platform API.
+     * @see <a href="http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.isv/reference/api/org/eclipse/core/resources/ICommand.html#getArguments--">Definition of ICommand#getArguments() in the Eclipse documentation</a>
      *
      * @return The arguments map. If no arguments supplied then returns an empty map.
      */

@@ -28,45 +28,65 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=1.0-milestone-8 <2.9")
     def "older Gradle versions return default natures"() {
         given:
-        file('build.gradle') << ""
         file('settings.gradle') << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
-        def natures = rootProject.getProjectNatures(['default.nature'])
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
 
         then:
-        natures.size() == 1
-        natures[0] == 'default.nature'
+        rootProject.getProjectNatures(['default.nature']) == ['default.nature']
+        rootProject.getProjectNatures([]) == []
+        rootProject.getProjectNatures(null) == null
     }
 
     @TargetGradleVersion(">=2.9")
-    def "empty project returns empty nature list"() {
+    def "applying plugins configure appropriate project natures"(List<String> plugins, List<String> expectedNatures) {
         given:
-        file('build.gradle') << ""
+        plugins.each { plugin -> file('build.gradle') << "apply plugin: '${plugin}'\n" }
         file('settings.gradle') << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
         def natures = rootProject.getProjectNatures(['default.nature'])
 
         then:
-        natures.isEmpty()
+        natures == expectedNatures
+        where:
+        plugins                     | expectedNatures
+        []                          | []
+        ['java']                    | ['org.eclipse.jdt.core.javanature']
+        ['scala']                   | ['org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature']
+        ['groovy']                  | ['org.eclipse.jdt.groovy.core.groovyNature', 'org.eclipse.jdt.core.javanature']
+        ['java', 'scala']           | ['org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature']
+        ['java', 'groovy']          | ['org.eclipse.jdt.groovy.core.groovyNature', 'org.eclipse.jdt.core.javanature']
+        ['scala', 'groovy']         | ['org.eclipse.jdt.groovy.core.groovyNature', 'org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature']
+        ['java', 'scala', 'groovy'] | ['org.eclipse.jdt.groovy.core.groovyNature', 'org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature']
     }
 
     @TargetGradleVersion(">=2.9")
-    def "Java project returns Java nature"() {
+    def "multi-module build defines different natures for each modules"(){
         given:
-        file('build.gradle') << "apply plugin: 'java'"
-        file('settings.gradle') << "rootProject.name = 'root'"
+        file('build.gradle') << """
+            project(':java-project') { apply plugin: 'java' }
+            project(':groovy-project') { apply plugin: 'groovy' }
+            project(':scala-project') { apply plugin: 'scala' }
+        """
+        file('settings.gradle') << """
+            rootProject.name = 'root'
+            include 'java-project', 'groovy-project', 'scala-project'
+        """
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
-        def natures = rootProject.getProjectNatures(['default.nature'])
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
+        EclipseProject javaProject = rootProject.children.find{ it.name == 'java-project' }
+        EclipseProject groovyProject = rootProject.children.find{ it.name == 'groovy-project' }
+        EclipseProject scalaProject = rootProject.children.find{ it.name == 'scala-project' }
 
         then:
-        natures.size() == 1
-        natures[0] == 'org.eclipse.jdt.core.javanature'
+        rootProject.getProjectNatures(['default.nature']) == []
+        javaProject.getProjectNatures(['default.nature']) == ['org.eclipse.jdt.core.javanature']
+        groovyProject.getProjectNatures(['default.nature']) == ['org.eclipse.jdt.groovy.core.groovyNature', 'org.eclipse.jdt.core.javanature']
+        scalaProject.getProjectNatures(['default.nature']) == ['org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature']
     }
 
     @TargetGradleVersion(">=2.9")
@@ -83,13 +103,10 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         file('settings.gradle') << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
-        def natures = rootProject.getProjectNatures(['default.nature'])
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
 
         then:
-        natures.size() == 2
-        natures[0] == 'sample.nature.a'
-        natures[1] == 'sample.nature.b'
+        rootProject.getProjectNatures(['default.nature']) == ['sample.nature.a', 'sample.nature.b']
     }
 
     @TargetGradleVersion(">=2.9")
@@ -108,60 +125,72 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         file('settings.gradle') << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
-        def natures = rootProject.getProjectNatures(['default.nature'])
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
 
         then:
-        natures.size() == 3
-        natures[0] == 'org.eclipse.jdt.core.javanature'
-        natures[1] == 'sample.nature.a'
-        natures[2] == 'sample.nature.b'
+        rootProject.getProjectNatures(['default.nature']) == ['org.eclipse.jdt.core.javanature', 'sample.nature.a', 'sample.nature.b']
     }
 
     @TargetGradleVersion(">=1.0-milestone-8 <2.9")
     def "older Gradle versions return default builders"() {
         given:
-        file('build.gradle') << ""
         file('settings.gradle') << "rootProject.name = 'root'"
-
-        when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
         BuildCommand defaultBuilder = Mock()
-        def builders = rootProject.getBuildCommands([defaultBuilder])
+
+        when:
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
 
         then:
-        builders.size() == 1
-        builders[0] == defaultBuilder
+        rootProject.getBuildCommands([defaultBuilder]) == [defaultBuilder]
+        rootProject.getBuildCommands([]) == []
+        rootProject.getBuildCommands(null) == null
     }
 
     @TargetGradleVersion(">=2.9")
-    def "empty project returns empty builder list"() {
+    def "applying plugins configure appropriate project builders"(List<String> plugins, List<String> expectedBuilderNames) {
         given:
-        file('build.gradle') << ""
+        plugins.each { plugin -> file('build.gradle') << "apply plugin: '${plugin}'\n" }
         file('settings.gradle') << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
-        def builders = rootProject.getBuildCommands([Mock(BuildCommand.class)])
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
+        def builderNames = rootProject.getBuildCommands([]).collect{ it.name }
 
         then:
-        builders.isEmpty()
+        builderNames == expectedBuilderNames
+
+        where:
+        plugins                     | expectedBuilderNames
+        []                          | []
+        ['java']                    | ['org.eclipse.jdt.core.javabuilder']
+        ['scala']                   | ['org.scala-ide.sdt.core.scalabuilder']
+        ['groovy']                  | ['org.eclipse.jdt.core.javabuilder']
+        ['java', 'scala']           | ['org.scala-ide.sdt.core.scalabuilder']
+        ['java', 'scala', 'groovy'] | ['org.scala-ide.sdt.core.scalabuilder']
+        ['java','ear']              | []
     }
 
     @TargetGradleVersion(">=2.9")
-    def "Java project returns Java builders"() {
+    def "multi-module build defines different builders for each modules"(){
         given:
-        file('build.gradle') << "apply plugin: 'java'"
-        file('settings.gradle') << "rootProject.name = 'root'"
+        file('build.gradle') << """
+            project(':java-project') { apply plugin: 'java' }
+            project(':scala-project') { apply plugin: 'scala' }
+        """
+        file('settings.gradle') << """
+            rootProject.name = 'root'
+            include 'java-project', 'scala-project'
+        """
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
-        def builders = rootProject.getBuildCommands([])
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
+        EclipseProject javaProject = rootProject.children.find{ it.name == 'java-project' }
+        EclipseProject scalaProject = rootProject.children.find{ it.name == 'scala-project' }
 
         then:
-        builders.size() == 1
-        builders[0].name == 'org.eclipse.jdt.core.javabuilder'
-        builders[0].arguments.isEmpty()
+        rootProject.getBuildCommands([Mock(BuildCommand)]).collect{ it.name } == []
+        javaProject.getBuildCommands([]).collect{ it.name } == ['org.eclipse.jdt.core.javabuilder']
+        scalaProject.getBuildCommands([]).collect{ it.name } == ['org.scala-ide.sdt.core.scalabuilder']
     }
 
     @TargetGradleVersion(">=2.9")
@@ -179,7 +208,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         file('settings.gradle') << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
         def builders = rootProject.getBuildCommands([])
 
         then:
@@ -207,7 +236,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         file('settings.gradle') << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
         def builders = rootProject.getBuildCommands([])
 
         then:

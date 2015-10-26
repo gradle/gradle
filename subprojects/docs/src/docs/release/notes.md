@@ -177,9 +177,30 @@ TODO: Expand this and provide a DSL example.
 #### Expose Eclipse builders and natures
 
 Clients of the Tooling API now can query the list of Eclipse builders and natures via the
-<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html">EclipseProject</a> model. The result of the `EclipseProject.getProjectNatures()`
-and `EclipseProject.getBuildCommands()` contain the builders and natures required for the target project as well as the customisation defined the
-'eclipse' <a href="dsl/org.gradle.plugins.ide.eclipse.model.EclipseProject.html">Gradle plugin configuration</a>.
+<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html">EclipseProject</a> model.
+
+    ProjectConnection connection = GradleConnector.newConnector().forProjectDirectory(new File("someFolder")).connect();
+    try {
+        // get model
+        EclipseProject eclipseProject = connection.model(EclipseProject.class).get();
+
+        // query builders and natures
+        List<String> defaultNatures = ...
+        List<BuildCommand> defaultBuilders = ...
+        List<String> projectNatures = eclipseProject.getProjectNatures(defaultNatures);
+        List<BuildCommand> projectBuilders = eclipseProject.getBuildCommands(defaultBuilders);
+
+        // utilize obtained data
+        System.out.println(projectNatures);
+        System.out.println(projectBuilders);
+    } finally {
+        connection.close();
+    }
+
+The result of <a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getProjectNatures()">EclipseProject.getProjectNatures()</a>
+and <a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getBuildCommands()">EclipseProject.getBuildCommands()</a>
+contain the builders and natures required for the target project as well as the customization defined by the 'eclipse'
+<a href="dsl/org.gradle.plugins.ide.eclipse.model.EclipseProject.html">Gradle plugin configuration</a>.
 
 ## Promoted features
 

@@ -53,6 +53,8 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
         this.classpath = Collections.emptyList();
         this.sourceDirectories = Collections.emptyList();
         this.projectDependencies = Collections.emptyList();
+        this.projectNatures = Collections.emptyList();
+        this.buildCommands = Collections.emptyList();
     }
 
     @Override
