@@ -50,11 +50,31 @@ public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomai
 
     @Override
     protected <U extends LanguageSourceSet> U doCreate(String name, Class<U> type) {
-        NamedDomainObjectFactory<? extends LanguageSourceSet> sourceSetFactory = findSourceSetFactory(type);
-        LanguageSourceSet languageSourceSet = sourceSetFactory.create(name);
+        U languageSourceSet = createLanguageSourceSet(name, type);
+        initializeDefaultSrcDir(name, languageSourceSet);
+        return languageSourceSet;
+    }
+
+    private <U extends LanguageSourceSet> void initializeDefaultSrcDir(String name, U languageSourceSet) {
         String defaultSourceDir = calculateDefaultPath(name, languageSourceSet);
         languageSourceSet.getSource().setSrcDirs(Collections.singletonList(defaultSourceDir));
-        return type.cast(languageSourceSet);
+    }
+
+    private <U extends LanguageSourceSet> U createLanguageSourceSet(String name, Class<U> type) {
+        NamedDomainObjectFactory<? extends LanguageSourceSet> sourceSetFactory = findSourceSetFactory(type);
+        return type.cast(sourceSetFactory.create(name));
+    }
+
+    @Override
+    public <U extends LanguageSourceSet> U create(String name, Class<U> type, Action<? super U> configuration) {
+        U languageSourceSet = createLanguageSourceSet(name, type);
+        if (configuration != null) {
+            configuration.execute(languageSourceSet);
+        } else {
+            initializeDefaultSrcDir(name, languageSourceSet);
+        }
+        add(languageSourceSet);
+        return languageSourceSet;
     }
 
     private String calculateDefaultPath(String name, LanguageSourceSet languageSourceSet) {
