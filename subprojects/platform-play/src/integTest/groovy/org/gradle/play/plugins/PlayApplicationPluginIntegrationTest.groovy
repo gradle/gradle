@@ -21,7 +21,8 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import static org.gradle.play.integtest.fixtures.Repositories.*
+
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORES
 
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -83,10 +84,10 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
                 play {
                     sources {
                         extraJava(JavaSourceSet) {
-                            source.srcDir "src/extraJava"
+                            source.srcDirs = ["src/extraJava"]
                         }
                         extraScala(ScalaLanguageSourceSet) {
-                            source.srcDir "src/extraScala"
+                            source.srcDirs = ["src/extraScala"]
                         }
                     }
                 }
