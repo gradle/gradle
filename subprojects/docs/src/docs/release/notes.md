@@ -45,6 +45,12 @@ TBD
 - `BinarySpec.name` should no longer be considered a unique identifier for the binary within a project.
 - The name for the 'build' task for a binary is now qualified with the name of its component. For example, `jar` in `mylib` will have a build task called 'mylibJar'
 - The name for the compile tasks for a binary is now qualified with the name of its component.
+- JVM libraries have a binary called `jar` rather than one qualified with the library name.
+- When building a JVM library with multiple variants, the task and output directory names have changed. The library name is now first.
+
+### Changes to incubating native software model
+
+- Task names have changed for components with multiple variants. The library or executable name is now first.
 
 ## External contributions
 
