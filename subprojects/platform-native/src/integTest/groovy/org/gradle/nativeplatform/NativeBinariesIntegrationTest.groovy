@@ -122,11 +122,11 @@ model {
         failureDescriptionContains("Execution failed for task ':assemble'.")
         failure.assertThatCause(Matchers.<String>allOf(
                 Matchers.startsWith("No buildable binaries found:"),
-                Matchers.containsString("helloSharedLibrary: No tool chain is available to build for platform 'unknown'"),
-                Matchers.containsString("helloStaticLibrary: No tool chain is available to build for platform 'unknown'"),
-                Matchers.containsString("mainExecutable: No tool chain is available to build for platform 'unknown'"),
-                Matchers.containsString("anotherStaticLibrary: Disabled by user"),
-                Matchers.containsString("anotherSharedLibrary: Disabled by user")
+                Matchers.containsString("shared library 'hello:sharedLibrary': No tool chain is available to build for platform 'unknown'"),
+                Matchers.containsString("static library 'hello:staticLibrary': No tool chain is available to build for platform 'unknown'"),
+                Matchers.containsString("executable 'main:executable': No tool chain is available to build for platform 'unknown'"),
+                Matchers.containsString("static library 'another:staticLibrary': Disabled by user"),
+                Matchers.containsString("shared library 'another:sharedLibrary': Disabled by user")
         ))
     }
 

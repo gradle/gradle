@@ -224,7 +224,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
                     formatter.node("No buildable binaries found");
                     formatter.startChildren();
                     for (BinarySpecInternal binary : notBuildable) {
-                        formatter.node(binary.getName());
+                        formatter.node(binary.getDisplayName());
                         formatter.startChildren();
                         binary.getBuildAbility().explain(formatter);
                         formatter.endChildren();

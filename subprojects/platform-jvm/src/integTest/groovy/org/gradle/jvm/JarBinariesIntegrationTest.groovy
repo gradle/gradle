@@ -80,9 +80,9 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
         failureDescriptionContains("Execution failed for task ':assemble'.")
         failure.assertThatCause(Matchers.<String>allOf(
                 Matchers.startsWith("No buildable binaries found:"),
-                Matchers.containsString("myJvmLib1Jar: Could not target platform: 'Java SE 9' using tool chain:"),
-                Matchers.containsString("myJvmLib2Jar: Could not target platform: 'Java SE 9' using tool chain:"),
-                Matchers.containsString("myJvmLib3Jar: Disabled by user")
+                Matchers.containsString("Jar 'myJvmLib1:jar': Could not target platform: 'Java SE 9' using tool chain:"),
+                Matchers.containsString("Jar 'myJvmLib2:jar': Could not target platform: 'Java SE 9' using tool chain:"),
+                Matchers.containsString("Jar 'myJvmLib3:jar': Disabled by user")
         ))
     }
 }
