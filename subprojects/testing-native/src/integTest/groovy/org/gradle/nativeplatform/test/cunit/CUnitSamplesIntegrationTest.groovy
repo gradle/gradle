@@ -58,8 +58,8 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         then:
         executedAndNotSkipped ":operatorsTestCUnitLauncher",
-                              ":compilePassingOperatorsTestCUnitExeOperatorsTestC", ":compilePassingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
-                              ":linkPassingOperatorsTestCUnitExe", ":passingOperatorsTestCUnitExe",
+                              ":compileOperatorsTestPassingCUnitExeOperatorsTestC", ":compileOperatorsTestPassingCUnitExeOperatorsTestCunitLauncher",
+                              ":linkPassingOperatorsTestCUnitExe", ":operatorsTestPassingCUnitExe",
                               ":installPassingOperatorsTestCUnitExe", ":runPassingOperatorsTestCUnitExe"
 
         and:
@@ -76,8 +76,8 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         then:
         skipped ":operatorsTestCUnitLauncher"
-        executedAndNotSkipped ":compileFailingOperatorsTestCUnitExeOperatorsTestC", ":compileFailingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
-                              ":linkFailingOperatorsTestCUnitExe", ":failingOperatorsTestCUnitExe",
+        executedAndNotSkipped ":compileOperatorsTestFailingCUnitExeOperatorsTestC", ":compileOperatorsTestFailingCUnitExeOperatorsTestCunitLauncher",
+                              ":linkFailingOperatorsTestCUnitExe", ":operatorsTestFailingCUnitExe",
                               ":installFailingOperatorsTestCUnitExe", ":runFailingOperatorsTestCUnitExe"
 
         and:

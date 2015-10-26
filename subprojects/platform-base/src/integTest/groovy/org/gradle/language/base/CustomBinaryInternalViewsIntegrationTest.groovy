@@ -81,9 +81,9 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
             void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
                 tasks.create("validate") {
                     def binaries = components.sampleLib.binaries
-                    assert binaries*.name == ["sampleBin", "sampleLibJar"]
-                    assert binaries.withType(BinarySpec)*.name == ["sampleBin", "sampleLibJar"]
-                    assert binaries.withType(JvmBinarySpec)*.name == ["sampleLibJar"]
+                    assert binaries*.name == ["jar", "sampleBin"]
+                    assert binaries.withType(BinarySpec)*.name == ["jar", "sampleBin"]
+                    assert binaries.withType(JvmBinarySpec)*.name == ["jar"]
                     assert binaries.withType(SampleBinarySpec)*.name == ["sampleBin"]
                     assert binaries.withType(SampleBinarySpecInternal)*.name == ["sampleBin"]
                     assert binaries.withType(BareInternal)*.name == ["sampleBin"]

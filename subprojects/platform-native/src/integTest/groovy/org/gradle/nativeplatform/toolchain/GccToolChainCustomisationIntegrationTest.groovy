@@ -95,7 +95,7 @@ model {
 """
 
         and:
-        succeeds "armMainExecutable", "i386MainExecutable", "sparcMainExecutable"
+        succeeds "mainArmExecutable", "mainI386Executable", "mainSparcExecutable"
 
         then:
         executable("build/binaries/mainExecutable/arm/main").binaryInfo.arch.name == "x86"

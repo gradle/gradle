@@ -74,18 +74,18 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
                             def myLibJar = (binaries.values() as List)[0]
                             assert myLibJar instanceof JarBinarySpec
-                            assert myLibJar.name == 'myLibJar'
-                            assert myLibJar.displayName == "Jar 'myLibJar'"
+                            assert myLibJar.name == 'jar'
+                            assert myLibJar.displayName == "Jar 'myLib:jar'"
 
                             def binaryTask = project.tasks['myLibJar']
                             assert binaryTask.group == 'build'
-                            assert binaryTask.description == "Assembles Jar 'myLibJar'."
+                            assert binaryTask.description == "Assembles Jar 'myLib:jar'."
                             assert myLibJar.buildTask == binaryTask
 
                             def jarTask = project.tasks['createMyLibJar']
                             assert jarTask instanceof org.gradle.jvm.tasks.Jar
                             assert jarTask.group == null
-                            assert jarTask.description == "Creates the binary file for Jar 'myLibJar'."
+                            assert jarTask.description == "Creates the binary file for Jar 'myLib:jar'."
                         }
                     }
                 }

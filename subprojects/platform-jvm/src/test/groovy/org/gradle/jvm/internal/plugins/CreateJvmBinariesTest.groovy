@@ -61,7 +61,7 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        _ * namingScheme.lifecycleTaskName >> "jvmLibJar"
+        _ * namingScheme.binaryName >> "jvmLibJar"
         1 * binaries.create("jvmLibJar", _ as Action)
         0 * _
     }

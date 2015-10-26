@@ -44,7 +44,7 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
         def executable = BaseComponentFixtures.create(DefaultNativeExecutableSpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "name"), Stub(ProjectSourceSet), instantiator)
 
         when:
-        def binary = TestNativeBinariesFactory.create(DefaultNativeExecutableBinarySpec, namingScheme.getLifecycleTaskName(), instantiator, taskFactory, executable, namingScheme,
+        def binary = TestNativeBinariesFactory.create(DefaultNativeExecutableBinarySpec, namingScheme.getBinaryName(), instantiator, taskFactory, executable, namingScheme,
             Mock(NativeDependencyResolver), Stub(NativePlatform), Stub(BuildType), new DefaultFlavor("flavorOne"))
 
         then:

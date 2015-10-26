@@ -156,7 +156,7 @@ model {
 """
 
         then:
-        fails "germanMainExecutable"
+        fails "mainGermanExecutable"
         failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'german', platform: '${NativePlatformsTestFixture.defaultPlatformName}', buildType: 'debug']")
     }
 

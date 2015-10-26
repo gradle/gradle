@@ -144,7 +144,7 @@ public class CUnitPlugin implements Plugin<Project> {
                             .withTypeString("CUnitExe").build();
                         final NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
 
-                        cUnitTestSuite.getBinaries().create(namingScheme.getLifecycleTaskName(), CUnitTestSuiteBinarySpec.class, new Action<CUnitTestSuiteBinarySpec>() {
+                        cUnitTestSuite.getBinaries().create(namingScheme.getBinaryName(), CUnitTestSuiteBinarySpec.class, new Action<CUnitTestSuiteBinarySpec>() {
                             @Override
                             public void execute(CUnitTestSuiteBinarySpec binary) {
                                 NativeTestSuiteBinarySpecInternal testBinary = (NativeTestSuiteBinarySpecInternal) binary;

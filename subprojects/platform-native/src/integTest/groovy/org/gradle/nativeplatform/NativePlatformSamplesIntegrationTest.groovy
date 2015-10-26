@@ -100,8 +100,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         run "installEnglishMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileEnglishHelloSharedLibraryHelloCpp", ":linkEnglishHelloSharedLibrary", ":englishHelloSharedLibrary"
-        executedAndNotSkipped ":compileEnglishMainExecutableMainCpp", ":linkEnglishMainExecutable", ":englishMainExecutable"
+        executedAndNotSkipped ":compileHelloEnglishSharedLibraryHelloCpp", ":linkEnglishHelloSharedLibrary", ":helloEnglishSharedLibrary"
+        executedAndNotSkipped ":compileMainEnglishExecutableMainCpp", ":linkEnglishMainExecutable", ":mainEnglishExecutable"
 
         and:
         executable(flavors.dir.file("build/binaries/mainExecutable/english/main")).assertExists()
@@ -115,8 +115,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         run "installFrenchMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileFrenchHelloSharedLibraryHelloCpp", ":linkFrenchHelloSharedLibrary", ":frenchHelloSharedLibrary"
-        executedAndNotSkipped ":compileFrenchMainExecutableMainCpp", ":linkFrenchMainExecutable", ":frenchMainExecutable"
+        executedAndNotSkipped ":compileHelloFrenchSharedLibraryHelloCpp", ":linkFrenchHelloSharedLibrary", ":helloFrenchSharedLibrary"
+        executedAndNotSkipped ":compileMainFrenchExecutableMainCpp", ":linkFrenchMainExecutable", ":mainFrenchExecutable"
 
         and:
         executable(flavors.dir.file("build/binaries/mainExecutable/french/main")).assertExists()

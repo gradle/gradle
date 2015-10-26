@@ -111,7 +111,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
                             .withTypeString("GoogleTestExe").build();
                         final NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
 
-                        testSuiteSpec.getBinaries().create(namingScheme.getLifecycleTaskName(), GoogleTestTestSuiteBinarySpec.class, new Action<GoogleTestTestSuiteBinarySpec>() {
+                        testSuiteSpec.getBinaries().create(namingScheme.getBinaryName(), GoogleTestTestSuiteBinarySpec.class, new Action<GoogleTestTestSuiteBinarySpec>() {
                             @Override
                             public void execute(GoogleTestTestSuiteBinarySpec binary) {
                                 NativeTestSuiteBinarySpecInternal testBinary = (NativeTestSuiteBinarySpecInternal) binary;

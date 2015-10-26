@@ -17,7 +17,6 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.api.Action;
-import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.language.base.internal.BuildDirHolder;
 import org.gradle.model.Defaults;
@@ -32,10 +31,10 @@ public class JarBinaryRules extends RuleSource {
     void configureJarBinaries(final ComponentSpec jvmLibrary, BuildDirHolder buildDirHolder, final JavaToolChainRegistry toolChains) {
         final File binariesDir = new File(buildDirHolder.getDir(), "jars");
         final File classesDir = new File(buildDirHolder.getDir(), "classes");
-        jvmLibrary.getBinaries().withType(JarBinarySpec.class).beforeEach(new Action<JarBinarySpec>() {
+        jvmLibrary.getBinaries().withType(JarBinarySpecInternal.class).beforeEach(new Action<JarBinarySpec>() {
             @Override
-            public void execute(JarBinarySpec jarBinary) {
-                String jarBinaryName = jarBinary.getName();
+            public void execute(JarBinarySpecInternal jarBinary) {
+                String jarBinaryName = jarBinary.getProjectScopedName();
                 int idx = jarBinaryName.lastIndexOf("Jar");
                 String apiJarBinaryName = idx>0?jarBinaryName.substring(0, idx) + "ApiJar" : jarBinaryName + "ApiJar";
                 String libraryName = jarBinary.getId().getLibraryName();

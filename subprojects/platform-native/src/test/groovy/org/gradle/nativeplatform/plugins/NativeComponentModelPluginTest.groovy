@@ -138,7 +138,7 @@ class NativeComponentModelPluginTest extends Specification {
         NativeExecutableSpec executable = one(components.values()) as NativeExecutableSpec
         NativeExecutableBinarySpec executableBinary = one(binaries) as NativeExecutableBinarySpec
         with(executableBinary) {
-            name == 'testExecutable'
+            name == 'executable'
             component == executable
             toolChain.name == "tc"
             targetPlatform.name == "platform"
@@ -171,7 +171,7 @@ class NativeComponentModelPluginTest extends Specification {
         NativeLibrarySpec library = one(components.values()) as NativeLibrarySpec
         SharedLibraryBinarySpec sharedLibraryBinary = binaries.testSharedLibrary as SharedLibraryBinarySpec
         with(sharedLibraryBinary) {
-            name == 'testSharedLibrary'
+            name == 'sharedLibrary'
             component == library
 
             toolChain.name == "tc"
@@ -183,7 +183,7 @@ class NativeComponentModelPluginTest extends Specification {
         and:
         StaticLibraryBinarySpec staticLibraryBinary = binaries.testStaticLibrary as StaticLibraryBinarySpec
         with(staticLibraryBinary) {
-            name == 'testStaticLibrary'
+            name == 'staticLibrary'
             component == library
 
             toolChain.name == "tc"
@@ -210,17 +210,17 @@ class NativeComponentModelPluginTest extends Specification {
         then:
         NativeExecutableBinarySpec executableBinary = binaries.exeExecutable as NativeExecutableBinarySpec
         with(oneTask(executableBinary.buildDependencies)) {
-            name == executableBinary.name
+            name == "exeExecutable"
             group == LifecycleBasePlugin.BUILD_GROUP
         }
         SharedLibraryBinarySpec sharedLibraryBinary = binaries.libSharedLibrary as SharedLibraryBinarySpec
         with(oneTask(sharedLibraryBinary.buildDependencies)) {
-            name == sharedLibraryBinary.name
+            name == "libSharedLibrary"
             group == LifecycleBasePlugin.BUILD_GROUP
         }
         StaticLibraryBinarySpec staticLibraryBinary = binaries.libStaticLibrary as StaticLibraryBinarySpec
         with(oneTask(staticLibraryBinary.buildDependencies)) {
-            name == staticLibraryBinary.name
+            name == "libStaticLibrary"
             group == LifecycleBasePlugin.BUILD_GROUP
         }
     }

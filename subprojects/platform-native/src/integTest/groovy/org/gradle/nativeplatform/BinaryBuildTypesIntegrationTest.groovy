@@ -68,7 +68,7 @@ model {
 }
         """
         and:
-        succeeds "debugMainExecutable", "integrationMainExecutable", "releaseMainExecutable"
+        succeeds "mainDebugExecutable", "mainIntegrationExecutable", "mainReleaseExecutable"
 
         then:
         with(executable("build/binaries/mainExecutable/debug/main")) {
@@ -209,7 +209,7 @@ model {
 """
 
         and:
-        fails "releaseMainExecutable"
+        fails "mainReleaseExecutable"
 
         then:
         failure.assertHasDescription("No static library binary available for library 'hello' with [flavor: 'default', platform: '${NativePlatformsTestFixture.defaultPlatformName}', buildType: 'release']")

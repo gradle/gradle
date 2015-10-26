@@ -88,8 +88,8 @@ class NativeComponentRulesTest extends Specification {
         then:
         1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
         component.binaries.keySet() == [
-            "nameSharedLibrary",
-            "nameStaticLibrary",
+            "sharedLibrary",
+            "staticLibrary",
         ].toSet()
     }
 
@@ -107,10 +107,10 @@ class NativeComponentRulesTest extends Specification {
 
         then:
         component.binaries.keySet() == [
-            "platform1NameStaticLibrary",
-            "platform1NameSharedLibrary",
-            "platform2NameStaticLibrary",
-            "platform2NameSharedLibrary",
+            "platform1StaticLibrary",
+            "platform1SharedLibrary",
+            "platform2StaticLibrary",
+            "platform2SharedLibrary",
         ].toSet()
     }
 
@@ -124,10 +124,10 @@ class NativeComponentRulesTest extends Specification {
         then:
         1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
         component.binaries.keySet() == [
-            "buildType1NameSharedLibrary",
-            "buildType1NameStaticLibrary",
-            "buildType2NameSharedLibrary",
-            "buildType2NameStaticLibrary",
+            "buildType1SharedLibrary",
+            "buildType1StaticLibrary",
+            "buildType2SharedLibrary",
+            "buildType2StaticLibrary",
         ].toSet()
     }
 
@@ -141,10 +141,10 @@ class NativeComponentRulesTest extends Specification {
         then:
         1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
         component.binaries.keySet() == [
-            "flavor1NameSharedLibrary",
-            "flavor1NameStaticLibrary",
-            "flavor2NameSharedLibrary",
-            "flavor2NameStaticLibrary",
+            "flavor1SharedLibrary",
+            "flavor1StaticLibrary",
+            "flavor2SharedLibrary",
+            "flavor2StaticLibrary",
         ].toSet()
     }
 

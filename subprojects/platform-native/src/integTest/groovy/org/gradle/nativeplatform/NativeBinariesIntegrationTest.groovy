@@ -82,8 +82,8 @@ model {
         succeeds "assemble"
 
         then:
-        executedAndNotSkipped ":${NativePlatformsTestFixture.defaultPlatformName}MainExecutable"
-        notExecuted ":unknownMainExecutable"
+        executedAndNotSkipped ":main${NativePlatformsTestFixture.defaultPlatformName.capitalize()}Executable"
+        notExecuted ":mainUnknownExecutable"
 
         and:
         executable("build/binaries/mainExecutable/${NativePlatformsTestFixture.defaultPlatformName}/main").assertExists()

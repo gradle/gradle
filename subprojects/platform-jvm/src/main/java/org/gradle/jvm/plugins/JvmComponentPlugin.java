@@ -82,7 +82,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             builder.internalView(JarBinarySpecInternal.class);
         }
 
-        @Model
+        @Service
         public BinaryNamingSchemeBuilder binaryNamingSchemeBuilder() {
             return new DefaultBinaryNamingSchemeBuilder();
         }
@@ -144,15 +144,15 @@ public class JvmComponentPlugin implements Plugin<Project> {
             if (selectedPlatforms.size() > 1) {
                 componentBuilder = componentBuilder.withVariantDimension(platform.getName());
             }
-            return componentBuilder.build().getLifecycleTaskName();
+            return componentBuilder.build().getBinaryName();
         }
 
         @BinaryTasks
-        public void createTasks(ModelMap<Task> tasks, final JarBinarySpec binary, @Path("buildDir") File buildDir) {
+        public void createTasks(ModelMap<Task> tasks, final JarBinarySpecInternal binary, @Path("buildDir") File buildDir) {
             final File runtimeClassesDir = binary.getClassesDir();
             final File runtimeJarDestDir = binary.getJarFile().getParentFile();
             final String runtimeJarArchiveName = binary.getJarFile().getName();
-            final String createRuntimeJar = "create" + capitalize(binary.getName());
+            final String createRuntimeJar = "create" + capitalize(binary.getProjectScopedName());
             tasks.create(createRuntimeJar, Jar.class, new Action<Jar>() {
                 @Override
                 public void execute(Jar jar) {
@@ -164,7 +164,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 }
             });
 
-            String binaryName = binary.getName();
+            String binaryName = binary.getProjectScopedName();
             if (!binaryName.endsWith("Jar")) {
                 return;
             }
