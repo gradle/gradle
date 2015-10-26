@@ -92,7 +92,7 @@ Source sets
     No source sets.
 
 Binaries
-    Jar 'libJar'
+    Jar 'lib:jar'
         build using task: :libJar
         targetPlatform: $currentJava
         tool chain: $currentJdk
