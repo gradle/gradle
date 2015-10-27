@@ -494,9 +494,18 @@ the user that an element of type `T` cannot be added to the collection. Error me
 - Add `ManagedNodeBackedModelMapTest.reasonable error message when creating a non-constructible type`.
 - Add `UnmanagedNodeBackedModelMapTest.reasonable error message when creating a non-constructible type`.
 - Add `DomainObjectCollectionBackedModelMapTest.reasonable error message when creating a non-constructible type`.
-- Add `ModelSetIntegrationTest.reasonable error message when creating a non-constructible type`.
 
 For all theses tests, assert that the reported constructible types list contains appropriate types and only them.
+
+### Open Issues
+
+`ModelSet` contrat does not allow to specify the type of element when adding one. The `elementType` is always used.
+In other words, there's no way to add an element of a different type that the `ModelSet` parameterized one.
+
+So, this test has not been implemented:
+
+- Add `ModelSetIntegrationTest.reasonable error message when creating a non-constructible type`.
+
 
 ## Story: Validate model types more eagerly
 
