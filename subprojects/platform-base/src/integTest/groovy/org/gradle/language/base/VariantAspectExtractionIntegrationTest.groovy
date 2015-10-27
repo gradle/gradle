@@ -15,9 +15,7 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
     def "variant annotation on property with illegal type type raises error"() {
@@ -68,11 +66,10 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause "Invalid managed model type SampleBinary: @Variant annotation only allowed for properties of type String and org.gradle.api.Named, but property has type int (invalid property: variantProp)"
     }
 
-    @Unroll
-    def "variant annotation on property with boolean type and #getterDesc getter raises error"() {
+    def "variant annotation on property with boolean type raises error"() {
         buildFile << """
         interface SampleBinary extends BinarySpec {
-            $getter
+            @Variant boolean isVariantProp()
             void setVariantProp(boolean variant)
         }
         class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
@@ -90,14 +87,6 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "components"
         failure.assertHasCause "Invalid managed model type SampleBinary: @Variant annotation only allowed for properties of type String and org.gradle.api.Named, but property has type boolean (invalid property: variantProp)"
-
-        where:
-        getterDesc                  | getter
-        'get'                       | '@Variant boolean getVariantProp()'
-        'is'                        | '@Variant boolean isVariantProp()'
-        'both (annotation on is)'   | '@Variant boolean isVariantProp(); boolean getVariantProp()'
-        'both (annotation on get)'  | 'boolean isVariantProp(); @Variant boolean getVariantProp()'
-        'both (annotation on both)' | '@Variant boolean isVariantProp(); @Variant boolean getVariantProp()'
     }
 
     def "variant annotation on setter raises error"() {
