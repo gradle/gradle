@@ -28,29 +28,23 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.plugins.CLangPlugin;
 import org.gradle.model.*;
-import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.nativeplatform.SharedLibraryBinary;
-import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher;
-import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
-import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.test.TestSuiteContainer;
 
 import java.io.File;
+
+import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNativeTestSuiteBinaries;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
@@ -129,46 +123,9 @@ public class CUnitPlugin implements Plugin<Project> {
         @Mutate
         public void createCUnitTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir,
                                             LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
-            testSuites.withType(CUnitTestSuiteSpec.class).afterEach(new Action<CUnitTestSuiteSpec>() {
-                @Override
-                public void execute(final CUnitTestSuiteSpec cUnitTestSuite) {
-                    for (final NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
-
-                        if (testedBinary instanceof SharedLibraryBinary) {
-                            // TODO:DAZ For now, we only create test suites for static library variants
-                            continue;
-                        }
-
-                        final BinaryNamingScheme namingScheme = new DefaultBinaryNamingSchemeBuilder(((NativeBinarySpecInternal) testedBinary).getNamingScheme())
-                            .withComponentName(cUnitTestSuite.getBaseName())
-                            .withTypeString("CUnitExe").build();
-                        final NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
-
-                        cUnitTestSuite.getBinaries().create(namingScheme.getBinaryName(), CUnitTestSuiteBinarySpec.class, new Action<CUnitTestSuiteBinarySpec>() {
-                            @Override
-                            public void execute(CUnitTestSuiteBinarySpec binary) {
-                                NativeTestSuiteBinarySpecInternal testBinary = (NativeTestSuiteBinarySpecInternal) binary;
-                                testBinary.setTestedBinary((NativeBinarySpecInternal) testedBinary);
-                                testBinary.setNamingScheme(namingScheme);
-                                testBinary.setResolver(resolver);
-                                testBinary.setToolChain(testedBinary.getToolChain());
-                                testBinary.getExecutable().setToolChain(testedBinary.getToolChain());
-                                configure(testBinary, buildDir);
-                            }
-                        });
-                    }
-                }
-            });
+            createNativeTestSuiteBinaries(testSuites, CUnitTestSuiteSpec.class, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
         }
 
-        private void configure(NativeTestSuiteBinarySpecInternal testBinary, File buildDir) {
-            BinaryNamingScheme namingScheme = testBinary.getNamingScheme();
-            PlatformToolProvider toolProvider = testBinary.getPlatformToolProvider();
-            File binaryOutputDir = new File(new File(buildDir, "binaries"), namingScheme.getOutputDirectoryBase());
-            String baseName = testBinary.getComponent().getBaseName();
-
-            testBinary.getExecutable().setFile(new File(binaryOutputDir, toolProvider.getExecutableName(baseName)));
-            testBinary.getInstallation().setDirectory(new File(new File(buildDir, "install"), namingScheme.getOutputDirectoryBase()));
-        }
     }
+
 }

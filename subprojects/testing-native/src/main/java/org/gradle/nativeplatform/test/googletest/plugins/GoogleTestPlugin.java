@@ -26,27 +26,21 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.plugins.CppLangPlugin;
 import org.gradle.model.*;
-import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.nativeplatform.SharedLibraryBinary;
-import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteBinary;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteSpec;
-import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.test.TestSuiteContainer;
 
 import java.io.File;
+
+import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNativeTestSuiteBinaries;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with GoogleTest.
@@ -97,45 +91,8 @@ public class GoogleTestPlugin implements Plugin<Project> {
         @Mutate
         public void createGoogleTestTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir,
                                                  LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
-            testSuites.withType(GoogleTestTestSuiteSpec.class).afterEach(new Action<GoogleTestTestSuiteSpec>() {
-                @Override
-                public void execute(final GoogleTestTestSuiteSpec testSuiteSpec) {
-                    for (final NativeBinarySpec testedBinary : testSuiteSpec.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
-                        if (testedBinary instanceof SharedLibraryBinary) {
-                            // TODO:DAZ For now, we only create test suites for static library variants
-                            continue;
-                        }
+            createNativeTestSuiteBinaries(testSuites, GoogleTestTestSuiteSpec.class, GoogleTestTestSuiteBinarySpec.class, "GoogleTestExe", buildDir, serviceRegistry);
+       }
+   }
 
-                        final BinaryNamingScheme namingScheme = new DefaultBinaryNamingSchemeBuilder(((NativeBinarySpecInternal) testedBinary).getNamingScheme())
-                            .withComponentName(testSuiteSpec.getBaseName())
-                            .withTypeString("GoogleTestExe").build();
-                        final NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
-
-                        testSuiteSpec.getBinaries().create(namingScheme.getBinaryName(), GoogleTestTestSuiteBinarySpec.class, new Action<GoogleTestTestSuiteBinarySpec>() {
-                            @Override
-                            public void execute(GoogleTestTestSuiteBinarySpec binary) {
-                                NativeTestSuiteBinarySpecInternal testBinary = (NativeTestSuiteBinarySpecInternal) binary;
-                                testBinary.setTestedBinary((NativeBinarySpecInternal) testedBinary);
-                                testBinary.setNamingScheme(namingScheme);
-                                testBinary.setResolver(resolver);
-                                testBinary.setToolChain(testedBinary.getToolChain());
-                                testBinary.getExecutable().setToolChain(testedBinary.getToolChain());
-                                configure(testBinary, buildDir);
-                            }
-                        });
-                    }
-                }
-            });
-        }
-
-        private void configure(NativeTestSuiteBinarySpecInternal testBinary, File buildDir) {
-            BinaryNamingScheme namingScheme = testBinary.getNamingScheme();
-            PlatformToolProvider toolProvider = testBinary.getPlatformToolProvider();
-            File binaryOutputDir = new File(new File(buildDir, "binaries"), namingScheme.getOutputDirectoryBase());
-            String baseName = testBinary.getComponent().getBaseName();
-
-            testBinary.getExecutable().setFile(new File(binaryOutputDir, toolProvider.getExecutableName(baseName)));
-            testBinary.getInstallation().setDirectory(new File(new File(buildDir, "install"), namingScheme.getOutputDirectoryBase()));
-        }
-    }
 }
