@@ -17,7 +17,6 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.model.internal.manage.schema.extract.NodeInitializerExtractionStrategy;
-import org.gradle.model.internal.type.ModelType;
 
 public interface NodeInitializerRegistry {
     NodeInitializer getNodeInitializer(NodeInitializerContext<?, ?, ?> nodeInitializerContext);
