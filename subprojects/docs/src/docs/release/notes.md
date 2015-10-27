@@ -202,6 +202,10 @@ and <a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getBui
 contain the builders and natures required for the target project as well as the customization defined by the 'eclipse'
 <a href="dsl/org.gradle.plugins.ide.eclipse.model.EclipseProject.html">Gradle plugin configuration</a>.
 
+### Performance improvements in up-to-date checking
+
+TBD
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -246,6 +250,16 @@ TBD
 TBD
 
 - The `model { }` block can now contain only rule blocks.
+
+### Changes to up-to-date checking
+
+TBD
+
+- up-to-date checking of zipTree/tarTree inputs has changed. The up-to-date checking will only check the backing archive file.
+  - Previously the content of the archive file was extracted to a temporary directory in the up-to-date checking phase and the actual files were added to the input snapshot.
+  - There is a change in behaviour for builds that contain a zipTree/tarTree with a filter. Previously only changes to files inside the archive matching the filter would make the input out-of-date.
+
+- previously up-to-date checking didn't consider changes in directories. Directories are now also added to input and output snapshots in up-to-date checking.
 
 ## External contributions
 
