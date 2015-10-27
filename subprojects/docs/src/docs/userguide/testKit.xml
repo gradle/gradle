@@ -143,14 +143,14 @@
                 The TestKit uses dedicated daemon processes that are automatically shut down after test execution.
             </para>
         </section>
-        <section>
+        <section id="gradle-runner-gradle-version">
             <title>The Gradle version used to test</title>
             <para>
                 The Gradle runner requires a Gradle distribution in order to execute the build.
                 The TestKit does not depend on all of Gradle's implementation.
             </para>
             <para>
-                When a runner is created, it will attempt to find a Gradle distribution based on where the <literal>GradleRunner</literal> class was loaded from.
+                By default, the runner will attempt to find a Gradle distribution based on where the <literal>GradleRunner</literal> class was loaded from.
                 That is, it is expected that the class was loaded from a Gradle distribution, as is the case when using the <literal>gradleTestKit()</literal> dependency declaration.
             </para>
             <para>
@@ -159,33 +159,19 @@
                 This means that the plugin will effectively be tested with the same version of Gradle that it is being built with.
             </para>
             <para>
-                If a Gradle distribution cannot be found, creation of the runner instance will fail.
+                Alternatively, a different and specific version of Gradle to use can be specified by the any of the following <literal>GradleRunner</literal> methods:
             </para>
+            <itemizedlist>
+                <listitem><apilink class="org.gradle.testkit.runner.GradleRunner" method="withGradleVersion(java.lang.String)"/></listitem>
+                <listitem><apilink class="org.gradle.testkit.runner.GradleRunner" method="withGradleInstallation(java.io.File)"/></listitem>
+                <listitem><apilink class="org.gradle.testkit.runner.GradleRunner" method="withGradleDistribution(java.net.URI)"/></listitem>
+            </itemizedlist>
             <para>
-                An alternative to relying on the default Gradle distribution determined during the creation of the <literal>GradleRunner</literal> instance is to specify a custom Gradle distribution.
-                Gradle distributions are defined as implementations of the interface <apilink class="org.gradle.testkit.runner.GradleDistribution"/>. The following implementations are available:
-                <itemizedlist>
-                    <listitem>A distribution identified by a Gradle version;</listitem>
-                    <listitem>A URI pointing to distribution ZIP file;</listitem>
-                    <listitem>A extracted distribution located in the filesystem.</listitem>
-                </itemizedlist>
-            </para>
-            <para>
-                This functionality is extremely useful to verify that build logic is working as expected across multiple versions of Gradle. The typical use case would be to test the
-                cross-version compatibility of a plugin or task.
-            </para>
-            <para>
-                Gradle distributions can be created via the methods
-                <apilink class="org.gradle.testkit.runner.GradleDistribution" method="withVersion(java.lang.String)"/>,
-                <apilink class="org.gradle.testkit.runner.GradleDistribution" method="fromUri(java.net.URI)"/> or
-                <apilink class="org.gradle.testkit.runner.GradleDistribution" method="fromPath(java.io.File)"/>.
-                The TestKit does not allow the use of custom implementations of the <literal>GradleDistribution</literal> interface.
-            </para>
-            <para>
+                This can potentially be used to test build logic across Gradle versions.
                 The following demonstrates a cross-version compatibility test written as Groovy Spock test:
             </para>
-            <sample id="testKitFunctionalTestSpockGradleDistribution" dir="testKit/testKitSpockGradleDistribution/src/test/groovy/org/gradle/sample" title="Specifying a Gradle distribution for test execution">
-                <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock-gradle-distribution"/>
+            <sample id="testKitFunctionalTestSpockGradleDistribution" dir="testKit/testKitSpockGradleVersion/src/test/groovy/org/gradle/sample" title="Specifying a Gradle version for test execution">
+                <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock-gradle-version"/>
             </sample>
         </section>
         <section id="test-kit-debug">

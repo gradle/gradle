@@ -65,18 +65,12 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
     }
 
     DefaultGradleRunner runner(String... arguments) {
-        runner(GradleDistribution.fromPath(buildContext.gradleHomeDir), arguments)
-    }
-
-    DefaultGradleRunner runner(GradleDistribution gradleDistribution, String... arguments) {
-        GradleRunner gradleRunner = new DefaultGradleRunner(gradleDistribution)
+        GradleRunner.create()
+            .withGradleInstallation(buildContext.gradleHomeDir)
             .withTestKitDir(testKitWorkspace)
             .withProjectDir(testProjectDir.testDirectory)
             .withArguments(arguments)
-
-        gradleRunner.withDebug(GradleRunnerIntegTestRunner.debug)
-        assert gradleRunner.debug == GradleRunnerIntegTestRunner.debug
-        gradleRunner
+            .withDebug(GradleRunnerIntegTestRunner.debug) as DefaultGradleRunner
     }
 
     static String helloWorldTask() {

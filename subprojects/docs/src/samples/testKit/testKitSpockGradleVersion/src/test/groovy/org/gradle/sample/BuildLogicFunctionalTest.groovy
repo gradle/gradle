@@ -16,8 +16,7 @@
 
 package org.gradle.sample
 
-// START SNIPPET functional-test-spock-gradle-distribution
-import org.gradle.testkit.runner.GradleDistribution
+// START SNIPPET functional-test-spock-gradle-version
 import org.gradle.testkit.runner.GradleRunner
 import static org.gradle.testkit.runner.TaskOutcome.*
 import org.junit.Rule
@@ -45,7 +44,8 @@ class BuildLogicFunctionalTest extends Specification {
         """
 
         when:
-        def result = GradleRunner.create(GradleDistribution.withVersion(gradleVersion))
+        def result = GradleRunner.create()
+            .withGradleVersion(gradleVersion)
             .withProjectDir(testProjectDir.root)
             .withArguments('helloWorld')
             .build()
@@ -58,4 +58,4 @@ class BuildLogicFunctionalTest extends Specification {
         gradleVersion << ['2.6', '2.7']
     }
 }
-// END SNIPPET functional-test-spock-gradle-distribution
+// END SNIPPET functional-test-spock-gradle-version

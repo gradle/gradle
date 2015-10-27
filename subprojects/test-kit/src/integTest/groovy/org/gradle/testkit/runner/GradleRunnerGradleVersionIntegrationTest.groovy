@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.api.Action
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
@@ -27,27 +28,28 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @LeaksFileHandles
 @Requires(TestPrecondition.ONLINE)
-class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
     @Shared
     DistributionLocator locator = new DistributionLocator()
 
-    def "execute build with different distribution types"() {
+    def "execute build with different distribution types"(Action<GradleRunner> configurer) {
         given:
         buildFile << helloWorldTaskWithLoggerOutput()
 
         when:
-        def result = runner(gradleDistribution, 'helloWorld')
-            .build()
+        def runner = runner('helloWorld')
+        configurer.execute(runner)
+        def result = runner.build()
 
         then:
         result.taskPaths(SUCCESS) == [':helloWorld']
 
         where:
-        gradleDistribution << [
-            GradleDistribution.fromPath(buildContext.gradleHomeDir),
-            GradleDistribution.fromUri(locator.getDistributionFor(GradleVersion.version('2.7'))),
-            GradleDistribution.withVersion('2.7')
+        configurer << [
+            { it.withGradleInstallation(buildContext.gradleHomeDir) },
+            { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version('2.7'))) },
+            { it.withGradleVersion("2.7") }
         ]
     }
 
@@ -57,7 +59,7 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         buildFile << helloWorldTaskWithLoggerOutput()
 
         when:
-        def result = runner(GradleDistribution.withVersion(gradleVersion), 'helloWorld')
+        def result = runner('helloWorld').withGradleVersion(gradleVersion)
             .build()
 
         then:
@@ -82,7 +84,8 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         """
 
         when:
-        def result = runner(GradleDistribution.withVersion('2.5'), 'dependencies')
+        def result = runner('dependencies')
+            .withGradleVersion("2.5")
             .buildAndFail()
 
         then:

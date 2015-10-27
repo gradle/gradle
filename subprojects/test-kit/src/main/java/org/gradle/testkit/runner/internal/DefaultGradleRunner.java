@@ -17,16 +17,24 @@
 package org.gradle.testkit.runner.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.GradleDistributionLocator;
+import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.testkit.runner.*;
+import org.gradle.testkit.runner.internal.dist.GradleDistribution;
+import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution;
+import org.gradle.testkit.runner.internal.dist.URILocatedGradleDistribution;
+import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
 import org.gradle.testkit.runner.internal.io.WriterOutputStream;
 
 import java.io.File;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,10 +44,11 @@ import java.util.List;
 public class DefaultGradleRunner extends GradleRunner {
 
     public static final String DEBUG_SYS_PROP = "org.gradle.testkit.debug";
+
     private final GradleExecutor gradleExecutor;
 
+    private GradleDistribution distribution;
     private TestKitDirProvider testKitDirProvider;
-
     private File projectDirectory;
     private List<String> arguments = Collections.emptyList();
     private List<String> jvmArguments = Collections.emptyList();
@@ -49,8 +58,8 @@ public class DefaultGradleRunner extends GradleRunner {
     private OutputStream standardError;
     private boolean forwardingSystemStreams;
 
-    public DefaultGradleRunner(GradleDistribution gradleDistribution) {
-        this(new ToolingApiGradleExecutor(gradleDistribution), new TempTestKitDirProvider());
+    public DefaultGradleRunner() {
+        this(new ToolingApiGradleExecutor(), new TempTestKitDirProvider());
     }
 
     DefaultGradleRunner(GradleExecutor gradleExecutor, TestKitDirProvider testKitDirProvider) {
@@ -61,6 +70,24 @@ public class DefaultGradleRunner extends GradleRunner {
 
     public TestKitDirProvider getTestKitDirProvider() {
         return testKitDirProvider;
+    }
+
+    @Override
+    public GradleRunner withGradleVersion(String versionNumber) {
+        this.distribution = new VersionBasedGradleDistribution(versionNumber);
+        return this;
+    }
+
+    @Override
+    public GradleRunner withGradleInstallation(File installation) {
+        this.distribution = new InstalledGradleDistribution(installation);
+        return this;
+    }
+
+    @Override
+    public GradleRunner withGradleDistribution(URI distribution) {
+        this.distribution = new URILocatedGradleDistribution(distribution);
+        return this;
     }
 
     @Override
@@ -229,7 +256,10 @@ public class DefaultGradleRunner extends GradleRunner {
 
         File testKitDir = createTestKitDir(testKitDirProvider);
 
+        GradleDistribution effectiveDistribution = distribution == null ? findGradleInstallFromGradleRunner() : distribution;
+
         GradleExecutionResult execResult = gradleExecutor.run(new GradleExecutionParameters(
+            effectiveDistribution,
             testKitDir,
             projectDirectory,
             arguments,
@@ -265,6 +295,22 @@ public class DefaultGradleRunner extends GradleRunner {
         } else {
             throw new InvalidRunnerConfigurationException("Unable to create test kit directory: " + dir.getAbsolutePath());
         }
+    }
+
+    private static GradleDistribution findGradleInstallFromGradleRunner() {
+        GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator(GradleRunner.class);
+        File gradleHome = gradleDistributionLocator.getGradleHome();
+        if (gradleHome == null) {
+            String messagePrefix = "Could not find a Gradle runtime to use based on the location of the GradleRunner class";
+            try {
+                File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
+                messagePrefix += ": " + classpathForClass.getAbsolutePath();
+            } catch (Exception ignore) {
+                // ignore
+            }
+            throw new IllegalStateException(messagePrefix + ". Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar.");
+        }
+        return new InstalledGradleDistribution(gradleHome);
     }
 
 }

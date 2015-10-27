@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.internal;
-
-import org.gradle.testkit.runner.GradleDistribution;
+package org.gradle.testkit.runner.internal.dist;
 
 import java.net.URI;
 

@@ -29,48 +29,14 @@ convenient for further inspections or assertions of the build outcome.
 This release provides the `BuildResult` with the method <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildException.html#getBuildResult()">UnexpectedBuildException.getBuildResult()</a> for
 diagnosing test execution failures. `UnexpectedBuildException` is the parent class of the exceptions `UnexpectedBuildSuccess` and `UnexpectedBuildFailure`.
 
-### Ability to provide a Gradle distribution for test execution
+### Cross version testing with the Gradle TestKit
 
-In previous versions of Gradle, the TestKit API did not support providing a Gradle distribution for executing functional tests. Instead it automatically
-determined the distribution by deriving this information from the build script that loads the `GradleRunner` class.
+It is now possible to use the [`GradleRunner`](javadoc/org/gradle/testkit/runner/GradleRunner.html) to execute builds with arbitrary Gradle versions and distributions.
+This feature is extremely useful for verifying a plugin's functionality with a range of different Gradle versions.
 
-With this release, users can provide a Gradle distribution when instantiating the `GradleRunner`. A Gradle distribution, represented as a
-<a href="javadoc/org/gradle/testkit/runner/GradleDistribution.html">GradleDistribution</a>, can be specified as Gradle version, a `URI` that hosts
-the distribution ZIP file or a extracted Gradle distribution available on the filesystem. This feature is extremely useful when testing build logic
-as part of a multi-version compatibility test. The following code snippet shows the use of a compatibility test written with
-Spock:
+The version to use can be specified via the new [`GradleRunner.withGradleVersion(String)`](javadoc/org/gradle/testkit/runner/GradleRunner.html#withGradleVersion\(java.lang.String\)) method.
 
-    import org.gradle.testkit.runner.GradleDistribution
-
-    class BuildLogicFunctionalTest extends Specification {
-        @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
-
-        @Unroll
-        def "can execute helloWorld task with Gradle version #gradleVersion"() {
-            given:
-            buildFile << """
-                task helloWorld {
-                    doLast {
-                        println 'Hello world!'
-                    }
-                }
-            """
-
-            when:
-            def result = GradleRunner.create(GradleDistribution.withVersion(gradleVersion))
-                .withProjectDir(testProjectDir.root)
-                .withArguments('helloWorld')
-                .build()
-
-            then:
-            noExceptionThrown()
-            result.standardOutput.contains('Hello world!')
-            result.taskPaths(SUCCESS) == [':helloWorld']
-
-            where:
-            gradleVersion << ['2.6', '2.7']
-        }
-    }
+Please see the [section in the User Guide on specifying versions](userguide/test_kit.html#gradle-runner-gradle-version) for more information.
 
 ### Providing Writers for capturing standard output and error during test execution
 
