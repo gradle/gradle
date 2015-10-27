@@ -160,7 +160,7 @@ model {
         fails ':mainJar'
 
         then: "displays the possible solution"
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':' library 'someLib'")
         failure.assertHasCause("Project ':' does not contain library 'someLib'. Did you want to use 'main'?")
 
@@ -265,7 +265,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':sub' library 'main'")
         failure.assertHasCause("Project ':sub' not found.")
 
@@ -314,7 +314,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep' library 'doesNotExist'")
 
         and: "displays a suggestion about the library to use"
@@ -365,7 +365,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep' library 'doesNotExist'")
 
         and: "displays a list of suggestion for libraries to use"
@@ -475,7 +475,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep'")
 
         and: "displays a list of suggestions for libraries in dependent project"
@@ -520,7 +520,7 @@ plugins {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep'")
 
         and: "displays that the dependent project doesn't define any dependency"
@@ -560,7 +560,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep'")
 
         and:
@@ -739,7 +739,7 @@ model {
         fails ':b:checkDependenciesForMainJar'
 
         then: "dependency resolution fails because project 'c' doesn't exist"
-        failure.assertHasCause(/Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java''/)
+        failure.assertHasCause(/Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java''/)
         failure.assertHasCause(/Could not resolve project ':c' library 'main'./)
         failure.assertHasCause(/Project ':c' not found./)
 
@@ -860,7 +860,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':' library 'zdep'")
 
         and:
@@ -940,11 +940,11 @@ model {
     }
 
     tasks {
-        java6MainJar.finalizedBy('checkDependencies')
-        java7MainJar.finalizedBy('checkDependencies')
+        mainJava6Jar.finalizedBy('checkDependencies')
+        mainJava7Jar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(depJar)
-            assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(depJar)
+            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depJar)
+            assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depJar)
         }
     }
 }
@@ -959,10 +959,10 @@ model {
         executedAndNotSkipped ':tasks'
 
         and:
-        succeeds 'java6MainJar'
+        succeeds 'mainJava6Jar'
 
         and:
-        succeeds 'java7MainJar'
+        succeeds 'mainJava7Jar'
     }
 
     def "should fail because multiple binaries match for the same variant"() {
@@ -1022,10 +1022,10 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause(normaliseLineSeparators("""Multiple compatible variants found for library 'dep':
-    - Jar 'depJar' [platform:'java6']
-    - Jar 'depJar2' [platform:'java6']"""
+    - Jar 'dep:jar' [platform:'java6']
+    - Jar 'dep:jar2' [platform:'java6']"""
         ))
     }
 
@@ -1038,12 +1038,11 @@ class CustomBinaries extends RuleSource {
    @ComponentBinaries
    void createBinaries(ModelMap<JarBinarySpec> binaries, JvmLibrarySpec spec) {
        // duplicate binaries, to make sure we have two binaries for the same platform
+       if (spec.name != 'dep') { return }
        def newBins = [:]
        binaries.keySet().each { bName ->
-           if (bName =~ /dep/) {
-              def binary = binaries.get(bName)
-              newBins["${bName}2"] = binary
-           }
+          def binary = binaries.get(bName)
+          newBins["${bName}2"] = binary
        }
 
        newBins.each { k,v -> binaries.create(k) {
@@ -1086,23 +1085,23 @@ model {
         executedAndNotSkipped ':tasks'
 
         and: "attempt to build main jar Java 6"
-        fails ':java6MainJar'
+        fails ':mainJava6Jar'
 
         then: "fails because multiple binaries are available for the Java 6 variant of 'dep'"
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:java6Jar'' source set 'Java source 'main:java'")
         failure.assertHasCause(normaliseLineSeparators("""Multiple compatible variants found for library 'dep':
-    - Jar 'depJar' [platform:'java6']
-    - Jar 'depJar2' [platform:'java6']"""
+    - Jar 'dep:jar' [platform:'java6']
+    - Jar 'dep:jar2' [platform:'java6']"""
         ))
 
         when: "attempt to build main jar Java 7"
-        fails ':java7MainJar'
+        fails ':mainJava7Jar'
 
         then: "fails because multiple binaries are available for the Java 6 compatible variant of 'dep'"
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java7MainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:java7Jar'' source set 'Java source 'main:java'")
         failure.assertHasCause(normaliseLineSeparators("""Multiple compatible variants found for library 'dep':
-    - Jar 'depJar' [platform:'java6']
-    - Jar 'depJar2' [platform:'java6']"""
+    - Jar 'dep:jar' [platform:'java6']
+    - Jar 'dep:jar2' [platform:'java6']"""
         ))
     }
 
@@ -1132,11 +1131,11 @@ model {
     }
 
     tasks {
-        java6MainJar.finalizedBy('checkDependencies')
-        java7MainJar.finalizedBy('checkDependencies')
+        mainJava6Jar.finalizedBy('checkDependencies')
+        mainJava7Jar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(java6DepJar)
-            assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(java7DepJar)
+            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depJava6Jar)
+            assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depJava7Jar)
         }
     }
 }
@@ -1151,7 +1150,7 @@ model {
         executedAndNotSkipped ':tasks'
 
         and:
-        succeeds 'java6MainJar', 'java7MainJar'
+        succeeds 'mainJava6Jar', 'mainJava7Jar'
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
@@ -1351,7 +1350,7 @@ model {
         fails ':mainJar'
 
         then: "displays a reasonable error message indicating the faulty source set"
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
 
         and: "first resolution error is displayed"
         failure.assertHasCause("Could not resolve project ':' library 'someLib'")

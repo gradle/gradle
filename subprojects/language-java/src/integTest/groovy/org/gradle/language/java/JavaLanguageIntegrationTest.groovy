@@ -148,7 +148,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/${current.name}MyLibJar/myLib.jar").javaVersion == current.targetCompatibility
+        jarFile("build/jars/myLib${current.name.capitalize()}Jar/myLib.jar").javaVersion == current.targetCompatibility
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
