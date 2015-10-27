@@ -15,9 +15,9 @@
  */
 
 package org.gradle.jvm
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
-import spock.lang.Ignore
 
 class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -53,7 +53,6 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
         new JarTestFixture(file("build/jars/sampleLibCustomJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
     }
 
-    @Ignore
     def "managed JarBinarySpec subtypes can have further subtypes"() {
         given:
         buildFile << """

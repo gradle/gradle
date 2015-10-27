@@ -32,7 +32,9 @@ import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.model.ComponentBinaryRules;
 import org.gradle.language.base.internal.model.ComponentRules;
-import org.gradle.language.base.internal.registry.*;
+import org.gradle.language.base.internal.registry.DefaultLanguageTransformContainer;
+import org.gradle.language.base.internal.registry.LanguageTransform;
+import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.core.ModelPath;
@@ -181,8 +183,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Defaults
         void collectBinaries(ModelMap<BinarySpec> binaries, ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs.values()) {
-                for (BinarySpecInternal binary : componentSpec.getBinaries().withType(BinarySpecInternal.class).values()) {
-                    binaries.put(binary.getProjectScopedName(), binary);
+                for (BinarySpec binary : componentSpec.getBinaries().values()) {
+                    binaries.put(((BinarySpecInternal) binary).getProjectScopedName(), binary);
                 }
             }
         }

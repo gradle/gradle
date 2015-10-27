@@ -110,8 +110,8 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         @Defaults
         public void copyTestBinariesToGlobalContainer(ModelMap<BinarySpec> binaries, TestSuiteContainer testSuites) {
             for (TestSuiteSpec testSuite : testSuites.withType(TestSuiteSpec.class).values()) {
-                for (BinarySpecInternal binary : testSuite.getBinaries().withType(BinarySpecInternal.class).values()) {
-                    binaries.put(binary.getProjectScopedName(), binary);
+                for (BinarySpec binary : testSuite.getBinaries().values()) {
+                    binaries.put(((BinarySpecInternal) binary).getProjectScopedName(), binary);
                 }
             }
         }
