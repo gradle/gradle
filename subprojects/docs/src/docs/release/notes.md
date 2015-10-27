@@ -159,6 +159,26 @@ TBD: DSL now supports `$('p')` expressions in DSL rules:
         }
     }
 
+#### Consistent validation of model types
+ The error messages produced when a model type is not supported has been improved to describe the types that are actually supported. In the following example `MyModel` is not a valid managed
+  model type because managed models cannot have properties of type `java.io.FileInputStream `.
+
+    @Managed
+        interface MyModel {
+        FileInputStream getStream()
+        void setStream(FileInputStream stream)
+    }
+
+
+    A model element of type: 'MyModel' can not be constructed.
+    Its property 'java.io.FileInputStream stream' can not be constructed
+    It must be one of:
+      - A managed type (annotated with @Managed)
+      - A managed collection. A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:
+          - A managed type (annotated with @Managed)
+      - A scalar collection. A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)
+      - An unmanaged property (i.e. annotated with @Unmanaged)
+
 ### Support for external dependencies in the 'jvm-components' plugin
 
 It is now possible to reference external dependencies when building a `JvmLibrary` using the `jvm-component` plugin.
