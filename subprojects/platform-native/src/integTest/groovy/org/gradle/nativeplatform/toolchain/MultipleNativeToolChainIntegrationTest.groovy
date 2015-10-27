@@ -75,7 +75,7 @@ model {
 """
 
         then:
-        succeeds 'i386MainExecutable', 'sparcMainExecutable'
+        succeeds 'mainI386Executable', 'mainSparcExecutable'
 
         and:
         def i386Exe = x86ToolChain.executable(file("build/binaries/mainExecutable/i386/main"))

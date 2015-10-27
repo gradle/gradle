@@ -119,7 +119,7 @@ model {
         projectFile.projectConfigurations.keySet() == projectConfigurations
         projectFile.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle :${it.name}MainSharedLibrary"
+            assert it.buildCommand == "gradle :main${it.name.capitalize()}SharedLibrary"
             assert it.outputFile == OperatingSystem.current().getSharedLibraryName("build/binaries/mainSharedLibrary/${it.name}/main")
         }
 

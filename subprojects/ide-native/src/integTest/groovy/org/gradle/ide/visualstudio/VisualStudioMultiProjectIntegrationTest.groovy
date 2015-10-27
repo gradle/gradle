@@ -89,7 +89,7 @@ model {
         libProject.projectConfigurations.keySet() == projectConfigurations
         libProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :lib:${it.name}HelloStaticLibrary"
+            assert it.buildCommand == "gradle -p \"..\" :lib:hello${it.name.capitalize()}StaticLibrary"
         }
 
         and:

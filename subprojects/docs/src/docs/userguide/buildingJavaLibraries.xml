@@ -298,11 +298,11 @@
         <section>
             <title>Binary specific source sets</title>
             <para>For each <apilink class="org.gradle.jvm.JvmLibrarySpec"/> it is possible to define additional source sets for each binary. A common use case for this
-            is having specific dependencies for each variant and source sets that conform to those dependencies. The example below configures a <literal>java6</literal> source set on the <literal>java6MainJar</literal>
+            is having specific dependencies for each variant and source sets that conform to those dependencies. The example below configures a <literal>java6</literal> source set on the <literal>main.java6Jar</literal>
             binary:</para>
             <sample id="newJavaTargetPlatforms-java6MainJar" dir="javaLibraryPlugin/targetplatforms" title="Declaring binary specific sources">
                 <sourcefile file="core/build.gradle" snippet="binary-specific-sourceset"/>
-                <output args="clean :core:java6MainJar" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-java6MainJar.out"/>
+                <output args="clean :core:mainJava6Jar" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-java6MainJar.out"/>
             </sample>
         </section>
         <section id="java_dependency_resolution">
