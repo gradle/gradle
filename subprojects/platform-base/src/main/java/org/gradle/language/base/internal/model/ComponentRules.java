@@ -16,6 +16,7 @@
 
 package org.gradle.language.base.internal.model;
 
+import com.google.common.base.Joiner;
 import org.gradle.api.Action;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
@@ -27,6 +28,10 @@ import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
+
+import java.io.File;
+
+import static com.google.common.base.Strings.emptyToNull;
 
 /**
  * Cross-cutting rules for all {@link org.gradle.platform.base.ComponentSpec} instances.
@@ -87,7 +92,14 @@ public class ComponentRules extends RuleSource {
         @Override
         public void execute(LanguageSourceSet languageSourceSet) {
             // Only apply default locations when none explicitly configured
-            functionalSourceSet.maybeAddDefaultSrcDirs(languageSourceSet);
+            if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
+                String defaultSourceDir = calculateDefaultPath(languageSourceSet);
+                languageSourceSet.getSource().srcDir(defaultSourceDir);
+            }
+        }
+
+        private String calculateDefaultPath(LanguageSourceSet languageSourceSet) {
+            return Joiner.on(File.separator).skipNulls().join(functionalSourceSet.getBaseDir().getPath(), "src", emptyToNull(languageSourceSet.getParentName()), emptyToNull(languageSourceSet.getName()));
         }
     }
 }

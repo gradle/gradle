@@ -135,11 +135,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         }
 
         @Override
-        String getSourceDirConvention() {
-            return null
-        }
-
-        @Override
         String getParentName() {
             return null
         }

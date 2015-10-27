@@ -115,11 +115,6 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
         }
     }
 
-    @Override
-    public String getSourceDirConvention() {
-        return "src";
-    }
-
 
     protected BaseLanguageSourceSet() {
         this(nextSourceSetInfo.get());
