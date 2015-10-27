@@ -18,6 +18,6 @@ package org.gradle.api.internal.file.collections;
 
 import java.io.File;
 
-public interface FileTreeWithSourceFile {
-    public File getSourceFile();
+public interface FileTreeWithBackingFile {
+    File getBackingFile();
 }
