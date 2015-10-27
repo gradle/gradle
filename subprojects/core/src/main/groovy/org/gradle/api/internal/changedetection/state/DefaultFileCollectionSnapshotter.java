@@ -65,7 +65,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                     final String absolutePath = stringInterner.intern(fileDetails.getFile().getAbsolutePath());
                     if (!snapshots.containsKey(absolutePath)) {
                         if (fileDetails.isDirectory()) {
-                            snapshots.put(absolutePath, new DirSnapshot());
+                            snapshots.put(absolutePath, DirSnapshot.getInstance());
                         } else {
                             snapshots.put(absolutePath, new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash()));
                         }
@@ -156,6 +156,15 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     static class DirSnapshot implements IncrementalFileSnapshot {
+        private static DirSnapshot instance = new DirSnapshot();
+
+        private DirSnapshot() {
+        }
+
+        static DirSnapshot getInstance() {
+            return instance;
+        }
+
         public boolean isUpToDate(IncrementalFileSnapshot snapshot) {
             return snapshot instanceof DirSnapshot;
         }

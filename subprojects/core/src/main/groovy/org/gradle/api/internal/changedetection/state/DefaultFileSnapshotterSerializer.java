@@ -39,7 +39,7 @@ class DefaultFileSnapshotterSerializer implements Serializer<DefaultFileCollecti
             String key = stringInterner.intern(decoder.readString());
             byte fileSnapshotKind = decoder.readByte();
             if (fileSnapshotKind == 1) {
-                snapshots.put(key, new DefaultFileCollectionSnapshotter.DirSnapshot());
+                snapshots.put(key, DefaultFileCollectionSnapshotter.DirSnapshot.getInstance());
             } else if (fileSnapshotKind == 2) {
                 snapshots.put(key, new DefaultFileCollectionSnapshotter.MissingFileSnapshot());
             } else if (fileSnapshotKind == 3) {
