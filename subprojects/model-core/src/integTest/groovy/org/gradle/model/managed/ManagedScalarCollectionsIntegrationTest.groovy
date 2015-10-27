@@ -160,6 +160,7 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
         class Rules extends RuleSource {
             static final $type<String> INITIAL = ['initial']
+            static final $type<String> REPLACEMENT = ['b', 'c']
 
             @Model
             void createContainer(Container c) {
@@ -168,13 +169,14 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
             }
 
             @Mutate
-            void nullify(Container c) {
+            void overwrite(Container c) {
                 c.items = ['b','c']
             }
 
             @Mutate
             void addCheckTask(ModelMap<Task> tasks, Container c) {
                 tasks.create('check') {
+                    assert !c.items.is(REPLACEMENT)
                     assert c.items == ['b','c'] as $type
                 }
             }
@@ -211,7 +213,7 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
             }
 
             @Mutate
-            void nullify(Container c) {
+            void replace(Container c) {
                 c.items = null
                 c.items = ['b','c']
             }
