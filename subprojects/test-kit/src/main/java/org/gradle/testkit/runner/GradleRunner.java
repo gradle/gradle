@@ -105,7 +105,7 @@ public abstract class GradleRunner {
 
     private static void validateGradleDistribution(GradleDistribution gradleDistribution) {
         if (gradleDistribution instanceof InstalledGradleDistribution) {
-            if (((InstalledGradleDistribution)gradleDistribution).getGradleHome() == null) {
+            if (((InstalledGradleDistribution) gradleDistribution).getGradleHome() == null) {
                 try {
                     File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
                     throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was loaded from " + classpathForClass + " which is not a Gradle distribution");
@@ -247,40 +247,57 @@ public abstract class GradleRunner {
     public abstract GradleRunner withDebug(boolean flag);
 
     /**
-     * Specifies the writer used for capturing standard output during test execution. The provided writer may not be null.
+     * Configures the runner to forward standard output from builds to the given writer.
      * <p>
-     * By default, the standard output is only captured as part of the build result.
-     * When a writer is specified, the provided writer captures the same standard output as the build result.
+     * The output of the build is always available via {@link BuildResult#getOutput()}.
+     * This method can be used to additionally capture the output.
      * <p>
-     * The provided writer is not closed automatically after test execution.
+     * Calling this method will negate the effect of previously calling {@link #forwardOutput()}.
+     * <p>
+     * The given writer will not be closed by the runner.
      *
-     * @param standardOutput the writer used to capture standard output
+     * @param writer the writer that build standard output should be forwarded to
      * @return this
      * @since 2.9
+     * @see #forwardOutput()
+     * @see #forwardStdError(Writer)
      */
-    public abstract GradleRunner withStandardOutput(Writer standardOutput);
+    public abstract GradleRunner forwardStdOutput(Writer writer);
 
     /**
-     * Specifies the writer used for capturing standard error during test execution. The provided writer may not be null.
+     * Configures the runner to forward standard error output from builds to the given writer.
      * <p>
-     * By default, the standard error is only captured as part of the build result.
-     * When a writer is specified, the provided writer captures the same standard error as the build result.
+     * The output of the build is always available via {@link BuildResult#getOutput()}.
+     * This method can be used to additionally capture the error output.
      * <p>
-     * The provided writer is not closed automatically after test execution.
+     * Calling this method will negate the effect of previously calling {@link #forwardOutput()}.
+     * <p>
+     * The given writer will not be closed by the runner.
      *
-     * @param standardError the writer used to capture standard error
+     * @param writer the writer that build standard error output should be forwarded to
      * @return this
      * @since 2.9
+     * @see #forwardOutput()
+     * @see #forwardStdOutput(Writer)
      */
-    public abstract GradleRunner withStandardError(Writer standardError);
+    public abstract GradleRunner forwardStdError(Writer writer);
 
     /**
-     * Forwards the test execution output to the standard output and error streams.
+     * Forwards the output of executed builds to the {@link System#out System.out} stream.
      * <p>
-     * By default, standard output and error streams are not rendered in the console.
+     * The output of the build is always available via {@link BuildResult#getOutput()}.
+     * This method can be used to additionally forward the output to {@code System.out} of the process using the runner.
+     * <p>
+     * This method does not separate the standard output and error output.
+     * The two streams will be merged as they typically are when using Gradle from a command line interface.
+     * If you require separation of the streams, you can use {@link #forwardStdOutput(Writer)} and {@link #forwardStdError(Writer)} directly.
+     * <p>
+     * Calling this method will negate the effect of previously calling {@link #forwardStdOutput(Writer)} and/or {@link #forwardStdError(Writer)}.
      *
      * @return this
      * @since 2.9
+     * @see #forwardStdOutput(Writer)
+     * @see #forwardStdError(Writer)
      */
     public abstract GradleRunner forwardOutput();
 

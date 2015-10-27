@@ -16,16 +16,18 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.gradle.api.Action;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.testkit.runner.*;
+import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
+import org.gradle.testkit.runner.internal.io.WriterOutputStream;
 
 import java.io.File;
-import java.io.OutputStreamWriter;
+import java.io.OutputStream;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,7 +35,6 @@ import java.util.List;
 
 public class DefaultGradleRunner extends GradleRunner {
 
-    public static final String DIAGNOSTICS_MESSAGE_SEPARATOR = "-----";
     public static final String DEBUG_SYS_PROP = "org.gradle.testkit.debug";
     private final GradleExecutor gradleExecutor;
 
@@ -44,8 +45,9 @@ public class DefaultGradleRunner extends GradleRunner {
     private List<String> jvmArguments = Collections.emptyList();
     private ClassPath classpath = ClassPath.EMPTY;
     private boolean debug;
-    private Writer standardOutput;
-    private Writer standardError;
+    private OutputStream standardOutput;
+    private OutputStream standardError;
+    private boolean forwardingSystemStreams;
 
     public DefaultGradleRunner(GradleDistribution gradleDistribution) {
         this(new TestKitGradleExecutor(gradleDistribution), new TempTestKitDirProvider());
@@ -136,24 +138,38 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
-    public GradleRunner withStandardOutput(Writer standardOutput) {
-        validateArgumentNotNull(standardOutput, "standardOutput");
-        this.standardOutput = standardOutput;
+    public GradleRunner forwardStdOutput(Writer writer) {
+        if (forwardingSystemStreams) {
+            forwardingSystemStreams = false;
+            this.standardError = null;
+        }
+        validateArgumentNotNull(writer, "standardOutput");
+        this.standardOutput = toOutputStream(writer);
         return this;
     }
 
     @Override
-    public GradleRunner withStandardError(Writer standardError) {
-        validateArgumentNotNull(standardError, "standardError");
-        this.standardError = standardError;
+    public GradleRunner forwardStdError(Writer writer) {
+        if (forwardingSystemStreams) {
+            forwardingSystemStreams = false;
+            this.standardOutput = null;
+        }
+        validateArgumentNotNull(writer, "standardError");
+        this.standardError = toOutputStream(writer);
         return this;
     }
 
     @Override
     public GradleRunner forwardOutput() {
-        withStandardOutput(new OutputStreamWriter(System.out));
-        withStandardError(new OutputStreamWriter(System.err));
+        forwardingSystemStreams = true;
+        OutputStream systemOut = new SynchronizedOutputStream(System.out);
+        this.standardOutput = systemOut;
+        this.standardError = systemOut;
         return this;
+    }
+
+    private static OutputStream toOutputStream(Writer standardOutput) {
+        return new WriterOutputStream(standardOutput, Charset.defaultCharset());
     }
 
     private void validateArgumentNotNull(Object argument, String argumentName) {
@@ -185,7 +201,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @SuppressWarnings("StringBufferReplaceableByString")
-    private String createDiagnosticsMessage(String trailingMessage, GradleExecutionResult gradleExecutionResult) {
+    String createDiagnosticsMessage(String trailingMessage, GradleExecutionResult gradleExecutionResult) {
         String lineBreak = SystemProperties.getInstance().getLineSeparator();
         StringBuilder message = new StringBuilder();
         message.append(trailingMessage);
@@ -193,21 +209,17 @@ public class DefaultGradleRunner extends GradleRunner {
         message.append(getProjectDir().getAbsolutePath());
         message.append(" with arguments ");
         message.append(getArguments());
-        message.append(lineBreak).append(lineBreak);
-        message.append("Output:");
-        message.append(lineBreak);
-        message.append(gradleExecutionResult.getStandardOutput());
-        message.append(lineBreak);
-        message.append(lineBreak);
-        message.append("Error:");
-        message.append(lineBreak);
-        message.append(gradleExecutionResult.getStandardError());
+
+        String output = gradleExecutionResult.getOutput();
+        if (output != null && !output.isEmpty()) {
+            message.append(lineBreak);
+            message.append(lineBreak);
+            message.append("Output:");
+            message.append(lineBreak);
+            message.append(output);
+        }
 
         return message.toString();
-    }
-
-    private String determineExceptionMessage(Throwable throwable) {
-        return throwable.getCause() == null ? throwable.getMessage() : ExceptionUtils.getRootCause(throwable).getMessage();
     }
 
     private BuildResult run(Action<GradleExecutionResult> resultVerification) {
@@ -218,15 +230,15 @@ public class DefaultGradleRunner extends GradleRunner {
         File testKitDir = createTestKitDir(testKitDirProvider);
 
         GradleExecutionResult execResult = gradleExecutor.run(new GradleExecutionParameters(
-                testKitDir,
-                projectDirectory,
-                arguments,
-                jvmArguments,
-                classpath,
-                debug,
-                standardOutput,
-                standardError)
-        );
+            testKitDir,
+            projectDirectory,
+            arguments,
+            jvmArguments,
+            classpath,
+            debug,
+            standardOutput,
+            standardError
+        ));
 
         resultVerification.execute(execResult);
         return createBuildResult(execResult);
@@ -234,8 +246,7 @@ public class DefaultGradleRunner extends GradleRunner {
 
     private BuildResult createBuildResult(GradleExecutionResult execResult) {
         return new DefaultBuildResult(
-            execResult.getStandardOutput(),
-            execResult.getStandardError(),
+            execResult.getOutput(),
             execResult.getTasks()
         );
     }

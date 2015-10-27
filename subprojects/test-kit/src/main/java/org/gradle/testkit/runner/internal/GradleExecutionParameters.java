@@ -19,7 +19,7 @@ package org.gradle.testkit.runner.internal;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.io.File;
-import java.io.Writer;
+import java.io.OutputStream;
 import java.util.List;
 
 public class GradleExecutionParameters {
@@ -29,11 +29,11 @@ public class GradleExecutionParameters {
     private final List<String> jvmArgs;
     private final ClassPath injectedClassPath;
     private final boolean embedded;
-    private final Writer standardOutput;
-    private final Writer standardError;
+    private final OutputStream standardOutput;
+    private final OutputStream standardError;
 
     public GradleExecutionParameters(File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, ClassPath injectedClassPath,
-                                     boolean embedded, Writer standardOutput, Writer standardError) {
+                                     boolean embedded, OutputStream standardOutput, OutputStream standardError) {
         this.gradleUserHome = gradleUserHome;
         this.projectDir = projectDir;
         this.buildArgs = buildArgs;
@@ -68,11 +68,11 @@ public class GradleExecutionParameters {
         return embedded;
     }
 
-    public Writer getStandardOutput() {
+    public OutputStream getStandardOutput() {
         return standardOutput;
     }
 
-    public Writer getStandardError() {
+    public OutputStream getStandardError() {
         return standardError;
     }
 

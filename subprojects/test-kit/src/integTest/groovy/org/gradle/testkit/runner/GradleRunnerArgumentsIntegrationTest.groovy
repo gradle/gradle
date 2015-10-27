@@ -18,24 +18,16 @@ package org.gradle.testkit.runner
 
 import spock.lang.Unroll
 
-import static org.gradle.testkit.runner.TaskOutcome.*
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GradleRunnerArgumentsIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
     def "can execute build without specifying any arguments"() {
         when:
-        GradleRunner gradleRunner = runner()
-        BuildResult result = gradleRunner.build()
+        def result = runner().build()
 
         then:
-        noExceptionThrown()
-        result.standardOutput.contains(':help')
-        !result.standardError
-        result.tasks.collect { it.path } == [':help']
-        result.taskPaths(SUCCESS) == [':help']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
+        result.task(":help")
     }
 
     def "execute build for multiple tasks"() {
@@ -50,21 +42,12 @@ class GradleRunnerArgumentsIntegrationTest extends AbstractGradleRunnerIntegrati
         """
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld', 'byeWorld')
-        BuildResult result = gradleRunner.build()
+        def result = runner('helloWorld', 'byeWorld').build()
 
         then:
-        noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        result.standardOutput.contains(':byeWorld')
-        result.standardOutput.contains('Bye world!')
-        !result.standardError
-        result.tasks.collect { it.path } == [':helloWorld', ':byeWorld']
+        result.output.contains('Hello world!')
+        result.output.contains('Bye world!')
         result.taskPaths(SUCCESS) == [':helloWorld', ':byeWorld']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
     }
 
     @Unroll
@@ -85,20 +68,13 @@ class GradleRunnerArgumentsIntegrationTest extends AbstractGradleRunnerIntegrati
         """
 
         when:
-        GradleRunner gradleRunner = runner(['helloWorld'] + arguments)
-        BuildResult result = gradleRunner.build()
+        def result = runner(['helloWorld'] + arguments).build()
 
         then:
-        noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains(debugMessage) == hasDebugMessage
-        result.standardOutput.contains(infoMessage) == hasInfoMessage
-        result.standardOutput.contains(quietMessage) == hasQuietMessage
-        result.tasks.collect { it.path } == [':helloWorld']
+        result.output.contains(debugMessage) == hasDebugMessage
+        result.output.contains(infoMessage) == hasInfoMessage
+        result.output.contains(quietMessage) == hasQuietMessage
         result.taskPaths(SUCCESS) == [':helloWorld']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
 
         where:
         arguments                | hasDebugMessage | hasInfoMessage | hasQuietMessage

@@ -174,8 +174,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .build()
 
                     then:
-                    result.standardOutput.contains('Hello world!')
-                    result.standardError == ''
+                    result.output.contains('Hello world!')
                     result.taskPaths(SUCCESS) == [':helloWorld']
                     result.taskPaths(SKIPPED).empty
                     result.taskPaths(UP_TO_DATE).empty
@@ -193,7 +192,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "functional test fails due to invalid JVM parameter for test execution"() {
-        buildFile << gradleTestKitDependency()
+        buildFile << gradleTestKitDependency() << "test { testLogging { showCauses true } }"
         writeTest """
             package org.gradle.test
 
@@ -342,8 +341,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .build()
 
                     then:
-                    result.standardOutput.contains('Hello world!')
-                    result.standardError == ''
+                    result.output.contains('Hello world!')
                     result.taskPaths(SUCCESS) == [':helloWorld']
                     result.taskPaths(SKIPPED).empty
                     result.taskPaths(UP_TO_DATE).empty
@@ -478,9 +476,8 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .build()
 
                     then:
-                    result.standardOutput.contains('Hello world!')
-                    result.standardOutput.contains('Bye world!')
-                    result.standardError == ''
+                    result.output.contains('Hello world!')
+                    result.output.contains('Bye world!')
                     result.taskPaths(SUCCESS) == [':helloWorld', ':byeWorld']
                     result.taskPaths(SKIPPED).empty
                     result.taskPaths(UP_TO_DATE).empty
@@ -539,8 +536,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
                     then:
                     gradleRunner.debug == $GradleRunnerIntegTestRunner.debug
-                    result.standardOutput.contains('Hello world!')
-                    result.standardError == ''
+                    result.output.contains('Hello world!')
                     result.taskPaths(SUCCESS) == [':helloWorld']
                     result.taskPaths(SKIPPED).empty
                     result.taskPaths(UP_TO_DATE).empty
@@ -596,8 +592,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     def result = gradleRunner.build()
 
                     then:
-                    result.standardOutput.contains('Hello world!')
-                    result.standardError == ''
+                    result.output.contains('Hello world!')
                     result.taskPaths(SUCCESS) == [':helloWorld']
                     result.taskPaths(SKIPPED).empty
                     result.taskPaths(UP_TO_DATE).empty
@@ -661,8 +656,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         def result = gradleRunner.build()
 
                         then:
-                        result.standardOutput.contains('Hello world!')
-                        result.standardError == ''
+                        result.output.contains('Hello world!')
                         result.taskPaths(SUCCESS) == [':helloWorld']
                         result.taskPaths(SKIPPED).empty
                         result.taskPaths(UP_TO_DATE).empty
@@ -804,8 +798,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .build()
 
                     then:
-                    result.standardOutput.contains('Hello world!')
-                    result.standardError == ''
+                    result.output.contains('Hello world!')
                     result.taskPaths(SUCCESS) == [':helloWorld']
                     result.taskPaths(SKIPPED).empty
                     result.taskPaths(UP_TO_DATE).empty

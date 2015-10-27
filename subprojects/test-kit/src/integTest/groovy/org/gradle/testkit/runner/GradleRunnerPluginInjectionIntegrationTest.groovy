@@ -75,7 +75,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         result.task(":helloWorld1").outcome == SUCCESS
-        result.standardOutput.contains('Hello world! (1)')
+        result.output.contains('Hello world! (1)')
     }
 
     def "injected classes are visible in root build script when applied to root"() {
@@ -89,7 +89,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
             .build()
 
         then:
-        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+        result.output.contains("class name: org.gradle.test.HelloWorld1")
     }
 
     def "injected classes are not visible in root script when plugin is not applied"() {
@@ -120,7 +120,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
             .build()
 
         then:
-        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+        result.output.contains("class name: org.gradle.test.HelloWorld1")
     }
 
     def "injected classes are not visible in root build script at compile time when applied to child"() {
@@ -134,7 +134,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         def result = runner("child:echo1").withPluginClasspath(getPluginClasspath()).build()
 
         then:
-        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+        result.output.contains("class name: org.gradle.test.HelloWorld1")
 
         when:
         result = runner("echo1").withPluginClasspath(getPluginClasspath()).buildAndFail()
@@ -155,7 +155,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         def result = runner("child:echo1").withPluginClasspath(getPluginClasspath()).build()
 
         then:
-        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+        result.output.contains("class name: org.gradle.test.HelloWorld1")
 
         when:
         result = runner("echo1").withPluginClasspath(getPluginClasspath()).buildAndFail()
@@ -237,7 +237,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         // plugin 1 class is visible, as the classpath is loaded in one loader
-        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+        result.output.contains("class name: org.gradle.test.HelloWorld1")
 
         when:
         result = runner("helloWorld1")
@@ -345,8 +345,8 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         then:
         result.task(":helloWorld1").outcome == SUCCESS
         result.task(":helloWorldBuildSrc").outcome == SUCCESS
-        result.standardOutput.contains "Hello world! (1)"
-        result.standardOutput.contains "Hello world! (buildSrc)"
+        result.output.contains "Hello world! (1)"
+        result.output.contains "Hello world! (buildSrc)"
     }
 
     static class FileSubclass extends File {
@@ -367,7 +367,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         result.task(":helloWorld1").outcome == SUCCESS
-        result.standardOutput.contains('Hello world! (1)')
+        result.output.contains('Hello world! (1)')
     }
 
 
@@ -400,7 +400,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         result.task(":helloWorld1").outcome == SUCCESS
-        result.standardOutput.contains('Hello world! (1)')
+        result.output.contains('Hello world! (1)')
     }
 
     static String echoClassNameTask(int counter = 1) {

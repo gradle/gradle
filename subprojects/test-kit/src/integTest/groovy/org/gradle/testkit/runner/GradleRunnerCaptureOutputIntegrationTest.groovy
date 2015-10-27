@@ -16,27 +16,40 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.tooling.GradleConnectionException
+import org.gradle.util.RedirectStdOutAndErr
+import org.junit.Rule
 
 class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
-    def "can specify System.out and System.err as output"() {
+    static final String OUT = "out"
+    static final String ERR = "err"
+
+    @Rule
+    RedirectStdOutAndErr stdStreams = new RedirectStdOutAndErr()
+
+    def "can capture stdout and stderr"() {
         given:
-        Writer standardOutput = new OutputStreamWriter(System.out)
-        Writer standardError = new OutputStreamWriter(System.err)
+        def standardOutput = new StringWriter()
+        def standardError = new StringWriter()
         buildFile << helloWorldWithStandardOutputAndError()
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withStandardOutput(standardOutput)
-        gradleRunner.withStandardError(standardError)
-        BuildResult result = gradleRunner.build()
+        def result = runner('helloWorld')
+            .forwardStdOutput(standardOutput)
+            .forwardStdError(standardError)
+            .build()
 
         then:
         noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        result.standardError.contains('Some failure')
+        result.output.contains(OUT)
+        result.output.contains(ERR)
+        standardOutput.toString().contains(OUT)
+        standardError.toString().contains(ERR)
+        stdStreams.stdErr.empty
+        stdStreams.stdOut.empty
     }
 
     def "can forward test execution output to System.out and System.err"() {
@@ -44,40 +57,16 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerInteg
         buildFile << helloWorldWithStandardOutputAndError()
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.forwardOutput()
-        BuildResult result = gradleRunner.build()
+        def result = runner('helloWorld')
+            .forwardOutput()
+            .build()
 
         then:
         noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        result.standardError.contains('Some failure')
-    }
-
-    def "build result standard output and error capture the same output as output provided by user"() {
-        given:
-        Writer standardOutput = new StringWriter()
-        Writer standardError = new StringWriter()
-        buildFile << helloWorldWithStandardOutputAndError()
-
-        when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withStandardOutput(standardOutput)
-        gradleRunner.withStandardError(standardError)
-        BuildResult result = gradleRunner.build()
-
-        then:
-        noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        result.standardError.contains('Some failure')
-        result.standardOutput == standardOutput.toString()
-        result.standardError == standardError.toString()
-
-        cleanup:
-        standardOutput.close()
-        standardError.close()
+        result.output.contains(OUT)
+        result.output.contains(ERR)
+        stdStreams.stdOut.contains(OUT)
+        stdStreams.stdOut.contains(ERR)
     }
 
     def "output is captured if unexpected build exception is thrown"() {
@@ -87,23 +76,18 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerInteg
         buildFile << helloWorldWithStandardOutputAndError()
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withStandardOutput(standardOutput)
-        gradleRunner.withStandardError(standardError)
-        gradleRunner.buildAndFail()
+        runner('helloWorld')
+            .forwardStdOutput(standardOutput)
+            .forwardStdError(standardError)
+            .buildAndFail()
 
         then:
-        UnexpectedBuildSuccess t = thrown UnexpectedBuildSuccess
-        BuildResult result = t.buildResult
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        result.standardError.contains('Some failure')
-        result.standardOutput == standardOutput.toString()
-        result.standardError == standardError.toString()
-
-        cleanup:
-        standardOutput.close()
-        standardError.close()
+        def t = thrown UnexpectedBuildSuccess
+        def result = t.buildResult
+        result.output.contains(OUT)
+        result.output.contains(ERR)
+        standardOutput.toString().contains(OUT)
+        standardError.toString().contains(ERR)
     }
 
     @NoDebug
@@ -111,44 +95,31 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerInteg
         given:
         Writer standardOutput = new StringWriter()
         Writer standardError = new StringWriter()
-        buildFile << """
-            task helloWorld {
-                doLast {
-                    println 'Hello world!'
-                    System.err.println 'Some failure'
-                    Runtime.runtime.halt(0)
-                    println 'Bye world!'
-                }
-            }
+
+        buildFile << helloWorldWithStandardOutputAndError() << """
+            helloWorld.doLast { Runtime.runtime.halt(0) }
         """
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withStandardOutput(standardOutput)
-        gradleRunner.withStandardError(standardError)
-        gradleRunner.build()
+        runner('helloWorld')
+            .forwardStdOutput(standardOutput)
+            .forwardStdError(standardError)
+            .build()
 
         then:
-        UnexpectedBuildFailure t = thrown UnexpectedBuildFailure
-        BuildResult result = t.buildResult
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardOutput.contains('Bye world!')
-        result.standardError.contains('Some failure')
-        result.standardOutput == standardOutput.toString()
-        result.standardError == standardError.toString()
-
-        cleanup:
-        standardOutput.close()
-        standardError.close()
+        def t = thrown IllegalStateException
+        t.cause instanceof GradleConnectionException
+        t.cause.cause.class.name == DaemonDisappearedException.name // not the same class because it's coming from the tooling client
+        standardOutput.toString().contains(OUT)
+        standardError.toString().contains(ERR)
     }
 
-    private String helloWorldWithStandardOutputAndError() {
+    static String helloWorldWithStandardOutputAndError() {
         """
             task helloWorld {
                 doLast {
-                    println 'Hello world!'
-                    System.err.println 'Some failure'
+                    println '$OUT'
+                    System.err.println '$ERR'
                 }
             }
         """

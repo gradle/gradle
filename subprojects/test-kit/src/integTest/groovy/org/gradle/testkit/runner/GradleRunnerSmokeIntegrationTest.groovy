@@ -18,7 +18,7 @@ package org.gradle.testkit.runner
 
 import org.gradle.util.GFileUtils
 
-import static TaskOutcome.*
+import static org.gradle.testkit.runner.TaskOutcome.*
 
 class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
@@ -32,9 +32,8 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTe
 
         then:
         noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardError
+        result.output.contains(':helloWorld')
+        result.output.contains('Hello world!')
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS) == [':helloWorld']
         result.taskPaths(SKIPPED).empty
@@ -62,19 +61,11 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTe
         """
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        BuildResult result = gradleRunner.build()
+        def result = runner('helloWorld')
+            .build()
 
         then:
-        noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardError
-        result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS) == [':helloWorld']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
     }
 
     def "execute build with buildSrc project"() {
@@ -93,21 +84,11 @@ public class MyApp {
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        BuildResult result = gradleRunner.build()
+        def result = runner('helloWorld').build()
 
         then:
-        noExceptionThrown()
-        result.standardOutput.contains(':buildSrc:compileJava')
-        result.standardOutput.contains(':buildSrc:build')
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardError
-        result.tasks.collect { it.path } == [':helloWorld']
+        result.output.contains('Hello world!')
         result.taskPaths(SUCCESS) == [':helloWorld']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
     }
 
 }

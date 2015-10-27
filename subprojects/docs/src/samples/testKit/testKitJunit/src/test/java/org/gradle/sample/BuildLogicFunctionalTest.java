@@ -58,7 +58,7 @@ public class BuildLogicFunctionalTest {
             .withArguments("helloWorld")
             .build();
 
-        assertTrue(result.getStandardOutput().contains("Hello world!"));
+        assertTrue(result.getOutput().contains("Hello world!"));
         assertEquals(result.task(":helloWorld").getOutcome(), SUCCESS);
     }
 

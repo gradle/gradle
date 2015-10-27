@@ -51,7 +51,7 @@ class BuildLogicFunctionalTest extends Specification {
             .build()
 
         then:
-        result.standardOutput.contains('Hello world!')
+        result.output.contains('Hello world!')
         result.task(":helloWorld").outcome == SUCCESS
 
         where:

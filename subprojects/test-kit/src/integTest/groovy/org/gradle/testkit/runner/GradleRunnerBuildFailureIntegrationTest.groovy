@@ -38,9 +38,9 @@ class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegr
 
         then:
         noExceptionThrown()
-        result.standardOutput.contains(':helloWorld FAILED')
-        result.standardError.contains("Execution failed for task ':helloWorld'")
-        result.standardError.contains('Expected exception')
+        result.output.contains(':helloWorld FAILED')
+        result.output.contains("Execution failed for task ':helloWorld'")
+        result.output.contains('Expected exception')
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS).empty
         result.taskPaths(SKIPPED).empty
@@ -67,16 +67,11 @@ Hello world!
 BUILD SUCCESSFUL
 
 Total time: .+ secs
-
------
-Error:
-
------"""
+"""
         TextUtil.normaliseLineSeparators(t.message) ==~ expectedMessage
         BuildResult result = t.buildResult
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardError
+        result.output.contains(':helloWorld')
+        result.output.contains('Hello world!')
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS) == [':helloWorld']
         result.taskPaths(SKIPPED).empty
@@ -105,12 +100,6 @@ Error:
 Output:
 :helloWorld FAILED
 
-BUILD FAILED
-
-Total time: .+ secs
-
-Error:
-
 FAILURE: Build failed with an exception.
 
 \\u002A Where:
@@ -122,11 +111,15 @@ Execution failed for task ':helloWorld'.
 
 \\u002A Try:
 Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
+
+BUILD FAILED
+
+Total time: .+ secs
 """
         TextUtil.normaliseLineSeparators(t.message) ==~ expectedMessage
         BuildResult result = t.buildResult
-        result.standardOutput.contains(':helloWorld FAILED')
-        result.standardError.contains('Unexpected exception')
+        result.output.contains(':helloWorld FAILED')
+        result.output.contains('Unexpected exception')
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS).empty
         result.taskPaths(SKIPPED).empty
@@ -166,8 +159,8 @@ Run with --stacktrace option to get the stack trace. Run with --info or --debug 
 
         then:
         noExceptionThrown()
-        result.standardOutput.contains('BUILD FAILED')
-        result.standardError.contains("Task 'doesNotExist' not found in root project")
+        result.output.contains('BUILD FAILED')
+        result.output.contains("Task 'doesNotExist' not found in root project")
         result.tasks.empty
         result.taskPaths(SUCCESS).empty
         result.taskPaths(SKIPPED).empty

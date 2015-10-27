@@ -56,6 +56,10 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
         testProjectDir.file(path)
     }
 
+    String getRootProjectName() {
+        testProjectDir.testDirectory.name
+    }
+
     DefaultGradleRunner runner(List<String> arguments) {
         runner(arguments as String[])
     }
@@ -98,10 +102,10 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
     }
 
     ExecutionResult execResult(BuildResult buildResult) {
-        new OutputScrapingExecutionResult(buildResult.standardOutput, buildResult.standardError)
+        new OutputScrapingExecutionResult(buildResult.output, buildResult.output)
     }
 
     ExecutionFailure execFailure(BuildResult buildResult) {
-        new OutputScrapingExecutionFailure(buildResult.standardOutput, buildResult.standardError)
+        new OutputScrapingExecutionFailure(buildResult.output, buildResult.output)
     }
 }

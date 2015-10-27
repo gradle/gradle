@@ -197,47 +197,9 @@ TODO: Expand this and provide a DSL example.
 #### Expose Eclipse builders and natures
 
 Clients of the Tooling API now can query the list of Eclipse builders and natures via the
-<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html">EclipseProject</a> model.
-
-    ProjectConnection connection = GradleConnector.newConnector().forProjectDirectory(new File("someFolder")).connect();
-    try {
-        // get model
-        EclipseProject eclipseProject = connection.model(EclipseProject.class).get();
-
-        // query builders and natures
-        List<String> defaultNatures = ...
-        List<BuildCommand> defaultBuilders = ...
-        List<String> projectNatures = eclipseProject.getProjectNatures(defaultNatures);
-        List<BuildCommand> projectBuilders = eclipseProject.getBuildCommands(defaultBuilders);
-
-        // utilize obtained data
-        System.out.println(projectNatures);
-        System.out.println(projectBuilders);
-    } finally {
-        connection.close();
-    }
-
-The result of <a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getProjectNatures()">EclipseProject.getProjectNatures()</a>
-and <a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getBuildCommands()">EclipseProject.getBuildCommands()</a>
-contain the builders and natures required for the target project as well as the customization defined by the 'eclipse'
-<a href="dsl/org.gradle.plugins.ide.eclipse.model.EclipseProject.html">Gradle plugin configuration</a>.
-
-### Performance improvements in up-to-date checking
-
-TBD
-
-Gradle will use the Java nio2 API to access directories on Java 7+ and when the default encoding is unicode compatible (f.e. utf-8).
-The reason for restricting the use to unicode encoding is that tests for GRADLE-2181 break when nio2 API is used to read file names that contain multi-byte characters when default encoding isn't unicode compatible.
-
-Windows has the default encoding of Cp1252 for most environments and it requires manual configuration to use the faster Java nio2 directory accessing on Windows platforms.
-This can be done in the `gradle.properties` file as follows:
-```
-org.gradle.jvmargs=-Dfile.encoding=UTF-8 -Xmx1024m -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError
-```
-
-The benefit of using Java nio2 API to access directories is that file metadata (file size, last modification time) is read with a single system call.
-This information is already read while walking the directory tree and it can now be passed on to up-to-date checking without re-reading the information.
-
+<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html">EclipseProject</a> model. The result of the `EclipseProject.getProjectNatures()`
+and `EclipseProject.getBuildCommands()` contain the builders and natures required for the target project as well as the customisation defined the
+'eclipse' <a href="dsl/org.gradle.plugins.ide.eclipse.model.EclipseProject.html">Gradle plugin configuration</a>.
 
 ## Promoted features
 
