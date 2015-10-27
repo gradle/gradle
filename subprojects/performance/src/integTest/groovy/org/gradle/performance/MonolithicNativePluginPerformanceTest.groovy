@@ -15,13 +15,12 @@
  */
 
 package org.gradle.performance
+
 import org.gradle.performance.measure.DataAmount
-import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(Experiment)
 class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' measuring incremental build speed")
     def "build monolithic native project"() {

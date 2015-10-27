@@ -16,11 +16,9 @@
 
 package org.gradle.performance
 
-import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 
-@Category(Experiment)
 class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Unroll
     def "#size pch performance test" () {
