@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform;
 
+import org.gradle.api.Incubating;
 import org.gradle.platform.base.ToolChain;
 
 import java.io.File;
@@ -25,6 +26,7 @@ import java.io.File;
  *
  * <p>TODO:HH resolve naming conflict with existing NativeExecutableSpec</p>
  */
+@Incubating
 public class NativeExecutableFileSpec {
 
     private File file;
