@@ -188,10 +188,10 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         0 * _
     }
 
-    def nonExistentFileIsAdded() {
+    def newFileIsAdded() {
         TestFile root = tmpDir.createDir('root')
         def fileCollection = files(root)
-        TestFile file = root.file('unknown')
+        TestFile file = root.file('newfile')
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection)
@@ -200,6 +200,20 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         then:
         1 * listener.added(file.path)
+    }
+
+    def deletedFileIsRemoved() {
+        TestFile root = tmpDir.createDir('root')
+        def fileCollection = files(root)
+        TestFile file = root.createFile('file')
+
+        when:
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection)
+        file.delete()
+        snapshotter.snapshot(fileCollection).iterateChangesSince(snapshot).next(listener)
+
+        then:
+        1 * listener.removed(file.path)
     }
 
     def ignoresDuplicatesInFileCollection() {
