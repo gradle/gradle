@@ -19,6 +19,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 class PlatformJvmComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     private JavaVersion currentJvm = JavaVersion.current()
@@ -262,6 +263,7 @@ Binaries
 """
     }
 
+    @Ignore
     def "shows details of Java library with custom variants"() {
         given:
         buildFile << """
