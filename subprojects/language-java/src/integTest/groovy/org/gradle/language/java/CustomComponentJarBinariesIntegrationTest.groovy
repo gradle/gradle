@@ -61,8 +61,7 @@ class SampleLibraryRules extends RuleSource {
                                BinaryNamingSchemeBuilder namingSchemeBuilder,
                                @Path("buildDir") File buildDir) {
         def platform = DefaultJavaPlatform.current()
-        def binaryName = namingSchemeBuilder.withComponentName(library.name).withTypeString("jar").build().lifecycleTaskName
-        binaries.create(binaryName) { binary ->
+        binaries.create("jar") { binary ->
             binary.targetPlatform = platform
         }
     }
@@ -85,7 +84,7 @@ model {
                 libResources(JvmResourceSet) {}
             }
             binaries {
-                sampleLibJar {
+                jar {
                     sources {
                         bin(JavaSourceSet) {
                             source.srcDir "src/sampleLib/bin"

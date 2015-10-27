@@ -179,8 +179,8 @@ class ComponentTypeRules extends RuleSource {
                 buildTypes.each { buildType ->
                     def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${version}"))
                     def toolChain = toolChains.getForPlatform(platform)
-                    def baseName = "${library.name}${flavor.capitalize()}${buildType.name.capitalize()}"
-                    String binaryName = "$baseName${javaVersions.size() > 1 ? version : ''}Jar"
+                    def baseName = "${flavor}${buildType.name.capitalize()}${javaVersions.size() > 1 ? version : ''}"
+                    String binaryName = "${baseName}Jar"
                     binaries.create(binaryName) { jar ->
                         jar.toolChain = toolChain
                         jar.targetPlatform = platform
