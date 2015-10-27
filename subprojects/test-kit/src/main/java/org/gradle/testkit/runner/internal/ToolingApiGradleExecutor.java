@@ -46,12 +46,12 @@ import java.util.concurrent.TimeUnit;
 
 import static org.gradle.testkit.runner.TaskOutcome.*;
 
-public class TestKitGradleExecutor implements GradleExecutor {
+public class ToolingApiGradleExecutor implements GradleExecutor {
 
     public static final String TEST_KIT_DAEMON_DIR_NAME = "test-kit-daemon";
     private final GradleDistribution gradleDistribution;
 
-    public TestKitGradleExecutor(GradleDistribution gradleDistribution) {
+    public ToolingApiGradleExecutor(GradleDistribution gradleDistribution) {
         this.gradleDistribution = gradleDistribution;
         registerShutdownHook();
     }

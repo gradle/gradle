@@ -50,7 +50,7 @@ public class DefaultGradleRunner extends GradleRunner {
     private boolean forwardingSystemStreams;
 
     public DefaultGradleRunner(GradleDistribution gradleDistribution) {
-        this(new TestKitGradleExecutor(gradleDistribution), new TempTestKitDirProvider());
+        this(new ToolingApiGradleExecutor(gradleDistribution), new TempTestKitDirProvider());
     }
 
     DefaultGradleRunner(GradleExecutor gradleExecutor, TestKitDirProvider testKitDirProvider) {

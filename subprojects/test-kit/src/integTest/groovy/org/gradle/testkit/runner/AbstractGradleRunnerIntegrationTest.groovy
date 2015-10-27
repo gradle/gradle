@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.testkit.runner.internal.TestKitGradleExecutor
+import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -94,7 +94,7 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
     }
 
     DaemonsFixture daemons() {
-        daemons(testKitWorkspace, TestKitGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)
+        daemons(testKitWorkspace, ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)
     }
 
     def cleanup() {
