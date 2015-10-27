@@ -22,7 +22,7 @@ individual nodes.
 
 As part of this work, remove empty subclasses of `BaseLanguageSourceSet`, such as `DefaultCoffeeScriptSourceSet`.
 
-## Story: Custom JarBinarySpec type is implemented as a @Managed type
+## Custom JarBinarySpec type is implemented as a @Managed type (DONE)
 
 Specific support will be added for specialisations of `JarBinarySpec`.
 This is being targeted first as it is needed to continue the dependency management stream.
@@ -146,39 +146,6 @@ registered when the binary type is registered:
 - Should start to unify the type registration infrastructure, so that registration for all types are treated the same way and there are few or no differences
 between the implementation of component, binary and source set type registration rules. This will be required for the next stories.
 
-## Plugin author declares internal views for custom managed binary type
-
-TBD
-
-## Plugin author declares internal views for any extensible type
-
-Given a plugin defines a general purpose type that is then extended by another plugin, allow internal views to be declared for the general super type as well as the
-specialized type. For example:
-
-    class BasePlugin extends RuleSource {
-        @ComponentType
-        public void registerBaseType(ComponentTypeBuilder<BaseType> builder) {
-            builder.internalView(BaseTypeInternal.class);
-        }
-    }
-
-    interface CustomType extends BaseType { }
-
-    class CustomPlugin extends RuleSource {
-        @ComponentType
-        public void registerCustomType(ComponentTypeBuilder<CustomType> builder) {
-            builder.internalView(MyCustomTypeInternal.class);
-        }
-    }
-
-The views defined for the general type should also be applied to the specialized type. So, in the example above, every instance of `CustomType` should have the
-`BaseTypeInternal` view applied to it.
-
-- Allow for all types that support registration.
-- Change all usages of `@ComponentType` and `@BinaryType` in core plugins to declare internal view types.
-- Add a rule to the base plugins, to declare internal view types for `ComponentSpec` and `BinarySpec`.
-- Change node creation so that implementation is no longer available as a view type.
-
 ## Plugin author declares default implementation for extensible binary and component type
 
 Given a plugin defines a general type, allow the plugin to provide a default implementation the general type.
@@ -220,22 +187,45 @@ of these types.
     - registered managed type extends base type without a default implementation (i.e. `BinarySpec`)
     - registered managed type extends multiple interfaces that declare default implementations
 
+## Plugin author declares internal views for any extensible type
 
-## Core plugins use managed binary and component types
+Given a plugin defines a general purpose type that is then extended by another plugin, allow internal views to be declared for the general super type as well as the
+specialized type. For example:
 
-- Convert binary and component types where possible to `@Managed` types in core plugins. Convert these types:
-    - TBD
-- Update user guide and samples to show how to implement a custom `@Managed` `ComponentSpec` and `BinarySpec` type
-- Update user guide to show how to attach an internal view to the custom type
+    class BasePlugin extends RuleSource {
+        @ComponentType
+        public void registerBaseType(ComponentTypeBuilder<BaseType> builder) {
+            builder.internalView(BaseTypeInternal.class);
+        }
+    }
 
+    interface CustomType extends BaseType { }
 
-## Plugin author declares default implementation for all extensible types
+    class CustomPlugin extends RuleSource {
+        @ComponentType
+        public void registerCustomType(ComponentTypeBuilder<CustomType> builder) {
+            builder.internalView(MyCustomTypeInternal.class);
+        }
+    }
+
+The views defined for the general type should also be applied to the specialized type. So, in the example above, every instance of `CustomType` should have the
+`BaseTypeInternal` view applied to it.
+
+- Allow for all types that support registration.
+- Change all usages of `@ComponentType` and `@BinaryType` in core plugins to declare internal view types.
+- Add a rule to the base plugins, to declare internal view types for `ComponentSpec` and `BinarySpec`.
+- Change node creation so that implementation is no longer available as a view type.
+
+## Plugin author declares default implementation for any extensible type
 
 Extend story "Plugin author declares default implementation for extensible binary and component type"
 for `LanguageSourceSet`.
 
 - Update user guide and samples to show how to implement a custom `@Managed` `LanguageSourceSet` type
 
+## Plugin author declares internal views for custom managed binary type
+
+TBD
 
 ## Plugin author declares internal view for custom non-managed source set types
 
@@ -258,6 +248,13 @@ Given a plugin defines a `@Managed` subtype of a general type, allow the plugin 
 ## Plugin author declares internal views for any managed type
 
 Allow a rule to declare internal views for any `@Managed` type.
+
+## Core plugins use managed binary and component types
+
+- Convert binary and component types where possible to `@Managed` types in core plugins. Convert these types:
+    - TBD
+- Update user guide and samples to show how to implement a custom `@Managed` `ComponentSpec` and `BinarySpec` type
+- Update user guide to show how to attach an internal view to the custom type
 
 ## Model report does not show internal properties of an element
 
