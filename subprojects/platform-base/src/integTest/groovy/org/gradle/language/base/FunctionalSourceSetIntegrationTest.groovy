@@ -194,7 +194,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "model"
     }
 
-    def "can register a language source set via the model dsl"() {
+    def "non-component language source sets are not added to the project source set"() {
         buildFile << """
         ${registerJavaLanguage()}
 
@@ -211,7 +211,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
         modelNode.functionalSources.@nodeValue[0] == "source set 'functionalSources'"
-        modelNode.sources.@nodeValue[0] == "[Java source 'functionalSources:myJavaSourceSet']"
+        modelNode.sources.@nodeValue[0] == '[]'
     }
 
     @NotYetImplemented

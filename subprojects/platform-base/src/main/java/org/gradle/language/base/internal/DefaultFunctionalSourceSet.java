@@ -15,7 +15,6 @@
  */
 package org.gradle.language.base.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.NoFactoryRegisteredForTypeException;
@@ -39,11 +38,6 @@ public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomai
         this.name = name;
         this.languageRegistry = languageRegistry;
         this.baseDir = baseDir;
-        whenObjectAdded(new Action<LanguageSourceSet>() {
-            public void execute(LanguageSourceSet languageSourceSet) {
-                projectSourceSet.add(languageSourceSet);
-            }
-        });
     }
 
     @Override

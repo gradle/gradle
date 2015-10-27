@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import org.gradle.api.Action;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.registry.LanguageTransform;
@@ -52,6 +53,15 @@ public class ComponentRules extends RuleSource {
         component.getSources().afterEach(new AddDefaultSourceLocation(functionalSourceSet));
     }
 
+    @Defaults
+    void addSourcesSetsToProjectSourceSet(final ComponentSpec component, final ProjectSourceSet projectSourceSet) {
+        ((ComponentSpecInternal) component).getFunctionalSourceSet().whenObjectAdded(new Action<LanguageSourceSet>() {
+            public void execute(LanguageSourceSet languageSourceSet) {
+                projectSourceSet.add(languageSourceSet);
+            }
+        });
+    }
+
     // Currently needs to be a separate action since can't have parameterized utility methods in a RuleSource
     private static class ComponentSourcesRegistrationAction<U extends LanguageSourceSet> implements Action<ComponentSpecInternal> {
         private final LanguageRegistration<U> languageRegistration;
@@ -67,11 +77,11 @@ public class ComponentRules extends RuleSource {
         }
 
         public void execute(ComponentSpecInternal componentSpecInternal) {
-            createDefaultSourceSetForComponents(componentSpecInternal);
+            registerLanguageTypes(componentSpecInternal);
         }
 
         // If there is a transform for the language into one of the component inputs, add a default source set
-        void createDefaultSourceSetForComponents(final ComponentSpecInternal component) {
+        void registerLanguageTypes(final ComponentSpecInternal component) {
             for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
                 if (languageTransform.getSourceSetType().equals(languageRegistration.getSourceSetType())
                     && component.getInputTypes().contains(languageTransform.getOutputType())) {
