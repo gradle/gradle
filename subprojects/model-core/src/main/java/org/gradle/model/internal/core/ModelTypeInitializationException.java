@@ -43,22 +43,24 @@ public class ModelTypeInitializationException extends GradleException {
     private static final String MANAGED_TYPE_DESCRIPTION = "A managed type (annotated with @Managed)";
     private static final String UNMANAGED_PROPERTY_DESCRIPTION = "An unmanaged property (i.e. annotated with @Unmanaged)";
 
-    public ModelTypeInitializationException(NodeInitializerContext context,
+    public ModelTypeInitializationException(NodeInitializerContext<?, ?, ?> context,
                                             ModelSchemaStore schemaStore,
                                             Iterable<ModelType<?>> scalarTypes,
                                             Iterable<ModelType<?>> constructableTypes) {
         super(toMessage(context, schemaStore, scalarTypes, constructableTypes));
     }
 
-    private static String toMessage(NodeInitializerContext context,
+    private static String toMessage(NodeInitializerContext<?, ?, ?> context,
                                     ModelSchemaStore schemaStore,
                                     Iterable<ModelType<?>> scalarTypes,
                                     Iterable<ModelType<?>> constructableTypes) {
-        Optional<ModelProperty<?>> modelPropertyOptional = context.getModelProperty();
+
+        Optional<? extends NodeInitializerContext.PropertyContext<?, ?>> propertyContextOptional = context.getPropertyContextOptional();
         StringBuilder s = new StringBuilder();
-        if (modelPropertyOptional.isPresent()) {
-            s.append(String.format("A model element of type: '%s' can not be constructed.%n", context.getDeclaringType().get().getName()));
-            ModelProperty<?> modelProperty = modelPropertyOptional.get();
+        if (propertyContextOptional.isPresent()) {
+            NodeInitializerContext.PropertyContext<?, ?> propertyContext = propertyContextOptional.get();
+            s.append(String.format("A model element of type: '%s' can not be constructed.%n", propertyContext.getDeclaringType().getName()));
+            ModelProperty<?> modelProperty = propertyContext.getModelProperty();
             if (isManagedCollection(modelProperty.getType())) {
                 s.append(String.format("Its property '%s %s' is not a valid managed collection%n", modelProperty.getType().getName(), modelProperty.getName()));
                 ModelCollectionSchema<?, ?> schema = (ModelCollectionSchema) schemaStore.getSchema(modelProperty.getType());

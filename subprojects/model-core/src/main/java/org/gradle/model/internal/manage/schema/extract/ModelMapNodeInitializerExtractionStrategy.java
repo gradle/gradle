@@ -33,18 +33,13 @@ import java.util.List;
 public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeInitializerExtractionSupport {
     private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {
     };
-    private final NodeInitializerRegistry nodeInitializerRegistry;
 
-    public ModelMapNodeInitializerExtractionStrategy(NodeInitializerRegistry nodeInitializerRegistry) {
-        this.nodeInitializerRegistry = nodeInitializerRegistry;
+    public ModelMapNodeInitializerExtractionStrategy() {
     }
 
     @Override
     protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema) {
         if (MODEL_MAP_MODEL_TYPE.isAssignableFrom(schema.getType())) {
-            if (!nodeInitializerRegistry.hasNodeInitializer(schema.getElementType())) {
-                return null;
-            }
             return new ModelMapNodeInitializer<T, E>(schema);
         }
         return null;

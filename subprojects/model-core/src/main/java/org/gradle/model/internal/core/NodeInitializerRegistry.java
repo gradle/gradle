@@ -20,11 +20,9 @@ import org.gradle.model.internal.manage.schema.extract.NodeInitializerExtraction
 import org.gradle.model.internal.type.ModelType;
 
 public interface NodeInitializerRegistry {
-    NodeInitializer getNodeInitializer(NodeInitializerContext nodeInitializerContext);
+    NodeInitializer getNodeInitializer(NodeInitializerContext<?, ?, ?> nodeInitializerContext);
 
-    void ensureHasInitializer(NodeInitializerContext nodeInitializer);
+    void ensureHasInitializer(NodeInitializerContext<?, ?, ?> nodeInitializer);
 
     void registerStrategy(NodeInitializerExtractionStrategy strategy);
-
-    <T> boolean hasNodeInitializer(ModelType<T> type);
 }

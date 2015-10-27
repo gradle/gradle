@@ -170,7 +170,6 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
         fails "dependencies" // something that doesn't actually require thing1 to be built
         failure.assertThatCause(containsText('model.thing1 @ build.gradle'))
         failure.assertThatCause(containsText("Declaration of model rule model.thing1 @ build.gradle line 9, column 17 is invalid."))
-        //TODO AK - reenable and fx on windows
         failureCauseContains("""A model element of type: 'Thing' can not be constructed.
 It must be one of:
     - A managed type (annotated with @Managed)
