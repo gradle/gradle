@@ -15,11 +15,11 @@
  */
 
 package org.gradle.language.base
-
 import groovy.transform.NotYetImplemented
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
+
+import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
@@ -195,7 +195,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         succeeds ("model", "printSourceDirs")
-        output.contains("source dirs: [${TextUtil.normaliseFileSeparators(testDirectory.path)}/src/main/myJavaSourceSet]")
+        normaliseFileSeparators(output).contains("source dirs: [${normaliseFileSeparators(testDirectory.path)}/src/main/myJavaSourceSet]")
     }
 
     def "non-component language source sets are not added to the project source set"() {
@@ -223,7 +223,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         modelNode.sources.@nodeValue[0]  == '[]'
 
         and:
-        output.contains("source dirs: [${TextUtil.normaliseFileSeparators(testDirectory.path)}/src/main/myJavaSourceSet]")
+        normaliseFileSeparators(output).contains("source dirs: [${normaliseFileSeparators(testDirectory.path)}/src/main/myJavaSourceSet]")
 
     }
 
@@ -242,7 +242,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
             @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet fss) {
                 tasks.create("verify") {
                   doLast {
-                    assert TextUtil.normaliseFileSeparators(fss.getByName("myJavaSourceSet").source.getSrcDirs()[0].path) == '${TextUtil.normaliseFileSeparators(testDirectory.path)}/src/functionalSources/myJavaSourceSet'
+                    assert TextUtil.normaliseFileSeparators(fss.getByName("myJavaSourceSet").source.getSrcDirs()[0].path) == '${normaliseFileSeparators(testDirectory.path)}/src/functionalSources/myJavaSourceSet'
                   }
               }
             }
