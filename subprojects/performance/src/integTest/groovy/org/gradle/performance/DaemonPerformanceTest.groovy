@@ -33,6 +33,7 @@ class DaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.maxExecutionTimeRegression = maxTimeReg
         runner.maxMemoryRegression = maxMemReg
         runner.targetVersions = ['1.0', '2.0', '2.2.1', '2.4', '2.8', 'last']
+        runner.gradleOpts = ["-Xmx1g", "-XX:SoftRefLRUPolicyMSPerMB=0"]
 
         when:
         def result = runner.run()
@@ -42,7 +43,7 @@ class DaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject | maxTimeReg   | maxMemReg
-        "small"     | millis(500)  | DataAmount.kbytes(150)
+        "small"     | millis(500)  | DataAmount.kbytes(1500)
         "multi"     | millis(1000) | DataAmount.mbytes(10)
     }
 }

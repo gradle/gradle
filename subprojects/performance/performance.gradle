@@ -501,6 +501,12 @@ if (project.hasProperty('org.gradle.performance.use_yourkit')) {
     }
 }
 
+if (project.hasProperty('org.gradle.performance.heapdump')) {
+    configure([performanceTest, performanceExperiments]) {
+        systemProperties['org.gradle.performance.heapdump'] = '1'
+    }
+}
+
 if (project.hasProperty('performanceTest.verbose')) {
     configure([performanceTest, performanceExperiments]) {
         testLogging.showStandardStreams = true

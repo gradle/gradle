@@ -16,14 +16,16 @@
 
 package org.gradle.performance.fixture;
 
+import java.util.List;
+
 public interface GradleSession {
 
-    public abstract GradleInvocationSpec getInvocation();
+    GradleInvocationSpec getInvocation();
 
-    public abstract void prepare();
+    void prepare();
 
-    public abstract Runnable runner();
+    Runnable runner(List<String> additionalArgs);
 
-    public abstract void cleanup();
+    void cleanup();
 
 }
