@@ -20,8 +20,6 @@ import org.gradle.tooling.model.ExternalDependency;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HasGradleProject;
 
-import java.util.List;
-
 /**
  * The complete model of an Eclipse project.
  *
