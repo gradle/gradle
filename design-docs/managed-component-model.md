@@ -592,10 +592,6 @@ model {
 
 - Add creation strategy for `LanguageSourceSet` backed by type registration.
 
-## Allow targeting a model rule at multiple model elements based on the type of those elements
-TBD
-
-
 ## Story: Elements of binary `sources` container are visible to rules
 
 - TBD: change `FunctionalSourceSet` to extend `ModelMap`
