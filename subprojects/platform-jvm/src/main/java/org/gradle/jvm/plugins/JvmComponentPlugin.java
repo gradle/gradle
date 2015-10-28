@@ -145,7 +145,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        public void createTasks(ModelMap<Task> tasks, final JarBinarySpec binary, final @Path("buildDir") File buildDir) {
+        public void createTasks(ModelMap<Task> tasks, final JarBinarySpecInternal binary, final @Path("buildDir") File buildDir) {
            final File runtimeClassesDir = binary.getClassesDir();
             final File runtimeJarDestDir = binary.getJarFile().getParentFile();
             final String runtimeJarArchiveName = binary.getJarFile().getName();
