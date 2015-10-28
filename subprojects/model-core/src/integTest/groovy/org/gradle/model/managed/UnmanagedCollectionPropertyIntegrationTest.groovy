@@ -62,7 +62,7 @@ class UnmanagedCollectionPropertyIntegrationTest extends AbstractIntegrationSpec
             void addCheckTask(ModelMap<Task> tasks, Container c) {
                 tasks.create('check') {
                     assert c.items.size() == 1
-                    assert c.items.size() == 1
+                    assert c.widgets.size() == 1
                     assert c.rawWidgets.size() == 1
                 }
             }

@@ -66,7 +66,7 @@ public class ModelTypeInitializationException extends GradleException {
                 ModelCollectionSchema<?, ?> schema = (ModelCollectionSchema) schemaStore.getSchema(modelProperty.getType());
                 s.append(String.format("A managed collection can not contain '%s's%n", schema.getElementType()));
                 appendManagedCollections(s, 1, constructableTypes);
-            } else if (isAnUnmanagedCollection(modelProperty)) {
+            } else if (isAScalarCollection(modelProperty)) {
                 ModelType<?> innerType = modelProperty.getType().getTypeVariables().get(0);
                 s.append(String.format("Its property '%s %s' is not a valid scalar collection%n", modelProperty.getType().getName(), modelProperty.getName()));
                 s.append(String.format("A scalar collection can not contain '%s's%n", innerType));
@@ -113,11 +113,10 @@ public class ModelTypeInitializationException extends GradleException {
         return Strings.padStart("", padding * 4, ' ');
     }
 
-    private static boolean isAnUnmanagedCollection(ModelProperty<?> modelProperty) {
+    private static boolean isAScalarCollection(ModelProperty<?> modelProperty) {
         Class<?> concreteClass = modelProperty.getType().getConcreteClass();
         return (concreteClass.equals(List.class) || concreteClass.equals(Set.class))
             && !modelProperty.isDeclaredAsHavingUnmanagedType();
-
     }
 
     private static String describe(Iterable<ModelType<?>> types) {
@@ -134,5 +133,3 @@ public class ModelTypeInitializationException extends GradleException {
         return concreteClass.equals(ModelMap.class) || concreteClass.equals(ModelSet.class);
     }
 }
-
-
