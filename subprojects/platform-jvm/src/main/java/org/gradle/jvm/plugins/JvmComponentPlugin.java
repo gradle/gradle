@@ -18,8 +18,6 @@ package org.gradle.jvm.plugins;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.*;
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Copy;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
@@ -42,7 +40,6 @@ import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -148,8 +145,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        public void createTasks(ModelMap<Task> tasks, final JarBinarySpecInternal binary, @Path("buildDir") File buildDir) {
-            final File runtimeClassesDir = binary.getClassesDir();
+        public void createTasks(ModelMap<Task> tasks, final JarBinarySpecInternal binary, final @Path("buildDir") File buildDir) {
+           final File runtimeClassesDir = binary.getClassesDir();
             final File runtimeJarDestDir = binary.getJarFile().getParentFile();
             final String runtimeJarArchiveName = binary.getJarFile().getName();
             final String createRuntimeJar = "create" + capitalize(binary.getProjectScopedName());
@@ -187,27 +184,11 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 tasks.create(createApiJar, StubbedJar.class, new Action<StubbedJar>() {
                     @Override
                     public void execute(StubbedJar jar) {
+                        final File apiClassesDir = new File(new File(buildDir, "apiClasses"), runtimeClassesDir.getName());
                         jar.setDescription(String.format("Creates the API binary file for %s.", binary));
-                        jar.from(runtimeClassesDir);
-                        jar.include(new Spec<FileTreeElement>() {
-                            @Override
-                            public boolean isSatisfiedBy(FileTreeElement element) {
-                                if (element.isDirectory()) {
-                                    return true;
-                                }
-                                File file = element.getFile();
-                                if (!file.getName().endsWith(".class")) {
-                                    return false;
-                                }
-                                try {
-                                    return stubGenerator.belongsToAPI(element.open());
-                                } catch (IOException e) {
-                                    return false;
-                                }
-                            }
-                        });
+                        jar.setRuntimeClassesDir(runtimeClassesDir);
                         jar.setExportedPackages(allowedPackages);
-
+                        jar.setApiClassesDir(apiClassesDir);
                         jar.setDestinationDir(binary.getApiJarFile().getParentFile());
                         jar.setArchiveName(binary.getApiJarFile().getName());
                         jar.dependsOn(createRuntimeJar);
