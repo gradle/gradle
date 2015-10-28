@@ -73,7 +73,8 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         where:
         value << ["-1", "0", "foo", " 1"]
     }
-    
+
+    @IgnoreIf({ !GradleContextualExecuter.embedded })
     def "can debug with org.gradle.debug=true"() {
         when:
         def gradle = executer.withArgument("-Dorg.gradle.debug=true").withTasks("help").start()
