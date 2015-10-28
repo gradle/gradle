@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture;
 
 import org.gradle.api.Action;
+import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.MeasuredOperation;
 
 import java.io.File;
@@ -55,13 +56,30 @@ public class BuildExperimentRunner {
                 System.out.println(String.format("Warm-up #%s", i + 1));
                 runOnce(session, new MeasuredOperationList());
             }
+            waitForMillis(experiment.getSleepAfterWarmUpMillis());
             for (int i = 0; i < experiment.getInvocationCount(); i++) {
+                if (i > 0) {
+                    waitForMillis(experiment.getSleepAfterTestRoundMillis());
+                }
                 System.out.println();
                 System.out.println(String.format("Test run #%s", i + 1));
                 runOnce(session, results);
             }
         } finally {
             session.cleanup();
+        }
+    }
+
+    // the JIT compiler seems to wait for idle period before compiling
+    private void waitForMillis(Long sleepTimeMillis) {
+        if (sleepTimeMillis > 0L) {
+            System.out.println();
+            System.out.println(String.format("Waiting %d ms", sleepTimeMillis));
+            try {
+                Thread.sleep(sleepTimeMillis);
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
     }
 
