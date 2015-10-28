@@ -21,6 +21,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.MeasuredOperation;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BuildExperimentRunner {
@@ -44,7 +45,8 @@ public class BuildExperimentRunner {
 
         File workingDirectory = experiment.getInvocation().getWorkingDirectory();
         final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
-        final List<String> additionalArgs = dataCollector.getAdditionalArgs(workingDirectory);
+        final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
+        additionalArgs.add("-PtestDisplayName=" + experiment.getDisplayName());
 
         GradleInvocationSpec buildSpec = experiment.getInvocation().withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
         GradleSession session = executerProvider.session(buildSpec);
@@ -54,7 +56,7 @@ public class BuildExperimentRunner {
             for (int i = 0; i < experiment.getWarmUpCount(); i++) {
                 System.out.println();
                 System.out.println(String.format("Warm-up #%s", i + 1));
-                runOnce(session, new MeasuredOperationList());
+                runOnce(session, new MeasuredOperationList(), "warmup", i+1, experiment.getWarmUpCount());
             }
             waitForMillis(experiment.getSleepAfterWarmUpMillis());
             for (int i = 0; i < experiment.getInvocationCount(); i++) {
@@ -63,7 +65,7 @@ public class BuildExperimentRunner {
                 }
                 System.out.println();
                 System.out.println(String.format("Test run #%s", i + 1));
-                runOnce(session, results);
+                runOnce(session, results, "testrun", i+1, experiment.getInvocationCount());
             }
         } finally {
             session.cleanup();
@@ -83,8 +85,8 @@ public class BuildExperimentRunner {
         }
     }
 
-    private void runOnce(final GradleSession session, MeasuredOperationList results) {
-        final Runnable runner = session.runner();
+    private void runOnce(final GradleSession session, MeasuredOperationList results, String label, int loopNumber, int loopMax) {
+        final Runnable runner = session.runner(createTestLoopInfoArguments(label, loopNumber, loopMax));
 
         MeasuredOperation operation = timer.measure(new Action<MeasuredOperation>() {
             @Override
@@ -98,5 +100,13 @@ public class BuildExperimentRunner {
         }
 
         results.add(operation);
+    }
+
+    private List<String> createTestLoopInfoArguments(String label, int loopNumber, int loopMax) {
+        List<String> args = new ArrayList<String>(3);
+        args.add("-PtestPhase=" + label);
+        args.add("-PtestLoopNumber=" + loopNumber);
+        args.add("-PtestLoopMax=" + loopMax);
+        return args;
     }
 }

@@ -4,6 +4,34 @@ import java.lang.management.ManagementFactory
 import java.math.RoundingMode
 
 gradle.buildFinished {
+    if (project.hasProperty('heapdump')) {
+        boolean skipHeapDump = false
+
+        if (['testPhase', 'testLoopNumber', 'testLoopMax'].every { project.hasProperty(it) }) {
+            // only dump heap automaticly on the last iteration of the testrun (not in warmup)
+            if (project.testPhase != 'testrun' || project.testLoopNumber != project.testLoopMax) {
+                skipHeapDump = true
+            }
+        }
+
+        if (!skipHeapDump) {
+            def hotspotDiagnosticMXBean
+            try {
+                def hotspotDiagnosticMXBeanClass = Class.forName("com.sun.management.HotSpotDiagnosticMXBean")
+                hotspotDiagnosticMXBean = ManagementFactory.getPlatformMXBeans(hotspotDiagnosticMXBeanClass).get(0)
+            } catch (Exception e) {
+                logger.error("Couldn't locate MBean for doing heap dump.", e)
+            }
+            if (hotspotDiagnosticMXBean) {
+                logger.lifecycle "Creating heap dump..."
+                def dumpDescription = (project.hasProperty("testDisplayName") ? (rootProject.name + "_" + project.testDisplayName) : rootProject.name).replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("[_]+", "_")
+                File dumpFile = new File(System.getProperty("java.io.tmpdir"), "heapdump-\${dumpDescription}-\${new Date().format('yyyy-MM-dd-HH-mm-ss')}.hprof")
+                hotspotDiagnosticMXBean.dumpHeap(dumpFile.absolutePath, true)
+                logger.lifecycle "Dumped to \${dumpFile.absolutePath}."
+            }
+        }
+    }
+
     def heap = ManagementFactory.memoryMXBean.heapMemoryUsage
     def nonHeap = ManagementFactory.memoryMXBean.nonHeapMemoryUsage
     logger.lifecycle "BEFORE GC"
