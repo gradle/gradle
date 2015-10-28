@@ -17,7 +17,6 @@
 package org.gradle.jvm.internal
 
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
@@ -37,6 +36,6 @@ class DefaultJvmLibrarySpecTest extends Specification {
     }
 
     private DefaultJvmLibrarySpec createJvmLibrarySpec() {
-        BaseComponentFixtures.create(DefaultJvmLibrarySpec, new ModelRegistryHelper(), libraryId, Stub(ProjectSourceSet), DirectInstantiator.INSTANCE)
+        BaseComponentFixtures.create(DefaultJvmLibrarySpec, new ModelRegistryHelper(), libraryId, DirectInstantiator.INSTANCE)
     }
 }

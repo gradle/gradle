@@ -18,7 +18,6 @@ package org.gradle.platform.base.component
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
@@ -50,7 +49,7 @@ class BaseComponentSpecTest extends Specification {
 
     private <T extends BaseComponentSpec> T create(Class<T> type) {
         def file = new TestFile(".")
-        BaseComponentFixtures.create(type, modelRegistry, componentId, Stub(ProjectSourceSet), instantiator, file)
+        BaseComponentFixtures.create(type, modelRegistry, componentId, instantiator, file)
     }
 
     def "library has name, path and sensible display name"() {

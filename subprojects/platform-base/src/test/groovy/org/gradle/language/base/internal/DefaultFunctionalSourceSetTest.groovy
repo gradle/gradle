@@ -16,13 +16,12 @@
 
 package org.gradle.language.base.internal
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.registry.LanguageRegistry
 import spock.lang.Specification
 
 class DefaultFunctionalSourceSetTest extends Specification {
     def "has reasonable string representation"() {
-        def sourceSet = new DefaultFunctionalSourceSet("main", Stub(Instantiator), Stub(ProjectSourceSet), Mock(LanguageRegistry), null)
+        def sourceSet = new DefaultFunctionalSourceSet("main", Stub(Instantiator), Mock(LanguageRegistry), null)
 
         expect:
         sourceSet.toString() == /source set 'main'/

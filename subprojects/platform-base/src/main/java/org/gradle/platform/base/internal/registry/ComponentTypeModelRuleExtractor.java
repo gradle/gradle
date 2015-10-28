@@ -105,7 +105,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
                     @Override
                     public S apply(String name, MutableModelNode modelNode1) {
                         ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                        return Cast.uncheckedCast(BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode1, projectSourceSet, instantiator, languageRegistry, projectIdentifier.getProjectDir()));
+                        return Cast.uncheckedCast(BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode1, instantiator, languageRegistry, projectIdentifier.getProjectDir()));
                     }
                 });
                 if (COMPONENT_SPEC_INTERNAL_MODEL_TYPE.isAssignableFrom(implementationType)) {

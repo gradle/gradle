@@ -20,7 +20,6 @@ import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.language.nativeplatform.NativeResourceSet
 import org.gradle.model.internal.fixture.ModelRegistryHelper
@@ -149,8 +148,8 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
     }
 
     private DefaultSharedLibraryBinarySpec getSharedLibrary() {
-        final library = BaseComponentFixtures.create(DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "libName"),
-            Stub(ProjectSourceSet), instantiator);
+        final library = BaseComponentFixtures.create(DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "libName")
+            , instantiator);
         TestNativeBinariesFactory.create(DefaultSharedLibraryBinarySpec, "test", instantiator, Mock(ITaskFactory), library, namingScheme, resolver,
             platform, buildType, new DefaultFlavor("flavorOne"))
     }

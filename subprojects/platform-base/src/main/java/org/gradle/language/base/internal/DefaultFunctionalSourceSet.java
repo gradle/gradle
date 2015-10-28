@@ -22,7 +22,6 @@ import org.gradle.api.internal.rules.AddOnlyRuleAwarePolymorphicDomainObjectCont
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 
@@ -33,7 +32,7 @@ public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomai
     private final LanguageRegistry languageRegistry;
     private final File baseDir;
 
-    public DefaultFunctionalSourceSet(String name, Instantiator instantiator, final ProjectSourceSet projectSourceSet, LanguageRegistry languageRegistry, File baseDir) {
+    public DefaultFunctionalSourceSet(String name, Instantiator instantiator, LanguageRegistry languageRegistry, File baseDir) {
         super(LanguageSourceSet.class, instantiator);
         this.name = name;
         this.languageRegistry = languageRegistry;
