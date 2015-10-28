@@ -18,17 +18,6 @@ method of the `GradleRunner`.
 
 Please see the [Gradle User Guide section on debugging with the TestKit](userguide/test_kit.html#test-kit-debug) for more information.
 
-### Unexpected build failure provide access to the build result
-
-With previous versions of Gradle TestKit, any unexpected failure during functional test executions resulted in throwing a
-<a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildSuccess.html">UnexpectedBuildSuccess</a> or a
-<a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildFailure.html">UnexpectedBuildFailure</a>.
-These types provide basic diagnostics about the root cause of the failure in textual form assigned to the exception `message` field. Suffice to say that a String is not very
-convenient for further inspections or assertions of the build outcome.
-
-This release provides the `BuildResult` with the method <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildException.html#getBuildResult()">UnexpectedBuildException.getBuildResult()</a> for
-diagnosing test execution failures. `UnexpectedBuildException` is the parent class of the exceptions `UnexpectedBuildSuccess` and `UnexpectedBuildFailure`.
-
 ### Cross version testing with the Gradle TestKit
 
 It is now possible to use the [`GradleRunner`](javadoc/org/gradle/testkit/runner/GradleRunner.html) to execute builds with arbitrary Gradle versions and distributions.
