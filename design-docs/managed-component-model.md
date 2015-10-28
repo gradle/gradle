@@ -576,15 +576,25 @@ model {
     - A read-only property of a `@Managed` type
     - An element of managed collections `ModelSet` and `ModelMap`
     - A top level element.
-- TBD: Need some convention for source directory locations.
-- TBD: Reporting changes, if any
+- TBD: Reporting changes, if any. None - `LanguageSourceSet`'s should appear as follows:
+
+```
++ lss
+      | Type:   	org.gradle.language.cpp.CppSourceSet
+      | Value:  	C++ source 'lss:lss'
+      | Creator: 	Rules#lss
+```
 
 - Out-of-scope: Making `LanguageSourceSet` managed.
 - Out-of-scope: Instances are visible in top level `sources` container.
-
+- Out-of-scope: Need some convention for source directory locations. Need the ability to apply rules to every model node of a particular type to do this.
 ### Implementation
 
 - Add creation strategy for `LanguageSourceSet` backed by type registration.
+
+## Allow targeting a model rule at multiple model elements based on the type of those elements
+TBD
+
 
 ## Story: Elements of binary `sources` container are visible to rules
 
