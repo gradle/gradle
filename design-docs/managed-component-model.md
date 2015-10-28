@@ -522,6 +522,8 @@ coverage and the cost of the coverage
 - All registered `LanguageSourceSet` types are available to be added.
 - Need some convention for source directory locations. Possibly add a `baseDir` property to `FunctionalSourceSet` and default source directories to `$baseDir/$sourceSet.name`
 - Out-of-scope: Instances are visible in top level `sources` container.
+- Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has
+  no knowledge of where its elements end up being referenced.
 
 ### Implementation
 
@@ -533,7 +535,10 @@ coverage and the cost of the coverage
 
 - Source directory locations
     - Add a `baseDir` property to `FunctionalSourceSet` and default it to `project.projectDir`
-    - Add an `abstract` method to `BaseLanguageSourceSet`, `String getSourceDirConvention()`. For a java LSS this would return `"src/main"`
+    - ~~Add an `abstract` method to `BaseLanguageSourceSet`, `String getSourceDirConvention()`. For a java LSS this would return `"src/main"`~~
+
+- Currently `FunctionalSourceSet` pushes instances into `sources` container
+    - A `@Defaults` rule is used to give `LanguageSourceSet`'s a default source directory instead of the constructor of `DefaultFunctionalSourceSet`
 
 ### Test cases
 Assuming `JavaSourceSet` is registered as a `LanguageType`
@@ -563,9 +568,7 @@ model {
 - The source set locations of a LSS when `fss.baseDir` has been overridden.
 
 ### Open Issues
-- Are these created LSS's intended to be model elements and appear on the model report? considering FSS is not yet a `ModelMap`.
-- Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has
-no knowledge of where its elements end up being referenced.
+- ~~Are these created LSS's intended to be model elements and appear on the model report? considering FSS is not yet a `ModelMap`.~~ (later story)
 
 ## Story: Allow `LanguageSourceSet` instances to be attached to a managed type
 
