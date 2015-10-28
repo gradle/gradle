@@ -122,13 +122,8 @@ public class FactoryBasedManagedNodeInitializer<T, S extends T> extends Abstract
                 if (!(schema instanceof ModelStructSchema)) {
                     throw new IllegalStateException("View type must be a struct: " + type);
                 }
-                ModelProjection projection;
-                if (schema instanceof ModelManagedImplStructSchema) {
-                    ModelManagedImplStructSchema<D> structSchema = Cast.uncheckedCast(schema);
-                    projection = new ManagedModelProjection<D>(structSchema, delegateSchema, schemaStore, proxyFactory);
-                } else {
-                    projection = UnmanagedModelProjection.of(type);
-                }
+                ModelStructSchema<D> structSchema = Cast.uncheckedCast(schema);
+                ModelProjection projection = new ManagedModelProjection<D>(structSchema, delegateSchema, schemaStore, proxyFactory);
                 modelNode.addProjection(projection);
             }
         };

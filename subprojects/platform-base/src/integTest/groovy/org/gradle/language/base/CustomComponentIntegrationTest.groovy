@@ -16,9 +16,10 @@
 
 package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.platform.base.internal.ComponentSpecInternal
 
 class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
-    def "can declare custom managed component"() {
+    def "can declare custom managed Jvm library component"() {
         buildFile << """
             apply plugin: "jvm-component"
 
@@ -188,6 +189,148 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
             }
             apply plugin: ValidateTaskRules
         """
+        expect:
+        succeeds "validate"
+    }
+
+    def "public view of managed component does not expose any internal views or implementation"() {
+        buildFile << """
+            import ${ComponentSpecInternal.name}
+
+            interface UnmanagedComponentSpec extends ComponentSpec {
+                String unmanagedData
+            }
+
+            class DefaultUnmanagedComponentSpec extends BaseComponentSpec implements UnmanagedComponentSpec {
+                String unmanagedData
+            }
+
+            @Managed
+            interface SampleComponentSpec extends UnmanagedComponentSpec {
+                String publicData
+            }
+
+            @Managed
+            interface InternalSampleSpec {
+                String internalData
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void register1(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                    builder.defaultImplementation(DefaultUnmanagedComponentSpec)
+                }
+
+                @ComponentType
+                void register2(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                    builder.internalView(InternalSampleSpec)
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    sample(SampleComponentSpec)
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Validate
+                void validateInternal(@Path('components.sample') InternalSampleSpec spec) {
+//                    assert !(spec instanceof ComponentSpec)
+//                    assert !(spec instanceof ComponentSpecInternal)
+//                    assert !(spec instanceof UnmanagedComponentSpec)
+                    assert !(spec instanceof SampleComponentSpec)
+                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
+                    spec.internalData
+                    try {
+                        spec.publicData
+                        assert false
+                    } catch(MissingPropertyException e) {
+                        assert e.message == "No such property: publicData for class: InternalSampleSpec"
+                    }
+                }
+
+                @Validate
+                void validateInternal(@Path('components.sample') ComponentSpecInternal spec) {
+//                    assert !(spec instanceof UnmanagedComponentSpec)
+                    assert !(spec instanceof SampleComponentSpec)
+                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
+                    assert !(spec instanceof InternalSampleSpec)
+                    try {
+                        spec.publicData
+                        assert false
+                    } catch(MissingPropertyException e) {
+                        assert e.message == "No such property: publicData for class: ${ComponentSpecInternal.name}"
+                    }
+                    try {
+                        spec.internalData
+                        assert false
+                    } catch (MissingPropertyException e) {
+                        assert e.message == "No such property: internalData for class: ${ComponentSpecInternal.name}"
+                    }
+                }
+
+                @Validate
+                void validatePublic(@Path('components.sample') SampleComponentSpec spec) {
+                    assert !(spec instanceof InternalSampleSpec)
+                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
+//                    assert !(spec instanceof ComponentSpecInternal)
+                    spec.publicData
+                    try {
+                        spec.internalData
+                        assert false
+                    } catch (MissingPropertyException e) {
+                        assert e.message == 'No such property: internalData for class: SampleComponentSpec'
+                    }
+                }
+
+                @Validate
+                void validatePublic(@Path('components.sample') ComponentSpec spec) {
+                    assert spec instanceof UnmanagedComponentSpec
+                    assert spec instanceof SampleComponentSpec
+                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
+                    assert !(spec instanceof InternalSampleSpec)
+//                    assert !(spec instanceof ComponentSpecInternal)
+                    spec.publicData
+                    try {
+                        spec.internalData
+                        assert false
+                    } catch (MissingPropertyException e) {
+                        assert e.message == 'No such property: internalData for class: SampleComponentSpec'
+                    }
+                }
+
+                @Validate
+                void validatePublic(@Path('components.sample') Object spec) {
+                    assert spec instanceof ComponentSpec
+                    assert spec instanceof UnmanagedComponentSpec
+                    assert spec instanceof SampleComponentSpec
+                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
+                    assert !(spec instanceof InternalSampleSpec)
+//                    assert !(spec instanceof ComponentSpecInternal)
+                    spec.publicData
+                    try {
+                        spec.internalData
+                        assert false
+                    } catch (MissingPropertyException e) {
+                        assert e.message == 'No such property: internalData for class: SampleComponentSpec'
+                    }
+                }
+
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
+                    tasks.create("validate") {
+                        assert components*.name == ["sample"]
+                        assert components.withType(ComponentSpec)*.name == ["sample"]
+                        assert components.withType(SampleComponentSpec)*.name == ["sample"]
+                        assert components.withType(ComponentSpecInternal)*.name == ["sample"]
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
         expect:
         succeeds "validate"
     }

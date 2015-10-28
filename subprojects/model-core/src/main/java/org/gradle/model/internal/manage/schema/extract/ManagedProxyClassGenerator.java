@@ -122,13 +122,13 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
         Class<M> managedTypeClass = managedType.getConcreteClass();
         Class<?> superclass;
-        final ImmutableSet.Builder<String> interfaceInternalNames = ImmutableSet.builder();
+        final ImmutableSet.Builder<String> interfacesToImplement = ImmutableSet.builder();
         final ImmutableSet.Builder<Class<?>> typesToDelegate = ImmutableSet.builder();
         typesToDelegate.add(managedTypeClass);
-        interfaceInternalNames.add(MANAGED_INSTANCE_TYPE);
+        interfacesToImplement.add(MANAGED_INSTANCE_TYPE);
         if (managedTypeClass.isInterface()) {
             superclass = Object.class;
-            interfaceInternalNames.add(Type.getInternalName(managedTypeClass));
+            interfacesToImplement.add(Type.getInternalName(managedTypeClass));
         } else {
             superclass = managedTypeClass;
         }
@@ -141,22 +141,33 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                 public void visitType(Class<? super D> type) {
                     if (type.isInterface()) {
                         typesToDelegate.add(type);
-                        interfaceInternalNames.add(Type.getInternalName(type));
+                        interfacesToImplement.add(Type.getInternalName(type));
                     }
                 }
             });
         }
 
-        generateProxyClass(visitor, managedSchema, delegateSchema, interfaceInternalNames.build(), typesToDelegate.build(), generatedType, Type.getType(superclass));
+        generateProxyClass(visitor, managedSchema, delegateSchema, interfacesToImplement.build(), typesToDelegate.build(), generatedType, Type.getType(superclass));
 
-        return defineClass(visitor, managedTypeClass.getClassLoader(), generatedTypeName);
+        ClassLoader targetClassLoader = managedTypeClass.getClassLoader();
+        if (delegateSchema != null) {
+            // TODO - remove this once the above is removed
+            try {
+                managedTypeClass.getClassLoader().loadClass(delegateSchema.getType().getConcreteClass().getName());
+            } catch (ClassNotFoundException e) {
+                // Delegate class is not visible to managed view type -> view type is more general than delegate type, so use the delegate classloader instead
+                targetClassLoader = delegateSchema.getType().getConcreteClass().getClassLoader();
+            }
+        }
+
+        return defineClass(visitor, targetClassLoader, generatedTypeName);
     }
 
-    private void generateProxyClass(ClassWriter visitor, ModelStructSchema<?> managedSchema, ModelStructSchema<?> delegateSchema, Collection<String> interfaceInternalNames,
+    private void generateProxyClass(ClassWriter visitor, ModelStructSchema<?> managedSchema, ModelStructSchema<?> delegateSchema, Collection<String> interfacesToImplement,
                                     Set<Class<?>> typesToDelegate, Type generatedType, Type superclassType) {
         ModelType<?> managedType = managedSchema.getType();
         Class<?> managedTypeClass = managedType.getConcreteClass();
-        declareClass(visitor, interfaceInternalNames, generatedType, superclassType);
+        declareClass(visitor, interfacesToImplement, generatedType, superclassType);
         declareStateField(visitor);
         declareManagedTypeField(visitor);
         declareCanCallSettersField(visitor);
