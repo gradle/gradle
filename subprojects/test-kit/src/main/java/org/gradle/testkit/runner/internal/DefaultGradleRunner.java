@@ -308,7 +308,7 @@ public class DefaultGradleRunner extends GradleRunner {
             } catch (Exception ignore) {
                 // ignore
             }
-            throw new IllegalStateException(messagePrefix + ". Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar.");
+            throw new InvalidRunnerConfigurationException(messagePrefix + ". Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar.");
         }
         return new InstalledGradleDistribution(gradleHome);
     }

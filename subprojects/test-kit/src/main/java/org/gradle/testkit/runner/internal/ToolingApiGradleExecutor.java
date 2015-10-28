@@ -19,6 +19,7 @@ package org.gradle.testkit.runner.internal;
 import com.google.common.base.Joiner;
 import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.BuildTask;
+import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
 import org.gradle.testkit.runner.internal.dist.GradleDistribution;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution;
@@ -27,10 +28,7 @@ import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution;
 import org.gradle.testkit.runner.internal.io.NoCloseOutputStream;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
 import org.gradle.testkit.runner.internal.io.TeeOutputStream;
-import org.gradle.tooling.BuildException;
-import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.*;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.task.*;
@@ -100,6 +98,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             launcher.withInjectedClassPath(parameters.getInjectedClassPath());
 
             launcher.run();
+        } catch (UnsupportedVersionException e) {
+            throw new InvalidRunnerConfigurationException("The build could not be executed due to a feature not being supported by the target Gradle version", e);
         } catch (BuildException t) {
             return new GradleExecutionResult(output.toString(), tasks, t);
         } catch (GradleConnectionException t) {

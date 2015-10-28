@@ -225,7 +225,11 @@ public abstract class GradleRunner {
      * Sets the injected plugin classpath for the build.
      * <p>
      * Plugins from the given classpath are able to be resolved using the <code>plugins { }</code> syntax in the build under test.
-     * Please consult the “TestKit” Gradle User Guide chapter for more information and usage examples.
+     * Please consult the TestKit Gradle User Guide chapter for more information and usage examples.
+     * <p>
+     * <b>Note:</b> this method will cause an {@link InvalidRunnerConfigurationException} to be emitted when the build is executed,
+     * if the version of Gradle executing the build (i.e. not the version of the runner) is earlier than Gradle 2.8 as those versions do not support this feature.
+     * Please consult the TestKit Gradle User Guide chapter alternative strategies that can be used for older Gradle versions.
      *
      * @param classpath the classpath of plugins to make available to the build under test
      * @return this

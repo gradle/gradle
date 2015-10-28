@@ -129,6 +129,21 @@
                 Similarly, if the effective classpath of the code under test changes, the manifest must be regenerated.
                 In either case, executing the <literal>testClasses</literal> task of the build will ensure that things are up to date.
             </para>
+            <section>
+                <title>Working with Gradle versions prior to 2.8</title>
+                <para>
+                    The <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/> method will not work when
+                    executing the build with a Gradle version earlier than 2.8 (see: <xref linkend="gradle-runner-gradle-version"/>),
+                    as this feature is not supported on such Gradle versions.
+                </para>
+                <para>
+                    Instead, the code must be injected via the build script itself.
+                    The following sample demonstrates how this can be done.
+                </para>
+                <sample id="testKitFunctionalTestSpockClassesTestConfig" dir="testKit/testKitSpockClasspath" includeLocation="true" title="Injecting the code under test classes into test builds">
+                    <sourcefile file="plugin/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-older-gradle"/>
+                </sample>
+            </section>
         </section>
         <section>
             <title>Controlling the build environment</title>
