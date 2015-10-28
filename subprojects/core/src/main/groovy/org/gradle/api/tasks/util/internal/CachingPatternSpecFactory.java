@@ -37,8 +37,8 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
     private final Cache<SpecKey, Spec> specInstanceCache;
 
     public CachingPatternSpecFactory() {
-        specResultCache = CacheBuilder.newBuilder().maximumSize(RESULTS_CACHE_MAX_SIZE).initialCapacity(RESULTS_CACHE_MAX_SIZE / 10).build();
-        specInstanceCache = CacheBuilder.newBuilder().maximumSize(INSTANCES_MAX_SIZE).initialCapacity(INSTANCES_MAX_SIZE / 10).build();
+        specResultCache = CacheBuilder.newBuilder().maximumSize(RESULTS_CACHE_MAX_SIZE).build();
+        specInstanceCache = CacheBuilder.newBuilder().maximumSize(INSTANCES_MAX_SIZE).build();
     }
 
     @Override

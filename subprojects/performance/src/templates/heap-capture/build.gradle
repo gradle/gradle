@@ -39,6 +39,7 @@ gradle.buildFinished {
     logger.lifecycle "nonHeap: \${format(nonHeap.used)} (initial \${format(nonHeap.init)}, committed \${format(nonHeap.committed)}, max \${format(nonHeap.max)}"
 
     ManagementFactory.memoryMXBean.gc()
+
     heap = ManagementFactory.memoryMXBean.heapMemoryUsage
     nonHeap = ManagementFactory.memoryMXBean.nonHeapMemoryUsage
     logger.lifecycle "AFTER GC"
