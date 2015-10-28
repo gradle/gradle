@@ -30,7 +30,9 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.internal.model.FunctionalSourceSetNodeInitializer;
+import org.gradle.language.base.internal.model.LanguageSourceSetNodeInitializer;
 import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
+import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.*;
@@ -132,14 +134,20 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
-        void registerFunctionalSourceSetNodeInitializer(ConstructableTypesRegistry constructableTypesRegistry, ServiceRegistry serviceRegistry) {
+            // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
+        void registerSourceSetNodeInitializers(ConstructableTypesRegistry constructableTypesRegistry, ServiceRegistry serviceRegistry, LanguageRegistry languageRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer(instantiator));
+
+            for (LanguageRegistration<?> languageRegistration : languageRegistry) {
+                ModelType<?> sourceSetType = ModelType.of(languageRegistration.getSourceSetType());
+                LanguageSourceSetNodeInitializer languageSourceSetNodeInitializer = new LanguageSourceSetNodeInitializer(languageRegistry, sourceSetType);
+                constructableTypesRegistry.registerConstructableType(sourceSetType, languageSourceSetNodeInitializer);
+            }
         }
 
         @Mutate
-        // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
+            // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
         void registerNodeInitializerExtractionStrategies(NodeInitializerRegistry nodeInitializerRegistry, ConstructableTypesRegistry constructableTypesRegistry) {
             nodeInitializerRegistry.registerStrategy(constructableTypesRegistry);
         }
