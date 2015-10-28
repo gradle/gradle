@@ -145,6 +145,47 @@ TBD: DSL now supports `$('p')` expressions in DSL rules:
       - A scalar collection. A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)
       - An unmanaged property (i.e. annotated with @Unmanaged)
 
+#### Adding `LanguageSourceSet`'s to `FunctionalSourceSet`'s
+
+It is now possible to add `LanguageSourceSet`'s, of any type known type (see <a href="javadoc/org/gradle/platform/base/LanguageType.html">`org.gradle.platform.base.LanguageType`</a>),
+to `FunctionalSourceSet`'s which exist in the model space.
+
+    class Rules extends RuleSource {
+        @Model
+        void functionalSources(FunctionalSourceSet fss) {
+            fss.create("myJavaSourceSet", JavaSourceSet) { LanguageSourceSet lss ->
+                lss.source.srcDir "src/main/myJavaSourceSet"
+            }
+        }
+    }
+    apply plugin: Rules
+
+Or via the model DSL
+
+    model {
+        functionalSources(FunctionalSourceSet){
+            myJavaSourceSet(JavaSourceSet) {
+                source {
+                    srcDir "src/main/myJavaSourceSet"
+                }
+            }
+        }
+    }
+
+Any registered `LanguageSourceSet` implementations can be used to create LanguageSourceSet's. `LanguageSourceSet`'s are typically registered as follows:
+
+    class JavaLangRuleSource extends RuleSource {
+        @LanguageType
+        void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
+            builder.setLanguageName("java");
+            builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
+        }
+
+    }
+    apply plugin: JavaLangRuleSource
+
+Note: `LanguageSourceSet`'s added in this fashion are not added to the projects `ProjectSourceSet`
+
 ### Support for external dependencies in the 'jvm-components' plugin
 
 It is now possible to reference external dependencies when building a `JvmLibrary` using the `jvm-component` plugin.

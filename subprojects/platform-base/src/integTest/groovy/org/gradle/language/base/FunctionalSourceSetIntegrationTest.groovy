@@ -181,37 +181,50 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         apply plugin: 'language-base'
 
         ${registerJavaLanguage()}
+        ${addPrintSourceDirTask()}
 
         class Rules extends RuleSource {
             @Model
             void functionalSources(FunctionalSourceSet sources) {
-                sources.create("javaB", JavaSourceSet)
+                sources.create("myJavaSourceSet", JavaSourceSet) { LanguageSourceSet lss ->
+                    lss.source.srcDir "src/main/myJavaSourceSet"
+                }
             }
         }
         apply plugin: Rules
         """
         expect:
-        succeeds "model"
+        succeeds ("model", "printSourceDirs")
+        output.contains("source dirs: [${TextUtil.normaliseFileSeparators(testDirectory.path)}/src/main/myJavaSourceSet]")
     }
 
     def "non-component language source sets are not added to the project source set"() {
         buildFile << """
         ${registerJavaLanguage()}
+        ${addPrintSourceDirTask()}
 
         model {
             functionalSources(FunctionalSourceSet){
-                myJavaSourceSet(JavaSourceSet)
+                myJavaSourceSet(JavaSourceSet) {
+                    source {
+                        srcDir "src/main/myJavaSourceSet"
+                    }
+                }
             }
         }
         """
 
         when:
-        succeeds "model"
+        succeeds ("model", "printSourceDirs")
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
         modelNode.functionalSources.@nodeValue[0] == "source set 'functionalSources'"
-        modelNode.sources.@nodeValue[0] == '[]'
+        modelNode.sources.@nodeValue[0]  == '[]'
+
+        and:
+        output.contains("source dirs: [${TextUtil.normaliseFileSeparators(testDirectory.path)}/src/main/myJavaSourceSet]")
+
     }
 
     @NotYetImplemented
@@ -248,15 +261,33 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
             class JavaLangRuleSource extends RuleSource {
 
-            @LanguageType
-            void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
-                builder.setLanguageName("java");
-                builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
-            }
+                @LanguageType
+                void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
+                    builder.setLanguageName("java");
+                    builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
+                }
 
         }
         apply plugin: JavaLangRuleSource
         """
+    }
+
+
+    private String addPrintSourceDirTask(){
+        """
+class PrintSourceDirectoryRules extends RuleSource {
+    @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet fss) {
+        tasks.create("printSourceDirs") {
+          doLast {
+            fss.each{ lss ->
+                println ("source dirs: \${lss.source.getSrcDirs()}")
+            }
+          }
+      }
+    }
+}
+apply plugin: PrintSourceDirectoryRules
+"""
     }
 
 }
