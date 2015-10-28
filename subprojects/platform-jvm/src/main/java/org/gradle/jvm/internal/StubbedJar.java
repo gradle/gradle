@@ -20,20 +20,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.language.base.internal.tasks.apigen.ApiStubGenerator;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.util.Collection;
 import java.util.Map;
 import java.util.SortedMap;
@@ -81,6 +75,7 @@ public class StubbedJar extends DefaultTask {
     }
 
     @InputDirectory
+    @SkipWhenEmpty
     public File getRuntimeClassesDir() {
         return runtimeClassesDir;
     }
@@ -177,10 +172,18 @@ public class StubbedJar extends DefaultTask {
 
                 @Override
                 protected void doExecute(final JarOutputStream jos) throws Exception {
+                    writeManifest(jos);
                     // Make sure all entries are always written in the same order
                     collectFiles(null, apiClassesDir);
                     writeEntries(jos);
                     jos.close();
+                }
+
+                private void writeManifest(JarOutputStream jos) throws IOException {
+                    JarEntry je = new JarEntry("META-INF/MANIFEST.MF");
+                    jos.putNextEntry(je);
+                    jos.write("Manifest-Version: 1.0\n".getBytes());
+                    jos.closeEntry();
                 }
             });
         }
