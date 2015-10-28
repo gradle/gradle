@@ -19,7 +19,6 @@ package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.ModelMap
 import org.gradle.model.collection.CollectionBuilder
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -289,7 +288,6 @@ Binaries
 """))
     }
 
-    @Ignore("Not supported due to BinaryTasks rules now operating directly on component.binaries, which is not managed - LD - 15/5/15")
     def "attempt to mutate the subject of a @ComponentBinaries after the method has finished results in an error"() {
         buildFile << """
             class BinariesHolder {
@@ -319,6 +317,6 @@ Binaries
         fails "tasks"
 
         then:
-        failure.assertHasCause("Attempt to mutate closed view of model of type '${ModelMap.name}<SampleBinary>' given to rule 'IllegallyMutatingComponentBinariesRules#createBinariesForSampleLibrary(org.gradle.model.ModelMap<SampleBinary>, SampleLibrary, BinariesHolder)'")
+        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.illegal' using creation rule 'IllegallyMutatingComponentBinariesRules#createBinariesForSampleLibrary > components.sampleLib.getBinaries() > create(illegal)' as model element 'components.sampleLib.binaries' is no longer mutable.")
     }
 }
