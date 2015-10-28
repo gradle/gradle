@@ -225,8 +225,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             delegateType = Type.getType(delegateSchema.getType().getConcreteClass());
             constructorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, MODEL_ELEMENT_STATE_TYPE, delegateType);
         }
-        MethodVisitor constructorVisitor = visitor.visitMethod(ACC_PUBLIC, CONSTRUCTOR_NAME, constructorDescriptor, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        constructorVisitor.visitCode();
+        MethodVisitor constructorVisitor = declareMethod(visitor, CONSTRUCTOR_NAME, constructorDescriptor, CONCRETE_SIGNATURE);
 
         invokeSuperConstructor(constructorVisitor, superclassType);
         assignStateField(constructorVisitor, generatedType);
@@ -238,8 +237,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeStaticConstructor(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass) {
-        MethodVisitor constructorVisitor = visitor.visitMethod(ACC_STATIC, STATIC_CONSTRUCTOR_NAME, "()V", CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        constructorVisitor.visitCode();
+        MethodVisitor constructorVisitor = declareMethod(visitor, STATIC_CONSTRUCTOR_NAME, "()V", CONCRETE_SIGNATURE, ACC_STATIC);
         writeManagedTypeStaticField(generatedType, managedTypeClass, constructorVisitor);
         finishVisitingMethod(constructorVisitor);
     }
@@ -266,8 +264,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeDefaultToString(ClassVisitor visitor, Type generatedType) {
-        MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "toString", TO_STRING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        methodVisitor.visitCode();
+        MethodVisitor methodVisitor = declareMethod(visitor, "toString", TO_STRING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
         putStateFieldValueOnStack(methodVisitor, generatedType);
         methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, true);
         finishVisitingMethod(methodVisitor, ARETURN);
@@ -283,8 +280,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private void writeGroovyMethods(ClassVisitor visitor, Class<?> managedTypeClass) {
         // Object propertyMissing(String name)
-        MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "propertyMissing", GET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        methodVisitor.visitCode();
+        MethodVisitor methodVisitor = declareMethod(visitor, "propertyMissing", GET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
 
         // throw new MissingPropertyException(name, <managed-type>.class)
         methodVisitor.visitTypeInsn(NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
@@ -296,8 +292,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
         // Object propertyMissing(String name, Object value)
 
-        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "propertyMissing", SET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        methodVisitor.visitCode();
+        methodVisitor = declareMethod(visitor, "propertyMissing", SET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
 
         // throw new MissingPropertyException(name, <managed-type>.class)
         methodVisitor.visitTypeInsn(NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
@@ -308,8 +303,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         finishVisitingMethod(methodVisitor, ATHROW);
 
         // Object methodMissing(String name, Object args)
-        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "methodMissing", METHOD_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        methodVisitor.visitCode();
+        methodVisitor = declareMethod(visitor, "methodMissing", METHOD_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
 
         // throw new MissingMethodException(name, <managed-type>.class, args)
         methodVisitor.visitTypeInsn(NEW, MISSING_METHOD_EXCEPTION_TYPE);
@@ -333,16 +327,14 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeManagedInstanceGetBackingNodeMethod(ClassVisitor visitor, Type generatedType) {
-        MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC | ACC_SYNTHETIC, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        methodVisitor.visitCode();
+        MethodVisitor methodVisitor = declareMethod(visitor, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, ACC_PUBLIC | ACC_SYNTHETIC);
         putStateFieldValueOnStack(methodVisitor, generatedType);
         methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
         finishVisitingMethod(methodVisitor, ARETURN);
     }
 
     private void writeManagedInstanceGetManagedTypeMethod(ClassVisitor visitor, Type generatedType) {
-        MethodVisitor managedTypeVisitor = visitor.visitMethod(ACC_PUBLIC | ACC_SYNTHETIC, "getManagedType", GET_MANAGED_TYPE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        managedTypeVisitor.visitCode();
+        MethodVisitor managedTypeVisitor = declareMethod(visitor, "getManagedType", GET_MANAGED_TYPE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, ACC_PUBLIC | ACC_SYNTHETIC);
         putManagedTypeFieldValueOnStack(managedTypeVisitor, generatedType);
         finishVisitingMethod(managedTypeVisitor, ARETURN);
     }
@@ -436,8 +428,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeHashCodeMethod(ClassVisitor visitor, Type generatedType) {
-        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "hashCode", HASH_CODE_METHOD_DESCRIPTOR, null, null);
-        methodVisitor.visitCode();
+        MethodVisitor methodVisitor = declareMethod(visitor, "hashCode", HASH_CODE_METHOD_DESCRIPTOR, null);
         methodVisitor.visitVarInsn(ALOAD, 0);
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, false);
         methodVisitor.visitMethodInsn(INVOKEINTERFACE, MUTABLE_MODEL_NODE_TYPE, "hashCode", HASH_CODE_METHOD_DESCRIPTOR, true);
@@ -503,7 +494,11 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private MethodVisitor declareMethod(ClassVisitor visitor, String methodName, String methodDescriptor, String methodSignature) {
-        MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, methodName, methodDescriptor, methodSignature, NO_EXCEPTIONS);
+        return declareMethod(visitor, methodName, methodDescriptor, methodSignature, ACC_PUBLIC);
+    }
+
+    private MethodVisitor declareMethod(ClassVisitor visitor, String methodName, String methodDescriptor, String methodSignature, int access) {
+        MethodVisitor methodVisitor = visitor.visitMethod(access, methodName, methodDescriptor, methodSignature, NO_EXCEPTIONS);
         methodVisitor.visitCode();
         return methodVisitor;
     }
