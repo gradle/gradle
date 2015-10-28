@@ -43,9 +43,10 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
     @Rule
     SetSystemProperties setSystemProperties = new SetSystemProperties((NativeServices.NATIVE_DIR_OVERRIDE): buildContext.gradleUserHomeDir.file("native").absolutePath)
 
+    boolean requireIsolatedTestKitDir
 
-    TestFile getTestKitWorkspace() {
-        testProjectDir.file("test-kit-workspace")
+    TestFile getTestKitDir() {
+        requireIsolatedTestKitDir ? testProjectDir.file("test-kit-workspace") : buildContext.gradleUserHomeDir
     }
 
     TestFile getBuildFile() {
@@ -67,7 +68,7 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
     DefaultGradleRunner runner(String... arguments) {
         GradleRunner.create()
             .withGradleInstallation(buildContext.gradleHomeDir)
-            .withTestKitDir(testKitWorkspace)
+            .withTestKitDir(testKitDir)
             .withProjectDir(testProjectDir.testDirectory)
             .withArguments(arguments)
             .withDebug(GradleRunnerIntegTestRunner.debug) as DefaultGradleRunner
@@ -88,11 +89,13 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
     }
 
     DaemonsFixture daemons() {
-        daemons(testKitWorkspace, ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)
+        daemons(testKitDir, ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)
     }
 
     def cleanup() {
-        daemons().killAll()
+        if (requireIsolatedTestKitDir) {
+            daemons().killAll()
+        }
     }
 
     ExecutionResult execResult(BuildResult buildResult) {
