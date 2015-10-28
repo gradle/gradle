@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.tooling.model.eclipse;
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.ExternalDependency;
 import org.gradle.tooling.model.GradleProject;
@@ -59,39 +60,35 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
     DomainObjectSet<? extends ExternalDependency> getClasspath();
 
     /**
-     * Returns the project natures configured on the project.
+     * Returns the Eclipse natures configured on the project.
      * <p>
-     * If the Gradle project applies a plugin which is recognized by 'eclipse' Gradle plugin then the corresponding
+     * If the Gradle project applies a plugin which is recognized by 'eclipse' plugin then the corresponding
      * nature will be automatically part of the result. For example, if the project applies the 'java' plugin the
      * result will contain the {@code "org.eclipse.jdt.core.javanature"} entry. The 'scala' plugin behaves similarly:
      * when applied then the result will contain the {@code "org.scala-ide.sdt.core.scalanature"} entry.
      * <p>
      * The result can be customized via the 'eclipse' plugin configuration.
-     * <p>
-     * If an older version of Gradle is used then the method returns the default value supplied in the argument.
      *
-     * @param defaults The default value to return when the result can't be calculated.
-     * @return The list of project natures.
+     * @return The list of Eclipse project natures.
      * @since 2.9
      */
-    List<String> getProjectNatures(List<String> defaults);
+    @Incubating
+    DomainObjectSet<? extends EclipseProjectNature> getProjectNatures();
 
     /**
-     * Returns the project builders configured on the project.
+     * Returns the Eclipse build commands configured on the project.
      * <p>
-     * If the Gradle project applies a plugin which is recognized by 'eclipse' Gradle plugin then the corresponding
-     * builder will be automatically part of the result. For example, if the project applies the 'java' plugin the
-     * result will contain a builder instance representing the {@code "org.eclipse.jdt.core.javabuilder"}. The
+     * If the Gradle project applies a plugin which is recognized by 'eclipse' plugin then the corresponding
+     * build command will be automatically part of the result. For example, if the project applies the 'java' plugin the
+     * result will contain the {@code "org.eclipse.jdt.core.javabuilder"} build command. The
      * 'scala' plugin behaves similarly: when applied then the result will contain the
      * {@code "org.scala-ide.sdt.core.scalabuilder"} entry.
      * <p>
      * The result can be customized via the 'eclipse' plugin configuration.
-     * <p>
-     * If an older version of Gradle is used then the method returns a default value supplied in the argument.
      *
-     * @param defaults The default value to return when the result can't be calculated.
-     * @return The list of project builders.
+     * @return The list of Eclipse build commands.
      * @since 2.9
      */
-    List<? extends BuildCommand> getBuildCommands(List<? extends BuildCommand> defaults);
+    @Incubating
+    DomainObjectSet<? extends EclipseBuildCommand> getBuildCommands();
 }

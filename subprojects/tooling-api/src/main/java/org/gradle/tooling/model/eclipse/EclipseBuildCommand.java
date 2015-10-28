@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.model.eclipse;
 
+import org.gradle.api.Incubating;
+
 import java.util.Map;
 
 /**
@@ -24,7 +26,8 @@ import java.util.Map;
  *
  * @since 2.9
  */
-public interface BuildCommand {
+@Incubating
+public interface EclipseBuildCommand {
 
     /**
      * Returns the name of the build command.
