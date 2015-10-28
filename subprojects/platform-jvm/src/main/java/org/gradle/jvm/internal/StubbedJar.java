@@ -181,6 +181,7 @@ public class StubbedJar extends DefaultTask {
 
                 private void writeManifest(JarOutputStream jos) throws IOException {
                     JarEntry je = new JarEntry("META-INF/MANIFEST.MF");
+                    je.setTime(0);
                     jos.putNextEntry(je);
                     jos.write("Manifest-Version: 1.0\n".getBytes());
                     jos.closeEntry();
