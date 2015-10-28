@@ -200,27 +200,13 @@
             <para>
                 The TestKit provides two different ways to enable the debug mode:
                 <itemizedlist>
-                    <listitem>By setting a system property;</listitem>
-                    <listitem>By enabling it programmatically through the <literal>GradleRunner</literal> API.</listitem>
+                    <listitem>Setting “<literal>org.gradle.testkit.debug</literal>” system property to <literal>true</literal> for the JVM <emphasis>using</emphasis> the <literal>GradleRunner</literal> (i.e. not the build being executed with the runner);</listitem>
+                    <listitem>Calling the <apilink class="org.gradle.testkit.runner.GradleRunner" method="withDebug"/> method.</listitem>
                 </itemizedlist>
             </para>
             <para>
-                By setting the system property <literal>org.gradle.testkit.debug</literal> to <literal>true</literal>
-                in the IDE run configuration, a user can execute the functional tests in the same JVM process as the spawning Gradle process.
-                Future versions of Gradle will provide a way to predetermine this setting based on the runtime environment.
-            </para>
-            <para>
-                The following screenshot shows the use of the system property in a IntelliJ run configuration:
-            </para>
-            <imageobject>
-                <imagedata fileref="img/testkit-idea-run-config.png" width="989px" depth="464px"/>
-            </imageobject>
-            <para>
-                Alternatively, the debug mode can also be activated programmatically through the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withDebug"/>.
-                The usage of the argument <literal>-Dorg.gradle.testkit.debug=true</literal> as parameter to the methods
-                <apilink class="org.gradle.testkit.runner.GradleRunner" method="withArguments(java.util.List)"/>
-                or
-                <apilink class="org.gradle.testkit.runner.GradleRunner" method="withArguments(java.lang.String[])"/> should be avoided as it will not enable the debug mode.
+                The system property approach can be used when it is desirable to enable debugging support without making an adhoc change to the runner configuration.
+                Most IDEs offer the capability to set JVM system properties for test execution, and such a feature can be used to set this system property.
             </para>
         </section>
     </section>
