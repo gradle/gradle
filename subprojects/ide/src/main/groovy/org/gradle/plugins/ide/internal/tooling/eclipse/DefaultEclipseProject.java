@@ -40,7 +40,7 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
     private Iterable<? extends DefaultEclipseTask> tasks;
     private Iterable<? extends DefaultEclipseLinkedResource> linkedResources;
     private DefaultGradleProject gradleProject;
-    private List<String> projectNatures;
+    private List<DefaultEclipseProjectNature> projectNatures;
     private List<DefaultEclipseBuildCommand> buildCommands;
 
     public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends DefaultEclipseProject> children) {
@@ -139,11 +139,11 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
         return this;
     }
 
-    public List<String> getProjectNatures() {
+    public List<DefaultEclipseProjectNature> getProjectNatures() {
         return projectNatures;
     }
 
-    public void setProjectNatures(List<String> projectNatures) {
+    public void setProjectNatures(List<DefaultEclipseProjectNature> projectNatures) {
         this.projectNatures = projectNatures;
     }
 

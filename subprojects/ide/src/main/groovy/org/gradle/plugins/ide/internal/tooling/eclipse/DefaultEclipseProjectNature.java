@@ -16,31 +16,22 @@
 
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import com.google.common.collect.ImmutableMap;
-
 import java.io.Serializable;
-import java.util.Map;
 
-public class DefaultEclipseBuildCommand implements Serializable {
+public class DefaultEclipseProjectNature implements Serializable {
 
-    private String name;
-    private Map<String, String> arguments;
+    private String id;
 
-    public DefaultEclipseBuildCommand(String name, Map<String, String> arguments) {
-        this.name = name;
-        this.arguments = ImmutableMap.copyOf(arguments);
+    public DefaultEclipseProjectNature(String id) {
+        this.id = id;
     }
 
     @Override
     public String toString() {
-        return String.format("build command '%s'", name);
+        return String.format("nature '%s'", id);
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public Map<String, String> getArguments() {
-        return arguments;
+    public String getId() {
+        return this.id;
     }
 }
