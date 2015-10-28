@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file
+package org.gradle.api.plugins.quality.internal.forking.worker;
 
-import org.gradle.api.tasks.AntBuilderAware
+import org.gradle.api.plugins.quality.internal.forking.AntWorkerSpec;
+import org.gradle.internal.concurrent.Stoppable;
 
-class AntFileCollectionBuilder implements AntBuilderAware {
-    private final Iterable<File> files
 
-    AntFileCollectionBuilder(Iterable<File> files) {
-        this.files = files
-    }
-
-    def addToAntBuilder(node, String childNodeName = null) {
-        node."${childNodeName ?: 'resources'}"() {
-            files.each { File file ->
-                delegate.file(file: file.absolutePath)
-            }
-        }
-    }
+public interface AntWorkerDaemonServerProtocol extends Stoppable {
+    <T extends AntWorkerSpec> void executeSpec(T spec);
 }
