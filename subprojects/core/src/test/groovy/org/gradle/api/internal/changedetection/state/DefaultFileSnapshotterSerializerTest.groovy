@@ -26,7 +26,7 @@ class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
     def "reads and writes the snapshot"() {
         when:
         DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl out = serialize(new DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl([
-                "1": new DefaultFileCollectionSnapshotter.DirSnapshot(),
+                "1": DefaultFileCollectionSnapshotter.DirSnapshot.getInstance(),
                 "2": new DefaultFileCollectionSnapshotter.MissingFileSnapshot(),
                 "3": new DefaultFileCollectionSnapshotter.FileHashSnapshot("foo".bytes)]), serializer)
 

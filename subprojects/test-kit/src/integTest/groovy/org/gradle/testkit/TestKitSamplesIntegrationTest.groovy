@@ -54,8 +54,8 @@ class TestKitSamplesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
-    @UsesSample("testKit/testKitSpockGradleDistribution")
-    def gradleDistribution() {
+    @UsesSample("testKit/testKitSpockGradleVersion")
+    def version() {
         expect:
         executer.inDirectory(sample.dir)
         succeeds "check"

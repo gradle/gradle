@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.internal;
+package org.gradle.testkit.runner.internal.dist;
 
-import org.gradle.testkit.runner.GradleDistribution;
+public final class VersionBasedGradleDistribution extends GradleDistribution {
 
-import java.net.URI;
+    private final String gradleVersion;
 
-public final class URILocatedGradleDistribution extends GradleDistribution {
-
-    private final URI location;
-
-    public URILocatedGradleDistribution(URI location) {
-        this.location = location;
+    public VersionBasedGradleDistribution(String gradleVersion) {
+        this.gradleVersion = gradleVersion;
     }
 
-    public URI getLocation() {
-        return location;
+    public String getGradleVersion() {
+        return gradleVersion;
     }
 }

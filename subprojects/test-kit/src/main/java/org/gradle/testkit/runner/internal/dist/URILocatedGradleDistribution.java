@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal;
+package org.gradle.testkit.runner.internal.dist;
 
-import java.io.File;
+import java.net.URI;
 
-public class ProjectDirHolder extends DirectoryHolder {
-    public ProjectDirHolder(File dir) {
-        super(dir);
+public final class URILocatedGradleDistribution extends GradleDistribution {
+
+    private final URI location;
+
+    public URILocatedGradleDistribution(URI location) {
+        this.location = location;
+    }
+
+    public URI getLocation() {
+        return location;
     }
 }

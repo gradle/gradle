@@ -39,7 +39,12 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
         super(delegate, new R21VersionDetails(delegate.getMetaData().getVersion()));
         Transformer<RuntimeException, RuntimeException> exceptionTransformer = new ExceptionTransformer();
         InternalCancellableConnection connection = (InternalCancellableConnection) delegate;
-        modelProducer = new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, connection, exceptionTransformer);
+
+        modelProducer = new PluginClasspathInjectionSupportedCheckModelProducer(
+            getVersionDetails().getVersion(),
+            new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, connection, exceptionTransformer)
+        );
+
         actionRunner = new CancellableActionRunner(connection, adapter, exceptionTransformer);
     }
 
@@ -78,7 +83,7 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
         public RuntimeException transform(RuntimeException e) {
             for (Throwable t = e; t != null; t = t.getCause()) {
                 if ("org.gradle.api.BuildCancelledException".equals(t.getClass().getName())
-                        || "org.gradle.tooling.BuildCancelledException".equals(t.getClass().getName())) {
+                    || "org.gradle.tooling.BuildCancelledException".equals(t.getClass().getName())) {
                     return new InternalBuildCancelledException(e.getCause());
                 }
             }
@@ -98,7 +103,7 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
         }
 
         public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters)
-                throws UnsupportedOperationException, IllegalStateException {
+            throws UnsupportedOperationException, IllegalStateException {
             BuildResult<T> result;
             try {
                 try {

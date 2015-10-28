@@ -87,11 +87,6 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
     }
 
     @Override
-    public String getSourceDirConvention() {
-        return null;
-    }
-
-    @Override
     public String getParentName() {
         return this.parentName;
     }

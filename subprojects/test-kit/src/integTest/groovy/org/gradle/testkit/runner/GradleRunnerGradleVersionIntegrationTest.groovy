@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.api.Action
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
@@ -23,38 +24,33 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Shared
 
-import static org.gradle.testkit.runner.TaskOutcome.*
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @LeaksFileHandles
 @Requires(TestPrecondition.ONLINE)
-class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
     @Shared
     DistributionLocator locator = new DistributionLocator()
 
-    def "execute build with different distribution types"() {
+    def "execute build with different distribution types"(Action<GradleRunner> configurer) {
         given:
         buildFile << helloWorldTaskWithLoggerOutput()
 
         when:
-        GradleRunner gradleRunner = runner(gradleDistribution, 'helloWorld')
-        BuildResult result = gradleRunner.build()
+        def runner = runner('helloWorld')
+        configurer.execute(runner)
+        def result = runner.build()
 
         then:
-        noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardError
-        result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS) == [':helloWorld']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
 
         where:
-        gradleDistribution << [GradleDistribution.fromPath(buildContext.gradleHomeDir),
-                               GradleDistribution.fromUri(locator.getDistributionFor(GradleVersion.version('2.7'))),
-                               GradleDistribution.withVersion('2.7')]
+        configurer << [
+            { it.withGradleInstallation(buildContext.gradleHomeDir) },
+            { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version('2.7'))) },
+            { it.withGradleVersion("2.7") }
+        ]
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
@@ -63,19 +59,11 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         buildFile << helloWorldTaskWithLoggerOutput()
 
         when:
-        GradleRunner gradleRunner = runner(GradleDistribution.withVersion(gradleVersion), 'helloWorld')
-        BuildResult result = gradleRunner.build()
+        def result = runner('helloWorld').withGradleVersion(gradleVersion)
+            .build()
 
         then:
-        noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardError
-        result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS) == [':helloWorld']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
 
         where:
         gradleVersion << ['2.6', '2.7']
@@ -96,21 +84,15 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         """
 
         when:
-        GradleRunner gradleRunner = runner(GradleDistribution.withVersion('2.5'), 'dependencies')
-        BuildResult result = gradleRunner.buildAndFail()
+        def result = runner('dependencies')
+            .withGradleVersion("2.5")
+            .buildAndFail()
 
         then:
-        !result.standardOutput.contains(':dependencies')
-        result.standardOutput.contains('BUILD FAILED')
-        result.standardError.contains("Could not find method gradleTestKit() for arguments [] on root project '$gradleRunner.projectDir.name'")
-        result.tasks.empty
-        result.taskPaths(SUCCESS).empty
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
+        result.output.contains("Could not find method gradleTestKit() for arguments [] on root project '$rootProjectName'")
     }
 
-    private String helloWorldTaskWithLoggerOutput() {
+    static String helloWorldTaskWithLoggerOutput() {
         """
             task helloWorld {
                 doLast {

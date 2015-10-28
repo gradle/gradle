@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.testkit.runner.internal.TestKitGradleExecutor
+import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -43,9 +43,10 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
     @Rule
     SetSystemProperties setSystemProperties = new SetSystemProperties((NativeServices.NATIVE_DIR_OVERRIDE): buildContext.gradleUserHomeDir.file("native").absolutePath)
 
+    boolean requireIsolatedTestKitDir
 
-    TestFile getTestKitWorkspace() {
-        testProjectDir.file("test-kit-workspace")
+    TestFile getTestKitDir() {
+        requireIsolatedTestKitDir ? testProjectDir.file("test-kit-workspace") : buildContext.gradleUserHomeDir
     }
 
     TestFile getBuildFile() {
@@ -56,23 +57,21 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
         testProjectDir.file(path)
     }
 
+    String getRootProjectName() {
+        testProjectDir.testDirectory.name
+    }
+
     DefaultGradleRunner runner(List<String> arguments) {
         runner(arguments as String[])
     }
 
     DefaultGradleRunner runner(String... arguments) {
-        runner(GradleDistribution.fromPath(buildContext.gradleHomeDir), arguments)
-    }
-
-    DefaultGradleRunner runner(GradleDistribution gradleDistribution, String... arguments) {
-        GradleRunner gradleRunner = new DefaultGradleRunner(gradleDistribution)
-            .withTestKitDir(testKitWorkspace)
+        GradleRunner.create()
+            .withGradleInstallation(buildContext.gradleHomeDir)
+            .withTestKitDir(testKitDir)
             .withProjectDir(testProjectDir.testDirectory)
             .withArguments(arguments)
-
-        gradleRunner.withDebug(GradleRunnerIntegTestRunner.debug)
-        assert gradleRunner.debug == GradleRunnerIntegTestRunner.debug
-        gradleRunner
+            .withDebug(GradleRunnerIntegTestRunner.debug) as DefaultGradleRunner
     }
 
     static String helloWorldTask() {
@@ -90,18 +89,20 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
     }
 
     DaemonsFixture daemons() {
-        daemons(testKitWorkspace, TestKitGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)
+        daemons(testKitDir, ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)
     }
 
     def cleanup() {
-        daemons().killAll()
+        if (requireIsolatedTestKitDir) {
+            daemons().killAll()
+        }
     }
 
     ExecutionResult execResult(BuildResult buildResult) {
-        new OutputScrapingExecutionResult(buildResult.standardOutput, buildResult.standardError)
+        new OutputScrapingExecutionResult(buildResult.output, buildResult.output)
     }
 
     ExecutionFailure execFailure(BuildResult buildResult) {
-        new OutputScrapingExecutionFailure(buildResult.standardOutput, buildResult.standardError)
+        new OutputScrapingExecutionFailure(buildResult.output, buildResult.output)
     }
 }

@@ -373,24 +373,24 @@ task bigOldJavaMoreSource(type: JvmProjectGeneratorTask) {
     testDependencies = files()
 }
 
-task smallNewMultiprojectJava(type: JvmProjectGeneratorTask) {
+task smallJavaSwModelProject(type: JvmProjectGeneratorTask) {
     projects = 10
     sourceFiles = 100
 }
 
-task largeNewMultiprojectJava(type: JvmProjectGeneratorTask) {
+task largeJavaSwModelProject(type: JvmProjectGeneratorTask) {
     projects = 100
     sourceFiles = 1000
 }
 
-configure([smallNewMultiprojectJava, largeNewMultiprojectJava]) {
+configure([smallJavaSwModelProject, largeJavaSwModelProject]) {
     linesOfCodePerSourceFile = 50
     filesPerPackage = 10
     useSubProjectNumberInSourceFileNames = true
-    subProjectTemplates = ['java-source', 'new-java-project', 'with-junit']
+    subProjectTemplates = ['java-source', 'java-sw-model-project', 'with-junit']
 
     def dependencyGenerator = DependencyGenerator.newInstance(numberOfProjects: it.projectCount)
-    boolean smallProjectType = (name == 'smallNewMultiprojectJava')
+    boolean smallProjectType = (name == 'smallJavaSwModelProject')
     dependencyGenerator.numberOfDependencies = smallProjectType ? 3 : 10
     dependencyGenerator.numberOfLayers = smallProjectType ? 3 : 5
     dependencyGenerator.layerRatio = smallProjectType ? 1 : 2
@@ -452,7 +452,7 @@ task prepareSamples {
         smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
         variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
         smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
-        bigOldJavaMoreSource, lotProjectDependencies, smallNewMultiprojectJava, largeNewMultiprojectJava,
+        bigOldJavaMoreSource, lotProjectDependencies, smallJavaSwModelProject, largeJavaSwModelProject,
         nativeMonolithic, nativeMonolithicOverlapping
     group = "Project Setup"
     description = "Generates all sample projects for automated performance tests"

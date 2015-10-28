@@ -16,6 +16,7 @@
 
 package org.gradle.testkit
 
+import groovy.io.FileType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -55,48 +56,30 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         testDirectoryProvider.file("src/test/groovy/org/gradle/test/${className}.groovy") << content
     }
 
-    def "use of GradleRunner API in test class by depending on external test-kit dependency causes compilation error"() {
-        File gradleDistPluginsDir = new File(distribution.gradleHomeDir, 'lib/plugins')
-        File[] gradleTestKitLibs = gradleDistPluginsDir.listFiles(new GradleTestKitJarFilenameFilter())
-        assert gradleTestKitLibs.length == 1
-        File gradleTestKitLib = gradleTestKitLibs[0]
-        TestFile libDir = testDirectoryProvider.createDir('lib')
-        GFileUtils.copyFile(gradleTestKitLib, new File(libDir, gradleTestKitLib.name))
+    def "attempt to use implicit gradle version fails if test kit is not being used from a distribution"() {
+        def jarsDir = testDirectoryProvider.createDir('jars')
 
-        buildFile << libDirDependency()
-        writeTest(buildLogicFunctionalTestCreatingGradleRunner())
-
-        when:
-        fails('build')
-
-        then:
-        executedAndNotSkipped(':compileTestGroovy')
-        failure.error.contains("Unable to load class $GradleRunner.name due to missing dependency")
-    }
-
-    def "creating GradleRunner instance by depending on Gradle libraries outside of Gradle distribution throws exception"() {
-        File gradleDistLibDir = new File(distribution.gradleHomeDir, 'lib')
-        File gradleDistPluginsDir = new File(gradleDistLibDir, 'plugins')
-        File[] gradleCoreLibs = gradleDistLibDir.listFiles(new GradleCoreJarFilenameFilter())
-        File[] gradleTestKitLibs = gradleDistPluginsDir.listFiles(new GradleTestKitJarFilenameFilter())
-        assert gradleCoreLibs.length == 3
-        assert gradleTestKitLibs.length == 1
-        File[] allGradleLibs = gradleCoreLibs + gradleTestKitLibs
-        TestFile libDir = testDirectoryProvider.createDir('lib')
-
-        allGradleLibs.each {
-            GFileUtils.copyFile(it, new File(libDir, it.name))
+        new File(distribution.gradleHomeDir, 'lib').eachFileRecurse(FileType.FILES) { f ->
+            if (["tooling-api", "base-services", "test-kit", "gradle-core"].any { f.name.contains it }) {
+                GFileUtils.copyFile(f, new File(jarsDir, f.name))
+            }
         }
 
-        buildFile << libDirDependency()
+        def testKitJar = jarsDir.listFiles().find { it.name.contains "test-kit" }
+
+        buildFile << """
+            dependencies {
+                testCompile fileTree(dir: 'jars', include: '*.jar')
+            }
+        """
+
         writeTest(buildLogicFunctionalTestCreatingGradleRunner())
 
         when:
         fails('build')
 
         then:
-        executedAndNotSkipped(':test')
-        failure.output.contains('java.lang.IllegalStateException: Could not create a GradleRunner, as the GradleRunner class was not loaded from a Gradle distribution')
+        failure.output.contains("Could not find a Gradle runtime to use based on the location of the GradleRunner class: $testKitJar.canonicalPath. Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar.")
     }
 
     def "successfully execute functional test and verify expected result"() {
@@ -174,8 +157,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .build()
 
                     then:
-                    result.standardOutput.contains('Hello world!')
-                    result.standardError == ''
+                    result.output.contains('Hello world!')
                     result.taskPaths(SUCCESS) == [':helloWorld']
                     result.taskPaths(SKIPPED).empty
                     result.taskPaths(UP_TO_DATE).empty
@@ -193,7 +175,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "functional test fails due to invalid JVM parameter for test execution"() {
-        buildFile << gradleTestKitDependency()
+        buildFile << gradleTestKitDependency() << "test { testLogging { showCauses true } }"
         writeTest """
             package org.gradle.test
 
@@ -342,8 +324,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .build()
 
                     then:
-                    result.standardOutput.contains('Hello world!')
-                    result.standardError == ''
+                    result.output.contains('Hello world!')
                     result.taskPaths(SUCCESS) == [':helloWorld']
                     result.taskPaths(SKIPPED).empty
                     result.taskPaths(UP_TO_DATE).empty
@@ -478,9 +459,8 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .build()
 
                     then:
-                    result.standardOutput.contains('Hello world!')
-                    result.standardOutput.contains('Bye world!')
-                    result.standardError == ''
+                    result.output.contains('Hello world!')
+                    result.output.contains('Bye world!')
                     result.taskPaths(SUCCESS) == [':helloWorld', ':byeWorld']
                     result.taskPaths(SKIPPED).empty
                     result.taskPaths(UP_TO_DATE).empty
@@ -539,8 +519,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
                     then:
                     gradleRunner.debug == $GradleRunnerIntegTestRunner.debug
-                    result.standardOutput.contains('Hello world!')
-                    result.standardError == ''
+                    result.output.contains('Hello world!')
                     result.taskPaths(SUCCESS) == [':helloWorld']
                     result.taskPaths(SKIPPED).empty
                     result.taskPaths(UP_TO_DATE).empty
@@ -563,7 +542,6 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         writeTest """
             package org.gradle.test
 
-            import org.gradle.testkit.runner.GradleDistribution
             import org.gradle.testkit.runner.GradleRunner
             import static org.gradle.testkit.runner.TaskOutcome.*
             import org.junit.Rule
@@ -589,15 +567,15 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     '''
 
                     when:
-                    def gradleRunner = GradleRunner.create(GradleDistribution.withVersion('$gradleVersion'))
+                    def gradleRunner = GradleRunner.create()
+                        .withGradleVersion("$gradleVersion")
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
                         .withDebug($GradleRunnerIntegTestRunner.debug)
                     def result = gradleRunner.build()
 
                     then:
-                    result.standardOutput.contains('Hello world!')
-                    result.standardError == ''
+                    result.output.contains('Hello world!')
                     result.taskPaths(SUCCESS) == [':helloWorld']
                     result.taskPaths(SKIPPED).empty
                     result.taskPaths(UP_TO_DATE).empty
@@ -628,7 +606,6 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             writeTest """
                 package org.gradle.test
 
-                import org.gradle.testkit.runner.GradleDistribution
                 import org.gradle.testkit.runner.GradleRunner
                 import static org.gradle.testkit.runner.TaskOutcome.*
                 import org.junit.Rule
@@ -654,15 +631,15 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         '''
 
                         when:
-                        def gradleRunner = GradleRunner.create(GradleDistribution.withVersion('$gradleVersion'))
+                        def gradleRunner = GradleRunner.create()
+                            .withGradleVersion("$gradleVersion")
                             .withProjectDir(testProjectDir.root)
                             .withArguments('helloWorld')
                             .withDebug($GradleRunnerIntegTestRunner.debug)
                         def result = gradleRunner.build()
 
                         then:
-                        result.standardOutput.contains('Hello world!')
-                        result.standardError == ''
+                        result.output.contains('Hello world!')
                         result.taskPaths(SUCCESS) == [':helloWorld']
                         result.taskPaths(SKIPPED).empty
                         result.taskPaths(UP_TO_DATE).empty
@@ -732,13 +709,6 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private static String libDirDependency() {
-        """
-            dependencies {
-                testCompile fileTree(dir: 'lib', include: '*.jar')
-            }
-        """
-    }
 
     private static String parallelTests() {
         """
@@ -762,7 +732,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             class BuildLogicFunctionalTest extends Specification {
                 def "create GradleRunner"() {
                     expect:
-                    GradleRunner.create().withDebug($GradleRunnerIntegTestRunner.debug)
+                    GradleRunner.create().withProjectDir(new File("foo")).build()
                 }
             }
         """
@@ -804,8 +774,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .build()
 
                     then:
-                    result.standardOutput.contains('Hello world!')
-                    result.standardError == ''
+                    result.output.contains('Hello world!')
                     result.taskPaths(SUCCESS) == [':helloWorld']
                     result.taskPaths(SKIPPED).empty
                     result.taskPaths(UP_TO_DATE).empty
@@ -815,15 +784,4 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private class GradleTestKitJarFilenameFilter implements FilenameFilter {
-        boolean accept(File dir, String name) {
-            name.startsWith('gradle-test-kit')
-        }
-    }
-
-    private class GradleCoreJarFilenameFilter implements FilenameFilter {
-        boolean accept(File dir, String name) {
-            name.startsWith('gradle-core') || name.startsWith('gradle-base-services')
-        }
-    }
 }

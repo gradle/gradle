@@ -18,32 +18,26 @@ package org.gradle.testkit.runner.internal;
 
 import org.gradle.testkit.runner.BuildTask;
 
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 public class GradleExecutionResult {
-    private final ByteArrayOutputStream standardOutput;
-    private final ByteArrayOutputStream standardError;
+
+    private final String output;
     private final List<BuildTask> tasks;
     private final Throwable throwable;
 
-    public GradleExecutionResult(ByteArrayOutputStream standardOutput, ByteArrayOutputStream standardError, List<BuildTask> tasks) {
-        this(standardOutput, standardError, tasks, null);
+    public GradleExecutionResult(String standardOutput, List<BuildTask> tasks) {
+        this(standardOutput, tasks, null);
     }
 
-    public GradleExecutionResult(ByteArrayOutputStream standardOutput, ByteArrayOutputStream standardError, List<BuildTask> tasks, Throwable throwable) {
-        this.standardOutput = standardOutput;
-        this.standardError = standardError;
+    public GradleExecutionResult(String output, List<BuildTask> tasks, Throwable throwable) {
+        this.output = output;
         this.tasks = tasks;
         this.throwable = throwable;
     }
 
-    public String getStandardOutput() {
-        return standardOutput.toString();
-    }
-
-    public String getStandardError() {
-        return standardError.toString();
+    public String getOutput() {
+        return output;
     }
 
     public List<BuildTask> getTasks() {

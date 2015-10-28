@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
@@ -28,6 +29,45 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @UsesNativeServices
 class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+
+    def "cannot use feature when target gradle version is < 2.8"() {
+        given:
+        compilePluginProjectSources()
+        buildFile << pluginDeclaration()
+
+        when:
+        runner('helloWorld1')
+            .withGradleVersion("2.7")
+            .withPluginClasspath(getPluginClasspath())
+            .build()
+
+        then:
+        def e = thrown InvalidRunnerConfigurationException
+        e.cause instanceof UnsupportedVersionException
+        e.cause.message == "The version of Gradle you are using (2.7) does not support the plugin classpath injection feature used by GradleRunner. Support for this is available in Gradle 2.8 and all later versions."
+    }
+
+    def "can use manual injection with older versions that do not support injection"() {
+        given:
+        compilePluginProjectSources()
+        buildFile << """
+            buildscript {
+                dependencies {
+                    classpath files(${pluginClasspath.collect { "'${it.absolutePath.replace("\\", "\\\\")}'" }.join(", ")})
+                }
+            }
+            apply plugin: 'com.company.helloworld1'
+        """
+
+        when:
+        def result = runner('helloWorld1')
+            .withGradleVersion("2.7")
+            .forwardOutput()
+            .build()
+
+        then:
+        result.task(":helloWorld1").outcome == SUCCESS
+    }
 
     def "unresolvable plugin for provided empty classpath fails build and indicates searched locations"() {
         when:
@@ -75,7 +115,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         result.task(":helloWorld1").outcome == SUCCESS
-        result.standardOutput.contains('Hello world! (1)')
+        result.output.contains('Hello world! (1)')
     }
 
     def "injected classes are visible in root build script when applied to root"() {
@@ -89,7 +129,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
             .build()
 
         then:
-        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+        result.output.contains("class name: org.gradle.test.HelloWorld1")
     }
 
     def "injected classes are not visible in root script when plugin is not applied"() {
@@ -120,7 +160,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
             .build()
 
         then:
-        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+        result.output.contains("class name: org.gradle.test.HelloWorld1")
     }
 
     def "injected classes are not visible in root build script at compile time when applied to child"() {
@@ -134,7 +174,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         def result = runner("child:echo1").withPluginClasspath(getPluginClasspath()).build()
 
         then:
-        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+        result.output.contains("class name: org.gradle.test.HelloWorld1")
 
         when:
         result = runner("echo1").withPluginClasspath(getPluginClasspath()).buildAndFail()
@@ -155,7 +195,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         def result = runner("child:echo1").withPluginClasspath(getPluginClasspath()).build()
 
         then:
-        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+        result.output.contains("class name: org.gradle.test.HelloWorld1")
 
         when:
         result = runner("echo1").withPluginClasspath(getPluginClasspath()).buildAndFail()
@@ -237,7 +277,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         // plugin 1 class is visible, as the classpath is loaded in one loader
-        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+        result.output.contains("class name: org.gradle.test.HelloWorld1")
 
         when:
         result = runner("helloWorld1")
@@ -345,8 +385,8 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         then:
         result.task(":helloWorld1").outcome == SUCCESS
         result.task(":helloWorldBuildSrc").outcome == SUCCESS
-        result.standardOutput.contains "Hello world! (1)"
-        result.standardOutput.contains "Hello world! (buildSrc)"
+        result.output.contains "Hello world! (1)"
+        result.output.contains "Hello world! (buildSrc)"
     }
 
     static class FileSubclass extends File {
@@ -367,7 +407,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         result.task(":helloWorld1").outcome == SUCCESS
-        result.standardOutput.contains('Hello world! (1)')
+        result.output.contains('Hello world! (1)')
     }
 
 
@@ -400,7 +440,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         result.task(":helloWorld1").outcome == SUCCESS
-        result.standardOutput.contains('Hello world! (1)')
+        result.output.contains('Hello world! (1)')
     }
 
     static String echoClassNameTask(int counter = 1) {
@@ -436,9 +476,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         createPluginProjectSourceFiles(counter)
         new ForkingGradleExecuter(new UnderDevelopmentGradleDistribution(), testProjectDir)
             .usingProjectDirectory(file(counter.toString()))
-            .withGradleUserHomeDir(testKitWorkspace)
-            .withDaemonBaseDir(testKitWorkspace.file('daemon'))
-            .withArguments('classes')
+            .withArguments('classes', "--no-daemon")
             .run()
     }
 

@@ -16,15 +16,13 @@
 
 package org.gradle.performance
 import org.gradle.performance.measure.DataAmount
-import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(Experiment)
-class NewJavaPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' measuring incremental build speed")
-    def "build new java project"() {
+class JavaSoftwareModelIncrementalBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
+    @Unroll("Project '#testProject' measuring up-to-date checking speed")
+    def "build java software model project"() {
         given:
         runner.testId = "build new java project $testProject" + (parallelWorkers ? " (parallel)" : "")
         runner.testProject = testProject
@@ -45,10 +43,10 @@ class NewJavaPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                | maxExecutionTimeRegression | parallelWorkers
-        "smallNewMultiprojectJava" | millis(1000)               | 0
-        "smallNewMultiprojectJava" | millis(1000)               | 4
-        "largeNewMultiprojectJava" | millis(5000)               | 0
-        "largeNewMultiprojectJava" | millis(5000)               | 4
+        testProject               | maxExecutionTimeRegression | parallelWorkers
+        "smallJavaSwModelProject" | millis(1000)               | 0
+        "smallJavaSwModelProject" | millis(1000)               | 4
+        "largeJavaSwModelProject" | millis(5000)               | 0
+        "largeJavaSwModelProject" | millis(5000)               | 4
     }
 }

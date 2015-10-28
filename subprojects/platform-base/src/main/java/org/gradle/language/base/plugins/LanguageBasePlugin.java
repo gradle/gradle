@@ -28,7 +28,6 @@ import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.language.base.internal.ProjectDirHolder;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.internal.model.FunctionalSourceSetNodeInitializer;
 import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
@@ -51,7 +50,6 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -166,14 +164,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
         @Service
         LanguageRegistry languages() {
             return new DefaultLanguageRegistry();
-        }
-
-
-
-
-        @Service
-        ProjectDirHolder baseSourceSetDirectory() {
-            return new ProjectDirHolder(new File("."));
         }
 
         @Mutate

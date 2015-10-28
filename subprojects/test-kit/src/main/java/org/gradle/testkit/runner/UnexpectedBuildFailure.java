@@ -25,7 +25,7 @@ import org.gradle.api.Incubating;
  * @see GradleRunner#build()
  */
 @Incubating
-public class UnexpectedBuildFailure extends UnexpectedBuildException {
+public class UnexpectedBuildFailure extends UnexpectedBuildResultException {
     public UnexpectedBuildFailure(String message, BuildResult buildResult) {
         super(message, buildResult);
     }

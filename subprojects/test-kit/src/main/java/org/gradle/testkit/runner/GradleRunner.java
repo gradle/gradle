@@ -17,16 +17,11 @@
 package org.gradle.testkit.runner;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.GradleDistributionLocator;
-import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
-import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
-import org.gradle.testkit.runner.internal.InstalledGradleDistribution;
-import org.gradle.testkit.runner.internal.URILocatedGradleDistribution;
-import org.gradle.testkit.runner.internal.VersionBasedGradleDistribution;
 
 import java.io.File;
 import java.io.Writer;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -74,50 +69,69 @@ public abstract class GradleRunner {
      * @return a new Gradle runner
      */
     public static GradleRunner create() {
-        GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator(GradleRunner.class);
-        final File gradleHome = gradleDistributionLocator.getGradleHome();
-        return create(GradleDistribution.fromPath(gradleHome));
+        return new DefaultGradleRunner();
     }
 
     /**
-     * Creates a new Gradle runner for a Gradle distribution.
+     * Configures the runner to execute the build with the version of Gradle specified.
      * <p>
-     * A valid Gradle distribution is either installed in the filesystem, available as version on <i>https://services.gradle.org/distributions</i>,
-     * or can be downloaded from an URI.
+     * Unless previously downloaded, this method will cause the Gradle runtime for the version specified
+     * to be downloaded over the Internet from Gradle's distribution servers.
      * <p>
-     * Gradle distributions have to be provided as implementation of a {@link GradleDistribution}. Custom implementations of
-     * {@link GradleDistribution} are not allowed.
+     * The runtime will be stored in the {@link #withTestKitDir(File) “TestKit directory”}.
+     * As such, it is generally recommended to set the TestKit directory when using this method to a
+     * persistent location to avoid repeated downloading.
+     * <p>
+     * Alternatively, you may use {@link #withGradleInstallation(File)} to use an installation already on the filesystem.
+     * <p>
+     * To use a non standard Gradle runtime, or to obtain the runtime from an alternative location, use {@link #withGradleDistribution(URI)}.
      *
-     * @param gradleDistribution the Gradle distribution to be used
-     * @return a new Gradle runner
+     * @param versionNumber the version number (e.g. "2.9")
+     * @return this
      * @since 2.9
+     * @see #withGradleInstallation(File)
+     * @see #withGradleDistribution(URI)
      */
-    public static GradleRunner create(GradleDistribution gradleDistribution) {
-        if (!(gradleDistribution instanceof InstalledGradleDistribution
-            || gradleDistribution instanceof URILocatedGradleDistribution
-            || gradleDistribution instanceof VersionBasedGradleDistribution)) {
-            throw new IllegalArgumentException(String.format("Invalid Gradle distribution type: %s", gradleDistribution.getClass().getName()));
-        }
-
-        validateGradleDistribution(gradleDistribution);
-        return new DefaultGradleRunner(gradleDistribution);
-    }
-
-    private static void validateGradleDistribution(GradleDistribution gradleDistribution) {
-        if (gradleDistribution instanceof InstalledGradleDistribution) {
-            if (((InstalledGradleDistribution)gradleDistribution).getGradleHome() == null) {
-                try {
-                    File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
-                    throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was loaded from " + classpathForClass + " which is not a Gradle distribution");
-                } catch (Exception e) {
-                    throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was not loaded from a Gradle distribution");
-                }
-            }
-        }
-    }
+    public abstract GradleRunner withGradleVersion(String versionNumber);
 
     /**
-     * Sets the directory to use for Test Kit's working storage needs.
+     * Configures the runner to execute the build using the installation of Gradle specified.
+     * <p>
+     * The given file must be a directory containing a valid Gradle installation.
+     * <p>
+     * Alternatively, you may use {@link #withGradleVersion(String)} to use an automatically installed Gradle version.
+     *
+     * @param installation a valid Gradle installation
+     * @return this
+     * @since 2.9
+     * @see #withGradleVersion(String)
+     * @see #withGradleDistribution(URI)
+     */
+    public abstract GradleRunner withGradleInstallation(File installation);
+
+    /**
+     * Configures the runner to execute the build using the distribution of Gradle specified.
+     * <p>
+     * The given URI must point to a valid Gradle distribution ZIP file.
+     * This method is typically used as an alternative to {@link #withGradleVersion(String)},
+     * where it is preferable to obtain the Gradle runtime from “local” servers.
+     * <p>
+     * Unless previously downloaded, this method will cause the Gradle runtime at the given URI to be downloaded.
+     * <p>
+     * The runtime will be stored in the {@link #withTestKitDir(File) “TestKit directory”}.
+     * As such, it is generally recommended to set the TestKit directory when using this method to a
+     * persistent location to avoid repeated downloading.
+     *
+     * @param distribution a URI pointing at a valid Gradle distribution zip file
+     * @return this
+     * @since 2.9
+     * @see #withGradleVersion(String)
+     * @see #withGradleInstallation(File)
+     */
+    public abstract GradleRunner withGradleDistribution(URI distribution);
+
+    /**
+     * Sets the directory to use for TestKit's working storage needs.
      * <p>
      * This directory is used internally to store various files required by the runner.
      * If no explicit Gradle user home is specified via the build arguments (i.e. the {@code -g «dir»} option}),
@@ -131,7 +145,7 @@ public abstract class GradleRunner {
      * <p>
      * The actual contents of this directory are an internal implementation detail and may change at any time.
      *
-     * @param testKitDir the test kit directory
+     * @param testKitDir the TestKit directory
      * @return {@code this}
      * @since 2.7
      */
@@ -211,7 +225,11 @@ public abstract class GradleRunner {
      * Sets the injected plugin classpath for the build.
      * <p>
      * Plugins from the given classpath are able to be resolved using the <code>plugins { }</code> syntax in the build under test.
-     * Please consult the “Test Kit” Gradle User Guide chapter for more information and usage examples.
+     * Please consult the TestKit Gradle User Guide chapter for more information and usage examples.
+     * <p>
+     * <b>Note:</b> this method will cause an {@link InvalidRunnerConfigurationException} to be emitted when the build is executed,
+     * if the version of Gradle executing the build (i.e. not the version of the runner) is earlier than Gradle 2.8 as those versions do not support this feature.
+     * Please consult the TestKit Gradle User Guide chapter alternative strategies that can be used for older Gradle versions.
      *
      * @param classpath the classpath of plugins to make available to the build under test
      * @return this
@@ -247,40 +265,57 @@ public abstract class GradleRunner {
     public abstract GradleRunner withDebug(boolean flag);
 
     /**
-     * Specifies the writer used for capturing standard output during test execution. The provided writer may not be null.
+     * Configures the runner to forward standard output from builds to the given writer.
      * <p>
-     * By default, the standard output is only captured as part of the build result.
-     * When a writer is specified, the provided writer captures the same standard output as the build result.
+     * The output of the build is always available via {@link BuildResult#getOutput()}.
+     * This method can be used to additionally capture the output.
      * <p>
-     * The provided writer is not closed automatically after test execution.
+     * Calling this method will negate the effect of previously calling {@link #forwardOutput()}.
+     * <p>
+     * The given writer will not be closed by the runner.
      *
-     * @param standardOutput the writer used to capture standard output
+     * @param writer the writer that build standard output should be forwarded to
      * @return this
      * @since 2.9
+     * @see #forwardOutput()
+     * @see #forwardStdError(Writer)
      */
-    public abstract GradleRunner withStandardOutput(Writer standardOutput);
+    public abstract GradleRunner forwardStdOutput(Writer writer);
 
     /**
-     * Specifies the writer used for capturing standard error during test execution. The provided writer may not be null.
+     * Configures the runner to forward standard error output from builds to the given writer.
      * <p>
-     * By default, the standard error is only captured as part of the build result.
-     * When a writer is specified, the provided writer captures the same standard error as the build result.
+     * The output of the build is always available via {@link BuildResult#getOutput()}.
+     * This method can be used to additionally capture the error output.
      * <p>
-     * The provided writer is not closed automatically after test execution.
+     * Calling this method will negate the effect of previously calling {@link #forwardOutput()}.
+     * <p>
+     * The given writer will not be closed by the runner.
      *
-     * @param standardError the writer used to capture standard error
+     * @param writer the writer that build standard error output should be forwarded to
      * @return this
      * @since 2.9
+     * @see #forwardOutput()
+     * @see #forwardStdOutput(Writer)
      */
-    public abstract GradleRunner withStandardError(Writer standardError);
+    public abstract GradleRunner forwardStdError(Writer writer);
 
     /**
-     * Forwards the test execution output to the standard output and error streams.
+     * Forwards the output of executed builds to the {@link System#out System.out} stream.
      * <p>
-     * By default, standard output and error streams are not rendered in the console.
+     * The output of the build is always available via {@link BuildResult#getOutput()}.
+     * This method can be used to additionally forward the output to {@code System.out} of the process using the runner.
+     * <p>
+     * This method does not separate the standard output and error output.
+     * The two streams will be merged as they typically are when using Gradle from a command line interface.
+     * If you require separation of the streams, you can use {@link #forwardStdOutput(Writer)} and {@link #forwardStdError(Writer)} directly.
+     * <p>
+     * Calling this method will negate the effect of previously calling {@link #forwardStdOutput(Writer)} and/or {@link #forwardStdError(Writer)}.
      *
      * @return this
      * @since 2.9
+     * @see #forwardStdOutput(Writer)
+     * @see #forwardStdError(Writer)
      */
     public abstract GradleRunner forwardOutput();
 

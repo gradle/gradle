@@ -15,11 +15,11 @@
  */
 
 package org.gradle.language.base
-
 import groovy.transform.NotYetImplemented
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
+
+import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
@@ -181,37 +181,50 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         apply plugin: 'language-base'
 
         ${registerJavaLanguage()}
+        ${addPrintSourceDirTask()}
 
         class Rules extends RuleSource {
             @Model
             void functionalSources(FunctionalSourceSet sources) {
-                sources.create("javaB", JavaSourceSet)
+                sources.create("myJavaSourceSet", JavaSourceSet) { LanguageSourceSet lss ->
+                    lss.source.srcDir "src/main/myJavaSourceSet"
+                }
             }
         }
         apply plugin: Rules
         """
         expect:
-        succeeds "model"
+        succeeds ("model", "printSourceDirs")
+        normaliseFileSeparators(output).contains("source dirs: [${normaliseFileSeparators(testDirectory.path)}/src/main/myJavaSourceSet]")
     }
 
-    def "can register a language source set via the model dsl"() {
+    def "non-component language source sets are not added to the project source set"() {
         buildFile << """
         ${registerJavaLanguage()}
+        ${addPrintSourceDirTask()}
 
         model {
             functionalSources(FunctionalSourceSet){
-                myJavaSourceSet(JavaSourceSet)
+                myJavaSourceSet(JavaSourceSet) {
+                    source {
+                        srcDir "src/main/myJavaSourceSet"
+                    }
+                }
             }
         }
         """
 
         when:
-        succeeds "model"
+        succeeds ("model", "printSourceDirs")
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
         modelNode.functionalSources.@nodeValue[0] == "source set 'functionalSources'"
-        modelNode.sources.@nodeValue[0] == "[Java source 'functionalSources:myJavaSourceSet']"
+        modelNode.sources.@nodeValue[0]  == '[]'
+
+        and:
+        normaliseFileSeparators(output).contains("source dirs: [${normaliseFileSeparators(testDirectory.path)}/src/main/myJavaSourceSet]")
+
     }
 
     @NotYetImplemented
@@ -229,7 +242,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
             @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet fss) {
                 tasks.create("verify") {
                   doLast {
-                    assert TextUtil.normaliseFileSeparators(fss.getByName("myJavaSourceSet").source.getSrcDirs()[0].path) == '${TextUtil.normaliseFileSeparators(testDirectory.path)}/src/functionalSources/myJavaSourceSet'
+                    assert TextUtil.normaliseFileSeparators(fss.getByName("myJavaSourceSet").source.getSrcDirs()[0].path) == '${normaliseFileSeparators(testDirectory.path)}/src/functionalSources/myJavaSourceSet'
                   }
               }
             }
@@ -248,15 +261,33 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
             class JavaLangRuleSource extends RuleSource {
 
-            @LanguageType
-            void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
-                builder.setLanguageName("java");
-                builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
-            }
+                @LanguageType
+                void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
+                    builder.setLanguageName("java");
+                    builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
+                }
 
         }
         apply plugin: JavaLangRuleSource
         """
+    }
+
+
+    private String addPrintSourceDirTask(){
+        """
+class PrintSourceDirectoryRules extends RuleSource {
+    @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet fss) {
+        tasks.create("printSourceDirs") {
+          doLast {
+            fss.each{ lss ->
+                println ("source dirs: \${lss.source.getSrcDirs()}")
+            }
+          }
+      }
+    }
+}
+apply plugin: PrintSourceDirectoryRules
+"""
     }
 
 }

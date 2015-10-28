@@ -16,13 +16,15 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.api.GradleException
+import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.testkit.runner.fixtures.NoDebug
-import org.gradle.util.GFileUtils
-import org.gradle.util.TextUtil
+import org.gradle.tooling.GradleConnectionException
 
-import static org.gradle.testkit.runner.TaskOutcome.*
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+
     def "build execution for script with invalid Groovy syntax"() {
         given:
         buildFile << """
@@ -34,18 +36,10 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         """
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        BuildResult result = gradleRunner.buildAndFail()
+        def result = runner('helloWorld').buildAndFail()
 
         then:
-        noExceptionThrown()
-        !result.standardOutput.contains(':helloWorld')
-        result.standardError.contains('Could not compile build file')
-        result.tasks.empty
-        result.taskPaths(SUCCESS).empty
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
+        result.output.contains('Could not compile build file')
     }
 
     def "build execution for script with unknown Gradle API method class"() {
@@ -59,18 +53,11 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         """
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        BuildResult result = gradleRunner.buildAndFail()
+        def result = runner('helloWorld').buildAndFail()
 
         then:
-        noExceptionThrown()
-        !result.standardOutput.contains(':helloWorld')
-        result.standardError.contains('Could not find method doSomething()')
+        result.output.contains('Could not find method doSomething()')
         result.tasks.empty
-        result.taskPaths(SUCCESS).empty
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
     }
 
     def "build execution with badly formed argument"() {
@@ -78,24 +65,16 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld', '--unknown')
-        gradleRunner.build()
+        runner('helloWorld', '--unknown').build()
 
         then:
-        Throwable t = thrown(UnexpectedBuildFailure)
-        String message = TextUtil.normaliseLineSeparators(t.message)
-        message.contains("""Reason:
-Unknown command-line option '--unknown'.""")
-        message.contains('Problem configuring task :helloWorld from command line.')
-        BuildResult result = t.buildResult
-        result.standardOutput.contains('BUILD FAILED')
-        result.standardError.contains("Unknown command-line option '--unknown'.")
-        result.standardError.contains("Problem configuring task :helloWorld from command line.")
-        result.tasks.empty
-        result.taskPaths(SUCCESS).empty
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
+        def t = thrown(UnexpectedBuildFailure)
+        t.message.contains("Unknown command-line option '--unknown'.")
+        t.message.contains('Problem configuring task :helloWorld from command line.')
+        def result = t.buildResult
+        result.output.contains('BUILD FAILED')
+        result.output.contains("Unknown command-line option '--unknown'.")
+        result.output.contains("Problem configuring task :helloWorld from command line.")
     }
 
     def "build execution with non-existent working directory"() {
@@ -104,45 +83,34 @@ Unknown command-line option '--unknown'.""")
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withProjectDir(nonExistentWorkingDir)
-        gradleRunner.build()
+        runner('helloWorld')
+            .withProjectDir(nonExistentWorkingDir)
+            .build()
 
         then:
-        Throwable t = thrown(UnexpectedBuildFailure)
-        String message = TextUtil.normaliseLineSeparators(t.message)
-        message.contains("""Reason:
-Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
-        !message.contains(':helloWorld')
-        BuildResult result = t.buildResult
-        result.standardOutput.contains('BUILD FAILED')
-        result.standardError.contains("Project directory '$nonExistentWorkingDir.absolutePath' does not exist.")
+        def t = thrown(UnexpectedBuildFailure)
+        t.message.contains("Project directory '$nonExistentWorkingDir.absolutePath' does not exist.")
+        !t.message.contains(':helloWorld')
+        def result = t.buildResult
+        result.output.contains('BUILD FAILED')
+        result.output.contains("Project directory '$nonExistentWorkingDir.absolutePath' does not exist.")
         result.tasks.empty
-        result.taskPaths(SUCCESS).empty
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
     }
 
     @NoDebug
     def "build execution with invalid JVM arguments"() {
         given:
-        GFileUtils.writeFile('org.gradle.jvmargs=-unknown', testProjectDir.file('gradle.properties'))
+        testProjectDir.file('gradle.properties') << 'org.gradle.jvmargs=-unknown'
         buildFile << helloWorldTask()
 
         when:
         runner('helloWorld').build()
 
         then:
-        UnexpectedBuildFailure t = thrown UnexpectedBuildFailure
-        BuildResult result = t.buildResult
-        !result.standardOutput
-        !result.standardError
-        result.tasks.empty
-        result.taskPaths(SUCCESS).empty
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
+        def t = thrown IllegalStateException
+        t.cause instanceof GradleConnectionException
+        t.cause.cause.class.name == GradleException.name // not the same class because it's coming from the tooling client
+        t.cause.cause.message.startsWith("Unable to start the daemon process.")
     }
 
     @NoDebug
@@ -159,18 +127,17 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         """
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.build()
+        runner('helloWorld').build()
 
         then:
-        UnexpectedBuildFailure t = thrown UnexpectedBuildFailure
-        BuildResult result = t.buildResult
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardOutput.contains('Bye world!')
-        !result.standardError
-        // TaskStartEvent is fired, task is still null when daemon JVM is shut down
-        result.tasks.size() == 1
-        !result.tasks[0]
+        def t = thrown IllegalStateException
+        t.cause instanceof GradleConnectionException
+        t.cause.cause.class.name == DaemonDisappearedException.name // not the same class because it's coming from the tooling client
+
+        and:
+        normaliseLineSeparators(t.message) == """An error occurred executing build with args 'helloWorld' in directory '$testProjectDir.testDirectory.canonicalPath'. Output before error:
+:helloWorld
+Hello world!
+""".toString()
     }
 }

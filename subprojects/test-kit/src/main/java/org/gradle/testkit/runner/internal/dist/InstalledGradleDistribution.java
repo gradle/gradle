@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.internal;
+package org.gradle.testkit.runner.internal.dist;
 
-import org.gradle.testkit.runner.GradleDistribution;
+import java.io.File;
 
-public final class VersionBasedGradleDistribution extends GradleDistribution {
+public final class InstalledGradleDistribution extends GradleDistribution {
 
-    private final String gradleVersion;
+    private final File gradleHome;
 
-    public VersionBasedGradleDistribution(String gradleVersion) {
-        this.gradleVersion = gradleVersion;
+    public InstalledGradleDistribution(File gradleHome) {
+        this.gradleHome = gradleHome;
     }
 
-    public String getGradleVersion() {
-        return gradleVersion;
+    public File getGradleHome() {
+        return gradleHome;
     }
 }

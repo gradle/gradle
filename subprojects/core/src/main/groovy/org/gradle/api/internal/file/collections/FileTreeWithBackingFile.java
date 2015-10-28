@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.internal
+package org.gradle.api.internal.file.collections;
 
-import org.gradle.testkit.runner.GradleDistribution
-import spock.lang.Specification
+import java.io.File;
 
-class GradleDistributionTest extends Specification {
-
-    def "creates Gradle distribution"() {
-        expect:
-        GradleDistribution.withVersion('2.8') instanceof VersionBasedGradleDistribution
-        GradleDistribution.fromUri(new URI('http://services.gradle.org/distributions/gradle-2.8-bin.zip')) instanceof URILocatedGradleDistribution
-        GradleDistribution.fromPath(new File('some/dir')) instanceof InstalledGradleDistribution
-    }
+public interface FileTreeWithBackingFile {
+    File getBackingFile();
 }

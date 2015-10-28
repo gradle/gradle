@@ -16,11 +16,19 @@
 
 package org.gradle.testkit.runner.internal;
 
+import com.google.common.base.Joiner;
+import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.BuildTask;
-import org.gradle.testkit.runner.GradleDistribution;
+import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
+import org.gradle.testkit.runner.internal.dist.GradleDistribution;
 import org.gradle.testkit.runner.TaskOutcome;
-import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ProjectConnection;
+import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution;
+import org.gradle.testkit.runner.internal.dist.URILocatedGradleDistribution;
+import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution;
+import org.gradle.testkit.runner.internal.io.NoCloseOutputStream;
+import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
+import org.gradle.testkit.runner.internal.io.TeeOutputStream;
+import org.gradle.tooling.*;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.task.*;
@@ -31,46 +39,57 @@ import org.gradle.wrapper.GradleUserHomeLookup;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStream;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.testkit.runner.TaskOutcome.*;
 
-public class TestKitGradleExecutor implements GradleExecutor {
+public class ToolingApiGradleExecutor implements GradleExecutor {
 
     public static final String TEST_KIT_DAEMON_DIR_NAME = "test-kit-daemon";
-    private final GradleDistribution gradleDistribution;
 
-    public TestKitGradleExecutor(GradleDistribution gradleDistribution) {
-        this.gradleDistribution = gradleDistribution;
-        registerShutdownHook();
-    }
+    private static final String CLEANUP_THREAD_NAME = "gradle-runner-cleanup";
 
-    private void registerShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            public void run() {
-                DefaultGradleConnector.close();
-            }
-        }));
+    private final static AtomicBoolean SHUTDOWN_REGISTERED = new AtomicBoolean();
+
+    private static void maybeRegisterCleanup() {
+        if (SHUTDOWN_REGISTERED.compareAndSet(false, true)) {
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                public void run() {
+                    DefaultGradleConnector.close();
+                }
+            }, CLEANUP_THREAD_NAME));
+        }
     }
 
     public GradleExecutionResult run(GradleExecutionParameters parameters) {
-        final ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
-        final ByteArrayOutputStream standardError = new ByteArrayOutputStream();
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        final OutputStream syncOutput = new SynchronizedOutputStream(output);
+
         final List<BuildTask> tasks = new ArrayList<BuildTask>();
 
-        GradleConnector gradleConnector = buildConnector(parameters.getGradleUserHome(), parameters.getProjectDir(), parameters.isEmbedded());
+        maybeRegisterCleanup();
+
+        GradleConnector gradleConnector = buildConnector(
+            parameters.getGradleUserHome(),
+            parameters.getProjectDir(),
+            parameters.isEmbedded(),
+            parameters.getGradleDistribution()
+        );
+
         ProjectConnection connection = null;
 
         try {
             connection = gradleConnector.connect();
             DefaultBuildLauncher launcher = (DefaultBuildLauncher) connection.newBuild();
-            launcher.setStandardOutput(determineLauncherOutputStream(standardOutput, parameters.getStandardOutput()));
-            launcher.setStandardError(determineLauncherOutputStream(standardError, parameters.getStandardError()));
+
+            launcher.setStandardOutput(new NoCloseOutputStream(teeOutput(syncOutput, parameters.getStandardOutput())));
+            launcher.setStandardError(new NoCloseOutputStream(teeOutput(syncOutput, parameters.getStandardError())));
+
             launcher.addProgressListener(new TaskExecutionProgressListener(tasks));
 
             launcher.withArguments(parameters.getBuildArgs().toArray(new String[parameters.getBuildArgs().size()]));
@@ -79,28 +98,50 @@ public class TestKitGradleExecutor implements GradleExecutor {
             launcher.withInjectedClassPath(parameters.getInjectedClassPath());
 
             launcher.run();
-        } catch (Throwable t) {
-            return new GradleExecutionResult(standardOutput, standardError, tasks, t);
+        } catch (UnsupportedVersionException e) {
+            throw new InvalidRunnerConfigurationException("The build could not be executed due to a feature not being supported by the target Gradle version", e);
+        } catch (BuildException t) {
+            return new GradleExecutionResult(output.toString(), tasks, t);
+        } catch (GradleConnectionException t) {
+            StringBuilder message = new StringBuilder("An error occurred executing build with ");
+            if (parameters.getBuildArgs().isEmpty()) {
+                message.append("no args");
+            } else {
+                message.append("args '");
+                Joiner.on(" ").appendTo(message, parameters.getBuildArgs());
+                message.append("'");
+            }
+
+            message.append(" in directory '").append(parameters.getProjectDir().getAbsolutePath()).append("'");
+
+            String capturedOutput = output.toString();
+            if (!capturedOutput.isEmpty()) {
+                message.append(". Output before error:")
+                    .append(SystemProperties.getInstance().getLineSeparator())
+                    .append(capturedOutput);
+            }
+
+            throw new IllegalStateException(message.toString(), t);
         } finally {
             if (connection != null) {
                 connection.close();
             }
         }
 
-        return new GradleExecutionResult(standardOutput, standardError, tasks);
+        return new GradleExecutionResult(output.toString(), tasks);
     }
 
-    private OutputStream determineLauncherOutputStream(OutputStream outputStream, Writer writer) {
-        if (writer != null) {
-            return new TeeOutputStreamWriter(outputStream, writer);
+    private static OutputStream teeOutput(OutputStream capture, OutputStream user) {
+        if (user == null) {
+            return capture;
+        } else {
+            return new TeeOutputStream(capture, user);
         }
-
-        return outputStream;
     }
 
-    private GradleConnector buildConnector(File gradleUserHome, File projectDir, boolean embedded) {
+    private GradleConnector buildConnector(File gradleUserHome, File projectDir, boolean embedded, GradleDistribution gradleDistribution) {
         DefaultGradleConnector gradleConnector = (DefaultGradleConnector) GradleConnector.newConnector();
-        useGradleDistribution(gradleConnector);
+        useGradleDistribution(gradleConnector, gradleDistribution);
         gradleConnector.useGradleUserHomeDir(gradleUserHome);
         gradleConnector.useDistributionBaseDir(GradleUserHomeLookup.gradleUserHome());
         gradleConnector.daemonBaseDir(new File(gradleUserHome, TEST_KIT_DAEMON_DIR_NAME));
@@ -111,7 +152,7 @@ public class TestKitGradleExecutor implements GradleExecutor {
         return gradleConnector;
     }
 
-    private void useGradleDistribution(GradleConnector gradleConnector) {
+    private void useGradleDistribution(GradleConnector gradleConnector, GradleDistribution gradleDistribution) {
         if (gradleDistribution instanceof InstalledGradleDistribution) {
             gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getGradleHome());
         } else if (gradleDistribution instanceof URILocatedGradleDistribution) {

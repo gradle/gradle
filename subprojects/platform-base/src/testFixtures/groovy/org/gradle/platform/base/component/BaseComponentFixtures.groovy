@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.component
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.registry.DefaultLanguageRegistry
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelNode
@@ -27,11 +26,11 @@ import org.gradle.platform.base.ComponentSpecIdentifier
 
 class BaseComponentFixtures {
 
-    static <T extends BaseComponentSpec> T create(Class<T> type, ModelRegistryHelper modelRegistry, ComponentSpecIdentifier componentId, ProjectSourceSet allSourceSets, Instantiator instantiator, File baseDir = null) {
+    static <T extends BaseComponentSpec> T create(Class<T> type, ModelRegistryHelper modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
         try {
             modelRegistry.create(
                 ModelCreators.unmanagedInstanceOf(ModelReference.of(componentId.name, type), {
-                    BaseComponentSpec.create(type, componentId, it, allSourceSets, instantiator, new DefaultLanguageRegistry(), baseDir)
+                    BaseComponentSpec.create(type, componentId, it, instantiator, new DefaultLanguageRegistry(), baseDir)
                 })
                     .descriptor(componentId.name)
                     .build()

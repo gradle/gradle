@@ -16,9 +16,11 @@
 
 package org.gradle.language.base.internal.model;
 
+import com.google.common.base.Joiner;
 import org.gradle.api.Action;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.registry.LanguageTransform;
@@ -27,6 +29,10 @@ import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
+
+import java.io.File;
+
+import static com.google.common.base.Strings.emptyToNull;
 
 /**
  * Cross-cutting rules for all {@link org.gradle.platform.base.ComponentSpec} instances.
@@ -47,6 +53,15 @@ public class ComponentRules extends RuleSource {
         component.getSources().afterEach(new AddDefaultSourceLocation(functionalSourceSet));
     }
 
+    @Defaults
+    void addSourcesSetsToProjectSourceSet(final ComponentSpec component, final ProjectSourceSet projectSourceSet) {
+        ((ComponentSpecInternal) component).getFunctionalSourceSet().whenObjectAdded(new Action<LanguageSourceSet>() {
+            public void execute(LanguageSourceSet languageSourceSet) {
+                projectSourceSet.add(languageSourceSet);
+            }
+        });
+    }
+
     // Currently needs to be a separate action since can't have parameterized utility methods in a RuleSource
     private static class ComponentSourcesRegistrationAction<U extends LanguageSourceSet> implements Action<ComponentSpecInternal> {
         private final LanguageRegistration<U> languageRegistration;
@@ -62,11 +77,11 @@ public class ComponentRules extends RuleSource {
         }
 
         public void execute(ComponentSpecInternal componentSpecInternal) {
-            createDefaultSourceSetForComponents(componentSpecInternal);
+            registerLanguageTypes(componentSpecInternal);
         }
 
         // If there is a transform for the language into one of the component inputs, add a default source set
-        void createDefaultSourceSetForComponents(final ComponentSpecInternal component) {
+        void registerLanguageTypes(final ComponentSpecInternal component) {
             for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
                 if (languageTransform.getSourceSetType().equals(languageRegistration.getSourceSetType())
                     && component.getInputTypes().contains(languageTransform.getOutputType())) {
@@ -87,7 +102,14 @@ public class ComponentRules extends RuleSource {
         @Override
         public void execute(LanguageSourceSet languageSourceSet) {
             // Only apply default locations when none explicitly configured
-            functionalSourceSet.maybeAddDefaultSrcDirs(languageSourceSet);
+            if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
+                String defaultSourceDir = calculateDefaultPath(languageSourceSet);
+                languageSourceSet.getSource().srcDir(defaultSourceDir);
+            }
+        }
+
+        private String calculateDefaultPath(LanguageSourceSet languageSourceSet) {
+            return Joiner.on(File.separator).skipNulls().join(functionalSourceSet.getBaseDir().getPath(), "src", emptyToNull(languageSourceSet.getParentName()), emptyToNull(languageSourceSet.getName()));
         }
     }
 }

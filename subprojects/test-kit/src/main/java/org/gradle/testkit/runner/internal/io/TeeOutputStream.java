@@ -14,56 +14,55 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.internal;
+package org.gradle.testkit.runner.internal.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Writer;
 
-public class TeeOutputStreamWriter extends OutputStream {
-    private final OutputStream out;
-    private final Writer tee;
+public class TeeOutputStream extends OutputStream {
 
-    public TeeOutputStreamWriter(OutputStream out, Writer tee) {
-        if (out == null) {
-            throw new IllegalArgumentException("out argument cannot be null");
+    private final OutputStream out1;
+    private final OutputStream out2;
+
+    public TeeOutputStream(OutputStream out1, OutputStream out2) {
+        if (out1 == null) {
+            throw new IllegalArgumentException("out1 argument cannot be null");
         }
-        if (tee == null) {
-            throw new IllegalArgumentException("tee argument cannot be null");
+        if (out2 == null) {
+            throw new IllegalArgumentException("out2 argument cannot be null");
         }
 
-        this.out = out;
-        this.tee = tee;
+        this.out1 = out1;
+        this.out2 = out2;
     }
 
     @Override
     public synchronized void write(int b) throws IOException {
-        out.write(b);
-        tee.write(b);
+        out1.write(b);
+        out1.write(b);
     }
 
     @Override
     public synchronized void write(byte[] b) throws IOException {
-        out.write(b);
-        tee.write(new String(b));
+        out1.write(b);
+        out2.write(b);
     }
 
     @Override
     public synchronized void write(byte[] b, int off, int len) throws IOException {
-        out.write(b, off, len);
-        tee.write(new String(b), off, len);
+        out1.write(b, off, len);
+        out2.write(b, off, len);
     }
 
     @Override
     public void flush() throws IOException {
-        out.flush();
-        tee.flush();
+        out1.flush();
+        out2.flush();
     }
 
     @Override
     public void close() throws IOException {
-        out.close();
-        // we do not close the provided writer
-        // it's going to be the end user's responsibility
+        out1.close();
+        out2.close();
     }
 }

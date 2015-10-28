@@ -30,7 +30,7 @@ import org.gradle.api.internal.file.MaybeCompressedFileResource;
 import org.gradle.api.internal.file.archive.compression.CompressedReadableResource;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.file.collections.FileTreeWithSourceFile;
+import org.gradle.api.internal.file.collections.FileTreeWithBackingFile;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
@@ -43,7 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree, FileTreeWithSourceFile {
+public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree, FileTreeWithBackingFile {
     private final File tarFile;
     private final ReadableResource resource;
     private final Chmod chmod;
@@ -102,7 +102,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     }
 
     @Override
-    public File getSourceFile() {
+    public File getBackingFile() {
         if (tarFile != null) {
             return tarFile;
         }

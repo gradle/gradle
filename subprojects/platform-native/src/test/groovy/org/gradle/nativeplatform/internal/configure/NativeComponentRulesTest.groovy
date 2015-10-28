@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.internal.configure
 import org.gradle.api.Named
 import org.gradle.internal.BiActions
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.fixture.ModelRegistryHelper
@@ -63,7 +62,7 @@ class NativeComponentRulesTest extends Specification {
         def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)
         nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, DefaultModelSchemaStore.instance, new ManagedProxyFactory(), BiActions.doNothing()))
         modelRegistry.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
-        component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, modelRegistry, id, Stub(ProjectSourceSet), instantiator)
+        component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, modelRegistry, id, instantiator)
     }
 
     def "does not use variant dimension names for single valued dimensions"() {

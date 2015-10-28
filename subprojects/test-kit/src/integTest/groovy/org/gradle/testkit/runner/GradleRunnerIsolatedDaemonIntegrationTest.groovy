@@ -32,6 +32,10 @@ import static org.gradle.testkit.runner.TaskOutcome.*
 @NoDebug
 class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
+    def setup() {
+        requireIsolatedTestKitDir = true
+    }
+
     @Rule
     final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(15000)
 
@@ -69,8 +73,8 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
 
     def "configuration in custom Gradle user home directory is used for test execution with daemon"() {
         setup:
-        writeGradlePropertiesFile(testKitWorkspace, 'myProp1=propertiesFile')
-        writeInitScriptFile(testKitWorkspace, "allprojects { ext.myProp2 = 'initScript' }")
+        writeGradlePropertiesFile(testKitDir, 'myProp1=propertiesFile')
+        writeInitScriptFile(testKitDir, "allprojects { ext.myProp2 = 'initScript' }")
 
         and:
         buildFile << """
@@ -124,7 +128,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
     @LeaksFileHandles
     def "user daemon process does not reuse existing daemon process intended for test execution even when using same gradle user home"() {
         given:
-        def nonTestKitDaemons = daemons(testKitWorkspace)
+        def nonTestKitDaemons = daemons(testKitDir)
 
         when:
         runner().build()
@@ -137,8 +141,8 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         when:
         new DaemonGradleExecuter(new UnderDevelopmentGradleDistribution(), testProjectDir)
             .usingProjectDirectory(testProjectDir.testDirectory)
-            .withGradleUserHomeDir(testKitWorkspace)
-            .withDaemonBaseDir(testKitWorkspace.file("daemon")) // simulate default, our fixtures deviate from the default
+            .withGradleUserHomeDir(testKitDir)
+            .withDaemonBaseDir(testKitDir.file("daemon")) // simulate default, our fixtures deviate from the default
             .run()
 
         then:
