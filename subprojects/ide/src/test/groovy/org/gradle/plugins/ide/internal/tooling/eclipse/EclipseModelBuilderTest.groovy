@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling.eclipse
 
-import org.gradle.api.Project
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
 import org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder
