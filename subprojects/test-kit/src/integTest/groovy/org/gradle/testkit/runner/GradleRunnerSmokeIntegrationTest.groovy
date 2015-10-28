@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
 import org.gradle.util.GFileUtils
 
 import static org.gradle.testkit.runner.TaskOutcome.*
@@ -89,6 +90,15 @@ public class MyApp {
         then:
         result.output.contains('Hello world!')
         result.taskPaths(SUCCESS) == [':helloWorld']
+    }
+
+    def "build output does not include daemon usage suggestion"() {
+        when:
+        buildFile << "task foo"
+        def result = runner("foo").build()
+
+        then:
+        !result.output.contains(DaemonUsageSuggestingBuildActionExecuter.PLEASE_USE_DAEMON_MESSAGE_PREFIX)
     }
 
 }
