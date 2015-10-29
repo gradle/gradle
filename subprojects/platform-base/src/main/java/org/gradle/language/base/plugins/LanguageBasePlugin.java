@@ -19,9 +19,9 @@ import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.Transformers;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
@@ -33,21 +33,19 @@ import org.gradle.language.base.internal.model.FunctionalSourceSetNodeInitialize
 import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.model.*;
-import org.gradle.model.collection.internal.BridgedCollections;
-import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
-import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.manage.schema.extract.ConstructableTypesRegistry;
 import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -63,13 +61,13 @@ import java.util.Set;
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
 
-    private final Instantiator instantiator;
     private final ModelRegistry modelRegistry;
+    private final ModelSchemaStore schemaStore;
 
     @Inject
-    public LanguageBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry) {
-        this.instantiator = instantiator;
+    public LanguageBasePlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
         this.modelRegistry = modelRegistry;
+        this.schemaStore = schemaStore;
     }
 
     public void apply(final Project target) {
@@ -78,28 +76,18 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     private void applyRules(ModelRegistry modelRegistry) {
-        DefaultBinaryContainer binaries = instantiator.newInstance(DefaultBinaryContainer.class, instantiator);
         final String descriptor = LanguageBasePlugin.class.getSimpleName() + ".apply()";
         final ModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(descriptor);
         ModelPath binariesPath = ModelPath.path("binaries");
-
-        ModelType<BinarySpec> binarySpecModelType = ModelType.of(BinarySpec.class);
-        // TODO:LPTR Remove once reuse is taken out
-        modelRegistry.createOrReplace(
-            BridgedCollections.creator(
-                ModelReference.of(binariesPath, DefaultBinaryContainer.class),
-                Transformers.constant(binaries),
-                Named.Namer.INSTANCE,
-                descriptor,
-                BridgedCollections.itemDescriptor(descriptor)
-            )
-                .descriptor(descriptor)
-                .ephemeral(true)
-                .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType,
-                    ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(binarySpecModelType))))
-                .withProjection(UnmanagedModelProjection.of(DefaultBinaryContainer.class))
-                .build()
-        );
+        SpecializedMapSchema<BinaryContainer> schema = (SpecializedMapSchema<BinaryContainer>) schemaStore.getSchema(ModelType.of(BinaryContainer.class));
+        // TODO:LPTR Replace with create() once reuse is taken out
+        modelRegistry.createOrReplace(ModelMapCreators.specialized(
+            binariesPath,
+            BinarySpec.class,
+            BinaryContainer.class,
+            schema.getImplementationType().asSubclass(BinaryContainer.class),
+            ruleDescriptor
+        ));
 
         modelRegistry.configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(ModelReference.of(binariesPath), ruleDescriptor, new Action<MutableModelNode>() {
             @Override
@@ -178,18 +166,16 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, ModelMap<BinarySpec> binaries) {
+        void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, ModelMap<BinarySpecInternal> binaries) {
             List<BinarySpecInternal> notBuildable = Lists.newArrayList();
             boolean hasBuildableBinaries = false;
-            for (BinarySpec binary : binaries) {
-                // TODO:HH Need this cast because chained filtering on the Binary map is broken (See NodeBackedModelMap)
-                BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binary;
-                if (!binarySpecInternal.isLegacyBinary()) {
-                    if (binarySpecInternal.isBuildable()) {
-                        assemble.dependsOn(binarySpecInternal);
+            for (BinarySpecInternal binary : binaries) {
+                if (!binary.isLegacyBinary()) {
+                    if (binary.isBuildable()) {
+                        assemble.dependsOn(binary);
                         hasBuildableBinaries = true;
                     } else {
-                        notBuildable.add(binarySpecInternal);
+                        notBuildable.add(binary);
                     }
                 }
             }

@@ -20,7 +20,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
@@ -112,11 +111,6 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
                                 owner,
                                 instantiator,
                                 taskFactory));
-                    }
-                });
-                binaries.registerDomainObjectFactory(publicType.getConcreteClass(), descriptor, new NamedDomainObjectFactory<S>() {
-                    public S create(String name) {
-                        return Cast.uncheckedCast(BaseBinarySpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), name, null, instantiator, taskFactory));
                     }
                 });
                 if (BINARY_SPEC_INTERNAL_MODEL_TYPE.isAssignableFrom(implementationType)) {

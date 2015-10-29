@@ -47,7 +47,10 @@ import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.*;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.binary.internal.BinarySpecFactory;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -171,13 +174,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Mutate
         void registerPlatformExtension(ExtensionContainer extensions, PlatformContainer platforms) {
             extensions.add("platforms", platforms);
-        }
-
-        @Mutate
-        void registerLegacyBinaryFactories(BinaryContainer binaries, BinarySpecFactory binarySpecFactory) {
-            // This is used by the BinaryContainer API, which we still need for the time being.
-            // We are adapting it to BinarySpecFactory here so it can be used by component.binaries model maps
-            binarySpecFactory.copyDomainObjectFactoriesInto(binaries);
         }
 
         @Defaults
