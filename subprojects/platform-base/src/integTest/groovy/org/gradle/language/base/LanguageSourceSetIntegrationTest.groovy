@@ -41,7 +41,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can create a top level LSS with a rule"() {
         buildScript """
-        apply plugin: 'java-lang'
+        ${registerJavaLanguage()}
 
         ${addPrintSourceDirTask()}
 
@@ -61,7 +61,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can create a top level LSS via the model DSL"() {
         buildFile.text = """
-        apply plugin: 'java-lang'
+        ${registerJavaLanguage()}
 
         model {
             lss(JavaSourceSet)
@@ -73,7 +73,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
-        modelNode.lss.@creator[0] == "model.lss @ build.gradle line 5, column 13"
+        modelNode.lss.@creator[0] == "model.lss @ build.gradle line 18, column 13"
         modelNode.lss.@type[0] == "org.gradle.language.java.JavaSourceSet"
         modelNode.lss.@nodeValue[0] == "Java source 'lss:lss'"
     }
@@ -81,7 +81,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can create a LSS as property of a managed type"() {
         buildFile << """
-        apply plugin: 'java-lang'
+        ${registerJavaLanguage()}
 
         @Managed
         interface BuildType {
@@ -116,7 +116,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "An LSS can be an element of managed collections"() {
         buildFile << """
-        apply plugin: 'java-lang'
+        ${registerJavaLanguage()}
 
         @Managed
         interface BuildType {
@@ -155,6 +155,22 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         buildType.testSources."0".@creator[0] == 'Rules#addSources > create()'
     }
 
+    private String registerJavaLanguage() {
+        return """
+            import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet
+
+            class JavaLangRuleSource extends RuleSource {
+
+                @LanguageType
+                void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
+                    builder.setLanguageName("java");
+                    builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
+                }
+
+        }
+        apply plugin: JavaLangRuleSource
+        """
+    }
 
     private String addPrintSourceDirTask() {
         """
