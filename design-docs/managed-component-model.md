@@ -187,6 +187,68 @@ of these types.
     - registered managed type extends base type without a default implementation (i.e. `BinarySpec`)
     - registered managed type extends multiple interfaces that declare default implementations
 
+## Plugin author declares managed internal view for extensible type
+
+Allow a node with an unmanaged instance of an extensible type (say a `DefaultJarBinarySpec`) to be viewed as a `@Managed` internal view.
+The internal view need not be implemented by the default implementation. The state of the properties defined in the internal view are
+stored in child nodes (just as with any `@Managed` internal view).
+
+    @Managed
+    interface MyJarBinarySpecInternal extends JarBinarySpec {}
+
+    @Managed
+    interface MyInternal {}
+
+    class CustomPlugin extends RuleSource {
+        @BinaryType
+        public void register(BinaryTypeBuilder<JarBinarySpec> builder) {
+            builder.internalView(MyJarBinarySpecInternal)
+            builder.internalView(MyInternal)
+        }
+
+        @Mutate
+        void mutateInternal(ModelMap<MyJarBinarySpecInternal> binaries) {
+            // ...
+        }
+    }
+
+    apply plugin: "jvm-component"
+
+    model {
+        binaries.withType(MyJarBinarySpecInternal) {
+            // ...
+        }
+        binaries.withType(MyInternal) {
+            // ...
+        }
+        components {
+            myComponent(JvmLibrarySpec) {
+                binaries.withType(MyJarBinarySpecInternal) {
+                    // ...
+                }
+                binaries.withType(MyInternal) {
+                    // ...
+                }
+            }
+        }
+    }
+
+### Test cases
+
+* Can attach `MyJarBinarySpecInternal` that extends `JarBinarySpec`
+    * internal view can declare a read-write property that can be set on a Jar binary
+    * regular `JarBinarySpec` binaries can be targeted by rules as `ModelMap<MyJarBinarySpecInternal>`
+    * regular `JarBinarySpec` binaries can be accessed via `component.binaries.withType(MyJarBinarySpecInternal)`
+    * regular `JarBinarySpec` binaries can be accessed via `binaries.withType(MyJarBinarySpecInternal)`
+* Can attach `MyInternal` that does not extend `JarBinarySpec`
+    * internal view can declare a read-write property that can be set on a Jar binary
+    * regular `JarBinarySpec` binaries can be accessed via `component.binaries.withType(MyInternal)`
+    * regular `JarBinarySpec` binaries can be accessed via `binaries.withType(MyInternal)`
+
+### Implementation
+
+* Attach managed projections based on the registered `@Managed` internal views for these nodes.
+
 ## Plugin author declares internal views for any extensible type
 
 Given a plugin defines a general purpose type that is then extended by another plugin, allow internal views to be declared for the general super type as well as the
