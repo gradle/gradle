@@ -177,19 +177,13 @@ and `EclipseProject.getBuildCommands()` contain the builders and natures require
 
 TBD
 
-#### Java nio.2 used to walk file tree on Java 7+ when default encoding is unicode
+#### Java nio.2 used to walk file tree on Java 7+
 
-Gradle will use the Java nio.2 API to walk file trees on Java 7+ and when the default encoding is unicode compatible (f.e. utf-8, utf-16).
-The Java nio.2 API cannot read file names that contain multi-byte characters when the default encoding isn't unicode compatible. The previous implementation doesn't have this limitation.
-
-Windows has the default encoding of Cp1252 for most environments and it requires manual configuration to use the faster Java nio.2 file walking on Windows platforms.
-This can be done in the `gradle.properties` file as follows:
-```
-org.gradle.jvmargs=-Dfile.encoding=UTF-8 -Xmx1024m -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError
-```
-
+Gradle will use the Java nio.2 API to walk file trees on Java 7+.
 The benefit of using Java nio.2 API to access directories is that file metadata (file size, last modification time) is read with a single system call.
 This information is already read while walking the directory tree and it can now be used in processing files with the Gradle APIs. In Gradle 2.9, this is used in the up-to-date checking and this improves the speed of it.
+
+The Java nio.2 API doesn't get used on Java 7 when the `sun.jnu.encoding` system property value doesn't equal to the value of `file.encoding` property and `file.encoding` is a non-unicode encoding. `sun.jnu.encoding` system property is a special system property that shouldn't be set explicitly.
 
 #### Memory use reduction
 
