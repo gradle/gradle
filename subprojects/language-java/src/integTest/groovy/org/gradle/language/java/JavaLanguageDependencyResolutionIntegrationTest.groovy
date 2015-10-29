@@ -1180,11 +1180,11 @@ model {
     }
 
     tasks {
-        java6MainJar.finalizedBy('checkDependencies')
-        java7MainJar.finalizedBy('checkDependencies')
+        mainJava6Jar.finalizedBy('checkDependencies')
+        mainJava7Jar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(java6DepJar)
-            assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(java7DepJar)
+            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depJava6Jar)
+            assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depJava7Jar)
         }
     }
 }
@@ -1199,10 +1199,10 @@ model {
         executedAndNotSkipped ':tasks'
 
         then:
-        succeeds 'java6MainJar'
+        succeeds 'mainJava6Jar'
 
         and:
-        succeeds 'java7MainJar'
+        succeeds 'mainJava7Jar'
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -1284,7 +1284,7 @@ model {
         executedAndNotSkipped ':tasks'
 
         and:
-        fails ':java6MainJar'
+        fails ':mainJava6Jar'
 
         then:
         failure.assertHasCause(normaliseLineSeparators(
