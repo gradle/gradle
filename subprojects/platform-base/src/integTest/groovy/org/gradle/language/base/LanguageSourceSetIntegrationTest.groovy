@@ -19,6 +19,8 @@ package org.gradle.language.base
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.util.TextUtil.normaliseFileSeparators
+
 class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can not create a top level LSS when the language base plugin has not been applied"() {
@@ -56,7 +58,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("model", "printSourceDirs")
-        output.contains("src/main/lss")
+        normaliseFileSeparators(output).contains("${normaliseFileSeparators(testDirectory.path)}/src/main/lss")
     }
 
     def "can create a top level LSS via the model DSL"() {
