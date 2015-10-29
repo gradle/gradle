@@ -275,3 +275,21 @@ When the `TaskHistory` gets persisted, it adds the current task execution to the
 ### Other caches
 
 - `HashClassPathSnapshotter` uses an unbounded cache instantiated in [`GlobalScopeServices`](https://github.com/gradle/gradle/blob/56404fa2cd7c466d7a5e19e8920906beffa9f919/subprojects/core/src/main/groovy/org/gradle/internal/service/scopes/GlobalScopeServices.java#L211-L212)
+
+
+# Native build improvements
+
+## Story: Performance test and profling for native incremental build where [1 | a few | all ] files require recompilation
+
+### Scenario: Incremental build where 1 file requires recompilation
+
+- 1 change in one of these categories:
+  - 1 C source file changed
+  - 1 header file (included in a few source files) changed
+  - 1 compiler option changed
+- Change happens after a previous build, so it is not a clean build
+- Needs to be something that causes the linker to run, so not just a comment change
+
+### Scenario: Incremental build where a few files require recompilation
+
+### Scenario: Incremental build where  all files require recompilation
