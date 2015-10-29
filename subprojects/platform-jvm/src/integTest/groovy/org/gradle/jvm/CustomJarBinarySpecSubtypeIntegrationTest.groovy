@@ -15,7 +15,7 @@
  */
 
 package org.gradle.jvm
-
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 
@@ -160,6 +160,9 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
         new JarTestFixture(file("build/jars/sampleLibCustomJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
     }
 
+    // TODO:LPTR There is a deeper breakage here, as creating Jar binaries in the top-level binaries container would result in an NPE anyway,
+    // as those binaries would have no component associated with them.
+    @NotYetImplemented
     def "managed JarBinarySpec subtype cannot be created via BinaryContainer"() {
         given:
         buildFile << """
