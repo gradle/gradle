@@ -204,6 +204,15 @@ Exported libraries can also be declared directly in the `api` configuration bloc
 
 Libraries exported this way are implicitly added as a compile dependency to all source sets.
 
+#### Test cases
+
+- given a JvmLibrarySpec with an `api` configuration block, any required libraries in that block will appear as exported dependencies from all declared source sets of all resulting binaries when:
+    - API requires library from current project
+    - API requires library from a different project
+    - API requires multiple libraries from current and different projects
+    - All cases above with one and multiple target platforms
+    - in other words, `resultingBinary.inputs.withType(DependentSourceSetInternal)*.sourceSet.dependencies.dependencies.every { it.exported }` for every resulting binary
+
 #### Implementation Plan
 
 - `ApiSpec` must implement `DependencySpecContainer` or expose a relevant subset of its methods
