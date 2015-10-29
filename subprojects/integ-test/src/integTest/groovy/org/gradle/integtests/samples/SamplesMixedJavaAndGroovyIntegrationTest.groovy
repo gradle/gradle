@@ -52,6 +52,11 @@ class SamplesMixedJavaAndGroovyIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canBuildDocs() {
+        // Run the groovy doc test in an isolated daemon with its own user
+        // home directory to prevent java.util.prefs file locking error
+        // during daemon integration tests
+        executer.requireIsolatedDaemons().requireOwnGradleUserHomeDir()
+
         TestFile projectDir = sample.dir
         executer.inDirectory(projectDir).withTasks('clean', 'javadoc', 'groovydoc').run()
 
