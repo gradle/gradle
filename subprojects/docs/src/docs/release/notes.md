@@ -40,6 +40,67 @@ It is now possible to declare a default implementation for a base component or a
 
 This functionality is available for unmanaged types extending `ComponentSpec` and `BinarySpec`.
 
+#### Internal views for unmanaged binary and component types
+
+The goal of the new internal views feature is for plugin authors to be able to draw a clear line between public and internal APIs of their plugins regarding model elements.
+By declaring some functionality in internal views (as opposed to exposing it on a public type), the plugin author can let users know that the given functionality is intended
+for the plugin's internal bookkeeping, and should not be considered part of the public API of the plugin.
+
+Internal views must be interfaces, but they don't need to extend the public type they are registered for.
+
+**Example:** A plugin could introduce a new binary type like this:
+
+    /**
+     * Documented public type exposed by the plugin
+     */
+    interface MyBinarySpec extends BinarySpec {
+        // Functionality exposed to the public
+    }
+
+    // Undocumented internal type used by the plugin itself only
+    interface MyBinarySpecInternal extends MyBinarySpec {
+        String getInternalData();
+        void setInternalData(String internalData);
+    }
+
+    class MyBinarySpecImpl implements MyBinarySpecInternal {
+        private String internalData;
+        String getInternalData() { return internalData; }
+        void setInternalData(String internalData) { this.internalData = internalData; }
+    }
+
+    class MyBinarySpecPlugin extends RuleSource {
+        @BinaryType
+        public void registerMyBinarySpec(BinaryTypeBuilder<MyBinarySpec> builder) {
+            builder.defaultImplementation(MyBinarySpecImpl.class);
+            builder.internalView(MyBinarySpecInternal.class);
+        }
+    }
+
+With this setup the plugin can expose `MyBinarySpec` to the user as the public API, while it can attach some additional information to each of those binaries internally.
+
+Internal views registered for an unmanaged public type must be unmanaged themselves, and the default implementation of the public type must implement the internal view
+(as `MyBinarySpecImpl` implements `MyBinarySpecInternal` in the example above).
+
+It is also possible to attach internal views to `@Managed` types as well:
+
+    @Managed
+    interface MyManagedBinarySpec extends MyBinarySpec {}
+
+    @Managed
+    interface MyManagedBinarySpecInternal extends MyManagedBinarySpec {}
+
+    class MyManagedBinarySpecPlugin extends RuleSource {
+        @BinaryType
+        public void registerMyManagedBinarySpec(BinaryTypeBuilder<MyManagedBinarySpec> builder) {
+            builder.internalView(MyManagedBinarySpecInternal.class);
+        }
+    }
+
+Internal views registered for a `@Managed` public type must themselves be `@Managed`.
+
+This functionality is available for types extending `ComponentSpec` and `BinarySpec`.
+
 ### Visualising a project's build script dependencies
 
 The new `buildEnvironment` task can be used to visualise the project's `buildscript` dependencies.
