@@ -32,11 +32,6 @@ class IncrementalGroovyProjectBuildIntegrationTest extends AbstractIntegrationTe
             }
 '''
 
-        // Run the groovy doc test in an isolated daemon with its own user
-        // home directory to prevent java.util.prefs file locking error
-        // during daemon integration tests
-        executer.requireIsolatedDaemons().requireOwnGradleUserHomeDir()
-
         executer.withTasks("groovydoc").run();
 
         TestFile indexFile = file("build/docs/groovydoc/index.html");

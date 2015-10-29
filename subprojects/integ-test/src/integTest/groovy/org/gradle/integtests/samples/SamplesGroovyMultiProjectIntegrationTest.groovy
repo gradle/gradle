@@ -67,11 +67,6 @@ class SamplesGroovyMultiProjectIntegrationTest extends AbstractIntegrationTest {
         )
         tmpDir.file('META-INF/MANIFEST.MF').assertContents(containsString('myprop: myvalue'))
 
-        // Run the groovy doc test in an isolated daemon with its own user
-        // home directory to prevent java.util.prefs file locking error
-        // during daemon integration tests
-        executer.requireIsolatedDaemons().requireOwnGradleUserHomeDir()
-
         // Build docs
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'javadoc', 'groovydoc').run()
         testProjectDir.file('build/docs/javadoc/index.html').assertIsFile()

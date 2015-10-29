@@ -136,11 +136,6 @@ tasks.withType(ScalaCompile) {
                 'org/gradle/ScalaClass2.class'
         )
 
-        // Run the groovy doc test in an isolated daemon with its own user
-        // home directory to prevent java.util.prefs file locking error
-        // during daemon integration tests
-        executer.requireIsolatedDaemons().requireOwnGradleUserHomeDir()
-
         def runScalaDoc = !GradleContextualExecuter.daemon
         def tasks = ['javadoc', 'groovydoc']
         if (runScalaDoc) {
