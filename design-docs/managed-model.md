@@ -161,16 +161,23 @@ Support read-write collection properties defined using both a getter and a sette
 - No conversion is performed on input values already of the expected type
 - No tests required for non-existent properties as this is handled earlier in the processing flow
 
-### Convenient configuration of File typed properties from Java/Groovy
+### Convenient configuration of File typed properties from Groovy
 
 - Convert input value `CharSequence` to `File` conversion relative to project directory, as per `Project.file()`.
 - Update user guide, Javadocs and sample
+
+#### Test cases
+
+- Nice error message when input value is not a `CharSequence`
+- TBD:More
+
+### Convenient configuration of File typed properties from Java
 
 TBD: make some kind of 'project layout' or 'file resolver' service available as input to rules, which can convert String and friends to File.
 
 #### Test cases
 
-- Nice error message when input value is not a `CharSequence`
+TBD
 
 ### Convenient configuration of collection typed properties from Groovy
 
