@@ -71,6 +71,7 @@ import org.gradle.util.ConfigureUtil;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 /**
  * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
@@ -140,7 +141,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestReporter testReporter;
-    private Integer candidateClassFilesHash;
 
     @Nested
     private final DefaultTestTaskReports reports;
@@ -160,6 +160,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         reports.getHtml().setEnabled(true);
 
         filter = instantiator.newInstance(DefaultTestFilter.class);
+
+        addCandidateClassFilesHashProperty();
     }
 
     @Inject
@@ -1018,12 +1020,19 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return getProject().fileTree(getTestClassesDir()).matching(patternSet);
     }
 
-    @Input
-    public Integer getCandidateClassFilesHash() {
-        if (candidateClassFilesHash == null) {
-            candidateClassFilesHash = calculateCandidateClassFilesHash();
-        }
-        return candidateClassFilesHash;
+    private void addCandidateClassFilesHashProperty() {
+        // force tests to run when the set of candidate class files changes
+        getInputs().property("candidateClassFilesHash", new Callable<Integer>() {
+            Integer candidateClassFilesHash;
+
+            @Override
+            public Integer call() throws Exception {
+                if (candidateClassFilesHash == null) {
+                    candidateClassFilesHash = calculateCandidateClassFilesHash();
+                }
+                return candidateClassFilesHash;
+            }
+        });
     }
 
     private Integer calculateCandidateClassFilesHash() {

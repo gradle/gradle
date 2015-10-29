@@ -214,9 +214,6 @@ model {
         x86_64 {
             architecture "x86_64"
         }
-        itanium {
-            architecture "ia-64"
-        }
         arm {
             architecture "arm"
         }
@@ -225,7 +222,6 @@ model {
         main {
             targetPlatform "x86"
             targetPlatform "x86_64"
-            targetPlatform "itanium"
             targetPlatform "arm"
         }
     }
@@ -248,14 +244,6 @@ model {
             executable("build/binaries/mainExecutable/x86_64/main").binaryInfo.arch.name == "x86_64"
             executable("build/binaries/mainExecutable/x86_64/main").exec().out == "amd64 ${os.familyName}" * 2
             binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/mainExecutable/x86_64/mainCpp")).arch.name == "x86_64"
-        }
-
-        // Itanium only supported on visualCpp
-        if (toolChain.visualCpp) {
-            executable("build/binaries/mainExecutable/itanium/main").binaryInfo.arch.name == "ia-64"
-            binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/mainExecutable/itanium/mainCpp")).arch.name == "ia-64"
-        } else {
-            executable("build/binaries/mainExecutable/itanium/main").assertDoesNotExist()
         }
 
         // ARM only supported on visualCpp 2013
