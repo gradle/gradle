@@ -191,6 +191,10 @@ org.gradle.jvmargs=-Dfile.encoding=UTF-8 -Xmx1024m -XX:MaxPermSize=256m -XX:+Hea
 The benefit of using Java nio.2 API to access directories is that file metadata (file size, last modification time) is read with a single system call.
 This information is already read while walking the directory tree and it can now be used in processing files with the Gradle APIs. In Gradle 2.9, this is used in the up-to-date checking and this improves the speed of it.
 
+#### Memory use reduction
+
+Gradle has several in-memory caches as decorator for persistent caches. File names are either keys or values in many caches. In Gradle 2.9, a String de-duplication ("interner") solution is used to minimize the memory use of the in-memory caches by de-duplicating the String values that are stored in the caches.
+
 
 ## Promoted features
 
