@@ -638,7 +638,7 @@ model {
     - A read-only property of a `@Managed` type
     - An element of managed collections `ModelSet` and `ModelMap`
     - A top level element.
-- TBD: Reporting changes, if any. None - `LanguageSourceSet`'s should appear as follows:
+- Reporting changes, if any. None - `LanguageSourceSet`'s should appear as follows:
 
 ```
 + lss
@@ -652,7 +652,14 @@ model {
 - Out-of-scope: Need some convention for source directory locations. Need the ability to apply rules to every model node of a particular type to do this.
 ### Implementation
 
-- Add creation strategy for `LanguageSourceSet` backed by type registration.
+- Add creation strategy for `LanguageSourceSet` backed by type registration (`ConstructableTypesRegistry`).
+
+### Test cases
+- Can not create a top level LSS for an LSS type that has not been registered
+- Can create a top level LSS with a rule
+- Can create a top level LSS via the model DSL
+- Can create a LSS as property of a managed type
+- An LSS can be an element of managed collections (`ModelMap` and `ModelSet`)
 
 ## Story: Elements of binary `sources` container are visible to rules
 
