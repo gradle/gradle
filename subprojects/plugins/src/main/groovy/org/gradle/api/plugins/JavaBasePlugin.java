@@ -56,6 +56,7 @@ import org.gradle.model.internal.core.ModelCreators;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
@@ -403,8 +404,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         @Mutate
         void attachBridgedBinaries(ModelMap<BinarySpec> binaries, @Path("bridgedBinaries") BridgedBinaries bridgedBinaries) {
-            for (BinarySpec binary : bridgedBinaries.binaries) {
-                binaries.put(binary.getName(), binary);
+            for (BinarySpecInternal binary : bridgedBinaries.binaries) {
+                binaries.put(binary.getProjectScopedName(), binary);
             }
         }
     }
