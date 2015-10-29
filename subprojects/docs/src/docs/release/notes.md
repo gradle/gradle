@@ -118,6 +118,14 @@ The, more human friendly, HTML report is now advertised instead of the XML repor
 
 This feature was kindly contributed by [Sebastian Schuberth](https://github.com/sschuberth).
 
+### Model rules improvements
+
+#### Support for `LanguageSourceSet` model elements
+
+This release facilitates adding source sets (subtypes of `LanguageSourceSet`) to arbitrary locations in the model space. A `LanguageSourceSet` can be attached to any @Managed type as a property, or used for
+the elements of a ModelSet or ModelMap, or as a top level model element in it's own right.
+
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

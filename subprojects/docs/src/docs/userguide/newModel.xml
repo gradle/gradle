@@ -353,6 +353,7 @@
                                 <itemizedlist>
                                     <listitem>Any managed type</listitem>
                                     <listitem><apilink class="org.gradle.language.base.FunctionalSourceSet"/> (when the <apilink class="org.gradle.language.base.plugins.LanguageBasePlugin"/> plugin has been applied)</listitem>
+                                    <listitem>Subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> which have been registered via <apilink class="org.gradle.platform.base.LanguageType"/></listitem>
                                 </itemizedlist>
                             </td>
                         </tr>
@@ -365,12 +366,25 @@
                                     <listitem>A type which is annotated with @<apilink class="org.gradle.model.Unmanaged" /></listitem>
                                     <listitem>A Scalar Collection</listitem>
                                     <listitem>A Managed collection containing managed types</listitem>
-                                    <listitem>A Managed collection containing `org.gradle.language.base.FunctionalSourceSet`s (when the <apilink class="org.gradle.language.base.plugins.LanguageBasePlugin"/> plugin has been applied)</listitem>
+                                    <listitem>A Managed collection containing <apilink class="org.gradle.language.base.FunctionalSourceSet"/>'s (when the <apilink class="org.gradle.language.base.plugins.LanguageBasePlugin"/> plugin has been applied)</listitem>
+                                    <listitem>Subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> which have been registered via <apilink class="org.gradle.platform.base.LanguageType"/></listitem>
                                 </itemizedlist>
                             </td>
                         </tr>
                     </tbody>
                 </table>
+        </section>
+
+        <section>
+            <title>Language source sets</title>
+            <para>
+                <apilink class="org.gradle.language.base.FunctionalSourceSet"/>'s and subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> (which have been
+                registered via <apilink class="org.gradle.platform.base.LanguageType"/>) can be added to the model space via rules or via the model DSL.
+            </para>
+            <sample id='model-language-support-all' dir='modelRules/language-support' includeLocation="true" title='strongly modelling sources sets'>
+                <sourcefile file='build.gradle' snippet="model-language-support"/>
+                <output args='help' ignoreExtraLines="true" name="model-language-support-all.out"/>
+            </sample>
         </section>
 
         <section>
