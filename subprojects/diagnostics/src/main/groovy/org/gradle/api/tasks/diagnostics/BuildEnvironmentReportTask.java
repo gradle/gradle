@@ -16,14 +16,8 @@
 package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.annotations.VisibleForTesting;
-import java.io.IOException;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -36,23 +30,37 @@ import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyRep
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.logging.StyledTextOutputFactory;
 
+import javax.inject.Inject;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 /**
- * Displays the buildscript dependency tree for a project. An instance of this type is used when you
- * execute the {@code buildscriptDependencies} task from the command-line.
+ * Provides information about the build environment for the project that the task is associated with.
+ * <p>
+ * Currently, this information is limited to the project's declared build script dependencies
+ * visualised in a similar manner as provided by {@link DependencyReportTask}.
+ * <p>
+ * It is not necessary to manually add a task of this type to your project,
+ * as every project automatically has a task of this type by the name {@code "buildEnvironment"}.
+ *
+ * @since 2.10
  */
-public class BuildscriptDependencyReportTask extends DefaultTask {
+@Incubating
+public class BuildEnvironmentReportTask extends DefaultTask {
+
+    public static final String TASK_NAME = "buildEnvironment";
 
     private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
-    private Set<Project> projects;
 
-    public BuildscriptDependencyReportTask() {
+    public BuildEnvironmentReportTask() {
         getOutputs().upToDateWhen(new Spec<Task>() {
             public boolean isSatisfiedBy(Task element) {
                 return false;
             }
         });
-        projects = new HashSet<Project>();
-        projects.add(getProject());
     }
 
     @Inject
@@ -85,8 +93,8 @@ public class BuildscriptDependencyReportTask extends DefaultTask {
         };
 
         ReportGenerator reportGenerator = new ReportGenerator(renderer, getClientMetaData(), null,
-                getTextOutputFactory(), projectReportGenerator);
-        reportGenerator.generateReport(projects);
+            getTextOutputFactory(), projectReportGenerator);
+        reportGenerator.generateReport(Collections.singleton(getProject()));
     }
 
     @VisibleForTesting

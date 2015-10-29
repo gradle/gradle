@@ -32,7 +32,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
         modelReportOutput.hasNodeStructure({
             model() {
                 tasks {
-                    buildscriptDependencies()
+                    buildEnvironment()
                     components(nodeValue: "task ':components'", type: 'org.gradle.api.reporting.components.ComponentReport')
                     dependencies()
                     dependencyInsight()
@@ -79,7 +79,7 @@ model {
                     values(type: 'java.util.List<java.lang.Double>', creator: 'model.container @ build.gradle line 12, column 5')
                 }
                 tasks {
-                    buildscriptDependencies(nodeValue: "task ':buildscriptDependencies'")
+                    buildEnvironment(nodeValue: "task ':buildEnvironment'")
                     components(nodeValue: "task ':components'")
                     dependencies(nodeValue: "task ':dependencies'")
                     dependencyInsight(nodeValue: "task ':dependencyInsight'")
@@ -145,7 +145,7 @@ model {
                     username(nodeValue: 'uname', type: 'java.lang.String', creator: 'model.primaryCredentials @ build.gradle line 22, column 5')
                 }
                 tasks {
-                    buildscriptDependencies(nodeValue: "task ':buildscriptDependencies'")
+                    buildEnvironment(nodeValue: "task ':buildEnvironment'")
                     components(nodeValue: "task ':components'")
                     dependencies(nodeValue: "task ':dependencies'")
                     dependencyInsight(nodeValue: "task ':dependencyInsight'")
@@ -236,10 +236,10 @@ model {
 + tasks
       | Type:   \torg.gradle.model.ModelMap<org.gradle.api.Task>
       | Creator: \tProject.<init>.tasks()
-    + buildscriptDependencies
-          | Type:   \torg.gradle.api.tasks.diagnostics.BuildscriptDependencyReportTask
-          | Value:  \ttask ':buildscriptDependencies\'
-          | Creator: \ttasks.addPlaceholderAction(buildscriptDependencies)
+    + buildEnvironment
+          | Type:   \torg.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask
+          | Value:  \ttask ':buildEnvironment\'
+          | Creator: \ttasks.addPlaceholderAction(buildEnvironment)
           | Rules:
              ⤷ copyToTaskContainer
     + components

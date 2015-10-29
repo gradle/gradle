@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-class BuildscriptDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
+class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.requireOwnGradleUserHomeDir()
     }
@@ -68,7 +68,7 @@ class BuildscriptDependencyReportTaskIntegrationTest extends AbstractIntegration
 """
 
         when:
-        run(":impl:buildscriptDependencies")
+        run(":impl:buildEnvironment")
 
         then:
         output.contains(toPlatformLineSeparators("""
@@ -78,7 +78,7 @@ classpath
      \\--- org:leaf4:1.0
 """))
         when:
-        run(":client:buildscriptDependencies")
+        run(":client:buildEnvironment")
 
         then:
         output.contains(toPlatformLineSeparators("""
@@ -87,7 +87,7 @@ No dependencies
 """))
 
         when:
-        run(":buildscriptDependencies")
+        run(":buildEnvironment")
 
         then:
         output.contains(toPlatformLineSeparators("""

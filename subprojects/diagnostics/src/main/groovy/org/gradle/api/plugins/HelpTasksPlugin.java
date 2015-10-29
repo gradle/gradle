@@ -44,7 +44,6 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
     public static final String HELP_GROUP = "help";
     public static final String PROPERTIES_TASK = "properties";
     public static final String DEPENDENCIES_TASK = "dependencies";
-    public static final String BUILDSCRIPT_DEPENDENCIES_TASK = "buildscriptDependencies";
     public static final String DEPENDENCY_INSIGHT_TASK = "dependencyInsight";
     public static final String COMPONENTS_TASK = "components";
     public static final String MODEL_TASK = "model";
@@ -60,7 +59,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         tasks.addPlaceholderAction(PROPERTIES_TASK, PropertyReportTask.class, new PropertyReportTaskAction(projectName));
         tasks.addPlaceholderAction(DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new DependencyInsightReportTaskAction(projectName));
         tasks.addPlaceholderAction(DEPENDENCIES_TASK, DependencyReportTask.class, new DependencyReportTaskAction(projectName));
-        tasks.addPlaceholderAction(BUILDSCRIPT_DEPENDENCIES_TASK, BuildscriptDependencyReportTask.class, new BuildscriptDependencyReportTaskAction(projectName));
+        tasks.addPlaceholderAction(BuildEnvironmentReportTask.TASK_NAME, BuildEnvironmentReportTask.class, new BuildEnvironmentReportTaskAction(projectName));
         tasks.addPlaceholderAction(COMPONENTS_TASK, ComponentReport.class, new ComponentReportAction(projectName));
         tasks.addPlaceholderAction(MODEL_TASK, ModelReport.class, new ModelReportAction(projectName));
     }
@@ -163,14 +162,14 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private static class BuildscriptDependencyReportTaskAction implements Action<BuildscriptDependencyReportTask> {
+    private static class BuildEnvironmentReportTaskAction implements Action<BuildEnvironmentReportTask> {
         private final String projectName;
 
-        public BuildscriptDependencyReportTaskAction(String projectName) {
+        public BuildEnvironmentReportTaskAction(String projectName) {
             this.projectName = projectName;
         }
 
-        public void execute(BuildscriptDependencyReportTask task) {
+        public void execute(BuildEnvironmentReportTask task) {
             task.setDescription("Displays all buildscript dependencies declared in " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);

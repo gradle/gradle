@@ -23,9 +23,9 @@ import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class BuildscriptDependencyReportTaskTest extends Specification {
+class BuildEnvironmentReportTaskTest extends Specification {
     private DefaultProject project = TestUtil.createRootProject()
-    private BuildscriptDependencyReportTask task = TestUtil.createTask(BuildscriptDependencyReportTask.class, project)
+    private BuildEnvironmentReportTask task = TestUtil.createTask(BuildEnvironmentReportTask.class, project)
     private DependencyReportRenderer renderer = Mock(DependencyReportRenderer)
     private Configuration conf1 = project.buildscript.configurations.create("conf1")
     private Configuration conf2 = project.buildscript.configurations.create("conf2")

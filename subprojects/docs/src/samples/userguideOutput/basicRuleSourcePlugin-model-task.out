@@ -50,10 +50,10 @@ Root project
       | Creator: 	Project.<init>.tasks()
       | Rules:
          ⤷ PersonRules#createHelloTask
-    + buildscriptDependencies
-          | Type:   	org.gradle.api.tasks.diagnostics.BuildscriptDependencyReportTask
-          | Value:  	task ':buildscriptDependencies'
-          | Creator: 	tasks.addPlaceholderAction(buildscriptDependencies)
+    + buildEnvironment
+          | Type:   	org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask
+          | Value:  	task ':buildEnvironment'
+          | Creator: 	tasks.addPlaceholderAction(buildEnvironment)
           | Rules:
              ⤷ copyToTaskContainer
     + components

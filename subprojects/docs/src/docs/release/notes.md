@@ -11,6 +11,15 @@ Add-->
 TBD - Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
 might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
 
+### Visualising a project's build script dependencies
+
+The new `buildEnvironment` task can be used to visualise the project's `buildscript` dependencies.
+This task is implicitly available for all projects, much like the existing `dependencies` task.
+
+The `buildEnvironment` task can be used to understand how the declared dependencies of project's build script actually resolve,
+including transitive dependencies.
+
+The feature was kindly contributed by [Ethan Hall](https://github.com/ethankhall).
 
 ## Promoted features
 
@@ -56,9 +65,7 @@ TBD
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-<!--
-* [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
+* [Ethan Hall](https://github.com/ethankhall) - Addition of new `buildEnvironment` task
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

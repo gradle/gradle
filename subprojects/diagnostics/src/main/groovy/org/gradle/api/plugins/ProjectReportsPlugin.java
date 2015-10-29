@@ -20,7 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.reporting.dependencies.HtmlDependencyReportTask;
-import org.gradle.api.tasks.diagnostics.BuildscriptDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
@@ -35,7 +34,6 @@ public class ProjectReportsPlugin implements Plugin<Project> {
     public static final String TASK_REPORT = "taskReport";
     public static final String PROPERTY_REPORT = "propertyReport";
     public static final String DEPENDENCY_REPORT = "dependencyReport";
-    public static final String BUILDSCRIPT_DEPENDENCY_REPORT = "buildscriptDependencyReport";
     public static final String HTML_DEPENDENCY_REPORT = "htmlDependencyReport";
     public static final String PROJECT_REPORT = "projectReport";
 
@@ -83,10 +81,6 @@ public class ProjectReportsPlugin implements Plugin<Project> {
                 return convention.getProjects();
             }
         });
-
-        BuildscriptDependencyReportTask buildscriptDependencyReportTask = project.getTasks().create(BUILDSCRIPT_DEPENDENCY_REPORT,
-                BuildscriptDependencyReportTask.class);
-        buildscriptDependencyReportTask.setDescription("Generates a buildscript report about your library dependencies.");
 
         HtmlDependencyReportTask htmlDependencyReportTask = project.getTasks().create(HTML_DEPENDENCY_REPORT,
                 HtmlDependencyReportTask.class);

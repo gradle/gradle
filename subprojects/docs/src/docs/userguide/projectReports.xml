@@ -89,6 +89,16 @@ apply plugin: 'project-report'
                 <td><apilink class="org.gradle.api.Task"/></td>
                 <td>Generates all project reports.</td>
             </tr>
+            <tr>
+                <td>
+                    <literal>projectReport</literal>
+                </td>
+                <td>
+                    <literal>dependencyReport</literal>, <literal>propertyReport</literal>, <literal>taskReport</literal>, <literal>htmlDependencyReport</literal>
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Generates all project reports.</td>
+            </tr>
         </table>
     </section>
 
@@ -162,5 +172,5 @@ apply plugin: 'project-report'
 
         <para>These convention properties are provided by a convention object of type <apilink class="org.gradle.api.plugins.ProjectReportsPluginConvention"/>.</para>
     </section>
-    
+
 </chapter>

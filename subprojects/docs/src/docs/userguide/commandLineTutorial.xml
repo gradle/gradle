@@ -186,12 +186,9 @@
         </section>
         <section id="sec:listing_buildscript_dependencies">
             <title>Listing project buildscript dependencies</title>
-            <para id="para:commandline_buildscript_dependency_report">Running <userinput>gradle buildscriptDependencies</userinput>
-                gives you a list of the buildscript dependencies of the selected project, broken down by configuration. For each
-                configuration, the direct and transitive dependencies of that configuration are shown in a tree.
-                Since a dependency report can get large, it can be useful to restrict the report to a particular configuration.
-                This is achieved with the optional <userinput>--configuration</userinput> parameter.
-                The output of <userinput>buildscriptDependencies</userinput> is the same as <userinput>dependencies</userinput>.
+            <para id="para:commandline_buildscript_dependency_report">
+                Running <userinput>gradle buildEnvironment</userinput> visualises the buildscript dependencies of the selected project,
+                similarly to how <userinput>gradle dependencies</userinput> visualises the dependencies of the software being built.
             </para>
         </section>
         <section id="sec:dependency_insight">
@@ -239,7 +236,7 @@
                 did no work.
             </para>
             <para>Builds which utilize a buildSrc directory will generate a second profile report for buildSrc in the
-                <filename>buildSrc/build</filename> directory.                
+                <filename>buildSrc/build</filename> directory.
             </para>
             <imageobject>
                 <imagedata fileref="img/profile.png" width="903px" depth="477px"/>
