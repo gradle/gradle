@@ -153,6 +153,7 @@ TBD
 - The name for the compile tasks for a binary is now qualified with the name of its component.
 - JVM libraries have a binary called `jar` rather than one qualified with the library name.
 - When building a JVM library with multiple variants, the task and output directory names have changed. The library name is now first.
+- The top-level `binaries` container is now a `ModelMap` instead of a `DomainObjectContainer`. It is still accessible as `BinaryContainer`.
 
 ### Changes to incubating native software model
 
