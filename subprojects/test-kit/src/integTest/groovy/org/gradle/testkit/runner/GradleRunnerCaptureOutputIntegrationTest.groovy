@@ -24,8 +24,8 @@ import org.junit.Rule
 
 class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
-    static final String OUT = "out"
-    static final String ERR = "err"
+    static final String OUT = "-- out --"
+    static final String ERR = "-- err --"
 
     @Rule
     RedirectStdOutAndErr stdStreams = new RedirectStdOutAndErr()
@@ -44,10 +44,10 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerInteg
 
         then:
         noExceptionThrown()
-        result.output.contains(OUT)
-        result.output.contains(ERR)
-        standardOutput.toString().contains(OUT)
-        standardError.toString().contains(ERR)
+        result.output.findAll(OUT).size() == 1
+        result.output.findAll(ERR).size() == 1
+        standardOutput.toString().findAll(OUT).size() == 1
+        standardError.toString().findAll(ERR).size() == 1
         stdStreams.stdErr.empty
         stdStreams.stdOut.empty
     }
@@ -63,10 +63,10 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerInteg
 
         then:
         noExceptionThrown()
-        result.output.contains(OUT)
-        result.output.contains(ERR)
-        stdStreams.stdOut.contains(OUT)
-        stdStreams.stdOut.contains(ERR)
+        result.output.findAll(OUT).size() == 1
+        result.output.findAll(ERR).size() == 1
+        stdStreams.stdOut.findAll(OUT).size() == 1
+        stdStreams.stdOut.findAll(ERR).size() == 1
     }
 
     def "output is captured if unexpected build exception is thrown"() {
@@ -84,10 +84,10 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerInteg
         then:
         def t = thrown UnexpectedBuildSuccess
         def result = t.buildResult
-        result.output.contains(OUT)
-        result.output.contains(ERR)
-        standardOutput.toString().contains(OUT)
-        standardError.toString().contains(ERR)
+        result.output.findAll(OUT).size() == 1
+        result.output.findAll(ERR).size() == 1
+        standardOutput.toString().findAll(OUT).size() == 1
+        standardError.toString().findAll(ERR).size() == 1
     }
 
     @NoDebug
@@ -110,8 +110,8 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerInteg
         def t = thrown IllegalStateException
         t.cause instanceof GradleConnectionException
         t.cause.cause.class.name == DaemonDisappearedException.name // not the same class because it's coming from the tooling client
-        standardOutput.toString().contains(OUT)
-        standardError.toString().contains(ERR)
+        standardOutput.toString().findAll(OUT).size() == 1
+        standardError.toString().findAll(ERR).size() == 1
     }
 
     static String helloWorldWithStandardOutputAndError() {
