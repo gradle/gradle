@@ -24,6 +24,9 @@ wrapper - Generates Gradle wrapper files. [incubating]
 
 Help tasks
 ----------
+buildscriptDependencies - Displays all buildscript dependencies declared in root project 'projectReports'.
+api:buildscriptDependencies - Displays all buildscript dependencies declared in project ':api'.
+webapp:buildscriptDependencies - Displays all buildscript dependencies declared in project ':webapp'.
 components - Displays the components produced by root project 'projectReports'. [incubating]
 api:components - Displays the components produced by project ':api'. [incubating]
 webapp:components - Displays the components produced by project ':webapp'. [incubating]
