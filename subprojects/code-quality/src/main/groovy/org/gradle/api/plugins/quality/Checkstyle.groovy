@@ -109,8 +109,8 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
      * <pre>
      * checkstyleTask {
      *   reports {
-     *     xml {
-     *       destination "build/codenarc.xml"
+     *     html {
+     *       destination "build/codenarc.html"
      *     }
      *   }
      * }
@@ -171,7 +171,7 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
 
             if (ant.project.properties[propertyName]) {
                 def message = "Checkstyle rule violations were found."
-                def report = reports.firstEnabled
+                def report = reports.html.enabled ? reports.html : reports.xml.enabled ? reports.xml : null
                 if (report) {
                     def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
                     message += " See the report at: $reportUrl"

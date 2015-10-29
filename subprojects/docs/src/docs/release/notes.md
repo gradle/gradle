@@ -21,6 +21,13 @@ including transitive dependencies.
 
 The feature was kindly contributed by [Ethan Hall](https://github.com/ethankhall).
 
+### Checkstyle HTML report
+
+The [`Checkstyle` task](dsl/org.gradle.api.plugins.quality.Checkstyle.html) now produces a HTML report on failure in addition to the existing XML report.
+The, more human friendly, HTML report is now advertised instead of the XML report when it is available.
+
+This feature was kindly contributed by [Sebastian Schuberth](https://github.com/sschuberth).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -65,7 +72,8 @@ TBD
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Ethan Hall](https://github.com/ethankhall) - Addition of new `buildEnvironment` task
+* [Ethan Hall](https://github.com/ethankhall) - Addition of new `buildEnvironment` task.
+* [Sebastian Schuberth](https://github.com/sschuberth) - Checkstyle HTML report.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
