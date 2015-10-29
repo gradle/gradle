@@ -63,7 +63,7 @@ class BuildEventTimestampCollectorTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "Build event timestamp log at $logFilePath should contain exactly 3 lines."
+        e.message == "Build event timestamp log at $logFilePath should contain at least 3 lines."
     }
 
     def "throws when file contains anything that can't be parsed to a long"() {

@@ -22,6 +22,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.cache.HeapProportionalSizer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -31,14 +32,15 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 public class CachingPatternSpecFactory extends PatternSpecFactory {
-    private static final int RESULTS_CACHE_MAX_SIZE = 2000000;
-    private static final int INSTANCES_MAX_SIZE = 50000;
+    private static final int RESULTS_CACHE_MAX_SIZE = 1200000;
+    private static final int INSTANCES_MAX_SIZE = 30000;
     private final Cache<CacheKey, Boolean> specResultCache;
     private final Cache<SpecKey, Spec> specInstanceCache;
 
     public CachingPatternSpecFactory() {
-        specResultCache = CacheBuilder.newBuilder().maximumSize(RESULTS_CACHE_MAX_SIZE).initialCapacity(RESULTS_CACHE_MAX_SIZE / 10).build();
-        specInstanceCache = CacheBuilder.newBuilder().maximumSize(INSTANCES_MAX_SIZE).initialCapacity(INSTANCES_MAX_SIZE / 10).build();
+        HeapProportionalSizer sizer = new HeapProportionalSizer();
+        specResultCache = CacheBuilder.newBuilder().maximumSize(sizer.scaleValue(RESULTS_CACHE_MAX_SIZE)).build();
+        specInstanceCache = CacheBuilder.newBuilder().maximumSize(sizer.scaleValue(INSTANCES_MAX_SIZE)).build();
     }
 
     @Override

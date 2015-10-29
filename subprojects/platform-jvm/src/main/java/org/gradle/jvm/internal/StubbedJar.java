@@ -13,32 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.jvm.internal;
 
 import com.google.common.collect.ImmutableList;
-import groovy.lang.Closure;
-import org.gradle.api.Incubating;
-import org.gradle.api.file.ContentFilterable;
-import org.gradle.api.file.DuplicatesStrategy;
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
-import org.gradle.api.internal.file.archive.ZipCopyAction;
-import org.gradle.api.internal.file.copy.CopyAction;
-import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
-import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.UncheckedException;
-import org.gradle.jvm.tasks.Jar;
+import com.google.common.collect.Maps;
+import org.apache.commons.io.FileUtils;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.internal.ErroringAction;
+import org.gradle.internal.IoActions;
 import org.gradle.language.base.internal.tasks.apigen.ApiStubGenerator;
 
 import java.io.*;
 import java.util.Collection;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 
-public class StubbedJar extends Jar {
+public class StubbedJar extends DefaultTask {
 
     private Collection<String> exportedPackages;
+    private File runtimeClassesDir;
+    private File destinationDir;
+    private String archiveName;
+    private File apiClassesDir;
 
     @Input
     public Collection<String> getExportedPackages() {
@@ -49,193 +52,162 @@ public class StubbedJar extends Jar {
         this.exportedPackages = exportedPackages;
     }
 
-    @Override
-    protected CopyAction createCopyAction() {
-        final ZipCopyAction zipAction = (ZipCopyAction) super.createCopyAction();
-        ApiStubGenerator stubGenerator = new ApiStubGenerator(ImmutableList.copyOf(getExportedPackages()));
-        return new StubCopyActionDecorator(zipAction, stubGenerator);
+    @OutputDirectory
+    public File getDestinationDir() {
+        return destinationDir;
     }
 
-    private static class StubCopyActionDecorator implements CopyAction {
+    public void setDestinationDir(File destinationDir) {
+        this.destinationDir = destinationDir;
+    }
 
-        private final CopyAction delegate;
-        private final ApiStubGenerator stubGenerator;
+    // This could be considered as an @OutputDirectory
+    // however doing so would result in up-to-date checks, although this
+    // should not happen: this is a permanent "cache" for stubbed API classes
+    // and we cannot use the task temp directory because it is not guaranteed
+    // to be kept among various invocations
+    public File getApiClassesDir() {
+        return apiClassesDir;
+    }
 
-        public StubCopyActionDecorator(CopyAction delegate, ApiStubGenerator stubGenerator) {
-            this.delegate = delegate;
-            this.stubGenerator = stubGenerator;
+    public void setApiClassesDir(File stubbedClassesDir) {
+        this.apiClassesDir = stubbedClassesDir;
+    }
+
+    @InputDirectory
+    @SkipWhenEmpty
+    public File getRuntimeClassesDir() {
+        return runtimeClassesDir;
+    }
+
+    public void setRuntimeClassesDir(File runtimeClassesDir) {
+        this.runtimeClassesDir = runtimeClassesDir;
+    }
+
+    @Input
+    public String getArchiveName() {
+        return archiveName;
+    }
+
+    public void setArchiveName(String archiveName) {
+        this.archiveName = archiveName;
+    }
+
+    @TaskAction
+    void createStubs(final IncrementalTaskInputs inputs) throws Exception {
+        final File archivePath = new File(destinationDir, archiveName);
+        if (!inputs.isIncremental()) {
+            FileUtils.deleteQuietly(archivePath);
+            FileUtils.deleteDirectory(apiClassesDir);
         }
+        destinationDir.mkdirs();
+        apiClassesDir.mkdirs();
+        final ApiStubGenerator stubGenerator = new ApiStubGenerator(ImmutableList.copyOf(getExportedPackages()));
+        final AtomicBoolean updated = new AtomicBoolean();
+        final Map<File, byte[]> convertedFiles = Maps.newHashMap();
+        inputs.outOfDate(new ErroringAction<InputFileDetails>() {
+            @Override
+            protected void doExecute(InputFileDetails inputFileDetails) throws Exception {
+                updated.set(true);
+                File file = inputFileDetails.getFile();
+                File stubFile = getStubFileFor(file);
+                if (!isClass(file) || !stubGenerator.belongsToAPI(new FileInputStream(file))) {
+                    deleteStub(stubFile);
+                    return;
+                }
+                final byte[] bytes = stubGenerator.convertToApi(new FileInputStream(file));
+                convertedFiles.put(file, bytes);
+                stubFile.getParentFile().mkdirs();
+                IoActions.withResource(new FileOutputStream(stubFile), new ErroringAction<FileOutputStream>() {
+                    @Override
+                    protected void doExecute(FileOutputStream fos) throws Exception {
+                        fos.write(bytes);
+                    }
+                });
 
-        public WorkResult execute(final CopyActionProcessingStream stream) {
-            return delegate.execute(new CopyActionProcessingStream() {
-                public void process(final CopyActionProcessingStreamAction action) {
-                    stream.process(new CopyActionProcessingStreamAction() {
-                        public void processFile(FileCopyDetailsInternal details) {
-                            action.processFile(new StubFileDetailsDecorator(details, stubGenerator));
+            }
+        });
+        inputs.removed(new ErroringAction<InputFileDetails>() {
+            @Override
+            protected void doExecute(InputFileDetails input) throws Exception {
+                updated.set(true);
+                deleteStub(getStubFileFor(input.getFile()));
+            }
+        });
+        if (updated.get()) {
+            IoActions.withResource(new JarOutputStream(new BufferedOutputStream(new FileOutputStream(archivePath), 65536)), new ErroringAction<JarOutputStream>() {
+                private final SortedMap<String, File> sortedFiles = Maps.newTreeMap();
+
+                private void writeEntries(JarOutputStream jos) throws Exception {
+                    for (Map.Entry<String, File> entry : sortedFiles.entrySet()) {
+                        JarEntry ze = new JarEntry(entry.getKey());
+                        // Setting time to 0 because we need API jars to be identical independently of
+                        // the timestamps of class files
+                        ze.setTime(0);
+                        File stubFile = entry.getValue();
+                        // get it from cache if it has just been converted
+                        byte[] stub = convertedFiles.get(stubFile);
+                        if (stub==null) {
+                            // or get it from disk otherwise
+                            stub = FileUtils.readFileToByteArray(stubFile);
                         }
-                    });
+                        ze.setSize(stub.length);
+                        jos.putNextEntry(ze);
+                        jos.write(stub);
+                        jos.closeEntry();
+                    }
+                }
+
+                private void collectFiles(String relativePath, File f) throws Exception {
+                    String path = "".equals(relativePath) ? f.getName() : relativePath + "/" + f.getName();
+                    if (f.isFile()) {
+                        sortedFiles.put(path, f);
+                    } else if (f.isDirectory()) {
+                        for (File file : f.listFiles()) {
+                            String root = relativePath == null ? "" : path;
+                            collectFiles(root, file);
+                        }
+                    }
+                }
+
+                @Override
+                protected void doExecute(final JarOutputStream jos) throws Exception {
+                    writeManifest(jos);
+                    // Make sure all entries are always written in the same order
+                    collectFiles(null, apiClassesDir);
+                    writeEntries(jos);
+                    jos.close();
+                }
+
+                private void writeManifest(JarOutputStream jos) throws IOException {
+                    JarEntry je = new JarEntry("META-INF/MANIFEST.MF");
+                    je.setTime(0);
+                    jos.putNextEntry(je);
+                    jos.write("Manifest-Version: 1.0\n".getBytes());
+                    jos.closeEntry();
                 }
             });
         }
     }
 
-    private static class StubFileDetailsDecorator implements FileCopyDetailsInternal {
-        private final FileCopyDetailsInternal delegate;
-        private final ApiStubGenerator stubGenerator;
-
-        private StubFileDetailsDecorator(FileCopyDetailsInternal delegate, ApiStubGenerator stubGenerator) {
-            this.delegate = delegate;
-            this.stubGenerator = stubGenerator;
-        }
-
-        @Override
-        public boolean isIncludeEmptyDirs() {
-            return delegate.isIncludeEmptyDirs();
-        }
-
-        @Override
-        public void exclude() {
-            delegate.exclude();
-        }
-
-        @Override
-        @Incubating
-        public DuplicatesStrategy getDuplicatesStrategy() {
-            return delegate.getDuplicatesStrategy();
-        }
-
-        @Override
-        public String getName() {
-            return delegate.getName();
-        }
-
-        @Override
-        public String getPath() {
-            return delegate.getPath();
-        }
-
-        @Override
-        public RelativePath getRelativePath() {
-            return delegate.getRelativePath();
-        }
-
-        @Override
-        public RelativePath getRelativeSourcePath() {
-            return delegate.getRelativeSourcePath();
-        }
-
-        @Override
-        public String getSourceName() {
-            return delegate.getSourceName();
-        }
-
-        @Override
-        public String getSourcePath() {
-            return delegate.getSourcePath();
-        }
-
-        @Override
-        @Incubating
-        public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
-            delegate.setDuplicatesStrategy(strategy);
-        }
-
-        @Override
-        public void setMode(int mode) {
-            delegate.setMode(mode);
-        }
-
-        @Override
-        public void setName(String name) {
-            delegate.setName(name);
-        }
-
-        @Override
-        public void setPath(String path) {
-            delegate.setPath(path);
-        }
-
-        @Override
-        public void setRelativePath(RelativePath path) {
-            delegate.setRelativePath(path);
-        }
-
-        @Override
-        public void copyTo(OutputStream outstr) {
-            if (delegate.getName().endsWith(".class")) {
-                InputStream delegateStream = open();
-                try {
-                    outstr.write(stubGenerator.convertToApi(delegateStream));
-                    return;
-                } catch (IOException e) {
-                    delegate.copyTo(outstr);
-                } finally {
-                    try {
-                        delegateStream.close();
-                    } catch (IOException e) {
-                        UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-            }
-            delegate.copyTo(outstr);
-        }
-
-        @Override
-        public boolean copyTo(File target) {
-            return delegate.copyTo(target);
-        }
-
-        @Override
-        public File getFile() {
-            return delegate.getFile();
-        }
-
-        @Override
-        public long getLastModified() {
-            // we need all ABI jars to be the same independently of when they were built
-            // so the timestamp has to be identical
-            return 0;
-        }
-
-        @Override
-        public int getMode() {
-            return delegate.getMode();
-        }
-
-        @Override
-        public long getSize() {
-            return delegate.getSize();
-        }
-
-        @Override
-        public boolean isDirectory() {
-            return delegate.isDirectory();
-        }
-
-        @Override
-        public InputStream open() {
-            return delegate.open();
-        }
-
-        @Override
-        public ContentFilterable expand(Map<String, ?> properties) {
-            return delegate.expand(properties);
-        }
-
-        @Override
-        @SuppressWarnings("rawtypes")
-        public ContentFilterable filter(Closure closure) {
-            return delegate.filter(closure);
-        }
-
-        @Override
-        public ContentFilterable filter(Class<? extends FilterReader> filterType) {
-            return delegate.filter(filterType);
-        }
-
-        @Override
-        public ContentFilterable filter(Map<String, ?> properties, Class<? extends FilterReader> filterType) {
-            return delegate.filter(properties, filterType);
+    private void deleteStub(File stubFile) {
+        if (stubFile.exists()) {
+            FileUtils.deleteQuietly(stubFile);
         }
     }
+
+    private File getStubFileFor(File file) {
+        StringBuilder sb = new StringBuilder(file.getName());
+        File cur = file.getParentFile();
+        while (!cur.equals(runtimeClassesDir)) {
+            sb.insert(0, cur.getName() + File.separator);
+            cur = cur.getParentFile();
+        }
+        return new File(apiClassesDir, sb.toString());
+    }
+
+    private static boolean isClass(File file) {
+        return file.getName().endsWith(".class");
+    }
+
 }
