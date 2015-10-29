@@ -488,7 +488,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         buildFile << """
             model {
                 binaries {
-                    all { ${compilerTool}.args '/Zi'; linker.args '/DEBUG'; }
+                    all { ${compilerTool}.args ${toolChain.meets(ToolChainRequirement.VisualCpp2013) ? "'/Zi', '/FS'" : "'/Zi'"}; linker.args '/DEBUG'; }
                 }
             }
         """

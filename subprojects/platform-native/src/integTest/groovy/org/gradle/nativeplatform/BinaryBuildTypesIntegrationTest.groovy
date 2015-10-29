@@ -17,6 +17,7 @@ package org.gradle.nativeplatform
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
@@ -53,7 +54,7 @@ model {
                 if (toolChain in VisualCpp) {
                     // Apply to all debug build types: 'debug' and 'integration'
                     if (buildType.debug) {
-                        cppCompiler.args '/Zi'
+                        cppCompiler.args ${toolChain.meets(ToolChainRequirement.VisualCpp2013) ? "'/Zi', '/FS'" : "'/Zi'"}
                         cppCompiler.define 'DEBUG'
                         linker.args '/DEBUG'
                     }
