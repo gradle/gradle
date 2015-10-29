@@ -195,6 +195,9 @@ This information is already read while walking the directory tree and it can now
 
 Gradle has several in-memory caches as decorator for persistent caches. File names are either keys or values in many caches. In Gradle 2.9, a String de-duplication ("interner") solution is used to minimize the memory use of the in-memory caches by de-duplicating the String values that are stored in the caches.
 
+#### Speed improvement in directory listings by caching include/exclude pattern results
+
+Gradle 2.9 adds a new cache that caches the include/exclude pattern evaluation results. This has mainly a performance impact because Gradle inherits Ant's [default exclude patterns](https://github.com/apache/ant/blob/76455a35cb894dde4142555892bb30a4cee495f1/src/main/org/apache/tools/ant/DirectoryScanner.java#L149-L195). There are 28 default exclude patterns.
 
 ## Promoted features
 
