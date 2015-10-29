@@ -58,9 +58,11 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
             showViolations = { extension.showViolations }
         }
 
-        task.reports.xml.conventionMapping.with {
-            enabled = { true }
-            destination = { new File(extension.reportsDir, "${baseName}.xml") }
+        task.reports.all { report ->
+            report.conventionMapping.with {
+                enabled = { true }
+                destination = { new File(extension.reportsDir, "${baseName}.${report.name}") }
+            }
         }
     }
 
