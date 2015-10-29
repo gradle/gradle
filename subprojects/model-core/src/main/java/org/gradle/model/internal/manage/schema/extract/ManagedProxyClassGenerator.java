@@ -49,29 +49,32 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private static final String MANAGED_TYPE_FIELD_NAME = "$managedType";
     private static final String DELEGATE_FIELD_NAME = "$delegate";
     private static final String CAN_CALL_SETTERS_FIELD_NAME = "$canCallSetters";
-    private static final String STATE_SET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Object.class));
+    private static final Type OBJECT_TYPE = Type.getType(Object.class);
+    private static final Type STRING_TYPE = Type.getType(String.class);
+    private static final Type CLASS_TYPE = Type.getType(Class.class);
+    private static final String STATE_SET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE);
     private static final String MANAGED_INSTANCE_TYPE = Type.getInternalName(ManagedInstance.class);
     private static final Type MODEL_ELEMENT_STATE_TYPE = Type.getType(ModelElementState.class);
     private static final String NO_DELEGATE_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, MODEL_ELEMENT_STATE_TYPE);
-    private static final String TO_STRING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(String.class));
+    private static final String TO_STRING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(STRING_TYPE);
     private static final String MUTABLE_MODEL_NODE_TYPE = Type.getInternalName(MutableModelNode.class);
     private static final String GET_BACKING_NODE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(MutableModelNode.class));
     private static final Type MODELTYPE_TYPE = Type.getType(ModelType.class);
     private static final String MODELTYPE_INTERNAL_NAME = MODELTYPE_TYPE.getInternalName();
-    private static final String MODELTYPE_OF_METHOD_DESCRIPTOR = Type.getMethodDescriptor(MODELTYPE_TYPE, Type.getType(Class.class));
+    private static final String MODELTYPE_OF_METHOD_DESCRIPTOR = Type.getMethodDescriptor(MODELTYPE_TYPE, CLASS_TYPE);
     private static final String GET_MANAGED_TYPE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(MODELTYPE_TYPE);
-    private static final String GET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class));
+    private static final String GET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
     private static final String MISSING_PROPERTY_EXCEPTION_TYPE = Type.getInternalName(MissingPropertyException.class);
-    private static final String CLASS_TYPE = Type.getInternalName(Class.class);
-    private static final String FOR_NAME_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Class.class), Type.getType(String.class));
+    private static final String CLASS_INTERNAL_NAME = Type.getInternalName(Class.class);
+    private static final String FOR_NAME_METHOD_DESCRIPTOR = Type.getMethodDescriptor(CLASS_TYPE, STRING_TYPE);
     private static final String HASH_CODE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(int.class));
-    private static final String EQUALS_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(boolean.class), Type.getType(Object.class));
+    private static final String EQUALS_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(boolean.class), OBJECT_TYPE);
     private static final String OBJECT_ARRAY_TYPE = Type.getInternalName(Object[].class);
     private static final String MISSING_METHOD_EXCEPTION_TYPE = Type.getInternalName(MissingMethodException.class);
-    private static final String MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Class.class));
-    private static final String METHOD_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class), Type.getType(Object.class));
-    private static final String SET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class), Type.getType(Object.class));
-    private static final String MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Class.class), Type.getType(Object[].class));
+    private static final String MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, CLASS_TYPE);
+    private static final String METHOD_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
+    private static final String SET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
+    private static final String MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, CLASS_TYPE, Type.getType(Object[].class));
     private static final Equivalence<Method> METHOD_EQUIVALENCE = new MethodSignatureEquivalence();
     private static final Map<Class<?>, Class<?>> BOXED_TYPES = ImmutableMap.<Class<?>, Class<?>>builder()
         .put(byte.class, Byte.class)
@@ -318,7 +321,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private void putClassOnStack(MethodVisitor methodVisitor, Class<?> managedTypeClass) {
         putConstantOnStack(methodVisitor, managedTypeClass.getName());
-        methodVisitor.visitMethodInsn(INVOKESTATIC, CLASS_TYPE, "forName", FOR_NAME_METHOD_DESCRIPTOR, false);
+        methodVisitor.visitMethodInsn(INVOKESTATIC, CLASS_INTERNAL_NAME, "forName", FOR_NAME_METHOD_DESCRIPTOR, false);
     }
 
     private void writeManagedInstanceMethods(ClassVisitor visitor, Type generatedType) {
@@ -468,7 +471,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitInsn(DUP);
         putConstantOnStack(methodVisitor, "Calling setters of a managed type on itself is not allowed");
 
-        String constructorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class));
+        String constructorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, exceptionInternalName, CONSTRUCTOR_NAME, constructorDescriptor, false);
         methodVisitor.visitInsn(ATHROW);
     }
@@ -639,7 +642,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void invokeStateGetMethod(MethodVisitor methodVisitor) {
-        String methodDescriptor = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class));
+        String methodDescriptor = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
         methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "get", methodDescriptor, true);
     }
 
