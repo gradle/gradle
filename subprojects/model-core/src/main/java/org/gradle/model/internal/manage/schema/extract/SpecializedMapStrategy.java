@@ -16,6 +16,10 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import org.gradle.internal.UncheckedException;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
@@ -23,16 +27,26 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Currently only handles interfaces with no type parameters that directly extend ModelMap.
  */
 public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
     private final ManagedCollectionProxyClassGenerator generator = new ManagedCollectionProxyClassGenerator();
+    private final LoadingCache<ModelType<?>, Class<?>> generatedImplementationTypes = CacheBuilder.newBuilder()
+        .weakValues()
+        .build(new CacheLoader<ModelType<?>, Class<?>>() {
+            @Override
+            public Class<?> load(ModelType<?> contractType) throws Exception {
+                return generator.generate(ModelMapGroovyDecorator.Managed.class, contractType.getConcreteClass());
+            }
+        });
 
     @Override
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
-        Type type = extractionContext.getType().getType();
+        ModelType<T> modelType = extractionContext.getType();
+        Type type = modelType.getType();
         if (!(type instanceof Class)) {
             return;
         }
@@ -52,8 +66,13 @@ public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
             return;
         }
         ModelType<?> elementType = ModelType.of(parameterizedSuperType.getActualTypeArguments()[0]);
-        Class<?> proxyImpl = generator.generate(ModelMapGroovyDecorator.Managed.class, contractType);
-        extractionContext.found(new SpecializedMapSchema<T>(extractionContext.getType(), elementType, proxyImpl));
+        Class<?> proxyImpl;
+        try {
+            proxyImpl = generatedImplementationTypes.get(modelType);
+        } catch (ExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        extractionContext.found(new SpecializedMapSchema<T>(modelType, elementType, proxyImpl));
     }
 
 }
