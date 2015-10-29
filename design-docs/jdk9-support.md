@@ -181,26 +181,6 @@ Given the example:
 - No failure attempting to build `main`, where `D` contains bad code
 - Reasonable error message attempting to build `main`, where `C` contains bad code
 
-### Open issues
-
-- Declare a dependency set at the component level, to be used as the default for all its source sets.
-
-## Story: Consuming an API jar should throw an error
-
-Make sure that if a user puts a stubbed API jar on classpath, during execution of the program, an error is thrown. This should already be implemented
-at this point, this story is about adding intergration tests that make sure that we really provide sensible error messages to the user. If necessary,
-update the error messages so that they are clearly understandable.
-
-### Test cases
-
-- class `B` of library `LB` instantiates class `A` of library `LA`
-   * Should not throw an error if runtime jar of `LA` is used
-   * Should throw `UnsupportedOperationException` if the stubbed API jar is used
-
-- class `B` of library `LB` calls static method of class `A` of library `LA`
-   * Should not throw an error if runtime jar of `LA` is used
-   * Should throw `UnsupportedOperationException` if the stubbed API jar is used
-
 ### DSL Improvements
 
 Exported libraries can also be declared directly in the `api` configuration block via the `requires <Dependency Selector>` syntax:
@@ -239,6 +219,26 @@ Libraries exported this way are implicitly added as a compile dependency to all 
     DependencySpecBuilder library(String name);
 ```
 - `ApiSpec.dependencies` must be copied into all source sets upon triggering of rule `????` ensuring `dependency.isExported() == true`
+
+### Open issues
+
+- Declare a dependency set at the component level, to be used as the default for all its source sets.
+
+## Story: Consuming an API jar should throw an error
+
+Make sure that if a user puts a stubbed API jar on classpath, during execution of the program, an error is thrown. This should already be implemented
+at this point, this story is about adding intergration tests that make sure that we really provide sensible error messages to the user. If necessary,
+update the error messages so that they are clearly understandable.
+
+### Test cases
+
+- class `B` of library `LB` instantiates class `A` of library `LA`
+   * Should not throw an error if runtime jar of `LA` is used
+   * Should throw `UnsupportedOperationException` if the stubbed API jar is used
+
+- class `B` of library `LB` calls static method of class `A` of library `LA`
+   * Should not throw an error if runtime jar of `LA` is used
+   * Should throw `UnsupportedOperationException` if the stubbed API jar is used
 
 ## Story: Validates stubbed API classes according to the API specification
 
