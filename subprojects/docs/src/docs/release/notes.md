@@ -11,6 +11,35 @@ Add-->
 TBD - Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
 might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
 
+#### Default implementation for unmanaged base binary and component types
+
+It is now possible to declare a default implementation for a base component or a binary type, and extend it via further managed subtypes.
+
+    interface MyBaseBinarySpec extends BinarySpec {}
+
+    class MyBaseBinarySpecImpl extends BaseBinarySpec implements MyBaseBinarySpec {}
+
+    class BasePlugin extends RuleSource {
+        @ComponentType
+        public void registerMyBaseBinarySpec(ComponentTypeBuilder<MyBaseBinarySpec> builder) {
+            builder.defaultImplementation(MyBaseBinarySpecImpl.class);
+        }
+    }
+
+    @Managed
+    interface MyCustomBinarySpec extends BaseBinarySpec {
+        // Add some further managed properties
+    }
+
+    class CustomPlugin extends RuleSource {
+        @ComponentType
+        public void registerMyCustomBinarySpec(ComponentTypeBuilder<MyCustomBinarySpec> builder) {
+            // No default implementation required
+        }
+    }
+
+This functionality is available for unmanaged types extending `ComponentSpec` and `BinarySpec`.
+
 ### Visualising a project's build script dependencies
 
 The new `buildEnvironment` task can be used to visualise the project's `buildscript` dependencies.
