@@ -201,6 +201,45 @@ update the error messages so that they are clearly understandable.
    * Should not throw an error if runtime jar of `LA` is used
    * Should throw `UnsupportedOperationException` if the stubbed API jar is used
 
+### DSL Improvements
+
+Exported libraries can also be declared directly in the `api` configuration block via the `requires <Dependency Selector>` syntax:
+
+```groovy
+    model {
+        ...
+        A(JvmLibrarySpec) {
+            api {
+                requires library "B"
+            }
+        }
+        B(JvmLibrarySpec) {
+            api {
+                requires library "C"
+            }
+        }
+        ...
+    }
+```
+
+Libraries exported this way are implicitly added as a compile dependency to all source sets.
+
+#### Implementation Plan
+
+- `ApiSpec` must implement `DependencySpecContainer` or expose a relevant subset of its methods
+- `ApiSpec` must aggregate a `DefaultDependencySpecContainer` to hold the exported dependencies
+- `ApiSpec` must be extended with the following methods:
+```java
+    void requires(DependencySpec dependency);
+
+    // relevant subset of DependencySpecContainer if not implementing it directly, always delegated to aggregate
+
+    DependencySpecBuilder project(String path);
+
+    DependencySpecBuilder library(String name);
+```
+- `ApiSpec.dependencies` must be copied into all source sets upon triggering of rule `????` ensuring `dependency.isExported() == true`
+
 ## Story: Validates stubbed API classes according to the API specification
 
 When stripping out non public members of a class, the stub generator should check if the methods or classes which are exported do not expose classes which do not belong
