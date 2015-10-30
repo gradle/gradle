@@ -137,6 +137,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         when:
         def lastChangeRef = new AtomicLong(0)
+        gcAndIdleBefore()
         fileChanger(instant, testfile, lastChangeRef)
 
         then:
@@ -160,14 +161,19 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
     }
 
     private void changeByAppendingAndKeepingFileOpen(instant, testfile, lastChangeRef) {
-        testfile.withPrintWriter { PrintWriter out ->
+        new FileWriter(testfile).withWriter { Writer out ->
             for (int i = 0; i < 10; i++) {
                 instant.assertNotReached('done')
-                out.println("change")
+                out.write("change\n")
                 out.flush()
                 lastChangeRef.set(System.currentTimeMillis())
                 sleep(50)
             }
         }
+    }
+
+    private void gcAndIdleBefore() {
+        System.gc()
+        sleep(500)
     }
 }
