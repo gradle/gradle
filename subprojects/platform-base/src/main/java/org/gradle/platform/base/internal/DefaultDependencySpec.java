@@ -23,15 +23,13 @@ import org.gradle.platform.base.DependencySpecBuilder;
 public class DefaultDependencySpec implements DependencySpec {
     private final String projectPath;
     private final String libraryName;
-    private final boolean exported;
 
-    public DefaultDependencySpec(String libraryName, String projectPath, boolean exported) {
+    public DefaultDependencySpec(String libraryName, String projectPath) {
         if (libraryName==null && projectPath==null) {
             throw new IllegalArgumentException("A dependency spec must have at least one of project or library name not null");
         }
         this.libraryName = libraryName;
         this.projectPath = projectPath;
-        this.exported = exported;
     }
 
     @Override
@@ -47,13 +45,12 @@ public class DefaultDependencySpec implements DependencySpec {
 
     @Override
     public boolean isExported() {
-        return exported;
+        return false;
     }
 
     public static class Builder implements DependencySpecBuilder {
         private String projectPath;
         private String libraryName;
-        private boolean exported;
 
         @Override
         public DependencySpecBuilder project(String path) {
@@ -67,14 +64,9 @@ public class DefaultDependencySpec implements DependencySpec {
             return this;
         }
 
-        public DependencySpecBuilder exported(boolean value) {
-            exported = value;
-            return this;
-        }
-
         @Override
         public DependencySpec build() {
-            return new DefaultDependencySpec(libraryName, projectPath, exported);
+            return new DefaultDependencySpec(libraryName, projectPath);
         }
 
         @Override
@@ -91,7 +83,7 @@ public class DefaultDependencySpec implements DependencySpec {
 
         @Override
         public boolean isExported() {
-            return exported;
+            return false;
         }
     }
 
@@ -107,9 +99,7 @@ public class DefaultDependencySpec implements DependencySpec {
         DefaultDependencySpec that = (DefaultDependencySpec) o;
 
         return ObjectUtils.equals(projectPath, that.projectPath)
-                && ObjectUtils.equals(libraryName, that.libraryName)
-                && exported == that.exported;
-
+                && ObjectUtils.equals(libraryName, that.libraryName);
     }
 
     @Override

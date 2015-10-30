@@ -16,8 +16,12 @@
 
 package org.gradle.jvm.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.platform.base.DependencySpecContainer;
+import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -35,6 +39,7 @@ import static java.lang.String.format;
 class ApiSpec {
 
     private final Set<PackageName> exports = new HashSet<PackageName>();
+    private final DefaultDependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
     /**
      * Specify a package to be exported as part of the library API.
@@ -60,5 +65,13 @@ class ApiSpec {
 
     public Set<PackageName> getExports() {
         return exports;
+    }
+
+    public DependencySpecContainer getDependencies() {
+        return dependencies;
+    }
+
+    public void dependencies(Closure<?> configureAction) {
+        ConfigureUtil.configure(configureAction, dependencies);
     }
 }

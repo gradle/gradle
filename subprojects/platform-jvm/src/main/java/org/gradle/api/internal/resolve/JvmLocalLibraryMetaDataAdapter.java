@@ -19,7 +19,6 @@ package org.gradle.api.internal.resolve;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.jvm.JarBinarySpec;
-import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
@@ -34,17 +33,14 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
         DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(jarBinarySpec.getId(), buildDependencies);
         LibraryPublishArtifact jarBinary = new LibraryPublishArtifact("jar", jarBinarySpec.getApiJarFile());
         metaData.addArtifacts(DefaultLibraryBinaryIdentifier.CONFIGURATION_API, Collections.singleton(jarBinary));
-        addExportedDependencies(selectedBinary, metaData, projectPath);
+        addApiDependenciesTo(metaData, jarBinarySpec, projectPath);
         return metaData;
     }
 
-    private void addExportedDependencies(BinarySpec selectedBinary, DefaultLibraryLocalComponentMetaData metaData, String selectorProjectPath) {
-        for (DependentSourceSetInternal sourceSet : selectedBinary.getInputs().withType(DependentSourceSetInternal.class)) {
-            for (DependencySpec dependency : sourceSet.getDependencies().getDependencies()) {
-                if (dependency.isExported()) {
-                    metaData.addDependency(dependency, selectorProjectPath);
-                }
-            }
+    private void addApiDependenciesTo(DefaultLibraryLocalComponentMetaData metaData, JarBinarySpec binary, String projectPath) {
+        for (DependencySpec dependency : binary.getApiDependencies()) {
+            metaData.addDependency(dependency, projectPath);
         }
     }
+
 }

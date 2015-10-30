@@ -23,11 +23,13 @@ import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -41,6 +43,7 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File apiJarFile;
     private ComponentSpec component;
     private Set<String> exportedPackages = Collections.emptySet();
+    private Collection<DependencySpec> apiDependencies = Collections.emptySet();
 
     @Override
     protected String getTypeName() {
@@ -130,6 +133,16 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     @Override
     public Set<String> getExportedPackages() {
         return exportedPackages;
+    }
+
+    @Override
+    public void setApiDependencies(Collection<DependencySpec> apiDependencies) {
+       this.apiDependencies = apiDependencies;
+    }
+
+    @Override
+    public Collection<DependencySpec> getApiDependencies() {
+        return apiDependencies;
     }
 
     @Override

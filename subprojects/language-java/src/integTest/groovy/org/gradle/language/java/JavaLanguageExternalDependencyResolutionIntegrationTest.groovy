@@ -192,20 +192,28 @@ model {
             }
         }
         other(JvmLibrarySpec) {
+            api {
+                dependencies {
+                    library 'apiLib'
+                }
+            }
             sources {
                 java {
                     dependencies {
-                        library 'apiLib' exported(true)
                         library 'compileLib'
                     }
                 }
             }
         }
         apiLib(JvmLibrarySpec) {
+            api {
+                dependencies {
+                    library 'transitiveApiLib'
+                }
+            }
             sources {
                 java {
                     dependencies {
-                        library 'transitiveApiLib' exported(true)
                         library 'transitiveCompileLib'
                     }
                 }
@@ -265,10 +273,14 @@ model {
             }
         }
         other(JvmLibrarySpec) {
+            api {
+                dependencies {
+                    library 'org.gradle:apiDep:1.0'
+                }
+            }
             sources {
                 java {
                     dependencies {
-                        library 'org.gradle:apiDep:1.0' exported(true)
                         library 'org.gradle:compileDep:1.0'
                     }
                 }

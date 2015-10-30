@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.JvmResources;
+import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
@@ -73,5 +74,10 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
             }
         });
         return ImmutableSet.copyOf(transform);
+    }
+
+    @Override
+    public Collection<DependencySpec> getApiDependencies() {
+        return apiSpec.getDependencies().getDependencies();
     }
 }

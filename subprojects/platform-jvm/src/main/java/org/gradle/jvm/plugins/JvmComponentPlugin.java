@@ -40,6 +40,7 @@ import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -105,6 +106,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                                    PlatformResolvers platforms, final JvmLibrarySpec jvmLibrary) {
             List<JavaPlatform> selectedPlatforms = resolvePlatforms(platforms, jvmLibrary);
             final Set<String> exportedPackages = jvmLibrary.getExportedPackages();
+            final Collection<DependencySpec> apiDependencies = jvmLibrary.getApiDependencies();
             for (final JavaPlatform platform : selectedPlatforms) {
                 String binaryName = buildBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
                 binaries.create(binaryName, new Action<JarBinarySpec>() {
@@ -112,6 +114,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     public void execute(JarBinarySpec jarBinary) {
                         jarBinary.setTargetPlatform(platform);
                         jarBinary.setExportedPackages(exportedPackages);
+                        jarBinary.setApiDependencies(apiDependencies);
                     }
                 });
             }
