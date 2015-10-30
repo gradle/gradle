@@ -235,7 +235,7 @@ model {
         file('mainLibs').assertHasDescendants('other.jar', 'apiLib.jar', 'transitiveApiLib.jar')
     }
 
-    def "resolved classpath includes transitive api-scoped dependencies of maven library depeendency"() {
+    def "resolved classpath includes transitive api-scoped dependencies of maven library dependency"() {
         given:
         mavenRepo.module("org.gradle", "compileDep").publish()
         mavenRepo.module("org.gradle", "transitiveDep").publish()
