@@ -20,27 +20,23 @@ import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.resource.CharsetUtil;
 
 import java.nio.charset.Charset;
 
 public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
     private final ClassLoader classLoader;
     private final JavaVersion javaVersion;
-    private final OperatingSystem operatingSystem;
     private DirectoryWalker instance;
 
-    DefaultDirectoryWalkerFactory(ClassLoader classLoader, JavaVersion javaVersion, OperatingSystem operatingSystem) {
+    DefaultDirectoryWalkerFactory(ClassLoader classLoader, JavaVersion javaVersion) {
         this.javaVersion = javaVersion;
         this.classLoader = classLoader;
-        this.operatingSystem = operatingSystem;
         reset();
     }
 
     DefaultDirectoryWalkerFactory() {
-        this(DefaultDirectoryWalkerFactory.class.getClassLoader(), JavaVersion.current(), OperatingSystem.current());
+        this(DefaultDirectoryWalkerFactory.class.getClassLoader(), JavaVersion.current());
     }
 
     public DirectoryWalker create() {
@@ -52,7 +48,7 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
     }
 
     private DirectoryWalker createInstance() {
-        if (javaVersion.isJava7Compatible() && (javaVersion.isJava8Compatible() || fileEncodingMatchesFilePathEncoding() || isUnicodeSupported())) {
+        if (javaVersion.isJava7Compatible() && (javaVersion.isJava8Compatible() || fileEncodingContainsFilePathEncoding())) {
             try {
                 Class clazz = classLoader.loadClass("org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker");
                 return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz));
@@ -64,12 +60,8 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
         }
     }
 
-    private boolean fileEncodingMatchesFilePathEncoding() {
+    private boolean fileEncodingContainsFilePathEncoding() {
         // sun.jnu.encoding is the encoding used to decode/encode file paths
-        return System.getProperty("file.encoding").equals(System.getProperty("sun.jnu.encoding"));
-    }
-
-    private boolean isUnicodeSupported() {
-        return Charset.defaultCharset().contains(CharsetUtil.UTF_8);
+        return System.getProperty("sun.jnu.encoding") != null && Charset.defaultCharset().contains(Charset.forName(System.getProperty("sun.jnu.encoding")));
     }
 }

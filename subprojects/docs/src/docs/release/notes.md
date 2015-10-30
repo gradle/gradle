@@ -183,8 +183,8 @@ Gradle will use the Java nio.2 API to walk file trees on Java 7+.
 The benefit of using Java nio.2 API to access directories is that file metadata (file size, last modification time) is read with a single system call.
 This information is already read while walking the directory tree and it can now be used in processing files with the Gradle APIs. In Gradle 2.9, this is used in the up-to-date checking and this improves the speed of it.
 
-The Java nio.2 API doesn't get used on Java 7 when the `sun.jnu.encoding` system property value doesn't equal to the value of `file.encoding` property and `file.encoding` is a non-unicode encoding.
-`sun.jnu.encoding` system property is a special system property that shouldn't be set explicitly.
+The Java nio.2 API doesn't get used on Java 7 when the default encoding (`file.encoding`) isn't able to losslessly encode the JVM's internal file path encoding charset (`sun.jnu.encoding`).
+This condition might apply in some environments when `file.encoding` is set to an non-unicode charset.
 
 #### Memory use reduction
 
