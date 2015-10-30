@@ -412,6 +412,37 @@ The `GradleRunner` abstract class will be extended to provide additional methods
 
 * Using `System.out` and `System.err` as default? This might produce to much log output.
 
+## Story: GradleRunner functionality is verified to work with all "supported" Gradle versions
+
+The TestKit allows for executing functional test with a Gradle distribution specified by the user. `GradleRunner` passes the provided
+distribution to the Tooling API to execute Gradle. For the most part the internal implementation of the Tooling API build execution
+uses a conservative set of features though there's no there's no assurance that a Tooling API will work with older versions of Gradle
+in this context. This story aims for implementing appropriate test coverage to ensure backward compatibility or graceful handling of
+unsupported functionality for other versions of the Tooling API.
+
+### Implementation
+
+* Execute all existing integration tests in Gradle core with a restricted set of Gradle versions:
+    * version-under-test
+    * the most recent released version
+    * the oldest version for which the feature is supported
+* Implement annotation(s) used to indicate the tested Gradle version for a specific test method. An annotated test method will use
+the assigned versions to execute the test.
+* A TestKit feature that is not supported by the Gradle version used to execute the test should behave in a reasonable manner e.g. provide
+a human-readable error message that explains why this feature cannot be used.
+* Each cross-version test needs to be executed with and without debug mode. There are some exceptions where using debug mode doesn't make
+sense e.g. tests around the isolated daemon.
+
+### Test Coverage
+
+* Test passes for feature with Gradle versions supporting it.
+* Test fails with an appropriate error message if Gradle version does not support it.
+* Assigned Gradle versions used for testing are properly evaluated and used for execution.
+
+### Open issues
+
+* Account for increased build time on CI (potentially requires re-sharding of jobs).
+
 # Milestone 3
 
 ## Story: Classes under test are visible to build scripts
