@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner
 
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
@@ -89,7 +90,10 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerInteg
 
         then:
         file("gradleVersion.txt").text == version
-        file("gradleHomeDir.txt").text.startsWith(GradleUserHomeLookup.gradleUserHome().canonicalPath)
+
+        // Note: GradleRunnerIntegTestRunner configures the test env to use this gradle user home dir
+        file("gradleHomeDir.txt").text.startsWith(new IntegrationTestBuildContext().gradleUserHomeDir.absolutePath)
+
         testKitDir.eachFileRecurse {
             assert !it.name.contains("gradle-$version-bin.zip")
         }

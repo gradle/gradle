@@ -17,6 +17,8 @@
 package org.gradle.testkit.runner.fixtures
 
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.wrapper.GradleUserHomeLookup
 
 class GradleRunnerIntegTestRunner extends AbstractMultiTestRunner {
 
@@ -24,6 +26,8 @@ class GradleRunnerIntegTestRunner extends AbstractMultiTestRunner {
      * Read by tests to configure themselves for debug or not.
      */
     public static boolean debug
+
+    private static final IntegrationTestBuildContext BUILD_CONTEXT = new IntegrationTestBuildContext()
 
     GradleRunnerIntegTestRunner(Class<?> target) {
         super(target)
@@ -37,6 +41,7 @@ class GradleRunnerIntegTestRunner extends AbstractMultiTestRunner {
     private static class GradleRunnerExecution extends AbstractMultiTestRunner.Execution {
 
         private final boolean debug
+        private String gradleUserHomeSetting
 
         GradleRunnerExecution(boolean debug) {
             this.debug = debug
@@ -50,6 +55,14 @@ class GradleRunnerIntegTestRunner extends AbstractMultiTestRunner {
         @Override
         protected void before() {
             GradleRunnerIntegTestRunner.debug = debug
+            gradleUserHomeSetting = System.setProperty(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY, BUILD_CONTEXT.gradleUserHomeDir.absolutePath)
+        }
+
+        @Override
+        protected void after() {
+            if (gradleUserHomeSetting) {
+                System.setProperty(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY, gradleUserHomeSetting)
+            }
         }
 
         @Override
