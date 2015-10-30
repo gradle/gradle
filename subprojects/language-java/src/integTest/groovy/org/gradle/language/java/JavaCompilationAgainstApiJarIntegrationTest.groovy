@@ -18,6 +18,7 @@ package org.gradle.language.java
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Ignore
+import spock.lang.Unroll
 
 @LeaksFileHandles
 class JavaCompilationAgainstApiJarIntegrationTest extends AbstractIntegrationSpec {
@@ -31,7 +32,11 @@ plugins {
     }
 
     private void mainLibraryDependingOnApi() {
-        buildFile << '''
+        mainLibraryDependingOnApi(DependencyScope.SOURCES)
+    }
+
+    private void mainLibraryDependingOnApi(DependencyScope scope) {
+        buildFile << """
 model {
     components {
         myLib(JvmLibrarySpec) {
@@ -40,18 +45,47 @@ model {
             }
         }
         main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'myLib'
-                    }
-                }
-            }
+            ${scope.declaration}
         }
     }
 }
-'''
+"""
     }
+
+    static enum DependencyScope {
+        API {
+            @Override
+            public String getDeclaration() {
+                return '''
+                api {
+                    dependencies {
+                        library 'myLib'
+                    }
+                }'''
+            }
+        },
+        SOURCES {
+            @Override
+            public String getDeclaration() {
+                return '''
+                sources {
+                    java {
+                        dependencies {
+                            library 'myLib'
+                        }
+                    }
+                }'''
+            }
+        };
+
+        public abstract String getDeclaration();
+    }
+
+    static Collection<DependencyScope> scopes = [
+        //TODO:RBO uncomment the following line
+        //DependencyScope.API,
+        DependencyScope.SOURCES
+    ]
 
     private void testAppDependingOnApiClass() {
         file('src/main/java/com/acme/TestApp.java') << '''package com.acme;
@@ -76,10 +110,11 @@ public class TestApp {
         file(path).write(contents)
     }
 
-    def "fails compilation if trying to compile a non-API class"() {
+    @Unroll
+    def "fails compilation if trying to compile a non-API class (#scope)"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(scope)
 
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
@@ -107,12 +142,16 @@ public class TestApp {
 
         and:
         fails ':mainJar'
+
+        where:
+        scope << scopes
     }
 
-    def "consuming source is recompiled when API class changes"() {
+    @Unroll
+    def "consuming source is recompiled when API class changes (#scope)"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(scope)
 
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
@@ -146,12 +185,16 @@ public class Person {
         and:
         executedAndNotSkipped(':compileMyLibJarMyLibJava')
         executedAndNotSkipped(':compileMainJarMainJava')
+
+        where:
+        scope << scopes
     }
 
-    def "consuming source is not recompiled when non-API class changes"() {
+    @Unroll
+    def "consuming source is not recompiled when non-API class changes (#scope)"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(scope)
 
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
@@ -186,6 +229,9 @@ public class PersonInternal extends Person {
         and:
         executedAndNotSkipped(':compileMyLibJarMyLibJava')
         skipped(':compileMainJarMainJava')
+
+        where:
+        scope << scopes
     }
 
     def "consuming source is not recompiled when comment is changed in API class"() {
