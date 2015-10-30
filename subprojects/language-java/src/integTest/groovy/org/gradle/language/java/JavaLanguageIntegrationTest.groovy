@@ -97,10 +97,10 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/java5MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_5
-        jarFile("build/jars/java6MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
-        jarFile("build/jars/java7MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_7
-        jarFile("build/jars/java8MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_8
+        jarFile("build/jars/myLibJava5Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_5
+        jarFile("build/jars/myLibJava6Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
+        jarFile("build/jars/myLibJava7Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_7
+        jarFile("build/jars/myLibJava8Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_8
     }
 
     def "erroneous target should produce reasonable error message"() {
