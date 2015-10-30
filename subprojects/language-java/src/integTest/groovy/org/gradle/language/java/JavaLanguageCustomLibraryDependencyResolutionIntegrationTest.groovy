@@ -22,6 +22,8 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
+import static JavaIntegrationTesting.applyJavaPlugin
+
 class JavaLanguageCustomLibraryDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "can depend on a custom component producing a JVM library"() {
@@ -943,15 +945,6 @@ model {
         succeeds ':thirdJar'
         succeeds ':fourthJar'
         succeeds ':fifthJar'
-    }
-
-    void applyJavaPlugin(File buildFile) {
-        buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-'''
     }
 
     void addCustomLibraryType(File buildFile) {

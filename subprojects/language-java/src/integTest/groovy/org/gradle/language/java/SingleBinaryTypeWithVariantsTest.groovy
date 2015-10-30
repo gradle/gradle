@@ -19,6 +19,8 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
+import static JavaIntegrationTesting.applyJavaPlugin
+
 class SingleBinaryTypeWithVariantsTest extends VariantAwareDependencyResolutionSpec {
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
