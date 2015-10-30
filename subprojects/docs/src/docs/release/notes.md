@@ -183,15 +183,18 @@ Gradle will use the Java nio.2 API to walk file trees on Java 7+.
 The benefit of using Java nio.2 API to access directories is that file metadata (file size, last modification time) is read with a single system call.
 This information is already read while walking the directory tree and it can now be used in processing files with the Gradle APIs. In Gradle 2.9, this is used in the up-to-date checking and this improves the speed of it.
 
-The Java nio.2 API doesn't get used on Java 7 when the `sun.jnu.encoding` system property value doesn't equal to the value of `file.encoding` property and `file.encoding` is a non-unicode encoding. `sun.jnu.encoding` system property is a special system property that shouldn't be set explicitly.
+The Java nio.2 API doesn't get used on Java 7 when the `sun.jnu.encoding` system property value doesn't equal to the value of `file.encoding` property and `file.encoding` is a non-unicode encoding.
+`sun.jnu.encoding` system property is a special system property that shouldn't be set explicitly.
 
 #### Memory use reduction
 
-Gradle has several in-memory caches as decorator for persistent caches. File names are either keys or values in many caches. In Gradle 2.9, a String de-duplication ("interner") solution is used to minimize the memory use of the in-memory caches by de-duplicating the String values that are stored in the caches.
+Gradle has several in-memory caches as decorator for persistent caches. File names are either keys or values in many caches. In Gradle 2.9, a String de-duplication ("interner") solution is used to minimize
+the memory use of the in-memory caches by de-duplicating the String values that are stored in the caches.
 
 #### Speed improvement in directory listings by caching include/exclude pattern results
 
-Gradle 2.9 adds a new cache that caches the include/exclude pattern evaluation results. This has mainly a performance impact because Gradle inherits Ant's [default exclude patterns](https://github.com/apache/ant/blob/76455a35cb894dde4142555892bb30a4cee495f1/src/main/org/apache/tools/ant/DirectoryScanner.java#L149-L195). There are 28 default exclude patterns.
+Gradle 2.9 adds a new cache that caches the include/exclude pattern evaluation results. This has mainly a performance impact because Gradle inherits Ant's
+[default exclude patterns](https://github.com/apache/ant/blob/76455a35cb894dde4142555892bb30a4cee495f1/src/main/org/apache/tools/ant/DirectoryScanner.java#L149-L195). There are 28 default exclude patterns.
 
 ## Promoted features
 
