@@ -1315,7 +1315,7 @@ foo
 
         then:
         def ex = thrown IllegalStateException
-        ex.message == "Cannot add rule project for model element 'foo' at state Known as this element is already at state ProjectionsDefined."
+        ex.message == "Cannot add rule project for model element 'foo' at state ${ModelNode.State.Known} as this element is already at state ${ModelNode.State.ProjectionsDefined}."
     }
 
     def "transitions children of scope to projections defined when defining scope when node matching input type is not already in projections defined state"() {
