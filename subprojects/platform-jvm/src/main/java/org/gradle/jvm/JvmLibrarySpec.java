@@ -18,9 +18,11 @@ package org.gradle.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.LibrarySpec;
 import org.gradle.platform.base.PlatformAwareComponentSpec;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -30,4 +32,6 @@ import java.util.Set;
 public interface JvmLibrarySpec extends LibrarySpec, JvmComponentSpec, PlatformAwareComponentSpec {
 
     Set<String> getExportedPackages();
+
+    Collection<DependencySpec> getApiDependencies();
 }
