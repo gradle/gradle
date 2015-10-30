@@ -76,6 +76,9 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private static final String SET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
     private static final String MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, CLASS_TYPE, Type.getType(Object[].class));
     private static final Equivalence<Method> METHOD_EQUIVALENCE = new MethodSignatureEquivalence();
+    private static final String SET_OBJECT_PROPERTY_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
+    private static final String COERCE_TO_SCALAR_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, CLASS_TYPE);
+    private static final String COERCE_CLASS_INTERNAL_NAME = CharSequenceToScalarConverter.class.getName().replaceAll("\\.", "/");
     private static final Map<Class<?>, Class<?>> BOXED_TYPES = ImmutableMap.<Class<?>, Class<?>>builder()
         .put(byte.class, Byte.class)
         .put(short.class, Short.class)
@@ -412,7 +415,10 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         Label calledOutsideOfConstructor = new Label();
 
         Method setter = weakSetter.getMethod();
-        MethodVisitor methodVisitor = declareMethod(visitor, setter.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(propertyTypeClass)), AsmClassGeneratorUtils.signature(setter));
+
+        // the regular typed setter
+        String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(propertyTypeClass));
+        MethodVisitor methodVisitor = declareMethod(visitor, setter.getName(), methodDescriptor, AsmClassGeneratorUtils.signature(setter));
 
         putCanCallSettersFieldValueOnStack(methodVisitor, generatedType);
         jumpToLabelIfStackEvaluatesToTrue(methodVisitor, calledOutsideOfConstructor);
@@ -428,6 +434,33 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         invokeStateSetMethod(methodVisitor);
 
         finishVisitingMethod(methodVisitor);
+
+        /* TODO:BB commented out until the real CharSequenceToScalarConverter impl is ready; tests are failing
+                   because the wrong exceptions are thrown
+
+        // the overload of type Object for Groovy coercions:  public void setFoo(Object foo)
+        methodVisitor = declareMethod(visitor, setter.getName(), SET_OBJECT_PROPERTY_DESCRIPTOR, SET_OBJECT_PROPERTY_DESCRIPTOR);
+
+        Class<?> objectType = propertyTypeClass.isPrimitive() ? BOXED_TYPES.get(propertyTypeClass) : propertyTypeClass;
+        String propertyType = Type.getInternalName(objectType);
+
+        methodVisitor.visitVarInsn(ALOAD, 1);
+        methodVisitor.visitLdcInsn(Type.getType(objectType));
+
+        // Object converted = Utils.convert(foo, propertyType);
+        methodVisitor.visitMethodInsn(INVOKESTATIC, COERCE_CLASS_INTERNAL_NAME, "convert", COERCE_TO_SCALAR_DESCRIPTOR, false);
+        methodVisitor.visitVarInsn(ASTORE, 2); // converted
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitVarInsn(ALOAD, 2);
+        methodVisitor.visitTypeInsn(CHECKCAST, propertyType);
+
+        if (propertyTypeClass.isPrimitive()) {
+            unboxType(methodVisitor, propertyTypeClass);
+        }
+
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), setter.getName(), methodDescriptor, false);
+        finishVisitingMethod(methodVisitor);
+         */
     }
 
     private void writeHashCodeMethod(ClassVisitor visitor, Type generatedType) {
