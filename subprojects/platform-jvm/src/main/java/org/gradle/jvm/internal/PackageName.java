@@ -31,7 +31,7 @@ import java.util.List;
  * @see #of(String)
  * @since 2.9
  */
-final class PackageName {
+class PackageName {
 
     private static final List<String> JAVA_KEYWORDS = Arrays.asList(
         "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
