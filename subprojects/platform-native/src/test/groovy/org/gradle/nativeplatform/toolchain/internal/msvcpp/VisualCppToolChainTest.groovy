@@ -40,6 +40,7 @@ class VisualCppToolChainTest extends Specification {
     final BuildOperationProcessor buildOperationProcessor = Stub(BuildOperationProcessor)
     final VisualStudioLocator.SearchResult visualStudioLookup = Stub(VisualStudioLocator.SearchResult)
     final WindowsSdkLocator.SearchResult windowsSdkLookup = Stub(WindowsSdkLocator.SearchResult)
+    final UcrtLocator.SearchResult ucrtLookup = Stub(UcrtLocator.SearchResult)
     final Instantiator instantiator = DirectInstantiator.INSTANCE
     VisualCppToolChain toolChain
 
@@ -49,19 +50,22 @@ class VisualCppToolChainTest extends Specification {
     final WindowsSdkLocator windowsSdkLocator = Stub(WindowsSdkLocator) {
         locateWindowsSdks(_) >> windowsSdkLookup
     }
+    final UcrtLocator ucrtLocator = Stub(UcrtLocator) {
+        locateUcrts(_) >> ucrtLookup
+    }
     final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
     }
 
     def setup() {
-        toolChain = new VisualCppToolChain("visualCpp", buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
+        toolChain = new VisualCppToolChain("visualCpp", buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator)
     }
 
     def "installs an unavailable tool chain when not windows"() {
         given:
         def operatingSystem = Stub(OperatingSystem)
         operatingSystem.isWindows() >> false
-        def toolChain = new VisualCppToolChain("visualCpp", buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
+        def toolChain = new VisualCppToolChain("visualCpp", buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator)
 
         when:
         def availability = new ToolChainAvailability()
@@ -77,6 +81,7 @@ class VisualCppToolChainTest extends Specification {
         visualStudioLookup.available >> false
         visualStudioLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("vs install not found anywhere") }
         windowsSdkLookup.available >> false
+        ucrtLookup.available >> false
 
         and:
         def result = toolChain.select(Stub(NativePlatformInternal))
@@ -93,6 +98,8 @@ class VisualCppToolChainTest extends Specification {
         windowsSdkLookup.available >> false
         windowsSdkLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("sdk not found anywhere") }
 
+        ucrtLookup.available >> false
+
         and:
         def result = toolChain.select(Stub(NativePlatformInternal))
 
@@ -108,6 +115,7 @@ class VisualCppToolChainTest extends Specification {
         def platform = Stub(NativePlatformInternal) { getName() >> 'platform' }
         visualStudioLookup.available >> true
         windowsSdkLookup.available >> true
+        ucrtLookup.available >> false
         visualStudioLookup.visualStudio >> visualStudio
         visualStudioLookup.visualStudio >> Stub(VisualStudioInstall)
         visualStudio.visualCpp >> visualCpp
@@ -128,6 +136,7 @@ class VisualCppToolChainTest extends Specification {
         def platform = Stub(NativePlatformInternal)
         visualStudioLookup.available >> true
         windowsSdkLookup.available >> true
+        ucrtLookup.available >> false
         visualStudioLookup.visualStudio >> visualStudio
         visualStudioLookup.visualStudio >> Stub(VisualStudioInstall)
         visualStudio.visualCpp >> visualCpp
@@ -154,6 +163,9 @@ class VisualCppToolChainTest extends Specification {
         fileResolver.resolve("windows-sdk-dir") >> file("win-sdk")
         windowsSdkLocator.locateWindowsSdks(file("win-sdk")) >> windowsSdkLookup
         windowsSdkLookup.available >> true
+
+        and:
+        ucrtLookup.available >> false
 
         and:
         0 * _._
@@ -193,6 +205,7 @@ class VisualCppToolChainTest extends Specification {
         def visualCpp = Stub(VisualCppInstall)
         visualStudioLookup.available >> true
         windowsSdkLookup.available >> true
+        ucrtLookup.available >> false
         visualStudioLookup.visualStudio >> visualStudio
         visualStudioLookup.visualStudio >> Stub(VisualStudioInstall)
         visualStudio.visualCpp >> visualCpp

@@ -44,14 +44,16 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     private final Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
     private final VisualCppInstall visualCpp;
     private final WindowsSdk sdk;
+    private final Ucrt ucrt;
     private final NativePlatformInternal targetPlatform;
     private final ExecActionFactory execActionFactory;
 
-    VisualCppPlatformToolProvider(BuildOperationProcessor buildOperationProcessor, OperatingSystemInternal operatingSystem, Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, NativePlatformInternal targetPlatform, ExecActionFactory execActionFactory) {
+    VisualCppPlatformToolProvider(BuildOperationProcessor buildOperationProcessor, OperatingSystemInternal operatingSystem, Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, Ucrt ucrt, NativePlatformInternal targetPlatform, ExecActionFactory execActionFactory) {
         super(buildOperationProcessor, operatingSystem);
         this.commandLineToolConfigurations = commandLineToolConfigurations;
         this.visualCpp = visualCpp;
         this.sdk = sdk;
+        this.ucrt = ucrt;
         this.targetPlatform = targetPlatform;
         this.execActionFactory = execActionFactory;
     }
@@ -177,6 +179,9 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
             public T transform(T original) {
                 original.include(visualCpp.getIncludePath(targetPlatform));
                 original.include(sdk.getIncludeDirs());
+                if (ucrt != null) {
+                    original.include(ucrt.getIncludeDirs());
+                }
                 for (Map.Entry<String, String> definition : visualCpp.getDefinitions(targetPlatform).entrySet()) {
                     original.define(definition.getKey(), definition.getValue());
                 }
@@ -188,7 +193,11 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     private Transformer<LinkerSpec, LinkerSpec> addLibraryPath() {
         return new Transformer<LinkerSpec, LinkerSpec>() {
             public LinkerSpec transform(LinkerSpec original) {
-                original.libraryPath(visualCpp.getLibraryPath(targetPlatform), sdk.getLibDir(targetPlatform));
+                if (ucrt == null) {
+                    original.libraryPath(visualCpp.getLibraryPath(targetPlatform), sdk.getLibDir(targetPlatform));
+                } else {
+                    original.libraryPath(visualCpp.getLibraryPath(targetPlatform), sdk.getLibDir(targetPlatform), ucrt.getLibDir(targetPlatform));
+                }
                 return original;
             }
         };

@@ -30,6 +30,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.UcrtLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCppToolChain;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator;
@@ -55,10 +56,11 @@ public class MicrosoftVisualCppPlugin implements Plugin<Project> {
             final BuildOperationProcessor buildOperationProcessor = serviceRegistry.get(BuildOperationProcessor.class);
             final VisualStudioLocator visualStudioLocator = serviceRegistry.get(VisualStudioLocator.class);
             final WindowsSdkLocator windowsSdkLocator = serviceRegistry.get(WindowsSdkLocator.class);
+            final UcrtLocator ucrtLocator = serviceRegistry.get(UcrtLocator.class);
 
             toolChainRegistry.registerFactory(VisualCpp.class, new NamedDomainObjectFactory<VisualCpp>() {
                 public VisualCpp create(String name) {
-                    return instantiator.newInstance(VisualCppToolChain.class, name, buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator);
+                    return instantiator.newInstance(VisualCppToolChain.class, name, buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator);
                 }
             });
             toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp.class);
