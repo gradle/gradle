@@ -55,12 +55,12 @@ public interface NativeExecutableBinarySpec extends NativeBinarySpec, Applicatio
     NativeExecutableSpec getComponent();
 
     /**
-     * TODO:HH Discuss Javadoc practices
+     * Native Installation location for a native executable.
      */
     NativeInstallationSpec getInstallation();
 
     /**
-     * TODO:HH Discuss Javadoc practices
+     * Native Executable File.
      */
     NativeExecutableFileSpec getExecutable();
 
