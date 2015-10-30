@@ -149,28 +149,36 @@ creation of a static initializer that we want to avoid).
 
 Given the example:
 
-    model {
+```groovy
+model {
+    components {
         main(JvmLibrarySpec) {
             sources.java.dependencies {
                 library "A"
             }
         }
         A(JvmLibrarySpec) {
-            api.dependencies {
-                library "B"
+            api {
+                dependencies {
+                    library "B"
+                }
             }
             sources.java.dependencies {
                 library "D"
             }
         }
         B(JvmLibrarySpec) {
-            api.dependencies {
-                library "C"
+            api {
+                dependencies {
+                    library "C"
+                }
             }
         }
         C(JvmLibrarySpec) {}
         D(JvmLibrarySpec) {}
     }
+}
+```
 
 - The compile classpath for 'main' includes the APIs of `A`, `B` and `C`, but not `D`.
 - `D` is not exported in the API of `A`, and so is added to the compile classpath of `A` only.
