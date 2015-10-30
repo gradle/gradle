@@ -341,7 +341,6 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry
             .register("foo", new Bean(), action)
-            .configure(ModelActionRole.DefineRules, registry.action().path("foo").type(Bean).action(action))
             .configure(ModelActionRole.Defaults, registry.action().path("foo").type(Bean).action(action))
             .configure(ModelActionRole.Initialize, registry.action().path("foo").type(Bean).action(action))
             .configure(ModelActionRole.Mutate, registry.action().path("foo").type(Bean).action(action))
@@ -352,15 +351,12 @@ class DefaultModelRegistryTest extends Specification {
         def value = registry.realize("foo", Bean).value
 
         then:
-        value == "create > rules > defaults > initialize > mutate > finalize"
+        value == "create > defaults > initialize > mutate > finalize"
 
         and:
         1 * action.execute(_) >> { Bean bean ->
             assert bean.value == null
             bean.value = "create"
-        }
-        1 * action.execute(_) >> { Bean bean ->
-            bean.value += " > rules"
         }
         1 * action.execute(_) >> { Bean bean ->
             bean.value += " > defaults"
@@ -375,7 +371,7 @@ class DefaultModelRegistryTest extends Specification {
             bean.value += " > finalize"
         }
         1 * action.execute(_) >> { Bean bean ->
-            assert bean.value == "create > rules > defaults > initialize > mutate > finalize"
+            assert bean.value == "create > defaults > initialize > mutate > finalize"
         }
         0 * action._
 
@@ -846,7 +842,6 @@ class DefaultModelRegistryTest extends Specification {
         ModelNode.State.Registered      | null
         ModelNode.State.Discovered      | null
         ModelNode.State.Created         | "created"
-        ModelNode.State.RulesDefined    | ModelActionRole.DefineRules.name()
         ModelNode.State.DefaultsApplied | ModelActionRole.Defaults.name()
         ModelNode.State.Initialized     | ModelActionRole.Initialize.name()
         ModelNode.State.Mutated         | ModelActionRole.Mutate.name()

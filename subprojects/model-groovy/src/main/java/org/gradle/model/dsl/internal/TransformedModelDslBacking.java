@@ -91,7 +91,7 @@ public class TransformedModelDslBacking {
 
     private <T> void registerAction(final ModelPath modelPath, final Class<T> viewType, final ModelRuleDescriptor descriptor, final ModelActionRole role, final Closure<?> closure) {
         final ModelReference<T> reference = ModelReference.of(modelPath, viewType);
-        modelRegistry.configure(ModelActionRole.DefineRules, DirectNodeNoInputsModelAction.of(reference, descriptor, new Action<MutableModelNode>() {
+        modelRegistry.configure(ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(reference, descriptor, new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode mutableModelNode) {
                 InputReferences inputs = inputPathsExtractor.transform(closure);

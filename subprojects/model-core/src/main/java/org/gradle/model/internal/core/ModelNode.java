@@ -35,7 +35,6 @@ public interface ModelNode {
         Registered(true), // Initial state. Only path and some projections are known here
         Discovered(true), // All projections are defined
         Created(true), // Private data has been created, initial rules discovered
-        RulesDefined(true), // Rules are defined
         DefaultsApplied(true), // Default values have been applied
         Initialized(true),
         Mutated(true),
