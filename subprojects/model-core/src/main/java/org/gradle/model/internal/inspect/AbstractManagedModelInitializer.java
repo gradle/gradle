@@ -28,11 +28,11 @@ import java.util.Collection;
 
 public abstract class AbstractManagedModelInitializer<T> implements NodeInitializer {
 
-    protected final ModelManagedImplStructSchema<T> schema;
+    protected final ManagedImplStructSchema<T> schema;
     protected final ModelSchemaStore schemaStore;
     protected final ManagedProxyFactory proxyFactory;
 
-    public AbstractManagedModelInitializer(ModelManagedImplStructSchema<T> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+    public AbstractManagedModelInitializer(ManagedImplStructSchema<T> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
         this.schema = schema;
         this.schemaStore = schemaStore;
         this.proxyFactory = proxyFactory;
@@ -69,7 +69,7 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
 
         ModelRuleDescriptor descriptor = modelNode.getDescriptor();
         ModelPath childPath = modelNode.getPath().child(property.getName());
-        if (propertySchema instanceof ManagedImplModelSchema) {
+        if (propertySchema instanceof ManagedImplSchema) {
             if (!property.isWritable()) {
                 ModelCreator creator = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertySchema.getType(), property, schema.getType())))
                     .descriptor(descriptor)
@@ -82,7 +82,7 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
                         .build();
                     modelNode.addLink(creator);
                 } else {
-                    ModelManagedImplStructSchema<P> structSchema = (ModelManagedImplStructSchema<P>) propertySchema;
+                    ManagedImplStructSchema<P> structSchema = (ManagedImplStructSchema<P>) propertySchema;
                     ModelProjection projection = new ManagedModelProjection<P>(structSchema, null, schemaStore, proxyFactory);
                     ModelCreator creator = ModelCreators.of(childPath)
                         .withProjection(projection)
@@ -106,10 +106,10 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
     }
 
     private <P> void validateProperty(ModelSchema<P> propertySchema, ModelProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry) {
-        if (propertySchema instanceof ManagedImplModelSchema) {
+        if (propertySchema instanceof ManagedImplSchema) {
             if (!property.isWritable()) {
-                if (propertySchema instanceof ModelCollectionSchema && !(propertySchema instanceof ScalarCollectionSchema)) {
-                    ModelCollectionSchema<P, ?> propertyCollectionsSchema = (ModelCollectionSchema<P, ?>) propertySchema;
+                if (propertySchema instanceof CollectionSchema && !(propertySchema instanceof ScalarCollectionSchema)) {
+                    CollectionSchema<P, ?> propertyCollectionsSchema = (CollectionSchema<P, ?>) propertySchema;
                     ModelType<?> elementType = propertyCollectionsSchema.getElementType();
                     nodeInitializerRegistry.ensureHasInitializer(NodeInitializerContext.forProperty(elementType, property, schema.getType()));
                 }
@@ -135,6 +135,6 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
     }
 
     private <P> boolean isAModelValueSchema(ModelSchema<P> propertySchema) {
-        return propertySchema instanceof ModelValueSchema;
+        return propertySchema instanceof ValueSchema;
     }
 }

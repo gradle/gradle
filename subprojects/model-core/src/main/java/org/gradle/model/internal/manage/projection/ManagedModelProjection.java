@@ -39,12 +39,12 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
     private static final ModelType<? extends Collection<?>> COLLECTION_MODEL_TYPE = new ModelType<Collection<?>>() {
     };
-    private final ModelStructSchema<M> schema;
-    private final ModelStructSchema<? extends M> delegateSchema;
+    private final StructSchema<M> schema;
+    private final StructSchema<? extends M> delegateSchema;
     private final ModelSchemaStore schemaStore;
     private final ManagedProxyFactory proxyFactory;
 
-    public ManagedModelProjection(ModelStructSchema<M> schema, ModelStructSchema<? extends M> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+    public ManagedModelProjection(StructSchema<M> schema, StructSchema<? extends M> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
         super(schema.getType(), true, true);
         this.schema = schema;
         this.delegateSchema = delegateSchema;
@@ -144,7 +144,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     MutableModelNode propertyNode = modelNode.getLink(name);
                     propertyNode.ensureUsable();
 
-                    if (propertySchema instanceof ManagedImplModelSchema) {
+                    if (propertySchema instanceof ManagedImplSchema) {
                         if (value == null) {
                             if (propertySchema instanceof ScalarCollectionSchema) {
                                 ScalarCollectionSchema.clear(propertyNode);

@@ -16,11 +16,15 @@
 
 package org.gradle.model.internal.manage.schema;
 
-/**
- * Model schema with managed implementation. This means that we have control over the actual implementation type for the type
- * described in the schema, and we also control the instantiation of managed view instances.
- *
- * @param <T> the type the schema is extracted from.
- */
-public interface ManagedImplModelSchema<T> extends ModelSchema<T> {
+import org.gradle.model.internal.type.ModelType;
+
+public class ValueSchema<T> extends AbstractModelSchema<T> {
+    public ValueSchema(ModelType<T> type) {
+        super(type);
+    }
+
+    @Override
+    public String toString() {
+        return "value " + getType();
+    }
 }

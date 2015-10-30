@@ -21,7 +21,7 @@ import org.gradle.model.Managed
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.instance.ModelElementState
-import org.gradle.model.internal.manage.schema.ModelStructSchema
+import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -472,7 +472,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         if (generated == null) {
             def managedSchema = schemaStore.getSchema(managedType)
             def delegateSchema = delegateType == null ? null : schemaStore.getSchema(delegateType)
-            generated = generator.generate((ModelStructSchema) managedSchema, (ModelStructSchema) delegateSchema)
+            generated = generator.generate((StructSchema) managedSchema, (StructSchema) delegateSchema)
             generatedForDelegateType[delegateType] = generated
         }
         return generated

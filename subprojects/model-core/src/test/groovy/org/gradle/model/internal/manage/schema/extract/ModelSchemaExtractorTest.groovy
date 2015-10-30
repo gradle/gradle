@@ -34,7 +34,8 @@ import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.util.regex.Pattern
 
-import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.*
+import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.MANAGED
+import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.UNMANAGED
 
 @SuppressWarnings("GroovyPointlessBoolean")
 class ModelSchemaExtractorTest extends Specification {
@@ -48,7 +49,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "unmanaged type"() {
         expect:
-        extract(NotAnnotatedInterface) instanceof ModelUnmanagedImplStructSchema
+        extract(NotAnnotatedInterface) instanceof UnmanagedImplStructSchema
     }
 
     @Managed
@@ -587,7 +588,7 @@ $type
 
     def "can extract enum"() {
         expect:
-        extract(MyEnum) instanceof ModelValueSchema
+        extract(MyEnum) instanceof ValueSchema
     }
 
     @Managed
@@ -819,7 +820,7 @@ interface Managed${typeName} {
         def strategy = Mock(ModelSchemaExtractionStrategy) {
             extract(_) >> { ModelSchemaExtractionContext extractionContext ->
                 if (extractionContext.type.rawClass == CustomThing) {
-                    extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
+                    extractionContext.found(new ValueSchema<CustomThing>(extractionContext.type))
                 }
             }
         }
@@ -827,8 +828,8 @@ interface Managed${typeName} {
         def store = new DefaultModelSchemaStore(extractor)
 
         then:
-        store.getSchema(CustomThing) instanceof ModelValueSchema
-        store.getSchema(UnmanagedThing) instanceof ModelUnmanagedImplStructSchema
+        store.getSchema(CustomThing) instanceof ValueSchema
+        store.getSchema(UnmanagedThing) instanceof UnmanagedImplStructSchema
     }
 
     def "custom strategy can register dependency on other type"() {
@@ -843,14 +844,14 @@ interface Managed${typeName} {
         1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(CustomThing)
             extractionContext.child(ModelType.of(UnmanagedThing), "child")
-            extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
+            extractionContext.found(new ValueSchema<CustomThing>(extractionContext.type))
         }
         1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)
         }
 
         and:
-        customSchema instanceof ModelValueSchema
+        customSchema instanceof ValueSchema
     }
 
     def "validator is invoked after all dependencies have been visited"() {
@@ -867,7 +868,7 @@ interface Managed${typeName} {
             assert extractionContext.type == ModelType.of(CustomThing)
             extractionContext.addValidator(validator)
             extractionContext.child(ModelType.of(UnmanagedThing), "child")
-            extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
+            extractionContext.found(new ValueSchema<CustomThing>(extractionContext.type))
         }
         1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)
@@ -902,7 +903,7 @@ interface Managed${typeName} {
         def schema = extract(SimpleUnmanagedType)
 
         then:
-        assert schema instanceof ModelUnmanagedImplStructSchema
+        assert schema instanceof UnmanagedImplStructSchema
         schema.getProperty("prop").getPropertyValue(instance) == "12"
         schema.getProperty("calculatedProp").getPropertyValue(instance) == "calc"
     }
@@ -929,7 +930,7 @@ interface Managed${typeName} {
         def schema = extract(SimpleUnmanagedTypeWithAnnotations)
 
         then:
-        assert schema instanceof ModelUnmanagedImplStructSchema
+        assert schema instanceof UnmanagedImplStructSchema
         schema.properties*.name == ["buildable", "time", "unmanagedCalculatedProp", "unmanagedProp"]
 
         schema.getProperty("unmanagedProp").stateManagementType == UNMANAGED
@@ -981,7 +982,7 @@ interface Managed${typeName} {
         def schema = store.getSchema(ManagedTypeWithAnnotationsExtendingUnmanagedType)
 
         then:
-        assert schema instanceof ModelManagedImplStructSchema
+        assert schema instanceof ManagedImplStructSchema
         schema.properties*.name == ["buildable", "managedCalculatedProp", "managedProp", "time", "unmanagedCalculatedProp", "unmanagedProp"]
 
         schema.getProperty("unmanagedProp").stateManagementType == UNMANAGED
@@ -1022,7 +1023,7 @@ interface Managed${typeName} {
         def schema = extract(SimplePurelyManagedType)
 
         then:
-        assert schema instanceof ModelManagedImplStructSchema
+        assert schema instanceof ManagedImplStructSchema
         schema.properties*.name == ["managedCalculatedProp", "managedProp"]
 
         schema.getProperty("managedProp").stateManagementType == MANAGED
@@ -1049,7 +1050,7 @@ interface Managed${typeName} {
         def schema = extract(OverridingManagedSubtype)
 
         then:
-        assert schema instanceof ModelManagedImplStructSchema
+        assert schema instanceof ManagedImplStructSchema
         schema.properties*.name == ["managedCalculatedProp", "managedProp"]
 
         schema.getProperty("managedProp").stateManagementType == MANAGED
@@ -1082,7 +1083,7 @@ interface Managed${typeName} {
         def resultSchema = store.getSchema(MyTypeOfAspect)
 
         then:
-        assert resultSchema instanceof ModelStructSchema
+        assert resultSchema instanceof StructSchema
         resultSchema.hasAspect(MyAspect)
         resultSchema.getAspect(MyAspect) == aspect
 
@@ -1129,7 +1130,7 @@ interface Managed${typeName} {
         def schema = store.getSchema(HasDualGetter)
 
         then:
-        schema instanceof ManagedImplModelSchema
+        schema instanceof ManagedImplSchema
         def redundant = schema.properties[0]
         assert redundant instanceof ModelProperty
         redundant.getters.size() == 2
@@ -1221,7 +1222,7 @@ interface Managed${typeName} {
         def schema = extract(managedType)
 
         then:
-        assert schema instanceof ModelManagedImplStructSchema
+        assert schema instanceof ManagedImplStructSchema
         schema.properties*.name == ["items"]
 
         schema.getProperty("items").stateManagementType == MANAGED
@@ -1247,7 +1248,7 @@ interface Managed${typeName} {
         def schema = extract(managedType)
 
         then:
-        assert schema instanceof ModelManagedImplStructSchema
+        assert schema instanceof ManagedImplStructSchema
         schema.properties*.name == ["items"]
 
         schema.getProperty("items").stateManagementType == MANAGED
@@ -1292,7 +1293,7 @@ interface Managed${typeName} {
         def schema = extract(managedType)
 
         then:
-        assert schema instanceof ModelUnmanagedImplStructSchema
+        assert schema instanceof UnmanagedImplStructSchema
         schema.properties*.name == ["items"]
 
         schema.getProperty("items").stateManagementType == UNMANAGED
@@ -1319,7 +1320,7 @@ interface Managed${typeName} {
 
         when:
         def schema = extract(unmanagedType)
-        assert schema instanceof ModelStructSchema
+        assert schema instanceof StructSchema
 
         then:
         schema.properties*.name == ["nice", "thing"]

@@ -23,7 +23,7 @@ import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
-import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
+import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
@@ -36,7 +36,7 @@ public class ManagedSetNodeInitializerExtractionStrategy extends CollectionNodeI
     };
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema) {
+    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema) {
         if (MANAGED_SET_MODEL_TYPE.isAssignableFrom(schema.getType())) {
             return new ManagedSetNodeInitializer<T, E>(schema);
         }
@@ -86,9 +86,9 @@ public class ManagedSetNodeInitializerExtractionStrategy extends CollectionNodeI
     }
 
     private static class ManagedSetNodeInitializer<T, E> implements NodeInitializer {
-        private final ModelCollectionSchema<T, E> schema;
+        private final CollectionSchema<T, E> schema;
 
-        public ManagedSetNodeInitializer(ModelCollectionSchema<T, E> schema) {
+        public ManagedSetNodeInitializer(CollectionSchema<T, E> schema) {
             this.schema = schema;
         }
 

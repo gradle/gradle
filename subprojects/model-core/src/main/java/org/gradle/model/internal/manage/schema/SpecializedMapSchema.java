@@ -21,7 +21,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.lang.ref.WeakReference;
 
 /*
-    This should implement ManagedImplModelSchema.
+    This should implement ManagedImplSchema.
     It doesn't because we can't quite have a node initializer for it.
     As it currently stands, initialization of nodes of this type requires a supporting instance factory.
     Based on just the schema, we don't quite know what the reference to the factory is.

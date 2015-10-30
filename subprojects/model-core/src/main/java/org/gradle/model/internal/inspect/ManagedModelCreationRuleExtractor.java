@@ -25,7 +25,7 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelValueSchema;
+import org.gradle.model.internal.manage.schema.ValueSchema;
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.type.ModelType;
 
@@ -74,7 +74,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     private <T> ModelCreator buildModelCreatorForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, final ModelPath modelPath) {
         final ModelSchema<T> modelSchema = getModelSchema(managedType, ruleDefinition);
 
-        if (modelSchema instanceof ModelValueSchema) {
+        if (modelSchema instanceof ValueSchema) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.");
         }
 

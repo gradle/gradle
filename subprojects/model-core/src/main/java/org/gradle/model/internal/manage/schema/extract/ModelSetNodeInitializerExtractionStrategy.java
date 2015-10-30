@@ -23,7 +23,7 @@ import org.gradle.model.ModelSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
-import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
+import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
@@ -35,7 +35,7 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
     };
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema) {
+    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema) {
         if (MODEL_SET_MODEL_TYPE.isAssignableFrom(schema.getType())) {
             return new ModelSetNodeInitializer<T, E>(schema);
         }
@@ -84,9 +84,9 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
     }
 
     private static class ModelSetNodeInitializer<T, E> implements NodeInitializer {
-        private final ModelCollectionSchema<T, E> schema;
+        private final CollectionSchema<T, E> schema;
 
-        public ModelSetNodeInitializer(ModelCollectionSchema<T, E> schema) {
+        public ModelSetNodeInitializer(CollectionSchema<T, E> schema) {
             this.schema = schema;
         }
 

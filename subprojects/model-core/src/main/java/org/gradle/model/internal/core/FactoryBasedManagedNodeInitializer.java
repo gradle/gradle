@@ -35,7 +35,7 @@ public class FactoryBasedManagedNodeInitializer<T, S extends T> extends Abstract
     private final InstanceFactory<T> instanceFactory;
     private final Action<? super T> configureAction;
 
-    public FactoryBasedManagedNodeInitializer(InstanceFactory<T> instanceFactory, ModelManagedImplStructSchema<S> modelSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, Action<? super T> configureAction) {
+    public FactoryBasedManagedNodeInitializer(InstanceFactory<T> instanceFactory, ManagedImplStructSchema<S> modelSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, Action<? super T> configureAction) {
         super(modelSchema, schemaStore, proxyFactory);
         this.instanceFactory = instanceFactory;
         this.configureAction = configureAction;
@@ -56,24 +56,24 @@ public class FactoryBasedManagedNodeInitializer<T, S extends T> extends Abstract
         modelNode.setPrivateData(delegateType, instance);
 
         NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
-        ModelStructSchema<T> delegateSchema = Cast.uncheckedCast(schemaStore.getSchema(delegateType));
+        StructSchema<T> delegateSchema = Cast.uncheckedCast(schemaStore.getSchema(delegateType));
         addPropertyLinks(modelNode, nodeInitializerRegistry, getProperties(delegateSchema));
     }
 
-    private Collection<ModelProperty<?>> getProperties(ModelStructSchema<T> delegateSchema) {
+    private Collection<ModelProperty<?>> getProperties(StructSchema<T> delegateSchema) {
         ImmutableSet.Builder<ModelProperty<?>> properties = ImmutableSet.builder();
         addNonDelegatedManagedProperties(schema, delegateSchema, properties);
         for (ModelType<?> internalView : instanceFactory.getInternalViews(schema.getType())) {
             ModelSchema<?> internalViewSchema = schemaStore.getSchema(internalView);
-            if (!(internalViewSchema instanceof ModelManagedImplStructSchema)) {
+            if (!(internalViewSchema instanceof ManagedImplStructSchema)) {
                 continue;
             }
-            addNonDelegatedManagedProperties((ModelManagedImplStructSchema<?>) internalViewSchema, delegateSchema, properties);
+            addNonDelegatedManagedProperties((ManagedImplStructSchema<?>) internalViewSchema, delegateSchema, properties);
         }
         return properties.build();
     }
 
-    private void addNonDelegatedManagedProperties(ModelManagedImplStructSchema<?> schema, ModelStructSchema<T> delegateSchema, ImmutableSet.Builder<ModelProperty<?>> properties) {
+    private void addNonDelegatedManagedProperties(ManagedImplStructSchema<?> schema, StructSchema<T> delegateSchema, ImmutableSet.Builder<ModelProperty<?>> properties) {
         for (ModelProperty<?> property : schema.getProperties()) {
             if (property.getStateManagementType() != ModelProperty.StateManagementType.MANAGED) {
                 continue;
@@ -106,10 +106,10 @@ public class FactoryBasedManagedNodeInitializer<T, S extends T> extends Abstract
                 }
                 ModelType<? extends T> delegateType = implementationInfo.getDelegateType();
                 ModelSchema<? extends T> delegateSchema = schemaStore.getSchema(delegateType);
-                if (!(delegateSchema instanceof ModelStructSchema)) {
+                if (!(delegateSchema instanceof StructSchema)) {
                     throw new IllegalStateException(String.format("Default implementation '%s' registered for managed type '%s' must be a struct", delegateType, managedType));
                 }
-                ModelStructSchema<? extends T> delegateStructSchema = Cast.uncheckedCast(delegateSchema);
+                StructSchema<? extends T> delegateStructSchema = Cast.uncheckedCast(delegateSchema);
 
                 addProjection(modelNode, managedType, delegateStructSchema, schemaStore, proxyFactory);
                 for (ModelType<?> internalView : instanceFactory.getInternalViews(managedType)) {
@@ -117,12 +117,12 @@ public class FactoryBasedManagedNodeInitializer<T, S extends T> extends Abstract
                 }
             }
 
-            private <D> void addProjection(MutableModelNode modelNode, ModelType<?> type, ModelStructSchema<? extends D> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+            private <D> void addProjection(MutableModelNode modelNode, ModelType<?> type, StructSchema<? extends D> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
                 ModelSchema<?> schema = schemaStore.getSchema(type);
-                if (!(schema instanceof ModelStructSchema)) {
+                if (!(schema instanceof StructSchema)) {
                     throw new IllegalStateException("View type must be a struct: " + type);
                 }
-                ModelStructSchema<D> structSchema = Cast.uncheckedCast(schema);
+                StructSchema<D> structSchema = Cast.uncheckedCast(schema);
                 ModelProjection projection = new ManagedModelProjection<D>(structSchema, delegateSchema, schemaStore, proxyFactory);
                 modelNode.addProjection(projection);
             }

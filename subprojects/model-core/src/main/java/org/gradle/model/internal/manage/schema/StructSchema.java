@@ -16,15 +16,20 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 
-public class ModelValueSchema<T> extends AbstractModelSchema<T> {
-    public ModelValueSchema(ModelType<T> type) {
-        super(type);
-    }
+import java.util.Collection;
 
-    @Override
-    public String toString() {
-        return "value " + getType();
-    }
+public interface StructSchema<T> extends ModelSchema<T> {
+    boolean hasProperty(String name);
+
+    ModelProperty<?> getProperty(String name);
+
+    Collection<ModelProperty<?>> getProperties();
+
+    boolean hasAspect(Class<? extends ModelSchemaAspect> aspectType);
+
+    <A extends ModelSchemaAspect> A getAspect(Class<A> aspectType);
+
+    Collection<ModelSchemaAspect> getAspects();
 }

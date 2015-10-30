@@ -26,7 +26,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.model.ModelMap;
 import org.gradle.model.ModelSet;
-import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
+import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
@@ -63,7 +63,7 @@ public class ModelTypeInitializationException extends GradleException {
             ModelProperty<?> modelProperty = propertyContext.getModelProperty();
             if (isManagedCollection(modelProperty.getType())) {
                 s.append(String.format("Its property '%s %s' is not a valid managed collection%n", modelProperty.getType().getName(), modelProperty.getName()));
-                ModelCollectionSchema<?, ?> schema = (ModelCollectionSchema) schemaStore.getSchema(modelProperty.getType());
+                CollectionSchema<?, ?> schema = (CollectionSchema) schemaStore.getSchema(modelProperty.getType());
                 s.append(String.format("A managed collection can not contain '%s's%n", schema.getElementType()));
                 appendManagedCollections(s, 1, constructableTypes);
             } else if (isAScalarCollection(modelProperty)) {

@@ -28,7 +28,7 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.ModelStructSchema;
+import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.objectweb.asm.*;
@@ -102,7 +102,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
      *     <li>methods that call through to the delegate instance</li>
      * </ul>
      */
-    public <T, M extends T, D extends T> Class<? extends M> generate(ModelStructSchema<M> managedSchema, ModelStructSchema<D> delegateSchema) {
+    public <T, M extends T, D extends T> Class<? extends M> generate(StructSchema<M> managedSchema, StructSchema<D> delegateSchema) {
         if (delegateSchema != null && Modifier.isAbstract(delegateSchema.getType().getConcreteClass().getModifiers())) {
             throw new IllegalArgumentException("Delegate type must be null or a non-abstract type");
         }
@@ -163,7 +163,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         return defineClass(visitor, targetClassLoader, generatedTypeName);
     }
 
-    private void generateProxyClass(ClassWriter visitor, ModelStructSchema<?> managedSchema, ModelStructSchema<?> delegateSchema, Collection<String> interfacesToImplement,
+    private void generateProxyClass(ClassWriter visitor, StructSchema<?> managedSchema, StructSchema<?> delegateSchema, Collection<String> interfacesToImplement,
                                     Set<Class<?>> typesToDelegate, Type generatedType, Type superclassType) {
         ModelType<?> managedType = managedSchema.getType();
         Class<?> managedTypeClass = managedType.getConcreteClass();
@@ -199,7 +199,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         declareStaticField(visitor, MANAGED_TYPE_FIELD_NAME, ModelType.class);
     }
 
-    private void declareDelegateField(ClassVisitor visitor, ModelStructSchema<?> delegateSchema) {
+    private void declareDelegateField(ClassVisitor visitor, StructSchema<?> delegateSchema) {
         declareField(visitor, DELEGATE_FIELD_NAME, delegateSchema.getType().getConcreteClass());
     }
 
@@ -215,7 +215,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         return visitor.visitField(ACC_PRIVATE | ACC_STATIC, name, Type.getDescriptor(fieldClass), null, null);
     }
 
-    private void writeConstructor(ClassVisitor visitor, Type generatedType, Type superclassType, ModelStructSchema<?> delegateSchema) {
+    private void writeConstructor(ClassVisitor visitor, Type generatedType, Type superclassType, StructSchema<?> delegateSchema) {
         String constructorDescriptor;
         Type delegateType;
         if (delegateSchema == null) {
@@ -365,7 +365,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), CAN_CALL_SETTERS_FIELD_NAME, Type.BOOLEAN_TYPE.getDescriptor());
     }
 
-    private void writePropertyMethods(ClassVisitor visitor, Type generatedType, ModelStructSchema<?> managedSchema, ModelStructSchema<?> delegateSchema) {
+    private void writePropertyMethods(ClassVisitor visitor, Type generatedType, StructSchema<?> managedSchema, StructSchema<?> delegateSchema) {
         Collection<String> delegatePropertyNames;
         if (delegateSchema != null) {
             ImmutableSet.Builder<String> builder = ImmutableSet.builder();
@@ -674,7 +674,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitEnd();
     }
 
-    private void writeDelegateMethods(final ClassVisitor visitor, final Type generatedType, ModelStructSchema<?> delegateSchema, Set<Class<?>> typesToDelegate) {
+    private void writeDelegateMethods(final ClassVisitor visitor, final Type generatedType, StructSchema<?> delegateSchema, Set<Class<?>> typesToDelegate) {
         Class<?> delegateTypeClass = delegateSchema.getType().getConcreteClass();
         Map<Equivalence.Wrapper<Method>, Map<Class<?>, Method>> methodsToDelegate = Maps.newHashMap();
         for (Class<?> typeToDelegate : typesToDelegate) {

@@ -17,19 +17,15 @@
 package org.gradle.model.internal.manage.schema;
 
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
+import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collection;
+public class UnmanagedImplStructSchema<T> extends AbstractStructSchema<T> {
+    public UnmanagedImplStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
+        super(type, properties, aspects);
+    }
 
-public interface ModelStructSchema<T> extends ModelSchema<T> {
-    boolean hasProperty(String name);
-
-    ModelProperty<?> getProperty(String name);
-
-    Collection<ModelProperty<?>> getProperties();
-
-    boolean hasAspect(Class<? extends ModelSchemaAspect> aspectType);
-
-    <A extends ModelSchemaAspect> A getAspect(Class<A> aspectType);
-
-    Collection<ModelSchemaAspect> getAspects();
+    @Override
+    public String toString() {
+        return "unmanaged " + getType();
+    }
 }

@@ -25,7 +25,7 @@ import org.gradle.model.internal.core.FactoryBasedNodeInitializer;
 import org.gradle.model.internal.core.InstanceFactory;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.ManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
@@ -52,8 +52,8 @@ public class FactoryBasedNodeInitializerExtractionStrategy<T> implements NodeIni
     }
 
     private <S extends T> NodeInitializer getNodeInitializer(final ModelSchema<S> schema) {
-        if (schema instanceof ModelManagedImplStructSchema) {
-            ModelManagedImplStructSchema<S> managedSchema = Cast.uncheckedCast(schema);
+        if (schema instanceof ManagedImplStructSchema) {
+            ManagedImplStructSchema<S> managedSchema = Cast.uncheckedCast(schema);
             return new FactoryBasedManagedNodeInitializer<T, S>(instanceFactory, managedSchema, schemaStore, proxyFactory, new Action<T>() {
                 @Override
                 public void execute(T instance) {
