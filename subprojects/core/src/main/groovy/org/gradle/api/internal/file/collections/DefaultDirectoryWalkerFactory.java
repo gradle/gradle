@@ -49,7 +49,7 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
     }
 
     private DirectoryWalker createInstance() {
-        if (javaVersion.isJava7Compatible() && (javaVersion.isJava8Compatible() || defaultEncodingContainsPlatformEncoding())) {
+        if (javaVersion.isJava8Compatible() || (javaVersion.isJava7Compatible() && defaultEncodingContainsPlatformEncoding())) {
             try {
                 Class clazz = classLoader.loadClass("org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker");
                 return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz));
