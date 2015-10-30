@@ -16,6 +16,8 @@
 
 package org.gradle.language.java
 
+import static JavaIntegrationTesting.applyJavaPlugin
+
 class JarBinaryTypeVariantsTest extends VariantAwareDependencyResolutionSpec {
 
     def "can depend on a component without specifying any variant dimension"() {

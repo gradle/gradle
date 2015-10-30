@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class JavaLanguageDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
@@ -1292,15 +1293,6 @@ model {
                 "Cannot find a compatible variant for library 'dep'.\n" +
                         "    Required platform 'java6', available: 'java7', 'java8'"
         ))
-    }
-
-    void applyJavaPlugin(File buildFile) {
-        buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-'''
     }
 
     void addCustomLibraryType(File buildFile) {

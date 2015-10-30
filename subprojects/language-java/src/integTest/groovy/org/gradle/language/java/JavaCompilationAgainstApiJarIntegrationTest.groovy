@@ -20,17 +20,10 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Ignore
 import spock.lang.Unroll
 
+import static JavaIntegrationTesting.applyJavaPlugin
+
 @LeaksFileHandles
 class JavaCompilationAgainstApiJarIntegrationTest extends AbstractIntegrationSpec {
-    void applyJavaPlugin(File buildFile) {
-        buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-'''
-    }
-
     private void mainLibraryDependingOnApi() {
         mainLibraryDependingOnApi(DependencyScope.SOURCES)
     }

@@ -254,15 +254,6 @@ apply type: ComponentTypeRules
         '''
     }
 
-    protected static void applyJavaPlugin(File buildFile) {
-        buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-'''
-    }
-
     protected void checkResolution(Map<String, String> errors, Set<String> consumedErrors, String taskName) {
         if (errors[taskName]) {
             consumedErrors << taskName
