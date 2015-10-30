@@ -23,7 +23,6 @@ import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.wrapper.GradleUserHomeLookup
 import spock.lang.Shared
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
