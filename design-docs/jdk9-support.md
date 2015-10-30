@@ -143,9 +143,9 @@ creation of a static initializer that we want to avoid).
 
 ## Story: Java library API references the APIs of other libraries
 
-- For a given library, Dependency DSL allows any library dependency to be exported in the library API.
-- When library B is exported by library A, then the API of A includes the API of B, and so the API of both A and B is visible to consumers of A at compile time.
-- APIs of exported libraries are resolved transitively
+- For a given library, Dependency DSL allows the library to declare an API dependency on any other library.
+- When library A declares an API dependency on library B, then the API of A includes the API of B, and so the APIs of both A and B are visible to consumers of A at compile time.
+- APIs of referenced libraries are resolved transitively.
 
 Given the example:
 
@@ -156,14 +156,16 @@ Given the example:
             }
         }
         A(JvmLibrarySpec) {
+            api.dependencies {
+                library "B"
+            }
             sources.java.dependencies {
-                library "B" exported(true)
                 library "D"
             }
         }
         B(JvmLibrarySpec) {
-            sources.java.dependencies {
-                library "C" exported(true)
+            api.dependencies {
+                library "C"
             }
         }
         C(JvmLibrarySpec) {}
@@ -171,63 +173,18 @@ Given the example:
     }
 
 - The compile classpath for 'main' includes the APIs of `A`, `B` and `C`, but not `D`.
-- `D` is not exported in the API of `B`, and so is added to the compile classpath of `B` only
+- `D` is not exported in the API of `A`, and so is added to the compile classpath of `A` only.
+- The compile classpath for `B` includes the API of `C`.
 
 ### Test cases
 
-- When compiling sources for `main`` that has a dependency on `A` above:
+- When compiling sources for `main` that has a dependency on `A` above:
     - Compile classpath includes API jars from `A`, `B` and `C`
     - Compile classpath does _not_ include API jar from `D`
 - No failure attempting to build `main`, where `D` contains bad code
 - Reasonable error message attempting to build `main`, where `C` contains bad code
-
-### DSL Improvements
-
-Exported libraries can also be declared directly in the `api` configuration block via the `requires <Dependency Selector>` syntax:
-
-```groovy
-    model {
-        ...
-        A(JvmLibrarySpec) {
-            api {
-                requires library "B"
-            }
-        }
-        B(JvmLibrarySpec) {
-            api {
-                requires library "C"
-            }
-        }
-        ...
-    }
-```
-
-Libraries exported this way are implicitly added as a compile dependency to all source sets.
-
-#### Test cases
-
-- given a JvmLibrarySpec with an `api` configuration block, any required libraries in that block will appear as exported dependencies from all declared source sets of all resulting binaries when:
-    - API requires library from current project
-    - API requires library from a different project
-    - API requires multiple libraries from current and different projects
-    - All cases above with one and multiple target platforms
-    - in other words, `resultingBinary.inputs.withType(DependentSourceSetInternal)*.sourceSet.dependencies.dependencies.every { it.exported }` for every resulting binary
-
-#### Implementation Plan
-
-- `ApiSpec` must implement `DependencySpecContainer` or expose a relevant subset of its methods
-- `ApiSpec` must aggregate a `DefaultDependencySpecContainer` to hold the exported dependencies
-- `ApiSpec` must be extended with the following methods:
-```java
-    void requires(DependencySpec dependency);
-
-    // relevant subset of DependencySpecContainer if not implementing it directly, always delegated to aggregate
-
-    DependencySpecBuilder project(String path);
-
-    DependencySpecBuilder library(String name);
-```
-- `ApiSpec.dependencies` must be copied into all source sets upon triggering of rule `????` ensuring `dependency.isExported() == true`
+- When compiling sources for `B` above:
+    - Compile classpath includes API from `C`
 
 ### Open issues
 
