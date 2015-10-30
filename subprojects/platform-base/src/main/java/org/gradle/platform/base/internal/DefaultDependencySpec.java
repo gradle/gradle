@@ -43,11 +43,6 @@ public class DefaultDependencySpec implements DependencySpec {
         return libraryName;
     }
 
-    @Override
-    public boolean isExported() {
-        return false;
-    }
-
     public static class Builder implements DependencySpecBuilder {
         private String projectPath;
         private String libraryName;
@@ -81,10 +76,6 @@ public class DefaultDependencySpec implements DependencySpec {
             return libraryName;
         }
 
-        @Override
-        public boolean isExported() {
-            return false;
-        }
     }
 
     @Override

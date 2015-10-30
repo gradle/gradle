@@ -42,5 +42,4 @@ public interface DependencySpec {
     @Nullable
     String getLibraryName();
 
-    boolean isExported();
 }
