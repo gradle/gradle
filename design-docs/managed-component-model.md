@@ -326,6 +326,19 @@ Infer a model element's hidden properties based on the parent's views:
 - When a property is declared only on the parent's internal view types, that property should be considered hidden and not shown.
 - Add an option to model report to show all hidden elements and types.
 
+### Test cases
+
+Only extensible types (Binary, Component, Language) can have internal views for now, so the tests will focus on theses.
+Once any type can have internal views, another story will be needed to assert that the implementation of this very story for extensible types works for any types.
+Moreover, tests will need to assert correct behaviour for managed and unmanaged elements.
+
+### Implementation
+
+`ModelNode` already has a `hidden` property that is taken into account by `ModelReport`.
+This is how services are hidden in the model report.
+
+Implementation goal is then to set this `hidden` property on `ModelNode`s backing internal views.
+
 # Feature 6: Managed Model usability
 
 Some candidates:
