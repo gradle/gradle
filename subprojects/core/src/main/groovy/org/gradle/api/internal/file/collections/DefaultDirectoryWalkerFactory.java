@@ -21,6 +21,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.resource.CharsetUtil;
 
 import java.nio.charset.Charset;
 
@@ -48,7 +49,7 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
     }
 
     private DirectoryWalker createInstance() {
-        if (javaVersion.isJava7Compatible() && (javaVersion.isJava8Compatible() || fileEncodingContainsFilePathEncoding())) {
+        if (javaVersion.isJava7Compatible() && (javaVersion.isJava8Compatible() || defaultEncodingContainsPlatformEncoding())) {
             try {
                 Class clazz = classLoader.loadClass("org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker");
                 return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz));
@@ -60,8 +61,13 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
         }
     }
 
-    private boolean fileEncodingContainsFilePathEncoding() {
-        // sun.jnu.encoding is the encoding used to decode/encode file paths
-        return System.getProperty("sun.jnu.encoding") != null && Charset.defaultCharset().contains(Charset.forName(System.getProperty("sun.jnu.encoding")));
+    private boolean defaultEncodingContainsPlatformEncoding() {
+        // sun.jnu.encoding is the platform encoding used to decode/encode file paths, command line arguments, etc.
+        // it's derived from LANG/LC_ALL/LC_CTYPE on Unixes and should not be set by the user
+        String platformEncoding = System.getProperty("sun.jnu.encoding");
+        Charset platformCharset = platformEncoding != null && Charset.isSupported(platformEncoding) ? Charset.forName(platformEncoding) : null;
+        // fallback to require UTF-8 when platformCharset cannot be resolved
+        Charset requiredCharset = platformCharset != null ? platformCharset : CharsetUtil.UTF_8;
+        return Charset.defaultCharset().contains(requiredCharset);
     }
 }
