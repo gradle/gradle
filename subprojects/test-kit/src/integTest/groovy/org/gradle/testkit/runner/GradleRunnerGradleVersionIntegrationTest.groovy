@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner
 
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
@@ -59,7 +60,8 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerInteg
         buildFile << helloWorldTaskWithLoggerOutput()
 
         when:
-        def result = runner('helloWorld').withGradleVersion(gradleVersion)
+        def result = runner('helloWorld')
+            .withGradleVersion(gradleVersion)
             .build()
 
         then:
@@ -67,6 +69,33 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerInteg
 
         where:
         gradleVersion << ['2.6', '2.7']
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    def "distributions are not stored in the test kit dir"() {
+        given:
+        requireIsolatedTestKitDir = true
+
+        def version = "2.6"
+        buildFile << '''task v << {
+            file("gradleVersion.txt").text = gradle.gradleVersion
+            file("gradleHomeDir.txt").text = gradle.gradleHomeDir.canonicalPath
+        }'''
+
+        when:
+        runner('v')
+            .withGradleVersion(version)
+            .build()
+
+        then:
+        file("gradleVersion.txt").text == version
+
+        // Note: GradleRunnerIntegTestRunner configures the test env to use this gradle user home dir
+        file("gradleHomeDir.txt").text.startsWith(new IntegrationTestBuildContext().gradleUserHomeDir.absolutePath)
+
+        testKitDir.eachFileRecurse {
+            assert !it.name.contains("gradle-$version-bin.zip")
+        }
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)

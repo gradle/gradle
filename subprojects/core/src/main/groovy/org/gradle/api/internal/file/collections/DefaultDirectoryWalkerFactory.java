@@ -21,23 +21,22 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.resource.CharsetUtil;
 
 import java.nio.charset.Charset;
 
 public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
-    private final JavaVersion javaVersion;
     private final ClassLoader classLoader;
+    private final JavaVersion javaVersion;
     private DirectoryWalker instance;
 
-    DefaultDirectoryWalkerFactory(JavaVersion javaVersion, ClassLoader classLoader) {
+    DefaultDirectoryWalkerFactory(ClassLoader classLoader, JavaVersion javaVersion) {
         this.javaVersion = javaVersion;
         this.classLoader = classLoader;
         reset();
     }
 
     DefaultDirectoryWalkerFactory() {
-        this(JavaVersion.current(), DefaultDirectoryWalkerFactory.class.getClassLoader());
+        this(DefaultDirectoryWalkerFactory.class.getClassLoader(), JavaVersion.current());
     }
 
     public DirectoryWalker create() {
@@ -49,7 +48,7 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
     }
 
     private DirectoryWalker createInstance() {
-        if (javaVersion.isJava7Compatible() && isUnicodeSupported()) {
+        if (javaVersion.isJava7Compatible() && (javaVersion.isJava8Compatible() || fileEncodingContainsFilePathEncoding())) {
             try {
                 Class clazz = classLoader.loadClass("org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker");
                 return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz));
@@ -61,7 +60,8 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
         }
     }
 
-    private boolean isUnicodeSupported() {
-        return Charset.defaultCharset().contains(CharsetUtil.UTF_8);
+    private boolean fileEncodingContainsFilePathEncoding() {
+        // sun.jnu.encoding is the encoding used to decode/encode file paths
+        return System.getProperty("sun.jnu.encoding") != null && Charset.defaultCharset().contains(Charset.forName(System.getProperty("sun.jnu.encoding")));
     }
 }
