@@ -159,8 +159,6 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Changes to incubating software model
 
-TBD
-
 - `BinarySpec.name` should no longer be considered a unique identifier for the binary within a project.
 - The name for the 'build' task for a binary is now qualified with the name of its component. For example, `jar` in `mylib` will have a build task called 'mylibJar'
 - The name for the compile tasks for a binary is now qualified with the name of its component.
@@ -171,6 +169,8 @@ TBD
 ### Changes to incubating native software model
 
 - Task names have changed for components with multiple variants. The library or executable name is now first.
+- `NativeExecutableBinarySpec.executableFile` is now reachable via `NativeExecutableBinarySpec.executable.file`.
+- `NativeTestSuiteBinarySpec.executableFile` is now reachable via `NativeTestSuiteBinarySpec.executable.file`.
 
 ## External contributions
 
