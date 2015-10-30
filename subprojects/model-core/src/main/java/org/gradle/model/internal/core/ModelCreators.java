@@ -225,7 +225,7 @@ abstract public class ModelCreators {
 
                 ModelAction projector = nodeInitializer.getProjector(path, modelRuleDescriptor);
                 if (projector != null) {
-                    action(ModelActionRole.DefineProjections, projector);
+                    action(ModelActionRole.Discover, projector);
                 }
             }
             return new ProjectionBackedModelCreator(path, modelRuleDescriptor, service, ephemeral, hidden || service, projections, actions);

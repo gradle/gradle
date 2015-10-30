@@ -575,7 +575,7 @@ So, this test has not been implemented:
 - Other elements should be validated as they are realized.
 
 TBD:
-One option is to do so in `ModelRegistry.bindAllReferences()` (which might be renamed to `validateRules()`). It could just transition everything currently known to ‘projections defined'
+One option is to do so in `ModelRegistry.bindAllReferences()` (which might be renamed to `validateRules()`). It could just transition everything currently known to ‘discovered'
 that should shake out a bunch of errors without closing the universe. The idea isn’t necessarily to catch every possible failure that might happen, just to be a reasonable trade off between
 coverage and the cost of the coverage
 

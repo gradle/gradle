@@ -18,13 +18,13 @@ package org.gradle.model.internal.registry;
 
 import org.gradle.model.internal.core.ModelPredicate;
 
-abstract class ModelCreationListener extends ModelPredicate {
+abstract class ModelListener extends ModelPredicate {
     /**
-     * Invoked once for each node when the node reaches the {@link org.gradle.model.internal.core.ModelNode.State#ProjectionsDefined} state
+     * Invoked once for each node when the node reaches the {@link org.gradle.model.internal.core.ModelNode.State#Discovered} state
      * if the node matches the criteria specified by {@link #getPath()}, {@link #getParent()}, {@link #getAncestor()} <em>and</em> {@link #getType()},
      * (or every node if no criteria is specified). Stops notifying listener with further nodes when this method returns {@code true}.
      *
      * @return true if this listener should no longer receive any notifications of additional nodes.
      */
-    public abstract boolean onCreate(ModelNodeInternal node);
+    public abstract boolean onDiscovered(ModelNodeInternal node);
 }

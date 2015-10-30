@@ -844,7 +844,7 @@ class DefaultModelRegistryTest extends Specification {
         where:
         state                              | expected
         ModelNode.State.Known              | null
-        ModelNode.State.ProjectionsDefined | null
+        ModelNode.State.Discovered | null
         ModelNode.State.Created            | "created"
         ModelNode.State.RulesDefined       | ModelActionRole.DefineRules.name()
         ModelNode.State.DefaultsApplied    | ModelActionRole.Defaults.name()
@@ -882,7 +882,7 @@ class DefaultModelRegistryTest extends Specification {
         events == ["created"]
 
         where:
-        state << [ModelNode.State.Known, ModelNode.State.ProjectionsDefined]
+        state << [ModelNode.State.Known, ModelNode.State.Discovered]
     }
 
     @Unroll
@@ -1274,7 +1274,7 @@ foo
     }
 
     def "node can be viewed via projection registered via projector"() {
-        registry.configure(ModelActionRole.DefineProjections) { it.path "foo" descriptor "project" node { node ->
+        registry.configure(ModelActionRole.Discover) { it.path "foo" descriptor "project" node { node ->
             node.addProjection UnmanagedModelProjection.of(BeanInternal)
         } }
         registry
@@ -1295,7 +1295,7 @@ foo
             .mutate (BeanInternal) { bean ->
             bean.internal = "internal"
         }
-        registry.configure(ModelActionRole.DefineProjections) { it.path "foo" descriptor "project" node { node ->
+        registry.configure(ModelActionRole.Discover) { it.path "foo" descriptor "project" node { node ->
             node.addProjection UnmanagedModelProjection.of(BeanInternal)
         } }
 
@@ -1305,20 +1305,20 @@ foo
         bean.internal == "internal"
     }
 
-    def "cannot register projection after node is transitioned to projections defined"() {
+    def "cannot register projection after node has been discovered"() {
         given:
         registry.create("foo") { it.unmanaged(Bean, new AdvancedBean(name: "foo")) }
-        registry.atState("foo", ModelNode.State.ProjectionsDefined)
+        registry.atState("foo", ModelNode.State.Discovered)
 
         when:
-        registry.configure(ModelActionRole.DefineProjections) { it.path "foo" descriptor "project" node {} }
+        registry.configure(ModelActionRole.Discover) { it.path "foo" descriptor "project" node {} }
 
         then:
         def ex = thrown IllegalStateException
-        ex.message == "Cannot add rule project for model element 'foo' at state ${ModelNode.State.Known} as this element is already at state ${ModelNode.State.ProjectionsDefined}."
+        ex.message == "Cannot add rule project for model element 'foo' at state ${ModelNode.State.Known} as this element is already at state ${ModelNode.State.Discovered}."
     }
 
-    def "transitions children of scope to projections defined when defining scope when node matching input type is not already in projections defined state"() {
+    def "discover children of scope when defining scope when node matching input type is not already discovered"() {
         registry.create(registry.creator("dep").unmanaged(Bean, new Bean()))
         registry.create(registry.creator("target").unmanaged(String, {}))
         registry.create(registry.creator("childA").unmanaged(String, {}))
@@ -1331,11 +1331,11 @@ foo
         then:
         registry.state("dep") == ModelNode.State.GraphClosed
         registry.state("target") == ModelNode.State.GraphClosed
-        registry.state("childA") == ModelNode.State.ProjectionsDefined
-        registry.state("childB") == ModelNode.State.ProjectionsDefined
+        registry.state("childA") == ModelNode.State.Discovered
+        registry.state("childB") == ModelNode.State.Discovered
     }
 
-    def "does not transition children of scope to projections defined when node matching input type is already in projections defined state"() {
+    def "does not discover children of scope when node matching input type is already in discovered"() {
         registry.create(ModelCreators.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).service(true).build())
         registry.create(registry.creator("target").unmanaged(String, {}))
         registry.create(registry.creator("childA").unmanaged(String, {}))

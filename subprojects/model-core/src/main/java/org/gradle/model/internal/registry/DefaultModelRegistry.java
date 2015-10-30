@@ -97,7 +97,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         ruleBindings.nodeCreated(node);
 
         if (node.getCreatorBinder().getCreator().isService()) {
-            node.ensureAtLeast(ProjectionsDefined);
+            node.ensureAtLeast(Discovered);
         }
 
         return node;
@@ -200,7 +200,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         return require(path);
     }
 
-    private void registerListener(ModelCreationListener listener) {
+    private void registerListener(ModelListener listener) {
         modelGraph.addListener(listener);
     }
 
@@ -248,7 +248,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         replace = true;
         try {
-            boolean wasProjectionsDefined = node.isAtLeast(ProjectionsDefined);
+            boolean wasDiscovered = node.isAtLeast(Discovered);
 
             ruleBindings.remove(node, node.getCreatorBinder());
             for (RuleBinder ruleBinder : node.getInitializerRuleBinders()) {
@@ -260,8 +260,8 @@ public class DefaultModelRegistry implements ModelRegistry {
             node.replaceCreatorRuleBinder(toCreatorBinder(newCreator));
             node.setState(Known);
             addRuleBindings(node);
-            if (wasProjectionsDefined) {
-                transition(node, ProjectionsDefined, false);
+            if (wasDiscovered) {
+                transition(node, Discovered, false);
             }
         } finally {
             replace = false;
@@ -272,8 +272,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     public void bindAllReferences() throws UnboundModelRulesException {
         GoalGraph graph = new GoalGraph();
         for (ModelNodeInternal node : modelGraph.getFlattened().values()) {
-            if (!node.isAtLeast(ProjectionsDefined)) {
-                transitionTo(graph, new DefineProjections(node.getPath()));
+            if (!node.isAtLeast(Discovered)) {
+                transitionTo(graph, new Discover(node.getPath()));
             }
         }
 
@@ -644,7 +644,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         public int getLinkCount(ModelType<?> type) {
             int count = 0;
             for (ModelNodeInternal linked : links.values()) {
-                linked.ensureAtLeast(ProjectionsDefined);
+                linked.ensureAtLeast(Discovered);
                 if (linked.getPromise().canBeViewedAsMutable(type)) {
                     count++;
                 }
@@ -657,7 +657,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             Set<String> names = Sets.newLinkedHashSet();
             for (Map.Entry<String, ModelNodeInternal> entry : links.entrySet()) {
                 ModelNodeInternal link = entry.getValue();
-                link.ensureAtLeast(ProjectionsDefined);
+                link.ensureAtLeast(Discovered);
                 if (link.getPromise().canBeViewedAsMutable(type)) {
                     names.add(entry.getKey());
                 }
@@ -670,7 +670,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             return Iterables.filter(links.values(), new Predicate<ModelNodeInternal>() {
                 @Override
                 public boolean apply(ModelNodeInternal link) {
-                    link.ensureAtLeast(ProjectionsDefined);
+                    link.ensureAtLeast(Discovered);
                     return link.getPromise().canBeViewedAsMutable(type);
                 }
             });
@@ -687,7 +687,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (linked == null) {
                 return false;
             }
-            linked.ensureAtLeast(ProjectionsDefined);
+            linked.ensureAtLeast(Discovered);
             return linked.getPromise().canBeViewedAsMutable(type);
         }
 
@@ -717,7 +717,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void applyToLinks(final ModelType<?> type, final Class<? extends RuleSource> rules) {
-            registerListener(new ModelCreationListener() {
+            registerListener(new ModelListener() {
                 @Nullable
                 @Override
                 public ModelPath getParent() {
@@ -731,7 +731,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 }
 
                 @Override
-                public boolean onCreate(ModelNodeInternal node) {
+                public boolean onDiscovered(ModelNodeInternal node) {
                     node.applyToSelf(rules);
                     return false;
                 }
@@ -740,7 +740,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void applyToAllLinksTransitive(final ModelType<?> type, final Class<? extends RuleSource> rules) {
-            registerListener(new ModelCreationListener() {
+            registerListener(new ModelListener() {
                 @Override
                 public ModelPath getAncestor() {
                     return ModelElementNode.this.getPath();
@@ -753,7 +753,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 }
 
                 @Override
-                public boolean onCreate(ModelNodeInternal node) {
+                public boolean onDiscovered(ModelNodeInternal node) {
                     node.applyToSelf(rules);
                     return false;
                 }
@@ -776,7 +776,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 throw new IllegalArgumentException("Linked element action reference must have null path.");
             }
 
-            registerListener(new ModelCreationListener() {
+            registerListener(new ModelListener() {
                 @Override
                 public ModelPath getParent() {
                     return ModelElementNode.this.getPath();
@@ -788,7 +788,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 }
 
                 @Override
-                public boolean onCreate(ModelNodeInternal node) {
+                public boolean onDiscovered(ModelNodeInternal node) {
                     bind(ModelReference.of(node.getPath(), action.getSubject().getType()), type, action, ModelPath.ROOT);
                     return false;
                 }
@@ -801,7 +801,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 throw new IllegalArgumentException("Linked element action reference must have null path.");
             }
 
-            registerListener(new ModelCreationListener() {
+            registerListener(new ModelListener() {
                 @Override
                 public ModelPath getAncestor() {
                     return ModelElementNode.this.getPath();
@@ -813,7 +813,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 }
 
                 @Override
-                public boolean onCreate(ModelNodeInternal node) {
+                public boolean onDiscovered(ModelNodeInternal node) {
                     bind(ModelReference.of(node.getPath(), action.getSubject().getType()), type, action, ModelPath.ROOT);
                     return false;
                 }
@@ -916,8 +916,8 @@ public class DefaultModelRegistry implements ModelRegistry {
                     case Known:
                         node = new MakeKnown(goal.path);
                         break;
-                    case ProjectionsDefined:
-                        node = new DefineProjections(goal.path);
+                    case Discovered:
+                        node = new Discover(goal.path);
                         break;
                     case GraphClosed:
                         node = new CloseGraph(goal);
@@ -1107,26 +1107,26 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private class DefineProjections extends ModelNodeGoal {
-        public DefineProjections(ModelPath path) {
+    private class Discover extends ModelNodeGoal {
+        public Discover(ModelPath path) {
             super(path);
         }
 
         @Override
         public boolean doIsAchieved() {
-            return node.isAtLeast(ProjectionsDefined);
+            return node.isAtLeast(Discovered);
         }
 
         @Override
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            dependencies.add(new ApplyActions(new NodeAtState(getPath(), ProjectionsDefined)));
-            dependencies.add(new NotifyProjectionsDefined(getPath()));
+            dependencies.add(new ApplyActions(new NodeAtState(getPath(), Discovered)));
+            dependencies.add(new NotifyDiscovered(getPath()));
             return true;
         }
 
         @Override
         public String toString() {
-            return "define projections for " + getPath() + ", state: " + state;
+            return "discover " + getPath() + ", state: " + state;
         }
     }
 
@@ -1279,17 +1279,17 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private class TryResolveAndDefineProjectionsForPath extends TryResolvePath {
+    private class TryResolveAndDiscoverPath extends TryResolvePath {
 
         private boolean attemptedPath;
 
-        public TryResolveAndDefineProjectionsForPath(ModelPath path) {
+        public TryResolveAndDiscoverPath(ModelPath path) {
             super(path);
         }
 
         @Override
         protected boolean doIsAchieved() {
-            return node.isAtLeast(ProjectionsDefined);
+            return node.isAtLeast(Discovered);
         }
 
         @Override
@@ -1303,7 +1303,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                     return true;
                 }
             }
-            dependencies.add(graph.nodeAtState(new NodeAtState(getPath(), ProjectionsDefined)));
+            dependencies.add(graph.nodeAtState(new NodeAtState(getPath(), Discovered)));
             return true;
         }
     }
@@ -1319,7 +1319,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            dependencies.add(new TryResolveAndDefineProjectionsForPath(parent.getTarget().getPath().child(path.getName())));
+            dependencies.add(new TryResolveAndDiscoverPath(parent.getTarget().getPath().child(path.getName())));
             return true;
         }
 
@@ -1338,7 +1338,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             ModelReferenceNode childNode = new ModelReferenceNode(toCreatorBinder(creator), parent);
             childNode.setTarget(childTarget);
             registerNode(childNode);
-            ruleBindings.nodeProjectionsDefined(childNode);
+            ruleBindings.nodeDiscovered(childNode);
         }
 
         @Override
@@ -1368,7 +1368,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 return false;
             }
             for (ModelNodeInternal child : node.getLinks()) {
-                if (child.isAtLeast(ProjectionsDefined) && (child.getPromise().canBeViewedAsImmutable(typeToBind) || child.getPromise().canBeViewedAsMutable(typeToBind))) {
+                if (child.isAtLeast(Discovered) && (child.getPromise().canBeViewedAsImmutable(typeToBind) || child.getPromise().canBeViewedAsMutable(typeToBind))) {
                     return true;
                 }
             }
@@ -1388,7 +1388,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                     attemptedCloseScope = true;
                     return false;
                 } else {
-                    dependencies.add(new TransitionChildrenOrReference(scope, ProjectionsDefined));
+                    dependencies.add(new TransitionChildrenOrReference(scope, Discovered));
                 }
             }
             return true;
@@ -1430,7 +1430,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         private void maybeBind(ModelBinding binding, Collection<ModelGoal> dependencies) {
             if (!binding.isBound()) {
                 if (binding.getPredicate().getPath() != null) {
-                    dependencies.add(new TryResolveAndDefineProjectionsForPath(binding.getPredicate().getPath()));
+                    dependencies.add(new TryResolveAndDiscoverPath(binding.getPredicate().getPath()));
                 } else {
                     dependencies.add(new TryDefineScopeForType(binding.getPredicate().getScope(), binding.getPredicate().getType()));
                 }
@@ -1492,9 +1492,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private class NotifyProjectionsDefined extends ModelNodeGoal {
+    private class NotifyDiscovered extends ModelNodeGoal {
 
-        protected NotifyProjectionsDefined(ModelPath target) {
+        protected NotifyDiscovered(ModelPath target) {
             super(target);
         }
 
@@ -1503,13 +1503,13 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (replace) {
                 return;
             }
-            ruleBindings.nodeProjectionsDefined(node);
-            modelGraph.nodeProjectionsDefined(node);
+            ruleBindings.nodeDiscovered(node);
+            modelGraph.nodeDiscovered(node);
         }
 
         @Override
         public String toString() {
-            return "notify projections defined for " + getPath() + ", state: " + state;
+            return "notify discovered for " + getPath() + ", state: " + state;
         }
     }
 }

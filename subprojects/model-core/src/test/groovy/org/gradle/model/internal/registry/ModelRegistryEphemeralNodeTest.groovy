@@ -68,7 +68,7 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         registry.prepareForReuse()
 
         then:
-        registry.node("foo").state == ModelNode.State.ProjectionsDefined
+        registry.node("foo").state == ModelNode.State.Discovered
         registry.get("foo") == ["1"]
         events.size() == 2
     }
@@ -99,11 +99,11 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         registry.prepareForReuse()
 
         then:
-        registry.node("foo").state == ModelNode.State.ProjectionsDefined
-        registry.node("bar").state == ModelNode.State.ProjectionsDefined
+        registry.node("foo").state == ModelNode.State.Discovered
+        registry.node("bar").state == ModelNode.State.Discovered
         registry.get("foo") == ["1"]
         events.size() == 3
-        registry.node("bar").state == ModelNode.State.ProjectionsDefined
+        registry.node("bar").state == ModelNode.State.Discovered
         registry.get("bar") == ["1"]
         events.size() == 4
     }
@@ -137,11 +137,11 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         registry.createOrReplace(registry.creator("bar") { it.ephemeral(true).unmanaged(StringBuilder, List) { List l -> new StringBuilder(l[0]) }})
 
         then:
-        registry.node("foo").state == ModelNode.State.ProjectionsDefined
-        registry.node("bar").state == ModelNode.State.ProjectionsDefined
+        registry.node("foo").state == ModelNode.State.Discovered
+        registry.node("bar").state == ModelNode.State.Discovered
         registry.get("foo") == ["new", "2"]
 
-        registry.node("bar").state == ModelNode.State.ProjectionsDefined
+        registry.node("bar").state == ModelNode.State.Discovered
         registry.get("bar").toString() == "new bar"
     }
 
@@ -178,9 +178,9 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         registry.prepareForReuse()
 
         then:
-        registry.node("things").state == ModelNode.State.ProjectionsDefined
-        registry.node("things.foo").state == ModelNode.State.ProjectionsDefined
-        registry.node("things.bar").state == ModelNode.State.ProjectionsDefined
+        registry.node("things").state == ModelNode.State.Discovered
+        registry.node("things.foo").state == ModelNode.State.Discovered
+        registry.node("things.bar").state == ModelNode.State.Discovered
     }
 
     def "nodes with creators dependent on ephemeral nodes are reset"() {

@@ -138,8 +138,8 @@ abstract class ModelNodeInternal implements MutableModelNode {
     public abstract ModelNodeInternal getLink(String name);
 
     public ModelPromise getPromise() {
-        if (!state.isAtLeast(State.ProjectionsDefined)) {
-            throw new IllegalStateException(String.format("Cannot get promise for %s in state %s when projections are not yet defined", getPath(), state));
+        if (!state.isAtLeast(State.Discovered)) {
+            throw new IllegalStateException(String.format("Cannot get promise for %s in state %s when not yet discovered", getPath(), state));
         }
         return creatorBinder.getCreator().getPromise();
     }
@@ -165,7 +165,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     public void reset() {
         if (isAtLeast(State.Created)) {
-            setState(State.ProjectionsDefined);
+            setState(State.Discovered);
             resetPrivateData();
 
             for (ModelNodeInternal dependent : dependents) {

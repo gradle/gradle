@@ -50,7 +50,7 @@ public class ProjectionBackedModelCreator implements ModelCreator {
 
         ImmutableListMultimap.Builder<ModelActionRole, ModelAction> actionsBuilder = ImmutableListMultimap.builder();
         actionsBuilder.putAll(actions);
-        actionsBuilder.put(ModelActionRole.DefineProjections, new AbstractModelAction<Object>(ModelReference.of(path), descriptor) {
+        actionsBuilder.put(ModelActionRole.Discover, new AbstractModelAction<Object>(ModelReference.of(path), descriptor) {
             @Override
             public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
                 modelNode.setHidden(hidden);

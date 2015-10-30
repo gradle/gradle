@@ -47,7 +47,7 @@ class RuleBindings {
         }
     }
 
-    public void nodeProjectionsDefined(ModelNodeInternal node) {
+    public void nodeDiscovered(ModelNodeInternal node) {
         for (Reference reference : pathReferences.get(node.getPath())) {
             if (!reference.binding.isBound()) {
                 bound(reference, node);
@@ -118,8 +118,8 @@ class RuleBindings {
             pathReferences.put(predicate.getPath(), reference);
         } else if (predicate.getScope() != null) {
             for (ModelNodeInternal node : modelGraph.findAllInScope(predicate.getScope())) {
-                // Do not try to attach to nodes that are not in ProjectionsDefined yet
-                if (!node.isAtLeast(ModelNode.State.ProjectionsDefined)) {
+                // Do not try to attach to nodes that are not Discovered yet
+                if (!node.isAtLeast(ModelNode.State.Discovered)) {
                     continue;
                 }
                 if (binding.isTypeCompatible(node.getPromise())) {
