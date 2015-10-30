@@ -697,10 +697,10 @@ import org.gradle.model.internal.type.ModelType
 class DependencyResolutionObserver extends RuleSource {
     @Mutate void createCheckTask(CollectionBuilder<Task> tasks) {
         tasks.create('checkDependenciesForMainJar') {
-        doLast {
-            def task = tasks.get('compileMainJarMainJava')
-            task.classpath.files
-        }
+            doLast {
+                def task = tasks.get('compileMainJarMainJava')
+                task.classpath.files
+            }
         }
     }
 }
