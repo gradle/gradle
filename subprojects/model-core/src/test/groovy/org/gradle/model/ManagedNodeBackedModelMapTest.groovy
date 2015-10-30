@@ -880,11 +880,10 @@ class ManagedNodeBackedModelMapTest extends Specification {
         realize()
 
         then:
-        def e = thrown ModelRuleExecutionException
-        e.cause instanceof ModelTypeInitializationException
-        e.cause.message.contains("A model element of type: 'java.util.List' can not be constructed.")
-        e.cause.message.contains("It must be one of:")
-        e.cause.message.contains("A managed type (annotated with @Managed)")
+        ModelRuleExecutionException e = thrown()
+        normaliseLineSeparators(e.cause.message).contains('''A model element of type: 'java.util.List' can not be constructed.
+It must be one of:
+    - A managed type (annotated with @Managed)''')
     }
 
 }

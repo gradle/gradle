@@ -63,7 +63,7 @@ class DomainObjectCollectionBackedModelMapTest extends Specification {
     def "reasonable error message when creating a non-constructible type"() {
         given:
         def backingCollection = new DefaultDomainObjectCollection(SomeType, []);
-        def instantiator = new DefaultPolymorphicNamedEntityInstantiator(SomeType, "SomeType")
+        def instantiator = new DefaultPolymorphicNamedEntityInstantiator(SomeType, "the collection")
         instantiator.registerFactory(SomeType, new NamedDomainObjectFactory<SomeType>(){
             public SomeType create(String name) {
                 return new SomeType(name: name)
@@ -76,6 +76,6 @@ class DomainObjectCollectionBackedModelMapTest extends Specification {
 
         then:
         def e = thrown InvalidUserDataException
-        e.message.contains("Cannot create a List because this type is not known to SomeType. Known types are: SomeType")
+        e.message.contains("Cannot create a List because this type is not known to the collection. Known types are: SomeType")
     }
 }
