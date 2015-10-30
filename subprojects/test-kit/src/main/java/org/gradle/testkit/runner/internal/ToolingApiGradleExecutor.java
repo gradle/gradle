@@ -143,7 +143,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         DefaultGradleConnector gradleConnector = (DefaultGradleConnector) GradleConnector.newConnector();
         useGradleDistribution(gradleConnector, gradleDistribution);
         gradleConnector.useGradleUserHomeDir(gradleUserHome);
-        gradleConnector.useDistributionBaseDir(GradleUserHomeLookup.gradleUserHome());
         gradleConnector.daemonBaseDir(new File(gradleUserHome, TEST_KIT_DAEMON_DIR_NAME));
         gradleConnector.forProjectDirectory(projectDir);
         gradleConnector.searchUpwards(false);
@@ -152,7 +151,9 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         return gradleConnector;
     }
 
-    private void useGradleDistribution(GradleConnector gradleConnector, GradleDistribution gradleDistribution) {
+    private void useGradleDistribution(DefaultGradleConnector gradleConnector, GradleDistribution gradleDistribution) {
+        gradleConnector.useDistributionBaseDir(GradleUserHomeLookup.gradleUserHome());
+
         if (gradleDistribution instanceof InstalledGradleDistribution) {
             gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getGradleHome());
         } else if (gradleDistribution instanceof URILocatedGradleDistribution) {
