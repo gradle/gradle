@@ -77,10 +77,14 @@ public abstract class GradleRunner {
      * <p>
      * Unless previously downloaded, this method will cause the Gradle runtime for the version specified
      * to be downloaded over the Internet from Gradle's distribution servers.
+     * The download will be cached beneath the Gradle User Home directory, the location of which is determined by the following in order of precedence:
+     * <ol>
+     * <li>The system property {@code "gradle.user.home"}</li>
+     * <li>The environment variable {@code "GRADLE_USER_HOME"}</li>
+     * </ol>
      * <p>
-     * The runtime will be stored in the {@link #withTestKitDir(File) “TestKit directory”}.
-     * As such, it is generally recommended to set the TestKit directory when using this method to a
-     * persistent location to avoid repeated downloading.
+     * If neither are present, {@code "~/.gradle"} will be used, where {@code "~"} is the value advertised by the JVM's {@code "user.dir"} system property.
+     * The system property and environment variable are read in the process using the runner, not the build process.
      * <p>
      * Alternatively, you may use {@link #withGradleInstallation(File)} to use an installation already on the filesystem.
      * <p>
@@ -117,10 +121,14 @@ public abstract class GradleRunner {
      * where it is preferable to obtain the Gradle runtime from “local” servers.
      * <p>
      * Unless previously downloaded, this method will cause the Gradle runtime at the given URI to be downloaded.
+     * The download will be cached beneath the Gradle User Home directory, the location of which is determined by the following in order of precedence:
+     * <ol>
+     * <li>The system property {@code "gradle.user.home"}</li>
+     * <li>The environment variable {@code "GRADLE_USER_HOME"}</li>
+     * </ol>
      * <p>
-     * The runtime will be stored in the {@link #withTestKitDir(File) “TestKit directory”}.
-     * As such, it is generally recommended to set the TestKit directory when using this method to a
-     * persistent location to avoid repeated downloading.
+     * If neither are present, {@code "~/.gradle"} will be used, where {@code "~"} is the value advertised by the JVM's {@code "user.dir"} system property.
+     * The system property and environment variable are read in the process using the runner, not the build process.
      *
      * @param distribution a URI pointing at a valid Gradle distribution zip file
      * @return this
