@@ -46,12 +46,6 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     def "cunit"() {
-        given:
-        // CUnit prebuilt library only works for VS2010 on windows
-        if (OperatingSystem.current().windows && !isVisualCpp2010()) {
-            return
-        }
-
         when:
         sample cunit
         succeeds "runPassing"
@@ -87,9 +81,5 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
         failingResults.suites['operator tests'].failingTests == ['test_plus']
         failingResults.checkTestCases(2, 1, 1)
         failingResults.checkAssertions(6, 4, 2)
-    }
-
-    private static boolean isVisualCpp2010() {
-        return (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp && (AbstractInstalledToolChainIntegrationSpec.toolChain as AvailableToolChains.InstalledVisualCpp).version.major == "10")
     }
 }
