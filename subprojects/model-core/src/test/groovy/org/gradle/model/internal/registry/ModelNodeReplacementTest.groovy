@@ -25,8 +25,8 @@ class ModelNodeReplacementTest extends Specification {
 
     def "can replace known node"() {
         when:
-        registry.createInstance("foo", "foo")
-        registry.replace(registry.creator("foo").unmanaged("bar"))
+        registry.registerInstance("foo", "foo")
+        registry.replace(registry.registration("foo").unmanaged("bar"))
 
         then:
         registry.get("foo") == "bar"
@@ -34,13 +34,13 @@ class ModelNodeReplacementTest extends Specification {
 
     def "cannot replace realized node"() {
         when:
-        registry.createInstance("foo", "foo")
+        registry.registerInstance("foo", "foo")
 
         then:
         registry.get("foo") == "foo"
 
         when:
-        registry.replace(registry.creator("foo").unmanaged("bar"))
+        registry.replace(registry.registration("foo").unmanaged("bar"))
 
         then:
         thrown IllegalStateException
@@ -48,8 +48,8 @@ class ModelNodeReplacementTest extends Specification {
 
     def "cannot replace node with different type"() {
         when:
-        registry.createInstance("foo", "foo")
-        registry.replace(registry.creator("foo").unmanaged(2))
+        registry.registerInstance("foo", "foo")
+        registry.replace(registry.registration("foo").unmanaged(2))
 
         then:
         thrown IllegalStateException

@@ -46,9 +46,9 @@ class ModelSetModelProjectionTest extends Specification {
     private ModelReference<ModelSet<NamedThing>> reference = ModelReference.of(collectionPath, new ModelType<ModelSet<NamedThing>>() {})
 
     def setup() {
-        registry.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
-        registry.create(
-            ModelCreators.of(collectionPath, nodeInitializerRegistry.getNodeInitializer(collectionType))
+        registry.register(ModelRegistrations.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
+        registry.register(
+            ModelRegistrations.of(collectionPath, nodeInitializerRegistry.getNodeInitializer(collectionType))
                 .descriptor("define collection")
                 .build()
         )
@@ -141,7 +141,7 @@ class ModelSetModelProjectionTest extends Specification {
     @Unroll
     def "cannot configure children when used as an input - #method"() {
         when:
-        registry.createInstance("things", []).mutate {
+        registry.registerInstance("things", []).mutate {
             it.path("things").action(reference.path, reference.type, { things, set ->
                 set."$method" {
 

@@ -34,7 +34,7 @@ class ModelReferenceNode extends ModelNodeInternal {
     private ModelNodeInternal target;
     private final MutableModelNode parent;
 
-    public ModelReferenceNode(CreatorRuleBinder creatorBinder, MutableModelNode parent) {
+    public ModelReferenceNode(RegistrationRuleBinder creatorBinder, MutableModelNode parent) {
         super(creatorBinder);
         this.parent = parent;
     }
@@ -80,12 +80,12 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public void addLink(ModelCreator creator) {
+    public void addLink(ModelRegistration registration) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void addReference(ModelCreator creator) {
+    public void addReference(ModelRegistration registration) {
         throw new UnsupportedOperationException();
     }
 

@@ -21,7 +21,7 @@ import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
-class InstanceBackedModelCreatorTest extends Specification {
+class InstanceBackedModelRegistrationTest extends Specification {
 
     def registry = new DefaultModelRegistry(null)
 
@@ -33,21 +33,21 @@ class InstanceBackedModelCreatorTest extends Specification {
         def descriptor = new SimpleModelRuleDescriptor("foo")
 
         def fooList = []
-        def fooCreator = ModelCreators.bridgedInstance(foo, fooList).descriptor(descriptor).build()
-        registry.create(fooCreator)
+        def fooRegistration = ModelRegistrations.bridgedInstance(foo, fooList).descriptor(descriptor).build()
+        registry.register(fooRegistration)
 
         def barList = []
         def factory = Mock(org.gradle.internal.Factory) {
             1 * create() >> barList
         }
-        def barCreator = ModelCreators.unmanagedInstance(bar, factory).descriptor(descriptor).build()
-        registry.create(barCreator)
+        def barRegistration = ModelRegistrations.unmanagedInstance(bar, factory).descriptor(descriptor).build()
+        registry.register(barRegistration)
 
         then:
-        !fooCreator.promise.canBeViewedAsImmutable(ModelType.of(String))
-        !fooCreator.promise.canBeViewedAsMutable(ModelType.of(String))
-        fooCreator.promise.canBeViewedAsImmutable(ModelType.of(List))
-        fooCreator.promise.canBeViewedAsMutable(ModelType.of(List))
+        !fooRegistration.promise.canBeViewedAsImmutable(ModelType.of(String))
+        !fooRegistration.promise.canBeViewedAsMutable(ModelType.of(String))
+        fooRegistration.promise.canBeViewedAsImmutable(ModelType.of(List))
+        fooRegistration.promise.canBeViewedAsMutable(ModelType.of(List))
 
         registry.realize(foo.path, foo.type).is(fooList)
         registry.realize(bar.path, bar.type).is(barList)

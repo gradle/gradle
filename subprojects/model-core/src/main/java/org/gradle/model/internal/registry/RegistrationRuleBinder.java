@@ -16,20 +16,20 @@
 
 package org.gradle.model.internal.registry;
 
-import org.gradle.model.internal.core.ModelCreator;
+import org.gradle.model.internal.core.ModelRegistration;
 
 import java.util.Collection;
 import java.util.List;
 
-class CreatorRuleBinder extends RuleBinder {
-    private final ModelCreator creator;
+class RegistrationRuleBinder extends RuleBinder {
+    private final ModelRegistration registration;
 
-    public CreatorRuleBinder(ModelCreator creator, BindingPredicate subject, List<BindingPredicate> inputs, Collection<RuleBinder> binders) {
-        super(subject, inputs, creator.getDescriptor(), binders);
-        this.creator = creator;
+    public RegistrationRuleBinder(ModelRegistration registration, BindingPredicate subject, List<BindingPredicate> inputs, Collection<RuleBinder> binders) {
+        super(subject, inputs, registration.getDescriptor(), binders);
+        this.registration = registration;
     }
 
-    public ModelCreator getCreator() {
-        return creator;
+    public ModelRegistration getRegistration() {
+        return registration;
     }
 }

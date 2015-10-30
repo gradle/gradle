@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 @ThreadSafe
-public class ProjectionBackedModelCreator implements ModelCreator {
+public class ProjectionBackedModelRegistration implements ModelRegistration {
     private final ModelPath path;
     private final ModelRuleDescriptor descriptor;
     private final boolean service;
@@ -33,7 +33,7 @@ public class ProjectionBackedModelCreator implements ModelCreator {
     private final List<ModelProjection> projections;
     private final ListMultimap<ModelActionRole, ? extends ModelAction> actions;
 
-    public ProjectionBackedModelCreator(
+    public ProjectionBackedModelRegistration(
         ModelPath path,
         ModelRuleDescriptor descriptor,
         boolean service,

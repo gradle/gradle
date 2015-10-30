@@ -67,8 +67,8 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
 
             NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
 
-            ManagedChildNodeCreatorStrategy<E> childCreator = new ManagedChildNodeCreatorStrategy<E>(nodeInitializerRegistry);
-            modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childCreator);
+            ManagedChildNodeCreatorStrategy<E> childStrategy = new ManagedChildNodeCreatorStrategy<E>(nodeInitializerRegistry);
+            modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
         }
 
         @Override

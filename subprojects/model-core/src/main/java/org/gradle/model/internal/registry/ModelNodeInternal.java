@@ -34,42 +34,42 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelNodeInternal.class);
 
-    private CreatorRuleBinder creatorBinder;
+    private RegistrationRuleBinder registrationBinder;
     private final Set<ModelNodeInternal> dependencies = Sets.newHashSet();
     private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
-    private ModelNode.State state = ModelNode.State.Known;
+    private ModelNode.State state = ModelNode.State.Registered;
     private boolean hidden;
     private final List<ModelRuleDescriptor> executedRules = Lists.newArrayList();
     private final List<ModelActionBinder> initializerRuleBinders = Lists.newArrayList();
 
-    public ModelNodeInternal(CreatorRuleBinder creatorBinder) {
-        this.creatorBinder = creatorBinder;
+    public ModelNodeInternal(RegistrationRuleBinder registrationBinder) {
+        this.registrationBinder = registrationBinder;
     }
 
-    public CreatorRuleBinder getCreatorBinder() {
-        return creatorBinder;
+    public RegistrationRuleBinder getRegistrationBinder() {
+        return registrationBinder;
     }
 
-    public void replaceCreatorRuleBinder(CreatorRuleBinder newCreatorBinder) {
+    public void replaceCreatorRuleBinder(RegistrationRuleBinder newRegistrationBinder) {
         if (isAtLeast(State.Created)) {
-            throw new IllegalStateException("Cannot replace creator rule binder when node is already created (node: " + this + ", state: " + getState() + ")");
+            throw new IllegalStateException("Cannot replace registration rule binder when node is already created (node: " + this + ", state: " + getState() + ")");
         }
 
-        ModelCreator newCreator = newCreatorBinder.getCreator();
-        ModelCreator oldCreator = creatorBinder.getCreator();
+        ModelRegistration newRegistration = newRegistrationBinder.getRegistration();
+        ModelRegistration oldRegistration = registrationBinder.getRegistration();
 
         // Can't change type
-        if (!oldCreator.getPromise().equals(newCreator.getPromise())) {
-            throw new IllegalStateException("can not replace node " + getPath() + " with different promise (old: " + oldCreator.getPromise() + ", new: " + newCreator.getPromise() + ")");
+        if (!oldRegistration.getPromise().equals(newRegistration.getPromise())) {
+            throw new IllegalStateException("can not replace node " + getPath() + " with different promise (old: " + oldRegistration.getPromise() + ", new: " + newRegistration.getPromise() + ")");
         }
 
         // Can't have different inputs
-        if (!newCreator.getInputs().equals(oldCreator.getInputs())) {
+        if (!newRegistration.getInputs().equals(oldRegistration.getInputs())) {
             Joiner joiner = Joiner.on(", ");
-            throw new IllegalStateException("can not replace node " + getPath() + " with creator with different input bindings (old: [" + joiner.join(oldCreator.getInputs()) + "], new: [" + joiner.join(newCreator.getInputs()) + "])");
+            throw new IllegalStateException("can not replace node " + getPath() + " with registration with different input bindings (old: [" + joiner.join(oldRegistration.getInputs()) + "], new: [" + joiner.join(newRegistration.getInputs()) + "])");
         }
 
-        this.creatorBinder = newCreatorBinder;
+        this.registrationBinder = newRegistrationBinder;
     }
 
     public List<ModelActionBinder> getInitializerRuleBinders() {
@@ -92,7 +92,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     @Override
     public boolean isEphemeral() {
-        return creatorBinder.getCreator().isEphemeral();
+        return registrationBinder.getRegistration().isEphemeral();
     }
 
     public void notifyFired(RuleBinder binder) {
@@ -114,11 +114,11 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     public ModelPath getPath() {
-        return creatorBinder.getCreator().getPath();
+        return registrationBinder.getRegistration().getPath();
     }
 
     public ModelRuleDescriptor getDescriptor() {
-        return creatorBinder.getDescriptor();
+        return registrationBinder.getDescriptor();
     }
 
     public ModelNode.State getState() {
@@ -141,14 +141,14 @@ abstract class ModelNodeInternal implements MutableModelNode {
         if (!state.isAtLeast(State.Discovered)) {
             throw new IllegalStateException(String.format("Cannot get promise for %s in state %s when not yet discovered", getPath(), state));
         }
-        return creatorBinder.getCreator().getPromise();
+        return registrationBinder.getRegistration().getPromise();
     }
 
     public ModelAdapter getAdapter() {
         if (!state.isAtLeast(State.Created)) {
             throw new IllegalStateException(String.format("Cannot get adapter for %s in state %s when node is not created", getPath(), state));
         }
-        return creatorBinder.getCreator().getAdapter();
+        return registrationBinder.getRegistration().getAdapter();
     }
 
     @Override

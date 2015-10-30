@@ -22,20 +22,20 @@ import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
-public class ExtractedModelCreator implements ExtractedModelRule {
+public class ExtractedModelRegistration implements ExtractedModelRule {
 
-    private final ModelCreator creator;
+    private final ModelRegistration registration;
 
-    public ExtractedModelCreator(ModelCreator creator) {
-        this.creator = creator;
+    public ExtractedModelRegistration(ModelRegistration registration) {
+        this.registration = registration;
     }
 
     @Override
     public void apply(ModelRegistry modelRegistry, ModelPath scope) {
         if (!scope.equals(ModelPath.ROOT)) {
-            throw new InvalidModelRuleDeclarationException(String.format("Rule %s cannot be applied at the scope of model element %s as creation rules cannot be used when applying rule sources to particular elements", creator.getDescriptor(), scope));
+            throw new InvalidModelRuleDeclarationException(String.format("Rule %s cannot be applied at the scope of model element %s as creation rules cannot be used when applying rule sources to particular elements", registration.getDescriptor(), scope));
         }
-        modelRegistry.create(creator);
+        modelRegistry.register(registration);
     }
 
     @Override

@@ -21,7 +21,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Set;
 
-public interface ModelCreator extends ModelRule {
+public interface ModelRegistration extends ModelRule {
     ModelRuleDescriptor getDescriptor();
 
     ModelPath getPath();

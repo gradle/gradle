@@ -92,7 +92,7 @@ class ModelGraphTest extends Specification {
 
     def "notifies listener when node reaches projected state"() {
         def listener = Mock(ModelListener)
-        def a = node("a", String, State.Known)
+        def a = node("a", String, State.Registered)
 
         given:
         graph.addListener(listener)

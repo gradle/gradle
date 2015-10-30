@@ -35,7 +35,7 @@ import java.util.Collections;
 import java.util.List;
 
 @ThreadSafe
-abstract public class ModelCreators {
+abstract public class ModelRegistrations {
 
     public static <T> Builder serviceInstance(ModelReference<T> modelReference, T instance) {
         return bridgedInstance(modelReference, instance)
@@ -207,7 +207,7 @@ abstract public class ModelCreators {
         }
 
         @SuppressWarnings("unchecked")
-        public ModelCreator build() {
+        public ModelRegistration build() {
             if (nodeInitializer != null) {
                 this.action(ModelActionRole.Create, new BuilderModelAction() {
                     @Override
@@ -228,7 +228,7 @@ abstract public class ModelCreators {
                     action(ModelActionRole.Discover, projector);
                 }
             }
-            return new ProjectionBackedModelCreator(path, modelRuleDescriptor, service, ephemeral, hidden || service, projections, actions);
+            return new ProjectionBackedModelRegistration(path, modelRuleDescriptor, service, ephemeral, hidden || service, projections, actions);
         }
 
         private abstract class BuilderModelAction implements ModelAction {

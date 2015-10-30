@@ -33,14 +33,14 @@ class RegistrySpec extends Specification {
             super(toBinder(creationPath, type))
         }
 
-        TestNode(CreatorRuleBinder creatorBinder) {
+        TestNode(RegistrationRuleBinder creatorBinder) {
             super(creatorBinder)
         }
 
-        private static CreatorRuleBinder toBinder(String creationPath, Class<?> type) {
-            def creator = ModelCreators.of(ModelPath.path(creationPath)).descriptor("test").withProjection(new UnmanagedModelProjection(ModelType.of(type))).build()
+        private static RegistrationRuleBinder toBinder(String creationPath, Class<?> type) {
+            def registration = ModelRegistrations.of(ModelPath.path(creationPath)).descriptor("test").withProjection(new UnmanagedModelProjection(ModelType.of(type))).build()
             def subject = new BindingPredicate()
-            def binder = new CreatorRuleBinder(creator, subject, [], [])
+            def binder = new RegistrationRuleBinder(registration, subject, [], [])
             binder
         }
 
@@ -60,13 +60,13 @@ class RegistrySpec extends Specification {
         }
 
         @Override
-        void addReference(ModelCreator creator) {
+        void addReference(ModelRegistration registration) {
 
         }
 
 
         @Override
-        void addLink(ModelCreator creator) {
+        void addLink(ModelRegistration registration) {
 
         }
 
@@ -265,8 +265,8 @@ class RegistrySpec extends Specification {
         RuleBinder build() {
             def binder
             if (subjectReference == null) {
-                def action = new ProjectionBackedModelCreator(null, descriptor, false, false, false, [], ImmutableMultimap.of())
-                binder = new CreatorRuleBinder(action, new BindingPredicate(), inputReferences, [])
+                def action = new ProjectionBackedModelRegistration(null, descriptor, false, false, false, [], ImmutableMultimap.of())
+                binder = new RegistrationRuleBinder(action, new BindingPredicate(), inputReferences, [])
             } else {
                 def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})
                 binder = new ModelActionBinder(subjectReference, inputReferences, action, [])

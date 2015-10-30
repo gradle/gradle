@@ -75,14 +75,14 @@ class ModelRuleExtractorTest extends Specification {
         def rule = extract(SimpleModelCreationRuleInferredName).first()
 
         then:
-        rule instanceof ExtractedModelCreator
+        rule instanceof ExtractedModelRegistration
 
         when:
         rule.apply(mockRegistry, ModelPath.ROOT)
 
         then:
-        1 * mockRegistry.create(_) >> { ModelCreator creator ->
-            assert creator.path.toString() == "modelPath"
+        1 * mockRegistry.register(_) >> { ModelRegistration registration ->
+            assert registration.path.toString() == "modelPath"
         }
         0 * _
     }
@@ -280,7 +280,7 @@ class ModelRuleExtractorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).descriptor("strings").build())
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(path, type), []).descriptor("strings").build())
 
         when:
         registerRules(MutationRules)
@@ -316,7 +316,7 @@ class ModelRuleExtractorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).descriptor("strings").build())
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(path, type), []).descriptor("strings").build())
 
         when:
         registerRules(MutationAndFinalizeRules)
@@ -331,8 +331,8 @@ class ModelRuleExtractorTest extends Specification {
         def stringListType = new ModelType<List<String>>() {}
         def integerListType = new ModelType<List<Integer>>() {}
 
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("strings"), stringListType), []).descriptor("strings").build())
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).descriptor("integers").build())
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(ModelPath.path("strings"), stringListType), []).descriptor("strings").build())
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).descriptor("integers").build())
 
         then:
         extractor.extract(MutationAndFinalizeRules)*.action*.descriptor == [

@@ -71,32 +71,32 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
         ModelPath childPath = modelNode.getPath().child(property.getName());
         if (propertySchema instanceof ManagedImplSchema) {
             if (!property.isWritable()) {
-                ModelCreator creator = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertySchema.getType(), property, schema.getType())))
+                ModelRegistration registration = ModelRegistrations.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertySchema.getType(), property, schema.getType())))
                     .descriptor(descriptor)
                     .build();
-                modelNode.addLink(creator);
+                modelNode.addLink(registration);
             } else {
                 if (propertySchema instanceof ScalarCollectionSchema) {
-                    ModelCreator creator = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertySchema.getType(), property, schema.getType())))
+                    ModelRegistration registration = ModelRegistrations.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertySchema.getType(), property, schema.getType())))
                         .descriptor(descriptor)
                         .build();
-                    modelNode.addLink(creator);
+                    modelNode.addLink(registration);
                 } else {
                     ManagedImplStructSchema<P> structSchema = (ManagedImplStructSchema<P>) propertySchema;
                     ModelProjection projection = new ManagedModelProjection<P>(structSchema, null, schemaStore, proxyFactory);
-                    ModelCreator creator = ModelCreators.of(childPath)
+                    ModelRegistration registration = ModelRegistrations.of(childPath)
                         .withProjection(projection)
                         .descriptor(descriptor).build();
-                    modelNode.addReference(creator);
+                    modelNode.addReference(registration);
                 }
             }
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
-            ModelCreators.Builder creatorBuilder;
+            ModelRegistrations.Builder creatorBuilder;
             if (shouldHaveANodeInitializer(property, propertySchema)) {
-                creatorBuilder = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertyType, property, schema.getType())));
+                creatorBuilder = ModelRegistrations.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertyType, property, schema.getType())));
             } else {
-                creatorBuilder = ModelCreators.of(childPath);
+                creatorBuilder = ModelRegistrations.of(childPath);
             }
             creatorBuilder
                 .withProjection(projection)

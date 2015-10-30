@@ -18,7 +18,7 @@ package org.gradle.model.internal.manage.schema.extract
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
-import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
@@ -35,7 +35,7 @@ class ScalarTypesInManagedModelTest extends Specification {
     def classLoader = new GroovyClassLoader(this.class.classLoader)
 
     def setup() {
-        r.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
+        r.register(ModelRegistrations.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
     }
 
     @Unroll
@@ -110,7 +110,7 @@ class ScalarTypesInManagedModelTest extends Specification {
     }
 
     private void realize(Class type) {
-        r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(type)).descriptor(r.desc("bar")).build())
+        r.register(ModelRegistrations.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(type)).descriptor(r.desc("bar")).build())
         r.realize("bar", type)
     }
 }

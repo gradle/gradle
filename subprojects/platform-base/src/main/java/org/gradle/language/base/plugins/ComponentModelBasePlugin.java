@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.rules.ModelMapCreators;
+import org.gradle.api.internal.rules.ModelMapRegistrations;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
@@ -36,8 +36,8 @@ import org.gradle.language.base.internal.registry.DefaultLanguageTransformContai
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelRegistration;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -87,14 +87,14 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         SpecializedMapSchema<ComponentSpecContainer> schema = (SpecializedMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
         ModelPath components = ModelPath.path("components");
-        ModelCreator componentsCreator = ModelMapCreators.specialized(
+        ModelRegistration componentsRegistration = ModelMapRegistrations.specialized(
             components,
             ComponentSpec.class,
             ComponentSpecContainer.class,
             schema.getImplementationType().asSubclass(ComponentSpecContainer.class),
             descriptor
         );
-        modelRegistry.create(componentsCreator);
+        modelRegistry.register(componentsRegistration);
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), ComponentRules.class);
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), ComponentBinaryRules.class);
     }

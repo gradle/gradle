@@ -19,7 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.rules.ModelMapCreators;
+import org.gradle.api.internal.rules.ModelMapRegistrations;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
@@ -83,7 +83,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
         ModelPath binariesPath = ModelPath.path("binaries");
         SpecializedMapSchema<BinaryContainer> schema = (SpecializedMapSchema<BinaryContainer>) schemaStore.getSchema(ModelType.of(BinaryContainer.class));
         // TODO:LPTR Replace with create() once reuse is taken out
-        modelRegistry.createOrReplace(ModelMapCreators.specialized(
+        modelRegistry.registerOrReplace(ModelMapRegistrations.specialized(
             binariesPath,
             BinarySpec.class,
             BinaryContainer.class,

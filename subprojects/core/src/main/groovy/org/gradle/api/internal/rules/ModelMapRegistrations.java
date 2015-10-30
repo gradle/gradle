@@ -27,17 +27,17 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
-public class ModelMapCreators {
+public class ModelMapRegistrations {
 
-    public static <T, C extends ModelMap<T>> ModelCreator specialized(ModelPath path,
-                                                                      Class<T> typeClass,
-                                                                      Class<C> containerClass,
-                                                                      final Class<? extends C> viewClass,
-                                                                      ModelRuleDescriptor descriptor) {
+    public static <T, C extends ModelMap<T>> ModelRegistration specialized(ModelPath path,
+                                                                           Class<T> typeClass,
+                                                                           Class<C> containerClass,
+                                                                           final Class<? extends C> viewClass,
+                                                                           ModelRuleDescriptor descriptor) {
         ModelType<C> containerType = ModelType.of(containerClass);
         final ModelType<T> modelType = ModelType.of(typeClass);
         ChildNodeInitializerStrategyAccessor<T> strategyAccessor = ChildNodeInitializerStrategyAccessors.fromPrivateData();
-        return ModelCreators.of(path, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+        return ModelRegistrations.of(path, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
             @Override
             public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                 NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();

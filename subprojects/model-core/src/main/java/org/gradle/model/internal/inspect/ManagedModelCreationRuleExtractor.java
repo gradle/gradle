@@ -63,7 +63,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         }
 
         ModelType<?> managedType = references.get(0).getType();
-        return new ExtractedModelCreator(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
+        return new ExtractedModelRegistration(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
     }
 
     @Override
@@ -71,7 +71,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         return ruleDefinition.getAnnotation(Model.class).value();
     }
 
-    private <T> ModelCreator buildModelCreatorForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, final ModelPath modelPath) {
+    private <T> ModelRegistration buildModelCreatorForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, final ModelPath modelPath) {
         final ModelSchema<T> modelSchema = getModelSchema(managedType, ruleDefinition);
 
         if (modelSchema instanceof ValueSchema) {
@@ -83,7 +83,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         final ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
         final ModelReference<T> reference = ModelReference.of(modelPath, managedType);
-        return ModelCreators.of(modelPath)
+        return ModelRegistrations.of(modelPath)
             .descriptor(descriptor)
             .action(ModelActionRole.Discover, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override

@@ -82,7 +82,7 @@ public class TransformedModelDslBacking {
         try {
             NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(), DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getType());
             NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)));
-            modelRegistry.create(ModelCreators.of(modelPath, nodeInitializer).descriptor(descriptor).build());
+            modelRegistry.register(ModelRegistrations.of(modelPath, nodeInitializer).descriptor(descriptor).build());
         } catch (ModelTypeInitializationException e) {
             throw new InvalidModelRuleDeclarationException(descriptor, e);
         }

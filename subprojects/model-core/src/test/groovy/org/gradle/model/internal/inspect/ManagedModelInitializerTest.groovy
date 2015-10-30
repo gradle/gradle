@@ -43,7 +43,7 @@ class ManagedModelInitializerTest extends Specification {
 
     def setup() {
         nodeInitializerRegistry = new TestNodeInitializerRegistry() //Not shared across tests as test may add constructable types only applying to that particular test
-        r.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
+        r.register(ModelRegistrations.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
     }
 
     def "should fail with a contextual exception for managed collections properties"() {
@@ -330,7 +330,7 @@ interface Managed${typeName} {
     }
 
     void realizeNodeOfType(Class type) {
-        r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)))).descriptor(r.desc("bar")).build())
+        r.register(ModelRegistrations.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)))).descriptor(r.desc("bar")).build())
         r.realize("bar", type)
     }
 

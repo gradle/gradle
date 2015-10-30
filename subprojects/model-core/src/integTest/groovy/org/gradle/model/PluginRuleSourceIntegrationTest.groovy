@@ -230,7 +230,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("oh no!")
     }
 
-    def "model creator must provide instance"() {
+    def "model registration must provide instance"() {
         when:
         buildScript '''
             class MyPlugin {

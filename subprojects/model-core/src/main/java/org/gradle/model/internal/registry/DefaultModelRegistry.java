@@ -54,8 +54,8 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
-        ModelCreator rootCreator = ModelCreators.of(ModelPath.ROOT).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
-        modelGraph = new ModelGraph(new ModelElementNode(toCreatorBinder(rootCreator), null));
+        ModelRegistration rootRegistration = ModelRegistrations.of(ModelPath.ROOT).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
+        modelGraph = new ModelGraph(new ModelElementNode(toCreatorBinder(rootRegistration), null));
         modelGraph.getRoot().setState(Created);
         ruleBindings = new RuleBindings(modelGraph);
     }
@@ -66,25 +66,25 @@ public class DefaultModelRegistry implements ModelRegistry {
         return stringBuilder.toString();
     }
 
-    public DefaultModelRegistry create(ModelCreator creator) {
-        ModelPath path = creator.getPath();
+    public DefaultModelRegistry register(ModelRegistration registration) {
+        ModelPath path = registration.getPath();
         if (!ModelPath.ROOT.isDirectChild(path)) {
-            throw new InvalidModelRuleDeclarationException(creator.getDescriptor(), "Cannot create element at '" + path + "', only top level is allowed (e.g. '" + path.getRootParent() + "')");
+            throw new InvalidModelRuleDeclarationException(registration.getDescriptor(), "Cannot register element at '" + path + "', only top level is allowed (e.g. '" + path.getRootParent() + "')");
         }
 
         ModelNodeInternal root = modelGraph.getRoot();
-        root.addLink(creator);
+        root.addLink(registration);
         return this;
     }
 
-    private CreatorRuleBinder toCreatorBinder(ModelCreator creator) {
-        BindingPredicate subject = new BindingPredicate(ModelReference.of(creator.getPath(), ModelType.untyped(), ModelNode.State.Created));
-        return new CreatorRuleBinder(creator, subject, Collections.<BindingPredicate>emptyList(), unboundRules);
+    private RegistrationRuleBinder toCreatorBinder(ModelRegistration registration) {
+        BindingPredicate subject = new BindingPredicate(ModelReference.of(registration.getPath(), ModelType.untyped(), ModelNode.State.Created));
+        return new RegistrationRuleBinder(registration, subject, Collections.<BindingPredicate>emptyList(), unboundRules);
     }
 
     private ModelNodeInternal registerNode(ModelNodeInternal node) {
         if (reset) {
-            unboundRules.remove(node.getCreatorBinder());
+            unboundRules.remove(node.getRegistrationBinder());
             unboundRules.removeAll(node.getInitializerRuleBinders());
             return node;
         }
@@ -96,7 +96,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         modelGraph.add(node);
         ruleBindings.nodeCreated(node);
 
-        if (node.getCreatorBinder().getCreator().isService()) {
+        if (node.getRegistrationBinder().getRegistration().isService()) {
             node.ensureAtLeast(Discovered);
         }
 
@@ -104,9 +104,9 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void addRuleBindings(ModelNodeInternal node) {
-        ruleBindings.add(node.getCreatorBinder());
+        ruleBindings.add(node.getRegistrationBinder());
 
-        for(Map.Entry<ModelActionRole, ? extends ModelAction> entry : node.getCreatorBinder().getCreator().getActions().entries()) {
+        for(Map.Entry<ModelActionRole, ? extends ModelAction> entry : node.getRegistrationBinder().getRegistration().getActions().entries()) {
             ModelActionRole role = entry.getKey();
             ModelAction action = entry.getValue();
             checkNodePath(node, action);
@@ -214,7 +214,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (Iterables.isEmpty(dependents)) {
             modelGraph.remove(node);
             ruleBindings.remove(node);
-            unboundRules.remove(node.getCreatorBinder());
+            unboundRules.remove(node.getRegistrationBinder());
             unboundRules.removeAll(node.getInitializerRuleBinders());
         } else {
             throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: " + Joiner.on(", ").join(dependents));
@@ -222,8 +222,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public ModelRegistry createOrReplace(ModelCreator newCreator) {
-        ModelPath path = newCreator.getPath();
+    public ModelRegistry registerOrReplace(ModelRegistration newRegistration) {
+        ModelPath path = newRegistration.getPath();
         ModelNodeInternal node = modelGraph.find(path);
         if (node == null) {
             ModelNodeInternal parent = modelGraph.find(path.getParent());
@@ -231,34 +231,34 @@ public class DefaultModelRegistry implements ModelRegistry {
                 throw new IllegalStateException("Cannot create '" + path + "' as its parent node does not exist");
             }
 
-            parent.addLink(newCreator);
+            parent.addLink(newRegistration);
         } else {
-            replace(newCreator);
+            replace(newRegistration);
         }
 
         return this;
     }
 
     @Override
-    public ModelRegistry replace(ModelCreator newCreator) {
-        ModelNodeInternal node = modelGraph.find(newCreator.getPath());
+    public ModelRegistry replace(ModelRegistration newRegistration) {
+        ModelNodeInternal node = modelGraph.find(newRegistration.getPath());
         if (node == null) {
-            throw new IllegalStateException("can not replace node " + newCreator.getPath() + " as it does not exist");
+            throw new IllegalStateException("can not replace node " + newRegistration.getPath() + " as it does not exist");
         }
 
         replace = true;
         try {
             boolean wasDiscovered = node.isAtLeast(Discovered);
 
-            ruleBindings.remove(node, node.getCreatorBinder());
+            ruleBindings.remove(node, node.getRegistrationBinder());
             for (RuleBinder ruleBinder : node.getInitializerRuleBinders()) {
                 ruleBindings.remove(node, ruleBinder);
             }
             node.getInitializerRuleBinders().clear();
 
             // Will internally verify that this is valid
-            node.replaceCreatorRuleBinder(toCreatorBinder(newCreator));
-            node.setState(Known);
+            node.replaceCreatorRuleBinder(toCreatorBinder(newRegistration));
+            node.setState(Registered);
             addRuleBindings(node);
             if (wasDiscovered) {
                 transition(node, Discovered, false);
@@ -324,7 +324,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private ModelNodeInternal get(ModelPath path) {
         GoalGraph graph = new GoalGraph();
-        transitionTo(graph, graph.nodeAtState(new NodeAtState(path, Known)));
+        transitionTo(graph, graph.nodeAtState(new NodeAtState(path, Registered)));
         ModelNodeInternal node = modelGraph.find(path);
         if (node == null) {
             return null;
@@ -559,8 +559,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         private Object privateData;
         private ModelType<?> privateDataType;
 
-        public ModelElementNode(CreatorRuleBinder creatorRuleBinder, MutableModelNode parent) {
-            super(creatorRuleBinder);
+        public ModelElementNode(RegistrationRuleBinder registrationRuleBinder, MutableModelNode parent) {
+            super(registrationRuleBinder);
             this.parent = parent;
         }
 
@@ -821,19 +821,19 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public void addReference(ModelCreator creator) {
-            addNode(new ModelReferenceNode(toCreatorBinder(creator), this), creator);
+        public void addReference(ModelRegistration registration) {
+            addNode(new ModelReferenceNode(toCreatorBinder(registration), this), registration);
         }
 
         @Override
-        public void addLink(ModelCreator creator) {
-            addNode(new ModelElementNode(toCreatorBinder(creator), this), creator);
+        public void addLink(ModelRegistration registration) {
+            addNode(new ModelElementNode(toCreatorBinder(registration), this), registration);
         }
 
-        private void addNode(ModelNodeInternal child, ModelCreator creator) {
+        private void addNode(ModelNodeInternal child, ModelRegistration registration) {
             ModelPath childPath = child.getPath();
             if (!getPath().isDirectChild(childPath)) {
-                throw new IllegalArgumentException(String.format("Element creator has a path (%s) which is not a child of this node (%s).", childPath, getPath()));
+                throw new IllegalArgumentException(String.format("Element registration has a path (%s) which is not a child of this node (%s).", childPath, getPath()));
             }
 
             if (reset) {
@@ -849,7 +849,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                         String.format(
                             "Cannot create '%s' using creation rule '%s' as the rule '%s' is already registered to create this model element.",
                             childPath,
-                            describe(creator.getDescriptor()),
+                            describe(registration.getDescriptor()),
                             describe(currentChild.getDescriptor())
                         )
                     );
@@ -858,7 +858,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                     String.format(
                         "Cannot create '%s' using creation rule '%s' as the rule '%s' has already been used to create this model element.",
                         childPath,
-                        describe(creator.getDescriptor()),
+                        describe(registration.getDescriptor()),
                         describe(currentChild.getDescriptor())
                     )
                 );
@@ -868,7 +868,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                     String.format(
                         "Cannot create '%s' using creation rule '%s' as model element '%s' is no longer mutable.",
                         childPath,
-                        describe(creator.getDescriptor()),
+                        describe(registration.getDescriptor()),
                         getPath()
                     )
                 );
@@ -901,8 +901,8 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void addProjection(ModelProjection projection) {
-            transition(this, State.Known, false);
-            getCreatorBinder().getCreator().addProjection(projection);
+            transition(this, State.Registered, false);
+            getRegistrationBinder().getRegistration().addProjection(projection);
         }
     }
 
@@ -913,7 +913,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             ModelGoal node = nodeStates.get(goal);
             if (node == null) {
                 switch (goal.state) {
-                    case Known:
+                    case Registered:
                         node = new MakeKnown(goal.path);
                         break;
                     case Discovered:
@@ -1331,11 +1331,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (childTarget == null) {
                 throw new NullPointerException("child is null");
             }
-            ModelCreator creator = ModelCreators.of(path)
+            ModelRegistration registration = ModelRegistrations.of(path)
                 .descriptor(parent.getDescriptor())
-                .withProjection(childTarget.getCreatorBinder().getCreator().getProjection())
+                .withProjection(childTarget.getRegistrationBinder().getRegistration().getProjection())
                 .build();
-            ModelReferenceNode childNode = new ModelReferenceNode(toCreatorBinder(creator), parent);
+            ModelReferenceNode childNode = new ModelReferenceNode(toCreatorBinder(registration), parent);
             childNode.setTarget(childTarget);
             registerNode(childNode);
             ruleBindings.nodeDiscovered(childNode);

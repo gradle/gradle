@@ -20,7 +20,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import spock.lang.Unroll
 
 class ModelNodeInternalTest extends RegistrySpec {
-    CreatorRuleBinder creatorRuleBinder = Mock()
+    RegistrationRuleBinder creatorRuleBinder = Mock()
 
     def "should have zero executed rules initially"() {
         expect:

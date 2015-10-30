@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.test.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.rules.ModelMapCreators;
+import org.gradle.api.internal.rules.ModelMapRegistrations;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
@@ -25,8 +25,8 @@ import org.gradle.model.Defaults;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelRegistration;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -67,9 +67,9 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
 
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(NativeBinariesTestPlugin.class.getName() + ".apply()");
         SpecializedMapSchema<TestSuiteContainer> schema = (SpecializedMapSchema<TestSuiteContainer>) schemaStore.getSchema(ModelType.of(TestSuiteContainer.class));
-        ModelCreator testSuitesCreator = ModelMapCreators.specialized(ModelPath.path("testSuites"), TestSuiteSpec.class, TestSuiteContainer.class, schema.getImplementationType().asSubclass(TestSuiteContainer.class), descriptor);
+        ModelRegistration testSuitesRegistration = ModelMapRegistrations.specialized(ModelPath.path("testSuites"), TestSuiteSpec.class, TestSuiteContainer.class, schema.getImplementationType().asSubclass(TestSuiteContainer.class), descriptor);
 
-        modelRegistry.create(testSuitesCreator);
+        modelRegistry.register(testSuitesRegistration);
     }
 
     @SuppressWarnings("UnusedDeclaration")

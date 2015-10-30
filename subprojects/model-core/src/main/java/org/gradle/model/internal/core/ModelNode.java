@@ -32,7 +32,7 @@ public interface ModelNode {
 
     // Note: order is crucial here. Nodes are traversed through these states in the order defined below
     enum State {
-        Known(true), // Initial state. Only path and some projections are known here
+        Registered(true), // Initial state. Only path and some projections are known here
         Discovered(true), // All projections are defined
         Created(true), // Private data has been created, initial rules discovered
         RulesDefined(true), // Rules are defined

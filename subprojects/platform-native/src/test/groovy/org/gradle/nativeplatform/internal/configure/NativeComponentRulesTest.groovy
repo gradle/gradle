@@ -20,7 +20,7 @@ import org.gradle.api.Named
 import org.gradle.internal.BiActions
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
-import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
@@ -58,10 +58,10 @@ class NativeComponentRulesTest extends Specification {
 
     def setup() {
         def binarySpecFactory = new BinarySpecFactory("test")
-        modelRegistry.createInstance("binarySpecFactory", binarySpecFactory)
+        modelRegistry.registerInstance("binarySpecFactory", binarySpecFactory)
         def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)
         nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, DefaultModelSchemaStore.instance, new ManagedProxyFactory(), BiActions.doNothing()))
-        modelRegistry.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
+        modelRegistry.register(ModelRegistrations.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
         component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, modelRegistry, id, instantiator)
     }
 

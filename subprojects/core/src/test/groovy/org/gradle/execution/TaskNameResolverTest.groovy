@@ -123,13 +123,13 @@ class TaskNameResolverTest extends Specification {
 
         then:
         registry.state(path("tasks")) == SelfClosed
-        childRegistry.state(path("tasks")) == Known
+        childRegistry.state(path("tasks")) == Registered
         registry.state(path("tasks.task")) == GraphClosed
 
         and:
         asTasks(results)*.description == ["root"]
         registry.state(path("tasks")) == SelfClosed
-        childRegistry.state(path("tasks")) == Known
+        childRegistry.state(path("tasks")) == Registered
         registry.state(path("tasks.task")) == GraphClosed
     }
 

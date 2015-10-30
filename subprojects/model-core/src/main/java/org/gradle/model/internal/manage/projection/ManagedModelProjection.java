@@ -102,7 +102,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                 private <T> T doGet(ModelProperty<T> property, String propertyName) {
                     ModelType<T> propertyType = property.getType();
 
-                    // TODO we are relying on the creator having established these links, we should be checking
+                    // TODO we are relying on the registration having established these links, we should be checking
                     MutableModelNode propertyNode = modelNode.getLink(propertyName);
                     propertyNode.ensureUsable();
 
@@ -140,7 +140,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                 private <T> Object doSet(String name, Object value, ModelType<T> propertyType) {
                     ModelSchema<T> propertySchema = schemaStore.getSchema(propertyType);
 
-                    // TODO we are relying on the creator having established these links, we should be checking
+                    // TODO we are relying on the registration having established these links, we should be checking
                     MutableModelNode propertyNode = modelNode.getLink(name);
                     propertyNode.ensureUsable();
 

@@ -30,7 +30,7 @@ class ModelRegistryEphemeralNodeTest extends Specification {
     def "non-ephemeral model nodes are reused when registry is reset"() {
         when:
         def events = []
-        registry.create("foo") { it.unmanaged(List, { [] } as Factory) }
+        registry.register("foo") { it.unmanaged(List, { [] } as Factory) }
         registry.mutate(List) {
             it.add "1"
             events.add "mutate"
@@ -53,7 +53,7 @@ class ModelRegistryEphemeralNodeTest extends Specification {
     def "ephemeral model nodes are discarded when registry is reset"() {
         when:
         def events = []
-        registry.create("foo") { it.ephemeral(true).unmanaged(List, { [] } as Factory) }
+        registry.register("foo") { it.ephemeral(true).unmanaged(List, { [] } as Factory) }
         registry.mutate(List) {
             it.add "1"
             events.add "mutate"
@@ -76,8 +76,8 @@ class ModelRegistryEphemeralNodeTest extends Specification {
     def "dependents of ephemeral nodes are reset"() {
         when:
         def events = []
-        registry.create("foo") { it.ephemeral(true).unmanaged(List, { [] } as Factory) }
-        registry.create("bar") { it.ephemeral(false).unmanaged(Queue, { [] } as Factory) }
+        registry.register("foo") { it.ephemeral(true).unmanaged(List, { [] } as Factory) }
+        registry.register("bar") { it.ephemeral(false).unmanaged(Queue, { [] } as Factory) }
         registry.mutate(List) {
             it.add "1"
             events.add "mutate foo"
@@ -108,12 +108,12 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         events.size() == 4
     }
 
-    def "creator inputs for replaced ephemeral nodes are bound"() {
+    def "registration inputs for replaced ephemeral nodes are bound"() {
         when:
-        registry.createOrReplace(registry.creator("foo") { it.ephemeral(true).unmanaged(List, {
+        registry.registerOrReplace(registry.registration("foo") { it.ephemeral(true).unmanaged(List, {
             ["old"]
         } as Factory)})
-        registry.createOrReplace(registry.creator("bar") { it.ephemeral(true).unmanaged(StringBuilder, List) { List l -> new StringBuilder(l[0]) }})
+        registry.registerOrReplace(registry.registration("bar") { it.ephemeral(true).unmanaged(StringBuilder, List) { List l -> new StringBuilder(l[0]) }})
         registry.mutate(List) { List list ->
             list.add "2"
         }
@@ -131,10 +131,10 @@ class ModelRegistryEphemeralNodeTest extends Specification {
 
         when:
         registry.prepareForReuse()
-        registry.createOrReplace(registry.creator("foo") { it.ephemeral(true).unmanaged(List, {
+        registry.registerOrReplace(registry.registration("foo") { it.ephemeral(true).unmanaged(List, {
             ["new"]
         } as Factory)})
-        registry.createOrReplace(registry.creator("bar") { it.ephemeral(true).unmanaged(StringBuilder, List) { List l -> new StringBuilder(l[0]) }})
+        registry.registerOrReplace(registry.registration("bar") { it.ephemeral(true).unmanaged(StringBuilder, List) { List l -> new StringBuilder(l[0]) }})
 
         then:
         registry.node("foo").state == ModelNode.State.Discovered
@@ -153,7 +153,7 @@ class ModelRegistryEphemeralNodeTest extends Specification {
     def "children of ephemeral collection nodes are implicitly ephemeral"() {
         when:
         registry
-                .create("things") {
+                .register("things") {
             it.ephemeral(true).modelMap(Thing)
         }
         .mutate(ModelRegistryHelper.instantiatorType(Thing)) {
@@ -186,8 +186,8 @@ class ModelRegistryEphemeralNodeTest extends Specification {
     def "nodes with creators dependent on ephemeral nodes are reset"() {
             when:
             def val = "1"
-            registry.create("foo") { it.ephemeral(true).unmanaged(List, { [] } as Factory) }
-            registry.create("bar") { it.ephemeral(false).unmanaged(Queue, List, { it } as Transformer) }
+            registry.register("foo") { it.ephemeral(true).unmanaged(List, { [] } as Factory) }
+            registry.register("bar") { it.ephemeral(false).unmanaged(Queue, List, { it } as Transformer) }
             registry.mutate(List) {
                 it.add val
             }

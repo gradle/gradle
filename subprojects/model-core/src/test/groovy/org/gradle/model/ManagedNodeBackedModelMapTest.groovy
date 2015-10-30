@@ -39,8 +39,8 @@ class ManagedNodeBackedModelMapTest extends Specification {
     def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
 
     def setup() {
-        registry.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
-        registry.create(ModelCreators.of(path, nodeInitializerRegistry.getNodeInitializer(modelMapType)).descriptor("creator").build())
+        registry.register(ModelRegistrations.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
+        registry.register(ModelRegistrations.of(path, nodeInitializerRegistry.getNodeInitializer(modelMapType)).descriptor("creator").build())
     }
 
     void mutate(@DelegatesTo(ModelMap) Closure<?> action) {
@@ -77,7 +77,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         selfClose()
 
         then:
-        registry.state(path.child("foo")) == ModelNode.State.Known
+        registry.state(path.child("foo")) == ModelNode.State.Registered
 
         when:
         realize()
@@ -546,7 +546,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         def mmType = ModelTypes.modelMap(Bean)
         def events = []
         registry
-            .create("input", "input") { events << "input created" }
+            .register("input", "input") { events << "input created" }
             .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
             it.path "beans" type mmType action { c ->
@@ -573,7 +573,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         def mmType = ModelTypes.modelMap(Bean)
 
         registry
-            .createInstance("foo", new Bean())
+            .registerInstance("foo", new Bean())
             .mutate {
             it.path("foo").type(Bean).action("beans.element.mutable", ModelType.of(MutableValue)) { Bean subject, MutableValue input ->
                 subject.value = input.value
@@ -587,7 +587,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         }
         .mutate {
             it.path "beans.element" node {
-                it.addLink(registry.instanceCreator("beans.element.mutable", new MutableValue(value: "bar")))
+                it.addLink(registry.instanceRegistration("beans.element.mutable", new MutableValue(value: "bar")))
             }
         }
 
@@ -619,7 +619,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         }
         .mutate {
             it.path "beans.element" descriptor "element child" node {
-                it.addLink(registry.instanceCreator("beans.element.mutable", new MutableValue()))
+                it.addLink(registry.instanceRegistration("beans.element.mutable", new MutableValue()))
             }
         }
 
@@ -674,7 +674,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
             it.registerFactory(Bean) { new Bean(name: it) }
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
-        .createInstance("s", "other")
+        .registerInstance("s", "other")
             .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("b1", Bean)
@@ -686,15 +686,15 @@ class ManagedNodeBackedModelMapTest extends Specification {
         }
 
         expect:
-        registry.node("s").state == ModelNode.State.Known
+        registry.node("s").state == ModelNode.State.Registered
 
         when:
         registry.atState("beans", ModelNode.State.SelfClosed)
 
         then:
-        registry.node("s").state == ModelNode.State.Known
+        registry.node("s").state == ModelNode.State.Registered
         registry.get("beans.b1", Bean).value != "changed"
-        registry.node("s").state == ModelNode.State.Known
+        registry.node("s").state == ModelNode.State.Registered
 
         when:
         def sb2 = registry.get("beans.sb2", SpecialBean)
@@ -724,7 +724,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
             it.registerFactory(Bean) { new Bean(name: it) }
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
-        .createInstance("s", "other")
+        .registerInstance("s", "other")
             .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("b1", Bean)
@@ -761,7 +761,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
 
-        .createInstance("s", "other")
+        .registerInstance("s", "other")
             .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("sb1", SpecialBean)
@@ -786,7 +786,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
 
-        .createInstance("s", "other")
+        .registerInstance("s", "other")
             .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("sb1", SpecialBean)

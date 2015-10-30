@@ -119,7 +119,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
 
         modelNode = info.modelNode;
         modelNode.addLink(
-            ModelCreators.of(
+            ModelRegistrations.of(
                 modelNode.getPath().child("binaries"), ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                     @Override
                     public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
@@ -144,7 +144,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         ModelRuleDescriptor sourcesDescriptor = new NestedModelRuleDescriptor(modelNode.getDescriptor(), ".sources");
         modelNode.addLink(
             BridgedCollections
-                .creator(
+                .registration(
                     ModelReference.of(sourcesNodePath, FunctionalSourceSet.class),
                     PUSH_FUNCTIONAL_SOURCE_SET_TO_NODE,
                     new Named.Namer(),

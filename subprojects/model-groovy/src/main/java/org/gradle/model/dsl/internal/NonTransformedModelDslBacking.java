@@ -66,16 +66,16 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
             ));
     }
 
-    private <T> void registerCreator(Class<T> type, Closure<?> closure) {
-        registerCreator(type, new ClosureBackedAction<T>(closure));
+    private <T> void register(Class<T> type, Closure<?> closure) {
+        register(type, new ClosureBackedAction<T>(closure));
     }
 
-    private <T> void registerCreator(Class<T> type, Action<? super T> action) {
+    private <T> void register(Class<T> type, Action<? super T> action) {
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("model." + modelPath);
         NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(), DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getType());
         NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)));
-        modelRegistry.create(
-            ModelCreators.of(modelPath, nodeInitializer)
+        modelRegistry.register(
+            ModelRegistrations.of(modelPath, nodeInitializer)
                 .descriptor(descriptor)
                 .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(modelPath, type), descriptor, action))
                 .build()
@@ -115,11 +115,11 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
             } else if (args.length == 2 && args[0] instanceof Class && args[1] instanceof Closure) {
                 Class<?> clazz = (Class<?>) args[0];
                 Closure<?> closure = (Closure<?>) args[1];
-                getChildPath(name).registerCreator(clazz, closure);
+                getChildPath(name).register(clazz, closure);
                 return null;
             } else if (args.length == 1 && args[0] instanceof Class) {
                 Class<?> clazz = (Class<?>) args[0];
-                getChildPath(name).registerCreator(clazz, Actions.doNothing());
+                getChildPath(name).register(clazz, Actions.doNothing());
                 return null;
             } else {
                 throw new MissingMethodException(name, getClass(), args);

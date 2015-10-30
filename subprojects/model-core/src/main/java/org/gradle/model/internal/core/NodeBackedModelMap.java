@@ -195,7 +195,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         Class<T> type = Cast.uncheckedCast(instance.getClass());
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "put()");
         modelNode.addLink(
-            ModelCreators.unmanagedInstance(
+            ModelRegistrations.unmanagedInstance(
                 ModelReference.of(modelNode.getPath().child(name), type),
                 Factories.constant(instance)
             )
@@ -218,12 +218,12 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
         NodeInitializer nodeInitializer = creatorStrategy.initializer(type);
 
-        ModelCreator creator = ModelCreators.of(childPath, nodeInitializer)
+        ModelRegistration registration = ModelRegistrations.of(childPath, nodeInitializer)
             .descriptor(descriptor)
             .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(childPath, type), descriptor, initAction))
             .build();
 
-        modelNode.addLink(creator);
+        modelNode.addLink(registration);
 
         if (eager) {
             //noinspection ConstantConditions

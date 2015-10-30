@@ -56,10 +56,10 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
 
         @Override
         public ModelView<ModelSet<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
-            ChildNodeInitializerStrategy<T> childCreator = Cast.uncheckedCast(modelNode.getPrivateData(ChildNodeInitializerStrategy.class));
+            ChildNodeInitializerStrategy<T> childStrategy = Cast.uncheckedCast(modelNode.getPrivateData(ChildNodeInitializerStrategy.class));
             ModelType<ModelSet<T>> setType = ModelTypes.modelSet(elementType);
             DefaultModelViewState state = new DefaultModelViewState(setType, ruleDescriptor, writable, !writable);
-            NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType.toString() + " '" + modelNode.getPath() + "'", elementType, ruleDescriptor, modelNode, state, childCreator);
+            NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType.toString() + " '" + modelNode.getPath() + "'", elementType, ruleDescriptor, modelNode, state, childStrategy);
             return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
         }
 
@@ -98,8 +98,8 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
         @Override
         public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
             NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
-            ChildNodeInitializerStrategy<T> childCreator = new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry);
-            modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childCreator);
+            ChildNodeInitializerStrategy<T> childStrategy = new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry);
+            modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
         }
 
         @Override

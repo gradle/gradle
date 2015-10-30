@@ -42,7 +42,7 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
 
     // TODO - have to do much better here
     public static final String INVALID_STATEMENT = "illegal rule";
-    public static final String INVALID_RULE_SIGNATURE = "Rule must follow the pattern '«name»(«type») {}' for a creator, and '«name» {}' for an action";
+    public static final String INVALID_RULE_SIGNATURE = "Rule must follow the pattern '«name»(«type») {}' for a registration, and '«name» {}' for an action";
 
     private final SourceUnit sourceUnit;
     private final RuleVisitor ruleVisitor;

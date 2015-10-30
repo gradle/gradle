@@ -25,10 +25,10 @@ import java.util.List;
 /**
  * A standalone strategy for initializing a node.
  * <p>
- * Differs from {@link ModelCreator} in that it's more of a template for a creator.
+ * Differs from {@link ModelRegistration} in that it's more of a template for a creator.
  * It does not say anything about the actual entity (e.g. its path) or the identity of the creation rule.
  *
- * @see ModelCreators
+ * @see ModelRegistrations
  */
 public interface NodeInitializer extends BiAction<MutableModelNode, List<ModelView<?>>> {
 
