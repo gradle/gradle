@@ -151,12 +151,6 @@ Any registered `LanguageSourceSet` implementations can be used to create Languag
 
 Note: `LanguageSourceSet`'s added in this fashion are not added to the projects `ProjectSourceSet`
 
-### Support for external dependencies in the 'jvm-components' plugin
-
-It is now possible to reference external dependencies when building a `JvmLibrary` using the `jvm-component` plugin.
-
-TODO: Expand this and provide a DSL example.
-
 ### Support for API dependencies in the 'jvm-components' plugin
 
 The API of a JVM library consists of the API classes of the library, plus the API of dependent libraries that are defined as
