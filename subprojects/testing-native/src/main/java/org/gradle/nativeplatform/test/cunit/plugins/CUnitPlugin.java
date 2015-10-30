@@ -23,7 +23,6 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.plugins.CLangPlugin;
@@ -39,7 +38,6 @@ import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.test.TestSuiteContainer;
 
 import java.io.File;
@@ -83,17 +81,25 @@ public class CUnitPlugin implements Plugin<Project> {
         }
 
         @Finalize
-        public void configureCUnitTestSuiteSources(TestSuiteContainer testSuites, @Path("buildDir") File buildDir) {
+        public void configureCUnitTestSuiteSources(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir) {
 
             for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
-                FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getFunctionalSourceSet();
-                CSourceSet launcherSources = suiteSourceSet.maybeCreate(CUNIT_LAUNCHER_SOURCE_SET, CSourceSet.class);
-                File baseDir = new File(buildDir, String.format("src/%s/cunitLauncher", suite.getName()));
-                launcherSources.getSource().srcDir(new File(baseDir, "c"));
-                launcherSources.getExportedHeaders().srcDir(new File(baseDir, "headers"));
+                suite.getSources().create(CUNIT_LAUNCHER_SOURCE_SET, CSourceSet.class, new Action<CSourceSet>() {
+                    @Override
+                    public void execute(CSourceSet launcherSources) {
+                        File baseDir = new File(buildDir, String.format("src/%s/cunitLauncher", suite.getName()));
+                        launcherSources.getSource().srcDir(new File(baseDir, "c"));
+                        launcherSources.getExportedHeaders().srcDir(new File(baseDir, "headers"));
+                    }
+                });
 
-                CSourceSet testSources = suiteSourceSet.maybeCreate("c", CSourceSet.class);
-                testSources.lib(launcherSources);
+                suite.getSources().withType(CSourceSet.class).named("c", new Action<CSourceSet>() {
+                    @Override
+                    public void execute(CSourceSet cSourceSet) {
+                        cSourceSet.lib(suite.getSources().get(CUNIT_LAUNCHER_SOURCE_SET));
+                    }
+                });
+
             }
         }
 

@@ -18,7 +18,7 @@ package org.gradle.language.base.internal.model;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.Action;
-import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.registry.LanguageRegistration;
@@ -48,14 +48,14 @@ public class ComponentRules extends RuleSource {
     }
 
     @Defaults
-    void applyDefaultSourceConventions(final ComponentSpec component) {
-        final FunctionalSourceSet functionalSourceSet = ((ComponentSpecInternal) component).getFunctionalSourceSet();
-        component.getSources().afterEach(new AddDefaultSourceLocation(functionalSourceSet));
+    void applyDefaultSourceConventions(final ComponentSpec component, final ProjectIdentifier projectIdentifier) {
+        component.getSources().afterEach(new AddDefaultSourceLocation(projectIdentifier.getProjectDir()));
     }
 
     @Defaults
     void addSourcesSetsToProjectSourceSet(final ComponentSpec component, final ProjectSourceSet projectSourceSet) {
-        ((ComponentSpecInternal) component).getFunctionalSourceSet().whenObjectAdded(new Action<LanguageSourceSet>() {
+        component.getSources().afterEach(new Action<LanguageSourceSet>() {
+            @Override
             public void execute(LanguageSourceSet languageSourceSet) {
                 projectSourceSet.add(languageSourceSet);
             }
@@ -93,10 +93,10 @@ public class ComponentRules extends RuleSource {
     }
 
     private static class AddDefaultSourceLocation implements Action<LanguageSourceSet> {
-        private FunctionalSourceSet functionalSourceSet;
+        private File baseDir;
 
-        public AddDefaultSourceLocation(FunctionalSourceSet functionalSourceSet) {
-            this.functionalSourceSet = functionalSourceSet;
+        public AddDefaultSourceLocation(File baseDir) {
+            this.baseDir = baseDir;
         }
 
         @Override
@@ -109,7 +109,7 @@ public class ComponentRules extends RuleSource {
         }
 
         private String calculateDefaultPath(LanguageSourceSet languageSourceSet) {
-            return Joiner.on(File.separator).skipNulls().join(functionalSourceSet.getBaseDir().getPath(), "src", emptyToNull(languageSourceSet.getParentName()), emptyToNull(languageSourceSet.getName()));
+            return Joiner.on(File.separator).skipNulls().join(baseDir.getPath(), "src", emptyToNull(languageSourceSet.getParentName()), emptyToNull(languageSourceSet.getName()));
         }
     }
 }

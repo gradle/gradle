@@ -19,13 +19,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.internal.ExtensiblePolymorphicDomainObjectContainerInternal;
 
-import java.io.File;
-
 /**
  * A container holding {@link LanguageSourceSet}s with a similar function
  * (production code, test code, etc.).
  */
 @Incubating
 public interface FunctionalSourceSet extends ExtensiblePolymorphicDomainObjectContainerInternal<LanguageSourceSet>, Named {
-    File getBaseDir();
 }

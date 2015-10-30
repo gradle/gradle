@@ -45,11 +45,6 @@ public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomai
         return languageSourceSet;
     }
 
-    @Override
-    public File getBaseDir() {
-        return baseDir;
-    }
-
     private <U extends LanguageSourceSet> U createLanguageSourceSet(String name, Class<U> type) {
         NamedDomainObjectFactory<? extends LanguageSourceSet> sourceSetFactory = findSourceSetFactory(type);
         if (sourceSetFactory == null) {

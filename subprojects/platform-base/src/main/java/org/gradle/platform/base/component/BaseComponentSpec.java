@@ -222,10 +222,6 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         action.execute(getBinaries());
     }
 
-    public FunctionalSourceSet getFunctionalSourceSet() {
-        return mainSourceSet;
-    }
-
     public Set<? extends Class<? extends TransformationFileType>> getInputTypes() {
         return Collections.emptySet();
     }

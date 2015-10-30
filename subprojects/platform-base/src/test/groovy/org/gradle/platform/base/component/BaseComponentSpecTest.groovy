@@ -80,8 +80,8 @@ class BaseComponentSpecTest extends Specification {
         def component = create(MySampleComponent)
         def lss1 = languageSourceSet("lss1")
         def lss2 = languageSourceSet("lss2")
-        component.functionalSourceSet.add(lss1)
-        component.functionalSourceSet.add(lss2)
+        component.sources.put("lss1", lss1)
+        component.sources.put("lss2", lss2)
 
         then:
         component.sources as List == [lss1, lss2]
@@ -91,7 +91,7 @@ class BaseComponentSpecTest extends Specification {
         when:
         def component = create(MySampleComponent)
         def lss1 = languageSourceSet("lss1")
-        component.functionalSourceSet.add(lss1)
+        component.sources.put("lss1", lss1)
 
         then:
         component.source.values() == [lss1]
