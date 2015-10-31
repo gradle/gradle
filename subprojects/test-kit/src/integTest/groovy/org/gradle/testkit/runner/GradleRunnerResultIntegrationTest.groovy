@@ -81,7 +81,9 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerIntegrationT
             }
 
             project(":b") {
-              task t
+              task t {
+                shouldRunAfter ":a:t"
+              }
             }
 
             project(":c") { // c is guaranteed to start after a, but finish before it does
