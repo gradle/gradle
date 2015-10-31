@@ -143,7 +143,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         then:
         waitFor.done
         lastChangeRef.get() != 0
-        System.currentTimeMillis() - lastChangeRef.get() >= quietPeriod
+        (System.nanoTime() - lastChangeRef.get()) / 1000000L >= quietPeriod
 
         where:
         description            | fileChanger
@@ -155,7 +155,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         for (int i = 0; i < 10; i++) {
             instant.assertNotReached('done')
             testfile << "change"
-            lastChangeRef.set(System.currentTimeMillis())
+            lastChangeRef.set(System.nanoTime())
             sleep(50)
         }
     }
@@ -166,7 +166,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
                 instant.assertNotReached('done')
                 out.write("change\n")
                 out.flush()
-                lastChangeRef.set(System.currentTimeMillis())
+                lastChangeRef.set(System.nanoTime())
                 sleep(50)
             }
         }
