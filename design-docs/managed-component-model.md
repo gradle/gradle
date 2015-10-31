@@ -676,7 +676,7 @@ model {
 - Adding instances to the top level `sources` container.
 - Some convention for source directory locations. Need the ability to apply rules to every model node of a particular type to do this.
 
-## Story: Elements of ComponentSpec.sources are visible in the model report (#29)
+## Story: Elements of ComponentSpec.sources are visible in the model report
 
 For each `LanguageSourceSet` configured in `ComponentSpec`.sources, the model report should display as follows:
 
@@ -703,7 +703,7 @@ By using a _real_ node-backed `ModelMap` instance, the configuration for an elem
     - Configuration supplied when registering element
     - Configuration supplied for `beforeEach`, `all` and `afterEach`
 
-## Story: Elements of BinarySpec.sources are visible in the model report (#30)
+## Story: Elements of BinarySpec.sources are visible in the model report
 
 ### Implementation
 
