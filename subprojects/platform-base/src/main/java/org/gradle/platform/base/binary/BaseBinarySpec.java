@@ -23,21 +23,28 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
-import org.gradle.internal.Actions;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.DomainObjectCollectionBackedModelMap;
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
+import org.gradle.model.collection.internal.ModelMapModelProjection;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.registry.RuleContext;
+import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.*;
 import org.gradle.util.DeprecationLogger;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Base class for custom binary implementations.
@@ -51,8 +58,6 @@ import org.gradle.util.DeprecationLogger;
 // Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
 @SuppressWarnings("deprecation")
 public class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
-    private final NamedDomainObjectFactoryRegistry<LanguageSourceSet> entityInstantiator;
-    private final ModelMap<LanguageSourceSet> ownedSourceSets;
     private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
@@ -60,12 +65,16 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     private final ComponentSpecInternal owner;
     private final String name;
     private final String typeName;
+    private final MutableModelNode modelNode;
+    private final MutableModelNode sources;
     private Class<? extends BinarySpec> publicType;
 
     private boolean disabled;
 
-    public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType, String name, @Nullable ComponentSpecInternal owner, Instantiator instantiator, ITaskFactory taskFactory) {
-        nextBinaryInfo.set(new BinaryInfo(name, publicType, implementationType, owner, taskFactory, instantiator));
+    public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
+                                                      String name, MutableModelNode modelNode, @Nullable ComponentSpecInternal owner,
+                                                      Instantiator instantiator, ITaskFactory taskFactory) {
+        nextBinaryInfo.set(new BinaryInfo(name, publicType, implementationType, modelNode, owner, taskFactory, instantiator));
         try {
             try {
                 return instantiator.newInstance(implementationType);
@@ -89,15 +98,29 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         this.name = info.name;
         this.publicType = info.publicType;
         this.typeName = info.implementationType.getSimpleName();
+        this.modelNode = info.modelNode;
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
-        DefaultPolymorphicNamedEntityInstantiator<LanguageSourceSet> entityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<LanguageSourceSet>(LanguageSourceSet.class, "owned sources");
-        this.entityInstantiator = entityInstantiator;
-        this.ownedSourceSets = new DomainObjectCollectionBackedModelMap<LanguageSourceSet>(
-            LanguageSourceSet.class,
-            new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class),
-            entityInstantiator,
-            new Namer(),
-            Actions.doNothing());
+
+        final ModelType<LanguageSourceSet> elementType = ModelType.of(LanguageSourceSet.class);
+        modelNode.addLink(
+            ModelRegistrations.of(
+                modelNode.getPath().child("sources"), ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                    @Override
+                    public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
+                        NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
+                        ChildNodeInitializerStrategy<LanguageSourceSet> childFactory =
+                            NodeBackedModelMap.createUsingRegistry(elementType, nodeInitializerRegistry);
+                        node.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
+                    }
+                })
+                .descriptor(modelNode.getDescriptor(), ".sources")
+                .withProjection(
+                    ModelMapModelProjection.unmanaged(elementType, ChildNodeInitializerStrategyAccessors.fromPrivateData())
+                )
+                .build()
+        );
+        sources = modelNode.getLink("sources");
+        assert sources != null;
     }
 
     @Override
@@ -156,18 +179,18 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     }
 
     @Override
-    public NamedDomainObjectFactoryRegistry<LanguageSourceSet> getEntityInstantiator() {
-        return entityInstantiator;
-    }
-
-    @Override
     public DomainObjectSet<LanguageSourceSet> getInputs() {
         return inputSourceSets;
     }
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
-        return ownedSourceSets;
+        sources.ensureUsable();
+        return sources.asMutable(
+                ModelTypes.modelMap(LanguageSourceSetInternal.PUBLIC_MODEL_TYPE),
+                RuleContext.nest(modelNode.toString() + ".getSources()"),
+                Collections.<ModelView<?>>emptyList()
+        ).getInstance();
     }
 
     public BinaryTasksCollection getTasks() {
@@ -187,14 +210,16 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         private final String name;
         private final Class<? extends BinarySpec> publicType;
         private final Class<? extends BaseBinarySpec> implementationType;
+        private final MutableModelNode modelNode;
         private final ComponentSpecInternal owner;
         private final ITaskFactory taskFactory;
         private final Instantiator instantiator;
 
-        private BinaryInfo(String name, Class<? extends BinarySpec> publicType, Class<? extends BaseBinarySpec> implementationType, ComponentSpecInternal owner, ITaskFactory taskFactory, Instantiator instantiator) {
+        private BinaryInfo(String name, Class<? extends BinarySpec> publicType, Class<? extends BaseBinarySpec> implementationType, MutableModelNode modelNode, ComponentSpecInternal owner, ITaskFactory taskFactory, Instantiator instantiator) {
             this.name = name;
             this.publicType = publicType;
             this.implementationType = implementationType;
+            this.modelNode = modelNode;
             this.owner = owner;
             this.taskFactory = taskFactory;
             this.instantiator = instantiator;

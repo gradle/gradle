@@ -21,7 +21,6 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.nativeplatform.DependentSourceSet
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.*
-import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
@@ -143,7 +142,7 @@ class NativeBinarySpecTest extends Specification {
     }
 
     def testBinary(NativeComponentSpec owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        TestNativeBinariesFactory.create(TestNativeBinarySpec, "test", instantiator, Mock(ITaskFactory), owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver
+        TestNativeBinariesFactory.create(TestNativeBinarySpec, "test", Mock(ITaskFactory), owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver
             , platform1, buildType1, flavor)
     }
 

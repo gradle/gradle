@@ -20,7 +20,6 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
@@ -160,11 +159,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     @Override
     public void addSourceSet(LanguageSourceSet sourceSet) {
         sourceSets.add(sourceSet);
-    }
-
-    @Override
-    public NamedDomainObjectFactoryRegistry<LanguageSourceSet> getEntityInstantiator() {
-        throw new UnsupportedOperationException();
     }
 
     public String getDisplayName() {

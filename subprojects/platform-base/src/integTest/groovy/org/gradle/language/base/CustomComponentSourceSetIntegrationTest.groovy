@@ -15,8 +15,9 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import static org.gradle.util.Matchers.containsText
 
 class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
@@ -165,9 +166,14 @@ model {
 }
 """
         when:
-        def failure = fails("components")
+        fails("components")
 
         then:
-        failure.assertHasCause "Entry with name already exists: main"
+        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule " +
+                "'sampleLib(SampleLibrary) { ... } @ build.gradle line 40, column 9 > " +
+                "components.sampleLib.getBinaries() > create(bin) > components.sampleLib.binaries.bin.getSources() > create(main)'")
+        failure.assertThatCause(containsText("the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 40, column 9 > " +
+                "components.sampleLib.getBinaries() > create(bin) > components.sampleLib.binaries.bin.getSources() > create(main)'" +
+                " is already registered to create this model element."))
     }
 }

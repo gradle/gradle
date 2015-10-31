@@ -201,8 +201,8 @@ model {
                     binaries {
                         nativeComponentOneTestCUnitExe {
                             tasks()
+                            sources()
                         }
-
                     }
                     sources {
                         c()
@@ -214,6 +214,7 @@ model {
                     binaries {
                         nativeComponentTwoTestCUnitExe {
                             tasks()
+                            sources()
                         }
                     }
                     sources {

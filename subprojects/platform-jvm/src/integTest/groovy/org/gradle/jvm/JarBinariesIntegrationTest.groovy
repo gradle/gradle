@@ -112,6 +112,7 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
                 jvmLibrary {
                     binaries {
                         jar(type: "org.gradle.jvm.JarBinarySpec") {
+                            sources()
                             tasks()
                         }
                     }

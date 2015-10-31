@@ -552,9 +552,11 @@ afterEach DefaultCustomComponent 'newComponent'"""
                 main {
                     binaries {
                         main {
+                            sources()
                             tasks()
                         }
                         test {
+                            sources()
                             tasks()
                         }
                     }
@@ -563,9 +565,11 @@ afterEach DefaultCustomComponent 'newComponent'"""
                 test {
                     binaries {
                         main {
+                            sources()
                             tasks()
                         }
                         test {
+                            sources()
                             tasks()
                         }
                     }

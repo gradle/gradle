@@ -16,8 +16,6 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 
@@ -39,5 +37,4 @@ public interface BinarySpecInternal extends BinarySpec {
 
     boolean isLegacyBinary();
 
-    NamedDomainObjectFactoryRegistry<LanguageSourceSet> getEntityInstantiator();
 }

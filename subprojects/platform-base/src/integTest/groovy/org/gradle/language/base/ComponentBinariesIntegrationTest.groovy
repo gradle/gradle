@@ -15,7 +15,6 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.api.reporting.model.ModelReportOutput
 
 class ComponentBinariesIntegrationTest extends AbstractComponentModelIntegrationTest {
@@ -80,9 +79,11 @@ model {
                     binaries {
                         main {
                             tasks()
+                            sources()
                         }
                         test {
                             tasks()
+                            sources()
                         }
                     }
                     sources()
@@ -91,6 +92,7 @@ model {
                     binaries {
                         main {
                             tasks()
+                            sources()
                         }
                     }
                     sources()

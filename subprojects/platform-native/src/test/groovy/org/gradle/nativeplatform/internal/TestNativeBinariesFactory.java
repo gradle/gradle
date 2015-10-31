@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.internal.configure;
+package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeComponentSpec;
+import org.gradle.nativeplatform.internal.configure.NativeBinaries;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.platform.base.binary.BaseBinaryFixtures;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 public class TestNativeBinariesFactory {
 
-    public static <T extends BaseBinarySpec> T create(Class<T> type, String name, Instantiator instantiator, ITaskFactory taskFactory, final NativeComponentSpec component,
-        final BinaryNamingScheme namingScheme, final NativeDependencyResolver resolver,
-        final NativePlatform platform, final BuildType buildType, final Flavor flavor) {
-        T binary = BaseBinarySpec.create(type, type, name, null, instantiator, taskFactory);
+    public static <T extends BaseBinarySpec> T create(Class<T> type, String name, ITaskFactory taskFactory, final ComponentSpecInternal component,
+                                                      final BinaryNamingScheme namingScheme, final NativeDependencyResolver resolver,
+                                                      final NativePlatform platform, final BuildType buildType, final Flavor flavor) {
+        T binary = BaseBinaryFixtures.create(type, name, component, taskFactory);
         NativeBinaries.initialize((NativeBinarySpec) binary, namingScheme, resolver, platform, buildType, flavor);
         binary.getInputs().addAll(component.getSources().values());
         return binary;

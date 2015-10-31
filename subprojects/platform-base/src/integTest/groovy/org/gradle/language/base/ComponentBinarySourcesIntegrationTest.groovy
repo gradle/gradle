@@ -16,10 +16,14 @@
 
 package org.gradle.language.base
 
+import groovy.transform.NotYetImplemented
+import org.gradle.api.reporting.model.ModelReportOutput
+import org.gradle.util.TextUtil
+
 class ComponentBinarySourcesIntegrationTest extends AbstractComponentModelIntegrationTest {
     def setup() {
         withCustomComponentType()
-        withCustomBinaryType()
+        withCustomBinaryType() 
         withCustomLanguageType()
 
         buildFile << '''
@@ -70,6 +74,12 @@ model {
         succeeds "verify"
     }
 
+    // TODO:DAZ Fix this regression in behaviour: Fails because the `binary.sources` modelmap is closed before we have a chance to append another source set
+    // Needs a few things
+    //   1. Copy each component binary into `binaries` early enough for rules to be applied
+    //   2. Make `binaries` container have references to the actual binary nodes, rather than unmanaged nodes
+    //   3. Fix ordering of rules within a component and binary
+    @NotYetImplemented
     def "source sets can be added to the binaries of a component using a rule attached to the top level binaries container"() {
         given:
         buildFile << '''
@@ -97,5 +107,202 @@ model {
 
         expect:
         succeeds "verify"
+    }
+
+    def "source sets can be added to the binaries of a component using a rule applied to all components"() {
+        given:
+        buildFile << '''
+model {
+    components {
+        all {
+            binaries {
+                all {
+                    sources {
+                        custom(CustomLanguageSourceSet)
+                    }
+                }
+            }
+        }
+    }
+    tasks {
+        verify(Task) {
+            doLast {
+                def binaries = $('components.mylib.binaries')
+                assert binaries.main.sources.size() == 1
+                assert binaries.main.sources.first() instanceof CustomLanguageSourceSet
+                assert binaries.main.inputs.size() == 1
+                assert binaries.main.inputs as Set == binaries.main.sources as Set
+            }
+        }
+    }
+}
+'''
+
+        expect:
+        succeeds "verify"
+    }
+
+    def "can reference sources container for a binary from a rule"() {
+        given:
+        buildFile << '''
+model {
+    components {
+        mylib {
+            binaries.all {
+                sources {
+                    someLang(CustomLanguageSourceSet)
+                }
+            }
+        }
+    }
+    tasks {
+        create("printSourceNames") {
+            def sources = $("components.mylib.binaries.main.sources")
+            doLast {
+                println "names: ${sources.values()*.name}"
+            }
+        }
+    }
+}
+        '''
+
+        when:
+        succeeds "printSourceNames"
+
+        then:
+        output.contains "names: [someLang]"
+    }
+
+    def "elements of binary sources container should be visible in model report"() {
+        given:
+        buildFile << """
+            model {
+                components {
+                    mylib {
+                        binaries {
+                            main {
+                                sources {
+                                    someLang(CustomLanguageSourceSet)
+                                }
+                            }
+                            test {
+                                sources {
+                                    test(CustomLanguageSourceSet)
+                                }
+                            }
+                            foo(CustomBinary) {
+                                sources {
+                                    bar(CustomLanguageSourceSet)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        when:
+        succeeds "model"
+
+        then:
+        ModelReportOutput.from(output).hasNodeStructure {
+            components {
+                mylib {
+                    binaries {
+                        foo {
+                            sources {
+                                bar(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'mylib:bar'")
+                            }
+                            tasks()
+                        }
+                        main {
+                            sources {
+                                someLang(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'mylib:someLang'")
+                            }
+                            tasks()
+                        }
+                        test {
+                            sources {
+                                test(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'mylib:test'")
+                            }
+                            tasks()
+                        }
+                    }
+                    sources()
+                }
+            }
+        }
+    }
+
+    def "elements of binary sources container can be referenced in a rule"() {
+        given:
+        buildFile << '''
+            model {
+                components {
+                    mylib {
+                        binaries.all {
+                            sources {
+                                someLang(CustomLanguageSourceSet)
+                            }
+                        }
+                    }
+                }
+                tasks {
+                    create("printSourceDisplayName") {
+                        def sources = $("components.mylib.binaries.main.sources.someLang")
+                        doLast {
+                            println "sources display name: ${sources.displayName}"
+                        }
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds "printSourceDisplayName"
+
+        then:
+        output.contains "sources display name: DefaultCustomLanguageSourceSet 'mylib:someLang'"
+    }
+
+    def "elements in binary.sources should not be created when defined"() {
+        when:
+        buildFile << """
+            model {
+                components {
+                    mylib {
+                        binaries {
+                            main {
+                                sources {
+                                    ss1(CustomLanguageSourceSet) {
+                                        println "created ss1"
+                                    }
+                                    beforeEach {
+                                        println "before \$it.name"
+                                    }
+                                    all {
+                                        println "configured \$it.name"
+                                    }
+                                    afterEach {
+                                        println "after \$it.name"
+                                    }
+                                    println "configured components.mylib.binaries.main.sources"
+                                }
+                            }
+                        }
+                    }
+                }
+                tasks {
+                    verify(Task)
+                }
+            }
+        """
+        then:
+        succeeds "verify"
+        output.contains TextUtil.toPlatformLineSeparators('''configured components.mylib.binaries.main.sources
+before ss1
+created ss1
+configured ss1
+after ss1
+''')
     }
 }

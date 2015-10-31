@@ -15,11 +15,10 @@
  */
 
 package org.gradle.play.internal
+
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.platform.base.binary.BaseBinarySpec
+import org.gradle.platform.base.binary.BaseBinaryFixtures
 import org.gradle.platform.base.internal.BinaryBuildAbility
-import org.gradle.play.PlayApplicationBinarySpec
 import org.gradle.play.internal.toolchain.PlayToolChainInternal
 import org.gradle.play.internal.toolchain.PlayToolProvider
 import org.gradle.play.platform.PlayPlatform
@@ -27,7 +26,7 @@ import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
 class DefaultPlayApplicationBinarySpecTest extends Specification {
-    PlayApplicationBinarySpecInternal playBinary = BaseBinarySpec.create(PlayApplicationBinarySpec.class, DefaultPlayApplicationBinarySpec.class, "test", null, DirectInstantiator.INSTANCE, Stub(ITaskFactory))
+    PlayApplicationBinarySpecInternal playBinary = BaseBinaryFixtures.create(DefaultPlayApplicationBinarySpec.class, "test", null, Mock(ITaskFactory))
 
     def "sets binary build ability for unavailable toolchain" () {
         PlayToolProvider result = Mock(PlayToolProvider) {

@@ -27,6 +27,7 @@ import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 public class LanguageSourceSetNodeInitializer implements NodeInitializer {
@@ -57,13 +58,20 @@ public class LanguageSourceSetNodeInitializer implements NodeInitializer {
     }
 
     private String determineParentName(MutableModelNode modelNode) {
-        String parentName = modelNode.getParent().getPath().getName();
         MutableModelNode grandparentNode = modelNode.getParent().getParent();
-        // Special case handling of a LanguageSourceSet that is part of `ComponentSpec.sources`
-        if (grandparentNode != null && grandparentNode.getPrivateData() instanceof ComponentSpecInternal) {
-            parentName = ((ComponentSpecInternal) grandparentNode.getPrivateData()).getName();
+        // Special case handling of a LanguageSourceSet that is part of `ComponentSpec.sources` or `BinarySpec.sources`
+        if (grandparentNode != null) {
+            if (grandparentNode.getPrivateData() instanceof BaseBinarySpec) {
+                // TODO:DAZ Should be using binary.projectScopedName for uniqueness
+                BaseBinarySpec binarySpecInternal = (BaseBinarySpec) grandparentNode.getPrivateData();
+                return binarySpecInternal.getComponent() == null ? binarySpecInternal.getName() : binarySpecInternal.getComponent().getName();
+            }
+            if (grandparentNode.getPrivateData() instanceof ComponentSpecInternal) {
+                return ((ComponentSpecInternal) grandparentNode.getPrivateData()).getName();
+            }
         }
-        return parentName;
+
+        return modelNode.getParent().getPath().getName();
     }
 
     @SuppressWarnings("unchecked")

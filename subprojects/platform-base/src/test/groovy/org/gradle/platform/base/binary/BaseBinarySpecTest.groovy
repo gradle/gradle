@@ -16,20 +16,14 @@
 
 package org.gradle.platform.base.binary
 
-import org.gradle.api.NamedDomainObjectFactory
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.sources.BaseLanguageSourceSet
-import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.internal.ComponentSpecInternal
 import spock.lang.Specification
 
 class BaseBinarySpecTest extends Specification {
-    def instantiator = DirectInstantiator.INSTANCE
-
     def "cannot instantiate directly"() {
         when:
         new BaseBinarySpec() {}
@@ -40,7 +34,7 @@ class BaseBinarySpecTest extends Specification {
     }
 
     def "binary has name and sensible display name"() {
-        def binary = BaseBinarySpec.create(BinarySpec, MySampleBinary, "sampleBinary", null, instantiator, Mock(ITaskFactory))
+        def binary = create(MySampleBinary, "sampleBinary")
 
         expect:
         binary.class == MySampleBinary
@@ -52,7 +46,7 @@ class BaseBinarySpecTest extends Specification {
     def "qualifies project scoped named and display name using owners name"() {
         def component = Stub(ComponentSpecInternal)
         component.name >> "sample"
-        def binary = BaseBinarySpec.create(BinarySpec, MySampleBinary, "unitTest", component, instantiator, Mock(ITaskFactory))
+        def binary = create(MySampleBinary, "unitTest", component)
 
         expect:
         binary.name == "unitTest"
@@ -62,7 +56,7 @@ class BaseBinarySpecTest extends Specification {
 
     def "create fails if subtype does not have a public no-args constructor"() {
         when:
-        BaseBinarySpec.create(BinarySpec, MyConstructedBinary, "sampleBinary", null, instantiator, Mock(ITaskFactory))
+        create(MyConstructedBinary, "sampleBinary")
 
         then:
         def e = thrown ModelInstantiationException
@@ -72,21 +66,16 @@ class BaseBinarySpecTest extends Specification {
     }
 
     def "can own source sets"() {
-        def fileResolver = Mock(FileResolver)
-        def binary = BaseBinarySpec.create(BinarySpec, MySampleBinary, "sampleBinary", null, instantiator, Mock(ITaskFactory))
-        binary.entityInstantiator.registerFactory(CustomSourceSet, new NamedDomainObjectFactory<CustomSourceSet>() {
-            @Override
-            CustomSourceSet create(String name) {
-                return BaseLanguageSourceSet.create(CustomSourceSet, name, "test-parent", fileResolver, instantiator)
-            }
-        })
-
+        def binary = create(MySampleBinary, "sampleBinary")
+        def customSourceSet = Stub(LanguageSourceSet) {
+            getName() >> "custom"
+        }
         def inputSourceSet = Stub(LanguageSourceSet) {
             getName() >> "input"
         }
 
         when:
-        binary.sources.create("custom", CustomSourceSet)
+        binary.sources.put("custom", customSourceSet)
 
         then:
         binary.sources.values()*.name == ["custom"]
@@ -101,10 +90,14 @@ class BaseBinarySpecTest extends Specification {
 
     def "source property is the same as inputs property"() {
         given:
-        def binary = BaseBinarySpec.create(BinarySpec, MySampleBinary, "sampleBinary", null, instantiator, Mock(ITaskFactory))
+        def binary = create(MySampleBinary, "sampleBinary")
 
         expect:
         binary.source == binary.inputs
+    }
+
+    private <T extends BaseBinarySpec> T create(Class<T> type, String name, ComponentSpecInternal owner = null) {
+        BaseBinaryFixtures.create(type, name, owner, Mock(ITaskFactory))
     }
 
     static class MySampleBinary extends BaseBinarySpec {

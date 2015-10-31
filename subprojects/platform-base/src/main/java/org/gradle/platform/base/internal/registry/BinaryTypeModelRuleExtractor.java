@@ -105,6 +105,7 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
                         return Cast.uncheckedCast(BaseBinarySpec.create(publicType.getConcreteClass(),
                                 implementationType.getConcreteClass(),
                                 name,
+                                binaryNode,
                                 owner,
                                 instantiator,
                                 taskFactory));
