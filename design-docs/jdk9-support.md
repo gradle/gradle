@@ -192,7 +192,7 @@ model {
 - No failure attempting to build `main`, where `D` contains bad code
 - Reasonable error message attempting to build `main`, where `C` contains bad code
 - When compiling sources for `B` above:
-    - Compile classpath includes API from `C`
+    - ~~Compile classpath includes API from `C`~~
 
 ### Open issues
 

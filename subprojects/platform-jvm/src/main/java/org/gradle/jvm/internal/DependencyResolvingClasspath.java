@@ -15,6 +15,7 @@
  */
 package org.gradle.jvm.internal;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
@@ -38,12 +39,11 @@ import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.platform.base.DependencySpec;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
@@ -65,7 +65,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         this.sourceSet = sourceSet;
         this.dependencyResolver = dependencyResolver;
         this.remoteRepositories = remoteRepositories;
-        this.resolveContext = new DependentSourceSetResolveContext(binary.getId(), sourceSet, DefaultVariantsMetaData.extractFrom(binary, schemaStore));
+        this.resolveContext = new DependentSourceSetResolveContext(binary.getId(), sourceSet, DefaultVariantsMetaData.extractFrom(binary, schemaStore), allDependencies());
     }
 
     @Override
@@ -89,6 +89,23 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     public TaskDependency getBuildDependencies() {
         ensureResolved(false);
         return resolveResult.taskDependency;
+    }
+
+    private Iterable<DependencySpec> allDependencies() {
+        return new Iterable<DependencySpec>() {
+            @Override
+            public Iterator<DependencySpec> iterator() {
+                return Iterables.concat(sourceSetDependencies(), apiDependencies()).iterator();
+            }
+        };
+    }
+
+    private Collection<DependencySpec> sourceSetDependencies() {
+        return sourceSet.getDependencies().getDependencies();
+    }
+
+    private Collection<DependencySpec> apiDependencies() {
+        return binary.getApiDependencies();
     }
 
     private void ensureResolved(boolean failFast) {

@@ -75,8 +75,7 @@ model {
     }
 
     static Collection<DependencyScope> scopes = [
-        //TODO:RBO uncomment the following line
-        //DependencyScope.API,
+        DependencyScope.API,
         DependencyScope.SOURCES
     ]
 
