@@ -281,6 +281,10 @@ public abstract class GradleRunner {
      * Calling this method will negate the effect of previously calling {@link #forwardOutput()}.
      * <p>
      * The given writer will not be closed by the runner.
+     * <p>
+     * When executing builds with Gradle versions earlier than 2.9 <b>in debug mode</b>, any output produced by the build that
+     * was written directly to {@code System.out} or {@code System.err} will not be represented in {@link BuildResult#getOutput()}.
+     * This is due to a defect that was fixed in Gradle 2.9.
      *
      * @param writer the writer that build standard output should be forwarded to
      * @return this
