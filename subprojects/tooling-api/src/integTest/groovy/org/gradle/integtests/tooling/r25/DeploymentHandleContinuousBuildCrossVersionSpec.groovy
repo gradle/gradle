@@ -108,11 +108,13 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
             def key = file('keyFile').text
             deploymentIsRunning(key)
 
-            file('triggerFile') << "\n#a change"
+            waitBeforeModification triggerFile
+            triggerFile << "\n#a change"
             succeeds()
             deploymentIsRunning(key)
 
-            file('triggerFile') << "\n#another change"
+            waitBeforeModification triggerFile
+            triggerFile << "\n#another change"
             succeeds()
             deploymentIsRunning(key)
         }
