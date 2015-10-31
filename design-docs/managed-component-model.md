@@ -642,8 +642,8 @@ model {
 - An error message consistent with that of `ComponentSpec` and `BinarySpec` when a LanguageSourceSet is not supported/registered.
 - The source set locations of a LSS when `fss.baseDir` has been overridden.
 
-### Open Issues
-- ~~Are these created LSS's intended to be model elements and appear on the model report? considering FSS is not yet a `ModelMap`.~~ (later story)
+### Out of scope
+- LanguageSourceSet instances created within a FunctionalSourceSet are visible in the model report.
 
 ## Story: Allow `LanguageSourceSet` instances to be attached to a managed type
 
@@ -651,7 +651,7 @@ model {
     - A read-only property of a `@Managed` type
     - An element of managed collections `ModelSet` and `ModelMap`
     - A top level element.
-- Reporting changes, if any. None - `LanguageSourceSet`'s should appear as follows:
+- Reporting changes: `LanguageSourceSet` instances should appear as follows:
 
 ```
 + lss
@@ -660,9 +660,6 @@ model {
       | Creator: 	Rules#lss
 ```
 
-- Out-of-scope: Making `LanguageSourceSet` managed.
-- Out-of-scope: Instances are visible in top level `sources` container.
-- Out-of-scope: Need some convention for source directory locations. Need the ability to apply rules to every model node of a particular type to do this.
 ### Implementation
 
 - Add creation strategy for `LanguageSourceSet` backed by type registration (`ConstructableTypesRegistry`).
@@ -674,9 +671,39 @@ model {
 - Can create a LSS as property of a managed type
 - An LSS can be an element of managed collections (`ModelMap` and `ModelSet`)
 
-## Story: Elements of binary `sources` container are visible to rules
+### Out of scope
+- Making `LanguageSourceSet` managed.
+- Adding instances to the top level `sources` container.
+- Some convention for source directory locations. Need the ability to apply rules to every model node of a particular type to do this.
 
-- TBD: change `FunctionalSourceSet` to extend `ModelMap`
+## Story: Elements of ComponentSpec.sources are visible in the model report (#29)
+
+For each `LanguageSourceSet` configured in `ComponentSpec`.sources, the model report should display as follows:
+
+```
++ lss
+      | Type:   	org.gradle.language.cpp.CppSourceSet
+      | Value:  	C++ source 'lss:lss'
+      | Creator: 	Rules#lss
+```
+
+
+### Test cases
+- Standard and custom source sets for a `JavaLibrarySpec` are visible in the model report
+- Standard and custom source sets for a `NativeExecutableSpec` are visible in the model report
+- Source sets for a custom `ComponentSpec` subtype are visible in the model report
+
+## Story: Elements of ComponentSpec.sources are configured on demand
+
+By using a _real_ node-backed `ModelMap` instance, the configuration for an element in `component.sources` will not be evaluated until the element is requested.
+
+### Test cases
+
+- Test that element configuration is only evaluated for elements specifically requested from `component.sources`
+    - Configuration supplied when registering element
+    - Configuration supplied for `beforeEach`, `all` and `afterEach`
+
+## Story: Elements of BinarySpec.sources are visible in the model report (#30)
 
 ### Implementation
 
@@ -687,7 +714,23 @@ model {
 - TBD: Currently `CUnitPlugin` uses methods on `FunctionalSourceSet` that are not available on `ModelMap`.
 - TBD: Reuse `FunctionalSourceSet` for `ComponentSpec.sources` and `BinarySpec.sources`.
 
-## Story: Elements of project `sources` container are visible to rules
+### Test cases
+- Source set supplied to a `JarBinarySpec` is visible in the model report
+- Source sets for a custom `BinarySpec` subtype are visible in the model report
+
+## Story: Elements of BinarySpec.sources are configured on demand
+
+By using a _real_ node-backed `ModelMap` instance, the configuration for an element in `component.binary.sources` will not be evaluated until the element is requested.
+
+### Test cases
+
+- Test that element configuration is only evaluated for elements specifically requested from `binary.sources`
+    - Configuration supplied when registering element
+    - Configuration supplied for `beforeEach`, `all` and `afterEach`
+
+## Story: Elements of standalone FunctionalSourceSets are visible in the model report
+## Story: Elements of standalone FunctionalSourceSets are configured on demand
+## Story: Elements of `ProjectSourceSet` container are visible to rules
 
 - TBD: Change `ProjectSourceSet` so that it is bridged in the same way as the `binaries` container, alternatively move `sources` completely into model space.
 - TBD: Currently `JavaBasePlugin` contributes source sets to `sources` container.
