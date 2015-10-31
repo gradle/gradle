@@ -60,7 +60,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
     // java.nio2 cannot access files with unicode characters when using single-byte non-unicode platform encoding
     // bug seems to show up only on JDK7 when file.encoding != sun.jnu.encoding
     @Issue("GRADLE-2181")
-    @Requires(adhoc = { JavaVersion.current().isJava7() && Charset.forName(System.getProperty("sun.jnu.encoding")).contains(CharsetUtil.UTF_8) })
+    @Requires(adhoc = { JavaVersion.current().isJava7() && (System.getProperty("sun.jnu.encoding") == null || Charset.forName(System.getProperty("sun.jnu.encoding")).contains(CharsetUtil.UTF_8)) })
     def "check that JDK7 walker gets picked with Unicode encoding as default"() {
         setup:
         System.setProperty("file.encoding", fileEncoding)

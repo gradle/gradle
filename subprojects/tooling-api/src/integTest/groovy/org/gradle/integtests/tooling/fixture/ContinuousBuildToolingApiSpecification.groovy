@@ -79,9 +79,9 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
                 // if the build is very fast, the timestamp of the file will not change and the JDK file watch service won't see the change.
                 def initScript = file("init.gradle")
                 initScript.text = """
-                    def startAt = System.currentTimeMillis()
+                    def startAt = System.nanoTime()
                     gradle.buildFinished {
-                        def sinceStart = System.currentTimeMillis() - startAt
+                        long sinceStart = (System.nanoTime() - startAt) / 1000000L
                         if (sinceStart < 2000) {
                           sleep 2000 - sinceStart
                         }

@@ -83,7 +83,7 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
                         signal(lock, condition, new Runnable() {
                             @Override
                             public void run() {
-                                lastChangeAt.set(System.currentTimeMillis());
+                                lastChangeAt.set(monotonicClockMillis());
                             }
                         });
                     }
@@ -97,7 +97,7 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
             lock.lock();
             try {
                 long lastChangeAtValue = lastChangeAt.get();
-                while (!cancellationToken.isCancellationRequested() && error.get()==null && (lastChangeAtValue == 0 || System.currentTimeMillis() - lastChangeAtValue < quietPeriodMillis)) {
+                while (!cancellationToken.isCancellationRequested() && error.get() == null && (lastChangeAtValue == 0 || monotonicClockMillis() - lastChangeAtValue < quietPeriodMillis)) {
                     condition.await(quietPeriodMillis, TimeUnit.MILLISECONDS);
                     lastChangeAtValue = lastChangeAt.get();
                 }
@@ -114,6 +114,10 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
             cancellationToken.removeCallback(cancellationHandler);
             CompositeStoppable.stoppable(watcher, executorService).stop();
         }
+    }
+
+    private static long monotonicClockMillis() {
+        return System.nanoTime() / 1000000L;
     }
 
     private void signal(Lock lock, Condition condition, Runnable runnable) {

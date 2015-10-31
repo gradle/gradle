@@ -58,9 +58,9 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         executer.beforeExecute {
             def initScript = file("init.gradle")
             initScript.text = """
-                def startAt = System.currentTimeMillis()
+                def startAt = System.nanoTime()
                 gradle.buildFinished {
-                    def sinceStart = System.currentTimeMillis() - startAt
+                    long sinceStart = (System.nanoTime() - startAt) / 1000000L
                     if (sinceStart < 2000) {
                       sleep 2000 - sinceStart
                     }
@@ -126,10 +126,10 @@ ${result.error}
 
     private void waitForBuild() {
         def lastOutput = buildOutputSoFar()
-        def lastActivity = System.currentTimeMillis()
+        def lastActivity = monotonicClockMillis()
         boolean endOfBuildReached = false
 
-        while (gradle.isRunning() && System.currentTimeMillis() - lastActivity < (buildTimeout * 1000)) {
+        while (gradle.isRunning() && monotonicClockMillis() - lastActivity < (buildTimeout * 1000)) {
             sleep 100
             def lastLength = lastOutput.size()
             lastOutput = buildOutputSoFar()
@@ -138,7 +138,7 @@ ${result.error}
                 endOfBuildReached = true
                 break
             } else if (lastOutput.size() > lastLength) {
-                lastActivity = System.currentTimeMillis()
+                lastActivity = monotonicClockMillis()
             }
         }
         if (gradle.isRunning() && !endOfBuildReached) {
@@ -154,6 +154,10 @@ $lastOutput
 
         //noinspection GroovyConditionalWithIdenticalBranches
         result = out.contains("BUILD SUCCESSFUL") ? new OutputScrapingExecutionResult(out, err) : new OutputScrapingExecutionFailure(out, err)
+    }
+
+    private long monotonicClockMillis() {
+        System.nanoTime() / 1000000L
     }
 
     void stopGradle() {

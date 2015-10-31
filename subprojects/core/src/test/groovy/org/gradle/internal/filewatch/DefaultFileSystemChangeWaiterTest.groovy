@@ -137,12 +137,13 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         when:
         def lastChangeRef = new AtomicLong(0)
+        gcAndIdleBefore()
         fileChanger(instant, testfile, lastChangeRef)
 
         then:
         waitFor.done
         lastChangeRef.get() != 0
-        System.currentTimeMillis() - lastChangeRef.get() >= quietPeriod
+        (System.nanoTime() - lastChangeRef.get()) / 1000000L >= quietPeriod
 
         where:
         description            | fileChanger
@@ -154,20 +155,25 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         for (int i = 0; i < 10; i++) {
             instant.assertNotReached('done')
             testfile << "change"
-            lastChangeRef.set(System.currentTimeMillis())
+            lastChangeRef.set(System.nanoTime())
             sleep(50)
         }
     }
 
     private void changeByAppendingAndKeepingFileOpen(instant, testfile, lastChangeRef) {
-        testfile.withPrintWriter { PrintWriter out ->
+        new FileWriter(testfile).withWriter { Writer out ->
             for (int i = 0; i < 10; i++) {
                 instant.assertNotReached('done')
-                out.println("change")
+                out.write("change\n")
                 out.flush()
-                lastChangeRef.set(System.currentTimeMillis())
+                lastChangeRef.set(System.nanoTime())
                 sleep(50)
             }
         }
+    }
+
+    private void gcAndIdleBefore() {
+        System.gc()
+        sleep(500)
     }
 }

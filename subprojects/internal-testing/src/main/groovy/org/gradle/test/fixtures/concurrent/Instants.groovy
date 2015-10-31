@@ -65,16 +65,20 @@ class Instants implements InstantFactory, OperationListener {
 
     void waitFor(String name) {
         synchronized (lock) {
-            long expiry = System.currentTimeMillis() + instantTimeout;
-            while (!timePoints.containsKey(name) && System.currentTimeMillis() < expiry) {
+            long expiry = monotonicClockMillis() + instantTimeout;
+            while (!timePoints.containsKey(name) && monotonicClockMillis() < expiry) {
                 logger.log "waiting for instant '$name' ..."
-                lock.wait(expiry - System.currentTimeMillis())
+                lock.wait(expiry - monotonicClockMillis())
             }
             if (timePoints.containsKey(name)) {
                 return
             }
             throw new IllegalStateException("Timeout waiting for instant '$name' to be defined by another thread.")
         }
+    }
+
+    private long monotonicClockMillis() {
+        System.nanoTime() / 1000000L
     }
 
     def getProperty(String name) {

@@ -50,11 +50,15 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
                 processTask(task);
                 long taskDuration = System.currentTimeMillis() - startTask;
                 busy += taskDuration;
-                LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
+                }
             }
             long total = System.currentTimeMillis() - start;
             //TODO SF it would be nice to print one-line statement that concludes the utilisation of the worker threads
-            LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), prettyTime(busy), prettyTime(total - busy));
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), prettyTime(busy), prettyTime(total - busy));
+            }
         }
 
         protected void processTask(TaskInfo taskInfo) {

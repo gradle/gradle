@@ -67,7 +67,7 @@ class ConcurrentTestUtil extends ExternalResource {
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout
     static void poll(double timeout = 10, double initialDelay = 0, Closure assertion) {
-        def start = System.currentTimeMillis()
+        def start = monotonicClockMillis()
         Thread.sleep(toMillis(initialDelay))
         def expiry = start + toMillis(timeout) // convert to ms
         long sleepTime = 100
@@ -76,13 +76,17 @@ class ConcurrentTestUtil extends ExternalResource {
                 assertion()
                 return
             } catch (Throwable t) {
-                if (System.currentTimeMillis() > expiry) {
+                if (monotonicClockMillis() > expiry) {
                     throw t
                 }
                 sleepTime = Math.min(250, (long) (sleepTime * 1.2))
                 Thread.sleep(sleepTime);
             }
         }
+    }
+
+    static long monotonicClockMillis() {
+        System.nanoTime() / 1000000L
     }
 
     static long toMillis(double seconds) {
