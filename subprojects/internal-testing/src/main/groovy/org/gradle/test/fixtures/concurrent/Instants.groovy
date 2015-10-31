@@ -66,9 +66,10 @@ class Instants implements InstantFactory, OperationListener {
     void waitFor(String name) {
         synchronized (lock) {
             long expiry = monotonicClockMillis() + instantTimeout;
-            while (!timePoints.containsKey(name) && monotonicClockMillis() < expiry) {
+            long waitMillis
+            while (!timePoints.containsKey(name) && (waitMillis = expiry - monotonicClockMillis()) > 0) {
                 logger.log "waiting for instant '$name' ..."
-                lock.wait(expiry - monotonicClockMillis())
+                lock.wait(waitMillis)
             }
             if (timePoints.containsKey(name)) {
                 return
