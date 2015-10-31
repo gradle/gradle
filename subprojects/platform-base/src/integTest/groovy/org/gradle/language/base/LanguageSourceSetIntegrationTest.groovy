@@ -77,7 +77,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         def modelNode = ModelReportOutput.from(output).modelNode
         modelNode.lss.@creator[0] == "model.lss @ build.gradle line 18, column 13"
         modelNode.lss.@type[0] == "org.gradle.language.java.JavaSourceSet"
-        modelNode.lss.@nodeValue[0] == "Java source 'lss:lss'"
+        modelNode.lss.@nodeValue[0] == "Java source ':lss'"
     }
 
 
@@ -108,11 +108,11 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         def buildType = ModelReportOutput.from(output).modelNode.buildType
 
         buildType.inputs.@type[0] == 'org.gradle.language.java.JavaSourceSet'
-        buildType.inputs.@nodeValue[0] == "Java source 'inputs:inputs'"
+        buildType.inputs.@nodeValue[0] == "Java source 'buildType:inputs'"
         buildType.inputs.@creator[0] == 'Rules#buildType'
 
         buildType.sources.@type[0] == 'org.gradle.language.java.JavaSourceSet'
-        buildType.sources.@nodeValue[0] == "Java source 'sources:sources'"
+        buildType.sources.@nodeValue[0] == "Java source 'buildType:sources'"
         buildType.sources.@creator[0] == 'Rules#buildType'
     }
 
@@ -147,13 +147,13 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         buildType.componentSources.@type[0] == 'org.gradle.model.ModelMap<org.gradle.language.java.JavaSourceSet>'
         buildType.componentSources.@creator[0] == 'Rules#buildType'
         buildType.componentSources.componentA.@type[0] == 'org.gradle.language.java.JavaSourceSet'
-        buildType.componentSources.componentA.@nodeValue[0] == "Java source 'componentA:componentA'"
+        buildType.componentSources.componentA.@nodeValue[0] == "Java source 'componentSources:componentA'"
         buildType.componentSources.componentA.@creator[0] == 'Rules#addSources > create(componentA)'
 
         buildType.testSources.@type[0] == 'org.gradle.model.ModelSet<org.gradle.language.java.JavaSourceSet>'
         buildType.testSources.@creator[0] == 'Rules#buildType'
         buildType.testSources."0".@type[0] == 'org.gradle.language.java.JavaSourceSet'
-        buildType.testSources."0".@nodeValue[0] == "Java source '0:0'"
+        buildType.testSources."0".@nodeValue[0] == "Java source 'testSources:0'"
         buildType.testSources."0".@creator[0] == 'Rules#addSources > create()'
     }
 

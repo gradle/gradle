@@ -98,14 +98,11 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
                 ServiceRegistry serviceRegistry = ModelViews.assertType(inputs.get(0), ModelType.of(ServiceRegistry.class)).getInstance();
                 final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
                 final ProjectIdentifier projectIdentifier = ModelViews.assertType(inputs.get(1), ModelType.of(ProjectIdentifier.class)).getInstance();
-                final ProjectSourceSet projectSourceSet = ModelViews.assertType(inputs.get(2), ModelType.of(ProjectSourceSet.class)).getInstance();
-                final LanguageRegistry languageRegistry = ModelViews.assertType(inputs.get(3), ModelType.of(LanguageRegistry.class)).getInstance();
-
                 registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new BiFunction<S, String, MutableModelNode>() {
                     @Override
                     public S apply(String name, MutableModelNode modelNode1) {
                         ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                        return Cast.uncheckedCast(BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode1, instantiator, languageRegistry, projectIdentifier.getProjectDir()));
+                        return Cast.uncheckedCast(BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode1, instantiator));
                     }
                 });
                 if (COMPONENT_SPEC_INTERNAL_MODEL_TYPE.isAssignableFrom(implementationType)) {

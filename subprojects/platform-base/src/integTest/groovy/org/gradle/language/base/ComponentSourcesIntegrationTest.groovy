@@ -16,7 +16,6 @@
 
 package org.gradle.language.base
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.util.TextUtil
 
@@ -79,7 +78,6 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
         }
     }
 
-    @NotYetImplemented
     def "elements in component.sources should not be created when defined"() {
         when:
         buildFile << """
