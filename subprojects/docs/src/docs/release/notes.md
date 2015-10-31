@@ -167,28 +167,18 @@ Clients of the Tooling API now can query the list of Eclipse builders and nature
 and `EclipseProject.getBuildCommands()` contain the builders and natures required for the target project as well as the customisation defined the
 'eclipse' <a href="dsl/org.gradle.plugins.ide.eclipse.model.EclipseProject.html">Gradle plugin configuration</a>.
 
-### Performance improvements in up-to-date checking
+### Faster up-to-date checking for incremental builds
 
-TBD
+Gradle now uses a more efficient mechanism to scan the filesystem, which makes up-to-date checks significantly faster. 
+This improvement is only available when running Gradle with Java 7 or newer. Windows users should use Java 8 for best results.
 
-#### Java nio.2 used to walk file tree on Java 7+
+Other improvements have been made to speed-up include and exclude pattern evaluation. No changes are necessary to take advantage of this and this optimization should improve build times for Java 6 and newer.
 
-Gradle will use the Java nio.2 API to walk file trees on Java 7+.
-The benefit of using Java nio.2 API to access directories is that file metadata (file size, last modification time) is read with a single system call.
-This information is already read while walking the directory tree and it can now be used in processing files with the Gradle APIs. In Gradle 2.9, this is used in the up-to-date checking and this improves the speed of it.
+Very large builds (many thousands of source files) could see incremental build speeds up to 80% faster than 2.7 and up to 40% better than 2.8. 
 
-The Java nio.2 API doesn't get used on Java 7 when the default encoding (`file.encoding`) isn't able to losslessly encode the JVM's internal file path encoding charset (`sun.jnu.encoding`).
-This condition might apply in some environments when `file.encoding` is set to an non-unicode charset.
+#### Reduced memory footprint for incremental builds
 
-#### Memory use reduction
-
-Gradle has several in-memory caches as decorator for persistent caches. File names are either keys or values in many caches. In Gradle 2.9, a String de-duplication ("interner") solution is used to minimize
-the memory use of the in-memory caches by de-duplicating the String values that are stored in the caches.
-
-#### Speed improvement in directory listings by caching include/exclude pattern results
-
-Gradle 2.9 adds a new cache that caches the include/exclude pattern evaluation results. This has mainly a performance impact because Gradle inherits Ant's
-[default exclude patterns](https://github.com/apache/ant/blob/76455a35cb894dde4142555892bb30a4cee495f1/src/main/org/apache/tools/ant/DirectoryScanner.java#L149-L195). There are 28 default exclude patterns.
+Gradle 2.9 uses much less memory than previous releases when performing incremental builds. Some builds use 30-70% less memory. 
 
 ## Promoted features
 
