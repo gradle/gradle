@@ -45,7 +45,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
         return name;
     }
 
-    public String getFullName() {
+    public String getProjectScopedName() {
         return fullName;
     }
 

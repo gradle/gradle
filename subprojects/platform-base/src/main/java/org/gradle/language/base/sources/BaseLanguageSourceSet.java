@@ -46,14 +46,25 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
     public String getName() {
         return name;
     }
+    public String getParentName() {
+        return parentName;
+    }
 
-    public String getFullName() {
+    public String getProjectScopedName() {
         return fullName;
     }
 
+    public String getDisplayName() {
+        return String.format("%s '%s:%s'", getTypeName(), parentName, getName());
+    }
+
     @Override
-    public String getParentName() {
-        return parentName;
+    public String toString() {
+        return getDisplayName();
+    }
+
+    protected String getTypeName() {
+        return typeName;
     }
 
     @Override
@@ -74,19 +85,6 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
         // TODO:DAZ This doesn't take into account build dependencies of the SourceDirectorySet.
         // Should just ditch SourceDirectorySet from here since it's not really a great model, and drags in too much baggage.
         return generated || !source.isEmpty();
-    }
-
-    protected String getTypeName() {
-        return typeName;
-    }
-
-    public String getDisplayName() {
-        return String.format("%s '%s:%s'", getTypeName(), parentName, getName());
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
     }
 
     public void source(Action<? super SourceDirectorySet> config) {

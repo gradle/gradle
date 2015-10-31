@@ -148,7 +148,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                     for (LanguageSourceSet languageSourceSet : binary.getInputs()) {
                         LanguageSourceSetInternal sourceSet = (LanguageSourceSetInternal) languageSourceSet;
                         if (language.getSourceSetType().isInstance(sourceSet) && sourceSet.getMayHaveSources()) {
-                            String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(sourceSet.getFullName());
+                            String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(sourceSet.getProjectScopedName());
                             Task task = tasks.create(taskName, taskConfig.getTaskType());
                             taskConfig.configureTask(task, binary, sourceSet, serviceRegistry);
 

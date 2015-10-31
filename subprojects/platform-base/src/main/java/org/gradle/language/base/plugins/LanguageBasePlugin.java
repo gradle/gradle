@@ -134,7 +134,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-            // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
+        // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
         void registerSourceSetNodeInitializers(ConstructableTypesRegistry constructableTypesRegistry, ServiceRegistry serviceRegistry, LanguageRegistry languageRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer(instantiator));
@@ -147,7 +147,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-            // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
+        // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
         void registerNodeInitializerExtractionStrategies(NodeInitializerRegistry nodeInitializerRegistry, ConstructableTypesRegistry constructableTypesRegistry) {
             nodeInitializerRegistry.registerStrategy(constructableTypesRegistry);
         }
