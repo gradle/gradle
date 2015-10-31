@@ -46,7 +46,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     ExecutionResult result
     ExecutionFailure failure
 
-    int buildTimeout = 10
+    int buildTimeout = 20
 
     @Rule
     GradleBuildCancellation cancellationTokenSource
