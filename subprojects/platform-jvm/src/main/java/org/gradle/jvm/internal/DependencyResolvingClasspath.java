@@ -15,7 +15,6 @@
  */
 package org.gradle.jvm.internal;
 
-import com.google.common.collect.Iterables;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
@@ -36,14 +35,17 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
+import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.DependencySpec;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.*;
+
+import static com.google.common.collect.Iterables.concat;
+import static org.gradle.util.CollectionUtils.collect;
 
 public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
@@ -65,7 +67,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         this.sourceSet = sourceSet;
         this.dependencyResolver = dependencyResolver;
         this.remoteRepositories = remoteRepositories;
-        this.resolveContext = new DependentSourceSetResolveContext(binary.getId(), sourceSet, DefaultVariantsMetaData.extractFrom(binary, schemaStore), allDependencies());
+        this.resolveContext = new DependentSourceSetResolveContext(binary.getId(), sourceSet, variantsMetaDataFrom(binary, schemaStore), allDependencies());
     }
 
     @Override
@@ -77,7 +79,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     public Set<File> getFiles() {
         ensureResolved(true);
         Set<ResolvedArtifact> artifacts = resolveResult.artifactResults.getArtifacts();
-        return CollectionUtils.collect(artifacts, new org.gradle.api.Transformer<File, ResolvedArtifact>() {
+        return collect(artifacts, new org.gradle.api.Transformer<File, ResolvedArtifact>() {
             @Override
             public File transform(ResolvedArtifact resolvedArtifact) {
                 return resolvedArtifact.getFile();
@@ -95,7 +97,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         return new Iterable<DependencySpec>() {
             @Override
             public Iterator<DependencySpec> iterator() {
-                return Iterables.concat(sourceSetDependencies(), apiDependencies()).iterator();
+                return concat(sourceSetDependencies(), apiDependencies()).iterator();
             }
         };
     }
@@ -110,19 +112,27 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     private void ensureResolved(boolean failFast) {
         if (resolveResult == null) {
-            resolveResult = new ResolveResult();
-
-            dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, resolveResult, resolveResult);
+            resolveResult = resolve();
         }
         if (failFast) {
             failOnUnresolvedDependency(resolveResult.notFound);
         }
     }
 
+    private ResolveResult resolve() {
+        ResolveResult result = new ResolveResult();
+        dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, result, result);
+        return result;
+    }
+
     private void failOnUnresolvedDependency(List<Throwable> notFound) {
         if (!notFound.isEmpty()) {
             throw new LibraryResolveException(String.format("Could not resolve all dependencies for '%s' source set '%s'", binary.getDisplayName(), sourceSet.getDisplayName()), notFound);
         }
+    }
+
+    private VariantsMetaData variantsMetaDataFrom(JarBinarySpec binary, ModelSchemaStore schemaStore) {
+        return DefaultVariantsMetaData.extractFrom(binary, schemaStore);
     }
 
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
@@ -132,7 +142,6 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         @Override
         public void start(DependencyGraphNode root) {
-
         }
 
         @Override
@@ -153,7 +162,6 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         @Override
         public void visitEdge(DependencyGraphNode resolvedConfiguration) {
-
         }
 
         @Override
