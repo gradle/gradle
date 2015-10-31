@@ -20,6 +20,6 @@ class TestLogger {
     private final long startTime = System.nanoTime()
 
     void log(def msg) {
-        println "* [${(System.nanoTime() - startTime)/1000000L}ms] [${Thread.currentThread().name}] ${msg}"
+        println "* [${(long) ((System.nanoTime() - startTime) / 1000000L)}ms] [${Thread.currentThread().name}] ${msg}"
     }
 }
