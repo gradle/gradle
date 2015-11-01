@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform
 
+import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
@@ -362,5 +363,52 @@ int main (int argc, char *argv[]) {
         def installation = installation("build/install/echoExecutable")
         installation.exec().out == "\n"
         installation.exec("foo", "bar").out == "[foo] [bar] \n"
+    }
+
+    def "model report should display configured components"() {
+        given:
+        buildFile << """
+            apply plugin: "c"
+            apply plugin: "cpp"
+            model {
+                components {
+                    exe(NativeExecutableSpec)
+                    lib(NativeLibrarySpec)
+                }
+            }
+"""
+        when:
+        succeeds "model"
+
+        then:
+        ModelReportOutput.from(output).hasNodeStructure {
+            components {
+                exe {
+                    binaries {
+                        executable(type: "org.gradle.nativeplatform.NativeExecutableBinarySpec") {
+                            tasks()
+                        }
+                    }
+                    sources {
+                        c(type: "org.gradle.language.c.CSourceSet", nodeValue: "C source 'exe:c'")
+                        cpp(type: "org.gradle.language.cpp.CppSourceSet", nodeValue: "C++ source 'exe:cpp'")
+                    }
+                }
+                lib {
+                    binaries {
+                        sharedLibrary(type: "org.gradle.nativeplatform.SharedLibraryBinarySpec") {
+                            tasks()
+                        }
+                        staticLibrary(type: "org.gradle.nativeplatform.StaticLibraryBinarySpec") {
+                            tasks()
+                        }
+                    }
+                    sources {
+                        c(type: "org.gradle.language.c.CSourceSet", nodeValue: "C source 'lib:c'")
+                        cpp(type: "org.gradle.language.cpp.CppSourceSet", nodeValue: "C++ source 'lib:cpp'")
+                    }
+                }
+            }
+        }
     }
 }

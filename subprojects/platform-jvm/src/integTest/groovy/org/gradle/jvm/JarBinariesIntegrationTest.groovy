@@ -16,6 +16,7 @@
 
 package org.gradle.jvm
 
+import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -85,4 +86,43 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
                 Matchers.containsString("Jar 'myJvmLib3:jar': Disabled by user")
         ))
     }
+
+    def "model report should display configured components"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-lang'
+            }
+            model {
+                components {
+                    jvmLibrary(JvmLibrarySpec) {
+                        sources {
+                            other(JavaSourceSet)
+                        }
+                    }
+                }
+            }
+"""
+        when:
+        succeeds "model"
+
+        then:
+        ModelReportOutput.from(output).hasNodeStructure {
+            components {
+                jvmLibrary {
+                    binaries {
+                        jar(type: "org.gradle.jvm.JarBinarySpec") {
+                            tasks()
+                        }
+                    }
+                    sources {
+                        java(type: "org.gradle.language.java.JavaSourceSet", nodeValue: "Java source 'jvmLibrary:java'")
+                        other(type: "org.gradle.language.java.JavaSourceSet", nodeValue: "Java source 'jvmLibrary:other'")
+                        resources(type: "org.gradle.language.jvm.JvmResourceSet", nodeValue: "JVM resources 'jvmLibrary:resources'")
+                    }
+                }
+            }
+        }
+    }
+
 }

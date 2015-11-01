@@ -687,7 +687,6 @@ For each `LanguageSourceSet` configured in `ComponentSpec`.sources, the model re
       | Creator: 	Rules#lss
 ```
 
-
 ### Test cases
 - Standard and custom source sets for a `JavaLibrarySpec` are visible in the model report
 - Standard and custom source sets for a `NativeExecutableSpec` are visible in the model report
