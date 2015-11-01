@@ -38,10 +38,6 @@ Or:
     void sources(FunctionalSourceSet sources) {
     }
 
-
-- Out-of-scope: Making the state of `FunctionalSourceSet` managed. This means, for example, the children of the source set will not be visible in the `model` report, and that immutability will not be enforced.
-- Out-of-scope: Adding any children to the source set. This is a later story. A plugin can add children by first attaching a factory using `registerFactory()`.
-
 ### Test cases
 
 - Instance can be defined as above, when the `LanguageBasePlugin` plugin has been applied.
@@ -60,6 +56,11 @@ top level model elements. For this story, we only need to make this work for top
     - Error message should include details of which types can be created. Keep in mind that this validation will need to be reused in the next story, for managed type properties and collection elements.
     - Query the `NodeInitializerExtractionStrategy` instances for the list of types they support.
 - Change `NodeInitializerRegistry` so that strategies are pushed into it, rather than pulled, and change the `LanguageBasePlugin` to register a strategy.
+
+### Out of scope
+
+- Making the state of `FunctionalSourceSet` managed. This means, for example, the children of the source set will not be visible in the `model` report, and that immutability will not be enforced.
+- Adding any children to the source set. This is a later story. A plugin can add children by first attaching a factory using `registerFactory()`.
 
 ## Story: Allow a managed type to have a property of type `FunctionalSourceSet`
 
@@ -185,7 +186,7 @@ model {
 ### Out of scope
 - Making `LanguageSourceSet` managed.
 - Adding instances to the top level `sources` container.
-- Some convention for source directory locations. Need the ability to apply rules to every model node of a particular type to do this.
+- Convention for source directory locations. Need the ability to apply rules to every model node of a particular type to do this.
 
 ## Story: Elements of ComponentSpec.sources are visible in the model report
 
@@ -207,6 +208,12 @@ For each `LanguageSourceSet` configured in `ComponentSpec`.sources, the model re
 
 Currently `ComponentSpec.sources` is a `ModelMap`, but in `BaseComponentSpec` the implementation is backed by a `FunctionalSourceSet` instance, with values pushed to a node-backed map on creation. This means that `ComponentSpec.sources` doesn't have the usual semantics of a `ModelMap`: elements configured on demand, and visible to model rules. Switching to use a _real_ node-backed `ModelMap` instance will enable on-demand configuration of elements in `component.sources`.
 
+### Implementation notes
+
+- `CUnitPlugin` uses methods on `FunctionalSourceSet` that are not available on `ModelMap`. Need to convert to use `ModelMap`.
+- A previous story introduced `FunctionalSourceSet.baseDir` that is used to configure the source locations for a `LanguageSourceSet`. Revert this rule to use `ProjectIdentifier.projectDir` directly.
+- Each `LanguageSourceSet` needs a 'parentName', that is used to construct a project-scoped unique name, as well as configure default source locations. `LanguageSourceSet` instances created in `component.sources` are provided with the component name to determine the source location. The `NodeInitializer` that constructs a `LanguageSourceSet` will need to be aware of this relationship, and provide the correct parent name when adding an element to `component.sources`.
+
 ### Test cases
 
 - Configuration for elements in `component.sources` is evaluated only when element is requested the collection:
@@ -221,7 +228,6 @@ Currently `ComponentSpec.sources` is a `ModelMap`, but in `BaseComponentSpec` th
     - Will need to make `BaseBinarySpec` node backed, similar to `BaseComponentSpec`.
     - Should refactor to simplify both cases.
 
-- TBD: Currently `CUnitPlugin` uses methods on `FunctionalSourceSet` that are not available on `ModelMap`.
 - TBD: Reuse `FunctionalSourceSet` for `ComponentSpec.sources` and `BinarySpec.sources`.
 
 ### Test cases
