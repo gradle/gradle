@@ -15,7 +15,10 @@
  */
 
 package org.gradle.language.base
+
+import groovy.transform.NotYetImplemented
 import org.gradle.api.reporting.model.ModelReportOutput
+import org.gradle.util.TextUtil
 
 class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationTest {
 
@@ -74,5 +77,32 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
                 }
             }
         }
+    }
+
+    @NotYetImplemented
+    def "elements in component.sources should not be created when defined"() {
+        when:
+        buildFile << """
+            model {
+                components {
+                    main {
+                        sources {
+                            ss1(CustomLanguageSourceSet) {
+                                println "created ss1"
+                            }
+                            println "configured components.main.sources"
+                        }
+                    }
+                }
+                tasks {
+                    verify(Task)
+                }
+            }
+        """
+        then:
+        succeeds "verify"
+        output.contains TextUtil.toPlatformLineSeparators('''configured components.main.sources
+created ss1
+''')
     }
 }
