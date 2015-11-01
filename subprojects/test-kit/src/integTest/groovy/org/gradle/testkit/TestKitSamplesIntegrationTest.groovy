@@ -30,6 +30,7 @@ class TestKitSamplesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireGradleHome()
+        executer.withEnvironmentVars(GRADLE_USER_HOME: executer.gradleUserHomeDir.absolutePath)
     }
 
     @UsesSample("testKit/testKitJunit")
