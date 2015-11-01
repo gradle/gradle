@@ -71,6 +71,72 @@ Later work:
     - Ivy repo: look for a particular configuration, if not present assume no API dependencies (or perhaps use `default` configuration)
     - Assume no target platform, and assume compatible with all target platforms.
 
+## Story: Java library sources are compiled against library Jar resolved from Maven repository
+
+- Extend the dependency DSL to reference external libraries:
+    ```
+    model {
+        components {
+            main(JvmLibrarySpec) {
+                dependencies {
+                    library group: 'com.acme', name: 'artifact', version: '1.0'
+                    library 'com.acme:artifact:1.0'
+                }
+            }
+        }
+    }
+    ```
+
+    TODO: Need a better DSL.
+- Reuse existing repositories DSL, bridging into model space.
+- Main Jar artifact of maven module is included in compile classpath.
+- Main Jar artifact of any compile-scoped dependencies are included transitively in the compile classpath.
+
+- Update samples and user guide
+- Update newJavaModel performance test?
+
+### Test cases
+
+- For maven module dependencies
+    - Main Jar artifact of module is included in compile classpath.
+    - Main Jar artifact of compile-scoped transitive dependencies are included in the compile classpath.
+    - Artifacts from runtime-scoped (and other scoped) transitive dependencies are _not_ included in the compile classpath.
+- For local component dependencies:
+    - Artifacts from transitive external dependencies that are non part of component API are _not_ included in the compile classpath.
+- Displays a reasonable error message if the external dependency cannot be found in a declared repository
+
+### Open issues
+
+- Should we use a single `dependencies` block to define API and compile dependencies, or use 2 separate `dependencies` blocks?
+- Need to provide support for `ResolutionStrategy`: forced versions, dependency substitution, etc
+
+## Story: Dependencies report shows compile time dependency graph of a Java library
+
+- Dependency report shows all JVM components for the project, and the resolved compile time graphs for each variant.
+
+## Story: Build author defines repositories using model rules
+
+## Story: Build author defines dependencies for an entire component
+
+## Story: Resolve external dependencies from Ivy repositories
+
+- Use artifacts and dependencies from some conventional configuration (eg `compile`, or `default` if not present) an for Ivy module.
+
+## Story: Generate a stubbed API jar for external dependencies
+
+- Generate stubbed API for external Jar and use this for compilation. Cache the generated stubbed API jar.
+- Verify library is not recompiled when API of external library has not changed (eg method body change, add private element).
+- Dependencies report shows external libraries in compile time dependency graph.
+
+### Implementation
+
+Should reuse the "stub generator" that is used to create an API jar for local projects.
+
+### Test cases
+
+- Dependent classes are not recompiled when method implementation of external dependency has changed
+- Dependent classes are recompiled when signature of external dependency has changed
+
 # Feature: Fully featured dependency resolution for local Java libraries
 
 - Declare and consume API & runtime dependencies

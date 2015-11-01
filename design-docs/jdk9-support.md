@@ -342,10 +342,6 @@ This story should include performance tests that prove that incremental builds a
 - because downstream dependencies are not recompiled when the API signature doesn't change
 - because it is done independently of the fact a component declares an API or not
 
-## Story: Dependencies report shows compile time dependency graph of a Java library
-
-- Dependency report shows all JVM components for the project, and the resolved compile time graphs for each variant.
-
 ## Backlog
 
 - Validate dependencies of API classes at build time to verify all API dependencies are exported.
@@ -355,67 +351,7 @@ This story should include performance tests that prove that incremental builds a
 - Discovery of annotation processor implementations.
 - Add an option to optionally exclude package private members from the API.
 
-# Feature: Java library is compiled against the API jar of Java libraries in binary repository
-
-## Story: Java library sources are compiled against library Jar resolved from Maven repository
-
-- Extend the dependency DSL to reference external libraries:
-    ```
-    model {
-        components {
-            main(JvmLibrarySpec) {
-                dependencies {
-                    library group: 'com.acme', name: 'artifact', version: '1.0'
-                    library 'com.acme:artifact:1.0'
-                }
-            }
-        }
-    }
-    ```
-
-    TODO: Need a better DSL.
-- Reuse existing repositories DSL, bridging into model space.
-- Main Jar artifact of maven module is included in compile classpath.
-- Main Jar artifact of any compile-scoped dependencies are included transitively in the compile classpath.
-
-- Update samples and user guide
-- Update newJavaModel performance test?
-
-### Test cases
-
-- For maven module dependencies
-    - Main Jar artifact of module is included in compile classpath.
-    - Main Jar artifact of compile-scoped transitive dependencies are included in the compile classpath.
-    - Artifacts from runtime-scoped (and other scoped) transitive dependencies are _not_ included in the compile classpath.
-- For local component dependencies:
-    - Artifacts from transitive external dependencies that are non part of component API are _not_ included in the compile classpath.
-- Displays a reasonable error message if the external dependency cannot be found in a declared repository
-
-### Open issues
-
-- Should we use a single `dependencies` block to define API and compile dependencies, or use 2 separate `dependencies` blocks?
-- Need to provide support for `ResolutionStrategy`: forced versions, dependency substitution, etc
-
-## Story: Resolve external dependencies from Ivy repositories
-
-- Use artifacts and dependencies from some conventional configuration (eg `compile`, or `default` if not present) an for Ivy module.
-
-## Story: Generate a stubbed API jar for external dependencies
-
-- Generate stubbed API for external Jar and use this for compilation. Cache the generated stubbed API jar.
-- Verify library is not recompiled when API of external library has not changed (eg method body change, add private element).
-- Dependencies report shows external libraries in compile time dependency graph.
-
-### Implementation
-
-Should reuse the "stub generator" that is used to create an API jar for local projects.
-
-### Test cases
-
-- Stubs only contain public members of the external dependency
-- Trying to use a stub at runtime should throw an `UnsupportedOperationException`
-
-## Feature: Development team migrates Java library to Java 9
+# Feature: Development team migrates Java library to Java 9
 
 Allow a Java library to build for Java 9, and produce both modular and non-modular variants that can be used by different consumers.
 
