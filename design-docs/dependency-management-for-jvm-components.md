@@ -66,11 +66,6 @@ Later work:
 
 # Feature: Java library consumes external Java library
 
-- Resolve libraries from binary repositories, for libraries with a single variant
-    - Maven repo: assume API dependencies are defined by `compile` scope.
-    - Ivy repo: look for a particular configuration, if not present assume no API dependencies (or perhaps use `default` configuration)
-    - Assume no target platform, and assume compatible with all target platforms.
-
 ## Story: Java library sources are compiled against library Jar resolved from Maven repository
 
 - Extend the dependency DSL to reference external libraries:
@@ -88,9 +83,13 @@ Later work:
     ```
 
     TODO: Need a better DSL.
+
 - Reuse existing repositories DSL, bridging into model space.
 - Main Jar artifact of maven module is included in compile classpath.
 - Main Jar artifact of any compile-scoped dependencies are included transitively in the compile classpath.
+
+- Assume external library is compatible with all target platforms.
+- Assume external library declares only one variant.
 
 - Update samples and user guide
 - Update newJavaModel performance test?
@@ -105,10 +104,10 @@ Later work:
     - Artifacts from transitive external dependencies that are non part of component API are _not_ included in the compile classpath.
 - Displays a reasonable error message if the external dependency cannot be found in a declared repository
 
-### Open issues
+### Out of scope
 
-- Should we use a single `dependencies` block to define API and compile dependencies, or use 2 separate `dependencies` blocks?
-- Need to provide support for `ResolutionStrategy`: forced versions, dependency substitution, etc
+- Rule-based definition of repositories
+- Support for custom `ResolutionStrategy`: forced versions, dependency substitution, etc
 
 ## Story: Dependencies report shows compile time dependency graph of a Java library
 
