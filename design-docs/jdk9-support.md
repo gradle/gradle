@@ -96,13 +96,11 @@ For this story, it is expected that the API jar is built after the runtime jar. 
 - Consuming source is recompiled when API class is changed.
 - Consuming source is not recompiled when non-API class changes.
 
-## Story: Consuming Java source is not recompiled when signature (ABI) of a library has not changed
+## Story: Java source is not recompiled when signature of the declared API of a dependent library has not changed
 
 AKA: API classes can reference non-API classes of the same library and adding a private method to the an API class should not trigger recompilation of consuming sources.
 
-Produce a stubbed API jar instead of an API jar by generating stub classes using an ASM based API class stub generator. This should only be done
-if an API is declared: despite that's what we want to do ultimately, if a component doesn't declare an API, it is not expected to create a stubbed API
-jar: we will instead use a copy of the runtime jar. A later story adds support for stubbed API jars in any case.
+Produce a stubbed API jar instead of an API jar by generating stub classes using an ASM based API class stub generator. This should only be done if an API is declared: despite that's what we want to do ultimately, if a component doesn't declare an API, it is not expected to create a stubbed API jar: we will instead use a copy of the runtime jar. A later story adds support for stubbed API jars in any case.
 
 ### Implementation
 
@@ -140,6 +138,14 @@ creation of a static initializer that we want to avoid).
 - Adding a private method to an API class should not trigger recompilation of the consuming library
 - Changing an API field of an API class should trigger recompilation of the consuming library
 - Changing the superclass or interfaces of an API class should trigger recompilation of the consuming library
+
+## Story: Java source is not recompiled when signature of the undeclared API of a dependent library has not changed
+
+If a component doesn't declare an API, produce a stubbed API jar like in the case an API is declared. Consider all packages as belonging to the API.
+This story should include performance tests that prove that incremental builds are faster:
+
+- because downstream dependencies are not recompiled when the API signature doesn't change
+- because it is done independently of the fact a component declares an API or not
 
 ## Story: Java library API references the APIs of other libraries
 
@@ -333,14 +339,6 @@ The last step of separating API from implementation involves the creation of a b
 - Building the API jar should not depend on the runtime jar
 - Building the runtime jar should not depend on the API jar
 - Building the runtime jar and the API jar should depend on the same compilation tasks
-
-## Story: Produce a stubbed API jar when no API is declared
-
-If a component doesn't declare an API, produce a stubbed API jar like in the case an API is declared. Consider all packages as belonging to the API.
-This story should include performance tests that prove that incremental builds are faster:
-
-- because downstream dependencies are not recompiled when the API signature doesn't change
-- because it is done independently of the fact a component declares an API or not
 
 ## Backlog
 
