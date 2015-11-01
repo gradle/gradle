@@ -694,13 +694,13 @@ For each `LanguageSourceSet` configured in `ComponentSpec`.sources, the model re
 
 ## Story: Elements of ComponentSpec.sources are configured on demand
 
-By using a _real_ node-backed `ModelMap` instance, the configuration for an element in `component.sources` will not be evaluated until the element is requested.
+Currently `ComponentSpec.sources` is a `ModelMap`, but in `BaseComponentSpec` the implementation is backed by a `FunctionalSourceSet` instance, with values pushed to a node-backed map on creation. This means that `ComponentSpec.sources` doesn't have the usual semantics of a `ModelMap`: elements configured on demand, and visible to model rules. Switching to use a _real_ node-backed `ModelMap` instance will enable on-demand configuration of elements in `component.sources`.
 
 ### Test cases
 
-- Test that element configuration is only evaluated for elements specifically requested from `component.sources`
-    - Configuration supplied when registering element
-    - Configuration supplied for `beforeEach`, `all` and `afterEach`
+- Configuration for elements in `component.sources` is evaluated only when element is requested the collection:
+    - Configuration supplied via `component.sources.beforeEach`, `component.sources.afterEach` and `component.sources.all`.
+    - Configuration supplied when adding an element to `component.sources`
 
 ## Story: Elements of BinarySpec.sources are visible in the model report
 
