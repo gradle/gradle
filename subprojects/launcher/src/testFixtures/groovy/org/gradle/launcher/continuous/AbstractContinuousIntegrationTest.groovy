@@ -136,6 +136,7 @@ ${result.error}
 
             if (lastOutput.contains("Waiting for changes to input files of tasks...")) {
                 endOfBuildReached = true
+                sleep 100
                 break
             } else if (lastOutput.size() > lastLength) {
                 lastActivity = monotonicClockMillis()

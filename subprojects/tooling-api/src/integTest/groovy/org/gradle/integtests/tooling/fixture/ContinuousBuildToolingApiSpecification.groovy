@@ -186,13 +186,15 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     }
 
     void waitBeforeModification(File file) {
+        long waitMillis = 100L
         if(OS_IS_WINDOWS && file.exists()) {
             // ensure that file modification time changes on windows
             long fileAge = System.currentTimeMillis() - file.lastModified()
-            if(fileAge > 0 && fileAge < 1000L) {
-                sleep(1000L - fileAge)
+            if (fileAge > 0L && fileAge < 900L) {
+                waitMillis = 1000L - fileAge
             }
         }
+        sleep(waitMillis)
     }
 
 }
