@@ -4,12 +4,12 @@ advantage of the features of that rule based configuration offers.
 
 This spec outlines several steps toward a fully managed software component model.
 
-# Feature 4: Plugin author uses managed types to extend the software model
+# Plugin author uses managed types and internal views to extend the software model
 
 This feature allows a plugin author to extend certain key types using a managed type:
 
 - `ComponentSpec`
-- `LanguageSourceSet`
+- `LanguageSourceSet` (see [managed-source-sets.md](./managed-source-sets.md))
 - `BinarySpec`
 - `JarBinarySpec`
 
@@ -19,8 +19,6 @@ It is a non-goal of this feature to add any further capabilities to managed type
 
 This feature will require some state for a given object to be unmanaged, possibly attached as node private data, and some state to be managed, backed by
 individual nodes.
-
-As part of this work, remove empty subclasses of `BaseLanguageSourceSet`, such as `DefaultCoffeeScriptSourceSet`.
 
 ## Custom JarBinarySpec type is implemented as a @Managed type (DONE)
 
@@ -59,10 +57,6 @@ This is being targeted first as it is needed to continue the dependency manageme
 - Subtype can be cast and used as `BinarySpecInternal`
 - Subtype cannot be created via `BinaryContainer` (i.e. top level `binaries` node) - (requires node backing)
 - Can successfully create binary represented by `JarBinarySpec` subtype
-
-# Feature 5: Plugin author declares internal views for model element types
-
-Allow a plugin author to declare internal views for a particular type.
 
 ## Plugin author declares internal view for custom component type
 
@@ -143,8 +137,7 @@ registered when the binary type is registered:
 
 ### Implementation
 
-- Should start to unify the type registration infrastructure, so that registration for all types are treated the same way and there are few or no differences
-between the implementation of component, binary and source set type registration rules. This will be required for the next stories.
+- Should start to unify the type registration infrastructure, so that registration for all types are treated the same way and there are few or no differences between the implementation of component, binary and source set type registration rules. This will be required for the next stories.
 
 ## Plugin author declares default implementation for extensible binary and component type
 
@@ -278,21 +271,6 @@ The views defined for the general type should also be applied to the specialized
 - Add a rule to the base plugins, to declare internal view types for `ComponentSpec` and `BinarySpec`.
 - Change node creation so that implementation is no longer available as a view type.
 
-## Plugin author declares default implementation for any extensible type
-
-Extend story "Plugin author declares default implementation for extensible binary and component type"
-for `LanguageSourceSet`.
-
-- Update user guide and samples to show how to implement a custom `@Managed` `LanguageSourceSet` type
-
-## Plugin author declares internal views for custom managed binary type
-
-TBD
-
-## Plugin author declares internal view for custom non-managed source set types
-
-Add support for `LanguageSourceSet` and `FunctionalSourceSet`.
-
 ## Plugin author declares internal views for custom managed type
 
 Given a plugin defines a `@Managed` subtype of a general type, allow the plugin to define internal views for that type.
@@ -422,104 +400,20 @@ only to implement the top level containers.
 - Don't need to discover the elements of a top-level container in order to apply cross-cutting rules. However, the approach so
 far forces all elements to be discovered.
 
+## Apply cross cutting configuration to all `LanguageSourceSet` instances
+
+- All `LanguageSourceSet` instances are visible through `sources` container
+- Depends on improvements to reference handling define in previous feature.
+- TBD: Need to traverse schema to determine where source sets may be found in the model. Ensure only those model elements that are required are realized.
+- TBD: Need to split this up into several stories.
+
 ## Backlog
 
 - Apply to `ComponentSpec`, `Task`, etc.
 - Apply cross-cutting defaults, finalization, validation.
 - Allow rules to be applied to any thing of a given type, relative to any model element.
 
-# Feature 8: Plugin author attaches source sets to managed type
-
-This feature allows source sets to be added to arbitrary locations in the model. For example, it should be possible to model Android
-build types and flavors each with an associated source set.
-
-It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpec.sources` model backed containers.
-
-## Story: Allow top level model elements of type `FunctionalSourceSet` to created
-
-- Allow a `FunctionalSourceSet` to be used as a top level model element.
-- Empty by default.
-
-For example:
-
-    model {
-        sources(FunctionalSourceSet)
-    }
-
-Or:
-
-    @Model
-    void sources(FunctionalSourceSet sources) {
-    }
-
-
-- Out-of-scope: Making the state of `FunctionalSourceSet` managed. This means, for example, the children of the source set will not be visible in the `model` report, and that
-  immutability will not be enforced.
-- Out-of-scope: Adding any children to the source set. This is a later story. A plugin can add children by first attaching a factory using `registerFactory()`.
-
-### Test cases
-
-- Instance can be defined as above, when the `LanguageBasePlugin` plugin has been applied.
-- Instance can not be defined when `LanguageBasePlugin` has not been applied. Error message should include details of which types are available.
-- Model report shows something reasonable for source set instance.
-
-### Implementation
-
-- Continue to converge on `NodeInitializer` as the strategy for creating all model elements, including the children of a managed type, the elements of a model collection and
-top level model elements. For this story, we only need to make this work for top level model elements.
-    - All model elements are created using a `NodeInitializer`.
-    - Each type has 1 `NodeInitializer` implementation associated with it, that can be reused in any context where that type appears.
-- Allow a `NodeInitializer` to be located for `FunctionalSourceSet` from the `NodeInitializerRegistry`.
-- Extract validation from `NonTransformedModelDslBacking` and `TransformedModelDslBacking` into some shared location, probably to `NodeInitializerRegistry`. The idea here is to
-  have a single place where something outside the registry can ask for a 'constructable' thing.
-    - `NonTransformedModelDslBacking` and `TransformedModelDslBacking` no longer need to use the `ModelSchemaStore`.
-    - Error message should include details of which types can be created. Keep in mind that this validation will need to be reused in the next story, for managed type properties and collection elements.
-    - Query the `NodeInitializerExtractionStrategy` instances for the list of types they support.
-- Change `NodeInitializerRegistry` so that strategies are pushed into it, rather than pulled, and change the `LanguageBasePlugin` to register a strategy.
-
-## Story: Allow a managed type to have a property of type `FunctionalSourceSet`
-
-- Allow a `FunctionalSourceSet` to be used as:
-    - A read-only property or a mutable property of a `@Managed` type
-    - An element of managed collections `ModelSet` and `ModelMap`
-
-For example:
-
-    @Managed
-    interface BuildType {
-        FunctionalSourceSet getSources()
-
-        FunctionalSourceSet getInputs()
-        void setInputs(FunctionalSourceSet sources)
-
-        ModelMap<FunctionalSourceSet> getComponentSources()
-    }
-
-### Implementation
-
-- Continue to converge on `NodeInitializer` as the strategy for creating the children of a managed type, the elements of a model collection and top level elements.
-- Change validation for managed type properties and managed collection elements to allow any type for which a creation strategy is available.
-    - Share (don't duplicate) the validation from the previous story that decides whether an instance of a given type can be created.
-    - Error message should include the types available to be used.
-- Update user guide to list `FunctionalSourceSet` as a type that can be used in the model.
-- Refactors to clean up implementation:
-    - Should share the same mechanism to expose the initializer for `FunctionalSourceSet` and `JarBinarySpec`, to make it easier to later add more types.
-      Ideally, this would mean registering some description of the types (eg here's a public type and here's an implementation type for it), rather than
-      registering an initializer strategy implementation.
-    - Replace the various `ChildNodeInitializerStrategy` implementations with one that delegates to the schema.
-
-### Test cases
-- read-only property of a `@Managed` type.
-- a mutable property of a `@Managed` type.
-- element of managed collections `ModelSet`.
-- element of managed collections `ModelMap`.
-- Attempting to define a managed type with a non-supported type on any of the above cases should report an error with the supported types including:
-    - FunctionalSourceSet
-    - ModelMap<T> for any supported T
-    - ModelSet<T> for any supported T
-- Cannot define a property or managed element of a type which extends FunctionalSourceSet
-- A property or managed element of type `FunctionalSourceSet` cannot be applied when the `LanguageBasePlugin` has not been applied.
-- Model report shows something reasonable for a managed property or collections of type FunctionalSourceSet.
+# More consistent validation of model types
 
 ## Story: Consistent validation of model types
 
@@ -544,10 +438,6 @@ scalar type the error message should read:
 
 `org.gradle.model.internal.core.DefaultNodeInitializerRegistry` and `org.gradle.model.internal.core.ModelTypeInitializationException` should be refactored to take the context of what is being constructed
  (i.e. is it a property, is it a top level model element, if it is a property the property's name)
-
-## Story: Allow `@Unmanaged` properties of type `List` or `Set`
-
-Allow a read-write property marked with `@Unmanaged` of a `@Managed` type to have type `List<T>` or `Set<T>` for any `T`.
 
 ## Story: Report available types for a `ModelMap` or `ModelSet` when element type is not constructible
 
@@ -592,154 +482,11 @@ One option is to do so in `ModelRegistry.bindAllReferences()` (which might be re
 that should shake out a bunch of errors without closing the universe. The idea isn’t necessarily to catch every possible failure that might happen, just to be a reasonable trade off between
 coverage and the cost of the coverage
 
-## Story: A `LanguageSourceSet` of any registered type can be created in any `FunctionalSourceSet` instance
+## Story: Allow `@Unmanaged` properties of type `List` or `Set`
 
-- All registered `LanguageSourceSet` types are available to be added.
-- Need some convention for source directory locations. Possibly add a `baseDir` property to `FunctionalSourceSet` and default source directories to `$baseDir/$sourceSet.name`
-- Out-of-scope: Instances are visible in top level `sources` container.
-- Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has
-  no knowledge of where its elements end up being referenced.
+This is a bugfix for a regression introduced in Gradle 2.8.
 
-### Implementation
-
-- Currently rules push language registrations into various well known instances. Should change this to work with all instances, ideally by pull rather than push.
-    - Define a `LanguageRegistry` as a `@Service`. Anything needing a `LanguageRegistry` uses this instance.
-    - Change the constructor of `DefaultFunctionalSourceSet` to take a `LanguageRegistry`.
-    - Change`DefaultFunctionalSourceSet` to use that `LanguageRegistry` to create LSS instances (i.e. `DefaultPolymorphicNamedEntityInstantiator.factories` is no longer used to create LanguageSourceSets)
-    - Change `ComponentRules.ComponentSourcesRegistrationAction#registerLanguageSourceSetFactory` to no longer push `sourceSetFactory`'s into `FunctionalSourceSet`
-
-- Source directory locations
-    - Add a `baseDir` property to `FunctionalSourceSet` and default it to `project.projectDir`
-    - ~~Add an `abstract` method to `BaseLanguageSourceSet`, `String getSourceDirConvention()`. For a java LSS this would return `"src/main"`~~
-
-- Currently `FunctionalSourceSet` pushes instances into `sources` container
-    - A `@Defaults` rule is used to give `LanguageSourceSet`'s a default source directory instead of the constructor of `DefaultFunctionalSourceSet`
-
-### Test cases
-Assuming `JavaSourceSet` is registered as a `LanguageType`
-
-- Creating `LanguageSourceSet`'s via rule sources
-```groovy
-
-class Rules extends RuleSource {
-    @Model
-    void functionalSources(FunctionalSourceSet sources) {
-        sources.create("javaB", JavaSourceSet)
-    }
-}
-```
-
-- Creating `LanguageSourceSet`'s via the model DSL
-```groovy
-
-model {
-    functionalSources(FunctionalSourceSet){
-        java(JavaSourceSet)
-    }
-}
-```
-
-- An error message consistent with that of `ComponentSpec` and `BinarySpec` when a LanguageSourceSet is not supported/registered.
-- The source set locations of a LSS when `fss.baseDir` has been overridden.
-
-### Out of scope
-- LanguageSourceSet instances created within a FunctionalSourceSet are visible in the model report.
-
-## Story: Allow `LanguageSourceSet` instances to be attached to a managed type
-
-- Allow any registered subtype of `LanguageSourceSet` to be used as:
-    - A read-only property of a `@Managed` type
-    - An element of managed collections `ModelSet` and `ModelMap`
-    - A top level element.
-- Reporting changes: `LanguageSourceSet` instances should appear as follows:
-
-```
-+ lss
-      | Type:   	org.gradle.language.cpp.CppSourceSet
-      | Value:  	C++ source 'lss:lss'
-      | Creator: 	Rules#lss
-```
-
-### Implementation
-
-- Add creation strategy for `LanguageSourceSet` backed by type registration (`ConstructableTypesRegistry`).
-
-### Test cases
-- Can not create a top level LSS for an LSS type that has not been registered
-- Can create a top level LSS with a rule
-- Can create a top level LSS via the model DSL
-- Can create a LSS as property of a managed type
-- An LSS can be an element of managed collections (`ModelMap` and `ModelSet`)
-
-### Out of scope
-- Making `LanguageSourceSet` managed.
-- Adding instances to the top level `sources` container.
-- Some convention for source directory locations. Need the ability to apply rules to every model node of a particular type to do this.
-
-## Story: Elements of ComponentSpec.sources are visible in the model report
-
-For each `LanguageSourceSet` configured in `ComponentSpec`.sources, the model report should display as follows:
-
-```
-+ lss
-      | Type:   	org.gradle.language.cpp.CppSourceSet
-      | Value:  	C++ source 'lss:lss'
-      | Creator: 	Rules#lss
-```
-
-### Test cases
-- Standard and custom source sets for a `JavaLibrarySpec` are visible in the model report
-- Standard and custom source sets for a `NativeExecutableSpec` are visible in the model report
-- Source sets for a custom `ComponentSpec` subtype are visible in the model report
-
-## Story: Elements of ComponentSpec.sources are configured on demand
-
-Currently `ComponentSpec.sources` is a `ModelMap`, but in `BaseComponentSpec` the implementation is backed by a `FunctionalSourceSet` instance, with values pushed to a node-backed map on creation. This means that `ComponentSpec.sources` doesn't have the usual semantics of a `ModelMap`: elements configured on demand, and visible to model rules. Switching to use a _real_ node-backed `ModelMap` instance will enable on-demand configuration of elements in `component.sources`.
-
-### Test cases
-
-- Configuration for elements in `component.sources` is evaluated only when element is requested the collection:
-    - Configuration supplied via `component.sources.beforeEach`, `component.sources.afterEach` and `component.sources.all`.
-    - Configuration supplied when adding an element to `component.sources`
-
-## Story: Elements of BinarySpec.sources are visible in the model report
-
-### Implementation
-
-- Use the same approach as used to make `ComponentSpec.sources` visible to rules.
-    - Will need to make `BaseBinarySpec` node backed, similar to `BaseComponentSpec`.
-    - Should refactor to simplify both cases.
-
-- TBD: Currently `CUnitPlugin` uses methods on `FunctionalSourceSet` that are not available on `ModelMap`.
-- TBD: Reuse `FunctionalSourceSet` for `ComponentSpec.sources` and `BinarySpec.sources`.
-
-### Test cases
-- Source set supplied to a `JarBinarySpec` is visible in the model report
-- Source sets for a custom `BinarySpec` subtype are visible in the model report
-
-## Story: Elements of BinarySpec.sources are configured on demand
-
-By using a _real_ node-backed `ModelMap` instance, the configuration for an element in `component.binary.sources` will not be evaluated until the element is requested.
-
-### Test cases
-
-- Test that element configuration is only evaluated for elements specifically requested from `binary.sources`
-    - Configuration supplied when registering element
-    - Configuration supplied for `beforeEach`, `all` and `afterEach`
-
-## Story: Elements of standalone FunctionalSourceSets are visible in the model report
-## Story: Elements of standalone FunctionalSourceSets are configured on demand
-## Story: Elements of `ProjectSourceSet` container are visible to rules
-
-- TBD: Change `ProjectSourceSet` so that it is bridged in the same way as the `binaries` container, alternatively move `sources` completely into model space.
-- TBD: Currently `JavaBasePlugin` contributes source sets to `sources` container.
-
-## Story: Build logic applies cross cutting configuration to all `LanguageSourceSet` instances
-
-- All `LanguageSourceSet` instances are visible through `sources` container
-- Depends on improvements to reference handling define in previous feature.
-- TBD: Need to traverse schema to determine where source sets may be found in the model. Ensure only those model elements that are required are realized.
-- TBD: Need to split this up into several stories.
+Allow a read-write property marked with `@Unmanaged` of a `@Managed` type to have type `List<T>` or `Set<T>` for any `T`.
 
 # Later features
 
@@ -751,8 +498,7 @@ This feature continues earlier work to make key properties of `BinarySpec` manag
 
 # Feature: Build logic defines tasks for generated source sets and intermediate outputs
 
-This feature generalizes the infrastructure through which build logic defines the tasks that build a binary, and reuses it for generated source sets
-and intermediate outputs.
+This feature generalizes the infrastructure through which build logic defines the tasks that build a binary, and reuses it for generated source sets and intermediate outputs.
 
 A number of key intermediate outputs will be exposed for their respective binaries:
 
@@ -760,14 +506,11 @@ A number of key intermediate outputs will be exposed for their respective binari
 - JVM class files
 - Generated source for play applications
 
-Rules implemented either in a plugin or in the DSL will be able to define the tasks that build a particular binary from its intermediate outputs,
-an intermediate output from its input source sets, or a particular source set. Gradle will take care of invoking these rules as required.
+Rules implemented either in a plugin or in the DSL will be able to define the tasks that build a particular binary from its intermediate outputs, an intermediate output from its input source sets, or a particular source set. Gradle will take care of invoking these rules as required.
 
-Rules will also be able to navigate from the model for a buildable item, such as a binary, intermediate output or source set, to the tasks, for
-configuration or reporting.
+Rules will also be able to navigate from the model for a buildable item, such as a binary, intermediate output or source set, to the tasks, for configuration or reporting.
 
-The `components` report should show details of the intermediate outputs of a binary, the input relationships between the source sets, intermediate outputs and
-binaries, plus the task a user would run to build each thing.
+The `components` report should show details of the intermediate outputs of a binary, the input relationships between the source sets, intermediate outputs and binaries, plus the task a user would run to build each thing.
 
 It is a non-goal of this feature to provide a public way for a plugin author to define the intermediate outputs for a binary. This is a later feature.
 
@@ -802,13 +545,11 @@ that take the physical thing as input.
 This feature allows a plugin author to declare intermediate outputs for custom binaries, using custom types to represent these outputs.
 
 Allow a plugin author to extend any buildable type with a custom managed type. Allow a custom type to declare the inputs for the buildable type in a strongly typed way.
-For example, a JVM library binary might declare that it accepts any JVM classpath component as input to build a jar, where the intermediate classes directory is a
-kind of JVM classpath component.
+For example, a JVM library binary might declare that it accepts any JVM classpath component as input to build a jar, where the intermediate classes directory is a kind of JVM classpath component.
 
 ## Implementation
 
-One approach is to use annotations to declare the roles of various strongly typed properties of a buildable thing, and use this to infer the inputs
-of a buildable thing.
+One approach is to use annotations to declare the roles of various strongly typed properties of a buildable thing, and use this to infer the inputs of a buildable thing.
 
 # Feature: Build logic defines tasks that run executable things
 
@@ -846,7 +587,6 @@ It is a non-goal of this feature to allow rules to be written to select these ob
 
 ## Implementation
 
-For a binary's input source sets, one option would be to change the behaviour so that a binary receives a copy of its component's source sets. These
-copies would then be owned by the binary and can be further customized in the context of the binary.
+For a binary's input source sets, one option would be to change the behaviour so that a binary receives a copy of its component's source sets. These copies would then be owned by the binary and can be further customized in the context of the binary.
 
 For a test suite's component under test, one option would be to restructure the relationship, so that test suite(s) become a child of the component under test.
