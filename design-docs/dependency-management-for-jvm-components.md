@@ -73,6 +73,7 @@ Later work:
     model {
         components {
             main(JvmLibrarySpec) {
+                // TODO This is just a placeholder DSL: define a reasonable one.
                 dependencies {
                     library group: 'com.acme', name: 'artifact', version: '1.0'
                     library 'com.acme:artifact:1.0'
@@ -80,9 +81,7 @@ Later work:
             }
         }
     }
-    ```
-
-    TODO: Need a better DSL.
+```
 
 - Reuse existing repositories DSL, bridging into model space.
 - Main Jar artifact of maven module is included in compile classpath.
