@@ -251,16 +251,13 @@ By using a _real_ node-backed `ModelMap` instance, the configuration for an elem
 - TBD: Change `ProjectSourceSet` so that it is bridged in the same way as the `binaries` container, alternatively move `sources` completely into model space.
 - TBD: Currently `JavaBasePlugin` contributes source sets to `sources` container.
 
-## Plugin author declares default implementation for any extensible type
+## Plugin author declares default implementation and internal views for custom `LanguageSourceSet` subtype
 
 Extend story "Plugin author declares default implementation for extensible binary and component type"
 for `LanguageSourceSet`.
 
-- Update user guide and samples to show how to implement a custom `@Managed` `LanguageSourceSet` type
+Update user guide and samples to show how to implement a custom `@Managed` `LanguageSourceSet` type
 
 As part of this work, remove empty subclasses of `BaseLanguageSourceSet`, such as `DefaultCoffeeScriptSourceSet`.
 
-## Plugin author declares internal view for custom non-managed source set types
-
-Add support for `LanguageSourceSet` and `FunctionalSourceSet`.
 
