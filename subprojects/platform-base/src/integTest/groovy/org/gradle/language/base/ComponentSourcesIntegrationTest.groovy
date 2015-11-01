@@ -88,6 +88,15 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
                             ss1(CustomLanguageSourceSet) {
                                 println "created ss1"
                             }
+                            beforeEach {
+                                println "before \$it.name"
+                            }
+                            all {
+                                println "configured \$it.name"
+                            }
+                            afterEach {
+                                println "after \$it.name"
+                            }
                             println "configured components.main.sources"
                         }
                     }
@@ -100,7 +109,10 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
         then:
         succeeds "verify"
         output.contains TextUtil.toPlatformLineSeparators('''configured components.main.sources
+before ss1
 created ss1
+configured ss1
+after ss1
 ''')
     }
 }
