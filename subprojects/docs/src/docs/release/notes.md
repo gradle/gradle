@@ -170,7 +170,7 @@ and `EclipseProject.getBuildCommands()` contain the builders and natures require
 ### Faster up-to-date checking for incremental builds
 
 Gradle now uses a more efficient mechanism to scan the filesystem, which makes up-to-date checks significantly faster. 
-This improvement is only available when running Gradle with Java 7 or newer. Windows users should use Java 8 for best results.
+This improvement is only available when running Gradle with Java 7 or newer.
 
 Other improvements have been made to speed-up include and exclude pattern evaluation. No changes are necessary to take advantage of this and this optimization should improve build times for Java 6 and newer.
 
