@@ -61,6 +61,9 @@ Gradle will automatically create an API jar for the main component. Components t
 The API jar will only include classes that belong to those packages. As a consequence:
    - trying to compile a consumer that accesses a class which which doesn't belong to the list of exported packages will result in a compile time error.
    - updating a non-API class will not result in the compilation of downstream consumers.
+   - updating an API class without changing the ABI (application binary interface) will not result in the compilation of downstream dependencies. In particular:
+changing the implementation in a method body, renaming parameters, adding a private method, ... will not change the public API of a class, so classes depending
+on this API will not be recompiled.
 
 #### `$.p` expressions in DSL rules
 
@@ -169,16 +172,16 @@ and `EclipseProject.getBuildCommands()` contain the builders and natures require
 
 ### Faster up-to-date checking for incremental builds
 
-Gradle now uses a more efficient mechanism to scan the filesystem, which makes up-to-date checks significantly faster. 
+Gradle now uses a more efficient mechanism to scan the filesystem, which makes up-to-date checks significantly faster.
 This improvement is only available when running Gradle with Java 7 or newer.
 
 Other improvements have been made to speed-up include and exclude pattern evaluation. No changes are necessary to take advantage of this and this optimization should improve build times for Java 6 and newer.
 
-Very large builds (many thousands of source files) could see incremental build speeds up to 80% faster than 2.7 and up to 40% better than 2.8. 
+Very large builds (many thousands of source files) could see incremental build speeds up to 80% faster than 2.7 and up to 40% better than 2.8.
 
 #### Reduced memory footprint for incremental builds
 
-Gradle 2.9 uses much less memory than previous releases when performing incremental builds. Some builds use 30-70% less memory. 
+Gradle 2.9 uses much less memory than previous releases when performing incremental builds. Some builds use 30-70% less memory.
 
 ## Promoted features
 
