@@ -182,23 +182,89 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         and:
         failure.assertThatCause(containsString("Cannot coerce string value '42foo' to type $type.simpleName"))
 
-        // TODO:BB uncomment primitive cases after updating the method signature to accept a boolean 3rd arg indicating that the type is primitive
         where:
         varname         | value | type
         'theBigDecimal' | 42    | BigDecimal
         'theBigInteger' | 42    | BigInteger
         'theDouble'     | 42    | Double
-//        'thedouble'     | 42    | double
-//        'thefloat'      | 42    | float
+        'thedouble'     | 42    | double
+        'thefloat'      | 42    | float
         'theFloat'      | 42    | Float
-//        'theint'        | 42    | int
+        'theint'        | 42    | int
         'theInteger'    | 42    | Integer
         'theLong'       | 42    | Long
-//        'thelong'       | 42    | long
-//        'theshort'      | 42    | short
+        'thelong'       | 42    | long
+        'theshort'      | 42    | short
         'theShort'      | 42    | Short
-//        'thebyte'       | 42    | byte
+        'thebyte'       | 42    | byte
         'theByte'       | 42    | Byte
+    }
+
+    @NotYetImplemented
+    @Unroll
+    void 'primitive types cannot accept null values'() {
+        when:
+        buildFile << CLASSES
+        buildFile << """
+            model {
+                props {
+                    $varname = null
+                }
+            }
+            """
+
+        then:
+        fails 'printResolvedValues'
+
+        and:
+        failure.assertThatCause(containsString('Cannot convert null to a primitive type'))
+        failure.assertThatCause(containsString('The following types/formats are supported:'))
+        failure.assertThatCause(containsString('CharSequence instances'))
+
+        where:
+        varname << ['bool1', 'thedouble', 'thefloat', 'theint', 'thelong', 'theshort', 'thebyte', 'thechar']
+    }
+
+    @NotYetImplemented
+    @Unroll
+    void 'non-primitive types can accept null values'() {
+        when:
+        buildFile << CLASSES
+        buildFile << '''
+            model {
+                props {
+                    theBigDecimal = null
+                    theBigInteger = null
+                    theBoolean = null
+                    theDouble = null
+                    theFloat = null
+                    theInteger = null
+                    theLong = null
+                    theShort = null
+                    theByte = null
+                    theCharacter = null
+                    theString = null
+                    theThing = null
+                }
+            }
+        '''
+
+        then:
+        succeeds 'printResolvedValues'
+
+        and:
+        output.contains 'prop theBigDecimal: null'
+        output.contains 'prop theBigInteger: null'
+        output.contains 'prop theBoolean   : null'
+        output.contains 'prop theDouble    : null'
+        output.contains 'prop theFloat     : null'
+        output.contains 'prop theInteger   : null'
+        output.contains 'prop theLong      : null'
+        output.contains 'prop theShort     : null'
+        output.contains 'prop theByte      : null'
+        output.contains 'prop theCharacter : null'
+        output.contains 'prop theString    : null'
+        output.contains 'prop theThing     : null'
     }
 
     @NotYetImplemented

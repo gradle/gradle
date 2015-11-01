@@ -16,17 +16,28 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Formatter;
+import java.util.Map;
 
 // just a temporary placeholder until the real implementation using NotationConverter/NotationParser is working
 public class CharSequenceToScalarConverter {
 
     private static final String CANDIDATE = "CharSequence instances.";
+    private static final Map<Class<?>, Class<?>> UNBOXED_TYPES = ImmutableMap.<Class<?>, Class<?>>builder()
+        .put(Byte.class, byte.class)
+        .put(Short.class, short.class)
+        .put(Integer.class, int.class)
+        .put(Float.class, float.class)
+        .put(Character.class, char.class)
+        .put(Double.class, double.class)
+        .put(Long.class, long.class)
+        .build();
 
     public static class UnsupportedNotationException extends RuntimeException {
         public UnsupportedNotationException(String failure) {
@@ -43,13 +54,12 @@ public class CharSequenceToScalarConverter {
         }
     }
 
-    // TODO:BB pass a boolean 3rd arg indicating that the type is primitive
     @SuppressWarnings("unchecked")
-    public static Object convert(Object notation, @SuppressWarnings("rawtypes") Class type) throws UnsupportedNotationException, TypeConversionException {
+    public static Object convert(Object notation, @SuppressWarnings("rawtypes") Class type, boolean primitive) throws UnsupportedNotationException, TypeConversionException {
 
         if (notation == null) {
 
-            if (type.isPrimitive()) {
+            if (primitive) {
                 throw new UnsupportedNotationException("Cannot convert null to a primitive type.");
             }
 
@@ -77,22 +87,22 @@ public class CharSequenceToScalarConverter {
             }
 
             try {
-                if (double.class.equals(type) || Double.class.equals(type)) {
+                if (Double.class.equals(type)) {
                     return Double.valueOf(s);
                 }
-                if (float.class.equals(type) || Float.class.equals(type)) {
+                if (Float.class.equals(type)) {
                     return Float.valueOf(s);
                 }
-                if (int.class.equals(type) || Integer.class.equals(type)) {
+                if (Integer.class.equals(type)) {
                     return Integer.valueOf(s);
                 }
-                if (long.class.equals(type) || Long.class.equals(type)) {
+                if (Long.class.equals(type)) {
                     return Long.valueOf(s);
                 }
-                if (short.class.equals(type) || Short.class.equals(type)) {
+                if (Short.class.equals(type)) {
                     return Short.valueOf(s);
                 }
-                if (byte.class.equals(type) || Byte.class.equals(type)) {
+                if (Byte.class.equals(type)) {
                     return Byte.valueOf(s);
                 }
                 if (BigDecimal.class.equals(type)) {
@@ -102,24 +112,29 @@ public class CharSequenceToScalarConverter {
                     return new BigInteger(s);
                 }
             } catch (NumberFormatException e) {
-                throw new TypeConversionException(String.format("Cannot coerce string value '%s' to type %s", s, type.getSimpleName()));
+                throw new TypeConversionException(String.format("Cannot coerce string value '%s' to type %s",
+                    s, getRequestedTypeName(type, primitive)));
             }
 
-            if (char.class.equals(type) || Character.class.equals(type)) {
+            if (Character.class.equals(type)) {
 
                 if (s.length() != 1) {
                     throw new TypeConversionException(String.format("Cannot coerce string value '%s' with length %d to type %s",
-                        s, s.length(), type.getSimpleName()));
+                        s, s.length(), getRequestedTypeName(type, primitive)));
                 }
 
                 return s.charAt(0);
             }
 
-            if (boolean.class.equals(type) || Boolean.class.equals(type)) {
+            if (Boolean.class.equals(type)) {
                 return "true".equals(s);
             }
         }
 
         throw new UnsupportedNotationException("Unsupported type");
+    }
+
+    private static String getRequestedTypeName(Class<?> type, boolean primitive) {
+        return (primitive ? UNBOXED_TYPES.get(type) : type).getSimpleName();
     }
 }

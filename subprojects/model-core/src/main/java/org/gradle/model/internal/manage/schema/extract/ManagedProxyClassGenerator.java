@@ -77,7 +77,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private static final String MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, CLASS_TYPE, Type.getType(Object[].class));
     private static final Equivalence<Method> METHOD_EQUIVALENCE = new MethodSignatureEquivalence();
     private static final String SET_OBJECT_PROPERTY_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
-    private static final String COERCE_TO_SCALAR_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, CLASS_TYPE);
+    private static final String COERCE_TO_SCALAR_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, CLASS_TYPE, Type.getType(boolean.class));
     private static final String COERCE_CLASS_INTERNAL_NAME = CharSequenceToScalarConverter.class.getName().replaceAll("\\.", "/");
     private static final Map<Class<?>, Class<?>> BOXED_TYPES = ImmutableMap.<Class<?>, Class<?>>builder()
         .put(byte.class, Byte.class)
@@ -444,20 +444,23 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         Class<?> objectType = propertyTypeClass.isPrimitive() ? BOXED_TYPES.get(propertyTypeClass) : propertyTypeClass;
         String propertyType = Type.getInternalName(objectType);
 
-        methodVisitor.visitVarInsn(ALOAD, 1);
-        methodVisitor.visitLdcInsn(Type.getType(objectType));
+        methodVisitor.visitVarInsn(ALOAD, 1); // put var #1 ('foo') on the stack (var #0 is this)
+        methodVisitor.visitLdcInsn(Type.getType(objectType)); // push the constant Class onto the stack
+        methodVisitor.visitInsn(propertyTypeClass.isPrimitive() ? ICONST_1 : ICONST_0); // push int 1 or 0 (interpreted as true or false) onto the stack
 
-        // Object converted = Utils.convert(foo, propertyType);
+        // Object converted = CharSequenceToScalarConverter.convert(foo, propertyType, primitive);
         methodVisitor.visitMethodInsn(INVOKESTATIC, COERCE_CLASS_INTERNAL_NAME, "convert", COERCE_TO_SCALAR_DESCRIPTOR, false);
-        methodVisitor.visitVarInsn(ASTORE, 2); // converted
-        methodVisitor.visitVarInsn(ALOAD, 0);
-        methodVisitor.visitVarInsn(ALOAD, 2);
-        methodVisitor.visitTypeInsn(CHECKCAST, propertyType);
+        methodVisitor.visitVarInsn(ASTORE, 2); // pop a value from the stack and store it in local variable 2 ('converted')
+
+        methodVisitor.visitVarInsn(ALOAD, 0); // put 'this' on the stack
+        methodVisitor.visitVarInsn(ALOAD, 2); // put var #2 ('converted') on the stack
+        methodVisitor.visitTypeInsn(CHECKCAST, propertyType); // pop, cast to the expected type, push
 
         if (propertyTypeClass.isPrimitive()) {
             unboxType(methodVisitor, propertyTypeClass);
         }
 
+        // invoke the typed setter, popping 'this' and 'converted' from the stack
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), setter.getName(), methodDescriptor, false);
         finishVisitingMethod(methodVisitor);
          */
