@@ -190,10 +190,6 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
-
 ## Fixed issues
 
 ## Deprecations
@@ -202,10 +198,6 @@ Features that have become superseded or irrelevant due to the natural evolution 
 in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
-
-<!--
-### Example deprecation
--->
 
 ## Potential breaking changes
 
@@ -237,16 +229,6 @@ TBD
   - There is a change in behaviour for builds that contain a zipTree/tarTree with a filter. Previously only changes to files inside the archive matching the filter would make the input out-of-date.
 
 - previously up-to-date checking didn't consider changes in directories. Directories are now also added to input and output snapshots in up-to-date checking.
-
-## External contributions
-
-We would like to thank the following community members for making contributions to this release of Gradle.
-
-<!--
-* [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
-
-We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
 ## Known issues
 
