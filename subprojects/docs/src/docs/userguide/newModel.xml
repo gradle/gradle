@@ -481,7 +481,7 @@
             Please see the documentation for <apilink class="org.gradle.model.RuleSource" /> for more information on constraints on how rule sources must be implemented and for more types of rules.
         </para>
     </section>
-    <section>
+    <section id="model-dsl">
         <title>The “model DSL”</title>
         <para>
             It is also possible to declare rules directly in the build script using the “model DSL”.

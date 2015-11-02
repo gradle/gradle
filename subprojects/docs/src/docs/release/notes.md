@@ -206,9 +206,23 @@ TBD
 
 ### Changes to experimental model rules DSL
 
-TBD
+The [Model DSL](userguide/new_model.html#model-dsl) has stricter syntax in Gradle 2.9.
+The `model {}` block may now only contain rule definitions at the top level.
+Other constructs (e.g. if statements, variables etc.) are invalid and will fail to compile.
 
-- The `model { }` block can now contain only rule blocks.
+The following is no longer valid:
+
+```
+model {
+  if (someCondition) {
+    tasks {
+      create("someTask")
+    }
+  }
+}
+```
+
+Within a given rule, arbitrary statements may still be used.
 
 ### Changes to up-to-date checking
 
