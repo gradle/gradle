@@ -131,10 +131,6 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
     }
 
     private <P> boolean shouldHaveANodeInitializer(ModelProperty<P> property, ModelSchema<P> propertySchema) {
-        return !isAModelValueSchema(propertySchema) && !property.isDeclaredAsHavingUnmanagedType();
-    }
-
-    private <P> boolean isAModelValueSchema(ModelSchema<P> propertySchema) {
-        return propertySchema instanceof ValueSchema;
+        return !(propertySchema instanceof ValueSchema) && !property.isDeclaredAsHavingUnmanagedType();
     }
 }
