@@ -902,7 +902,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         then:
         def e = thrown ModelRuleExecutionException
         e.cause instanceof ObjectInstantiationException
-        e.cause.message.contains("Could not create an instance of type java.util.List.")
+        e.cause.message == "Could not create an instance of type java.util.List."
     }
 
 }
