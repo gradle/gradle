@@ -225,7 +225,8 @@ Currently `ComponentSpec.sources` is a `ModelMap`, but in `BaseComponentSpec` th
 The work involves converting `BinarySpec.sources` to a node-backed `ModelMap` implementation, and adding test coverage to ensure that it has true `ModelMap` semantics:
 - Elements appear in the model report, as per `ComponentSpec.sources`
 - Elements can be addressed by model rules
-- Elements are configured on demand.
+- Elements are configured on demand
+- Elements are added to the top-level 'sources' container
 
 Converting this to a true `ModelMap` will add consistency, and enable the later transition to managed-type-aware node registration.
 
@@ -244,6 +245,9 @@ Converting this to a true `ModelMap` will add consistency, and enable the later 
 - Elements in `BinarySpec.sources`
     - Can be iterated in a model rule
     - Can be directly addressed in a model rule
+    - Are added to the top-level 'sources' container
+- Reasonable error message when source set added to `BinarySpec.sources` cannot be constructed
+
 
 ## Story: Standalone `FunctionalSourceSet` has true `ModelMap` semantics
 ## Story: Elements of `ProjectSourceSet` container are visible to rules
