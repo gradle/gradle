@@ -37,6 +37,7 @@ import org.gradle.model.*;
 import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
+import org.gradle.model.internal.core.Service;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchema;

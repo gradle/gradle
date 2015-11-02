@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.model;
+package org.gradle.model.internal.core;
 
-import org.gradle.api.Incubating;
+import org.gradle.model.Model;
+import org.gradle.model.RuleSource;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -25,12 +26,13 @@ import java.lang.annotation.Target;
 
 /**
  * Denotes that the {@link RuleSource} method rule carrying this annotation creates a new top level service in the model space.
+ * A top-level service is a singleton that must always be referenced via both its path and its type. This allows services to be
+ * resolved before {@link NodeInitializerRegistry} is ready to supply types for other elements.
  * <p>
  * The same rules apply to service elements as other elements defined via the {@link Model} annotation.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@Incubating
 public @interface Service {
 
     /**

@@ -41,6 +41,9 @@ public interface ModelCreator extends ModelRule {
 
     boolean isEphemeral();
 
+    /**
+     * Returns whether the node registered is a {@link Service}.
+     */
     boolean isService();
 
     void addProjection(ModelProjection projection);
