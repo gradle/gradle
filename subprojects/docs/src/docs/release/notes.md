@@ -169,8 +169,6 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Changes to incubating native software model
 
 - Task names have changed for components with multiple variants. The library or executable name is now first.
-- `NativeExecutableBinarySpec.executableFile` is now reachable via `NativeExecutableBinarySpec.executable.file`.
-- `NativeTestSuiteBinarySpec.executableFile` is now reachable via `NativeTestSuiteBinarySpec.executable.file`.
 
 ## External contributions
 
