@@ -105,7 +105,7 @@ Please see the section in the User Guide on [declaring input dependencies for Mo
 
 #### Adding `LanguageSourceSet`'s to `FunctionalSourceSet`'s
 
-It is now possible to add `LanguageSourceSet`'s, of any type known type (see <a href="javadoc/org/gradle/platform/base/LanguageType.html">`org.gradle.platform.base.LanguageType`</a>),
+It is now possible to add `LanguageSourceSet`'s, of any registered type (see <a href="javadoc/org/gradle/platform/base/LanguageType.html">`org.gradle.platform.base.LanguageType`</a>),
 to `FunctionalSourceSet`'s which exist in the model space.
 
     class Rules extends RuleSource {
