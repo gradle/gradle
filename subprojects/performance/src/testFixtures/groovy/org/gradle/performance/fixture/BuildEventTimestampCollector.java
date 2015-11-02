@@ -55,8 +55,8 @@ public class BuildEventTimestampCollector implements DataCollector {
             throw new IllegalStateException(String.format("Build event timestamp log at %s should contain at least 3 lines.", absolutePath));
         }
         List<Long> timestamps = parseTimestamps(absolutePath, lines);
-        operation.setConfigurationTime(Duration.millis(timestamps.get(1) - timestamps.get(0)));
-        operation.setExecutionTime(Duration.millis(timestamps.get(2) - timestamps.get(1)));
+        operation.setConfigurationTime(Duration.millis((timestamps.get(1) - timestamps.get(0)) / 1000000L));
+        operation.setExecutionTime(Duration.millis((timestamps.get(2) - timestamps.get(1)) / 1000000L));
     }
 
     private List<Long> parseTimestamps(final String absolutePath, List<String> lines) {
