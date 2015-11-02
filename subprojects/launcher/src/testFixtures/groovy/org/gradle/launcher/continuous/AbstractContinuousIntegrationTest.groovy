@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit
 abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
     private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 10
+    private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
 
     GradleHandle gradle
 
@@ -216,6 +217,18 @@ $lastOutput
 
     void sendEOT() {
         gradle.cancelWithEOT()
+    }
+
+    void waitBeforeModification(File file) {
+        long waitMillis = 100L
+        if(OS_IS_WINDOWS && file.exists()) {
+            // ensure that file modification time changes on windows
+            long fileAge = System.currentTimeMillis() - file.lastModified()
+            if (fileAge > 0L && fileAge < 900L) {
+                waitMillis = 1000L - fileAge
+            }
+        }
+        sleep(waitMillis)
     }
 
     private static class UnexpectedBuildStartedException extends Exception {
