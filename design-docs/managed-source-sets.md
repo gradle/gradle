@@ -220,7 +220,14 @@ Currently `ComponentSpec.sources` is a `ModelMap`, but in `BaseComponentSpec` th
     - Configuration supplied via `component.sources.beforeEach`, `component.sources.afterEach` and `component.sources.all`.
     - Configuration supplied when adding an element to `component.sources`
 
-## Story: Elements of BinarySpec.sources are visible in the model report
+## Story: `BinarySpec.sources` has true `ModelMap` semantics
+
+The work involves converting `BinarySpec.sources` to a node-backed `ModelMap` implementation, and adding test coverage to ensure that it has true `ModelMap` semantics:
+- Elements appear in the model report, as per `ComponentSpec.sources`
+- Elements can be addressed by model rules
+- Elements are configured on demand.
+
+Converting this to a true `ModelMap` will add consistency, and enable the later transition to managed-type-aware node registration.
 
 ### Implementation
 
@@ -228,24 +235,17 @@ Currently `ComponentSpec.sources` is a `ModelMap`, but in `BaseComponentSpec` th
     - Will need to make `BaseBinarySpec` node backed, similar to `BaseComponentSpec`.
     - Should refactor to simplify both cases.
 
-- TBD: Reuse `FunctionalSourceSet` for `ComponentSpec.sources` and `BinarySpec.sources`.
-
 ### Test cases
-- Source set supplied to a `JarBinarySpec` is visible in the model report
+- Source sets for a `JarBinarySpec` are visible in the model report
 - Source sets for a custom `BinarySpec` subtype are visible in the model report
-
-## Story: Elements of BinarySpec.sources are configured on demand
-
-By using a _real_ node-backed `ModelMap` instance, the configuration for an element in `component.binary.sources` will not be evaluated until the element is requested.
-
-### Test cases
-
-- Test that element configuration is only evaluated for elements specifically requested from `binary.sources`
+- Elements in `BinarySpec.sources` are not created when defined: configuration is evaluated on-demand
     - Configuration supplied when registering element
     - Configuration supplied for `beforeEach`, `all` and `afterEach`
+- Elements in `BinarySpec.sources`
+    - Can be iterated in a model rule
+    - Can be directly addressed in a model rule
 
-## Story: Elements of standalone FunctionalSourceSets are visible in the model report
-## Story: Elements of standalone FunctionalSourceSets are configured on demand
+## Story: Standalone `FunctionalSourceSet` has true `ModelMap` semantics
 ## Story: Elements of `ProjectSourceSet` container are visible to rules
 
 - TBD: Change `ProjectSourceSet` so that it is bridged in the same way as the `binaries` container, alternatively move `sources` completely into model space.
