@@ -32,29 +32,62 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
         """
     }
 
-    def "model report should display empty component sources"() {
-        when:
-        succeeds "model"
-
-        then:
-        ModelReportOutput.from(output).hasNodeStructure {
-            components {
-                main {
-                    binaries()
-                    sources()
-                }
-            }
-        }
-    }
-
-    def "model report should display each configured component source set"() {
+    void withMainSourceSet() {
         buildFile << """
             model {
                 components {
                     main {
                         sources {
                             someLang(CustomLanguageSourceSet)
-                            someOther(CustomLanguageSourceSet)
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    def "can reference sources container for a component in a rule"() {
+        given:
+        withMainSourceSet()
+        buildFile << '''
+            model {
+                tasks {
+                    create("printSourceNames") {
+                        def sources = $("components.main.sources")
+                        doLast {
+                            println "names: ${sources.values()*.name}"
+                        }
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds "printSourceNames"
+
+        then:
+        output.contains "names: [someLang]"
+    }
+
+    def "elements of component sources container should be visible in model report"() {
+        given:
+        buildFile << """
+            model {
+                components {
+                    main {
+                        sources {
+                            someLang(CustomLanguageSourceSet)
+                            test(CustomLanguageSourceSet)
+                        }
+                    }
+                    test(CustomComponent) {
+                        sources {
+                            test(CustomLanguageSourceSet)
+                        }
+                    }
+                    foo(CustomComponent) {
+                        sources {
+                            bar(CustomLanguageSourceSet)
                         }
                     }
                 }
@@ -66,15 +99,75 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
         then:
         ModelReportOutput.from(output).hasNodeStructure {
             components {
+                foo {
+                    binaries()
+                    sources {
+                        bar(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'foo:bar'")
+                    }
+                }
                 main {
                     binaries()
                     sources {
                         someLang(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'main:someLang'")
-                        someOther(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'main:someOther'")
+                        test(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'main:test'")
+                    }
+                }
+                test {
+                    binaries()
+                    sources {
+                        test(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'test:test'")
                     }
                 }
             }
         }
+    }
+
+    def "can reference sources container elements in a rule"() {
+        given:
+        withMainSourceSet()
+        buildFile << '''
+            model {
+                tasks {
+                    create("printSourceDisplayName") {
+                        def sources = $("components.main.sources.someLang")
+                        doLast {
+                            println "sources display name: ${sources.displayName}"
+                        }
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds "printSourceDisplayName"
+
+        then:
+        output.contains "sources display name: DefaultCustomLanguageSourceSet 'main:someLang'"
+    }
+
+    def "can reference sources container elements using specialized type in a rule"() {
+        given:
+        withMainSourceSet()
+        buildFile << '''
+            class TaskRules extends RuleSource {
+                @Mutate
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.sources.someLang") CustomLanguageSourceSet sourceSet) {
+                    tasks.create("printSourceData") {
+                        doLast {
+                            println "sources data: ${sourceSet.data}"
+                        }
+                    }
+                }
+            }
+
+            apply type: TaskRules
+        '''
+
+        when:
+        succeeds "printSourceData"
+
+        then:
+        output.contains "sources data: foo"
     }
 
     def "elements in component.sources should not be created when defined"() {

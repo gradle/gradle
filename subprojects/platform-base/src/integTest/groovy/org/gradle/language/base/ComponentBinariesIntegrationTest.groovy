@@ -129,40 +129,6 @@ model {
         failure.assertHasCause("Cannot create 'binaries.mylibMain' using creation rule 'mylibMain(CustomBinary) { ... } @ build.gradle line 65, column 9' as the rule 'ComponentModelBasePlugin.Rules#collectBinaries > put()' is already registered to create this model element.")
     }
 
-    def "input source sets of binary is union of component source sets and binary specific source sets"() {
-        given:
-        buildFile << '''
-model {
-    components {
-        mylib {
-            sources {
-                comp(CustomLanguageSourceSet)
-            }
-            binaries.all {
-                sources {
-                    bin(CustomLanguageSourceSet)
-                }
-            }
-        }
-    }
-    tasks {
-        verify(Task) {
-            doLast {
-                def comp = $('components.mylib')
-                def binary = comp.binaries.main
-                assert comp.sources.size() == 1
-                assert binary.sources.size() == 1
-                assert binary.inputs == comp.sources + binary.sources as Set
-            }
-        }
-    }
-}
-'''
-
-        expect:
-        succeeds "verify"
-    }
-
     def "binaries of a component can be configured using a rule attached to the top level binaries container"() {
         given:
         buildFile << '''
@@ -184,35 +150,6 @@ model {
                 def binaries = $('components.mylib.binaries')
                 assert binaries.main.data == '([main])'
                 assert binaries.test.data == '([test])'
-            }
-        }
-    }
-}
-'''
-
-        expect:
-        succeeds "verify"
-    }
-
-    def "source sets can be added to the binaries of a component using a rule attached to the top level binaries container"() {
-        given:
-        buildFile << '''
-model {
-    binaries {
-        all {
-            sources {
-                custom(CustomLanguageSourceSet)
-            }
-        }
-    }
-    tasks {
-        verify(Task) {
-            doLast {
-                def binaries = $('components.mylib.binaries')
-                assert binaries.main.sources.size() == 1
-                assert binaries.main.sources.first() instanceof CustomLanguageSourceSet
-                assert binaries.main.inputs.size() == 1
-                assert binaries.main.inputs as Set == binaries.main.sources as Set
             }
         }
     }
