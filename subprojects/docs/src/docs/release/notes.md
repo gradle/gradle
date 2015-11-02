@@ -234,6 +234,14 @@ TBD
 
 - previously up-to-date checking didn't consider changes in directories. Directories are now also added to input and output snapshots in up-to-date checking.
 
+## External contributions
+
+We would like to thank the following community members for making contributions to this release of Gradle.
+
+* [Raluca Sauciuc](https://github.com/rsauciuc) - Do not attempt to set AWT system properties in the daemon JVM.
+
+We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
+
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
