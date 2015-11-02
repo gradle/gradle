@@ -33,8 +33,8 @@ class RegistrySpec extends Specification {
             super(toBinder(creationPath, type))
         }
 
-        TestNode(RegistrationRuleBinder creatorBinder) {
-            super(creatorBinder)
+        TestNode(RegistrationRuleBinder registrationBinder) {
+            super(registrationBinder)
         }
 
         private static RegistrationRuleBinder toBinder(String creationPath, Class<?> type) {

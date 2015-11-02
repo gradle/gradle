@@ -55,7 +55,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
         ModelRegistration rootRegistration = ModelRegistrations.of(ModelPath.ROOT).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
-        modelGraph = new ModelGraph(new ModelElementNode(toCreatorBinder(rootRegistration), null));
+        modelGraph = new ModelGraph(new ModelElementNode(toRegistrationBinder(rootRegistration), null));
         modelGraph.getRoot().setState(Created);
         ruleBindings = new RuleBindings(modelGraph);
     }
@@ -77,7 +77,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         return this;
     }
 
-    private RegistrationRuleBinder toCreatorBinder(ModelRegistration registration) {
+    private RegistrationRuleBinder toRegistrationBinder(ModelRegistration registration) {
         BindingPredicate subject = new BindingPredicate(ModelReference.of(registration.getPath(), ModelType.untyped(), ModelNode.State.Created));
         return new RegistrationRuleBinder(registration, subject, Collections.<BindingPredicate>emptyList(), unboundRules);
     }
@@ -257,7 +257,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             node.getInitializerRuleBinders().clear();
 
             // Will internally verify that this is valid
-            node.replaceCreatorRuleBinder(toCreatorBinder(newRegistration));
+            node.replaceRegistrationBinder(toRegistrationBinder(newRegistration));
             node.setState(Registered);
             addRuleBindings(node);
             if (wasDiscovered) {
@@ -822,12 +822,12 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void addReference(ModelRegistration registration) {
-            addNode(new ModelReferenceNode(toCreatorBinder(registration), this), registration);
+            addNode(new ModelReferenceNode(toRegistrationBinder(registration), this), registration);
         }
 
         @Override
         public void addLink(ModelRegistration registration) {
-            addNode(new ModelElementNode(toCreatorBinder(registration), this), registration);
+            addNode(new ModelElementNode(toRegistrationBinder(registration), this), registration);
         }
 
         private void addNode(ModelNodeInternal child, ModelRegistration registration) {
@@ -1335,7 +1335,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 .descriptor(parent.getDescriptor())
                 .withProjection(childTarget.getRegistrationBinder().getRegistration().getProjection())
                 .build();
-            ModelReferenceNode childNode = new ModelReferenceNode(toCreatorBinder(registration), parent);
+            ModelReferenceNode childNode = new ModelReferenceNode(toRegistrationBinder(registration), parent);
             childNode.setTarget(childTarget);
             registerNode(childNode);
             ruleBindings.nodeDiscovered(childNode);

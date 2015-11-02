@@ -20,18 +20,18 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import spock.lang.Unroll
 
 class ModelNodeInternalTest extends RegistrySpec {
-    RegistrationRuleBinder creatorRuleBinder = Mock()
+    def registrationBinder = Mock(RegistrationRuleBinder)
 
     def "should have zero executed rules initially"() {
         expect:
-        new TestNode(creatorRuleBinder).getExecutedRules().size() == 0
+        new TestNode(registrationBinder).getExecutedRules().size() == 0
     }
 
     @Unroll
     def "should record executed rules when notify fired #fireCount time(s)"() {
-        ModelRuleDescriptor descriptor = Mock()
-        ModelNodeInternal modelNode = new TestNode(creatorRuleBinder)
-        ModelActionBinder executionBinder = Mock()
+        def descriptor = Mock(ModelRuleDescriptor)
+        ModelNodeInternal modelNode = new TestNode(registrationBinder)
+        def executionBinder = Mock(ModelActionBinder)
         executionBinder.isBound() >> true
         executionBinder.getInputBindings() >> []
         executionBinder.getDescriptor() >> descriptor
@@ -51,8 +51,8 @@ class ModelNodeInternalTest extends RegistrySpec {
 
     def "should not fire for unbound binders"() {
         setup:
-        ModelNodeInternal modelNode = new TestNode(creatorRuleBinder)
-        ModelActionBinder executionBinder = Mock()
+        ModelNodeInternal modelNode = new TestNode(registrationBinder)
+        def executionBinder = Mock(ModelActionBinder)
         executionBinder.isBound() >> false
 
         when:

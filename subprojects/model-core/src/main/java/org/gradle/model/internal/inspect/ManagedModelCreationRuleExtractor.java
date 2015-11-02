@@ -63,7 +63,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         }
 
         ModelType<?> managedType = references.get(0).getType();
-        return new ExtractedModelRegistration(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
+        return new ExtractedModelRegistration(buildRegistrationForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
     }
 
     @Override
@@ -71,7 +71,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         return ruleDefinition.getAnnotation(Model.class).value();
     }
 
-    private <T> ModelRegistration buildModelCreatorForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, final ModelPath modelPath) {
+    private <T> ModelRegistration buildRegistrationForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, final ModelPath modelPath) {
         final ModelSchema<T> modelSchema = getModelSchema(managedType, ruleDefinition);
 
         if (modelSchema instanceof ValueSchema) {

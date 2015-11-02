@@ -50,7 +50,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return registrationBinder;
     }
 
-    public void replaceCreatorRuleBinder(RegistrationRuleBinder newRegistrationBinder) {
+    public void replaceRegistrationBinder(RegistrationRuleBinder newRegistrationBinder) {
         if (isAtLeast(State.Created)) {
             throw new IllegalStateException("Cannot replace registration rule binder when node is already created (node: " + this + ", state: " + getState() + ")");
         }
