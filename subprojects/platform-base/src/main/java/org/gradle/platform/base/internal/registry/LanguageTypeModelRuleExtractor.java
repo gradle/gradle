@@ -36,12 +36,10 @@ import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.platform.base.internal.builder.LanguageTypeBuilderInternal;
 import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
-import org.gradle.platform.base.internal.util.ImplementationTypeDetermer;
 
 import java.util.List;
 
 public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<LanguageType, LanguageSourceSet, BaseLanguageSourceSet> {
-    public ImplementationTypeDetermer<LanguageSourceSet, BaseLanguageSourceSet> implementationTypeDetermer = new ImplementationTypeDetermer<LanguageSourceSet, BaseLanguageSourceSet>("language", BaseLanguageSourceSet.class);
 
     public LanguageTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
         super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, schemaStore, new TypeBuilderFactory<LanguageSourceSet>() {
@@ -55,7 +53,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
     @Override
     protected <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends LanguageSourceSet> type, TypeBuilderInternal<LanguageSourceSet> builder) {
         ImmutableList<Class<?>> dependencies = ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
-        ModelType<? extends BaseLanguageSourceSet> implementation = implementationTypeDetermer.determineImplementationType(type, builder);
+        ModelType<? extends BaseLanguageSourceSet> implementation = determineImplementationType(type, builder);
         if (implementation != null) {
             ModelAction mutator = new RegisterTypeRule(type, implementation, ((LanguageTypeBuilderInternal) builder).getLanguageName(), ruleDefinition.getDescriptor());
             return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
