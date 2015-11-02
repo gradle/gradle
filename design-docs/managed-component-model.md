@@ -230,13 +230,12 @@ stored in child nodes (just as with any `@Managed` internal view).
 
 * Can attach `MyJarBinarySpecInternal` that extends `JarBinarySpec`
     * internal view can declare a read-write property that can be set on a Jar binary
-    * regular `JarBinarySpec` binaries can be targeted by rules as `ModelMap<MyJarBinarySpecInternal>`
     * regular `JarBinarySpec` binaries can be accessed via `component.binaries.withType(MyJarBinarySpecInternal)`
-    * regular `JarBinarySpec` binaries can be accessed via `binaries.withType(MyJarBinarySpecInternal)`
+    * instance cannot be accessed as `MyInternal`
 * Can attach `MyInternal` that does not extend `JarBinarySpec`
     * internal view can declare a read-write property that can be set on a Jar binary
     * regular `JarBinarySpec` binaries can be accessed via `component.binaries.withType(MyInternal)`
-    * regular `JarBinarySpec` binaries can be accessed via `binaries.withType(MyInternal)`
+    * instance cannot be accessed as `MyJarBinarySpecInternal`
 
 ### Implementation
 
