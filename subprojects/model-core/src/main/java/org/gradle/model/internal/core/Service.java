@@ -16,9 +16,6 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.Model;
-import org.gradle.model.RuleSource;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
