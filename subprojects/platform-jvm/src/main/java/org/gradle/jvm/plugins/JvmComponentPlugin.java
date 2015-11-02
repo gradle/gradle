@@ -32,7 +32,6 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
 import org.gradle.language.base.internal.BuildDirHolder;
 import org.gradle.language.base.internal.tasks.apigen.ApiStubGenerator;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.Service;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
