@@ -495,7 +495,7 @@
             Please see the documentation for <apilink class="org.gradle.model.RuleSource" /> for more information on constraints on how rule sources must be implemented and for more types of rules.
         </para>
     </section>
-    <section>
+    <section id="model-dsl">
         <title>The “model DSL”</title>
         <para>
             It is also possible to declare rules directly in the build script using the “model DSL”.
@@ -510,13 +510,11 @@
         <para>
             The general form of the model DSL is:
         </para>
-        <programlisting>
-model {
+        <programlisting>model {
   «model-path-to-subject» {
     «imperative code»
   }
-}
-        </programlisting>
+}</programlisting>
         <para>
             Where there may be multiple blocks.
         </para>
@@ -526,13 +524,11 @@ model {
         <para>
             The general form of a creation rule is:
         </para>
-        <programlisting>
-model {
+        <programlisting>model {
   «element-name»(«element-type») {
     «imperative code»
   }
-}
-        </programlisting>
+}</programlisting>
         <para>
             The following model rule is creating the person element:
         </para>
@@ -542,12 +538,51 @@ model {
         <para>
             The model DSL is currently quite limited.
             It is only possible to declare creation and general mutation rules.
-            It is also only possible to refer to the subject by-path and it is not possible for the rule to have inputs.
+            It is also only possible to refer to the subject by-path.
             These are all limitations that will be addressed in future Gradle versions.
         </para>
+        <section id="dsl-rule-input-dependencies">
+            <title>Declaring input dependencies</title>
+            <para>
+                Rules declared in the DSL may <emphasis>depend</emphasis> on other model elements through the use of a special syntax.
+            </para>
+            <sample id='modelDslRuleInputs' dir='modelRules/modelDsl' includeLocation="true" title="a DSL rule using inputs">
+                <sourcefile file='build.gradle' snippet="rule-inputs"/>
+            </sample>
+            <para>
+                In the above snippet, the <literal>$.person</literal> construct is an input reference.
+                The construct returns the value of the model element at the specified path, as its default type (i.e. the type advertised by the <link linkend="model-report">Model Report</link>).
+                It may appear anywhere in the rule that a value may normally appear.
+                It is not limited to the right hand side of variable assignments.
+            </para>
+            <para>
+                The general syntax is of the form:
+            </para>
+            <programlisting>
+                $.«path-to-model-element»
+            </programlisting>
+            <para>
+                Paths are a period separated list of identifiers.
+                To directly depend on the <literal>firstName</literal> of the person, the following could be used:
+            </para>
+            <programlisting>
+                $.person.firstName
+            </programlisting>
+            <para>
+                The input element is guaranteed to be fully configured before the rule executes.
+                That is, all of the rules that mutate the element are guaranteed to have been previously executed,
+                leaving the target element in its final, immutable, state.
+            </para>
+            <para>
+                Most model elements enforce immutability when being used as inputs.
+                Any attempt to mutate such an element will result in a runtime error.
+                However, some legacy type objects do not currently implement such checks.
+                Regardless, it is always invalid to attempt to mutate an input to a rule.
+            </para>
+        </section>
     </section>
-    <section>
-        <title>The model report</title>
+    <section id="model-report">
+        <title>The Model Report</title>
         <para>
             The built-in <apilink class="org.gradle.api.reporting.model.ModelReport"/> task displays a hierarchical view of the elements in the model space.
             Each item prefixed with a `+` on the model report is a model element and the visual nesting of these elements correlates to the model
@@ -581,7 +616,6 @@ model {
                 </tr>
             </tbody>
         </table>
-
         <sample id='basicRuleSourcePlugin-model-task' dir='modelRules/basicRuleSourcePlugin' title='model task output'>
             <output args='model' ignoreExtraLines="true"/>
         </sample>
