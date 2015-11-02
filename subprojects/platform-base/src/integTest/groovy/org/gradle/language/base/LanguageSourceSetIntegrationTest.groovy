@@ -41,6 +41,62 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains("A model element of type: 'org.gradle.language.java.JavaSourceSet' can not be constructed.")
     }
 
+    def "can not create a top level LSS with an implementation type"() {
+        buildFile.text = """
+        ${registerJavaLanguage()}
+
+        import org.gradle.api.internal.java.DefaultJavaSourceSet
+
+        class Rules extends RuleSource {
+            @Model
+            void lss(DefaultJavaSourceSet javaSource) {
+            }
+        }
+        apply plugin: Rules
+        """
+
+        when:
+        fails "model"
+
+        then:
+
+        failureCauseContains("""A model element of type: 'org.gradle.api.internal.java.DefaultJavaSourceSet' can not be constructed.
+It must be one of:
+    - A managed type (annotated with @Managed)
+    - or a type which Gradle is capable of constructing:
+        - org.gradle.language.base.FunctionalSourceSet
+        - org.gradle.language.java.JavaSourceSet""")
+
+    }
+
+    def "can not create a top level LSS with a base type"() {
+        buildFile.text = """
+        ${registerJavaLanguage()}
+
+        import org.gradle.language.base.LanguageSourceSet
+
+        class Rules extends RuleSource {
+            @Model
+            void lss(LanguageSourceSet javaSource) {
+            }
+        }
+        apply plugin: Rules
+        """
+
+        when:
+        fails "model"
+
+        then:
+
+        failureCauseContains("""A model element of type: 'org.gradle.language.base.LanguageSourceSet' can not be constructed.
+It must be one of:
+    - A managed type (annotated with @Managed)
+    - or a type which Gradle is capable of constructing:
+        - org.gradle.language.base.FunctionalSourceSet
+        - org.gradle.language.java.JavaSourceSet""")
+
+    }
+
     def "can create a top level LSS with a rule"() {
         buildScript """
         ${registerJavaLanguage()}
