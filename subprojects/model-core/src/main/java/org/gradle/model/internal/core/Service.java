@@ -22,11 +22,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Denotes that the {@link RuleSource} method rule carrying this annotation creates a new top level service in the model space.
+ * Denotes that the {@link org.gradle.model.RuleSource} method rule carrying this annotation creates a new top level service in the model space.
  * A top-level service is a singleton that must always be referenced via both its path and its type. This allows services to be
  * resolved before {@link NodeInitializerRegistry} is ready to supply types for other elements.
  * <p>
- * The same rules apply to service elements as other elements defined via the {@link Model} annotation.
+ * The same rules apply to service elements as other elements defined via the {@link org.gradle.model.Model} annotation.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
