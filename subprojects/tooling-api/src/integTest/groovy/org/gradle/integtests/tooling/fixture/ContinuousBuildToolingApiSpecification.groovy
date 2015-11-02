@@ -20,6 +20,7 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.executer.*
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
@@ -37,6 +38,7 @@ import spock.lang.Timeout
 abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {
 
     public static final String WAITING_MESSAGE = "Waiting for changes to input files of tasks..."
+    private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
 
     TestOutputStream stderr = new TestOutputStream()
     TestOutputStream stdout = new TestOutputStream()
@@ -44,7 +46,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     ExecutionResult result
     ExecutionFailure failure
 
-    int buildTimeout = 10
+    int buildTimeout = 20
 
     @Rule
     GradleBuildCancellation cancellationTokenSource
@@ -52,6 +54,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     TestFile sourceDir
 
     ProjectConnection projectConnection
+
 
     void setup() {
         buildFile.text = "apply plugin: 'java'\n"
@@ -82,8 +85,8 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
                     def startAt = System.nanoTime()
                     gradle.buildFinished {
                         long sinceStart = (System.nanoTime() - startAt) / 1000000L
-                        if (sinceStart < 2000) {
-                          sleep 2000 - sinceStart
+                        if (sinceStart > 0 && sinceStart < 2000) {
+                          sleep(2000 - sinceStart)
                         }
                     }
                 """
@@ -180,6 +183,18 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     boolean cancel() {
         cancellationTokenSource.cancel()
         true
+    }
+
+    void waitBeforeModification(File file) {
+        long waitMillis = 100L
+        if(OS_IS_WINDOWS && file.exists()) {
+            // ensure that file modification time changes on windows
+            long fileAge = System.currentTimeMillis() - file.lastModified()
+            if (fileAge > 0L && fileAge < 900L) {
+                waitMillis = 1000L - fileAge
+            }
+        }
+        sleep(waitMillis)
     }
 
 }

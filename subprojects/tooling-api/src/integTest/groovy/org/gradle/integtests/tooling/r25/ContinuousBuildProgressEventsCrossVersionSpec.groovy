@@ -39,6 +39,7 @@ class ContinuousBuildProgressEventsCrossVersionSpec extends ContinuousBuildTooli
         runBuild {
             succeeds()
             receivedBuildEvents()
+            waitBeforeModification javaSrcFile
             javaSrcFile.setText('public class Thing { public static final int FOO = 1; }')
             succeeds()
             receivedBuildEvents()

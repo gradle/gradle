@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit
 abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
     private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 10
+    private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
 
     GradleHandle gradle
 
@@ -61,8 +62,8 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
                 def startAt = System.nanoTime()
                 gradle.buildFinished {
                     long sinceStart = (System.nanoTime() - startAt) / 1000000L
-                    if (sinceStart < 2000) {
-                      sleep 2000 - sinceStart
+                    if (sinceStart > 0 && sinceStart < 2000) {
+                      sleep(2000 - sinceStart)
                     }
                 }
             """
@@ -136,6 +137,7 @@ ${result.error}
 
             if (lastOutput.contains("Waiting for changes to input files of tasks...")) {
                 endOfBuildReached = true
+                sleep 100
                 break
             } else if (lastOutput.size() > lastLength) {
                 lastActivity = monotonicClockMillis()
@@ -215,6 +217,18 @@ $lastOutput
 
     void sendEOT() {
         gradle.cancelWithEOT()
+    }
+
+    void waitBeforeModification(File file) {
+        long waitMillis = 100L
+        if(OS_IS_WINDOWS && file.exists()) {
+            // ensure that file modification time changes on windows
+            long fileAge = System.currentTimeMillis() - file.lastModified()
+            if (fileAge > 0L && fileAge < 900L) {
+                waitMillis = 1000L - fileAge
+            }
+        }
+        sleep(waitMillis)
     }
 
     private static class UnexpectedBuildStartedException extends Exception {

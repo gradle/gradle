@@ -29,6 +29,7 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
         then:
         runBuild {
             succeeds()
+            waitBeforeModification javaSrcFile
             javaSrcFile.text = 'public class Thing { public static final int FOO=1; }'
             succeeds()
         }
@@ -41,8 +42,10 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
         then:
         runBuild {
             succeeds()
+            waitBeforeModification javaSrcFile
             javaSrcFile.text = 'public class Thing { *******'
             fails()
+            waitBeforeModification javaSrcFile
             javaSrcFile.text = 'public class Thing {} '
             succeeds()
         }
