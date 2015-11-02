@@ -213,7 +213,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 - `NativeExecutableBinarySpec.executableFile` is now reachable via `NativeExecutableBinarySpec.executable.file`.
 - `NativeTestSuiteBinarySpec.executableFile` is now reachable via `NativeTestSuiteBinarySpec.executable.file`.
-- Tool settings like `cppCompiler.args` are no longer added via the Gradle extension mechanism. `PreprocessingTool` accessors are now implemented directly by `NativeBinarySpec`, which no longer implements `ExtensionAware`. No changes to build scripts should be required.
+- Tool settings like `cppCompiler.args` are no longer added via the Gradle extension mechanism. `PreprocessingTool` accessors are now implemented directly by `NativeBinarySpec`,
+which no longer implements `ExtensionAware`. No changes to build scripts should be required.
 
 ### Changes to experimental integration between software model and Java plugins
 
