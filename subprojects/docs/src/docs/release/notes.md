@@ -42,16 +42,27 @@ If more control is needed, the new [`forwardStdOut(Writer)`](javadoc/org/gradle/
 
 ### Faster up-to-date checking for incremental builds
 
-Gradle now uses a more efficient mechanism to scan the filesystem, which makes up-to-date checks significantly faster.
+In many cases, Gradle 2.9 is much faster than Gradle 2.8 when performing incremental builds.
+
+Very large builds (many thousands of source files) could see incremental build speeds up to
+80% faster than 2.7 and up to 40% faster than 2.8.
+
+Gradle now uses a more efficient mechanism to scan the filesystem, making up-to-date checks significantly faster.
 This improvement is only available when running Gradle with Java 7 or newer.
 
-Other improvements have been made to speed-up include and exclude pattern evaluation. No changes are necessary to take advantage of this and this optimization should improve build times for Java 6 and newer.
+Other improvements have been made to speed-up include and exclude pattern evaluation; these improvements apply
+to all supported Java versions.
 
-Very large builds (many thousands of source files) could see incremental build speeds up to 80% faster than 2.7 and up to 40% better than 2.8.
+No build script changes are needed to take advantage of these performance optimizations.
 
 ### Reduced memory footprint for incremental builds
 
-Gradle 2.9 uses much less memory than previous releases when performing incremental builds. Some builds use 30-70% less memory.
+Gradle 2.9 uses much less memory than previous releases when performing incremental builds.
+By de-duplicating Strings used as file paths in internal caches, and by reducing the overhead of listing classes under test for Java projects, some builds use 30-70% less memory that Gradle 2.8.
+
+Reduced memory consumption can translate into significant performance improvements when a build process is running low on memory.
+
+No build script changes are needed to take advantage of these memory savings.
 
 ### Tooling API exposes details of eclipse builders and natures
 
