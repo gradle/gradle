@@ -353,7 +353,7 @@ apply plugin: ClassHolder.InnerRules
         given:
         buildFile << """
         class Rules extends RuleSource {
-            @Service
+            @org.gradle.model.internal.core.Service
             String thingamajigger() {
                 return "hello"
             }
