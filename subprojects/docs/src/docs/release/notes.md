@@ -2,14 +2,14 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Easier debugging of TestKit functional tests
+### Easier debugging of functional tests with Gradle TestKit
 
 The [Gradle TestKit](userguide/test_kit.html) facilitates programmatic execution of Gradle builds for the purpose of testing plugins and build logic.
 This release of Gradle makes it easier to use a debugger to debug build logic under test.
 
 In order to provide an accurate simulation of a Gradle build, the TestKit executes the build in a _separate process_ by default.
-This avoids interference to the build environment by the test environment and vice versa.
-This does mean however, that executing a test via a debugger does not automatically allow debugging the build process.
+This facilitates more accurate testing by preventing interference between the build environment and the test environment.
+However, it does mean that executing a test via a debugger does not automatically allow debugging the build process.
 
 To support debugging, it is now possible to specify that the build should be run in the same process as the test.
 This can be done by setting the `org.gradle.testkit.debug` system property to `true` for the test process,
@@ -40,9 +40,27 @@ This is often convenient when being used in a testing context, as output generat
 If more control is needed, the new [`forwardStdOut(Writer)`](javadoc/org/gradle/testkit/runner/GradleRunner.html#forwardStdOut\(java.io.Writer\)) and
 [`forwardStdErr(Writer)`](javadoc/org/gradle/testkit/runner/GradleRunner.html#forwardStdErr\(java.io.Writer\)) methods can be used.
 
-### Model rules improvements
+### Faster up-to-date checking for incremental builds
 
-#### Declaring packages that belong to an API
+Gradle now uses a more efficient mechanism to scan the filesystem, which makes up-to-date checks significantly faster.
+This improvement is only available when running Gradle with Java 7 or newer.
+
+Other improvements have been made to speed-up include and exclude pattern evaluation. No changes are necessary to take advantage of this and this optimization should improve build times for Java 6 and newer.
+
+Very large builds (many thousands of source files) could see incremental build speeds up to 80% faster than 2.7 and up to 40% better than 2.8.
+
+### Reduced memory footprint for incremental builds
+
+Gradle 2.9 uses much less memory than previous releases when performing incremental builds. Some builds use 30-70% less memory.
+
+### Tooling API exposes details of eclipse builders and natures
+
+Clients of the Tooling API now can query the list of Eclipse builders and natures via the
+<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html">EclipseProject</a> model. The result of the `EclipseProject.getProjectNatures()`
+and `EclipseProject.getBuildCommands()` contain the builders and natures required for the target project as well as the customisation defined the
+'eclipse' <a href="dsl/org.gradle.plugins.ide.eclipse.model.EclipseProject.html">Gradle plugin configuration</a>.
+
+### Declaring packages that belong to an API
 
 It is now possible to declare the packages that make up the API of a JVM component. Declaring the API of a component is done using the `api { ... }` block:
 
@@ -64,6 +82,15 @@ The API jar will only include classes that belong to those packages. As a conseq
    - updating an API class without changing the ABI (application binary interface) will not result in the compilation of downstream dependencies. In particular:
 changing the implementation in a method body, renaming parameters, adding a private method, ... will not change the public API of a class, so classes depending
 on this API will not be recompiled.
+
+### Declaring dependencies that belong to an API
+
+The API of a JVM library consists of the API classes of the library, plus the API of dependent libraries that are defined as
+"exported" in the dependency specification.
+
+TODO: Expand this and provide a DSL example.
+
+### Model rules improvements
 
 #### Rules defined in build scripts can now declare input dependencies
 
@@ -143,42 +170,6 @@ Any registered `LanguageSourceSet` implementations can be used to create Languag
     apply plugin: JavaLangRuleSource
 
 Note: `LanguageSourceSet`'s added in this fashion are not added to the projects `ProjectSourceSet`
-
-### Support for API dependencies in the 'jvm-components' plugin
-
-The API of a JVM library consists of the API classes of the library, plus the API of dependent libraries that are defined as
-"exported" in the dependency specification.
-
-TODO: Expand this and provide a DSL example.
-
-### Tooling API improvements
-
-#### Expose Eclipse builders and natures
-
-Clients of the Tooling API now can query the list of Eclipse builders and natures via the
-<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html">EclipseProject</a> model. The result of the `EclipseProject.getProjectNatures()`
-and `EclipseProject.getBuildCommands()` contain the builders and natures required for the target project as well as the customisation defined the
-'eclipse' <a href="dsl/org.gradle.plugins.ide.eclipse.model.EclipseProject.html">Gradle plugin configuration</a>.
-
-### Faster up-to-date checking for incremental builds
-
-Gradle now uses a more efficient mechanism to scan the filesystem, which makes up-to-date checks significantly faster.
-This improvement is only available when running Gradle with Java 7 or newer.
-
-Other improvements have been made to speed-up include and exclude pattern evaluation. No changes are necessary to take advantage of this and this optimization should improve build times for Java 6 and newer.
-
-Very large builds (many thousands of source files) could see incremental build speeds up to 80% faster than 2.7 and up to 40% better than 2.8.
-
-#### Reduced memory footprint for incremental builds
-
-Gradle 2.9 uses much less memory than previous releases when performing incremental builds. Some builds use 30-70% less memory.
-
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
