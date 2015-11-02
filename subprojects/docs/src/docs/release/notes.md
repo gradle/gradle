@@ -65,9 +65,9 @@ The API jar will only include classes that belong to those packages. As a conseq
 changing the implementation in a method body, renaming parameters, adding a private method, ... will not change the public API of a class, so classes depending
 on this API will not be recompiled.
 
-#### `$.p` expressions in DSL rules
+#### Rules defined in build scripts can now declare input dependencies
 
-TBD: DSL now supports `$.p` expressions in DSL rules:
+It is now possible for rules declared directly in a build script to depend on other model elements as inputs.
 
     model {
         components {
@@ -75,23 +75,13 @@ TBD: DSL now supports `$.p` expressions in DSL rules:
                 targetPlatform = $.platforms.java6
             }
         }
-        components {
-            def plat = $.platforms
-            all {
-                targetPlatform = plat.java6
-            }
-        }
     }
 
-TBD: DSL now supports `$('p')` expressions in DSL rules:
+In the above example, a model rule is declaring that all components target Java 6, by setting their `targetPlatform` property to the Java 6 platform.
+The `$.platforms.java6` construct is an input reference to that model element.
+This dependency is understood by the rule execution system, which ensures that the definition of the depended upon item is complete when it is used in this manner.
 
-    model {
-        components {
-            all {
-                targetPlatform = $('platforms.java6')
-            }
-        }
-    }
+Please see the section in the User Guide on [declaring input dependencies for Model DSL rules](userguide/new_model.html#dsl-rule-input-dependencies) for more information.
 
 #### Consistent validation of model types
  The error messages produced when a model type is not supported has been improved to describe the types that are actually supported. In the following example `MyModel` is not a valid managed
