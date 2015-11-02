@@ -192,9 +192,9 @@ model {
 
 ### Test cases
 
-- When compiling sources for `main` that has a dependency on `A` above:
-    - Compile classpath includes API jars from `A`, `B` and `C`
-    - Compile classpath does _not_ include API jar from `D`
+- ~~When compiling sources for `main` that has a dependency on `A` above:~~
+    - ~~Compile classpath includes API jars from `A`, `B` and `C`~~
+    - ~~Compile classpath does _not_ include API jar from `D`~~
 - No failure attempting to build `main`, where `D` contains bad code
 - Reasonable error message attempting to build `main`, where `C` contains bad code
 - When compiling sources for `B` above:
