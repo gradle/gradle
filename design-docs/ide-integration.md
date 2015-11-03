@@ -565,6 +565,211 @@ might be confusing to users.
 - Is there any feature parity between the file-based and directory-based project formats?
 - There's no overarching, publicly-available documentation or specification on directory-based project files. It might be worth to contact JetBrains for a good resource.
 
+## Feature - Developer uses projects from multiple Gradle builds from IDE
+
+Projects might define a binary dependency on a library produced by another project. Usually, these projects are built separate from each other and live in distinct source code repositories.
+ The typical workflow for a developer that has to work on both projects would be to make change to project A, publish its artifact and build project B with the changed dependency. If the
+ library version of project A changed, project B needs to depend on the new artifact version. For developers this workflow is cumbersome and time-consuming. This feature allows a developer to work
+ on multiple projects in a single IDE session that would normally be independent.
+
+### Story - Introduce the concept of a "workspace" to the Tooling API
+
+Introduce the concept of a "workspace" to the Tooling API. This is simply a collection of Gradle projects that the IDE user is working on. These projects may come from different Gradle builds.
+
+A Tooling API client will be able to define a workspace and query it as if it were a single, unified Gradle build containing all the projects in the workspace. Where possible, binary dependencies
+would be replaced with source dependencies between IDE modules.
+
+For example, application A and library B might normally be built separately, as part of different builds. In this instance, application A would have a binary dependency on library B,
+consuming it as a jar downloaded from a binary repository. When application A and library B are both imported in the same workspace, however, application A would have a source dependency on
+library B.
+
+#### Estimate
+
+-
+
+#### Implementation
+
+    public interface ProjectWorkspace {
+        void addProject(GradleProject gradleProject);
+        void removeProject(GradleProject gradleProject);
+        DomainObjectSet<GradleProject> getProjects();
+    }
+
+- Introduce a `ProjectWorkspace` interface that describes the collection of independent projects as a whole.
+- Projects can be added or removed from the workspace. A workspace can return the list of projects that have been registered.
+- A workspace does not depend on the Eclipse or Idea models.
+
+#### Test cases
+
+- If a project was added to the workspace, it can be retrieved from the list of projects.
+- If a project already exists in the workspace, adding it again doesn't add a duplicate.
+- If a project was removed from the workspace, the list of projects does not contain it anymore.
+- If a project is requested to be removed from the workspace and doesn't exist, the list of projects isn't modified.
+- The order of projects in the list is maintained.
+
+#### Open issues
+
+- We could potentially merge this story with the next one and just make it Eclipse-specific?
+
+### Story - Expose "workspace" concept for Eclipse
+
+The generic workspace concept should be usable from the Eclipse Tooling model. Expose ways to match project coordinates to coordinates of a module
+dependency.
+
+#### Estimate
+
+-
+
+#### Implementation
+
+    public interface ComposableEclipseProject {
+        String getName();
+        DomainObjectSet<? extends EclipseProject> getProjects();
+    }
+
+    public class DefaultComposableEclipseProject {
+        private final ProjectWorkspace projectWorkspace = new ProjectWorkspace();
+
+        public void addProject(DefaultEclipseProject project) {
+            projectWorkspace.addProject(project.getGradleProject());
+        }
+
+        public void removeProject(DefaultEclipseProject project) {
+            projectWorkspace.addProject(project.getGradleProject());
+        }
+
+        public List<DefaultEclipseProject> getProjects() {
+            // Turn the list of GradleProjects into a list of DefaultEclipseProjects
+            return projectWorkspace.getProjects();
+        }
+    }
+
+    public interface GradleProjectIdentity {
+        GradleModuleVersion getGradleModuleVersion();
+    }
+
+    public class PartialBasicGradleProject implements GradleProjectIdentity {
+        private GradleModuleVersion gradleModuleVersion;
+
+        public void setGradleModuleVersion(GradleModuleVersion gradleModuleVersion) {
+            this.gradleModuleVersion = gradleModuleVersion;
+        }
+
+        @Override
+        public GradleModuleVersion getGradleModuleVersion() {
+            return gradleModuleVersion;
+        }
+    }
+
+- Introduce a `ComposableEclipseProject` interface that describes the collection of independent projects as a whole for the Eclipse model.
+- Allow for providing a name to be able to better identify it.
+- The `ComposableEclipseProject` interface allows for returning all projects of a composable build (which effectively represents a workspace).
+- A `GradleProject` does not expose its identity through coordinates (`group`, `name`, `version`). Introduce a `GradleModuleVersion` to the model.
+- The `GradleModuleVersion` is used to compare a project coordinate with coordinates of its declared dependencies `DefaultEclipseExternalDependency.getGradleModuleVersion()`.
+If a match can be determined, the module dependency can be substituted for a project dependency.
+
+#### Test cases
+
+- The `ComposableEclipseProject` can be named and populated with projects.
+- A `GradleProject` populates its module version properly. The module version can retrieved from `DefaultEclipseProject`.
+- A project and an external dependency can be matched based on the module version.
+
+#### Open issues
+
+- Support for IDEA is out-of-scope.
+
+### Story - Define a "workspace" in Buildship
+
+From Buildship, a developer should be able to point to one or many projects in the local file system to form a workspace.
+If any of the module dependencies matches on the coordinates of one of the selected projects, they'll be able to be from
+ as a workspace. Buildship will treat the matching projects as project dependencies instead of module dependencies.
+
+#### Estimate
+
+-
+
+#### Implementation
+
+- Expose a new dialog in Buildship that allows for selecting projects that should form a workspace.
+    - At least two projects have to be selected.
+    - Projects can live in any directory of the local filesystem.
+    - The project has to be a valid Gradle project and define `group`, `name` and `version`.
+- Buildship will indicate which projects are substitutable based on their coordinates (potentially with a preview).
+    - Iterate over all dependencies of a project.
+    - Each dependency provides its coordinates through `DefaultEclipseExternalDependency.getGradleModuleVersion()`.
+    - Compare the dependency coordinates with the coordinates of the project through `DefaultEclipseProject.getGradleModuleVersion()`.
+    - If a match is determined, use the project path. Implement a de-dupe algorithm in case of duplicate project paths.
+    - Give a visual indication (e.g. icon) that a substitution was performed for a project.
+- After selecting the projects the exposed Tooling API is consumed to form the workspace.
+- Buildship renders the workspace in the project view as a multi-project build.
+- The developer can make changes to any project's build script. Newly established (and substitutable) dependencies between projects are resolved as project dependencies.
+- A workspace needs to be persistable.
+
+#### Test cases
+
+- Buildship doesn't allow creating a workspace if only 0 or 1 projects were selected.
+- Project that do not define the proper coordinates cannot be used to form a workspace.
+- If no substitutable module dependency can be determined, the dialog will render a error message.
+- Projects that are part of a workspace can be built together based on established project dependencies.
+    - Duplicate project paths are de-duped.
+- If the coordinates of a substituted module dependency is changed, Buildship needs to react properly.
+    - If coordinates don't match up anymore, Buildship will depend on the module dependency.
+    - If coordinates do match up, Buildship will re-establish the project dependency in the underlying model.
+- Closing and re-opening Buildship will re-establish a workspace.
+
+#### Open issues
+
+- Out-of-scope for this feature would be the ability to run builds using the workspace definition from the IDE or from
+the command-line. This would be an additional feature.
+- Is there a concept in Eclipse we could use to represent a workspace visually e.g. a working set?
+
+## Feature - Developer uses subset of projects for a Gradle build from IDE
+
+Large multi-project builds maybe consist of hundreds of projects. If a developer only works on a subset of these projects (usually not more than 5), the developer usually pays a penalty
+in terms of build execution performance as project dependencies have to be rebuilt (even though up-to-date checks might kick in). This feature allows for selectively substituting project
+dependencies with binary dependencies in Buildship.
+
+For example, application A and library B might normally be built together as part of the same build. Application A would have a source dependency on library B. When application A is imported
+ in a workspace and library B is not, application A would have a binary dependency on library B, either using a jar downloaded from a repository or built locally.
+
+### Story - Select subset of project for a "workspace" in Buildship
+
+Build on the workspace concept from the previous feature, to replace source dependencies with binary dependencies.
+
+#### Estimate
+
+-
+
+#### Implementation
+
+- In the import screen of Buildship, allow the user to select projects that define project dependencies. For these projects try to resolve the binary dependency.
+    - The user can decided to substitute none or any number of projects - 1. This assumes that the developer wants to work on at least on project.
+    - The project has to define `group`, `name` and `version` in order to build the module coordinates for external lookup.
+- Buildship will indicate which projects are substitutable based on their coordinates (potentially with a preview).
+    - Iterate over all project dependencies of a project.
+    - Each dependency provides its coordinates through `DefaultEclipseProjectDependency.getTarget().getGradleModuleVersion()`.
+    - Check for resolvable binary dependency available in any of the repositories defined for the coordinates.
+    - If a match is determined, use the module coordinates. Replace the source dependency with a binary dependency.
+    - Give a visual indication (e.g. icon) that a substitution was performed for a project.
+- A workspace needs to be persistable.
+
+#### Test cases
+
+- A source dependency can only be replaced if the binary dependency exists in a binary repository. Otherwise, don't allow substitution.
+- Substituted projects are not built as part of the multi-project build (e.g. no tasks are invoked to compile the code and create the JAR file).
+- The workspace as a whole is buildable. That means all dependencies can be resolved, no compilation issues occur.
+- If the list of repositories was changed in the build script (e.g. by editing the file), BuildShip will need to check if substituted dependencies are still valid.
+- If the coordinates of a substituted module dependency are changed, Buildship needs to react properly.
+    - If coordinates don't match up anymore, Buildship will depend on the project dependency.
+    - If coordinates do match up, Buildship will re-establish the binary dependency in the underlying model.
+- Closing and re-opening Buildship will re-establish a workspace.
+
+#### Open issues
+
+- Out-of-scope for this feature would be the ability to run builds using the workspace definition from the IDE or the command-line.
+- The import screen is only one entry point for this functionality. Should we have other dialogs/screen to allow for substitution? What about changing a workspace after
+it has been created?
+
 # More candidates
 
 Some more features to mix into the above plan:
