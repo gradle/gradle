@@ -73,7 +73,7 @@ we want to have a dedicated model for eclipse specific java information and grad
 #### The API
 
     interface JavaLanguageLevel {
-        JavaVersion getJavaVersion()
+        String getLevel()
     }
 
     interface JavaSourceSettings {
@@ -96,7 +96,7 @@ similar version as `JavaConvention.sourceCompatibility` configuration.
 - For older Gradle version the `JavaSourceAware.getJavaSourceSettings()` throws `UnsupportedMethodException`.
 
 #### Implementation
-- Introduce `JavaLanguageLevel` which contains a getJavaVersion() method returning an instance of `org.gradle.api.JavaVersion`.
+- Introduce `JavaLanguageLevel` which contains a String representation of the java language level via `getLevel()`.
 - Add a `JavaSourceSettings` implementation with `JavaLanguageLevel getLanguageLevel()`.
 - Introduce `JavaSourceAware` interface abstracting a common `JavaSourceSettings.getJavaSourceSettings()` method.
 - Update `EclipseProject` to extend `JavaSourceAware`.
@@ -125,7 +125,6 @@ language levels for each module in a project.
 #### The API
 
     interface IdeaJavaLanguageLevel extends JavaLanguageLevel {
-        JavaVersion getJavaVersion()
         boolean isInherited()
     }
     interface IdeaJavaSourceSettings extends JavaSourceSettings {
@@ -149,8 +148,8 @@ language levels for each module in a project.
 - Update `IdeaModelBuilder` to set values for `getJavaSourceSettings()` for `IdeaProject` and `IdeaModule`
     - return `null` if not a Java project
     - otherwise configure it as follows
-        - `IdeaProject.getLanguageLevel().getJavaVersion()` is calculated from `org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`.
-        - `IdeaModule.getLanguageLevel().getJavaVersion()` returns same value as root `IdeaProject.getLanguageLevel().getJavaVersion()`
+        - `IdeaProject.getLanguageLevel().getLevel()` is calculated from `org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`.
+        - `IdeaModule.getLanguageLevel().getLevel()` returns same value as root `IdeaProject.getLanguageLevel().getLevel()`
         - `IdeaModule.getLanguageLevel().isInherited` returns true
 
 #### Test coverage
