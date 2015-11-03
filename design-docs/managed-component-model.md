@@ -305,16 +305,21 @@ Infer a model element's hidden properties based on the parent's views:
 
 ### Test cases
 
-Only extensible types (Binary, Component, Language) can have internal views for now, so the tests will focus on theses.
-Once any type can have internal views, another story will be needed to assert that the implementation of this very story for extensible types works for any types.
-Moreover, tests will need to assert correct behaviour for managed and unmanaged elements.
+- Add `ModelReportIntegrationTest.extensible types internal views properties are not displayed on the report`
+  that register customs binaries, components and languages all having internal views and assert their internal properties are not present in the report
 
 ### Implementation
 
-`ModelNode` already has a `hidden` property that is taken into account by `ModelReport`.
+`ModelNode` already has a `hidden` flag that is taken into account by `ModelReport`.
 This is how services are hidden in the model report.
 
-Implementation goal is then to set this `hidden` property on `ModelNode`s backing internal views.
+Implementation goal is then to set this `hidden` flag on `ModelNode`s backing internal views.
+
+### Open Issues
+
+Only extensible types (Binary, Component, Language) can have internal views for now.
+Once any type can have internal views, another story will be needed to assert that the implementation of this very story for extensible types works for any types.
+
 
 # Feature 6: Managed Model usability
 
