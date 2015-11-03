@@ -438,6 +438,7 @@ configure([nativeMonolithicOverlapping, nativeMonolithic]) {
     ]
     rootProjectTemplates = [ 'native-monolithic' ]
     subProjectTemplates = [ ]
+    additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
 }
 
 task all {
