@@ -21,7 +21,7 @@
         of the software?</para>
 
     <para>The Gradle wrapper is a mechanism that solves both these issues.</para>
-    
+
     <section id='using_wrapper_scripts'>
         <title>Executing a build with the wrapper</title>
         <para>If a Gradle project has set up the wrapper (and almost all projects should do so), you can execute
@@ -56,6 +56,8 @@
                 <listitem><para><filename>gradlew</filename>  (Unix Shell script)</para></listitem>
                 <listitem><para><filename>gradlew.bat</filename>  (Windows batch file)</para></listitem>
                 <listitem><para><filename>gradle/wrapper</filename>  (directory)</para></listitem>
+                <listitem><para><filename>gradle/wrapper/gradle-wrapper.jar</filename>  (wrapper JAR)</para></listitem>
+                <listitem><para><filename>gradle/wrapper/gradle-wrapper.properties</filename>  (wrapper properties)</para></listitem>
             </itemizedlist>
         </para>
 
