@@ -31,7 +31,6 @@ import java.util.concurrent.atomic.AtomicReference
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
-
     @Rule
     TestNameTestDirectoryProvider testDirectory
 
@@ -138,7 +137,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         when:
         def lastChangeRef = new AtomicLong(0)
         gcAndIdleBefore()
-        fileChanger(instant, testfile, lastChangeRef)
+        fileChanger(instant, testfile, lastChangeRef, logger)
 
         then:
         waitFor.done
@@ -151,23 +150,32 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         'append and keep open' | this.&changeByAppendingAndKeepingFileOpen
     }
 
-    private void changeByAppendingAndClosing(instant, testfile, lastChangeRef) {
+    private void changeByAppendingAndClosing(instant, testfile, lastChangeRef, testLogger) {
         for (int i = 0; i < 10; i++) {
+            if (i > 0) {
+                sleep(50)
+            }
+            testLogger.log("loop ${i + 1}/10")
             instant.assertNotReached('done')
             testfile << "change"
+            testLogger.log("changed")
             lastChangeRef.set(System.nanoTime())
-            sleep(50)
         }
     }
 
-    private void changeByAppendingAndKeepingFileOpen(instant, testfile, lastChangeRef) {
+    private void changeByAppendingAndKeepingFileOpen(instant, testfile, lastChangeRef, testLogger) {
         new FileWriter(testfile).withWriter { Writer out ->
             for (int i = 0; i < 10; i++) {
+                if (i > 0) {
+                    sleep(50)
+                }
+                testLogger.log("loop ${i + 1}/10")
                 instant.assertNotReached('done')
                 out.write("change\n")
+                testLogger.log("written")
                 out.flush()
+                testLogger.log("flushed")
                 lastChangeRef.set(System.nanoTime())
-                sleep(50)
             }
         }
     }
