@@ -21,6 +21,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
+@Category(Experiment)
 class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' measuring incremental build speed")
     def "build monolithic native project"() {
@@ -33,7 +34,7 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         runner.useDaemon = true
         runner.gradleOpts = ["-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
         // TODO: Remove this once we no longer scan directories so much
-        runner.args += [ '-PincludeHack=true' ]
+        // runner.args += [ '-PincludeHack=true' ]
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
         }
