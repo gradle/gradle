@@ -116,6 +116,42 @@ Later work:
 
 ## Story: Build author defines dependencies for an entire component
 
+- Extend the JvmLibrarySpec DSL with a component scoped `dependencies` block with support for the usual dependency selectors:
+
+```groovy
+model {
+    components {
+        A(JvmLibrarySpec) {
+            dependencies {
+                library "B"
+            }
+            sources {
+                core(JavaSourceSet) {
+                    source.srcDir "src/core"
+                }
+            }
+        }
+        B(JvmLibrarySpec) {
+        }
+        C(JvmLibrarySpec) {
+            dependencies {
+                library "A"
+            }
+        }
+    }
+}
+```
+
+- When library A declares a component level dependency on library B, then:
+    - library B is considered part of the compile classpath of all source sets in library A
+    - the API of library B is _not_ considered part of the API of library A unless an explicit api dependency is also declared (which renders the component level dependency redundant)
+
+### Test cases
+
+- Given the example above:
+    - source files in all source sets of A can reference public types from library B
+    - source files in C fail to compile if they reference public types from library B
+
 ## Story: Resolve external dependencies from Ivy repositories
 
 - Use artifacts and dependencies from some conventional configuration (eg `compile`, or `default` if not present) an for Ivy module.
