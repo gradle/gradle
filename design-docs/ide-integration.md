@@ -565,6 +565,69 @@ might be confusing to users.
 - Is there any feature parity between the file-based and directory-based project formats?
 - There's no overarching, publicly-available documentation or specification on directory-based project files. It might be worth to contact JetBrains for a good resource.
 
+## Feature - Expose web application information
+
+This feature exposes information about web applications to the IDE, such that the IDE can create configurations that are consistent with what's defined in Gradle. The IDE should be able
+to correctly deploy the web application with information exposed by this feature.
+
+A web application project will be defined to be any project that applies the 'war' plugin.
+
+### Story - Expose web application directory
+
+In order to properly deploy a web application, the IDE needs to know about the location and contents of the web application directory.
+
+This story also introduces the `WebApplicationProject` model, an IDE agnostic model that exposes information about web application projects.
+
+#### The API
+
+```
+interface WebApplicationProject {
+    String getWebApplicationDirectoryName();
+    File getWebApplicationDirectory();
+}
+
+class DefaultWebApplicationProject implements Serializable {
+    String getWebApplicationDirectoryName();
+    File getWebApplicationDirectory();
+}
+
+class WebApplicationModelBuilder implements ToolingModelBuilder {
+    public boolean canBuild(String modelName);
+    public DefaultWebApplicationProject buildAll(String modelName, Project project);
+}
+```
+
+Note that the WebApplicationProject model directly maps to properties defined in the ['war' plugin](https://docs.gradle.org/current/userguide/war_plugin.html).
+
+#### Implementation
+
+- Create `WebApplicationProject` model
+- Create `DefaultWebApplicationProject`
+- Create `WebApplicationModelBuilder`
+- Add `WebApplicationModelBuilder` to builders in `ToolingRegistrationAction`
+- Add model to ModelMapping.java
+- Add model to ActionAwareConsumerConnectionTest.groovy
+- Add model to BuildActionRunnerBackedConsumerConnection.java
+- Add model to InternalConnectionBackedConsumerConnection.java
+- Add model to BuildController.java documentation
+- Add model to ProjectConnection.java documentation
+
+#### Test Coverage
+
+- WebApplicationProject.getWebApplicationDirectoryName returns correct default value
+- WebApplicationProject.getWebApplicationDirectory returns correct file when no custom web application directory has been defined in _build.gradle_ file
+- WebApplicationProject.getWebApplicationDirectory returns null when the directory does not exist.
+- WebApplicationProject.getWebApplicationDirectoryName returns correct value when custom web application directory is set
+- WebApplicationProject.getWebApplicationDirectory returns correct file when custom web application directory is set
+- WebApplicationProject.getWebApplicationDirectory returns null when custom web application directory is set, but directory does not exist
+- WebApplicationProject model returns null when project is not a web application project
+- Add WebApplicationProject to ModelMappingTest.groovy
+- Add WebApplicationProject to ModelBuilderBackedConsumerConnectionTest.groovy
+- Add WebApplicationProject to BuildActionRunnerBackedConsumerConnectionTest.groovy
+- Add WebApplicationProject to CancellableConsumerConnectionTest.groovy
+- Add WebApplicationProject to InternalConnectionBackedConsumerConnectionTest.groovy
+- Add WebApplicationProject to BuildActionRunnerBackedConsumerConnectionTest.groovy
+
 # More candidates
 
 Some more features to mix into the above plan:
