@@ -177,6 +177,55 @@ Based on IncrementalNativeCompiler's #include extractor, add header files as dis
     - `mediumNativeMonolithic`: 10% of `nativeMonolithic` size
         - use for 2 scenarios (1 file changes, few files change)
 
+example of using `BuildExperimentListener` for testing
+```
+    @Unroll('Project #type native build 1 change')
+    def "build with 1 change"() {
+        given:
+        runner.testId = "native build ${type} 1 change"
+        runner.testProject = "${type}NativeMonolithic"
+        runner.tasksToRun = ["assemble"]
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.targetVersions = ['2.8', 'last']
+        runner.buildExperimentListener = new BuildExperimentListener() {
+            @Override
+            GradleInvocationCustomizer createInvocationCustomizer(BuildExperimentInvocationInfo invocationInfo) {
+                null
+            }
+
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                if(invocationInfo.loopNumber % 2 == 0) {
+                    // do change
+                    
+                } else if (invocationInfo.loopNumber > 2) {
+                    // remove change
+                    
+                }
+            }
+
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                if(invocationInfo.loopNumber % 2 == 1) {
+                    measurementCallback.omitMeasurement()
+                }
+            }
+        }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        type     | maxExecutionTimeRegression
+        "small"  | millis(1000)
+        "medium" | millis(5000)
+    }
+```
+
+
 ### Scenario: Incremental build where 1 file requires recompilation
 - 1 C source file changed
 
