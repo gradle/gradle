@@ -83,8 +83,10 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
 
             InputReferences inputs = closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
             if (!inputs.isEmpty()) {
-                metadataAnnotation.addMember("absoluteInputPaths", new ListExpression(constants(inputs.getAbsolutePaths())));
-                metadataAnnotation.addMember("absoluteInputLineNumbers", new ListExpression(constants(inputs.getAbsolutePathLineNumbers())));
+                metadataAnnotation.addMember("ownInputPaths", new ListExpression(constants(inputs.getOwnPaths())));
+                metadataAnnotation.addMember("ownInputLineNumbers", new ListExpression(constants(inputs.getOwnPathLineNumbers())));
+                metadataAnnotation.addMember("nestedInputPaths", new ListExpression(constants(inputs.getNestedPaths())));
+                metadataAnnotation.addMember("nestedInputLineNumbers", new ListExpression(constants(inputs.getNestedPathLineNumbers())));
             }
 
             node.addAnnotation(metadataAnnotation);
@@ -112,9 +114,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         InputReferences parentInputs = inputs;
         VariableExpression parentInputsVariable = inputsVariable;
         try {
-            if (inputs == null) {
-                inputs = new InputReferences();
-            }
+            inputs = new InputReferences();
             inputsVariable = new VariableExpression("__rule_inputs_var_" + (counter++), POTENTIAL_INPUTS);
             inputsVariable.setClosureSharedVariable(true);
             super.visitClosureExpression(expression);
@@ -148,6 +148,9 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                 }
             }
         } finally {
+            if (parentInputs != null) {
+                parentInputs.addNestedReferences(inputs);
+            }
             inputs = parentInputs;
             inputsVariable = parentInputsVariable;
         }
@@ -164,7 +167,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     public void visitPropertyExpression(PropertyExpression expr) {
         String modelPath = isDollarPathExpression(expr);
         if (modelPath != null) {
-            inputs.absolutePath(modelPath, expr.getLineNumber());
+            inputs.reference(modelPath, expr.getLineNumber());
             replaceVisitedExpressionWith(inputReferenceExpression(modelPath));
         } else {
             super.visitPropertyExpression(expr);
@@ -248,7 +251,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                 return;
             }
 
-            inputs.absolutePath(modelPath, call.getLineNumber());
+            inputs.reference(modelPath, call.getLineNumber());
             replaceVisitedExpressionWith(inputReferenceExpression(modelPath));
         }
     }

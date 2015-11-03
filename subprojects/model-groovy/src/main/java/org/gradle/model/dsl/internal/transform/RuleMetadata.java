@@ -24,12 +24,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface RuleMetadata {
-    /**
-     * Definite input references, should be treated as absolute model paths.
-     */
-    String[] absoluteInputPaths() default {};
+    String[] ownInputPaths() default {};
 
-    int[] absoluteInputLineNumbers() default {};
+    int[] ownInputLineNumbers() default {};
+
+    String[] nestedInputPaths() default {};
+
+    int[] nestedInputLineNumbers() default {};
 
     int lineNumber();
 

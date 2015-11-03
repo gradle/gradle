@@ -17,39 +17,74 @@
 package org.gradle.model.dsl.internal.transform;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 public class InputReferences {
-    private final Set<String> relativePaths = Sets.newLinkedHashSet();
-    private final Set<String> absolutePaths = Sets.newLinkedHashSet();
-    private final List<Integer> absolutePathLineNumbers = Lists.newArrayList();
+    private final List<String> ownPaths = Lists.newArrayList();
+    private final List<Integer> ownLineNumbers = Lists.newArrayList();
+    private final List<String> nestedPaths = Lists.newArrayList();
+    private final List<Integer> nestedLineNumbers = Lists.newArrayList();
 
-    public List<String> getAbsolutePaths() {
-        return Lists.newArrayList(absolutePaths);
+    public List<String> getOwnPaths() {
+        return ownPaths;
     }
 
-    public List<Integer> getAbsolutePathLineNumbers() {
-        return absolutePathLineNumbers;
+    public List<Integer> getOwnPathLineNumbers() {
+        return ownLineNumbers;
     }
 
-    public void absolutePath(String path, int lineNumber) {
-        if (absolutePaths.add(path)) {
-            absolutePathLineNumbers.add(lineNumber);
-        }
+    public void reference(String path, int lineNumber) {
+        ownPaths.add(path);
+        ownLineNumbers.add(lineNumber);
     }
 
     public boolean isEmpty() {
-        return relativePaths.isEmpty() && absolutePaths.isEmpty();
+        return ownPaths.isEmpty() && nestedPaths.isEmpty();
     }
 
-    public void absolutePaths(String[] paths, int[] lineNumbers) {
-        absolutePaths.addAll(Arrays.asList(paths));
+    public List<String> getNestedPaths() {
+        return nestedPaths;
+    }
+
+    public List<Integer> getNestedPathLineNumbers() {
+        return nestedLineNumbers;
+    }
+
+    public void addNestedReferences(InputReferences inputReferences) {
+        nestedPaths.addAll(inputReferences.getOwnPaths());
+        nestedLineNumbers.addAll(inputReferences.getOwnPathLineNumbers());
+        nestedPaths.addAll(inputReferences.getNestedPaths());
+        nestedLineNumbers.addAll(inputReferences.getNestedPathLineNumbers());
+    }
+
+    public void ownPaths(String[] paths, int[] lineNumbers) {
+        ownPaths.addAll(Arrays.asList(paths));
         for (int lineNumber : lineNumbers) {
-            absolutePathLineNumbers.add(lineNumber);
+            ownLineNumbers.add(lineNumber);
         }
+    }
+
+    public void nestedPaths(String[] paths, int[] lineNumbers) {
+        nestedPaths.addAll(Arrays.asList(paths));
+        for (int lineNumber : lineNumbers) {
+            nestedLineNumbers.add(lineNumber);
+        }
+    }
+
+    public List<String> getAllPaths() {
+        List<String> result = new ArrayList<String>(ownPaths.size() + nestedPaths.size());
+        result.addAll(ownPaths);
+        result.addAll(nestedPaths);
+        return result;
+    }
+
+    public List<Integer> getAllPathLineNumbers() {
+        List<Integer> result = new ArrayList<Integer>(ownLineNumbers.size() + nestedLineNumbers.size());
+        result.addAll(ownLineNumbers);
+        result.addAll(nestedLineNumbers);
+        return result;
     }
 }

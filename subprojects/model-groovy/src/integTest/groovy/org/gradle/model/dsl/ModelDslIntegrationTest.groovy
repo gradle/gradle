@@ -18,6 +18,7 @@ package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.dsl.internal.transform.RulesVisitor
+import org.gradle.util.TextUtil
 
 import static org.hamcrest.Matchers.containsString
 
@@ -154,6 +155,10 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
                 create("assertDuplicateInputIsSameObject") {
                   doLast {
                     assert $("strings").is($("strings"))
+                    def s = $.strings
+                    assert $.strings.is($.strings)
+                    assert s == $.strings
+                    assert $.strings.is($("strings"))
                   }
                 }
               }
@@ -162,6 +167,30 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds "assertDuplicateInputIsSameObject"
+    }
+
+    def "reports on the first reference to unknown input"() {
+        when:
+        buildScript '''
+            model {
+              tasks {
+                $.unknown
+                $("unknown")
+              }
+            }
+        '''
+
+        then:
+        fails "tasks"
+        failure.assertHasCause(TextUtil.toPlatformLineSeparators('''The following model rules could not be applied due to unbound inputs and/or subjects:
+
+  model.tasks @ build.gradle line 3, column 15
+    subject:
+      - tasks Object
+    inputs:
+      - unknown Object (@ line 4) [*]
+
+'''))
     }
 
     def "can use model block in script plugin"() {
