@@ -202,6 +202,7 @@ model {
             doLast {
                 def deps = $('components.main.sources.java').dependencies.dependencies
                 assert deps.size() == 3
+                assert deps[0].projectPath == null
                 assert deps[0].libraryName == 'someLib'
                 assert deps[1].projectPath == 'otherProject'
                 assert deps[1].libraryName == 'someLib'
