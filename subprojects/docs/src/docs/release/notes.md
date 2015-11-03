@@ -1,8 +1,8 @@
 The Gradle team is pleased to bring you Gradle 2.9, delivering significant performance benefits together with some major enhancements to the Gradle TestKit.
 
-Gradle 2.9 brings significant improvements in incremental build speed and reduced memory consumption. All builds can benefit from these changes, but the improvements should be especially notable in large builds with many source files.
+Gradle 2.9 brings both faster incremental build speeds and reduced memory consumption. All builds can benefit from these changes, but the improvements should be particularly noticeable in large builds with many source files.
 
-This release brings more improvements to the [Gradle TestKit](userguide/test_kit.html). With support for debugging, cross-version testing, and capturing build output, Gradle TestKit now makes it easier than ever to develop and test Gradle plugins.
+This release also brings further improvements to the [Gradle TestKit](userguide/test_kit.html). With support for debugging, cross-version testing, and capturing build output, Gradle TestKit now makes it easier than ever to develop and test Gradle plugins.
 
 Within the experimental Java software model, the ability to declare the API of a JVM library brings a number of advantages. Separation of API and implementation is enforced at compile time, and recompilation is avoided where possible. This feature also provides a path for migrating to the Java Module System coming in JDK 9, providing build-time enforcement of concepts that will be enforced at runtime in Java 9.
 
