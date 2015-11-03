@@ -142,7 +142,7 @@ model {
 }
 ```
 
-- When library A declares a component level dependency on library B, then:
+- When library A declares a component level dependency on library B, defined in the same project or a different one, then:
     - library B is considered part of the compile classpath of all source sets in library A
     - the API of library B is _not_ considered part of the API of library A unless an explicit api dependency is also declared (which renders the component level dependency redundant)
 
@@ -151,6 +151,16 @@ model {
 - Given the example above:
     - source files in all source sets of A can reference public types from library B
     - source files in C fail to compile if they reference public types from library B
+    - same tests above for a library B defined in a different project
+    - same tests above given A declares component level dependencies on both libraries, B from the same project and B from a different project
+- Given a library dependency declared at both the component and api levels:
+    - source files in all source sets can reference public types from said library
+    - the API of said library is considered part of the API of the consuming library
+- Given a library dependency declared at both the component and source set levels:
+    - source files in all source sets can reference public types from said library
+    - the API of said library is _not_ considered part of the API of the consuming library
+- Given a library dependency for a library which cannot be found:
+    - compilation should fail with a suitable error message pointing to the dependency declaration
 
 ## Story: Resolve external dependencies from Ivy repositories
 
