@@ -17,134 +17,139 @@
 package org.gradle.nativeplatform.internal.configure
 
 import org.gradle.api.Named
-import org.gradle.internal.BiActions
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
-import org.gradle.model.internal.core.ModelRegistrations
-import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
-import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy
+import org.gradle.model.ModelMap
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.Flavor
-import org.gradle.nativeplatform.internal.DefaultNativeLibrarySpec
+import org.gradle.nativeplatform.NativeLibrarySpec
+import org.gradle.nativeplatform.internal.TargetedNativeComponentInternal
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.platform.base.BinarySpec
-import org.gradle.platform.base.binary.internal.BinarySpecFactory
-import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.platform.base.internal.DefaultPlatformRequirement
 import org.gradle.platform.base.internal.PlatformResolvers
 import spock.lang.Specification
 
 class NativeComponentRulesTest extends Specification {
-    def instantiator = DirectInstantiator.INSTANCE
     def namingSchemeBuilder = Spy(DefaultBinaryNamingSchemeBuilder)
     def platforms = Mock(PlatformResolvers)
     def nativePlatforms = Stub(NativePlatforms)
     def nativeDependencyResolver = Mock(NativeDependencyResolver)
-    def platform = createStub(NativePlatformInternal, "platform1")
 
+    def platformRequirement = requirement("platform1")
+    def platform = createStub(NativePlatformInternal, "platform1")
     def buildType = createStub(BuildType, "buildType1")
     def flavor = createStub(Flavor, "flavor1")
 
-    def id = new DefaultComponentSpecIdentifier("project", "name")
-    def modelRegistry = new ModelRegistryHelper();
-    def component
+    MockNativeLibrarySpec component
+    def createdBinaries = [] as SortedSet
+
+    static interface MockNativeLibrarySpec extends TargetedNativeComponentInternal, NativeLibrarySpec {}
+    static interface MockBinaries extends ModelMap<BinarySpec>, ManagedInstance {}
 
     def setup() {
-        def binarySpecFactory = new BinarySpecFactory("test")
-        modelRegistry.registerInstance("binarySpecFactory", binarySpecFactory)
-        def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)
-        nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, DefaultModelSchemaStore.instance, new ManagedProxyFactory(), BiActions.doNothing()))
-        modelRegistry.register(ModelRegistrations.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
-        component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, modelRegistry, id, instantiator)
+        def backingNode = Mock(MutableModelNode) {
+            getPath() >> { ModelPath.path("test") }
+        }
+        def mockBinaries
+        mockBinaries = Mock(MockBinaries) {
+            withType(_) >> { return mockBinaries }
+            getBackingNode() >> backingNode
+            create(_, _) >> { String name, Class<?> type ->
+                createdBinaries << name
+            }
+        }
+        component = Mock(MockNativeLibrarySpec) {
+            getName() >> "name"
+            getBinaries() >> mockBinaries
+            getTargetPlatforms() >> []
+            chooseBuildTypes(_) >> { Set<? extends BuildType> buildTypes -> buildTypes }
+            chooseFlavors(_) >> { Set<? extends Flavor> flavors -> flavors }
+        }
     }
 
     def "does not use variant dimension names for single valued dimensions"() {
-        component.targetPlatform("platform1")
-
         when:
         NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, namingSchemeBuilder)
 
         then:
+        _ * component.targetPlatforms >> [platformRequirement]
         1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
-        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         0 * namingSchemeBuilder.withVariantDimension(_)
     }
 
     def "does not use variant dimension names when component targets a single point on dimension"() {
         when:
-        component.targetPlatform("platform1")
-        component.targetBuildTypes("buildType1")
-        component.targetFlavors("flavor1")
         NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, namingSchemeBuilder)
 
         then:
+        _ * component.targetPlatforms >> [platformRequirement]
+        _ * component.chooseBuildTypes(_) >> [buildType]
+        _ * component.chooseFlavors(_) >> [flavor]
         1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
-        component.binaries.keySet() == [
+        createdBinaries == ([
             "sharedLibrary",
             "staticLibrary",
-        ].toSet()
+        ] as SortedSet)
     }
 
     def "includes platform in name for when multiple platforms"() {
         def platform2 = createStub(NativePlatformInternal, "platform2")
-        component.targetPlatform("platform1")
-        component.targetPlatform("platform2")
 
         when:
         NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, namingSchemeBuilder)
 
         then:
+        _ * component.targetPlatforms >> [requirement("platform1"), requirement("platform2")]
         1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
         1 * platforms.resolve(NativePlatform, requirement("platform2")) >> platform2
 
         then:
-        component.binaries.keySet() == [
-            "platform1StaticLibrary",
+        createdBinaries == ([
             "platform1SharedLibrary",
-            "platform2StaticLibrary",
+            "platform1StaticLibrary",
             "platform2SharedLibrary",
-        ].toSet()
+            "platform2StaticLibrary",
+        ] as SortedSet)
     }
 
     def "includes buildType in name for when multiple buildTypes"() {
         final BuildType buildType2 = createStub(BuildType, "buildType2")
-        component.targetPlatform("platform1")
 
         when:
         NativeComponentRules.createBinariesImpl(component, platforms, [buildType, buildType2].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, namingSchemeBuilder)
 
         then:
+        _ * component.targetPlatforms >> [requirement("platform1")]
         1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
-        component.binaries.keySet() == [
+        createdBinaries == ([
             "buildType1SharedLibrary",
             "buildType1StaticLibrary",
             "buildType2SharedLibrary",
             "buildType2StaticLibrary",
-        ].toSet()
+        ] as SortedSet)
     }
 
     def "includes flavor in name for when multiple flavors"() {
-        component.targetPlatform("platform1")
         final Flavor flavor2 = createStub(Flavor, "flavor2")
 
         when:
         NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor, flavor2].toSet(), nativePlatforms, nativeDependencyResolver, namingSchemeBuilder)
 
         then:
+        _ * component.targetPlatforms >> [requirement("platform1")]
         1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
-        component.binaries.keySet() == [
+        createdBinaries == ([
             "flavor1SharedLibrary",
             "flavor1StaticLibrary",
             "flavor2SharedLibrary",
             "flavor2StaticLibrary",
-        ].toSet()
+        ] as SortedSet)
     }
 
     def requirement(String name) {
