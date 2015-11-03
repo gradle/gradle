@@ -22,7 +22,7 @@
         to link the modules together through a single build.</para>
 
     <para>Gradle supports this scenario through <firstterm>multi-project</firstterm> builds.</para>
-    
+
     <section>
         <title>Structure of a multi-project build</title>
         <para>Such builds come in all shapes and sizes, but they do have some common characteristics:
@@ -75,7 +75,7 @@
         <para>Once you know what subprojects are available, the key question for a build user is how to execute the
             tasks within the project.</para>
     </section>
-    
+
     <section>
         <title>Executing a multi-project build</title>
         <para>From a user's perspective, multi-project builds are still collections of tasks you can run. The
@@ -117,11 +117,7 @@
         <para>There’s one last thing to note. When you’re using the Gradle wrapper, the first approach doesn’t work
             well because you have to specify the path to the wrapper script if you’re not in the project root. For
             example, if you’re in the <emphasis>webservice</emphasis> subproject directory, you would have to run
-            <userinput>../../gradlew build</userinput>. This behaviour is likely to change in future, but in the
-            meantime, you can try the <ulink url="https://github.com/dougborg/gdub"><productname>gdub</productname>
-            project</ulink> if you use <productname>bash</productname>. <productname>gdub</productname> can be run
-            from anywhere in the project directory structure without specifying its path. That makes it a lot
-            more convenient than using the Gradle wrapper directly.</para>
+            <userinput>../../gradlew build</userinput>.</para>
 
         <para>That’s all you really need to know about multi-project builds as a build user. You can now see whether
             a build is a multi-project one and you can discover its structure. And finally, you can execute tasks
