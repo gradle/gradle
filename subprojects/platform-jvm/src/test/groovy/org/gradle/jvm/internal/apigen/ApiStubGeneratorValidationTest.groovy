@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal.tasks.apigen
+package org.gradle.jvm.internal.apigen
 
-import org.gradle.language.base.internal.tasks.apigen.abi.InvalidPublicAPIException
+import org.gradle.jvm.internal.apigen.abi.InvalidPublicAPIException
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll

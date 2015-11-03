@@ -13,27 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal.tasks.apigen.abi;
+package org.gradle.jvm.internal.apigen.abi;
 
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import org.objectweb.asm.Type;
 
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-public class FieldSig implements Comparable<FieldSig> {
+public class MethodSig implements Comparable<MethodSig> {
     private final int access;
     private final String name;
     private final String desc;
     private final String signature;
+    private final Set<String> exceptions;
     private final List<AnnotationSig> annotations = Lists.newArrayList();
+    private final List<AnnotationSig> parameterAnnotations = Lists.newArrayList();
 
-    public FieldSig(int access, String name, String desc, String signature) {
+    public MethodSig(int access, String name, String desc, String signature, String[] exceptions) {
         this.access = access;
         this.name = name;
         this.desc = desc;
         this.signature = signature;
+        this.exceptions = exceptions == null ? Collections.<String>emptySet() : Sets.newTreeSet(ImmutableList.copyOf(exceptions));
     }
 
     public int getAccess() {
@@ -42,6 +46,10 @@ public class FieldSig implements Comparable<FieldSig> {
 
     public String getDesc() {
         return desc;
+    }
+
+    public Set<String> getExceptions() {
+        return exceptions;
     }
 
     public String getName() {
@@ -56,24 +64,48 @@ public class FieldSig implements Comparable<FieldSig> {
         return annotations;
     }
 
+    public List<AnnotationSig> getParameterAnnotations() {
+        return parameterAnnotations;
+    }
+
     public AnnotationSig addAnnotation(String desc, boolean visible) {
         AnnotationSig sig = new AnnotationSig(desc, visible);
         annotations.add(sig);
         return sig;
     }
+    public ParameterAnnotationSig addParameterAnnotation(int param, String desc, boolean visible) {
+        ParameterAnnotationSig sig = new ParameterAnnotationSig(desc, visible, param);
+        parameterAnnotations.add(sig);
+        return sig;
+    }
 
     @Override
-    public int compareTo(FieldSig o) {
+    public int compareTo(MethodSig o) {
         return ComparisonChain.start()
             .compare(access, o.access)
             .compare(name, o.name)
             .compare(desc == null ? "" : desc, o.desc == null ? "" : o.desc)
             .compare(signature == null ? "" : signature, o.signature == null ? "" : o.signature)
+            .compare(exceptions, o.exceptions, Ordering.<String>natural().lexicographical())
             .result();
     }
 
     @Override
     public String toString() {
-        return String.format("%s %s %s", Modifier.toString(access), Type.getType(desc).getClassName(), name);
+        StringBuilder methodDesc = new StringBuilder();
+        methodDesc.append(Modifier.toString(access)).append(" ");
+        methodDesc.append(Type.getReturnType(desc).getClassName()).append(" ");
+        methodDesc.append(name);
+        methodDesc.append("(");
+        Type[] argumentTypes = Type.getArgumentTypes(desc);
+        for (int i = 0, argumentTypesLength = argumentTypes.length; i < argumentTypesLength; i++) {
+            Type type = argumentTypes[i];
+            methodDesc.append(type.getClassName());
+            if (i < argumentTypesLength - 1) {
+                methodDesc.append(", ");
+            }
+        }
+        methodDesc.append(")");
+        return methodDesc.toString();
     }
 }

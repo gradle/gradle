@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal.tasks.apigen
+package org.gradle.jvm.internal.apigen
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 

@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal.tasks.apigen.abi;
+package org.gradle.jvm.internal.apigen.abi;
 
-public class AlwaysMemberOfApiChecker implements MemberOfApiChecker {
-    @Override
-    public boolean belongsToApi(String className) {
-        return true;
+public class AnnotationAnnotationValue extends AnnotationValue {
+    private final AnnotationSig annotation;
+
+    public AnnotationAnnotationValue(String name, AnnotationSig annotation) {
+        super(name);
+        this.annotation = annotation;
+    }
+
+    public AnnotationSig getAnnotation() {
+        return annotation;
     }
 }

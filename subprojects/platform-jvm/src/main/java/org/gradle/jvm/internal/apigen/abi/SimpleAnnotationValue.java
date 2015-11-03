@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal.tasks.apigen.abi;
+package org.gradle.jvm.internal.apigen.abi;
 
-public class AnnotationAnnotationValue extends AnnotationValue {
-    private final AnnotationSig annotation;
+public class SimpleAnnotationValue extends AnnotationValue {
+    private final Object value;
 
-    public AnnotationAnnotationValue(String name, AnnotationSig annotation) {
+    public SimpleAnnotationValue(String name, Object value) {
         super(name);
-        this.annotation = annotation;
+        this.value = value;
     }
 
-    public AnnotationSig getAnnotation() {
-        return annotation;
+    public Object getValue() {
+        return value;
     }
 }

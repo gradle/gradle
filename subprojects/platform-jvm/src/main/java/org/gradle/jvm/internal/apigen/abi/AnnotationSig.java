@@ -13,28 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal.tasks.apigen.abi;
+package org.gradle.jvm.internal.apigen.abi;
 
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Lists;
 
-public class ParameterAnnotationSig extends AnnotationSig {
-    private final int parameter;
+import java.util.List;
 
-    public ParameterAnnotationSig(String name, boolean visible, int parameter) {
-        super(name, visible);
-        this.parameter = parameter;
+public class AnnotationSig implements Comparable<AnnotationSig> {
+    private final String name;
+    private final boolean visible;
+    private final List<AnnotationValue> values = Lists.newLinkedList();
+
+    public AnnotationSig(String name, boolean visible) {
+        this.name = name;
+        this.visible = visible;
     }
 
-    public int getParameter() {
-        return parameter;
+    public String getName() {
+        return name;
+    }
+
+    public List<AnnotationValue> getValues() {
+        return values;
+    }
+
+    public boolean isVisible() {
+        return visible;
     }
 
     @Override
     public int compareTo(AnnotationSig o) {
         return ComparisonChain.start()
-            .compare(parameter, ((ParameterAnnotationSig) o).parameter)
-            .compare(getName(), o.getName())
-            .compare(isVisible(), o.isVisible())
+            .compare(name, o.name)
+            .compare(visible, o.visible)
             .result();
     }
+
 }
