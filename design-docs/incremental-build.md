@@ -32,14 +32,6 @@ metadata used for directory scanning to "visiting" the file tree so that metadat
 - Performance gains will be measured from existing performance tests. ✔︎
 - Expect existing test coverage will cover behavior of input/output snapshotting and file collection operations. ✔︎
 
-## Story: Changes to reduce byte/char array allocations and array copying
-
-- Just do it
-
-## Story: Changes for adjusting collection sizes when final size is known
-
-- Just do it
-
 ## Story: Reduce the in-memory size of the task history cache by interning file paths
 
 ### Implementation
@@ -91,21 +83,6 @@ Goal: support suppressing default excludes
 - Add support for suppressing the default excludes that are part of Ant integration legacy in Gradle. Default excludes aren't needed when there are specific include patterns. The default excludes support can be added to the same new PatternSet subclass that supports the separate (Caching)PatternSpecFactory.
 - make SourceSets in Gradle use the new PatternSet implementation that supports suppressing the default excludes and uses the CachingPatternSpecFactory managed by the Gradle infrastructure (`GlobalScopeServices`)
 
-
-## Story: High number of UnknownDomainObjectExceptions when resolving libraries in native projects.
-
-### Implementation
-
-- remove the use of UnknownDomainObjectException as flow control of normal program flow in LibraryBinaryLocator implementations (ChainedLibraryBinaryLocator, PrebuiltLibraryBinaryLocator, ProjectLibraryBinaryLocator). 
-  - return null from LibraryBinaryLocator.getBinaries method when binaries cannot be located.
-  - since exceptions won't be used for passing detailed error messages, they will be removed.
-- LibraryResolveException should be thrown in DefaultLibraryResolver.resolveLibraryBinary method if LibraryBinaryLocator returns a null.
-
-### Test coverage
-
-- No new test coverage is needed. Change existing test to follow the changed interface contract of LibraryBinaryLocator.
-
-
 ## Story: Add "discovered" inputs to incremental tasks
 
 This story adds a way for an incremental task to register additional inputs once execution has started.  At the end of execution, the discovered inputs are recorded in the task's execution history.
@@ -155,7 +132,38 @@ This story adds a way for an incremental task to register additional inputs once
 
 ## Story: Use source #include information as discovered inputs
 
-Based on IncrementalCompiler's #include extractor, add header files as discovered inputs to compile tasks.
+Based on IncrementalNativeCompiler's #include extractor, add header files as discovered inputs to compile tasks.
+
+### Implementation
+
+- From IncrementalNativeCompiler, add resolved includes to NativeCompileSpec
+- From AbstractNativeCompileTask, add resolved includes as discovered inputs to incremental task inputs
+- In AbstractNativeCompileTask, use @Input for getIncludes()
+- Remove "include hack" from perf tests for 2.10+.  Keep "include hack" for 2.8/2.9, unless they'll build within a reasonable time due to all of the other changes.
+
+### Test coverage
+
+- Reuse existing test coverage
+- Measure improvement/regression with native perf tests
+
+### Open issues
+
+- How to deal with missing #include files (macros and missing files)
+
+## Story: Performance test and profling for native incremental build where [1 | a few | all ] files require recompilation
+
+### Scenario: Incremental build where 1 file requires recompilation
+
+- 1 change in one of these categories:
+  - 1 C source file changed
+  - 1 header file (included in a few source files) changed
+  - 1 compiler option changed
+- Change happens after a previous build, so it is not a clean build
+- Needs to be something that causes the linker to run, so not just a comment change
+
+### Scenario: Incremental build where a few files require recompilation
+
+### Scenario: Incremental build where  all files require recompilation
 
 # Unprioritized
 
@@ -170,7 +178,6 @@ Based on IncrementalCompiler's #include extractor, add header files as discovere
   - this might happen when file modification times are different, but content is the same
 - The "fileSnapshots" in-memory cache should use weak references for values.
   - loaded fileSnapshots will get GCd under memory pressure
-
 
 ## Story: Reuse native source file dependency information within a build
 
@@ -275,21 +282,3 @@ When the `TaskHistory` gets persisted, it adds the current task execution to the
 ### Other caches
 
 - `HashClassPathSnapshotter` uses an unbounded cache instantiated in [`GlobalScopeServices`](https://github.com/gradle/gradle/blob/56404fa2cd7c466d7a5e19e8920906beffa9f919/subprojects/core/src/main/groovy/org/gradle/internal/service/scopes/GlobalScopeServices.java#L211-L212)
-
-
-# Native build improvements
-
-## Story: Performance test and profling for native incremental build where [1 | a few | all ] files require recompilation
-
-### Scenario: Incremental build where 1 file requires recompilation
-
-- 1 change in one of these categories:
-  - 1 C source file changed
-  - 1 header file (included in a few source files) changed
-  - 1 compiler option changed
-- Change happens after a previous build, so it is not a clean build
-- Needs to be something that causes the linker to run, so not just a comment change
-
-### Scenario: Incremental build where a few files require recompilation
-
-### Scenario: Incremental build where  all files require recompilation
