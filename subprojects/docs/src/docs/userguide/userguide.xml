@@ -27,9 +27,12 @@
             </para>
         </legalnotice>
     </bookinfo>
-    <xi:include href='introduction.xml'/>
-    <xi:include href='overview.xml'/>
-    <part label="I">
+    <part>
+        <title>About Gradle</title>
+        <xi:include href='introduction.xml'/>
+        <xi:include href='overview.xml'/>
+    </part>
+    <part>
         <title>Working with existing builds</title>
         <xi:include href='installation.xml'/>
         <xi:include href='commandLineTutorial.xml'/>
@@ -42,7 +45,7 @@
         <xi:include href='troubleshooting.xml'/>
         <xi:include href='embedding.xml'/>
     </part>
-    <part label="II">
+    <part>
         <title>Core build development</title>
         <xi:include href='buildScriptsTutorial.xml'/>
         <xi:include href='buildInitPlugin.xml'/>
@@ -70,7 +73,7 @@
         <xi:include href='announcePlugin.xml'/>
         <xi:include href='buildAnnouncementsPlugin.xml'/>
     </part>
-    <part label="III">
+    <part>
         <title>Extending the build</title>
         <xi:include href='customTasks.xml'/>
         <xi:include href='customPlugins.xml'/>
@@ -78,8 +81,9 @@
         <xi:include href='organizeBuildLogic.xml'/>
         <xi:include href='initscripts.xml'/>
         <xi:include href='testKit.xml' />
+        <xi:include href='newModel.xml'/>
     </part>
-    <part label="IV">
+    <part>
         <title>Building JVM projects</title>
         <xi:include href='javaTutorial.xml'/>
         <xi:include href='javaPlugin.xml'/>
@@ -107,16 +111,18 @@
         <xi:include href='eclipsePlugin.xml'/>
         <xi:include href='ideaPlugin.xml'/>
     </part>
-    <part label="V">
+    <part>
         <title>Building native projects</title>
         <xi:include href='nativeBinaries.xml'/>
-        <xi:include href='newModel.xml'/>
     </part>
-    <!-- this is generated -->
-    <xi:include href='../../../build/src/samplesList.xml'/>
-    <xi:include href='potentialTraps.xml'/>
-    <xi:include href='featureLifecycle.xml'/>
-    <xi:include href='commandLine.xml'/>
-    <xi:include href='ideSupport.xml'/>
-    <xi:include href='glossary.xml'/>
+    <part>
+        <title>Appendix</title>
+        <!-- this is generated -->
+        <xi:include href='../../../build/src/samplesList.xml'/>
+        <xi:include href='potentialTraps.xml'/>
+        <xi:include href='featureLifecycle.xml'/>
+        <xi:include href='commandLine.xml'/>
+        <xi:include href='ideSupport.xml'/>
+        <xi:include href='glossary.xml'/>
+    </part>
 </book>
