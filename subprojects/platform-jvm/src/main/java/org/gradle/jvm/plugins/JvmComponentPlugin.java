@@ -23,7 +23,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.*;
-import org.gradle.jvm.internal.apigen.ApiStubGenerator;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -184,7 +183,6 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     }
                 });
             } else {
-                final ApiStubGenerator stubGenerator = new ApiStubGenerator(allowedPackages);
                 tasks.create(createApiJar, StubbedJar.class, new Action<StubbedJar>() {
                     @Override
                     public void execute(StubbedJar jar) {
