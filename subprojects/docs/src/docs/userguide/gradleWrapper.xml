@@ -55,7 +55,6 @@
             <itemizedlist>
                 <listitem><para><filename>gradlew</filename>  (Unix Shell script)</para></listitem>
                 <listitem><para><filename>gradlew.bat</filename>  (Windows batch file)</para></listitem>
-                <listitem><para><filename>gradle/wrapper</filename>  (directory)</para></listitem>
                 <listitem><para><filename>gradle/wrapper/gradle-wrapper.jar</filename>  (wrapper JAR)</para></listitem>
                 <listitem><para><filename>gradle/wrapper/gradle-wrapper.properties</filename>  (wrapper properties)</para></listitem>
             </itemizedlist>
