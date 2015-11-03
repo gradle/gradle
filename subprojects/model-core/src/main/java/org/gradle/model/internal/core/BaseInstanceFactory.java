@@ -20,10 +20,15 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.internal.Cast;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
 import org.gradle.model.internal.type.ModelType;
 
@@ -100,6 +105,31 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
             }
         });
         return builder.build();
+    }
+
+    @Override
+    public <S extends T> Set<ModelProperty<?>> getHiddenProperties(ModelType<S> publicType, final ModelSchemaStore schemaStore) {
+        final ImmutableSet.Builder<ModelProperty<?>> pubPropsBuilder = ImmutableSet.builder();
+        final ImmutableSet.Builder<ModelProperty<?>> intPropsBuilder = ImmutableSet.builder();
+        ModelSchemaUtils.walkTypeHierarchy(publicType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
+            @Override
+            protected void visitRegistration(TypeRegistration<? extends T> registration) {
+                addAllPropertiesOf(schemaStore.getSchema(registration.publicType), pubPropsBuilder);
+                for (InternalViewRegistration<?> intViewReg : registration.internalViewRegistrations) {
+                    addAllPropertiesOf(schemaStore.getSchema(intViewReg.internalView), intPropsBuilder);
+                }
+            }
+
+            private void addAllPropertiesOf(ModelSchema<?> schema, ImmutableSet.Builder<ModelProperty<?>> builder) {
+                if (StructSchema.class.isAssignableFrom(schema.getClass())) {
+                    StructSchema<?> structSchema = (StructSchema) schema;
+                    for (ModelProperty<?> property : structSchema.getProperties()) {
+                        builder.add(property);
+                    }
+                }
+            }
+        });
+        return Sets.difference(intPropsBuilder.build(), pubPropsBuilder.build());
     }
 
     @Override

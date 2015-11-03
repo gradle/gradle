@@ -19,6 +19,8 @@ package org.gradle.model.internal.core
 import org.gradle.internal.util.BiFunction
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
@@ -267,5 +269,49 @@ class BaseInstanceFactoryTest extends Specification {
         then:
         def ex = thrown IllegalStateException
         ex.message == "Factory registration for '$ManagedThingSpec.name' is invalid because the default implementation type '$DefaultThingSpec.name' does not implement unmanaged internal view '$OtherThingSpec.name', internal view was registered by managed thing"
+    }
+    
+    static interface SomePublicType {
+        String getSome()
+        void setSome(String some)
+    }
+    static interface SomeSamePropertyType {
+        String getSome()
+        void setSome(String some)
+        String getLow()
+        void setLow(String low)
+    }
+    static interface SomeInternalType extends SomeSamePropertyType {
+        String getUp()
+        void setUp(String up)
+        String getLow()
+        void setLow(String low)
+    }
+    @Managed static interface SomeManagedPublicType extends SomePublicType, SomeSamePropertyType {}
+    @Managed static interface SomeManagedInternalType {}
+    @Managed static interface ChildManagedPublicType extends SomeManagedPublicType {
+        String getLow()
+        void setLow(String low)
+    }
+    @Managed static interface ChildManagedInternalType {
+        String getDown()
+        void setDown(String down)
+    }
+    static abstract class SomeBaseImplementation {}
+    
+    def "can get hidden properties"() {
+        def schemaStore = new DefaultModelSchemaStore(new ModelSchemaExtractor());
+        def instanceFactory = new BaseInstanceFactory<SomePublicType>("somes", SomePublicType, SomeBaseImplementation)
+        instanceFactory.register(ModelType.of(SomePublicType), new SimpleModelRuleDescriptor("base"))
+            .withInternalView(ModelType.of(SomeInternalType))
+        instanceFactory.register(ModelType.of(SomeManagedPublicType), new SimpleModelRuleDescriptor("managed"))
+            .withInternalView(ModelType.of(SomeManagedInternalType))
+        instanceFactory.register(ModelType.of(ChildManagedPublicType), new SimpleModelRuleDescriptor("child"))
+            .withInternalView(ModelType.of(ChildManagedInternalType))
+
+        expect:
+        instanceFactory.getHiddenProperties(ModelType.of(SomePublicType), schemaStore).collect{it.name} == ["low", "up"]
+        instanceFactory.getHiddenProperties(ModelType.of(SomeManagedPublicType), schemaStore).collect{it.name} == ["up"]
+        instanceFactory.getHiddenProperties(ModelType.of(ChildManagedPublicType), schemaStore).collect{it.name} == ["down", "up"]
     }
 }

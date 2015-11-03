@@ -18,6 +18,8 @@ package org.gradle.model.internal.core;
 
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Set;
@@ -32,6 +34,8 @@ public interface InstanceFactory<T> {
     <S extends T> TypeRegistrationBuilder<S> register(ModelType<S> publicType, ModelRuleDescriptor sourceRule);
 
     <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> type);
+    
+    <S extends T> Set<ModelProperty<?>> getHiddenProperties(ModelType<S> type, ModelSchemaStore schemaStore);
 
     /**
      * Return information about the implementation of a managed type with an unmanaged super-type.
