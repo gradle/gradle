@@ -198,7 +198,8 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
             import ${ComponentSpecInternal.name}
 
             interface UnmanagedComponentSpec extends ComponentSpec {
-                String unmanagedData
+                String getUnmanagedData()
+                void setUnmanagedData(String value)
             }
 
             class DefaultUnmanagedComponentSpec extends BaseComponentSpec implements UnmanagedComponentSpec {
@@ -207,12 +208,14 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             @Managed
             interface SampleComponentSpec extends UnmanagedComponentSpec {
-                String publicData
+                String getPublicData()
+                void setPublicData(String value)
             }
 
             @Managed
             interface InternalSampleSpec {
-                String internalData
+                String getInternalData()
+                void setInternalData(String value)
             }
 
             class RegisterComponentRules extends RuleSource {
