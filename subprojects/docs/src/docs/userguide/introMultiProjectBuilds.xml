@@ -41,7 +41,7 @@
             is as you can run the command <userinput>gradle projects</userinput>. Here's the output from using
             that command on the Java <emphasis>multiproject</emphasis> build in the Gradle samples:
             <sample id="listProjects" dir="java/multiproject" title="Listing the projects in a build">
-                <output args="projects"/>
+                <output args="-q projects"/>
             </sample>
         </para>
 
