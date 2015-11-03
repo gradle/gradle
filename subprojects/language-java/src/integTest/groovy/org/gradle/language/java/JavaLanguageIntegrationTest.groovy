@@ -71,7 +71,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLibJar/myLib.jar").getJavaVersion() == JavaVersion.VERSION_1_6
+        jarFile("build/jars/myLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(app.sources*.classFile.fullPath as String[])
     }
 
