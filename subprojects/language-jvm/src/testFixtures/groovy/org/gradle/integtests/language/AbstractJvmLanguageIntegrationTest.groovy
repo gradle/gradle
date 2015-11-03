@@ -152,7 +152,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
                     }
                     resources.source {
                         srcDir "src/myLib"
-                        ${exluceStatementFor(app.sourceFileExtensions)}
+                        ${excludeStatementFor(app.sourceFileExtensions)}
                     }
                 }
             }
@@ -167,7 +167,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
     }
 
-    def exluceStatementFor(List<String> fileExtensions) {
+    def excludeStatementFor(List<String> fileExtensions) {
         fileExtensions.collect{"exclude '**/*.${it}'"}.join(SystemProperties.instance.lineSeparator)
     }
 
