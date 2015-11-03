@@ -299,16 +299,15 @@ Allow a rule to declare internal views for any `@Managed` type.
 
 Infer a model element's hidden properties based on the parent's views:
 
-- When a property is declared on any of the parent's public view types, that property should be considered public.
+- When a property is declared on any of the parent's public view types, that property should be considered public, even if it is also declared on an internal view type
 - When a property is declared only on the parent's internal view types, that property should be considered hidden and not shown.
 - Add an option to model report to show all hidden elements and types.
 
 ### Test cases
 
-- Add `ModelReportIntegrationTest.extensible types internal views properties are not displayed on the report`
-  that register customs binaries, components and languages all having internal views and assert their internal properties are not present in the report
-- Add `ModelReportIntegrationTest.extensible types internal views properties display on the report when requested`
-  that do the same as the test above but requires the model report to show all hidden elements and types and assert their presence in the report
+- Add a test that register customs binaries, components and languages all having internal views and assert their internal properties are not present in the report
+- Add a test that do the same as the test above but requires the model report to show all hidden elements and types and assert their presence in the report
+- Add a test that register an element that have some property declared both in public and internal views and assert is is not hidden
 
 ### Implementation
 
