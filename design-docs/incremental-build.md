@@ -150,20 +150,38 @@ Based on IncrementalNativeCompiler's #include extractor, add header files as dis
 
 - How to deal with missing #include files (macros and missing files)
 
-## Story: Performance test and profling for native incremental build where [1 | a few | all ] files require recompilation
+## Story: Performance test and profiling for native incremental build where some files require recompilation
 
-### Scenario: Incremental build where 1 file requires recompilation
-
-- 1 change in one of these categories:
-  - 1 C source file changed
-  - 1 header file (included in a few source files) changed
-  - 1 compiler option changed
+#### Constraints
 - Change happens after a previous build, so it is not a clean build
 - Needs to be something that causes the linker to run, so not just a comment change
 
-### Scenario: Incremental build where a few files require recompilation
+#### Implementation
+- modify existing internal Performance testing framework to support measurements for these scenarios
+  - callbacks for before and after invocation with the information about the current test invocation
+    - test phase: warmup or measurement
+    - test loop number
+    - maximum number of loops
+    - BuildExperimentSpec instance
+  - in the before invocation callback, we can make changes to files
+  - add ability to omit measurements in the after invocation callback
+    - the build invocation that is done before changing files has to be omitted from measurements
+- implementation plan for the test:
+  -The build is run multiple times. Use the features added in the previous step for implementing the behaviour.
+    - on odd build loops, run the build and omit the measurement
+    - on even build loops, do the modification and run the build and record the measurement
+  - run the build loop 2 times in warmup phase and 10 times in execution phase (modification is made on every second loop).
+  - use an existing generated native build project for testing
+    - TBD: `nativeMonolithic` or something smaller, perhaps `mediumScenarioNative`
 
-### Scenario: Incremental build where  all files require recompilation
+### Scenario: Incremental build where 1 file requires recompilation
+- 1 C source file changed
+
+### Scenario: Incremental build where a few files require recompilation
+- 1 header file (included in a few source files) changed
+
+### Scenario: Incremental build where all files require recompilation
+- 1 compiler option changed
 
 # Unprioritized
 
