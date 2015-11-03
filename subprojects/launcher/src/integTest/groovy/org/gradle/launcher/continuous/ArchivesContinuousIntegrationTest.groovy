@@ -20,7 +20,6 @@ import spock.lang.Ignore
 import spock.lang.Unroll
 
 class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
-
     def "creating zips"() {
         given:
         def sourceDir = file("src")
@@ -68,7 +67,7 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
     }
 
     @Unroll
-    def "using compressed files as inputs - #source"() {
+    def "using compressed files as inputs - #source - readonly #readonly"() {
         given:
         def packDir = file("pack").createDir()
         def outputDir = file("unpack")
@@ -78,12 +77,20 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
             task unpack(type: Sync) {
                 from($type("${sourceFile.toURI()}"))
                 into("unpack")
+"""
+        if (readonly) {
+            buildFile << """
+                fileMode 0644
+                dirMode 0755
+            """
+        }
+        buildFile << """
             }
         """
 
         when:
         packDir.file("A").text = "original"
-        packDir."$packType"(sourceFile)
+        packDir."$packType"(sourceFile, readonly)
 
         then:
         succeeds("unpack")
@@ -92,7 +99,7 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
 
         when:
         packDir.file("A") << "-changed"
-        packDir."$packType"(sourceFile)
+        packDir."$packType"(sourceFile, readonly)
 
         then:
         succeeds()
@@ -100,11 +107,15 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         outputDir.file("A").text == "original-changed"
 
         where:
-        type      | packType | source
-        "zipTree" | "zipTo"  | "source.zip"
-        "tarTree" | "tarTo"  | "source.tar"
-        "tarTree" | "tgzTo"  | "source.tgz"
-        "tarTree" | "tbzTo"  | "source.tbz2"
+        type      | packType | source        | readonly
+        "zipTree" | "zipTo"  | "source.zip"  | true
+        "zipTree" | "zipTo"  | "source.zip"  | false
+        "tarTree" | "tarTo"  | "source.tar"  | true
+        "tarTree" | "tarTo"  | "source.tar"  | false
+        "tarTree" | "tgzTo"  | "source.tgz"  | true
+        "tarTree" | "tgzTo"  | "source.tgz"  | false
+        "tarTree" | "tbzTo"  | "source.tbz2" | true
+        "tarTree" | "tbzTo"  | "source.tbz2" | false
     }
 
     @Ignore("inputs from resources are ignored")
