@@ -15,11 +15,12 @@
  */
 
 package org.gradle.language.java
+
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-import static JavaIntegrationTesting.applyJavaPlugin
+import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 
 class SingleBinaryTypeWithVariantsTest extends VariantAwareDependencyResolutionSpec {
 

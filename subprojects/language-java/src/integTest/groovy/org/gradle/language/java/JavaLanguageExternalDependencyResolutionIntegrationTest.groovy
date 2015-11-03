@@ -18,20 +18,24 @@ package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
+
 class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
+
+    def theModel(String model) {
+        applyJavaPlugin(buildFile)
+        buildFile << """
+repositories {
+    maven { url '${mavenRepo.uri}' }
+}"""
+        buildFile << model
+    }
 
     def "can resolve dependency on library in maven repository"() {
         given:
         def module = mavenRepo.module("org.gradle", "test").publish()
 
-        buildFile << """
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-repositories {
-    maven { url '${mavenRepo.uri}' }
-}
+        theModel """
 model {
     components {
         main(JvmLibrarySpec) {
@@ -71,14 +75,7 @@ model {
                 .dependsOn("org.gradle", "runtimeDep", "1.0", null, "runtime")
                 .publish()
 
-        buildFile << """
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-repositories {
-    maven { url '${mavenRepo.uri}' }
-}
+        theModel """
 model {
     components {
         main(JvmLibrarySpec) {
@@ -114,14 +111,7 @@ model {
         given:
         mavenRepo.module("org.gradle", "compileDep").publish()
 
-        buildFile << """
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-repositories {
-    maven { url '${mavenRepo.uri}' }
-}
+        theModel """
 model {
     components {
         main(JvmLibrarySpec) {
@@ -172,14 +162,7 @@ model {
 
     def "resolved classpath for jvm library includes transitive api-scoped dependencies of local library dependency"() {
         given:
-        buildFile << """
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-repositories {
-    maven { url '${mavenRepo.uri}' }
-}
+        theModel """
 model {
     components {
         main(JvmLibrarySpec) {
@@ -253,14 +236,7 @@ model {
                 .dependsOn("org.gradle", "transitiveDep", "1.0", null, "runtime")
                 .publish()
 
-        buildFile << """
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-repositories {
-    maven { url '${mavenRepo.uri}' }
-}
+        theModel """
 model {
     components {
         main(JvmLibrarySpec) {

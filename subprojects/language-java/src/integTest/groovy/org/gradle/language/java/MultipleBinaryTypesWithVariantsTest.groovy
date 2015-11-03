@@ -18,7 +18,7 @@ package org.gradle.language.java
 
 import spock.lang.Unroll
 
-import static JavaIntegrationTesting.applyJavaPlugin
+import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.util.Matchers.containsText
 
 class MultipleBinaryTypesWithVariantsTest extends VariantAwareDependencyResolutionSpec {

@@ -20,16 +20,14 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
+
 class JavaSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can define dependencies on Java source set"() {
         given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -69,12 +67,8 @@ model {
 
     def "dependencies returned by the container are immutable"() {
         given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -115,12 +109,8 @@ model {
 
     def "cannot create a dependency with all null values with library"() {
         given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -152,12 +142,8 @@ model {
 
     def "cannot create a dependency with all null values with project"() {
         given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -189,12 +175,8 @@ model {
 
     def "filters duplicate dependencies"() {
         given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -245,12 +227,8 @@ model {
         file("src/main/java7/Java7.java") << "public class Java7 {}"
         file("src/main/java7-resources/java7.properties") << "java=7"
 
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {

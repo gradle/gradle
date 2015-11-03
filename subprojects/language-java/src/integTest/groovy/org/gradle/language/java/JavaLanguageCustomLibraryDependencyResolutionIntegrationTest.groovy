@@ -22,17 +22,19 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
-import static JavaIntegrationTesting.applyJavaPlugin
+import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 
 class JavaLanguageCustomLibraryDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can depend on a custom component producing a JVM library"() {
-        given:
+    def theModel(String model) {
         applyJavaPlugin(buildFile)
         addCustomLibraryType(buildFile)
+        buildFile << model
+    }
 
-        buildFile << '''
-
+    def "can depend on a custom component producing a JVM library"() {
+        given:
+        theModel '''
 model {
     components {
         zdep(CustomLibrary)
@@ -126,11 +128,7 @@ model {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "can depend on a custom component producing a JVM library with corresponding platform"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         zdep(CustomLibrary) {
@@ -177,11 +175,7 @@ model {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should fail resolving dependencies only for the missing dependency variant"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         zdep(CustomLibrary) {
@@ -229,11 +223,7 @@ model {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should choose the highest compatible platform variant of the target binary when dependency is a JVM component"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         zdep(JvmLibrarySpec) {
@@ -275,11 +265,7 @@ model {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should choose the highest compatible platform variant of the target binary when dependency is a custom component"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         zdep(CustomLibrary) {
@@ -318,11 +304,7 @@ model {
 
     def "custom component can consume a JVM library"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec)
@@ -359,11 +341,7 @@ model {
 
     def "Java consumes custom component consuming Java component"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
@@ -413,11 +391,7 @@ model {
 
     def "Custom consumes Java component consuming custom component"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(CustomLibrary) {
@@ -472,11 +446,7 @@ model {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "Cannot build all variants of main component because of missing dependency variant"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
@@ -538,11 +508,7 @@ model {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "Not all components target the same Java platforms"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
@@ -620,11 +586,7 @@ model {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "All components should depend on the corresponding variants"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
@@ -705,11 +667,7 @@ model {
 
     def "can define a cyclic dependency"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
@@ -767,11 +725,7 @@ model {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "Fails if one of the dependencies provides more than one binary for the selected variant"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
@@ -860,11 +814,7 @@ model {
                    +-----------------+
 
          */
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {

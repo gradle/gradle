@@ -194,12 +194,9 @@ model {
 }
 '''
         file('settings.gradle') << 'include "dep"'
-        file('dep/build.gradle') << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
+        def depBuildFile = file('dep/build.gradle')
+        applyJavaPlugin(depBuildFile)
+        depBuildFile << '''
 model {
     components {
         main(JvmLibrarySpec)
@@ -242,12 +239,9 @@ model {
 }
 '''
         file('settings.gradle') << 'include "dep"'
-        file('dep/build.gradle') << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
+        def depBuildFile = file('dep/build.gradle')
+        applyJavaPlugin(depBuildFile)
+        depBuildFile << '''
 model {
     components {
         main(JvmLibrarySpec)
@@ -502,13 +496,7 @@ model {
 }
 '''
         file('settings.gradle') << 'include "dep"'
-        file('dep/build.gradle') << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
-'''
+        applyJavaPlugin(file('dep/build.gradle'))
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         when:
