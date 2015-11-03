@@ -307,6 +307,8 @@ Infer a model element's hidden properties based on the parent's views:
 
 - Add `ModelReportIntegrationTest.extensible types internal views properties are not displayed on the report`
   that register customs binaries, components and languages all having internal views and assert their internal properties are not present in the report
+- Add `ModelReportIntegrationTest.extensible types internal views properties display on the report when requested`
+  that do the same as the test above but requires the model report to show all hidden elements and types and assert their presence in the report
 
 ### Implementation
 
@@ -314,6 +316,9 @@ Infer a model element's hidden properties based on the parent's views:
 This is how services are hidden in the model report.
 
 Implementation goal is then to set this `hidden` flag on `ModelNode`s backing internal views.
+
+This should be done as core model finalization rules for Component, Binary and Language types that would use a newly introduced `InstanceFactory.getHiddenProperties(ModelType<T> type)` method.
+`InstanceFactory` being the guy who knows all public and internal views and so is able to resolve properties publicity.
 
 ### Open Issues
 
