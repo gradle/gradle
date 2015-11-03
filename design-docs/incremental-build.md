@@ -167,12 +167,15 @@ Based on IncrementalNativeCompiler's #include extractor, add header files as dis
   - add ability to omit measurements in the after invocation callback
     - the build invocation that is done before changing files has to be omitted from measurements
 - implementation plan for the test:
-  -The build is run multiple times. Use the features added in the previous step for implementing the behaviour.
+  - The build is run multiple times. Use the features added in the previous step for implementing the behaviour.
     - on odd build loops, run the build and omit the measurement
     - on even build loops, do the modification and run the build and record the measurement
   - run the build loop 2 times in warmup phase and 10 times in execution phase (modification is made on every second loop).
-  - use an existing generated native build project for testing
-    - TBD: `nativeMonolithic` or something smaller, perhaps `mediumScenarioNative`
+  - Create 2 new builds for performance tests that are downsized from the `nativeMonolithic` build
+    - `smallNativeMonolithic`: 1% of `nativeMonolithic` size
+        - use for all 3 scenarios
+    - `mediumNativeMonolithic`: 10% of `nativeMonolithic` size
+        - use for 2 scenarios (1 file changes, few files change)
 
 ### Scenario: Incremental build where 1 file requires recompilation
 - 1 C source file changed
