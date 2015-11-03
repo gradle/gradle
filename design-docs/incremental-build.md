@@ -124,7 +124,7 @@ This story adds a way for an incremental task to register additional inputs once
 ### Open issues
 
 - If a discovered input is missing when it is discovered, should we treat that as a missing file input or a fatal problem? -- currently this is a fatal problem (files must exist)
-- Any change to discovered inputs causes all inputs to be out-of-date
+- Any change to discovered inputs causes all inputs to be out-of-date -- currently, task is still incremental
 - It would be nice to perform discovery incrementally.
 - It looks straightforward to not "stream" the hashes into the discovered snapshot and just create it all at once (like the other snapshots do).
 - The previous discovered files snapshot can be thrown away as soon as we know we'll be executing.
