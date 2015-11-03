@@ -18,6 +18,7 @@
 package org.gradle.nativeplatform.test.cunit
 
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
@@ -45,6 +46,12 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     def "cunit"() {
+        given:
+        // Only run on Windows when using VisualCpp toolchain
+        if (OperatingSystem.current().windows && !isVisualCpp()) {
+            return
+        }
+
         when:
         sample cunit
         succeeds "runPassing"
@@ -80,5 +87,9 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
         failingResults.suites['operator tests'].failingTests == ['test_plus']
         failingResults.checkTestCases(2, 1, 1)
         failingResults.checkAssertions(6, 4, 2)
+    }
+
+    private static boolean isVisualCpp() {
+        return AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp
     }
 }
