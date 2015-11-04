@@ -145,7 +145,7 @@ model {
 - When library A declares a component level dependency on library B, defined in the same project or a different one, then:
     - library B is considered part of the compile classpath of all source sets in library A
     - the API of library B is _not_ considered part of the API of library A unless an explicit api dependency is also declared (which renders the component level dependency redundant)
-
+- Components report should show component level dependencies
 ### Test cases
 
 - Given the example above:
