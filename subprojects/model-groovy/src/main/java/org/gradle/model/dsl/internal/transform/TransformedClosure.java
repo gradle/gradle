@@ -28,6 +28,11 @@ public interface TransformedClosure {
     InputReferences inputReferences();
 
     /**
+     * Returns the source location for this closure.
+     */
+    SourceLocation sourceLocation();
+
+    /**
      * Marks this closure as a rule action, with the given inputs
      */
     void makeRule(PotentialInputs inputs, boolean enableNestedRules);

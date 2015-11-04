@@ -425,17 +425,17 @@ cl.call()
 
         then:
         failureCauseContains('''
-  model.fooar @ build.gradle line 20, column 17
+  fooar { ... } @ build.gradle line 20, column 17
     subject:
       - fooar Object [*]
           suggestions: foobar
 
-  model.foobah @ build.gradle line 18, column 17
+  foobah { ... } @ build.gradle line 18, column 17
     subject:
       - foobah Object [*]
           suggestions: foobar
 
-  model.foonar @ build.gradle line 16, column 17
+  foonar { ... } @ build.gradle line 16, column 17
     subject:
       - foonar Object [*]
           suggestions: foobar
@@ -471,7 +471,7 @@ cl.call()
 
         then:
         failureCauseContains('''
-  model.tasks.raboof @ build.gradle line 15, column 17
+  tasks.raboof { ... } @ build.gradle line 15, column 17
     subject:
       - tasks.raboof Object
     inputs:

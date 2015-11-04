@@ -599,7 +599,7 @@ foo configured
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: model.tasks.foo")
+        failure.assertHasCause("Exception thrown while executing model rule: tasks.foo { ... } @ build.gradle line 21, column 17")
         failure.assertHasCause("config failure")
         failure.assertHasLineNumber(22)
     }

@@ -16,7 +16,6 @@
 
 package org.gradle.model.dsl.internal.transform;
 
-import net.jcip.annotations.NotThreadSafe;
 import org.codehaus.groovy.ast.*;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
@@ -36,9 +35,9 @@ import org.gradle.model.internal.core.ModelPath;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-@NotThreadSafe
 public class RuleVisitor extends ExpressionReplacingVisitorSupport {
 
     public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";
@@ -48,7 +47,6 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
 
     private static final String DOLLAR = "$";
     private static final String GET = "get";
-    private static final ClassNode RULE_METADATA = new ClassNode(RuleMetadata.class);
     private static final ClassNode POTENTIAL_INPUTS = new ClassNode(PotentialInputs.class);
     private static final ClassNode TRANSFORMED_CLOSURE = new ClassNode(TransformedClosure.class);
     private static final ClassNode INPUT_REFERENCES = new ClassNode(InputReferences.class);
@@ -74,17 +72,9 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     public static void visitGeneratedClosure(ClassNode node) {
         MethodNode closureCallMethod = AstUtils.getGeneratedClosureImplMethod(node);
         Statement closureCode = closureCallMethod.getCode();
-        SourceLocation sourceLocation = closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
-        if (sourceLocation != null) {
-            AnnotationNode metadataAnnotation = new AnnotationNode(RULE_METADATA);
-
-            metadataAnnotation.addMember("absoluteScriptSourceLocation", new ConstantExpression(sourceLocation.getUri().toString()));
-            metadataAnnotation.addMember("lineNumber", new ConstantExpression(sourceLocation.getLineNumber()));
-            metadataAnnotation.addMember("columnNumber", new ConstantExpression(sourceLocation.getColumnNumber()));
-
-            InputReferences inputs = closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
-
-            node.addAnnotation(metadataAnnotation);
+        InputReferences inputs = closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
+        if (inputs != null) {
+            SourceLocation sourceLocation = closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
 
             node.addInterface(TRANSFORMED_CLOSURE);
             node.addField(new FieldNode(INPUTS_FIELD_NAME, Modifier.PUBLIC, POTENTIAL_INPUTS, node, null));
@@ -126,10 +116,27 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                                 new Parameter[0],
                                 new ClassNode[0],
                                 new BlockStatement(statements, methodVarScope)));
+
+            // Generate sourceLocation() method
+            statements = new ArrayList<Statement>();
+            statements.add(new ReturnStatement(new ConstructorCallExpression(SOURCE_LOCATION,
+                    new ArgumentListExpression(Arrays.<Expression>asList(
+                            new ConstantExpression(sourceLocation.getUri().toString()),
+                            new ConstantExpression(sourceLocation.toString()),
+                            new ConstantExpression(sourceLocation.getExpression()),
+                            new ConstantExpression(sourceLocation.getLineNumber()),
+                            new ConstantExpression(sourceLocation.getColumnNumber())
+                    )))));
+            node.addMethod(new MethodNode("sourceLocation",
+                                Modifier.PUBLIC,
+                                SOURCE_LOCATION,
+                                new Parameter[0],
+                                new ClassNode[0],
+                                new BlockStatement(statements, new VariableScope())));
         }
     }
 
-    public void visitRuleClosure(ClosureExpression expression, SourceLocation sourceLocation) {
+    public void visitRuleClosure(ClosureExpression expression, Expression invocation, String invocationDisplayName) {
         InputReferences parentInputs = inputs;
         VariableExpression parentInputsVariable = inputsVariable;
         try {
@@ -138,7 +145,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             inputsVariable.setClosureSharedVariable(true);
             super.visitClosureExpression(expression);
             BlockStatement code = (BlockStatement) expression.getCode();
-            code.setNodeMetaData(AST_NODE_METADATA_LOCATION_KEY, sourceLocation);
+            code.setNodeMetaData(AST_NODE_METADATA_LOCATION_KEY, new SourceLocation(location, scriptSourceDescription, invocationDisplayName, invocation.getLineNumber(), invocation.getColumnNumber()));
             code.setNodeMetaData(AST_NODE_METADATA_INPUTS_KEY, inputs);
             if (parentInputsVariable != null) {
                 expression.getVariableScope().putReferencedLocalVariable(parentInputsVariable);
@@ -218,13 +225,13 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     public void visitExpressionStatement(ExpressionStatement stat) {
         if (stat.getExpression() instanceof MethodCallExpression) {
             MethodCallExpression call = (MethodCallExpression) stat.getExpression();
-            if (call.isImplicitThis()) {
+            if (call.isImplicitThis() && call.getArguments() instanceof ArgumentListExpression) {
                 ArgumentListExpression arguments = (ArgumentListExpression) call.getArguments();
                 if (!arguments.getExpressions().isEmpty()) {
                     Expression lastArg = arguments.getExpression(arguments.getExpressions().size() - 1);
                     if (lastArg instanceof ClosureExpression) {
                         // TODO - other args need to be visited
-                        visitRuleClosure((ClosureExpression) lastArg, new SourceLocation(location, scriptSourceDescription, call.getLineNumber(), call.getColumnNumber()));
+                        visitRuleClosure((ClosureExpression) lastArg, call, call.getText());
                         return;
                     }
                 }

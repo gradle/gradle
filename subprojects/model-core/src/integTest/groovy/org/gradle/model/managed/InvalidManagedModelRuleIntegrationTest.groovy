@@ -130,7 +130,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: model.platform")
+        failure.assertHasCause("Exception thrown while executing model rule: platform { ... } @ build.gradle line 31, column 17")
         failure.assertHasCause("Only managed model instances can be set as property 'operatingSystem' of class 'Platform'")
     }
 

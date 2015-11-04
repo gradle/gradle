@@ -125,8 +125,8 @@ model {
         fails "model"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: model.binaries @ build.gradle line 64, column 5")
-        failure.assertHasCause("Cannot create 'binaries.mylibMain' using creation rule 'model.binaries @ build.gradle line 64, column 5 > create(mylibMain)' as the rule 'ComponentModelBasePlugin.Rules#collectBinaries > put()' is already registered to create this model element.")
+        failure.assertHasCause("Exception thrown while executing model rule: binaries { ... } @ build.gradle line 64, column 5")
+        failure.assertHasCause("Cannot create 'binaries.mylibMain' using creation rule 'binaries { ... } @ build.gradle line 64, column 5 > create(mylibMain)' as the rule 'ComponentModelBasePlugin.Rules#collectBinaries > put()' is already registered to create this model element.")
     }
 
     def "input source sets of binary is union of component source sets and binary specific source sets"() {

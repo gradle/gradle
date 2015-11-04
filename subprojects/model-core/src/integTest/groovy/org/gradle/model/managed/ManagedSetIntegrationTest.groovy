@@ -515,8 +515,8 @@ configure p3
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'model.tasks @ build.gradle")
+        failure.assertHasCause("Exception thrown while executing model rule: tasks { ... } @ build.gradle line 15, column 17")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'tasks { ... } @ build.gradle line 15, column 17'")
     }
 
     def "cannot view managed set as model set"() {

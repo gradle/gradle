@@ -513,7 +513,7 @@ configure p3
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'model.tasks @ build.gradle")
+        failure.assertHasCause("Exception thrown while executing model rule: tasks { ... } @ build.gradle")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'tasks { ... } @ build.gradle")
     }
 }

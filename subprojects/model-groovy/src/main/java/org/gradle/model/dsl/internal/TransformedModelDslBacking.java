@@ -43,7 +43,7 @@ public class TransformedModelDslBacking {
      */
     public void configure(String modelPathString, Closure<?> closure) {
         ModelPath modelPath = ModelPath.path(modelPathString);
-        DeferredModelAction modelAction = ruleFactory.toAction(modelPath, Object.class, closure);
+        DeferredModelAction modelAction = ruleFactory.toAction(Object.class, closure);
         registerAction(modelPath, Object.class, ModelActionRole.Mutate, modelAction);
     }
 
@@ -52,7 +52,7 @@ public class TransformedModelDslBacking {
      */
     public <T> void create(String modelPathString, Class<T> type, Closure<?> closure) {
         ModelPath modelPath = ModelPath.path(modelPathString);
-        DeferredModelAction modelAction = ruleFactory.toAction(modelPath, type, closure);
+        DeferredModelAction modelAction = ruleFactory.toAction(type, closure);
         ModelRuleDescriptor descriptor = modelAction.getDescriptor();
         try {
             NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(), DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getType());

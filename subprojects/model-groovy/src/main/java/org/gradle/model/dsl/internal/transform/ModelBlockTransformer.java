@@ -16,7 +16,6 @@
 
 package org.gradle.model.dsl.internal.transform;
 
-import net.jcip.annotations.NotThreadSafe;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
@@ -32,7 +31,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
-@NotThreadSafe
 public class ModelBlockTransformer extends AbstractScriptTransformer {
     @Override
     protected int getPhase() {
@@ -93,7 +91,7 @@ public class ModelBlockTransformer extends AbstractScriptTransformer {
                 }
             } else {
                 RuleVisitor ruleVisitor = new RuleVisitor(source, scriptSourceDescription, location);
-                RulesVisitor rulesVisitor = new RulesVisitor(source, ruleVisitor, scriptSourceDescription, location);
+                RulesVisitor rulesVisitor = new RulesVisitor(source, ruleVisitor);
                 scriptBlock.getClosureExpression().getCode().visit(rulesVisitor);
             }
         }

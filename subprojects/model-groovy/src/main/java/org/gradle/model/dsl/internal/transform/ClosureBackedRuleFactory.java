@@ -35,15 +35,16 @@ import java.util.List;
 import java.util.Map;
 
 public class ClosureBackedRuleFactory {
-    private final Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor;
+    private final Transformer<SourceLocation, TransformedClosure> ruleLocationExtractor;
 
     public ClosureBackedRuleFactory(RelativeFilePathResolver relativeFilePathResolver) {
         this.ruleLocationExtractor = new RelativePathSourceLocationTransformer(relativeFilePathResolver);
     }
 
-    public <T> DeferredModelAction toAction(final ModelPath subjectPath, final Class<T> subjectType, final Closure<?> closure) {
-        SourceLocation sourceLocation = ruleLocationExtractor.transform(closure);
-        final ModelRuleDescriptor descriptor = sourceLocation.asDescriptor("model." + subjectPath);
+    public <T> DeferredModelAction toAction(final Class<T> subjectType, final Closure<?> closure) {
+        final TransformedClosure transformedClosure = (TransformedClosure) closure;
+        SourceLocation sourceLocation = ruleLocationExtractor.transform(transformedClosure);
+        final ModelRuleDescriptor descriptor = sourceLocation.asDescriptor();
 
         return new DeferredModelAction() {
             @Override
@@ -53,7 +54,6 @@ public class ClosureBackedRuleFactory {
 
             @Override
             public void execute(MutableModelNode node, ModelActionRole role) {
-                TransformedClosure transformedClosure = (TransformedClosure) closure;
                 final boolean supportsNestedRules = node.canBeViewedAs(ModelType.of(ManagedInstance.class));
                 InputReferences inputs = transformedClosure.inputReferences();
                 List<InputReference> inputReferences = supportsNestedRules ? inputs.getOwnReferences() : inputs.getAllReferences();
@@ -69,50 +69,42 @@ public class ClosureBackedRuleFactory {
                     }
                 }
 
-                node.applyToSelf(role, InputUsingModelAction.of(ModelReference.of(subjectPath, subjectType), descriptor, inputModelReferences, new BiAction<T, List<ModelView<?>>>() {
+                node.applyToSelf(role, InputUsingModelAction.of(ModelReference.of(node.getPath(), subjectType), descriptor, inputModelReferences, new BiAction<T, List<ModelView<?>>>() {
                     @Override
                     public void execute(T t, List<ModelView<?>> modelViews) {
+                        // Make a copy of the closure, attach inputs and execute
                         Closure<?> cloned = closure.rehydrate(null, closure.getThisObject(), closure.getThisObject());
                         ((TransformedClosure) cloned).makeRule(new PotentialInputs(modelViews, inputValues), supportsNestedRules);
                         ClosureBackedAction.execute(t, cloned);
                     }
                 }));
-
             }
         };
     }
 
-    private static class RelativePathSourceLocationTransformer implements Transformer<SourceLocation, Closure<?>> {
+    private static class RelativePathSourceLocationTransformer implements Transformer<SourceLocation, TransformedClosure> {
         private final RelativeFilePathResolver relativeFilePathResolver;
 
         public RelativePathSourceLocationTransformer(RelativeFilePathResolver relativeFilePathResolver) {
             this.relativeFilePathResolver = relativeFilePathResolver;
         }
 
-        private static RuleMetadata getRuleMetadata(Closure<?> closure) {
-            RuleMetadata ruleMetadata = closure.getClass().getAnnotation(RuleMetadata.class);
-            if (ruleMetadata == null) {
-                throw new IllegalStateException(String.format("Expected %s annotation to be used on the argument closure.", RuleMetadata.class.getName()));
-            }
-            return ruleMetadata;
-        }
-
         // TODO given that all the closures are from the same file, we should do the relativising once.
         //      that would entail adding location information to the model {} outer closure.
         @Override
-        public SourceLocation transform(Closure<?> closure) {
-            RuleMetadata ruleMetadata = getRuleMetadata(closure);
-            URI uri = URI.create(ruleMetadata.absoluteScriptSourceLocation());
+        public SourceLocation transform(TransformedClosure closure) {
+            SourceLocation sourceLocation = closure.sourceLocation();
+            URI uri = sourceLocation.getUri();
             String scheme = uri.getScheme();
             String description;
 
             if ("file".equalsIgnoreCase(scheme)) {
-                description = relativeFilePathResolver.resolveAsRelativePath(ruleMetadata.absoluteScriptSourceLocation());
+                description = relativeFilePathResolver.resolveAsRelativePath(uri);
             } else {
                 description = uri.toString();
             }
 
-            return new SourceLocation(uri, description, ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
+            return new SourceLocation(uri, description, sourceLocation.getExpression(), sourceLocation.getLineNumber(), sourceLocation.getColumnNumber());
         }
     }
 }

@@ -103,7 +103,7 @@ It must be one of:
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
-        modelNode.lss.@creator[0] == "model.lss @ build.gradle line 18, column 13"
+        modelNode.lss.@creator[0] == "lss(org.gradle.language.java.JavaSourceSet) @ build.gradle line 18, column 13"
         modelNode.lss.@type[0] == "org.gradle.language.java.JavaSourceSet"
         modelNode.lss.@nodeValue[0] == "Java source ':lss'"
     }

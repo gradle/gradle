@@ -184,13 +184,28 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
         failure.assertHasCause(TextUtil.toPlatformLineSeparators('''The following model rules could not be applied due to unbound inputs and/or subjects:
 
-  model.tasks @ build.gradle line 3, column 15
+  tasks { ... } @ build.gradle line 3, column 15
     subject:
       - tasks Object
     inputs:
       - unknown Object (@ line 4) [*]
 
 '''))
+    }
+
+    def "reports on configuration action failure"() {
+        when:
+        buildScript '''
+            model {
+              tasks {
+                unknown = 12
+              }
+            }
+        '''
+
+        then:
+        fails "tasks"
+        failure.assertHasCause('Exception thrown while executing model rule: tasks { ... } @ build.gradle line 3, column 15')
     }
 
     def "can use model block in script plugin"() {

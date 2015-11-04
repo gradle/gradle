@@ -77,7 +77,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
-        modelNode.functionalSources.@creator[0] == "model.functionalSources @ build.gradle line 5, column 13"
+        modelNode.functionalSources.@creator[0] == "functionalSources(org.gradle.language.base.FunctionalSourceSet) @ build.gradle line 5, column 13"
         modelNode.functionalSources.@type[0] == "org.gradle.language.base.FunctionalSourceSet"
     }
 

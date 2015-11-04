@@ -119,8 +119,8 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'model.tasks @ build.gradle")
+        failure.assertHasCause("Exception thrown while executing model rule: tasks { ... } @ build.gradle line 17, column 17")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'tasks { ... } @ build.gradle line 17, column 17")
     }
 
     def "mutating managed objects outside of a creation rule is not allowed"() {
