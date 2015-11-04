@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal.apigen
+package org.gradle.jvm.tasks.api
+
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
