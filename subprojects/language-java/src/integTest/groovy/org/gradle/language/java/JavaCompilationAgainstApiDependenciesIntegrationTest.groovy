@@ -18,7 +18,7 @@ package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static JavaIntegrationTesting.applyJavaPlugin
+import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 
 class JavaCompilationAgainstApiDependenciesIntegrationTest extends AbstractIntegrationSpec {
    def "api dependencies are visible from all source sets"() {
