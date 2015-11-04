@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal;
+package org.gradle.jvm.tasks.api;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
-public class StubbedJar extends DefaultTask {
+public class ApiJar extends DefaultTask {
 
     private Collection<String> exportedPackages;
     private File runtimeClassesDir;

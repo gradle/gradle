@@ -27,6 +27,7 @@ import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
 import org.gradle.language.base.internal.BuildDirHolder;
@@ -185,9 +186,9 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     }
                 });
             } else {
-                tasks.create(createApiJar, StubbedJar.class, new Action<StubbedJar>() {
+                tasks.create(createApiJar, ApiJar.class, new Action<ApiJar>() {
                     @Override
-                    public void execute(StubbedJar jar) {
+                    public void execute(ApiJar jar) {
                         final File apiClassesDir = new File(new File(buildDir, "apiClasses"), runtimeClassesDir.getName());
                         jar.setDescription(String.format("Creates the API binary file for %s.", binary));
                         jar.setRuntimeClassesDir(runtimeClassesDir);
