@@ -37,6 +37,8 @@ import org.objectweb.asm.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -440,6 +442,11 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         invokeStateSetMethod(methodVisitor);
 
         finishVisitingMethod(methodVisitor);
+
+        if (!propertyTypeClass.isPrimitive() && !BOXED_TYPES.values().contains(propertyTypeClass) && !propertyTypeClass.isEnum()
+            && !BigDecimal.class.equals(propertyTypeClass) && !BigInteger.class.equals(propertyTypeClass) && !String.class.equals(propertyTypeClass)) {
+            return;
+        }
 
         // the overload of type Object for Groovy coercions:  public void setFoo(Object foo)
         methodVisitor = declareMethod(visitor, setter.getName(), SET_OBJECT_PROPERTY_DESCRIPTOR, SET_OBJECT_PROPERTY_DESCRIPTOR);
