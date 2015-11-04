@@ -17,6 +17,9 @@
 package org.gradle.model.internal.manage.schema.extract
 import com.google.common.base.Optional
 import groovy.transform.NotYetImplemented
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.typeconversion.CharSequenceToScalarConverter
+import org.gradle.internal.typeconversion.TypeConverters
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.manage.instance.ManagedInstance
@@ -344,18 +347,6 @@ class ManagedProxyClassGeneratorTest extends Specification {
         e.message.startsWith("No signature of method: ${SomeType.name}.unknown() is applicable")
     }
 
-    def "reports contract type rather than implementation class when attempting to invoke method with unsupported parameters"() {
-        given:
-        def impl = newInstance(SomeType)
-
-        when:
-        impl.setValue('12')
-
-        then:
-        MissingMethodException e = thrown()
-        e.message.startsWith("No signature of method: ${SomeType.name}.setValue() is applicable")
-    }
-
     @Unroll
     def "can read and write #value to managed property of type #primitiveType"() {
         def loader = new GroovyClassLoader(getClass().classLoader)
@@ -377,6 +368,12 @@ class ManagedProxyClassGeneratorTest extends Specification {
         state.set(_, _) >> { args ->
             data[args[0]] = args[1]
         }
+
+        def converter = new CharSequenceToScalarConverter()
+        def services = Mock(ServiceRegistry)
+        services.get(_ as Class) >> { Class type -> if (type == TypeConverters) return converter }
+        state.getServices() >> services
+
         def proxy = generate(interfaceWithPrimitiveProperty)
         def instance = proxy.newInstance(state)
 
@@ -389,17 +386,16 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         where:
         primitiveType | value
-        byte          | "123"
+        byte          | "(byte)123"
         boolean       | "false"
         boolean       | "true"
         char          | "'c'"
         float         | "123.45f"
         long          | "123L"
-        short         | "123"
+        short         | "(short)123"
         int           | "123"
         double        | "123.456d"
     }
-
 
     @Unroll
     def "can read and write #value to managed property of type List<#scalarType>"() {
@@ -423,6 +419,11 @@ class ManagedProxyClassGeneratorTest extends Specification {
         state.set(_, _) >> { args ->
             data[args[0]] = args[1]
         }
+        def converter = new CharSequenceToScalarConverter()
+        def services = Mock(ServiceRegistry)
+        services.get(_ as Class) >> { Class type -> if (type == TypeConverters) return converter }
+        state.getServices() >> services
+
         def proxy = generate(clazz)
         def instance = proxy.newInstance(state)
 

@@ -16,15 +16,11 @@
 
 package org.gradle.model.managed
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.containsString
 
-// TODO:BB all tests have @NotYetImplemented because they pass in isolation, but other tests fail with
-//         the temporary CharSequenceToScalarConverter because the wrong exceptions are thrown
 class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String CLASSES = '''
@@ -136,7 +132,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         apply type: RulePlugin
         '''
 
-    @NotYetImplemented
     @Unroll
     void 'only CharSequence input values are supported'() {
         when:
@@ -153,17 +148,17 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         fails 'printResolvedValues'
 
         and:
-        failure.assertThatCause(containsString('Unsupported type'))
+        failure.assertThatCause(containsString('Cannot convert the provided notation to an object of type'))
         failure.assertThatCause(containsString('The following types/formats are supported:'))
         failure.assertThatCause(containsString('CharSequence instances'))
 
         where:
-        varname << ['theBigDecimal', 'theBigInteger', 'bool1', 'bool2', 'theBoolean', 'theDouble', 'thedouble',
-                    'thefloat', 'theFloat', 'theint', 'theInteger', 'theLong', 'thelong', 'theshort', 'theShort',
-                    'thebyte', 'theByte', 'thechar', 'theCharacter', 'theString', 'theThing']
+        // not including char, Character, and String since Groovy auto-coerces to String,
+        // or boolean/Boolean since those are special cased for 'true'
+        varname << ['theBigDecimal', 'theBigInteger', 'theDouble', 'thedouble', 'thefloat', 'theFloat', 'theint',
+                    'theInteger', 'theLong', 'thelong', 'theshort', 'theShort', 'thebyte', 'theByte', 'theThing']
     }
 
-    @NotYetImplemented
     @Unroll
     void 'number types require stringified numeric inputs'() {
         when:
@@ -200,7 +195,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         'theByte'       | 42    | Byte
     }
 
-    @NotYetImplemented
     @Unroll
     void 'primitive types cannot accept null values'() {
         when:
@@ -225,7 +219,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         varname << ['bool1', 'thedouble', 'thefloat', 'theint', 'thelong', 'theshort', 'thebyte', 'thechar']
     }
 
-    @NotYetImplemented
     @Unroll
     void 'non-primitive types can accept null values'() {
         when:
@@ -267,7 +260,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         output.contains 'prop theThing     : null'
     }
 
-    @NotYetImplemented
     void 'enum types require valid enum constants'() {
         when:
         buildFile << CLASSES
@@ -286,7 +278,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         failure.assertThatCause(containsString("Cannot coerce string value 'IS_NOT_A_TOASTER' to an enum value of type 'Thing'"))
     }
 
-    @Ignore // can't use NotYetImplemented here
     @Unroll
     void 'boolean types are only true for the literal string "true"'() {
         when:
@@ -312,7 +303,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         'false' | false
     }
 
-    @NotYetImplemented
     void 'can convert CharSequence to any scalar type'() {
         when:
         buildFile << CLASSES
