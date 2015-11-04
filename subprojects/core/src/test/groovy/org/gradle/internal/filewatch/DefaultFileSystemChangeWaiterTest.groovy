@@ -142,7 +142,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         then:
         waitFor.done
         lastChangeRef.get() != 0
-        (System.nanoTime() - lastChangeRef.get()) / 1000000L >= quietPeriod
+        Math.round((System.nanoTime() - lastChangeRef.get()) / 1000000L) >= quietPeriod
 
         where:
         description            | fileChanger
