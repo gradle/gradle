@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.plugins;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.*;
 import org.gradle.api.tasks.Copy;
 import org.gradle.internal.service.ServiceRegistry;
@@ -174,8 +173,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
             String libName = binaryName.substring(0, binaryName.lastIndexOf("Jar"));
             String createApiJar = "create" + capitalize(libName + "ApiJar");
-            final ImmutableList<String> allowedPackages = ImmutableList.copyOf(binary.getExportedPackages());
-            if (allowedPackages.isEmpty()) {
+            final Set<String> exportedPackages = binary.getExportedPackages();
+            if (exportedPackages.isEmpty()) {
                 tasks.create(createApiJar, Copy.class, new Action<Copy>() {
                     @Override
                     public void execute(Copy copy) {
@@ -192,7 +191,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         final File apiClassesDir = new File(new File(buildDir, "apiClasses"), runtimeClassesDir.getName());
                         jar.setDescription(String.format("Creates the API binary file for %s.", binary));
                         jar.setRuntimeClassesDir(runtimeClassesDir);
-                        jar.setExportedPackages(allowedPackages);
+                        jar.setExportedPackages(exportedPackages);
                         jar.setApiClassesDir(apiClassesDir);
                         jar.setDestinationDir(binary.getApiJarFile().getParentFile());
                         jar.setArchiveName(binary.getApiJarFile().getName());

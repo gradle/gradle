@@ -66,8 +66,8 @@ class ApiStubGeneratorTestSupport extends Specification {
 
         public final Map<String, GeneratedClass> classes
 
-        public ApiContainer(List<String> allowedPackages, Map<String, GeneratedClass> classes, boolean validateApi) {
-            this.stubgen = new ApiStubGenerator(allowedPackages, validateApi)
+        public ApiContainer(List<String> packages, Map<String, GeneratedClass> classes, boolean validateApi) {
+            this.stubgen = new ApiStubGenerator(packages.toSet(), validateApi)
             this.classes = classes
         }
 
@@ -120,7 +120,7 @@ class ApiStubGeneratorTestSupport extends Specification {
         toApi('1.6', packages, sources)
     }
 
-    protected ApiContainer toApi(String targetVersion, List<String> allowedPackages,  Map<String, String> sources) {
+    protected ApiContainer toApi(String targetVersion, List<String> packages,  Map<String, String> sources) {
         def dir = temporaryFolder.createDir('out')
         def fileManager = compiler.getStandardFileManager(null, null, null)
         def diagnostics = new DiagnosticCollector<JavaFileObject>()
@@ -142,7 +142,7 @@ class ApiStubGeneratorTestSupport extends Specification {
                 }
                 throw new AssertionError("Cannot find class $cn. Test is very likely not written correctly.")
             }
-            return new ApiContainer(allowedPackages, entries, validateApi)
+            return new ApiContainer(packages, entries, validateApi)
         }
 
         StringBuilder sb = new StringBuilder("Error in compilation of test sources:\n")

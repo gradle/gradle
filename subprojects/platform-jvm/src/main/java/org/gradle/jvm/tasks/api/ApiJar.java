@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.tasks.api;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.DefaultTask;
@@ -27,8 +26,8 @@ import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 
 import java.io.*;
-import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarEntry;
@@ -36,18 +35,18 @@ import java.util.jar.JarOutputStream;
 
 public class ApiJar extends DefaultTask {
 
-    private Collection<String> exportedPackages;
+    private Set<String> exportedPackages;
     private File runtimeClassesDir;
     private File destinationDir;
     private String archiveName;
     private File apiClassesDir;
 
     @Input
-    public Collection<String> getExportedPackages() {
+    public Set<String> getExportedPackages() {
         return exportedPackages;
     }
 
-    public void setExportedPackages(Collection<String> exportedPackages) {
+    public void setExportedPackages(Set<String> exportedPackages) {
         this.exportedPackages = exportedPackages;
     }
 
@@ -101,7 +100,7 @@ public class ApiJar extends DefaultTask {
         }
         destinationDir.mkdirs();
         apiClassesDir.mkdirs();
-        final ApiStubGenerator stubGenerator = new ApiStubGenerator(ImmutableList.copyOf(getExportedPackages()));
+        final ApiStubGenerator stubGenerator = new ApiStubGenerator(getExportedPackages());
         final AtomicBoolean updated = new AtomicBoolean();
         final Map<File, byte[]> convertedFiles = Maps.newHashMap();
         inputs.outOfDate(new ErroringAction<InputFileDetails>() {

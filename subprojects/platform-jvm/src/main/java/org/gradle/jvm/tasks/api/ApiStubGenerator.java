@@ -37,18 +37,18 @@ class ApiStubGenerator {
     private final MemberOfApiChecker memberOfApiChecker;
     private final ApiValidator apiValidator;
 
-    public ApiStubGenerator(List<String> allowedPackages) {
-        this(allowedPackages, false);
+    public ApiStubGenerator(Set<String> exportedPackages) {
+        this(exportedPackages, false);
     }
 
-    public ApiStubGenerator(List<String> allowedPackages, boolean validateExposedTypes) {
-        this.hasDeclaredAPI = !allowedPackages.isEmpty();
-        this.memberOfApiChecker = hasDeclaredAPI ? new DefaultMemberOfApiChecker(allowedPackages) : new AlwaysMemberOfApiChecker();
+    public ApiStubGenerator(Set<String> exportedPackages, boolean validateExposedTypes) {
+        this.hasDeclaredAPI = !exportedPackages.isEmpty();
+        this.memberOfApiChecker = hasDeclaredAPI ? new DefaultMemberOfApiChecker(exportedPackages) : new AlwaysMemberOfApiChecker();
         this.apiValidator = validateExposedTypes ? new DefaultApiValidator(memberOfApiChecker) : new NoOpValidator();
     }
 
     /**
-     * Returns true if the binary class found in parameter is belonging to the API. It will check if the class package is in the list of authorized packages, and if the access flags are ok with
+     * Returns true if the binary class found in parameter is belonging to the API. It will check if the class package is in the list of exported packages, and if the access flags are ok with
      * regards to the list of packages: if the list is empty, then package private classes are included, whereas if the list is not empty, an API has been declared and the class should be excluded.
      * Therefore, this method should be called on every .class file to process before it is either copied or processed through {@link #convertToApi(byte[])}.
      *
@@ -82,10 +82,10 @@ class ApiStubGenerator {
     }
 
     /**
-     * Strips out all the non public elements of a class and generates a new class out of it, based on the list of allowed packages.
+     * Strips out all the non-public elements of a class and generates a new class out of it, based on the list of exported packages.
      *
      * @param clazz the bytecode of a class
-     * @return bytecode for the same class, stripped out of all non public members
+     * @return bytecode for the same class, stripped of all non-public members
      */
     public byte[] convertToApi(byte[] clazz) {
         ClassReader cr = new ClassReader(clazz);

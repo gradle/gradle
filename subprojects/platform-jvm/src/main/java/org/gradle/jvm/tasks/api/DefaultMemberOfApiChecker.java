@@ -16,14 +16,14 @@
 
 package org.gradle.jvm.tasks.api;
 
-import java.util.Collection;
+import java.util.Set;
 
 class DefaultMemberOfApiChecker implements MemberOfApiChecker {
 
-    private final Collection<String> allowedPackages;
+    private final Set<String> exportedPackages;
 
-    public DefaultMemberOfApiChecker(Collection<String> allowedPackages) {
-        this.allowedPackages = allowedPackages;
+    public DefaultMemberOfApiChecker(Set<String> exportedPackages) {
+        this.exportedPackages = exportedPackages;
     }
 
     private static String extractPackageName(String className) {
@@ -40,8 +40,8 @@ class DefaultMemberOfApiChecker implements MemberOfApiChecker {
             }
         }
         boolean allowed = false;
-        for (String allowedPackage : allowedPackages) {
-            if (pkg.equals(allowedPackage)) {
+        for (String exportedPackage : exportedPackages) {
+            if (pkg.equals(exportedPackage)) {
                 allowed = true;
                 break;
             }
