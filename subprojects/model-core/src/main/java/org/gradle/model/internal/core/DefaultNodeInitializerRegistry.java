@@ -47,6 +47,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
         this.allStrategies = Lists.newArrayList(
             new ModelSetNodeInitializerExtractionStrategy(),
             new ManagedSetNodeInitializerExtractionStrategy(),
+            new SpecializedMapNodeInitializerExtractionStrategy(),
             new ModelMapNodeInitializerExtractionStrategy(),
             new ScalarCollectionNodeInitializerExtractionStrategy(),
             new ManagedImplStructNodeInitializerExtractionStrategy(schemaStore, proxyFactory, services)

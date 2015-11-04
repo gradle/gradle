@@ -31,7 +31,8 @@ import java.util.List;
 /**
  * Should be used along with {@code PolymorphicModelMapProjection}.
  */
-public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements ModelProjection {
+// TODO:DAZ Removed `P extends ModelMap<E>` : find a generics expert to help me put it back
+public class SpecializedModelMapProjection<P, E> implements ModelProjection {
 
     private final ModelType<P> publicType;
     private final ModelType<E> elementType;

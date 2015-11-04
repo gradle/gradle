@@ -32,18 +32,12 @@ import java.lang.ref.WeakReference;
 
     LD.
  */
-public class SpecializedMapSchema<T> extends AbstractModelSchema<T> {
+public class SpecializedMapSchema<T, E> extends CollectionSchema<T, E> {
     private final WeakReference<Class<?>> implementationType;
-    private final ModelType<?> elementType;
 
-    public SpecializedMapSchema(ModelType<T> type, ModelType<?> elementType, Class<?> implementationType) {
-        super(type);
-        this.elementType = elementType;
+    public SpecializedMapSchema(ModelType<T> type, ModelType<E> elementType, Class<?> implementationType) {
+        super(type, elementType);
         this.implementationType = new WeakReference<Class<?>>(implementationType);
-    }
-
-    public ModelType<?> getElementType() {
-        return elementType;
     }
 
     public Class<?> getImplementationType() {

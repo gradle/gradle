@@ -72,7 +72,13 @@ public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        extractionContext.found(new SpecializedMapSchema<T>(modelType, elementType, proxyImpl));
+        extractionContext.found(getModelSchema(extractionContext, elementType, proxyImpl));
+    }
+
+    private <T, E> SpecializedMapSchema<T, E> getModelSchema(ModelSchemaExtractionContext<T> extractionContext, ModelType<E> elementType, Class<?> implementationType) {
+        SpecializedMapSchema<T, E> schema = new SpecializedMapSchema<T, E>(extractionContext.getType(), elementType, implementationType);
+        extractionContext.child(elementType, "element type");
+        return schema;
     }
 
 }

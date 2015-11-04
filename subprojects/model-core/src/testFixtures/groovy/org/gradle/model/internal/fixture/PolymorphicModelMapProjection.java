@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.model.collection.internal;
+package org.gradle.model.internal.fixture;
 
 import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessor;
+import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.internal.core.ModelProjection;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
@@ -24,10 +26,6 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collection;
 
 public class PolymorphicModelMapProjection<T> extends ModelMapModelProjection<T> {
-
-    public static <T> ModelProjection ofEager(ModelType<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
-        return new PolymorphicModelMapProjection<T>(itemType, true, creatorStrategyAccessor);
-    }
 
     public static <T> ModelProjection of(ModelType<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
         return new PolymorphicModelMapProjection<T>(itemType, false, creatorStrategyAccessor);

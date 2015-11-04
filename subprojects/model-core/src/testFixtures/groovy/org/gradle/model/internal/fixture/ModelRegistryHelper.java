@@ -28,7 +28,6 @@ import org.gradle.internal.*;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
-import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;

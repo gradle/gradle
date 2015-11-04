@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.rules.ModelMapRegistrations;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
@@ -36,15 +35,11 @@ import org.gradle.language.base.internal.registry.DefaultLanguageTransformContai
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelRegistration;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.core.Service;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -73,29 +68,15 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 @Incubating
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     private final ModelRegistry modelRegistry;
-    private final ModelSchemaStore schemaStore;
 
     @Inject
-    public ComponentModelBasePlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
+    public ComponentModelBasePlugin(ModelRegistry modelRegistry) {
         this.modelRegistry = modelRegistry;
-        this.schemaStore = schemaStore;
     }
 
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
 
-        SimpleModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(ComponentModelBasePlugin.class.getSimpleName() + ".apply()");
-
-        SpecializedMapSchema<ComponentSpecContainer> schema = (SpecializedMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
-        ModelPath components = ModelPath.path("components");
-        ModelRegistration componentsRegistration = ModelMapRegistrations.specialized(
-            components,
-            ComponentSpec.class,
-            ComponentSpecContainer.class,
-            schema.getImplementationType().asSubclass(ComponentSpecContainer.class),
-            descriptor
-        );
-        modelRegistry.register(componentsRegistration);
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), ComponentRules.class);
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), ComponentBinaryRules.class);
     }
@@ -111,6 +92,9 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         BinarySpecFactory binarySpecFactory() {
             return new BinarySpecFactory("binaries");
         }
+
+        @Model
+        void components(ComponentSpecContainer componentSpecs) {}
 
         @Mutate
         void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, BinarySpecFactory binarySpecFactory, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {

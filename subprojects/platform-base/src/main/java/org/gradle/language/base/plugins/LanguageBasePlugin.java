@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.rules.ModelMapRegistrations;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
@@ -40,7 +39,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.manage.schema.extract.ConstructableTypesRegistry;
 import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -64,12 +62,10 @@ import java.util.Set;
 public class LanguageBasePlugin implements Plugin<Project> {
 
     private final ModelRegistry modelRegistry;
-    private final ModelSchemaStore schemaStore;
 
     @Inject
-    public LanguageBasePlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
+    public LanguageBasePlugin(ModelRegistry modelRegistry) {
         this.modelRegistry = modelRegistry;
-        this.schemaStore = schemaStore;
     }
 
     public void apply(final Project target) {
@@ -80,18 +76,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
     private void applyRules(ModelRegistry modelRegistry) {
         final String descriptor = LanguageBasePlugin.class.getSimpleName() + ".apply()";
         final ModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(descriptor);
-        ModelPath binariesPath = ModelPath.path("binaries");
-        SpecializedMapSchema<BinaryContainer> schema = (SpecializedMapSchema<BinaryContainer>) schemaStore.getSchema(ModelType.of(BinaryContainer.class));
-        // TODO:LPTR Replace with create() once reuse is taken out
-        modelRegistry.registerOrReplace(ModelMapRegistrations.specialized(
-            binariesPath,
-            BinarySpec.class,
-            BinaryContainer.class,
-            schema.getImplementationType().asSubclass(BinaryContainer.class),
-            ruleDescriptor
-        ));
 
-        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(ModelReference.of(binariesPath), ruleDescriptor, new Action<MutableModelNode>() {
+        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(ModelReference.of("binaries"), ruleDescriptor, new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode binariesNode) {
                 binariesNode.applyToAllLinks(ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpec.class), ruleDescriptor, ModelReference.of(ITaskFactory.class), new BiAction<BinarySpec, ITaskFactory>() {
@@ -132,6 +118,9 @@ public class LanguageBasePlugin implements Plugin<Project> {
         ConstructableTypesRegistry constructableTypesRegistry() {
             return new DefaultConstructableTypesRegistry();
         }
+
+        @Model
+        void binaries(BinaryContainer binaries) {}
 
         @Mutate
         // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
