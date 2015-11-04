@@ -26,6 +26,8 @@ import org.objectweb.asm.signature.SignatureVisitor;
 import java.util.Collections;
 import java.util.Set;
 
+import static org.gradle.jvm.tasks.api.AsmUtils.convertInternalNameToClassName;
+
 class DefaultApiValidator implements ApiValidator {
     private final MemberOfApiChecker memberOfApiChecker;
 
@@ -83,22 +85,20 @@ class DefaultApiValidator implements ApiValidator {
         throw new InvalidPublicAPIException(String.format("'%s' is annotated with '%s' effectively exposing it in the public API but its package is not one of the allowed packages.", owner, annotation));
     }
 
-    public static String toClassName(String cn) {
-        return cn.replace('/', '.');
-    }
-
     @Override
     public void validateSuperTypes(String name, String signature, String superName, String[] interfaces) {
-        if (!memberOfApiChecker.belongsToApi(toClassName(superName))) {
-            throw new InvalidPublicAPIException(String.format("'%s' extends '%s' and its package is not one of the allowed packages.", toClassName(name), toClassName(superName)));
+        String className = convertInternalNameToClassName(name);
+        String superClassName = convertInternalNameToClassName(superName);
+        if (!memberOfApiChecker.belongsToApi(superClassName)) {
+            throw new InvalidPublicAPIException(String.format("'%s' extends '%s' and its package is not one of the allowed packages.", className, superClassName));
         }
         Set<String> invalidReferencedTypes = invalidReferencedTypes(signature);
         if (!invalidReferencedTypes.isEmpty()) {
             if (invalidReferencedTypes.size() == 1) {
-                throw new InvalidPublicAPIException(String.format("'%s' references disallowed API type '%s' in superclass or interfaces.", toClassName(name), invalidReferencedTypes.iterator().next()));
+                throw new InvalidPublicAPIException(String.format("'%s' references disallowed API type '%s' in superclass or interfaces.", className, invalidReferencedTypes.iterator().next()));
             } else {
                 StringBuilder sb = new StringBuilder("The following types are referenced in ");
-                sb.append(toClassName(name));
+                sb.append(className);
                 sb.append(" superclass but their package don't belong to the allowed packages:\n");
                 for (String invalidReferencedType : invalidReferencedTypes) {
                     sb.append("   - ").append(invalidReferencedType).append("\n");
@@ -108,8 +108,9 @@ class DefaultApiValidator implements ApiValidator {
         }
         if (interfaces != null) {
             for (String intf : interfaces) {
-                if (!memberOfApiChecker.belongsToApi(toClassName(intf))) {
-                    throw new InvalidPublicAPIException(String.format("'%s' declares interface '%s' and its package is not one of the allowed packages.", toClassName(name), toClassName(intf)));
+                String interfaceName = convertInternalNameToClassName(intf);
+                if (!memberOfApiChecker.belongsToApi(interfaceName)) {
+                    throw new InvalidPublicAPIException(String.format("'%s' declares interface '%s' and its package is not one of the allowed packages.", className, interfaceName));
                 }
             }
         }
@@ -125,7 +126,7 @@ class DefaultApiValidator implements ApiValidator {
             @Override
             public void visitClassType(String name) {
                 super.visitClassType(name);
-                String className = toClassName(name);
+                String className = convertInternalNameToClassName(name);
                 if (!memberOfApiChecker.belongsToApi(className)) {
                     result.add(className);
                 }

@@ -74,7 +74,7 @@ class ApiStubGenerator {
         cr.accept(new ClassVisitor(Opcodes.ASM5) {
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                String className = toClassName(name);
+                String className = AsmUtils.convertInternalNameToClassName(name);
                 isAPI.set(memberOfApiChecker.belongsToApi(className) && isPublicAPI(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
             }
         }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
@@ -105,10 +105,6 @@ class ApiStubGenerator {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         cr.accept(new PublicAPIExtractor(new StubClassWriter(cw)), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return cw.toByteArray();
-    }
-
-    public static String toClassName(String cn) {
-        return cn.replace('/', '.');
     }
 
     private boolean isProtected(int access) {
@@ -234,7 +230,7 @@ class ApiStubGenerator {
 
         @Override
         public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
-            return apiValidator.validateAnnotation(toClassName(internalClassName), desc, new Factory<AnnotationVisitor>() {
+            return apiValidator.validateAnnotation(AsmUtils.convertInternalNameToClassName(internalClassName), desc, new Factory<AnnotationVisitor>() {
                 @Override
                 public AnnotationVisitor create() {
                     final AnnotationSig sig = classSig.addAnnotation(desc, visible);
