@@ -29,14 +29,14 @@ import java.util.regex.Pattern;
 class ApiUnitExtractor {
 
     // See JLS3 "Binary Compatibility" (13.1)
-    private final static Pattern AIC_LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
+    private static final Pattern LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
 
     private final boolean hasDeclaredApi;
-    private final MemberOfApiChecker memberOfApiChecker;
+    private final Set<String> exportedPackages;
 
     public ApiUnitExtractor(Set<String> exportedPackages) {
+        this.exportedPackages = exportedPackages;
         this.hasDeclaredApi = !exportedPackages.isEmpty();
-        this.memberOfApiChecker = hasDeclaredApi ? new DefaultMemberOfApiChecker(exportedPackages) : new AlwaysMemberOfApiChecker();
     }
 
     /**
@@ -66,7 +66,7 @@ class ApiUnitExtractor {
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 String className = AsmUtils.convertInternalNameToClassName(name);
-                shouldExtract.set(memberOfApiChecker.belongsToApi(className) && ApiMemberExtractor.isApiMember(access, hasDeclaredApi) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
+                shouldExtract.set(isApiMember(className) && ApiMemberExtractor.isApiMember(access, hasDeclaredApi) && !isLocalClass(className));
             }
         }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
         return shouldExtract.get();
@@ -92,5 +92,22 @@ class ApiUnitExtractor {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         cr.accept(new ApiMemberExtractor(new MethodStubbingClassVisitor(cw), hasDeclaredApi), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return cw.toByteArray();
+    }
+
+    private boolean isApiMember(String className) {
+        if (exportedPackages.isEmpty()) {
+            return true;
+        }
+        String packageName = className.indexOf('.') > 0 ? className.substring(0, className.lastIndexOf('.')) : "";
+        for (String exportedPackage : exportedPackages) {
+            if (packageName.equals(exportedPackage)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isLocalClass(String className) {
+        return LOCAL_CLASS_PATTERN.matcher(className).matches();
     }
 }
