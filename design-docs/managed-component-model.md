@@ -292,8 +292,16 @@ Allow a rule to declare internal views for any `@Managed` type.
 
 - Convert binary and component types where possible to `@Managed` types in core plugins. Convert these types:
     - TBD
+
+## User guide contains details and samples on how to use managed subtypes and internal views
+
+A decision was made during the implementation of other stories on this theme to wait on adding user guide documentation
+until all or most of the stories were complete. This card ensures we pay off this debt before calling the overall theme
+complete.
+
 - Update user guide and samples to show how to implement a custom `@Managed` `ComponentSpec` and `BinarySpec` type
 - Update user guide to show how to attach an internal view to the custom type
+- TBD
 
 ## Model report does not show internal properties of an element
 
