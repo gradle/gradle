@@ -202,6 +202,35 @@ model {
 
 - Declare a dependency set at the component level, to be used as the default for all its source sets.
 
+## Story: Performance tests assess the incremental build performance for a large multiproject java build
+
+Declaring an API on a component should have a significant impact on performance of incremental builds of large projects:
+whenever component `A` depends on component `B` and that `B` declares an API, then if `B` is changed but its ABI remains
+the same, `A` is not recompiled. Eventually, when generation of ABI signature is going to be expanded to all local libraries,
+we want to make sure that performance of incremental builds will also improve when no API is declared.
+
+The goal of this story is to capture these performance improvements into benchmarks and non regression tests.
+
+### Benchmarks
+
+* Change a source file that has no impact on the ABI of a library that is used transitively
+* Change a source file that has an impact on the ABI of a library that is used transitively
+
+This should be done for the 2 cases: API is declared and no API is declared (in the latter, no API declared is equivalent to
+having all packages exported, so changing a source file without having an impact on ABI means updating a method body or
+adding a private method).
+
+### Implementation
+
+Should reuse the [performance test generator](https://github.com/gradle/gradle/tree/master/buildSrc/src/main/groovy/org/gradle/performance/generator).
+Add, if not available already, ability to update a file for each iteration.
+There should be transitive dependencies: `A` depends on `B` depends on `C`..., and `A`
+is updated.
+
+### Out of scope
+
+Do not activate incremental compilation. Later stories may enable finer grained incremental builds with incremental compilation.
+
 ## Story: Consuming an API jar should throw an error
 
 Make sure that if a user puts a stubbed API jar on classpath, during execution of the program, an error is thrown. This should already be implemented
