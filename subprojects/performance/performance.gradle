@@ -1,5 +1,5 @@
-import org.gradle.performance.generator.tasks.*
 import org.gradle.performance.generator.*
+import org.gradle.performance.generator.tasks.*
 
 apply plugin: 'javascript-base'
 
@@ -419,11 +419,28 @@ task nativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
     templateArgs = [ overlapWithOutput: false ]
 }
 
-configure([nativeMonolithicOverlapping, nativeMonolithic]) {
+task smallNativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
+    templateArgs = [overlapWithOutput: false]
+}
+
+task mediumNativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
+    templateArgs = [overlapWithOutput: false]
+}
+
+configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic, mediumNativeMonolithic]) {
     projects = 100
+
     // number of source files to generate in each project of each type
     // this generates 200 C, 200 C++, 200 headers and 400 unused C/C++ files
     sourceFiles = 200
+
+    if (name.startsWith('small')) {
+        projects = 2
+        sourceFiles = 100
+    } else if (name.startsWith('medium')) {
+        projects = 10
+    }
+
     templateArgs += [
             // number of functions created in each source file
             functionCount: 50,
@@ -454,7 +471,7 @@ task prepareSamples {
         variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
         smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
         bigOldJavaMoreSource, lotProjectDependencies, smallJavaSwModelProject, largeJavaSwModelProject,
-        nativeMonolithic, nativeMonolithicOverlapping
+        nativeMonolithic, nativeMonolithicOverlapping, smallNativeMonolithic, mediumNativeMonolithic
     group = "Project Setup"
     description = "Generates all sample projects for automated performance tests"
 }
