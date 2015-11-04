@@ -247,6 +247,10 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                 statement.execute("update testOperation set configurationTime = 0");
                 statement.execute("alter table testOperation alter column configurationTime set not null");
             }
+            statement.execute("update testexecution set testid='build new java project largeJavaSwModelProject', testproject='largeJavaSwModelProject' where testid='build new java project largeNewMultiprojectJava'");
+            statement.execute("update testexecution set testid='build new java project largeJavaSwModelProject (parallel)', testproject='largeJavaSwModelProject' where testid='build new java project largeNewMultiprojectJava (parallel)'");
+            statement.execute("update testexecution set testid='build new java project smallJavaSwModelProject', testproject='smallJavaSwModelProject' where testid='build new java project smallNewMultiprojectJava'");
+            statement.execute("update testexecution set testid='build new java project smallJavaSwModelProject (parallel)', testproject='smallJavaSwModelProject' where testid='build new java project smallNewMultiprojectJava (parallel)'");
             statement.close();
             return null;
         }
