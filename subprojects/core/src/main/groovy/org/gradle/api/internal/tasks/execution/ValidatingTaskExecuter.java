@@ -28,11 +28,10 @@ import java.util.List;
 /**
  * A {@link TaskExecuter} which performs validation before executing the task.
  */
-public class ValidatingTaskExecuter implements TaskExecuter {
-    private final TaskExecuter executer;
+public class ValidatingTaskExecuter extends AbstractDelegatingTaskExecuter {
 
     public ValidatingTaskExecuter(TaskExecuter executer) {
-        this.executer = executer;
+        super(executer);
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {

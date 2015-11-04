@@ -26,12 +26,11 @@ import org.gradle.api.logging.Logging;
 /**
  * A {@link org.gradle.api.internal.tasks.TaskExecuter} which skips tasks that have no actions.
  */
-public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
+public class SkipTaskWithNoActionsExecuter extends AbstractDelegatingTaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(SkipTaskWithNoActionsExecuter.class);
-    private final TaskExecuter executer;
 
     public SkipTaskWithNoActionsExecuter(TaskExecuter executer) {
-        this.executer = executer;
+        super(executer);
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
@@ -50,5 +49,14 @@ public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
             return;
         }
         executer.execute(task, state, context);
+    }
+
+
+    public boolean isCurrentlyUpToDate(TaskInternal task, TaskStateInternal state) {
+        if (task.getActions().isEmpty()) {
+            LOGGER.debug("{} is up-to-date because it has no actions.", task);
+            return true;
+        }
+        return super.isCurrentlyUpToDate(task, state);
     }
 }

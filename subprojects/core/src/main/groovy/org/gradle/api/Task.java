@@ -553,6 +553,17 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     File getTemporaryDir();
 
     /**
+     * <p>Tells whether this task is currently up-to-date, using properties of the task but not of dependent tasks</p>
+     *
+     * Note that if this task has a dependency and build execution has not yet started, then it is possible for the task to
+     * be considered up-to-date before the build starts but for the task to be considered out-of-date when the task actually
+     * executes.
+     *
+     * @return whether this task is currently up-to-date.
+     */
+    boolean isCurrentlyUpToDate();
+
+    /**
      * <p>Specifies that this task must run after all of the supplied tasks.</p>
      *
      * <pre autoTested="true">
@@ -695,5 +706,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      */
     @Incubating
     TaskDependency getShouldRunAfter();
+
 }
 
