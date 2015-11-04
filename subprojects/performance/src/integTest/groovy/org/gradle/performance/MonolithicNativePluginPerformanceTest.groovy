@@ -16,7 +16,12 @@
 
 package org.gradle.performance
 
+import org.apache.commons.io.FileUtils
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.MeasuredOperation
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -53,5 +58,71 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         "nativeMonolithic"            | millis(1000)               | 4
         "nativeMonolithicOverlapping" | millis(1000)               | 0
         "nativeMonolithicOverlapping" | millis(1000)               | 4
+    }
+
+    @Unroll('Project #type native build 1 change')
+    def "build with 1 change"() {
+        given:
+        runner.testId = "native build ${type} 1 change"
+        runner.testProject = "${type}NativeMonolithic"
+        runner.tasksToRun = ['build']
+        runner.args = ["--parallel", "--max-workers=4"]
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.targetVersions = ['2.8', 'last']
+        runner.useDaemon = true
+        runner.gradleOpts = ["-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        runner.warmUpRuns = 2
+        runner.runs = 10
+        String projectType = type
+        runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
+            File file
+            String originalContent
+
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                if (file == null) {
+                    file = new File(invocationInfo.projectDir, projectType == "small" ? "modules/project1/src/src45_c.c" : "modules/project5/src/src100_c.c")
+                    assert file.exists()
+                    def backupFile = new File(file.parentFile, file.name + "~")
+                    if (backupFile.exists()) {
+                        originalContent = backupFile.text
+                        file.text = originalContent
+                    } else {
+                        originalContent = file.text
+                        FileUtils.copyFile(file, backupFile)
+                    }
+                }
+                if (invocationInfo.iterationNumber % 2 == 0) {
+                    println "Changing $file"
+                    // do change
+                    file.text = originalContent + """\nint C_function_added_in_test () {
+                    |  printf("Hello world!");
+                    |  return 0;
+                    |}\n""".stripMargin()
+                } else if (invocationInfo.iterationNumber > 2) {
+                    println "Reverting $file"
+                    file.text = originalContent
+                }
+            }
+
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                if (invocationInfo.iterationNumber % 2 == 1) {
+                    println "Omitting measurement from last run."
+                    measurementCallback.omitMeasurement()
+                }
+            }
+        }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        type     | maxExecutionTimeRegression
+        "small"  | millis(1000)
+        "medium" | millis(5000)
     }
 }
