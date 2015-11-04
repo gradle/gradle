@@ -288,10 +288,17 @@ Given a plugin defines a `@Managed` subtype of a general type, allow the plugin 
 
 Allow a rule to declare internal views for any `@Managed` type.
 
-## Core plugins use managed binary and component types
+## Convert our plugins to use internal views and managed subtypes of ComponentSpec
 
-- Convert binary and component types where possible to `@Managed` types in core plugins. Convert these types:
-    - TBD
+- TBD
+
+## Convert our plugins to use internal views and managed subtypes of BinarySpec
+
+- TBD
+
+## Convert our plugins to use internal views and managed subtypes of LanguageSourceSet
+
+- TBD
 
 ## User guide contains details and samples on how to use managed subtypes and internal views
 
