@@ -21,7 +21,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class ApiStubGeneratorValidationTest extends ApiStubGeneratorTestSupport {
+class ApiUnitExtractorValidationTest extends ApiUnitExtractorTestSupport {
 
     @Unroll
     def "should not throw an error if exposing a JDK class #type in method return type"() {
@@ -35,10 +35,10 @@ public abstract class A {
 
         when:
         def clazz = api.classes['com.acme.A']
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiUnitFrom(clazz)
         noExceptionThrown()
 
         where:
@@ -66,11 +66,11 @@ public class AImpl {}
         when:
         def clazz = api.classes['com.acme.A']
         def internal = api.classes['com.acme.internal.AImpl']
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(internal)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(internal)
         def ex = thrown(InvalidApiException)
         ex.message == "In $methodDescriptor, type com.acme.internal.AImpl is exposed in the public API but its package is not one of the allowed packages."
 
@@ -100,11 +100,11 @@ public class AImpl {}
         when:
         def clazz = api.classes['com.acme.A']
         def internal = api.classes['com.acme.internal.AImpl']
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(internal)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(internal)
         noExceptionThrown()
 
         where:
@@ -140,11 +140,11 @@ public class AInternal {}
         when:
         def clazz = api.classes['com.acme.A']
         def internal = api.classes['com.acme.internal.AInternal']
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(internal)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(internal)
         def ex = thrown(InvalidApiException)
         ex.message == """The following types are referenced in public com.acme.internal.AImpl toImpl(com.acme.internal.AInternal) but their package is not one of the allowed packages:
    - com.acme.internal.AInternal
@@ -180,11 +180,11 @@ public @interface Ann {}
         def clazz = api.classes['com.acme.A']
         def ann = api.classes['com.acme.internal.Ann']
         def annotations = clazz.clazz.annotations
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(ann)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(ann)
         annotations.size() == 1
         annotations[0].annotationType().name == 'com.acme.internal.Ann'
         def ex = thrown(InvalidApiException)
@@ -221,11 +221,11 @@ public @interface Ann {}
         def clazz = api.classes['com.acme.A']
         def ann = api.classes['com.acme.internal.Ann']
         def annotations = clazz.clazz.getDeclaredMethod('foo').annotations
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(ann)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(ann)
         annotations.size() == 1
         annotations[0].annotationType().name == 'com.acme.internal.Ann'
         def ex = thrown(InvalidApiException)
@@ -262,11 +262,11 @@ public @interface Ann {}
         def clazz = api.classes['com.acme.A']
         def ann = api.classes['com.acme.internal.Ann']
         def annotations = clazz.clazz.getDeclaredField('foo').annotations
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(ann)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(ann)
         annotations.size() == 1
         annotations[0].annotationType().name == 'com.acme.internal.Ann'
         def ex = thrown(InvalidApiException)
@@ -302,11 +302,11 @@ public @interface Ann {}
         when:
         def clazz = api.classes['com.acme.A']
         def ann = api.classes['com.acme.internal.Ann']
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(ann)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(ann)
         def ex = thrown(InvalidApiException)
         ex.message == "'public void foo(java.lang.String)' is annotated with 'com.acme.internal.Ann' effectively exposing it in the public API but its package is not one of the allowed packages."
     }
@@ -327,7 +327,7 @@ public class AImpl {}
 '''])
 
         when:
-        api.loadStub(api.classes['com.acme.A'])
+        api.extractAndLoadApiClassFrom(api.classes['com.acme.A'])
 
         then:
         def ex = thrown(InvalidApiException)
@@ -352,11 +352,11 @@ public interface AInternal {}
         when:
         def clazz = api.classes['com.acme.A']
         def internal = api.classes['com.acme.internal.AInternal']
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(internal)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(internal)
         def ex = thrown(InvalidApiException)
         ex.message == "'com.acme.A' declares interface 'com.acme.internal.AInternal' and its package is not one of the allowed packages."
     }
@@ -380,11 +380,11 @@ public class AImpl {}
         when:
         def clazz = api.classes['com.acme.A']
         def internal = api.classes['com.acme.internal.AImpl']
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(internal)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(internal)
         def ex = thrown(InvalidApiException)
         ex.message == "'com.acme.A' references disallowed API type 'com.acme.internal.AImpl' in superclass or interfaces."
     }
@@ -408,11 +408,11 @@ public class AImpl {}
         when:
         def clazz = api.classes['com.acme.A']
         def internal = api.classes['com.acme.internal.AImpl']
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(internal)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(internal)
         def ex = thrown(InvalidApiException)
         ex.message == "'com.acme.A' references disallowed API type 'com.acme.internal.AImpl' in superclass or interfaces."
     }
@@ -436,11 +436,11 @@ public class AImpl {}
         when:
         def clazz = api.classes['com.acme.A']
         def internal = api.classes['com.acme.internal.AImpl']
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(internal)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(internal)
         def ex = thrown(InvalidApiException)
         ex.message == "'com.acme.A' references disallowed API type 'com.acme.internal.AImpl' in superclass or interfaces."
     }
@@ -465,11 +465,11 @@ public class AImpl {}
         when:
         def clazz = api.classes['com.acme.A']
         def internal = api.classes['com.acme.internal.AImpl']
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(internal)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(internal)
         def ex = thrown(InvalidApiException)
         ex.message == "In public abstract java.util.List getImpls(), type com.acme.internal.AImpl is exposed in the public API but its package is not one of the allowed packages."
     }
@@ -494,11 +494,11 @@ public class AImpl {}
         when:
         def clazz = api.classes['com.acme.A']
         def internal = api.classes['com.acme.internal.AImpl']
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(internal)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(internal)
         def ex = thrown(InvalidApiException)
         ex.message == "Field 'public java.util.List impls' references disallowed API type 'com.acme.internal.AImpl'"
     }
@@ -529,12 +529,12 @@ public class AImpl2 {}
         def clazz = api.classes['com.acme.A']
         def internal = api.classes['com.acme.internal.AImpl']
         def internal2 = api.classes['com.acme.internal.AImpl2']
-        api.loadStub(clazz)
+        api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
-        !api.belongsToAPI(internal)
-        !api.belongsToAPI(internal2)
+        api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiUnitFrom(internal)
+        !api.shouldExtractApiUnitFrom(internal2)
         def ex = thrown(InvalidApiException)
         ex.message == """The following types are referenced in public java.util.Map map but their package is not one of the allowed packages:
    - com.acme.internal.AImpl

@@ -24,7 +24,7 @@ import spock.lang.Unroll
 import java.lang.reflect.Modifier
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
+class ApiUnitExtractorTest extends ApiUnitExtractorTestSupport {
 
     def "should not remove public method"() {
         given:
@@ -34,15 +34,15 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiUnitFrom(clazz)
         clazz.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
-        hasMethod(stubbed, 'foo')
+        hasMethod(extracted, 'foo')
 
         when:
-        def o = stubbed.newInstance()
+        def o = extracted.newInstance()
         o.foo()
 
         then:
@@ -58,15 +58,15 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiUnitFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Modifier.PROTECTED
-        hasMethod(stubbed, 'foo')
+        hasMethod(extracted, 'foo')
 
         when:
-        stubbed.newInstance()
+        extracted.newInstance()
 
         then:
         thrown(UnsupportedOperationException)
@@ -81,12 +81,12 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiUnitFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Modifier.PRIVATE
-        noSuchMethod(stubbed, 'foo')
+        noSuchMethod(extracted, 'foo')
 
     }
 
@@ -99,14 +99,14 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiUnitFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == 0
         hasMethod(clazz.clazz, 'bar').modifiers == Opcodes.ACC_STATIC
-        hasMethod(stubbed, 'foo').modifiers == 0
-        hasMethod(stubbed, 'bar').modifiers == Opcodes.ACC_STATIC
+        hasMethod(extracted, 'foo').modifiers == 0
+        hasMethod(extracted, 'bar').modifiers == Opcodes.ACC_STATIC
 
     }
 
@@ -119,14 +119,14 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiUnitFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == 0
         hasMethod(clazz.clazz, 'bar').modifiers == Opcodes.ACC_STATIC
-        noSuchMethod(stubbed, 'foo')
-        noSuchMethod(stubbed, 'bar')
+        noSuchMethod(extracted, 'foo')
+        noSuchMethod(extracted, 'bar')
 
     }
 
@@ -138,12 +138,12 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiUnitFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
-        hasMethod(stubbed, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
+        hasMethod(extracted, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
 
     }
 
@@ -166,35 +166,35 @@ public class B extends A {
         when:
         def clazzA = api.classes['com.acme.A']
         def clazzB = api.classes['com.acme.B']
-        def stubbedA = api.loadStub(clazzA)
-        def stubbedB = api.loadStub(clazzB)
+        def extractedA = api.extractAndLoadApiClassFrom(clazzA)
+        def extractedB = api.extractAndLoadApiClassFrom(clazzB)
 
         then:
-        api.belongsToAPI(clazzA)
-        api.belongsToAPI(clazzB)
+        api.shouldExtractApiUnitFrom(clazzA)
+        api.shouldExtractApiUnitFrom(clazzB)
         hasMethod(clazzA.clazz, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
         hasMethod(clazzA.clazz, 'bar').modifiers == Opcodes.ACC_PUBLIC
-        hasMethod(stubbedA, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
-        hasMethod(stubbedA, 'bar').modifiers == Opcodes.ACC_PUBLIC
+        hasMethod(extractedA, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
+        hasMethod(extractedA, 'bar').modifiers == Opcodes.ACC_PUBLIC
 
         and:
         hasMethod(clazzB.clazz, 'foo').modifiers == Opcodes.ACC_PUBLIC
-        hasMethod(stubbedB, 'foo').modifiers == Opcodes.ACC_PUBLIC
+        hasMethod(extractedB, 'foo').modifiers == Opcodes.ACC_PUBLIC
 
         when:
-        stubbedB.newInstance()
+        extractedB.newInstance()
 
         then:
         thrown(UnsupportedOperationException)
 
         when:
-        stubbedA.STATIC_IN_A()
+        extractedA.STATIC_IN_A()
 
         then:
         thrown(UnsupportedOperationException)
 
         when:
-        stubbedB.STATIC_IN_B()
+        extractedB.STATIC_IN_B()
 
         then:
         thrown(UnsupportedOperationException)
@@ -223,7 +223,7 @@ public abstract class A {
         ex.cause.message == 'This is a static initializer'
 
         when:
-        def clazz = api.loadStub(api.classes['com.acme.A'])
+        def clazz = api.extractAndLoadApiClassFrom(api.classes['com.acme.A'])
         clazz.forceInit()
 
         then:
@@ -241,11 +241,11 @@ public abstract class A {
     public static $type CONSTANT = $value;
 }""")
         when:
-        def stubbed = api.loadStub(api.classes['com.acme.A'])
-        def stubbedValue = stubbed.CONSTANT
+        def extracted = api.extractAndLoadApiClassFrom(api.classes['com.acme.A'])
+        def extractedValue = extracted.CONSTANT
 
         then:
-        stubbedValue == expected
+        extractedValue == expected
 
         where:
         type      | value          | expected
@@ -262,7 +262,7 @@ public abstract class A {
         def api = toApi(target, [A: 'public class A {}'])
 
         when:
-        def cr = new ClassReader(api.getStubBytes(api.classes.A))
+        def cr = new ClassReader(api.extractApiUnitFrom(api.classes.A))
         def stubVersion = 0
         cr.accept(new ClassVisitor(Opcodes.ASM5) {
             @Override
@@ -288,15 +288,15 @@ public abstract class A {
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiUnitFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PUBLIC
-        hasField(stubbed, 'foo', String)
+        hasField(extracted, 'foo', String)
 
         when:
-        def o = stubbed.newInstance()
+        def o = extracted.newInstance()
         o.foo()
 
         then:
@@ -312,15 +312,15 @@ public abstract class A {
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiUnitFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PROTECTED
-        hasField(stubbed, 'foo', String)
+        hasField(extracted, 'foo', String)
 
         when:
-        stubbed.newInstance()
+        extracted.newInstance()
 
         then:
         thrown(UnsupportedOperationException)
@@ -335,12 +335,12 @@ public abstract class A {
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiUnitFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PRIVATE
-        noSuchField(stubbed, 'foo', String)
+        noSuchField(extracted, 'foo', String)
 
     }
 
@@ -352,12 +352,12 @@ public abstract class A {
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiUnitFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == 0
-        hasField(stubbed, 'foo', String).modifiers == 0
+        hasField(extracted, 'foo', String).modifiers == 0
 
     }
 
@@ -369,12 +369,12 @@ public abstract class A {
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiUnitFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == 0
-        noSuchField(stubbed, 'foo', String)
+        noSuchField(extracted, 'foo', String)
 
     }
 
@@ -390,8 +390,8 @@ public abstract class A {
     }
 }""")
         when:
-        def stubbed = api.getStubBytes(api.classes['com.acme.A'])
-        def cr = new ClassReader(stubbed)
+        def apiUnitBytes = api.extractApiUnitFrom(api.classes['com.acme.A'])
+        def cr = new ClassReader(apiUnitBytes)
         cr.accept(new ClassVisitor(Opcodes.ASM5) {
             @Override
             void visitSource(String source, String debug) {
@@ -434,7 +434,7 @@ public abstract class A {
         def clazz = api.classes.A
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiUnitFrom(clazz)
     }
 
     def "package private class does not belong to API if API declared"() {
@@ -447,7 +447,7 @@ public abstract class A {
         def clazz = api.classes.A
 
         then:
-        !api.belongsToAPI(clazz)
+        !api.shouldExtractApiUnitFrom(clazz)
     }
 
 }

@@ -20,7 +20,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class ApiStubGeneratorAnnotationsTest extends ApiStubGeneratorTestSupport {
+class ApiUnitExtractorAnnotationsTest extends ApiUnitExtractorTestSupport {
 
     void "annotations on class are retained"() {
         given:
@@ -40,18 +40,18 @@ public @interface Ann {}
         when:
         def clazz = api.classes.A
         def annotations = clazz.clazz.annotations
-        def stubbed = api.loadStub(clazz)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
         def annClazz = api.classes.Ann
-        def stubbedAnn = api.loadStub(annClazz)
-        def stubbedAnnotations = stubbed.annotations
+        def extractedAnn = api.extractAndLoadApiClassFrom(annClazz)
+        def extractedAnnotations = extractedClass.annotations
 
         then:
-        api.belongsToAPI(clazz)
-        api.belongsToAPI(annClazz)
+        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiUnitFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
-        stubbedAnnotations.size() == 1
-        stubbedAnnotations[0].annotationType() == stubbedAnn
+        extractedAnnotations.size() == 1
+        extractedAnnotations[0].annotationType() == extractedAnn
     }
 
     void "annotations on method are retained"() {
@@ -75,18 +75,18 @@ public @interface Ann {}
         when:
         def clazz = api.classes.A
         def annotations = clazz.clazz.getDeclaredMethod('foo').annotations
-        def stubbed = api.loadStub(clazz)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
         def annClazz = api.classes.Ann
-        def stubbedAnn = api.loadStub(annClazz)
-        def stubbedAnnotations = stubbed.getDeclaredMethod('foo').annotations
+        def extractedAnn = api.extractAndLoadApiClassFrom(annClazz)
+        def extractedAnnotations = extractedClass.getDeclaredMethod('foo').annotations
 
         then:
-        api.belongsToAPI(clazz)
-        api.belongsToAPI(annClazz)
+        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiUnitFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
-        stubbedAnnotations.size() == 1
-        stubbedAnnotations[0].annotationType() == stubbedAnn
+        extractedAnnotations.size() == 1
+        extractedAnnotations[0].annotationType() == extractedAnn
     }
 
     void "annotations on method params are retained"() {
@@ -111,19 +111,19 @@ public @interface Ann {
         when:
         def clazz = api.classes.A
         def annotations = clazz.clazz.getDeclaredMethod('foo', String).parameterAnnotations[0]
-        def stubbed = api.loadStub(clazz)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
         def annClazz = api.classes.Ann
-        def stubbedAnn = api.loadStub(annClazz)
-        def stubbedAnnotations = stubbed.getDeclaredMethod('foo', String).parameterAnnotations[0]
+        def extractedAnn = api.extractAndLoadApiClassFrom(annClazz)
+        def extractedAnnotations = extractedClass.getDeclaredMethod('foo', String).parameterAnnotations[0]
 
         then:
-        api.belongsToAPI(clazz)
-        api.belongsToAPI(annClazz)
+        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiUnitFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
-        stubbedAnnotations.size() == 1
-        stubbedAnnotations[0].annotationType() == stubbedAnn
-        stubbedAnnotations[0].path() == 'somePath'
+        extractedAnnotations.size() == 1
+        extractedAnnotations[0].annotationType() == extractedAnn
+        extractedAnnotations[0].path() == 'somePath'
     }
 
     void "annotations on field are retained"() {
@@ -149,19 +149,19 @@ public @interface Ann {
         when:
         def clazz = api.classes.A
         def annotations = clazz.clazz.getDeclaredField('foo').annotations
-        def stubbed = api.loadStub(clazz)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
         def annClazz = api.classes.Ann
-        def stubbedAnn = api.loadStub(annClazz)
-        def stubbedAnnotations = stubbed.getDeclaredField('foo').annotations
+        def extractedAnn = api.extractAndLoadApiClassFrom(annClazz)
+        def extractedAnnotations = extractedClass.getDeclaredField('foo').annotations
 
         then:
-        api.belongsToAPI(clazz)
-        api.belongsToAPI(annClazz)
+        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiUnitFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
-        stubbedAnnotations.size() == 1
-        stubbedAnnotations[0].annotationType() == stubbedAnn
-        stubbedAnnotations[0].a() == 'b'
+        extractedAnnotations.size() == 1
+        extractedAnnotations[0].annotationType() == extractedAnn
+        extractedAnnotations[0].a() == 'b'
     }
 
     void "annotation value is retained"() {
@@ -200,19 +200,19 @@ public @interface SubAnn {
         def annClazz = api.classes.Ann
         def subAnnClazz = api.classes.SubAnn
 
-        def stubbedSubAnn = api.loadStub(subAnnClazz)
-        def stubbedAnn = api.loadStub(annClazz)
-        def stubbed = api.loadStub(clazz)
-        def stubbedAnnotations = stubbed.annotations
+        api.extractAndLoadApiClassFrom(subAnnClazz)
+        def extractedAnn = api.extractAndLoadApiClassFrom(annClazz)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def extractedAnnotations = extractedClass.annotations
 
         then:
-        api.belongsToAPI(clazz)
-        api.belongsToAPI(annClazz)
+        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiUnitFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
-        stubbedAnnotations.size() == 1
-        def annotation = stubbedAnnotations[0]
-        annotation.annotationType() == stubbedAnn
+        extractedAnnotations.size() == 1
+        def annotation = extractedAnnotations[0]
+        annotation.annotationType() == extractedAnn
         def subAnnotation = annotation.value()
         subAnnotation.annotationType().name == 'SubAnn'
         subAnnotation.value() == 'foo'
@@ -255,19 +255,19 @@ public @interface SubAnn {
         def annClazz = api.classes.Ann
         def subAnnClazz = api.classes.SubAnn
 
-        def stubbedSubAnn = api.loadStub(subAnnClazz)
-        def stubbedAnn = api.loadStub(annClazz)
-        def stubbed = api.loadStub(clazz)
-        def stubbedAnnotations = stubbed.annotations
+        api.extractAndLoadApiClassFrom(subAnnClazz)
+        def extractedAnn = api.extractAndLoadApiClassFrom(annClazz)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def extractedAnnotations = extractedClass.annotations
 
         then:
-        api.belongsToAPI(clazz)
-        api.belongsToAPI(annClazz)
+        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiUnitFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
-        stubbedAnnotations.size() == 1
-        def annotation = stubbedAnnotations[0]
-        annotation.annotationType() == stubbedAnn
+        extractedAnnotations.size() == 1
+        def annotation = extractedAnnotations[0]
+        annotation.annotationType() == extractedAnn
         def subAnnotations = annotation.value()
         subAnnotations.length == 2
         subAnnotations.collect { it.value() } == ['foo', 'bar']

@@ -24,7 +24,7 @@ import spock.lang.Unroll
 import java.lang.reflect.Modifier
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class ApiStubGeneratorInnerClassTest extends ApiStubGeneratorTestSupport {
+class ApiUnitExtractorInnerClassTest extends ApiUnitExtractorTestSupport {
 
     private final static int ACC_PUBLICSTATIC = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC
     private final static int ACC_PROTECTEDSTATIC = Opcodes.ACC_PROTECTED | Opcodes.ACC_STATIC
@@ -43,18 +43,18 @@ public class A {
         when:
         def outer = api.classes.A
         def inner = api.classes['A$Inner']
-        def stubbedOuter = api.loadStub(outer)
-        def stubbedInner = api.loadStub(inner)
+        def extractedOuter = api.extractAndLoadApiClassFrom(outer)
+        def extractedInner = api.extractAndLoadApiClassFrom(inner)
 
         then:
-        api.belongsToAPI(outer)
-        api.belongsToAPI(inner)
+        api.shouldExtractApiUnitFrom(outer)
+        api.shouldExtractApiUnitFrom(inner)
         inner.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
-        stubbedInner.modifiers == access
-        hasMethod(stubbedInner, 'foo').modifiers == Modifier.PUBLIC
+        extractedInner.modifiers == access
+        hasMethod(extractedInner, 'foo').modifiers == Modifier.PUBLIC
 
         when:
-        def o = !(modifier =~ /static/) ? stubbedInner.newInstance(null) : stubbedInner.newInstance()
+        def o = !(modifier =~ /static/) ? extractedInner.newInstance(null) : extractedInner.newInstance()
         o.foo()
 
         then:
@@ -86,13 +86,13 @@ public class A {
         when:
         def outer = api.classes.A
         def inner = api.classes['A$Inner']
-        def stubbedOuter = api.loadStub(outer)
+        def extractedOuter = api.extractAndLoadApiClassFrom(outer)
 
         then:
-        api.belongsToAPI(outer)
-        !api.belongsToAPI(inner)
+        api.shouldExtractApiUnitFrom(outer)
+        !api.shouldExtractApiUnitFrom(inner)
         inner.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
-        stubbedOuter.classes.length == 0
+        extractedOuter.classes.length == 0
 
         where:
         modifier           | access
@@ -115,12 +115,12 @@ public class A {
         when:
         def outer = api.classes.A
         def inner = api.classes['A$1']
-        def stubbedOuter = api.loadStub(outer)
+        def extractedOuter = api.extractAndLoadApiClassFrom(outer)
 
         then:
-        api.belongsToAPI(outer)
-        !api.belongsToAPI(inner)
-        stubbedOuter.classes.length == 0
+        api.shouldExtractApiUnitFrom(outer)
+        !api.shouldExtractApiUnitFrom(inner)
+        extractedOuter.classes.length == 0
     }
 
     def "should not keep anonymous local classes"() {
@@ -135,12 +135,12 @@ public class A {
         when:
         def outer = api.classes.A
         def inner = api.classes['A$1Person']
-        def stubbedOuter = api.loadStub(outer)
+        def extractedOuter = api.extractAndLoadApiClassFrom(outer)
 
         then:
-        api.belongsToAPI(outer)
-        !api.belongsToAPI(inner)
-        stubbedOuter.classes.length == 0
+        api.shouldExtractApiUnitFrom(outer)
+        !api.shouldExtractApiUnitFrom(inner)
+        extractedOuter.classes.length == 0
     }
 
 }

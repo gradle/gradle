@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import org.objectweb.asm.ClassReader
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -30,13 +31,13 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class ApiStubGeneratorTestSupport extends Specification {
+class ApiUnitExtractorTestSupport extends Specification {
     private static class JavaSourceFromString extends SimpleJavaFileObject {
 
         private final String code
 
         JavaSourceFromString(String name, String code) {
-            super(URI.create("string:///${ApiStubGeneratorTestSupport.toFileName(name)}"),
+            super(URI.create("string:///${ApiUnitExtractorTestSupport.toFileName(name)}"),
                 JavaFileObject.Kind.SOURCE)
             this.code = code
         }
@@ -62,25 +63,25 @@ class ApiStubGeneratorTestSupport extends Specification {
     @CompileStatic
     public static class ApiContainer {
         private final ApiClassLoader apiClassLoader = new ApiClassLoader()
-        private final ApiStubGenerator stubgen
+        private final ApiUnitExtractor apiUnitExtractor
 
         public final Map<String, GeneratedClass> classes
 
         public ApiContainer(List<String> packages, Map<String, GeneratedClass> classes, boolean validateApi) {
-            this.stubgen = new ApiStubGenerator(packages.toSet(), validateApi)
+            this.apiUnitExtractor = new ApiUnitExtractor(packages.toSet(), validateApi)
             this.classes = classes
         }
 
-        protected Class<?> loadStub(GeneratedClass clazz) {
-            apiClassLoader.loadClassFromBytes(stubgen.convertToApi(clazz.bytes))
+        protected Class<?> extractAndLoadApiClassFrom(GeneratedClass clazz) {
+            apiClassLoader.loadClassFromBytes(apiUnitExtractor.extractApiUnitFrom(new ClassReader(clazz.bytes)))
         }
 
-        protected byte[] getStubBytes(GeneratedClass clazz) {
-            stubgen.convertToApi(clazz.bytes)
+        protected byte[] extractApiUnitFrom(GeneratedClass clazz) {
+            apiUnitExtractor.extractApiUnitFrom(new ClassReader(clazz.bytes))
         }
 
-        protected boolean belongsToAPI(GeneratedClass clazz) {
-            stubgen.belongsToApi(clazz.bytes)
+        protected boolean shouldExtractApiUnitFrom(GeneratedClass clazz) {
+            apiUnitExtractor.shouldExtractApiUnitFrom(new ClassReader(clazz.bytes))
         }
     }
 

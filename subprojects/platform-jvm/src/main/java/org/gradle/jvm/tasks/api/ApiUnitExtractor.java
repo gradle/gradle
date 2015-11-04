@@ -21,6 +21,8 @@ import com.google.common.collect.Sets;
 import org.gradle.internal.Factory;
 import org.objectweb.asm.*;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -28,7 +30,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
-class ApiStubGenerator {
+class ApiUnitExtractor {
 
     // See JLS3 "Binary Compatibility" (13.1)
     private final static Pattern AIC_LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
@@ -37,11 +39,11 @@ class ApiStubGenerator {
     private final MemberOfApiChecker memberOfApiChecker;
     private final ApiValidator apiValidator;
 
-    public ApiStubGenerator(Set<String> exportedPackages) {
+    public ApiUnitExtractor(Set<String> exportedPackages) {
         this(exportedPackages, false);
     }
 
-    public ApiStubGenerator(Set<String> exportedPackages, boolean validateExposedTypes) {
+    public ApiUnitExtractor(Set<String> exportedPackages, boolean validateExposedTypes) {
         this.hasDeclaredApi = !exportedPackages.isEmpty();
         this.memberOfApiChecker = hasDeclaredApi ? new DefaultMemberOfApiChecker(exportedPackages) : new AlwaysMemberOfApiChecker();
         this.apiValidator = validateExposedTypes ? new DefaultApiValidator(memberOfApiChecker) : new NoOpValidator();
@@ -50,58 +52,53 @@ class ApiStubGenerator {
     /**
      * Returns true if the binary class found in parameter is belonging to the API. It will check if the class package is in the list of exported packages, and if the access flags are ok with
      * regards to the list of packages: if the list is empty, then package private classes are included, whereas if the list is not empty, an API has been declared and the class should be excluded.
-     * Therefore, this method should be called on every .class file to process before it is either copied or processed through {@link #convertToApi(byte[])}.
+     * Therefore, this method should be called on every .class file to process before it is either copied or processed through {@link #extractApiUnitFrom(File)}.
      *
-     * @param clazz the bytecode of the class to test
-     * @return true if this class should be exposed in the API.
+     * @param compilationUnit the file containing the compilation unit to evaluate
+     * @return whether the given compilation unit is a candidate for API extraction
      */
-    public boolean belongsToApi(byte[] clazz) {
-        ClassReader cr = new ClassReader(clazz);
-        return belongsToApi(cr);
-    }
-
-    public boolean belongsToApi(InputStream inputStream) throws IOException {
-        ClassReader cr = new ClassReader(inputStream);
+    public boolean shouldExtractApiUnitFrom(File compilationUnit) throws IOException {
+        if (!compilationUnit.getName().endsWith(".class")) {
+            return false;
+        }
+        InputStream inputStream = new FileInputStream(compilationUnit);
+        ClassReader classReader = new ClassReader(inputStream);
         try {
-            return belongsToApi(cr);
+            return shouldExtractApiUnitFrom(classReader);
         } finally {
             inputStream.close();
         }
     }
 
-    private boolean belongsToApi(ClassReader cr) {
-        final AtomicBoolean belongsToApi = new AtomicBoolean();
-        cr.accept(new ClassVisitor(Opcodes.ASM5) {
+    boolean shouldExtractApiUnitFrom(ClassReader classReader) {
+        final AtomicBoolean shouldExtract = new AtomicBoolean();
+        classReader.accept(new ClassVisitor(Opcodes.ASM5) {
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 String className = AsmUtils.convertInternalNameToClassName(name);
-                belongsToApi.set(memberOfApiChecker.belongsToApi(className) && isApiMember(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
+                shouldExtract.set(memberOfApiChecker.belongsToApi(className) && isApiMember(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
             }
         }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
-        return belongsToApi.get();
+        return shouldExtract.get();
     }
 
     /**
-     * Strips out all the non-public elements of a class and generates a new class out of it, based on the list of exported packages.
+     * Extracts an API compilation unit from a given original compilation unit.
      *
-     * @param clazz the bytecode of a class
-     * @return bytecode for the same class, stripped of all non-public members
+     * @param compilationUnit the file containing the compilation unit to extract
+     * @return bytecode of the API compilation unit extracted from the original compilation unit
      */
-    public byte[] convertToApi(byte[] clazz) {
-        ClassReader cr = new ClassReader(clazz);
-        return convertToApi(cr);
-    }
-
-    public byte[] convertToApi(InputStream inputStream) throws IOException {
+    public byte[] extractApiUnitFrom(File compilationUnit) throws IOException {
+        InputStream inputStream = new FileInputStream(compilationUnit);
         try {
-            ClassReader cr = new ClassReader(inputStream);
-            return convertToApi(cr);
+            ClassReader classReader = new ClassReader(inputStream);
+            return extractApiUnitFrom(classReader);
         } finally {
             inputStream.close();
         }
     }
 
-    private byte[] convertToApi(ClassReader cr) {
+    byte[] extractApiUnitFrom(ClassReader cr) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         cr.accept(new ApiMemberExtractor(new StubClassWriter(cw)), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return cw.toByteArray();

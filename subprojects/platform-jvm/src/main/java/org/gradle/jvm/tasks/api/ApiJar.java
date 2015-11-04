@@ -68,8 +68,8 @@ public class ApiJar extends DefaultTask {
         return apiClassesDir;
     }
 
-    public void setApiClassesDir(File stubbedClassesDir) {
-        this.apiClassesDir = stubbedClassesDir;
+    public void setApiClassesDir(File apiClassesDir) {
+        this.apiClassesDir = apiClassesDir;
     }
 
     @InputDirectory
@@ -92,7 +92,7 @@ public class ApiJar extends DefaultTask {
     }
 
     @TaskAction
-    void createStubs(final IncrementalTaskInputs inputs) throws Exception {
+    public void extractApi(final IncrementalTaskInputs inputs) throws Exception {
         final File archivePath = new File(destinationDir, archiveName);
         if (!inputs.isIncremental()) {
             FileUtils.deleteQuietly(archivePath);
@@ -100,36 +100,33 @@ public class ApiJar extends DefaultTask {
         }
         destinationDir.mkdirs();
         apiClassesDir.mkdirs();
-        final ApiStubGenerator stubGenerator = new ApiStubGenerator(getExportedPackages());
+        final ApiUnitExtractor apiUnitExtractor = new ApiUnitExtractor(exportedPackages);
         final AtomicBoolean updated = new AtomicBoolean();
-        final Map<File, byte[]> convertedFiles = Maps.newHashMap();
+        final Map<File, byte[]> apiUnits = Maps.newHashMap();
         inputs.outOfDate(new ErroringAction<InputFileDetails>() {
             @Override
             protected void doExecute(InputFileDetails inputFileDetails) throws Exception {
                 updated.set(true);
-                File file = inputFileDetails.getFile();
-                File stubFile = getStubFileFor(file);
-                if (!isClass(file) || !stubGenerator.belongsToApi(new FileInputStream(file))) {
-                    deleteStub(stubFile);
-                    return;
+                File originalUnitFile = inputFileDetails.getFile();
+                if (apiUnitExtractor.shouldExtractApiUnitFrom(originalUnitFile)) {
+                    final byte[] apiUnitBytes = apiUnitExtractor.extractApiUnitFrom(originalUnitFile);
+                    apiUnits.put(originalUnitFile, apiUnitBytes);
+                    File apiUnitFile = apiUnitFileFor(originalUnitFile);
+                    apiUnitFile.getParentFile().mkdirs();
+                    IoActions.withResource(new FileOutputStream(apiUnitFile), new ErroringAction<OutputStream>() {
+                        @Override
+                        protected void doExecute(OutputStream outputStream) throws Exception {
+                            outputStream.write(apiUnitBytes);
+                        }
+                    });
                 }
-                final byte[] bytes = stubGenerator.convertToApi(new FileInputStream(file));
-                convertedFiles.put(file, bytes);
-                stubFile.getParentFile().mkdirs();
-                IoActions.withResource(new FileOutputStream(stubFile), new ErroringAction<FileOutputStream>() {
-                    @Override
-                    protected void doExecute(FileOutputStream fos) throws Exception {
-                        fos.write(bytes);
-                    }
-                });
-
             }
         });
         inputs.removed(new ErroringAction<InputFileDetails>() {
             @Override
-            protected void doExecute(InputFileDetails input) throws Exception {
+            protected void doExecute(InputFileDetails removedOriginalUnit) throws Exception {
                 updated.set(true);
-                deleteStub(getStubFileFor(input.getFile()));
+                deleteApiUnitFileFor(removedOriginalUnit.getFile());
             }
         });
         if (updated.get()) {
@@ -142,16 +139,16 @@ public class ApiJar extends DefaultTask {
                         // Setting time to 0 because we need API jars to be identical independently of
                         // the timestamps of class files
                         ze.setTime(0);
-                        File stubFile = entry.getValue();
+                        File originalUnitFile = entry.getValue();
                         // get it from cache if it has just been converted
-                        byte[] stub = convertedFiles.get(stubFile);
-                        if (stub==null) {
+                        byte[] apiUnitBytes = apiUnits.get(originalUnitFile);
+                        if (apiUnitBytes == null) {
                             // or get it from disk otherwise
-                            stub = FileUtils.readFileToByteArray(stubFile);
+                            apiUnitBytes = FileUtils.readFileToByteArray(originalUnitFile);
                         }
-                        ze.setSize(stub.length);
+                        ze.setSize(apiUnitBytes.length);
                         jos.putNextEntry(ze);
-                        jos.write(stub);
+                        jos.write(apiUnitBytes);
                         jos.closeEntry();
                     }
                 }
@@ -188,15 +185,9 @@ public class ApiJar extends DefaultTask {
         }
     }
 
-    private void deleteStub(File stubFile) {
-        if (stubFile.exists()) {
-            FileUtils.deleteQuietly(stubFile);
-        }
-    }
-
-    private File getStubFileFor(File file) {
-        StringBuilder sb = new StringBuilder(file.getName());
-        File cur = file.getParentFile();
+    private File apiUnitFileFor(File originalUnitFile) {
+        StringBuilder sb = new StringBuilder(originalUnitFile.getName());
+        File cur = originalUnitFile.getParentFile();
         while (!cur.equals(runtimeClassesDir)) {
             sb.insert(0, cur.getName() + File.separator);
             cur = cur.getParentFile();
@@ -204,8 +195,11 @@ public class ApiJar extends DefaultTask {
         return new File(apiClassesDir, sb.toString());
     }
 
-    private static boolean isClass(File file) {
-        return file.getName().endsWith(".class");
+    private void deleteApiUnitFileFor(File originalUnitFile) {
+        File apiUnitFile = apiUnitFileFor(originalUnitFile);
+        if (apiUnitFile.exists()) {
+            FileUtils.deleteQuietly(apiUnitFile);
+        }
     }
 
 }
