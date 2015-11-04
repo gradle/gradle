@@ -31,6 +31,7 @@ import org.gradle.model.dsl.internal.inputs.PotentialInputs;
 import org.gradle.model.dsl.internal.transform.*;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
@@ -84,14 +85,14 @@ public class TransformedModelDslBacking {
         modelRegistry.configure(ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(reference, descriptor, new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode mutableModelNode) {
-                final TransformedClosure transformedClosure = (TransformedClosure) closure;
-                InputReferences inputs = transformedClosure.getInputReferences();
-                List<InputReference> inputReferences = inputs.getAllReferences();
+                TransformedClosure transformedClosure = (TransformedClosure) closure;
+                final boolean supportsNestedRules = mutableModelNode.canBeViewedAs(ModelType.of(ManagedInstance.class));
+                InputReferences inputs = transformedClosure.inputReferences();
+                List<InputReference> inputReferences = supportsNestedRules ? inputs.getOwnReferences() : inputs.getAllReferences();
                 final Map<String, PotentialInput> inputValues = Maps.newLinkedHashMap();
                 List<ModelReference<?>> inputModelReferences = Lists.newArrayList();
 
-                for (int i = 0; i < inputReferences.size(); i++) {
-                    InputReference inputReference = inputReferences.get(i);
+                for (InputReference inputReference : inputReferences) {
                     String description = String.format("@ line %d", inputReference.getLineNumber());
                     String path = inputReference.getPath();
                     if (!inputValues.containsKey(path)) {
@@ -103,8 +104,9 @@ public class TransformedModelDslBacking {
                 mutableModelNode.applyToSelf(role, InputUsingModelAction.of(reference, descriptor, inputModelReferences, new BiAction<T, List<ModelView<?>>>() {
                     @Override
                     public void execute(final T t, List<ModelView<?>> modelViews) {
-                        transformedClosure.applyRuleInputs(new PotentialInputs(modelViews, inputValues));
-                        ClosureBackedAction.execute(t, closure.rehydrate(null, closure.getThisObject(), closure.getThisObject()));
+                        Closure<?> cloned = closure.rehydrate(null, closure.getThisObject(), closure.getThisObject());
+                        ((TransformedClosure) cloned).makeRule(new PotentialInputs(modelViews, inputValues), supportsNestedRules);
+                        ClosureBackedAction.execute(t, cloned);
                     }
                 }));
             }

@@ -52,6 +52,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     private static final ClassNode POTENTIAL_INPUTS = new ClassNode(PotentialInputs.class);
     private static final ClassNode TRANSFORMED_CLOSURE = new ClassNode(TransformedClosure.class);
     private static final ClassNode INPUT_REFERENCES = new ClassNode(InputReferences.class);
+    private static final ClassNode SOURCE_LOCATION = new ClassNode(SourceLocation.class);
 
     private static final String INPUTS_FIELD_NAME = "__rule_inputs__";
     private static final Token ASSIGN = new Token(Types.ASSIGN, "=", -1, -1);
@@ -88,17 +89,17 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             node.addInterface(TRANSFORMED_CLOSURE);
             node.addField(new FieldNode(INPUTS_FIELD_NAME, Modifier.PUBLIC, POTENTIAL_INPUTS, node, null));
 
-            // Generate applyRuleInputs() method
+            // Generate makeRule() method
             List<Statement> statements = new ArrayList<Statement>();
             statements.add(new ExpressionStatement(new BinaryExpression(new VariableExpression(INPUTS_FIELD_NAME), ASSIGN, new VariableExpression("inputs"))));
-            node.addMethod(new MethodNode("applyRuleInputs",
+            node.addMethod(new MethodNode("makeRule",
                     Modifier.PUBLIC,
                     ClassHelper.VOID_TYPE,
-                    new Parameter[]{new Parameter(POTENTIAL_INPUTS, "inputs")},
+                    new Parameter[]{new Parameter(POTENTIAL_INPUTS, "inputs"), new Parameter(ClassHelper.boolean_TYPE, "enabledNestedRules")},
                     new ClassNode[0],
                     new BlockStatement(statements, new VariableScope())));
 
-            // Generate getInputReferences() method
+            // Generate inputReferences() method
             VariableExpression inputsVar = new VariableExpression("inputs", INPUT_REFERENCES);
             VariableScope methodVarScope = new VariableScope();
             methodVarScope.putDeclaredVariable(inputsVar);
@@ -119,13 +120,12 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                                 new ConstantExpression(inputReference.getLineNumber())))));
             }
             statements.add(new ReturnStatement(inputsVar));
-            MethodNode method = new MethodNode("getInputReferences",
-                    Modifier.PUBLIC,
-                    INPUT_REFERENCES,
-                    new Parameter[0],
-                    new ClassNode[0],
-                    new BlockStatement(statements, methodVarScope));
-            node.addMethod(method);
+            node.addMethod(new MethodNode("inputReferences",
+                                Modifier.PUBLIC,
+                                INPUT_REFERENCES,
+                                new Parameter[0],
+                                new ClassNode[0],
+                                new BlockStatement(statements, methodVarScope)));
         }
     }
 

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 public interface MutableModelNode extends ModelNode {
+    boolean canBeViewedAs(ModelType<?> type);
 
     /**
      * Creates a mutable view over this node's value.

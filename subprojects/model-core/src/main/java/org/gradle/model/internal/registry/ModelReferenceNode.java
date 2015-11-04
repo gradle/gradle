@@ -52,6 +52,11 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
+    public boolean canBeViewedAs(ModelType<?> type) {
+        return target != null && target.canBeViewedAs(type);
+    }
+
+    @Override
     public <T> ModelView<? extends T> asMutable(final ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
         if (target == null) {
             return InstanceModelView.of(getPath(), type, null);

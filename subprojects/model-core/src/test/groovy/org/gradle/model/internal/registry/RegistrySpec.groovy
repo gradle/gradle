@@ -49,6 +49,11 @@ class RegistrySpec extends Specification {
         }
 
         @Override
+        boolean canBeViewedAs(ModelType<?> type) {
+            return true
+        }
+
+        @Override
         def <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
             return null
         }

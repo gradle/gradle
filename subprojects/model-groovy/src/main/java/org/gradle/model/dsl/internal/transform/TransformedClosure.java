@@ -22,6 +22,13 @@ import org.gradle.model.dsl.internal.inputs.PotentialInputs;
  * Implemented by transformed rules closure.
  */
 public interface TransformedClosure {
-    void applyRuleInputs(PotentialInputs inputs);
-    InputReferences getInputReferences();
+    /**
+     * Returns the input references for this closure.
+     */
+    InputReferences inputReferences();
+
+    /**
+     * Marks this closure as a rule action, with the given inputs
+     */
+    void makeRule(PotentialInputs inputs, boolean enableNestedRules);
 }
