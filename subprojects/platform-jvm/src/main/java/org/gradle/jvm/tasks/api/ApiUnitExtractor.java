@@ -96,7 +96,7 @@ class ApiUnitExtractor {
 
     byte[] extractApiUnitFrom(ClassReader cr) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        cr.accept(new ApiMemberExtractor(new StubClassWriter(cw), hasDeclaredApi, apiValidator), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        cr.accept(new ApiMemberExtractor(new MethodStubbingClassVisitor(cw), hasDeclaredApi, apiValidator), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return cw.toByteArray();
     }
 }

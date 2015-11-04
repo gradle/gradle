@@ -21,30 +21,15 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-class StubClassWriter extends ClassVisitor implements Opcodes {
+class MethodStubbingClassVisitor extends ClassVisitor implements Opcodes {
 
-    public static final String UOE_METHOD = "$unsupportedOpEx";
+    private static final String UOE_METHOD = "$unsupportedOpEx";
+
     private String internalClassName;
 
-    public StubClassWriter(ClassWriter cv) {
+    public MethodStubbingClassVisitor(ClassWriter cv) {
         super(ASM5, cv);
     }
-
-    /**
-     * Generates an exception which is going to be thrown in each method. The reason it is in a separate method is because it reduces the bytecode size.
-     */
-    private void generateUnsupportedOperationExceptionMethod() {
-        MethodVisitor mv = cv.visitMethod(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", null, null);
-        mv.visitCode();
-        mv.visitTypeInsn(NEW, "java/lang/UnsupportedOperationException");
-        mv.visitInsn(DUP);
-        mv.visitLdcInsn("You tried to call a method on an API class. You probably added the API jar on classpath instead of the implementation jar.");
-        mv.visitMethodInsn(INVOKESPECIAL, "java/lang/UnsupportedOperationException", "<init>", "(Ljava/lang/String;)V", false);
-        mv.visitInsn(ARETURN);
-        mv.visitMaxs(3, 0);
-        mv.visitEnd();
-    }
-
 
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
@@ -68,4 +53,18 @@ class StubClassWriter extends ClassVisitor implements Opcodes {
         return mv;
     }
 
+    /**
+     * Generates an exception which is going to be thrown in each method. The reason it is in a separate method is because it reduces the bytecode size.
+     */
+    private void generateUnsupportedOperationExceptionMethod() {
+        MethodVisitor mv = cv.visitMethod(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", null, null);
+        mv.visitCode();
+        mv.visitTypeInsn(NEW, "java/lang/UnsupportedOperationException");
+        mv.visitInsn(DUP);
+        mv.visitLdcInsn("You tried to call a method on an API class. You probably added the API jar on classpath instead of the implementation jar.");
+        mv.visitMethodInsn(INVOKESPECIAL, "java/lang/UnsupportedOperationException", "<init>", "(Ljava/lang/String;)V", false);
+        mv.visitInsn(ARETURN);
+        mv.visitMaxs(3, 0);
+        mv.visitEnd();
+    }
 }

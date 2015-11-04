@@ -29,7 +29,8 @@ class ApiMemberExtractor extends ClassVisitor implements Opcodes {
     private final List<MethodSig> methods = Lists.newLinkedList();
     private final List<FieldSig> fields = Lists.newLinkedList();
     private final List<InnerClassSig> innerClasses = Lists.newLinkedList();
-    private final StubClassWriter adapter;
+
+    private final ClassVisitor adapter;
     private final boolean hasDeclaredApi;
     private final ApiValidator apiValidator;
 
@@ -37,9 +38,9 @@ class ApiMemberExtractor extends ClassVisitor implements Opcodes {
     private boolean isInnerClass;
     private ClassSig classSig;
 
-    public ApiMemberExtractor(StubClassWriter cv, boolean hasDeclaredApi, ApiValidator apiValidator) {
+    public ApiMemberExtractor(ClassVisitor adapter, boolean hasDeclaredApi, ApiValidator apiValidator) {
         super(ASM5);
-        this.adapter = cv;
+        this.adapter = adapter;
         this.hasDeclaredApi = hasDeclaredApi;
         this.apiValidator = apiValidator;
     }
