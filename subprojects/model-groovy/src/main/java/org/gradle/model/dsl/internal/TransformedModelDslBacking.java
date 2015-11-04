@@ -16,60 +16,44 @@
 
 package org.gradle.model.dsl.internal;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
-import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.internal.BiAction;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.dsl.internal.inputs.PotentialInput;
-import org.gradle.model.dsl.internal.inputs.PotentialInputs;
-import org.gradle.model.dsl.internal.transform.*;
+import org.gradle.model.dsl.internal.transform.ClosureBackedRuleFactory;
+import org.gradle.model.dsl.internal.transform.RulesBlock;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
 
 @ThreadSafe
 public class TransformedModelDslBacking {
     private final ModelRegistry modelRegistry;
-    private final Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor;
+    private final ClosureBackedRuleFactory ruleFactory;
 
     public TransformedModelDslBacking(ModelRegistry modelRegistry, RelativeFilePathResolver relativeFilePathResolver) {
-        this(modelRegistry, new RelativePathSourceLocationTransformer(relativeFilePathResolver));
-    }
-
-    TransformedModelDslBacking(ModelRegistry modelRegistry, Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
         this.modelRegistry = modelRegistry;
-        this.ruleLocationExtractor = ruleLocationExtractor;
+        this.ruleFactory = new ClosureBackedRuleFactory(relativeFilePathResolver);
     }
 
     /**
      * Invoked by transformed DSL configuration rules
      */
     public void configure(String modelPathString, Closure<?> closure) {
-        SourceLocation sourceLocation = ruleLocationExtractor.transform(closure);
         ModelPath modelPath = ModelPath.path(modelPathString);
-        ModelRuleDescriptor descriptor = toDescriptor(sourceLocation, modelPath);
-        registerAction(modelPath, Object.class, descriptor, ModelActionRole.Mutate, closure);
+        DeferredModelAction modelAction = ruleFactory.toAction(modelPath, Object.class, closure);
+        registerAction(modelPath, Object.class, ModelActionRole.Mutate, modelAction);
     }
 
     /**
      * Invoked by transformed DSL creation rules
      */
     public <T> void create(String modelPathString, Class<T> type, Closure<?> closure) {
-        SourceLocation sourceLocation = ruleLocationExtractor.transform(closure);
         ModelPath modelPath = ModelPath.path(modelPathString);
-        ModelRuleDescriptor descriptor = toDescriptor(sourceLocation, modelPath);
+        DeferredModelAction modelAction = ruleFactory.toAction(modelPath, type, closure);
+        ModelRuleDescriptor descriptor = modelAction.getDescriptor();
         try {
             NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(), DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getType());
             NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)));
@@ -77,83 +61,22 @@ public class TransformedModelDslBacking {
         } catch (ModelTypeInitializationException e) {
             throw new InvalidModelRuleDeclarationException(descriptor, e);
         }
-        registerAction(modelPath, type, descriptor, ModelActionRole.Initialize, closure);
+        registerAction(modelPath, type, ModelActionRole.Initialize, modelAction);
     }
 
-    private <T> void registerAction(final ModelPath modelPath, final Class<T> viewType, final ModelRuleDescriptor descriptor, final ModelActionRole role, final Closure<?> closure) {
-        final ModelReference<T> reference = ModelReference.of(modelPath, viewType);
-        modelRegistry.configure(ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(reference, descriptor, new Action<MutableModelNode>() {
+    private <T> void registerAction(ModelPath modelPath, Class<T> viewType, final ModelActionRole role, final DeferredModelAction action) {
+        ModelReference<T> reference = ModelReference.of(modelPath, viewType);
+        modelRegistry.configure(ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(reference, action.getDescriptor(), new Action<MutableModelNode>() {
             @Override
-            public void execute(MutableModelNode mutableModelNode) {
-                TransformedClosure transformedClosure = (TransformedClosure) closure;
-                final boolean supportsNestedRules = mutableModelNode.canBeViewedAs(ModelType.of(ManagedInstance.class));
-                InputReferences inputs = transformedClosure.inputReferences();
-                List<InputReference> inputReferences = supportsNestedRules ? inputs.getOwnReferences() : inputs.getAllReferences();
-                final Map<String, PotentialInput> inputValues = Maps.newLinkedHashMap();
-                List<ModelReference<?>> inputModelReferences = Lists.newArrayList();
-
-                for (InputReference inputReference : inputReferences) {
-                    String description = String.format("@ line %d", inputReference.getLineNumber());
-                    String path = inputReference.getPath();
-                    if (!inputValues.containsKey(path)) {
-                        inputValues.put(path, new PotentialInput(inputModelReferences.size()));
-                        inputModelReferences.add(ModelReference.untyped(ModelPath.path(path), description));
-                    }
-                }
-
-                mutableModelNode.applyToSelf(role, InputUsingModelAction.of(reference, descriptor, inputModelReferences, new BiAction<T, List<ModelView<?>>>() {
-                    @Override
-                    public void execute(final T t, List<ModelView<?>> modelViews) {
-                        Closure<?> cloned = closure.rehydrate(null, closure.getThisObject(), closure.getThisObject());
-                        ((TransformedClosure) cloned).makeRule(new PotentialInputs(modelViews, inputValues), supportsNestedRules);
-                        ClosureBackedAction.execute(t, cloned);
-                    }
-                }));
+            public void execute(MutableModelNode node) {
+                action.execute(node, role);
             }
         }));
-    }
-
-    public ModelRuleDescriptor toDescriptor(SourceLocation sourceLocation, ModelPath modelPath) {
-        return sourceLocation.asDescriptor("model." + modelPath);
-    }
-
-    private static RuleMetadata getRuleMetadata(Closure<?> closure) {
-        RuleMetadata ruleMetadata = closure.getClass().getAnnotation(RuleMetadata.class);
-        if (ruleMetadata == null) {
-            throw new IllegalStateException(String.format("Expected %s annotation to be used on the argument closure.", RuleMetadata.class.getName()));
-        }
-        return ruleMetadata;
     }
 
     public static boolean isTransformedBlock(Closure<?> closure) {
         Class<?> closureClass = closure.getClass();
         RulesBlock annotation = closureClass.getAnnotation(RulesBlock.class);
         return annotation != null;
-    }
-
-    private static class RelativePathSourceLocationTransformer implements Transformer<SourceLocation, Closure<?>> {
-        private final RelativeFilePathResolver relativeFilePathResolver;
-
-        public RelativePathSourceLocationTransformer(RelativeFilePathResolver relativeFilePathResolver) {
-            this.relativeFilePathResolver = relativeFilePathResolver;
-        }
-
-        // TODO given that all the closures are from the same file, we should do the relativising once.
-        //      that would entail adding location information to the model {} outer closure.
-        @Override
-        public SourceLocation transform(Closure<?> closure) {
-            RuleMetadata ruleMetadata = getRuleMetadata(closure);
-            URI uri = URI.create(ruleMetadata.absoluteScriptSourceLocation());
-            String scheme = uri.getScheme();
-            String description;
-
-            if ("file".equalsIgnoreCase(scheme)) {
-                description = relativeFilePathResolver.resolveAsRelativePath(ruleMetadata.absoluteScriptSourceLocation());
-            } else {
-                description = uri.toString();
-            }
-
-            return new SourceLocation(uri, description, ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
-        }
     }
 }
