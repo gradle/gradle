@@ -371,7 +371,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         def converter = new CharSequenceToScalarConverter()
         def services = Mock(ServiceRegistry)
-        services.get(_ as Class) >> { Class type -> if (type == TypeConverters) return converter }
+        services.get(_ as Class) >> { Class type -> if (type == TypeConverters) { return converter } }
         state.getServices() >> services
 
         def proxy = generate(interfaceWithPrimitiveProperty)
@@ -421,7 +421,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         }
         def converter = new CharSequenceToScalarConverter()
         def services = Mock(ServiceRegistry)
-        services.get(_ as Class) >> { Class type -> if (type == TypeConverters) return converter }
+        services.get(_ as Class) >> { Class type -> if (type == TypeConverters) { return converter } }
         state.getServices() >> services
 
         def proxy = generate(clazz)
