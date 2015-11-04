@@ -53,6 +53,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     private static PatternSpecFactory createPatternSpecFactory() {
         try {
             // prevents adding CachingPatternSpecFactory and it's dependencies to the Tooling API jar
+            // Jarjar scans all String literals for class names and this prevents that scanning from finding the class name and adding it as a dependency
             Class clazz = PatternSet.class.getClassLoader().loadClass(new StringBuilder("org.gradle.api.tasks.util.internal.").append("CachingPatternSpecFactory").toString());
             return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz));
         } catch (ClassNotFoundException e) {
