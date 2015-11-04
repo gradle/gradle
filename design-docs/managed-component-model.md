@@ -208,12 +208,6 @@ stored in child nodes (just as with any `@Managed` internal view).
     apply plugin: "jvm-component"
 
     model {
-        binaries.withType(MyJarBinarySpecInternal) {
-            // ...
-        }
-        binaries.withType(MyInternal) {
-            // ...
-        }
         components {
             myComponent(JvmLibrarySpec) {
                 binaries.withType(MyJarBinarySpecInternal) {
@@ -240,6 +234,10 @@ stored in child nodes (just as with any `@Managed` internal view).
 ### Implementation
 
 * Attach managed projections based on the registered `@Managed` internal views for these nodes.
+
+### Open issues
+
+* Managed internal views registered on extensible type are not available in the top-level `binaries` container, e.g. via `binaries.withType(MyJarBinarySpecInternal)`. To fix this the top-level container would need to contain references to the actual component binary nodes instead of the copies of unmanaged views it contains now.
 
 ## Plugin author declares internal views for any extensible type
 
