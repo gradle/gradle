@@ -40,28 +40,15 @@ import java.util.Map;
 
 @ThreadSafe
 public class TransformedModelDslBacking {
-
-    private static final Transformer<InputReferences, Closure<?>> INPUT_PATHS_EXTRACTOR = new Transformer<InputReferences, Closure<?>>() {
-        public InputReferences transform(Closure<?> closure) {
-            InputReferences inputs = new InputReferences();
-            RuleMetadata ruleMetadata = getRuleMetadata(closure);
-            inputs.ownPaths(ruleMetadata.ownInputPaths(), ruleMetadata.ownInputLineNumbers());
-            inputs.nestedPaths(ruleMetadata.nestedInputPaths(), ruleMetadata.nestedInputLineNumbers());
-            return inputs;
-        }
-    };
-
     private final ModelRegistry modelRegistry;
-    private final Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor;
     private final Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor;
 
     public TransformedModelDslBacking(ModelRegistry modelRegistry, RelativeFilePathResolver relativeFilePathResolver) {
-        this(modelRegistry, INPUT_PATHS_EXTRACTOR, new RelativePathSourceLocationTransformer(relativeFilePathResolver));
+        this(modelRegistry, new RelativePathSourceLocationTransformer(relativeFilePathResolver));
     }
 
-    TransformedModelDslBacking(ModelRegistry modelRegistry, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor, Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
+    TransformedModelDslBacking(ModelRegistry modelRegistry, Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
         this.modelRegistry = modelRegistry;
-        this.inputPathsExtractor = inputPathsExtractor;
         this.ruleLocationExtractor = ruleLocationExtractor;
     }
 
@@ -97,25 +84,26 @@ public class TransformedModelDslBacking {
         modelRegistry.configure(ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(reference, descriptor, new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode mutableModelNode) {
-                InputReferences inputs = inputPathsExtractor.transform(closure);
-                List<String> absolutePaths = inputs.getAllPaths();
-                List<Integer> absolutePathLineNumbers = inputs.getAllPathLineNumbers();
+                final TransformedClosure transformedClosure = (TransformedClosure) closure;
+                InputReferences inputs = transformedClosure.getInputReferences();
+                List<InputReference> inputReferences = inputs.getAllReferences();
                 final Map<String, PotentialInput> inputValues = Maps.newLinkedHashMap();
-                List<ModelReference<?>> inputReferences = Lists.newArrayList();
+                List<ModelReference<?>> inputModelReferences = Lists.newArrayList();
 
-                for (int i = 0; i < absolutePaths.size(); i++) {
-                    String description = String.format("@ line %d", absolutePathLineNumbers.get(i));
-                    String path = absolutePaths.get(i);
+                for (int i = 0; i < inputReferences.size(); i++) {
+                    InputReference inputReference = inputReferences.get(i);
+                    String description = String.format("@ line %d", inputReference.getLineNumber());
+                    String path = inputReference.getPath();
                     if (!inputValues.containsKey(path)) {
-                        inputValues.put(path, PotentialInput.absoluteInput(path, inputReferences.size()));
-                        inputReferences.add(ModelReference.untyped(ModelPath.path(path), description));
+                        inputValues.put(path, new PotentialInput(inputModelReferences.size()));
+                        inputModelReferences.add(ModelReference.untyped(ModelPath.path(path), description));
                     }
                 }
 
-                mutableModelNode.applyToSelf(role, InputUsingModelAction.of(reference, descriptor, inputReferences, new BiAction<T, List<ModelView<?>>>() {
+                mutableModelNode.applyToSelf(role, InputUsingModelAction.of(reference, descriptor, inputModelReferences, new BiAction<T, List<ModelView<?>>>() {
                     @Override
                     public void execute(final T t, List<ModelView<?>> modelViews) {
-                        ((TransformedClosure) closure).applyRuleInputs(new PotentialInputs(modelViews, inputValues));
+                        transformedClosure.applyRuleInputs(new PotentialInputs(modelViews, inputValues));
                         ClosureBackedAction.execute(t, closure.rehydrate(null, closure.getThisObject(), closure.getThisObject()));
                     }
                 }));

@@ -16,12 +16,12 @@
 
 package org.gradle.model.dsl.internal.transform;
 
-import com.google.common.collect.Lists;
 import net.jcip.annotations.NotThreadSafe;
 import org.codehaus.groovy.ast.*;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
+import org.codehaus.groovy.ast.stmt.ReturnStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
@@ -36,7 +36,6 @@ import org.gradle.model.internal.core.ModelPath;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @NotThreadSafe
@@ -52,6 +51,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     private static final ClassNode RULE_METADATA = new ClassNode(RuleMetadata.class);
     private static final ClassNode POTENTIAL_INPUTS = new ClassNode(PotentialInputs.class);
     private static final ClassNode TRANSFORMED_CLOSURE = new ClassNode(TransformedClosure.class);
+    private static final ClassNode INPUT_REFERENCES = new ClassNode(InputReferences.class);
 
     private static final String INPUTS_FIELD_NAME = "__rule_inputs__";
     private static final Token ASSIGN = new Token(Types.ASSIGN, "=", -1, -1);
@@ -71,8 +71,8 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
 
     // Not part of a normal visitor, see ClosureCreationInterceptingVerifier
     public static void visitGeneratedClosure(ClassNode node) {
-        MethodNode method = AstUtils.getGeneratedClosureImplMethod(node);
-        Statement closureCode = method.getCode();
+        MethodNode closureCallMethod = AstUtils.getGeneratedClosureImplMethod(node);
+        Statement closureCode = closureCallMethod.getCode();
         SourceLocation sourceLocation = closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
         if (sourceLocation != null) {
             AnnotationNode metadataAnnotation = new AnnotationNode(RULE_METADATA);
@@ -82,32 +82,51 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             metadataAnnotation.addMember("columnNumber", new ConstantExpression(sourceLocation.getColumnNumber()));
 
             InputReferences inputs = closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
-            if (!inputs.isEmpty()) {
-                metadataAnnotation.addMember("ownInputPaths", new ListExpression(constants(inputs.getOwnPaths())));
-                metadataAnnotation.addMember("ownInputLineNumbers", new ListExpression(constants(inputs.getOwnPathLineNumbers())));
-                metadataAnnotation.addMember("nestedInputPaths", new ListExpression(constants(inputs.getNestedPaths())));
-                metadataAnnotation.addMember("nestedInputLineNumbers", new ListExpression(constants(inputs.getNestedPathLineNumbers())));
-            }
 
             node.addAnnotation(metadataAnnotation);
 
             node.addInterface(TRANSFORMED_CLOSURE);
             node.addField(new FieldNode(INPUTS_FIELD_NAME, Modifier.PUBLIC, POTENTIAL_INPUTS, node, null));
+
+            // Generate applyRuleInputs() method
             List<Statement> statements = new ArrayList<Statement>();
             statements.add(new ExpressionStatement(new BinaryExpression(new VariableExpression(INPUTS_FIELD_NAME), ASSIGN, new VariableExpression("inputs"))));
-            node.addMethod(new MethodNode("applyRuleInputs", Modifier.PUBLIC, ClassHelper.VOID_TYPE,
+            node.addMethod(new MethodNode("applyRuleInputs",
+                    Modifier.PUBLIC,
+                    ClassHelper.VOID_TYPE,
                     new Parameter[]{new Parameter(POTENTIAL_INPUTS, "inputs")},
                     new ClassNode[0],
                     new BlockStatement(statements, new VariableScope())));
-        }
-    }
 
-    private static List<Expression> constants(Collection<?> values) {
-        List<Expression> expressions = Lists.newArrayListWithCapacity(values.size());
-        for (Object value : values) {
-            expressions.add(new ConstantExpression(value));
+            // Generate getInputReferences() method
+            VariableExpression inputsVar = new VariableExpression("inputs", INPUT_REFERENCES);
+            VariableScope methodVarScope = new VariableScope();
+            methodVarScope.putDeclaredVariable(inputsVar);
+            statements = new ArrayList<Statement>();
+            statements.add(new ExpressionStatement(new DeclarationExpression(inputsVar, ASSIGN, new ConstructorCallExpression(INPUT_REFERENCES, new ArgumentListExpression()))));
+            for (InputReference inputReference : inputs.getOwnReferences()) {
+                statements.add(new ExpressionStatement(new MethodCallExpression(inputsVar,
+                        "ownReference",
+                        new ArgumentListExpression(
+                                new ConstantExpression(inputReference.getPath()),
+                                new ConstantExpression(inputReference.getLineNumber())))));
+            }
+            for (InputReference inputReference : inputs.getNestedReferences()) {
+                statements.add(new ExpressionStatement(new MethodCallExpression(inputsVar,
+                        "nestedReference",
+                        new ArgumentListExpression(
+                                new ConstantExpression(inputReference.getPath()),
+                                new ConstantExpression(inputReference.getLineNumber())))));
+            }
+            statements.add(new ReturnStatement(inputsVar));
+            MethodNode method = new MethodNode("getInputReferences",
+                    Modifier.PUBLIC,
+                    INPUT_REFERENCES,
+                    new Parameter[0],
+                    new ClassNode[0],
+                    new BlockStatement(statements, methodVarScope));
+            node.addMethod(method);
         }
-        return expressions;
     }
 
     public void visitRuleClosure(ClosureExpression expression, SourceLocation sourceLocation) {
@@ -167,7 +186,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     public void visitPropertyExpression(PropertyExpression expr) {
         String modelPath = isDollarPathExpression(expr);
         if (modelPath != null) {
-            inputs.reference(modelPath, expr.getLineNumber());
+            inputs.ownReference(modelPath, expr.getLineNumber());
             replaceVisitedExpressionWith(inputReferenceExpression(modelPath));
         } else {
             super.visitPropertyExpression(expr);
@@ -251,7 +270,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                 return;
             }
 
-            inputs.reference(modelPath, call.getLineNumber());
+            inputs.ownReference(modelPath, call.getLineNumber());
             replaceVisitedExpressionWith(inputReferenceExpression(modelPath));
         }
     }

@@ -24,14 +24,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface RuleMetadata {
-    String[] ownInputPaths() default {};
-
-    int[] ownInputLineNumbers() default {};
-
-    String[] nestedInputPaths() default {};
-
-    int[] nestedInputLineNumbers() default {};
-
     int lineNumber();
 
     int columnNumber();
