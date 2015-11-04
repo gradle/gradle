@@ -31,12 +31,12 @@ class ApiUnitExtractor {
     // See JLS3 "Binary Compatibility" (13.1)
     private static final Pattern LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
 
-    private final boolean hasDeclaredApi;
     private final Set<String> exportedPackages;
+    private final boolean includePackagePrivate;
 
     public ApiUnitExtractor(Set<String> exportedPackages) {
         this.exportedPackages = exportedPackages;
-        this.hasDeclaredApi = !exportedPackages.isEmpty();
+        this.includePackagePrivate = exportedPackages.isEmpty();
     }
 
     /**
@@ -66,7 +66,7 @@ class ApiUnitExtractor {
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 String className = AsmUtils.convertInternalNameToClassName(name);
-                shouldExtract.set(isApiMember(className) && ApiMemberExtractor.isApiMember(access, hasDeclaredApi) && !isLocalClass(className));
+                shouldExtract.set(isApiClass(access, className));
             }
         }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
         return shouldExtract.get();
@@ -90,11 +90,17 @@ class ApiUnitExtractor {
 
     byte[] extractApiUnitFrom(ClassReader cr) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        cr.accept(new ApiMemberExtractor(new MethodStubbingClassVisitor(cw), hasDeclaredApi), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        cr.accept(new ApiMemberExtractor(new MethodStubbingClassVisitor(cw), includePackagePrivate), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return cw.toByteArray();
     }
 
-    private boolean isApiMember(String className) {
+    private boolean isApiClass(int access, String className) {
+        if (isLocalClass(className)) {
+            return false;
+        }
+        if (!ApiMemberExtractor.isApiMember(access, includePackagePrivate)) {
+            return false;
+        }
         if (exportedPackages.isEmpty()) {
             return true;
         }

@@ -32,15 +32,15 @@ class ApiMemberExtractor extends ClassVisitor {
     private final List<InnerClassSig> innerClasses = Lists.newLinkedList();
 
     private final ClassVisitor adapter;
-    private final boolean hasDeclaredApi;
+    private final boolean includePackagePrivate;
 
     private boolean isInnerClass;
     private ClassSig classSig;
 
-    public ApiMemberExtractor(ClassVisitor adapter, boolean hasDeclaredApi) {
+    public ApiMemberExtractor(ClassVisitor adapter, boolean includePackagePrivate) {
         super(ASM5);
         this.adapter = adapter;
-        this.hasDeclaredApi = hasDeclaredApi;
+        this.includePackagePrivate = includePackagePrivate;
     }
 
     @Override
@@ -139,7 +139,7 @@ class ApiMemberExtractor extends ClassVisitor {
             // discard static initializers
             return null;
         }
-        if (isApiMember(access) || ("<init>".equals(name) && isInnerClass)) {
+        if (isApiMember(access, includePackagePrivate) || ("<init>".equals(name) && isInnerClass)) {
             final MethodSig methodSig = new MethodSig(access, name, desc, signature, exceptions);
             methods.add(methodSig);
             return new MethodVisitor(Opcodes.ASM5) {
@@ -161,7 +161,7 @@ class ApiMemberExtractor extends ClassVisitor {
 
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        if (isApiMember(access)) {
+        if (isApiMember(access, includePackagePrivate)) {
             final FieldSig fieldSig = new FieldSig(access, name, desc, signature);
             fields.add(fieldSig);
             return new FieldVisitor(Opcodes.ASM5) {
@@ -180,19 +180,15 @@ class ApiMemberExtractor extends ClassVisitor {
         if (innerName == null) {
             return;
         }
-        if (isPackagePrivateMember(access) && hasDeclaredApi) {
+        if (!includePackagePrivate && isPackagePrivateMember(access)) {
             return;
         }
         innerClasses.add(new InnerClassSig(name, outerName, innerName, access));
         super.visitInnerClass(name, outerName, innerName, access);
     }
 
-    public static boolean isApiMember(int access, boolean hasDeclaredApi) {
-        return (isPackagePrivateMember(access) && !hasDeclaredApi) || isPublicMember(access) || isProtectedMember(access);
-    }
-
-    private boolean isApiMember(int access) {
-        return (isPackagePrivateMember(access) && !hasDeclaredApi) || isPublicMember(access) || isProtectedMember(access);
+    public static boolean isApiMember(int access, boolean includePackagePrivate) {
+        return (isPackagePrivateMember(access) && includePackagePrivate) || isPublicMember(access) || isProtectedMember(access);
     }
 
     private static boolean isPublicMember(int access) {
