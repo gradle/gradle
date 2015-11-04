@@ -20,18 +20,6 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.ref.WeakReference;
 
-/*
-    This should implement ManagedImplSchema.
-    It doesn't because we can't quite have a node initializer for it.
-    As it currently stands, initialization of nodes of this type requires a supporting instance factory.
-    Based on just the schema, we don't quite know what the reference to the factory is.
-    We _could_ infer it based on the component type (e.g. if ModelMap<Component> then depend on InstanceFactory<Component, String>)
-    but that breaks down if there are different factories.
-
-    The implementation of “specialised maps” needs to be tidied up at some point and this inconsistency sorted out.
-
-    LD.
- */
 public class SpecializedMapSchema<T, E> extends CollectionSchema<T, E> {
     private final WeakReference<Class<?>> implementationType;
 
