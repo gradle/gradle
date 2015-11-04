@@ -26,9 +26,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
+/**
+ * Extracts an "API class" from an original "runtime class" for subsequent inclusion
+ * into an {@link ApiJar}.
+ */
 class ApiClassExtractor {
 
-    // See JLS3 "Binary Compatibility" (13.1)
     private static final Pattern LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
 
     private final Set<String> exportedPackages;
@@ -40,9 +43,18 @@ class ApiClassExtractor {
     }
 
     /**
-     * Returns true if the binary class found in parameter is belonging to the API. It will check if the class package is in the list of exported packages, and if the access flags are ok with
-     * regards to the list of packages: if the list is empty, then package private classes are included, whereas if the list is not empty, an API has been declared and the class should be excluded.
-     * Therefore, this method should be called on every .class file to process before it is either copied or processed through {@link #extractApiClassFrom(File)}.
+     * Indicates whether the class in the given file is a candidate for extraction to
+     * an API class. Checks whether the class's package is in the list of packages
+     * explicitly exported by the library (if any), and whether the class should be
+     * included in the public API based on its visibility. If the list of exported
+     * packages is empty (e.g. the library has not declared an explicit {@code api {...}}
+     * specification, then package-private classes are included in the public API. If the
+     * list of exported packages is non-empty (i.e. the library has declared an
+     * {@code api {...}} specification, then package-private classes are excluded.
+     *
+     * <p>For these reasons, this method should be called as a test on every original
+     * .class file prior to invoking processed through
+     * {@link #extractApiClassFrom(File)}.</p>
      *
      * @param originalClassFile the file containing the original class to evaluate
      * @return whether the given class is a candidate for API extraction
@@ -113,6 +125,7 @@ class ApiClassExtractor {
         return false;
     }
 
+    // See JLS3 "Binary Compatibility" (13.1)
     private static boolean isLocalClass(String className) {
         return LOCAL_CLASS_PATTERN.matcher(className).matches();
     }

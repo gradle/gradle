@@ -25,6 +25,12 @@ import java.util.SortedSet;
 import static org.objectweb.asm.Opcodes.ACC_SUPER;
 import static org.objectweb.asm.Opcodes.ASM5;
 
+/**
+ * Visits each {@link Member} of a given class and selects only those members that should
+ * be included in the {@link ApiJar}. Selected API members are delegated to an adapter that
+ * determines how to further process those members (e.g. stripping out method bodies), and
+ * how to write a new "API class" with them.
+ */
 class ApiMemberSelector extends ClassVisitor {
 
     private final SortedSet<MethodMember> methods = Sets.newTreeSet();

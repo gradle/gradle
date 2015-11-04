@@ -22,6 +22,14 @@ import org.objectweb.asm.MethodVisitor;
 
 import static org.objectweb.asm.Opcodes.*;
 
+/**
+ * Adapts members selected by {@link ApiMemberSelector}, stripping out method
+ * implementations and replacing them with a "stub" that will throw an
+ * {@link UnsupportedOperationException} if called at runtime. All members (including but
+ * not limited to stripped and stubbed methods) are delegated to a {@link ClassWriter}
+ * responsible for writing new API classes that will then in turn be used to assemble an
+ * {@link ApiJar}.
+ */
 class MethodStubbingApiMemberAdapter extends ClassVisitor {
 
     private static final String UOE_METHOD = "$unsupportedOpEx";
@@ -55,7 +63,8 @@ class MethodStubbingApiMemberAdapter extends ClassVisitor {
     }
 
     /**
-     * Generates an exception which is going to be thrown in each method. The reason it is in a separate method is because it reduces the bytecode size.
+     * Generates an exception which is going to be thrown in each method.
+     * The reason it is in a separate method is because it reduces the bytecode size.
      */
     private void generateUnsupportedOperationExceptionMethod() {
         MethodVisitor mv = cv.visitMethod(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", null, null);

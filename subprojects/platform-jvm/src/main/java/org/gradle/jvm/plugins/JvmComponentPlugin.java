@@ -48,8 +48,9 @@ import java.util.Set;
 import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
- * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link JvmLibrarySpec} library type for the components
- * container.
+ * Base plugin for JVM component support. Applies the
+ * {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}.
+ * Registers the {@link JvmLibrarySpec} library type for the components container.
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {

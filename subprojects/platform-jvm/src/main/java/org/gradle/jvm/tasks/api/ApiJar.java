@@ -19,6 +19,7 @@ package org.gradle.jvm.tasks.api;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
@@ -33,6 +34,35 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
+/**
+ * Assembles an "API Jar" containing only the members of a library's public API.
+ *
+ * <p>This task and the Jar it produces are designed primarily for internal use in support
+ * of Gradle's "compile avoidance" performance feature. The task is automatically included
+ * in the task graph for any JVM libary that declares an {@code api { ... }}
+ * specification, and the resulting Jar will automatically be placed on the compile time
+ * classpath of projects that depend on the library in lieu of the library's complete
+ * so-called "Runtime Jar".</p>
+ *
+ * <p>Swapping the API Jar in for the Runtime Jar at compile time is what makes
+ * "compile avoidance" possible: because the contents of the API Jar change only when
+ * actual API changes are made, the API Jar passes Gradle's up-to-date checks, even if the
+ * implementation in the Runtime Jar has changed. Ultimately, this means that projects
+ * depending on the library in question will need to recompile potentially far less often.
+ * </p>
+ *
+ * <p>In order to ensure that API Jars change as infrequently as possible, this task and
+ * its supporting classes ensure that only actual public API members are included in the
+ * API Jar, and that the methods among those members are stripped of their implementation.
+ * Because the members included in API Jars exist only for compilation purposes, they need
+ * no actual implementation, and for this reason, all such methods throw
+ * {@link UnsupportedOperationException} in the unlikely event that they are present on
+ * the classpath and invoked at runtime.</p>
+ *
+ * @since 2.10
+ * @see org.gradle.jvm.plugins.JvmComponentPlugin
+ */
+@Incubating
 public class ApiJar extends DefaultTask {
 
     private Set<String> exportedPackages;
@@ -59,11 +89,7 @@ public class ApiJar extends DefaultTask {
         this.destinationDir = destinationDir;
     }
 
-    // This could be considered as an @OutputDirectory
-    // however doing so would result in up-to-date checks, although this
-    // should not happen: this is a permanent "cache" for stubbed API classes
-    // and we cannot use the task temp directory because it is not guaranteed
-    // to be kept among various invocations
+    // Not an @OutputDirectory in order to avoid up-to-date checks
     public File getApiClassesDir() {
         return apiClassesDir;
     }

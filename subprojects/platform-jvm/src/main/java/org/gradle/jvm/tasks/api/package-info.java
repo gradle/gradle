@@ -20,4 +20,5 @@
  *
  * @since 2.10
  */
+@org.gradle.api.Incubating
 package org.gradle.jvm.tasks.api;

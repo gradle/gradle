@@ -18,6 +18,17 @@ package org.gradle.jvm.tasks.api;
 
 import com.google.common.collect.ComparisonChain;
 
+/**
+ * Models a single element of a codebase that may be inspected and acted upon with
+ * bytecode manipulation libraries tools like ASM. The notion of "member" here is similar
+ * to, but broader than {@link java.lang.reflect.Member}. The latter is essentially an
+ * abstraction over fields, methods and constructors; this Member and its subtypes
+ * represent not only fields and methods, but also classes, inner classes, annotations
+ * and their values, and more. This model is minimalistic and has a few assumptions
+ * about being used in an ASM context, but provides us in any case with what we need to
+ * effectively find and manipulate API members, constructing API classes out of them, and
+ * ultimately to assemble an {@link ApiJar}.
+ */
 abstract class Member {
 
     private final String name;
