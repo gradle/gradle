@@ -38,8 +38,8 @@ class GradleExecuterBackedSession implements GradleSession {
     }
 
     @Override
-    Runnable runner(List<String> additionalArgs) {
-        def runner = createExecuter(additionalArgs, true)
+    Runnable runner(GradleInvocationCustomizer invocationCustomizer) {
+        def runner = createExecuter(invocationCustomizer, true)
         return { runner.run() }
     }
 
@@ -48,8 +48,8 @@ class GradleExecuterBackedSession implements GradleSession {
         createExecuter(null, false).withTasks().withArgument("--stop").run()
     }
 
-    private GradleExecuter createExecuter(List<String> additionalArgs, boolean withGradleOpts) {
-        def invocation = additionalArgs ? this.invocation.withAdditionalArgs(additionalArgs) : this.invocation
+    private GradleExecuter createExecuter(GradleInvocationCustomizer invocationCustomizer, boolean withGradleOpts) {
+        def invocation = invocationCustomizer ? invocationCustomizer.customize(this.invocation) : this.invocation
 
         def executer = invocation.gradleDistribution.executer(testDirectoryProvider).
                 requireGradleHome().

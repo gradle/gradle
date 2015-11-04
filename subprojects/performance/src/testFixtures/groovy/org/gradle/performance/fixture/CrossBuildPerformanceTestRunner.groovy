@@ -33,6 +33,8 @@ class CrossBuildPerformanceTestRunner {
 
     final DataReporter<CrossBuildPerformanceResults> reporter
 
+    BuildExperimentListener buildExperimentListener
+
     public CrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter) {
         this.reporter = dataReporter
         this.experimentRunner = experimentRunner
@@ -57,6 +59,7 @@ class CrossBuildPerformanceTestRunner {
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         builder.invocation.distribution(gradleDistribution)
+        builder.listener(buildExperimentListener)
     }
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {

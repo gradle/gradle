@@ -16,14 +16,6 @@
 
 package org.gradle.performance.fixture;
 
-public interface GradleSession {
-
-    GradleInvocationSpec getInvocation();
-
-    void prepare();
-
-    Runnable runner(GradleInvocationCustomizer invocationCustomizer);
-
-    void cleanup();
-
+public interface GradleInvocationCustomizer {
+    GradleInvocationSpec customize(GradleInvocationSpec invocationSpec);
 }

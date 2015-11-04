@@ -51,8 +51,8 @@ class ToolingApiBackedGradleSession implements GradleSession {
     }
 
     @Override
-    Runnable runner(List<String> additionalArgs) {
-        def invocation = additionalArgs ? this.invocation.withAdditionalArgs(additionalArgs) : this.invocation
+    Runnable runner(GradleInvocationCustomizer invocationCustomizer) {
+        def invocation = invocationCustomizer ? invocationCustomizer.customize(this.invocation) : this.invocation
 
         BuildLauncher buildLauncher = projectConnection.newBuild()
             .withArguments(invocation.args + ["-u"] as String[])

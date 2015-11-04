@@ -16,14 +16,16 @@
 
 package org.gradle.performance.fixture;
 
-public interface GradleSession {
+import java.io.File;
 
-    GradleInvocationSpec getInvocation();
+public interface BuildExperimentInvocationInfo {
+    BuildExperimentSpec getBuildExperimentSpec();
 
-    void prepare();
+    File getProjectDir();
 
-    Runnable runner(GradleInvocationCustomizer invocationCustomizer);
+    BuildExperimentRunner.Phase getPhase();
 
-    void cleanup();
+    int getIterationNumber();
 
+    int getIterationMax();
 }
