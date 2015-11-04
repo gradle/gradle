@@ -11,6 +11,54 @@ Add-->
 TBD - Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
 might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
 
+#### Managed internal views for binaries and components
+
+Now it is possible to attach a `@Managed` internal view to any `BinarySpec` or `ComponentSpec` type. This allows pluign authors to attach extra properties to already registered binary and component types like `JarBinarySpec`.
+
+Example:
+
+    @Managed
+    interface MyJarBinarySpecInternal extends JarBinarySpec {
+        String getInternal()
+        void setInternal(String internal)
+    }
+
+    class CustomPlugin extends RuleSource {
+        @BinaryType
+        public void register(BinaryTypeBuilder<JarBinarySpec> builder) {
+            builder.internalView(MyJarBinarySpecInternal)
+        }
+
+        @Mutate
+        void mutateInternal(ModelMap<MyJarBinarySpecInternal> binaries) {
+            // ...
+        }
+    }
+
+    apply plugin: "jvm-component"
+
+    model {
+        components {
+            myComponent(JvmLibrarySpec) {
+                binaries.withType(MyJarBinarySpecInternal) { binary ->
+                    binary.internal = "..."
+                }
+            }
+        }
+    }
+
+Note: `@Managed` internal views registered on unmanaged types (like `JarBinarySpec`) are not yet visible in the top-level `binaries` container, and thus it's impossible to do things like:
+
+    // This won't work:
+    model {
+        binaries.withType(MyJarBinarySpecInternal) {
+            // ...
+        }
+    }
+
+This feature is available for subtypes of `BinarySpec` and `ComponentSpec`.
+
+
 #### Default implementation for unmanaged base binary and component types
 
 It is now possible to declare a default implementation for a base component or a binary type, and extend it via further managed subtypes.
