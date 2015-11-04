@@ -44,14 +44,12 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
     public static final String INVALID_STATEMENT = "illegal rule";
     public static final String INVALID_RULE_SIGNATURE = "Rule must follow the pattern '«name»(«type») {}' for a registration, and '«name» {}' for an action";
 
-    private final SourceUnit sourceUnit;
     private final RuleVisitor ruleVisitor;
     private final String scriptSourceDescription;
     private final @Nullable URI location;
 
     public RulesVisitor(SourceUnit sourceUnit, RuleVisitor ruleVisitor, String scriptSourceDescription, @Nullable URI location) {
         super(sourceUnit, INVALID_STATEMENT);
-        this.sourceUnit = sourceUnit;
         this.ruleVisitor = ruleVisitor;
         this.scriptSourceDescription = scriptSourceDescription;
         this.location = location;
