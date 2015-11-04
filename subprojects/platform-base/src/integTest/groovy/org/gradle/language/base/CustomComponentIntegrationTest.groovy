@@ -255,7 +255,8 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                 void validateInternal(@Path('components.sample') ComponentSpecInternal spec) {
 //                    assert !(spec instanceof UnmanagedComponentSpec)
                     assert !(spec instanceof SampleComponentSpec)
-//                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
+                    // TODO:LPTR This should not be true once we stop returning raw unmanaged instances
+                    assert spec instanceof DefaultUnmanagedComponentSpec
                     assert !(spec instanceof InternalSampleSpec)
                     try {
                         spec.publicData
