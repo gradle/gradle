@@ -283,36 +283,37 @@ class BaseInstanceFactoryTest extends Specification {
     }
 
     static interface SomePublicType {
-        String getSome()
-        void setSome(String some)
+        String getAlwaysPublic()
+        void setAlwaysPublic(String alwaysPublic)
     }
     static interface SomeSamePropertyType {
-        String getSome()
-        void setSome(String some)
-        String getLow()
-        void setLow(String low)
+        String getAlwaysPublic()
+        void setAlwaysPublic(String alwaysPublic)
+        String getHiddenOnBasePublicOnOthers()
+        void setHiddenOnBasePublicOnOthers(String hiddenOnBasePublicOnOthers)
     }
     static interface SomeInternalType extends SomeSamePropertyType {
-        String getUp()
-        void setUp(String up)
-        String getLow()
-        void setLow(String low)
+        String getAlwaysHidden()
+        void setAlwaysHidden(String alwaysHidden)
+        String getHiddenOnBasePublicOnOthers()
+        void setHiddenOnBasePublicOnOthers(String hiddenOnBasePublicOnOthers)
     }
     @Managed static interface SomeManagedPublicType extends SomePublicType, SomeSamePropertyType {}
     @Managed static interface SomeManagedInternalType {}
     @Managed static interface ChildManagedPublicType extends SomeManagedPublicType {
-        String getLow()
-        void setLow(String low)
+        String getHiddenOnBasePublicOnOthers()
+        void setHiddenOnBasePublicOnOthers(String hiddenOnBasePublicOnOthers)
     }
     @Managed static interface ChildManagedInternalType {
-        String getDown()
-        void setDown(String down)
+        String getOnlyOnChild()
+        void setOnlyOnChild(String onlyOnChild)
     }
     static abstract class SomeBaseImplementation {}
 
     def "can get hidden properties"() {
         def schemaStore = new DefaultModelSchemaStore(new ModelSchemaExtractor());
         def instanceFactory = new BaseInstanceFactory<SomePublicType>("somes", SomePublicType, SomeBaseImplementation)
+
         instanceFactory.register(ModelType.of(SomePublicType), new SimpleModelRuleDescriptor("base"))
             .withInternalView(ModelType.of(SomeInternalType))
         instanceFactory.register(ModelType.of(SomeManagedPublicType), new SimpleModelRuleDescriptor("managed"))
@@ -321,8 +322,8 @@ class BaseInstanceFactoryTest extends Specification {
             .withInternalView(ModelType.of(ChildManagedInternalType))
 
         expect:
-        instanceFactory.getHiddenProperties(ModelType.of(SomePublicType), schemaStore).collect{it.name} == ["low", "up"]
-        instanceFactory.getHiddenProperties(ModelType.of(SomeManagedPublicType), schemaStore).collect{it.name} == ["up"]
-        instanceFactory.getHiddenProperties(ModelType.of(ChildManagedPublicType), schemaStore).collect{it.name} == ["down", "up"]
+        instanceFactory.getHiddenProperties(ModelType.of(SomePublicType), schemaStore).collect{it.name} == ["alwaysHidden", "hiddenOnBasePublicOnOthers"]
+        instanceFactory.getHiddenProperties(ModelType.of(SomeManagedPublicType), schemaStore)*.name == ["alwaysHidden"]
+        instanceFactory.getHiddenProperties(ModelType.of(ChildManagedPublicType), schemaStore)*.name == ["onlyOnChild", "alwaysHidden"]
     }
 }
