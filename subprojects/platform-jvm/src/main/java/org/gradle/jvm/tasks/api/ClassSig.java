@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 
 import java.util.List;
 
-public class ClassSig {
+class ClassSig {
     private final int version;
     private final int access;
     private final String name;

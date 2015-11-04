@@ -18,7 +18,7 @@ package org.gradle.jvm.tasks.api;
 
 import com.google.common.collect.ComparisonChain;
 
-public class ParameterAnnotationSig extends AnnotationSig {
+class ParameterAnnotationSig extends AnnotationSig {
     private final int parameter;
 
     public ParameterAnnotationSig(String name, boolean visible, int parameter) {

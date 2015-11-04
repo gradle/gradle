@@ -16,6 +16,6 @@
 
 package org.gradle.jvm.tasks.api;
 
-public interface MemberOfApiChecker {
+interface MemberOfApiChecker {
     boolean belongsToApi(String className);
 }

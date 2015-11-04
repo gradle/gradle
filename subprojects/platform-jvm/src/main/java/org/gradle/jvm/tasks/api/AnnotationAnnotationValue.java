@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.tasks.api;
 
-public class AnnotationAnnotationValue extends AnnotationValue {
+class AnnotationAnnotationValue extends AnnotationValue {
     private final AnnotationSig annotation;
 
     public AnnotationAnnotationValue(String name, AnnotationSig annotation) {

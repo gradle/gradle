@@ -22,7 +22,7 @@ import org.objectweb.asm.Opcodes;
 
 import java.util.List;
 
-public class SortingAnnotationVisitor extends AnnotationVisitor {
+class SortingAnnotationVisitor extends AnnotationVisitor {
     private final AnnotationSig sig;
     SortingAnnotationVisitor parent;
     String array;

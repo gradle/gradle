@@ -21,7 +21,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-public class StubClassWriter extends ClassVisitor implements Opcodes {
+class StubClassWriter extends ClassVisitor implements Opcodes {
 
     public static final String UOE_METHOD = "$unsupportedOpEx";
     private String internalClassName;

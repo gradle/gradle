@@ -18,7 +18,7 @@ package org.gradle.jvm.tasks.api;
 
 import com.google.common.collect.ComparisonChain;
 
-public class InnerClassSig implements Comparable<InnerClassSig> {
+class InnerClassSig implements Comparable<InnerClassSig> {
     private final String name;
     private final String outerName;
     private final String innerName;

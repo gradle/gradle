@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 
 import java.util.List;
 
-public class AnnotationSig implements Comparable<AnnotationSig> {
+class AnnotationSig implements Comparable<AnnotationSig> {
     private final String name;
     private final boolean visible;
     private final List<AnnotationValue> values = Lists.newLinkedList();

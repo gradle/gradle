@@ -18,7 +18,7 @@ package org.gradle.jvm.tasks.api;
 
 import java.util.Collection;
 
-public class DefaultMemberOfApiChecker implements MemberOfApiChecker {
+class DefaultMemberOfApiChecker implements MemberOfApiChecker {
 
     private final Collection<String> allowedPackages;
 

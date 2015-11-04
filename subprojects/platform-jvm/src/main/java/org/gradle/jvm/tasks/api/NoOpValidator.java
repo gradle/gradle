@@ -18,7 +18,7 @@ package org.gradle.jvm.tasks.api;
 
 import org.gradle.internal.Factory;
 
-public class NoOpValidator implements ApiValidator {
+class NoOpValidator implements ApiValidator {
 
     @Override
     public <T> T validateField(FieldSig fieldSig, Factory<T> onValidate) {

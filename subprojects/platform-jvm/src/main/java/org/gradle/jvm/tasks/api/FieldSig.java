@@ -23,7 +23,7 @@ import org.objectweb.asm.Type;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
-public class FieldSig implements Comparable<FieldSig> {
+class FieldSig implements Comparable<FieldSig> {
     private final int access;
     private final String name;
     private final String desc;

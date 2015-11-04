@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.tasks.api;
 
-public class AlwaysMemberOfApiChecker implements MemberOfApiChecker {
+class AlwaysMemberOfApiChecker implements MemberOfApiChecker {
     @Override
     public boolean belongsToApi(String className) {
         return true;

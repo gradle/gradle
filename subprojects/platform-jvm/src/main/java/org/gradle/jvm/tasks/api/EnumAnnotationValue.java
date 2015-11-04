@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.tasks.api;
 
-public class EnumAnnotationValue extends SimpleAnnotationValue {
+class EnumAnnotationValue extends SimpleAnnotationValue {
     private final String desc;
 
     public EnumAnnotationValue(String name, String desc, String value) {

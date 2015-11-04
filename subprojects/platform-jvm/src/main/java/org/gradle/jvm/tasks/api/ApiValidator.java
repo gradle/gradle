@@ -18,7 +18,7 @@ package org.gradle.jvm.tasks.api;
 
 import org.gradle.internal.Factory;
 
-public interface ApiValidator {
+interface ApiValidator {
 
     <T> T validateAnnotation(String owner, String annotationDesc, Factory<T> onValidate);
 

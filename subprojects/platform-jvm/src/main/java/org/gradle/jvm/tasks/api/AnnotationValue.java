@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.tasks.api;
 
-public abstract class AnnotationValue implements Comparable<AnnotationValue> {
+abstract class AnnotationValue implements Comparable<AnnotationValue> {
     private final String name;
 
     public AnnotationValue(String name) {

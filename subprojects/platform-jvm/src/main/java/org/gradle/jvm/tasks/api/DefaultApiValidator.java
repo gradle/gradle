@@ -26,7 +26,7 @@ import org.objectweb.asm.signature.SignatureVisitor;
 import java.util.Collections;
 import java.util.Set;
 
-public class DefaultApiValidator implements ApiValidator {
+class DefaultApiValidator implements ApiValidator {
     private final MemberOfApiChecker memberOfApiChecker;
 
     public DefaultApiValidator(MemberOfApiChecker memberOfApiChecker) {

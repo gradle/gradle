@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class MethodSig implements Comparable<MethodSig> {
+class MethodSig implements Comparable<MethodSig> {
     private final int access;
     private final String name;
     private final String desc;

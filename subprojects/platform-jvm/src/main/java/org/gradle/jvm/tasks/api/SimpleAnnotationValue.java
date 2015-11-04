@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.tasks.api;
 
-public class SimpleAnnotationValue extends AnnotationValue {
+class SimpleAnnotationValue extends AnnotationValue {
     private final Object value;
 
     public SimpleAnnotationValue(String name, Object value) {
