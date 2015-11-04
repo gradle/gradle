@@ -61,7 +61,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         def jarsDir = testDirectoryProvider.createDir('jars')
 
         new File(distribution.gradleHomeDir, 'lib').eachFileRecurse(FileType.FILES) { f ->
-            if (["tooling-api", "base-services", "test-kit", "gradle-core"].any { f.name.contains it }) {
+            if (["tooling-api", "base-services", "test-kit"].any { f.name.contains it }) {
                 GFileUtils.copyFile(f, new File(jarsDir, f.name))
             }
         }

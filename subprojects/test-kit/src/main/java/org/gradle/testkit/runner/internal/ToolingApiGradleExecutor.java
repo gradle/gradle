@@ -20,8 +20,8 @@ import com.google.common.base.Joiner;
 import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
-import org.gradle.testkit.runner.internal.dist.GradleDistribution;
 import org.gradle.testkit.runner.TaskOutcome;
+import org.gradle.testkit.runner.internal.dist.GradleDistribution;
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution;
 import org.gradle.testkit.runner.internal.dist.URILocatedGradleDistribution;
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution;
@@ -34,7 +34,6 @@ import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.task.*;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.gradle.wrapper.GradleUserHomeLookup;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

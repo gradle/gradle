@@ -1,5 +1,8 @@
 dependencies {
-    compile project(':toolingApi')
+    compile project(':baseServices')
+    compile(project(':toolingApi')) {
+        transitive = false
+    }
     testCompile libraries.groovy
 }
 
