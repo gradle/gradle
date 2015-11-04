@@ -28,11 +28,11 @@ import java.util.Collection;
 
 public abstract class AbstractManagedModelInitializer<T> implements NodeInitializer {
 
-    protected final ManagedImplStructSchema<T> schema;
+    protected final StructSchema<T> schema;
     protected final ModelSchemaStore schemaStore;
     protected final ManagedProxyFactory proxyFactory;
 
-    public AbstractManagedModelInitializer(ManagedImplStructSchema<T> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+    public AbstractManagedModelInitializer(StructSchema<T> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
         this.schema = schema;
         this.schemaStore = schemaStore;
         this.proxyFactory = proxyFactory;

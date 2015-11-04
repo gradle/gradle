@@ -255,19 +255,19 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                 void validateInternal(@Path('components.sample') ComponentSpecInternal spec) {
 //                    assert !(spec instanceof UnmanagedComponentSpec)
                     assert !(spec instanceof SampleComponentSpec)
-                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
+//                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
                     assert !(spec instanceof InternalSampleSpec)
                     try {
                         spec.publicData
                         assert false
                     } catch(MissingPropertyException e) {
-                        assert e.message == "No such property: publicData for class: ${ComponentSpecInternal.name}"
+                        assert e.message == "Could not find property 'publicData' on DefaultUnmanagedComponentSpec 'sample'."
                     }
                     try {
                         spec.internalData
                         assert false
                     } catch (MissingPropertyException e) {
-                        assert e.message == "No such property: internalData for class: ${ComponentSpecInternal.name}"
+                        assert e.message == "Could not find property 'internalData' on DefaultUnmanagedComponentSpec 'sample'."
                     }
                 }
 

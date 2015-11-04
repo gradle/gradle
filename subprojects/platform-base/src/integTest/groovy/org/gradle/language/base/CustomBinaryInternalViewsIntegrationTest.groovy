@@ -235,4 +235,73 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
         def failure = fails("components")
         failure.assertHasCause "Factory registration for 'SampleBinarySpec' is invalid because the implementation type 'DefaultSampleBinarySpec' does not implement internal view 'NotImplementedInternalView', implementation type was registered by RegisterBinaryRules#registerBinary, internal view was registered by RegisterBinaryRules#registerInternalView"
     }
+
+    def "can register managed internal view for JarBinarySpec"() {
+        buildFile << """
+            @Managed
+            interface ManagedInternalView {
+                String getInternalData()
+                void setInternalData(String internalData)
+            }
+
+            @Managed
+            interface ManagedJarBinarySpecInternal extends JarBinarySpec {
+                String getInternalJarData()
+                void setInternalJarData(String internalJarData)
+            }
+
+            class Rules extends RuleSource {
+                @BinaryType
+                void registerBinary(BinaryTypeBuilder<JarBinarySpec> builder) {
+                    builder.internalView(ManagedInternalView)
+                    builder.internalView(ManagedJarBinarySpecInternal)
+                }
+
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, ModelMap<ComponentSpec> components) {
+                    tasks.create("validate") {
+                        doLast {
+                            assert components.size() == 1
+                            components.each { component ->
+                                def internals = component.binaries.withType(ManagedInternalView)
+                                assert internals.size() == 1
+                                internals.each { binary ->
+                                    assert binary instanceof JarBinarySpec
+                                    assert !(binary instanceof ManagedJarBinarySpecInternal)
+                                    assert binary.name == "jar"
+                                    assert binary.internalData == "internal"
+                                }
+
+                                def internalJars = component.binaries.withType(ManagedJarBinarySpecInternal)
+                                assert internalJars.size() == 1
+                                internalJars.each { binary ->
+                                    assert binary instanceof JarBinarySpec
+                                    assert !(binary instanceof ManagedInternalView)
+                                    assert binary.name == "jar"
+                                    assert binary.internalJarData == "internalJar"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            apply plugin: Rules
+
+            model {
+                components {
+                    sampleLib(JvmLibrarySpec) {
+                        binaries.withType(ManagedInternalView) { binary ->
+                            binary.internalData = "internal"
+                        }
+                        binaries.withType(ManagedJarBinarySpecInternal) { binary ->
+                            binary.internalJarData = "internalJar"
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "validate"
+    }
 }

@@ -34,8 +34,10 @@ public interface InstanceFactory<T> {
     <S extends T> TypeRegistrationBuilder<S> register(ModelType<S> publicType, ModelRuleDescriptor sourceRule);
 
     <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> type);
-    
+
     <S extends T> Set<ModelProperty<?>> getHiddenProperties(ModelType<S> type, ModelSchemaStore schemaStore);
+
+    <S extends T> ModelType<? extends S> getImplementationType(ModelType<S> publicType);
 
     /**
      * Return information about the implementation of a managed type with an unmanaged super-type.
