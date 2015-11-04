@@ -119,7 +119,7 @@ model {
     nullCredentials(PasswordCredentials) { }
     numbers(Numbers){
         value = 5
-        threshold = 0.8
+        threshold = 0.8d
     }
 }
 
@@ -187,7 +187,7 @@ model {
     nullCredentials(PasswordCredentials) { }
     numbers(Numbers){
         value = 5
-        threshold = 0.8
+        threshold = 0.8d
     }
 }
 
@@ -315,7 +315,7 @@ class NumberRules extends RuleSource {
     @Model("myNumbers")
     void createRule(Numbers n) {
        n.setValue(5)
-       n.setThreshold(0.8)
+       n.setThreshold(0.8d)
     }
     @Defaults void defaultsRule(Numbers n) {}
     @Mutate void mutateRule(Numbers n) {}
