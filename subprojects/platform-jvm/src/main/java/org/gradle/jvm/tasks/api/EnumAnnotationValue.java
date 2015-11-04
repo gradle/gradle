@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
 
-import org.gradle.internal.Factory;
+package org.gradle.jvm.tasks.api;
 
-public interface ApiValidator {
+public class EnumAnnotationValue extends SimpleAnnotationValue {
+    private final String desc;
 
-    <T> T validateAnnotation(String owner, String annotationDesc, Factory<T> onValidate);
+    public EnumAnnotationValue(String name, String desc, String value) {
+        super(name, value);
+        this.desc = desc;
+    }
 
-    <T> T validateMethod(MethodSig methodSig, Factory<T> onValidate);
-
-    <T> T validateField(FieldSig fieldSig, Factory<T> onValidate);
-
-    void validateSuperTypes(String name, String signature, String superName, String[] interfaces);
-
+    public String getDesc() {
+        return desc;
+    }
 }

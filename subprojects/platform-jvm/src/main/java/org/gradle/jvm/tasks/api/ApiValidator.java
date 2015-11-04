@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
 
-public class SimpleAnnotationValue extends AnnotationValue {
-    private final Object value;
+package org.gradle.jvm.tasks.api;
 
-    public SimpleAnnotationValue(String name, Object value) {
-        super(name);
-        this.value = value;
-    }
+import org.gradle.internal.Factory;
 
-    public Object getValue() {
-        return value;
-    }
+public interface ApiValidator {
+
+    <T> T validateAnnotation(String owner, String annotationDesc, Factory<T> onValidate);
+
+    <T> T validateMethod(MethodSig methodSig, Factory<T> onValidate);
+
+    <T> T validateField(FieldSig fieldSig, Factory<T> onValidate);
+
+    void validateSuperTypes(String name, String signature, String superName, String[] interfaces);
+
 }

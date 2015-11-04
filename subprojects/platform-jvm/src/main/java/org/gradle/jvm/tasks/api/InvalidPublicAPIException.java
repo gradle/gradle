@@ -13,21 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
 
-public abstract class AnnotationValue implements Comparable<AnnotationValue> {
-    private final String name;
+package org.gradle.jvm.tasks.api;
 
-    public AnnotationValue(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public int compareTo(AnnotationValue o) {
-        return name.compareTo(o.name);
+public class InvalidPublicAPIException extends RuntimeException {
+    public InvalidPublicAPIException(String message) {
+        super(message);
     }
 }

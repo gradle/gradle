@@ -13,8 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
 
-public interface MemberOfApiChecker {
-    boolean belongsToApi(String className);
+package org.gradle.jvm.tasks.api;
+
+public class AnnotationAnnotationValue extends AnnotationValue {
+    private final AnnotationSig annotation;
+
+    public AnnotationAnnotationValue(String name, AnnotationSig annotation) {
+        super(name);
+        this.annotation = annotation;
+    }
+
+    public AnnotationSig getAnnotation() {
+        return annotation;
+    }
 }

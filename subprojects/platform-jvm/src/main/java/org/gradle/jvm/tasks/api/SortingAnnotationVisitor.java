@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
+
+package org.gradle.jvm.tasks.api;
 
 import com.google.common.collect.Lists;
 import org.objectweb.asm.AnnotationVisitor;

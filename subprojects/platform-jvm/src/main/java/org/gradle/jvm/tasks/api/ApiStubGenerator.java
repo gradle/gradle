@@ -19,7 +19,6 @@ package org.gradle.jvm.tasks.api;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.internal.Factory;
-import org.gradle.jvm.internal.apigen.abi.*;
 import org.objectweb.asm.*;
 
 import java.io.IOException;

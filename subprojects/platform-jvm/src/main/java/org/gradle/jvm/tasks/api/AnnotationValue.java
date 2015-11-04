@@ -13,41 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
 
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Lists;
+package org.gradle.jvm.tasks.api;
 
-import java.util.List;
-
-public class AnnotationSig implements Comparable<AnnotationSig> {
+public abstract class AnnotationValue implements Comparable<AnnotationValue> {
     private final String name;
-    private final boolean visible;
-    private final List<AnnotationValue> values = Lists.newLinkedList();
 
-    public AnnotationSig(String name, boolean visible) {
+    public AnnotationValue(String name) {
         this.name = name;
-        this.visible = visible;
     }
 
     public String getName() {
         return name;
     }
 
-    public List<AnnotationValue> getValues() {
-        return values;
-    }
-
-    public boolean isVisible() {
-        return visible;
-    }
-
     @Override
-    public int compareTo(AnnotationSig o) {
-        return ComparisonChain.start()
-            .compare(name, o.name)
-            .compare(visible, o.visible)
-            .result();
+    public int compareTo(AnnotationValue o) {
+        return name.compareTo(o.name);
     }
-
 }
