@@ -43,6 +43,7 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File apiJarFile;
     private Set<String> exportedPackages = Collections.emptySet();
     private Collection<DependencySpec> apiDependencies = Collections.emptySet();
+    private Collection<DependencySpec> componentLevelDependencies = Collections.emptySet();
 
     @Override
     protected String getTypeName() {
@@ -138,6 +139,16 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     @Override
     public Collection<DependencySpec> getApiDependencies() {
         return apiDependencies;
+    }
+
+    @Override
+    public void setDependencies(Collection<DependencySpec> dependencies) {
+        componentLevelDependencies = dependencies;
+    }
+
+    @Override
+    public Collection<DependencySpec> getDependencies() {
+        return componentLevelDependencies;
     }
 
     @Override

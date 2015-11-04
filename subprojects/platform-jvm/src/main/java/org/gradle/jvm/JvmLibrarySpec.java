@@ -31,7 +31,18 @@ import java.util.Set;
 @Incubating @HasInternalProtocol
 public interface JvmLibrarySpec extends LibrarySpec, JvmComponentSpec, PlatformAwareComponentSpec {
 
+    /**
+     * The set of packages that comprise this library's API.
+     */
     Set<String> getExportedPackages();
 
+    /**
+     * The api level dependencies of this library.
+     */
     Collection<DependencySpec> getApiDependencies();
+
+    /**
+     * The component level dependencies of this library.
+     */
+    Collection<DependencySpec> getDependencies();
 }

@@ -15,12 +15,13 @@
  */
 
 package org.gradle.language.java
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Ignore
 import spock.lang.Unroll
 
-import static JavaIntegrationTesting.applyJavaPlugin
+import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 
 @LeaksFileHandles
 class JavaCompilationAgainstApiJarIntegrationTest extends AbstractIntegrationSpec {
@@ -46,6 +47,15 @@ model {
     }
 
     static enum DependencyScope {
+        COMPONENT {
+            @Override
+            public String getDeclaration() {
+                return '''
+                dependencies {
+                    library 'myLib'
+                }'''
+            }
+        },
         API {
             @Override
             public String getDeclaration() {
@@ -74,10 +84,7 @@ model {
         public abstract String getDeclaration();
     }
 
-    static Collection<DependencyScope> scopes = [
-        DependencyScope.API,
-        DependencyScope.SOURCES
-    ]
+    static Collection<DependencyScope> scopes = DependencyScope.values()
 
     private void testAppDependingOnApiClass() {
         file('src/main/java/com/acme/TestApp.java') << '''package com.acme;

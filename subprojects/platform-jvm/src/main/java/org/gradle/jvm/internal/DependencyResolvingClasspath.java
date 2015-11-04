@@ -97,9 +97,13 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         return new Iterable<DependencySpec>() {
             @Override
             public Iterator<DependencySpec> iterator() {
-                return concat(sourceSetDependencies(), apiDependencies()).iterator();
+                return concat(sourceSetDependencies(), componentDependencies(), apiDependencies()).iterator();
             }
         };
+    }
+
+    private Collection<DependencySpec> componentDependencies() {
+        return binary.getDependencies();
     }
 
     private Collection<DependencySpec> sourceSetDependencies() {

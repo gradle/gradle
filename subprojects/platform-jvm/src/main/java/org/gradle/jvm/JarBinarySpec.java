@@ -62,4 +62,14 @@ public interface JarBinarySpec extends JvmBinarySpec {
     void setApiDependencies(Collection<DependencySpec> apiDependencies);
 
     Collection<DependencySpec> getApiDependencies();
+
+    /**
+     * Sets the component level dependencies of this binary.
+     */
+    void setDependencies(Collection<DependencySpec> dependencies);
+
+    /**
+     * The component level dependencies of this binary.
+     */
+    Collection<DependencySpec> getDependencies();
 }

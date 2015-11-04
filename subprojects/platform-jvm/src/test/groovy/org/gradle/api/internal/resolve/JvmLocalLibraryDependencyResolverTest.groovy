@@ -242,6 +242,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
                 binary.jarFile >> new File("api.jar")
                 binary.apiJarFile >> new File("api.jar")
                 binary.apiDependencies >> []
+                binary.dependencies >> []
                 binary.inputs >> toDomainObjectSet(LanguageSourceSet)
                 def values = [binary]
                 binaries.values() >> { values }
