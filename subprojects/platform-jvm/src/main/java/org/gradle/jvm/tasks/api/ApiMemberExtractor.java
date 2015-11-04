@@ -18,7 +18,6 @@ package org.gradle.jvm.tasks.api;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.internal.Factory;
 import org.objectweb.asm.*;
 
 import java.util.List;
@@ -34,26 +33,21 @@ class ApiMemberExtractor extends ClassVisitor {
 
     private final ClassVisitor adapter;
     private final boolean hasDeclaredApi;
-    private final ApiValidator apiValidator;
 
-    private String internalClassName;
     private boolean isInnerClass;
     private ClassSig classSig;
 
-    public ApiMemberExtractor(ClassVisitor adapter, boolean hasDeclaredApi, ApiValidator apiValidator) {
+    public ApiMemberExtractor(ClassVisitor adapter, boolean hasDeclaredApi) {
         super(ASM5);
         this.adapter = adapter;
         this.hasDeclaredApi = hasDeclaredApi;
-        this.apiValidator = apiValidator;
     }
 
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         super.visit(version, access, name, signature, superName, interfaces);
         classSig = new ClassSig(version, access, name, signature, superName, interfaces);
-        internalClassName = name;
         isInnerClass = (access & ACC_SUPER) == ACC_SUPER;
-        apiValidator.validateSuperTypes(name, signature, superName, interfaces);
     }
 
     @Override
@@ -135,13 +129,8 @@ class ApiMemberExtractor extends ClassVisitor {
 
     @Override
     public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
-        return apiValidator.validateAnnotation(AsmUtils.convertInternalNameToClassName(internalClassName), desc, new Factory<AnnotationVisitor>() {
-            @Override
-            public AnnotationVisitor create() {
-                final AnnotationSig sig = classSig.addAnnotation(desc, visible);
-                return new SortingAnnotationVisitor(sig, ApiMemberExtractor.super.visitAnnotation(desc, visible));
-            }
-        });
+        AnnotationSig sig = classSig.addAnnotation(desc, visible);
+        return new SortingAnnotationVisitor(sig, ApiMemberExtractor.super.visitAnnotation(desc, visible));
     }
 
     @Override
@@ -152,77 +141,36 @@ class ApiMemberExtractor extends ClassVisitor {
         }
         if (isApiMember(access) || ("<init>".equals(name) && isInnerClass)) {
             final MethodSig methodSig = new MethodSig(access, name, desc, signature, exceptions);
-            return apiValidator.validateMethod(methodSig, new Factory<MethodVisitor>() {
+            methods.add(methodSig);
+            return new MethodVisitor(Opcodes.ASM5) {
                 @Override
-                public MethodVisitor create() {
-                    methods.add(methodSig);
-                    return createMethodAnnotationChecker(methodSig);
+                public AnnotationVisitor visitAnnotation(final String annDesc, final boolean visible) {
+                    AnnotationSig sig = methodSig.addAnnotation(annDesc, visible);
+                    return new SortingAnnotationVisitor(sig, super.visitAnnotation(annDesc, visible));
                 }
-            });
+
+                @Override
+                public AnnotationVisitor visitParameterAnnotation(final int parameter, final String annDesc, final boolean visible) {
+                    ParameterAnnotationSig pSig = methodSig.addParameterAnnotation(parameter, annDesc, visible);
+                    return new SortingAnnotationVisitor(pSig, super.visitParameterAnnotation(parameter, annDesc, visible));
+                }
+            };
         }
         return null;
     }
 
-    private MethodVisitor createMethodAnnotationChecker(final MethodSig methodSig) {
-        return new MethodVisitor(Opcodes.ASM5) {
-
-            private AnnotationVisitor superVisitParameterAnnotation(int parameter, String annDesc, boolean visible) {
-                return super.visitParameterAnnotation(parameter, annDesc, visible);
-            }
-
-            @Override
-            public AnnotationVisitor visitAnnotation(final String annDesc, final boolean visible) {
-                return apiValidator.validateAnnotation(methodSig.toString(), annDesc, new Factory<AnnotationVisitor>() {
-                    @Override
-                    public AnnotationVisitor create() {
-                        AnnotationSig sig = methodSig.addAnnotation(annDesc, visible);
-                        return new SortingAnnotationVisitor(sig, ApiMemberExtractor.super.visitAnnotation(annDesc, visible));
-                    }
-                });
-
-            }
-
-            @Override
-            public AnnotationVisitor visitParameterAnnotation(final int parameter, final String annDesc, final boolean visible) {
-                return apiValidator.validateAnnotation(methodSig.toString(), annDesc, new Factory<AnnotationVisitor>() {
-                    @Override
-                    public AnnotationVisitor create() {
-                        ParameterAnnotationSig pSig = methodSig.addParameterAnnotation(parameter, annDesc, visible);
-                        return new SortingAnnotationVisitor(pSig, superVisitParameterAnnotation(parameter, annDesc, visible));
-                    }
-                });
-            }
-        };
-    }
-
     @Override
-    public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, Object value) {
+    public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
         if (isApiMember(access)) {
             final FieldSig fieldSig = new FieldSig(access, name, desc, signature);
-            return apiValidator.validateField(fieldSig, new Factory<FieldVisitor>() {
+            fields.add(fieldSig);
+            return new FieldVisitor(Opcodes.ASM5) {
                 @Override
-                public FieldVisitor create() {
-                    fields.add(fieldSig);
-                    return new FieldVisitor(Opcodes.ASM5) {
-                        private AnnotationVisitor superVisitAnnotation(String desc, boolean visible) {
-                            return super.visitAnnotation(desc, visible);
-                        }
-
-                        @Override
-                        public AnnotationVisitor visitAnnotation(final String annotationDesc, final boolean visible) {
-                            return apiValidator.validateAnnotation(fieldSig.toString(), annotationDesc, new Factory<AnnotationVisitor>() {
-                                @Override
-                                public AnnotationVisitor create() {
-                                    AnnotationSig sig = fieldSig.addAnnotation(annotationDesc, visible);
-                                    return new SortingAnnotationVisitor(sig, superVisitAnnotation(annotationDesc, visible));
-                                }
-                            });
-
-                        }
-                    };
+                public AnnotationVisitor visitAnnotation(String annotationDesc, final boolean visible) {
+                    AnnotationSig sig = fieldSig.addAnnotation(annotationDesc, visible);
+                    return new SortingAnnotationVisitor(sig, super.visitAnnotation(annotationDesc, visible));
                 }
-            });
-
+            };
         }
         return null;
     }

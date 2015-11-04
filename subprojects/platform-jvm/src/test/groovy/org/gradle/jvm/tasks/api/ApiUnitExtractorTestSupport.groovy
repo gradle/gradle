@@ -67,8 +67,8 @@ class ApiUnitExtractorTestSupport extends Specification {
 
         public final Map<String, GeneratedClass> classes
 
-        public ApiContainer(List<String> packages, Map<String, GeneratedClass> classes, boolean validateApi) {
-            this.apiUnitExtractor = new ApiUnitExtractor(packages.toSet(), validateApi)
+        public ApiContainer(List<String> packages, Map<String, GeneratedClass> classes) {
+            this.apiUnitExtractor = new ApiUnitExtractor(packages.toSet())
             this.classes = classes
         }
 
@@ -102,12 +102,6 @@ class ApiUnitExtractorTestSupport extends Specification {
 
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-
-    private boolean validateApi
-
-    protected void validationEnabled() {
-        validateApi = true
-    }
 
     protected ApiContainer toApi(Map<String, String> sources) {
         toApi('1.6', [], sources)
@@ -143,7 +137,7 @@ class ApiUnitExtractorTestSupport extends Specification {
                 }
                 throw new AssertionError("Cannot find class $cn. Test is very likely not written correctly.")
             }
-            return new ApiContainer(packages, entries, validateApi)
+            return new ApiContainer(packages, entries)
         }
 
         StringBuilder sb = new StringBuilder("Error in compilation of test sources:\n")

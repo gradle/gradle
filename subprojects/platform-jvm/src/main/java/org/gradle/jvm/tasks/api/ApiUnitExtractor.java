@@ -33,16 +33,10 @@ class ApiUnitExtractor {
 
     private final boolean hasDeclaredApi;
     private final MemberOfApiChecker memberOfApiChecker;
-    private final ApiValidator apiValidator;
 
     public ApiUnitExtractor(Set<String> exportedPackages) {
-        this(exportedPackages, false);
-    }
-
-    public ApiUnitExtractor(Set<String> exportedPackages, boolean validateExposedTypes) {
         this.hasDeclaredApi = !exportedPackages.isEmpty();
         this.memberOfApiChecker = hasDeclaredApi ? new DefaultMemberOfApiChecker(exportedPackages) : new AlwaysMemberOfApiChecker();
-        this.apiValidator = validateExposedTypes ? new DefaultApiValidator(memberOfApiChecker) : new NoOpValidator();
     }
 
     /**
@@ -96,7 +90,7 @@ class ApiUnitExtractor {
 
     byte[] extractApiUnitFrom(ClassReader cr) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        cr.accept(new ApiMemberExtractor(new MethodStubbingClassVisitor(cw), hasDeclaredApi, apiValidator), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        cr.accept(new ApiMemberExtractor(new MethodStubbingClassVisitor(cw), hasDeclaredApi), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return cw.toByteArray();
     }
 }
