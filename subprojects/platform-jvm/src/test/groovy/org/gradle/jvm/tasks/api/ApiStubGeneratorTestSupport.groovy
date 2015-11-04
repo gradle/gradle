@@ -80,7 +80,7 @@ class ApiStubGeneratorTestSupport extends Specification {
         }
 
         protected boolean belongsToAPI(GeneratedClass clazz) {
-            stubgen.belongsToAPI(clazz.bytes)
+            stubgen.belongsToApi(clazz.bytes)
         }
     }
 

@@ -109,7 +109,7 @@ public class ApiJar extends DefaultTask {
                 updated.set(true);
                 File file = inputFileDetails.getFile();
                 File stubFile = getStubFileFor(file);
-                if (!isClass(file) || !stubGenerator.belongsToAPI(new FileInputStream(file))) {
+                if (!isClass(file) || !stubGenerator.belongsToApi(new FileInputStream(file))) {
                     deleteStub(stubFile);
                     return;
                 }

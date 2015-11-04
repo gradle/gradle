@@ -33,7 +33,7 @@ class ApiStubGenerator {
     // See JLS3 "Binary Compatibility" (13.1)
     private final static Pattern AIC_LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
 
-    private final boolean hasDeclaredAPI;
+    private final boolean hasDeclaredApi;
     private final MemberOfApiChecker memberOfApiChecker;
     private final ApiValidator apiValidator;
 
@@ -42,8 +42,8 @@ class ApiStubGenerator {
     }
 
     public ApiStubGenerator(Set<String> exportedPackages, boolean validateExposedTypes) {
-        this.hasDeclaredAPI = !exportedPackages.isEmpty();
-        this.memberOfApiChecker = hasDeclaredAPI ? new DefaultMemberOfApiChecker(exportedPackages) : new AlwaysMemberOfApiChecker();
+        this.hasDeclaredApi = !exportedPackages.isEmpty();
+        this.memberOfApiChecker = hasDeclaredApi ? new DefaultMemberOfApiChecker(exportedPackages) : new AlwaysMemberOfApiChecker();
         this.apiValidator = validateExposedTypes ? new DefaultApiValidator(memberOfApiChecker) : new NoOpValidator();
     }
 
@@ -55,12 +55,12 @@ class ApiStubGenerator {
      * @param clazz the bytecode of the class to test
      * @return true if this class should be exposed in the API.
      */
-    public boolean belongsToAPI(byte[] clazz) {
+    public boolean belongsToApi(byte[] clazz) {
         ClassReader cr = new ClassReader(clazz);
         return belongsToApi(cr);
     }
 
-    public boolean belongsToAPI(InputStream inputStream) throws IOException {
+    public boolean belongsToApi(InputStream inputStream) throws IOException {
         ClassReader cr = new ClassReader(inputStream);
         try {
             return belongsToApi(cr);
@@ -70,15 +70,15 @@ class ApiStubGenerator {
     }
 
     private boolean belongsToApi(ClassReader cr) {
-        final AtomicBoolean isAPI = new AtomicBoolean();
+        final AtomicBoolean belongsToApi = new AtomicBoolean();
         cr.accept(new ClassVisitor(Opcodes.ASM5) {
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 String className = AsmUtils.convertInternalNameToClassName(name);
-                isAPI.set(memberOfApiChecker.belongsToApi(className) && isPublicAPI(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
+                belongsToApi.set(memberOfApiChecker.belongsToApi(className) && isApiMember(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
             }
         }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
-        return isAPI.get();
+        return belongsToApi.get();
     }
 
     /**
@@ -103,30 +103,31 @@ class ApiStubGenerator {
 
     private byte[] convertToApi(ClassReader cr) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        cr.accept(new PublicAPIExtractor(new StubClassWriter(cw)), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        cr.accept(new ApiMemberExtractor(new StubClassWriter(cw)), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return cw.toByteArray();
     }
 
-    private boolean isProtected(int access) {
+    private boolean isProtectedMember(int access) {
         return (access & Opcodes.ACC_PROTECTED) == Opcodes.ACC_PROTECTED;
     }
 
-    private boolean isPublic(int access) {
+    private boolean isPublicMember(int access) {
         return (access & Opcodes.ACC_PUBLIC) == Opcodes.ACC_PUBLIC;
     }
 
-    private boolean isPublicAPI(int access) {
-        return (isPackagePrivate(access) && !hasDeclaredAPI) || isPublic(access) || isProtected(access);
-    }
-
-    private boolean isPackagePrivate(int access) {
+    private boolean isPackagePrivateMember(int access) {
         return access == 0
             || access == Opcodes.ACC_STATIC
             || access == Opcodes.ACC_SUPER
             || access == (Opcodes.ACC_SUPER | Opcodes.ACC_STATIC);
     }
 
-    class PublicAPIExtractor extends ClassVisitor implements Opcodes {
+    private boolean isApiMember(int access) {
+        return (isPackagePrivateMember(access) && !hasDeclaredApi) || isPublicMember(access) || isProtectedMember(access);
+    }
+
+
+    class ApiMemberExtractor extends ClassVisitor implements Opcodes {
 
         private final List<MethodSig> methods = Lists.newLinkedList();
         private final List<FieldSig> fields = Lists.newLinkedList();
@@ -137,7 +138,7 @@ class ApiStubGenerator {
         private boolean isInnerClass;
         private ClassSig classSig;
 
-        public PublicAPIExtractor(StubClassWriter cv) {
+        public ApiMemberExtractor(StubClassWriter cv) {
             super(ASM5);
             this.adapter = cv;
         }
@@ -234,7 +235,7 @@ class ApiStubGenerator {
                 @Override
                 public AnnotationVisitor create() {
                     final AnnotationSig sig = classSig.addAnnotation(desc, visible);
-                    return new SortingAnnotationVisitor(sig, PublicAPIExtractor.super.visitAnnotation(desc, visible));
+                    return new SortingAnnotationVisitor(sig, ApiMemberExtractor.super.visitAnnotation(desc, visible));
                 }
             });
         }
@@ -245,7 +246,7 @@ class ApiStubGenerator {
                 // discard static initializers
                 return null;
             }
-            if (isPublicAPI(access) || ("<init>".equals(name) && isInnerClass)) {
+            if (isApiMember(access) || ("<init>".equals(name) && isInnerClass)) {
                 final MethodSig methodSig = new MethodSig(access, name, desc, signature, exceptions);
                 return apiValidator.validateMethod(methodSig, new Factory<MethodVisitor>() {
                     @Override
@@ -271,7 +272,7 @@ class ApiStubGenerator {
                         @Override
                         public AnnotationVisitor create() {
                             AnnotationSig sig = methodSig.addAnnotation(annDesc, visible);
-                            return new SortingAnnotationVisitor(sig, PublicAPIExtractor.super.visitAnnotation(annDesc, visible));
+                            return new SortingAnnotationVisitor(sig, ApiMemberExtractor.super.visitAnnotation(annDesc, visible));
                         }
                     });
 
@@ -292,7 +293,7 @@ class ApiStubGenerator {
 
         @Override
         public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, Object value) {
-            if (isPublicAPI(access)) {
+            if (isApiMember(access)) {
                 final FieldSig fieldSig = new FieldSig(access, name, desc, signature);
                 return apiValidator.validateField(fieldSig, new Factory<FieldVisitor>() {
                     @Override
@@ -327,7 +328,7 @@ class ApiStubGenerator {
             if (innerName == null) {
                 return;
             }
-            if (isPackagePrivate(access) && hasDeclaredAPI) {
+            if (isPackagePrivateMember(access) && hasDeclaredApi) {
                 return;
             }
             innerClasses.add(new InnerClassSig(name, outerName, innerName, access));

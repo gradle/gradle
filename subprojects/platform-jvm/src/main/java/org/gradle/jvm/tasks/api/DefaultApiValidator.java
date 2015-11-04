@@ -45,7 +45,7 @@ class DefaultApiValidator implements ApiValidator {
             return onValidate.create();
         }
         if (invalidReferencedTypes.size() == 1) {
-            throw new InvalidPublicAPIException(String.format("In %s, type %s is exposed in the public API but its package is not one of the allowed packages.", methodSig, invalidReferencedTypes.iterator().next()));
+            throw new InvalidApiException(String.format("In %s, type %s is exposed in the public API but its package is not one of the allowed packages.", methodSig, invalidReferencedTypes.iterator().next()));
         } else {
             StringBuilder sb = new StringBuilder("The following types are referenced in ");
             sb.append(methodSig);
@@ -53,7 +53,7 @@ class DefaultApiValidator implements ApiValidator {
             for (String invalidReferencedType : invalidReferencedTypes) {
                 sb.append("   - ").append(invalidReferencedType).append("\n");
             }
-            throw new InvalidPublicAPIException(sb.toString());
+            throw new InvalidApiException(sb.toString());
         }
     }
 
@@ -64,7 +64,7 @@ class DefaultApiValidator implements ApiValidator {
             return onValidate.create();
         }
         if (invalidReferencedTypes.size() == 1) {
-            throw new InvalidPublicAPIException(String.format("Field '%s' references disallowed API type '%s'", fieldSig, invalidReferencedTypes.iterator().next()));
+            throw new InvalidApiException(String.format("Field '%s' references disallowed API type '%s'", fieldSig, invalidReferencedTypes.iterator().next()));
         } else {
             StringBuilder sb = new StringBuilder("The following types are referenced in ");
             sb.append(fieldSig);
@@ -72,7 +72,7 @@ class DefaultApiValidator implements ApiValidator {
             for (String invalidReferencedType : invalidReferencedTypes) {
                 sb.append("   - ").append(invalidReferencedType).append("\n");
             }
-            throw new InvalidPublicAPIException(sb.toString());
+            throw new InvalidApiException(sb.toString());
         }
     }
 
@@ -82,7 +82,7 @@ class DefaultApiValidator implements ApiValidator {
         if (memberOfApiChecker.belongsToApi(annotation)) {
             return onValidate.create();
         }
-        throw new InvalidPublicAPIException(String.format("'%s' is annotated with '%s' effectively exposing it in the public API but its package is not one of the allowed packages.", owner, annotation));
+        throw new InvalidApiException(String.format("'%s' is annotated with '%s' effectively exposing it in the public API but its package is not one of the allowed packages.", owner, annotation));
     }
 
     @Override
@@ -90,12 +90,12 @@ class DefaultApiValidator implements ApiValidator {
         String className = convertInternalNameToClassName(name);
         String superClassName = convertInternalNameToClassName(superName);
         if (!memberOfApiChecker.belongsToApi(superClassName)) {
-            throw new InvalidPublicAPIException(String.format("'%s' extends '%s' and its package is not one of the allowed packages.", className, superClassName));
+            throw new InvalidApiException(String.format("'%s' extends '%s' and its package is not one of the allowed packages.", className, superClassName));
         }
         Set<String> invalidReferencedTypes = invalidReferencedTypes(signature);
         if (!invalidReferencedTypes.isEmpty()) {
             if (invalidReferencedTypes.size() == 1) {
-                throw new InvalidPublicAPIException(String.format("'%s' references disallowed API type '%s' in superclass or interfaces.", className, invalidReferencedTypes.iterator().next()));
+                throw new InvalidApiException(String.format("'%s' references disallowed API type '%s' in superclass or interfaces.", className, invalidReferencedTypes.iterator().next()));
             } else {
                 StringBuilder sb = new StringBuilder("The following types are referenced in ");
                 sb.append(className);
@@ -103,14 +103,14 @@ class DefaultApiValidator implements ApiValidator {
                 for (String invalidReferencedType : invalidReferencedTypes) {
                     sb.append("   - ").append(invalidReferencedType).append("\n");
                 }
-                throw new InvalidPublicAPIException(sb.toString());
+                throw new InvalidApiException(sb.toString());
             }
         }
         if (interfaces != null) {
             for (String intf : interfaces) {
                 String interfaceName = convertInternalNameToClassName(intf);
                 if (!memberOfApiChecker.belongsToApi(interfaceName)) {
-                    throw new InvalidPublicAPIException(String.format("'%s' declares interface '%s' and its package is not one of the allowed packages.", className, interfaceName));
+                    throw new InvalidApiException(String.format("'%s' declares interface '%s' and its package is not one of the allowed packages.", className, interfaceName));
                 }
             }
         }

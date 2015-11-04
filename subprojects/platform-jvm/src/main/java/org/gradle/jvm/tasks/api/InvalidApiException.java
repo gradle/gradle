@@ -16,8 +16,8 @@
 
 package org.gradle.jvm.tasks.api;
 
-class InvalidPublicAPIException extends RuntimeException {
-    public InvalidPublicAPIException(String message) {
+class InvalidApiException extends RuntimeException {
+    public InvalidApiException(String message) {
         super(message);
     }
 }
