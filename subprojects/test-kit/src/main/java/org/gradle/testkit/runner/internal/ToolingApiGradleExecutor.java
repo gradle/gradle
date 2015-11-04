@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner.internal;
 
-import com.google.common.base.Joiner;
 import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
@@ -34,6 +33,7 @@ import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.task.*;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.gradle.util.CollectionUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -107,7 +107,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
                 message.append("no args");
             } else {
                 message.append("args '");
-                Joiner.on(" ").appendTo(message, parameters.getBuildArgs());
+                message.append(CollectionUtils.join(" ", parameters.getBuildArgs()));
                 message.append("'");
             }
 
