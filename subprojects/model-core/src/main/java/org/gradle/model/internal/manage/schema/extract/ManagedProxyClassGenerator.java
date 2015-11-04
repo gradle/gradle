@@ -23,6 +23,8 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.typeconversion.TypeConverters;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
@@ -78,7 +80,11 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private static final Equivalence<Method> METHOD_EQUIVALENCE = new MethodSignatureEquivalence();
     private static final String SET_OBJECT_PROPERTY_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
     private static final String COERCE_TO_SCALAR_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, CLASS_TYPE, Type.getType(boolean.class));
-    private static final String COERCE_CLASS_INTERNAL_NAME = CharSequenceToScalarConverter.class.getName().replaceAll("\\.", "/");
+    private static final Type TYPE_CONVERTERS_TYPE = Type.getType(TypeConverters.class);
+    private static final String MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME = MODEL_ELEMENT_STATE_TYPE.getInternalName();
+    private static final Type SERVICE_REGISTRY_TYPE = Type.getType(ServiceRegistry.class);
+    private static final String GET_SERVICES_METHOD_DESCRIPTOR = Type.getMethodDescriptor(SERVICE_REGISTRY_TYPE);
+    private static final String SERVICES_GET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, CLASS_TYPE);
     private static final Map<Class<?>, Class<?>> BOXED_TYPES = ImmutableMap.<Class<?>, Class<?>>builder()
         .put(byte.class, Byte.class)
         .put(short.class, Short.class)
@@ -272,7 +278,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private void writeDefaultToString(ClassVisitor visitor, Type generatedType) {
         MethodVisitor methodVisitor = declareMethod(visitor, "toString", TO_STRING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
         putStateFieldValueOnStack(methodVisitor, generatedType);
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, true);
         finishVisitingMethod(methodVisitor, ARETURN);
     }
 
@@ -335,7 +341,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private void writeManagedInstanceGetBackingNodeMethod(ClassVisitor visitor, Type generatedType) {
         MethodVisitor methodVisitor = declareMethod(visitor, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, ACC_PUBLIC | ACC_SYNTHETIC);
         putStateFieldValueOnStack(methodVisitor, generatedType);
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
         finishVisitingMethod(methodVisitor, ARETURN);
     }
 
@@ -435,25 +441,35 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
         finishVisitingMethod(methodVisitor);
 
-        /* TODO:BB commented out until the real CharSequenceToScalarConverter impl is ready; tests are failing
-                   because the wrong exceptions are thrown
-
         // the overload of type Object for Groovy coercions:  public void setFoo(Object foo)
         methodVisitor = declareMethod(visitor, setter.getName(), SET_OBJECT_PROPERTY_DESCRIPTOR, SET_OBJECT_PROPERTY_DESCRIPTOR);
 
         Class<?> objectType = propertyTypeClass.isPrimitive() ? BOXED_TYPES.get(propertyTypeClass) : propertyTypeClass;
         String propertyType = Type.getInternalName(objectType);
 
-        methodVisitor.visitVarInsn(ALOAD, 1); // put var #1 ('foo') on the stack (var #0 is this)
+        putStateFieldValueOnStack(methodVisitor, generatedType);
+
+        // ServiceRegistry services = $state.getServices();
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "getServices",  GET_SERVICES_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitVarInsn(ASTORE, 2); // pop the ServiceRegistry from the stack and store it in local variable 2 ('services') (var #0 is 'this')
+
+        // TypeConverters converter = (TypeConverters) services.get(TypeConverters.class);
+        methodVisitor.visitVarInsn(ALOAD, 2); // push 'services' onto the stack
+        methodVisitor.visitLdcInsn(TYPE_CONVERTERS_TYPE); // push the constant Class onto the stack
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, SERVICE_REGISTRY_TYPE.getInternalName(), "get", SERVICES_GET_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitTypeInsn(CHECKCAST, TYPE_CONVERTERS_TYPE.getInternalName());
+        methodVisitor.visitVarInsn(ASTORE, 3); // pop the TypeConverters from the stack and store it in local variable 3 ('converter')
+
+        // Object converted = converter.convert(foo, Float.class, false);
+        methodVisitor.visitVarInsn(ALOAD, 3); // put var #3 ('converter') on the stack
+        methodVisitor.visitVarInsn(ALOAD, 1); // put var #1 ('foo') on the stack
         methodVisitor.visitLdcInsn(Type.getType(objectType)); // push the constant Class onto the stack
         methodVisitor.visitInsn(propertyTypeClass.isPrimitive() ? ICONST_1 : ICONST_0); // push int 1 or 0 (interpreted as true or false) onto the stack
-
-        // Object converted = CharSequenceToScalarConverter.convert(foo, propertyType, primitive);
-        methodVisitor.visitMethodInsn(INVOKESTATIC, COERCE_CLASS_INTERNAL_NAME, "convert", COERCE_TO_SCALAR_DESCRIPTOR, false);
-        methodVisitor.visitVarInsn(ASTORE, 2); // pop a value from the stack and store it in local variable 2 ('converted')
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, TYPE_CONVERTERS_TYPE.getInternalName(), "convert", COERCE_TO_SCALAR_DESCRIPTOR, true);
+        methodVisitor.visitVarInsn(ASTORE, 4); // pop a value from the stack and store it in local variable 4 ('converted')
 
         methodVisitor.visitVarInsn(ALOAD, 0); // put 'this' on the stack
-        methodVisitor.visitVarInsn(ALOAD, 2); // put var #2 ('converted') on the stack
+        methodVisitor.visitVarInsn(ALOAD, 4); // put var #4 ('converted') on the stack
         methodVisitor.visitTypeInsn(CHECKCAST, propertyType); // pop, cast to the expected type, push
 
         if (propertyTypeClass.isPrimitive()) {
@@ -463,7 +479,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         // invoke the typed setter, popping 'this' and 'converted' from the stack
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), setter.getName(), methodDescriptor, false);
         finishVisitingMethod(methodVisitor);
-         */
     }
 
     private void writeHashCodeMethod(ClassVisitor visitor, Type generatedType) {
@@ -517,7 +532,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void invokeStateSetMethod(MethodVisitor methodVisitor) {
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "set", STATE_SET_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "set", STATE_SET_METHOD_DESCRIPTOR, true);
     }
 
     private void putConstantOnStack(MethodVisitor methodVisitor, Object value) {
@@ -679,7 +694,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private void invokeStateGetMethod(MethodVisitor methodVisitor) {
         String methodDescriptor = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "get", methodDescriptor, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "get", methodDescriptor, true);
     }
 
     private void writeNonAbstractMethodWrapper(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Method method) {

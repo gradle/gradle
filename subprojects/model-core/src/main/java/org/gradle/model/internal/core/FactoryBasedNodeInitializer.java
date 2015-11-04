@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.AbstractManagedModelInitializer;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -35,8 +36,8 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
     private final InstanceFactory<T> instanceFactory;
     private final Action<? super T> configureAction;
 
-    public FactoryBasedNodeInitializer(InstanceFactory<T> instanceFactory, StructSchema<S> modelSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, Action<? super T> configureAction) {
-        super(modelSchema, schemaStore, proxyFactory);
+    public FactoryBasedNodeInitializer(InstanceFactory<T> instanceFactory, StructSchema<S> modelSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services, Action<? super T> configureAction) {
+        super(modelSchema, schemaStore, proxyFactory, services);
         this.instanceFactory = instanceFactory;
         this.configureAction = configureAction;
     }
@@ -139,7 +140,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
                 StructSchema<D> structSchema = Cast.uncheckedCast(schema);
                 ModelProjection projection;
                 if (structSchema instanceof ManagedImplSchema) {
-                    projection = new ManagedModelProjection<D>(structSchema, delegateSchema, schemaStore, proxyFactory);
+                    projection = new ManagedModelProjection<D>(structSchema, delegateSchema, schemaStore, proxyFactory, services);
                 } else {
                     projection = UnmanagedModelProjection.of(structSchema.getType());
                 }

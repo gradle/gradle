@@ -18,6 +18,7 @@ package org.gradle.model.internal.manage.projection;
 
 import com.google.common.base.Optional;
 import org.gradle.internal.Cast;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelView;
@@ -43,13 +44,16 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     private final StructSchema<? extends M> delegateSchema;
     private final ModelSchemaStore schemaStore;
     private final ManagedProxyFactory proxyFactory;
+    private final ServiceRegistry services;
 
-    public ManagedModelProjection(StructSchema<M> schema, StructSchema<? extends M> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+    public ManagedModelProjection(StructSchema<M> schema, StructSchema<? extends M> delegateSchema, ModelSchemaStore schemaStore,
+                                  ManagedProxyFactory proxyFactory, ServiceRegistry services) {
         super(schema.getType(), true, true);
         this.schema = schema;
         this.delegateSchema = delegateSchema;
         this.schemaStore = schemaStore;
         this.proxyFactory = proxyFactory;
+        this.services = services;
     }
 
     @Override
@@ -69,7 +73,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
             }
 
             public M getInstance() {
-                return proxyFactory.createProxy(new State(), schema, delegateSchema);
+                return proxyFactory.createProxy(new State(services), schema, delegateSchema);
             }
 
             public void close() {
@@ -77,6 +81,12 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
             }
 
             class State implements ModelElementState {
+                private final ServiceRegistry services;
+
+                State(ServiceRegistry services) {
+                    this.services = services;
+                }
+
                 @Override
                 public MutableModelNode getBackingNode() {
                     return modelNode;
@@ -135,6 +145,10 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
                     value = doSet(name, value, propertyType);
                     propertyViews.put(name, value);
+                }
+
+                public ServiceRegistry getServices() {
+                    return services;
                 }
 
                 private <T> Object doSet(String name, Object value, ModelType<T> propertyType) {

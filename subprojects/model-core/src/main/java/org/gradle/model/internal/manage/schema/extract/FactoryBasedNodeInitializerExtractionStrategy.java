@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Cast;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.core.FactoryBasedNodeInitializer;
 import org.gradle.model.internal.core.InstanceFactory;
 import org.gradle.model.internal.core.NodeInitializer;
@@ -34,12 +35,16 @@ public class FactoryBasedNodeInitializerExtractionStrategy<T> implements NodeIni
     private final ModelSchemaStore schemaStore;
     private final ManagedProxyFactory proxyFactory;
     private final BiAction<? super T, ? super ModelSchema<? extends T>> configAction;
+    private final ServiceRegistry services;
 
-    public FactoryBasedNodeInitializerExtractionStrategy(InstanceFactory<T> instanceFactory, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, BiAction<? super T, ? super ModelSchema<? extends T>> configAction) {
+    public FactoryBasedNodeInitializerExtractionStrategy(InstanceFactory<T> instanceFactory, ModelSchemaStore schemaStore,
+                                                         ManagedProxyFactory proxyFactory, ServiceRegistry services,
+                                                         BiAction<? super T, ? super ModelSchema<? extends T>> configAction) {
         this.instanceFactory = instanceFactory;
         this.schemaStore = schemaStore;
         this.proxyFactory = proxyFactory;
         this.configAction = configAction;
+        this.services = services;
     }
 
     @Override
@@ -52,7 +57,7 @@ public class FactoryBasedNodeInitializerExtractionStrategy<T> implements NodeIni
 
     private <S extends T> NodeInitializer getNodeInitializer(final ModelSchema<S> schema) {
         StructSchema<S> managedSchema = Cast.uncheckedCast(schema);
-        return new FactoryBasedNodeInitializer<T, S>(instanceFactory, managedSchema, schemaStore, proxyFactory, new Action<T>() {
+        return new FactoryBasedNodeInitializer<T, S>(instanceFactory, managedSchema, schemaStore, proxyFactory, services, new Action<T>() {
             @Override
             public void execute(T instance) {
                 configAction.execute(instance, schema);

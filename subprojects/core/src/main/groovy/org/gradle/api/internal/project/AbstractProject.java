@@ -202,7 +202,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         ModelSchemaStore schemaStore = services.get(ModelSchemaStore.class);
         ManagedProxyFactory proxyFactory = services.get(ManagedProxyFactory.class);
-        NodeInitializerRegistry nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore, proxyFactory);
+        NodeInitializerRegistry nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore, services, proxyFactory);
         modelRegistry.registerOrReplace(
             ModelRegistrations.serviceInstance(ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class), nodeInitializerRegistry)
                 .descriptor("Project.<init>.nodeInitializerRegistry()")

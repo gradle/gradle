@@ -114,8 +114,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         @Mutate
         void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, BinarySpecFactory binarySpecFactory, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, schemaStore, proxyFactory, BiActions.doNothing()));
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, schemaStore, proxyFactory, new BiAction<BinarySpec, ModelSchema<? extends BinarySpec>>() {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, schemaStore, proxyFactory, null, BiActions.doNothing()));
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, schemaStore, proxyFactory, null, new BiAction<BinarySpec, ModelSchema<? extends BinarySpec>>() {
                 @Override
                 public void execute(BinarySpec binarySpec, ModelSchema<? extends BinarySpec> schema) {
                     BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binarySpec;

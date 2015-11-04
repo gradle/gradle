@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Named;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -31,11 +32,13 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
     protected final StructSchema<T> schema;
     protected final ModelSchemaStore schemaStore;
     protected final ManagedProxyFactory proxyFactory;
+    protected final ServiceRegistry services;
 
-    public AbstractManagedModelInitializer(StructSchema<T> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+    public AbstractManagedModelInitializer(StructSchema<T> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
         this.schema = schema;
         this.schemaStore = schemaStore;
         this.proxyFactory = proxyFactory;
+        this.services = services;
     }
 
     protected void addPropertyLinks(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry, Collection<ModelProperty<?>> properties) {
@@ -83,7 +86,7 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
                     modelNode.addLink(registration);
                 } else {
                     ManagedImplStructSchema<P> structSchema = (ManagedImplStructSchema<P>) propertySchema;
-                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, null, schemaStore, proxyFactory);
+                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, null, schemaStore, proxyFactory, services);
                     ModelRegistration registration = ModelRegistrations.of(childPath)
                         .withProjection(projection)
                         .descriptor(descriptor).build();

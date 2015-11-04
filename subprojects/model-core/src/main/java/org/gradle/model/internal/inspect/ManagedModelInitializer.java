@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -29,8 +30,8 @@ import java.util.List;
 
 public class ManagedModelInitializer<T> extends AbstractManagedModelInitializer<T> {
 
-    public ManagedModelInitializer(ManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
-        super(modelSchema, schemaStore, proxyFactory);
+    public ManagedModelInitializer(ManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
+        super(modelSchema, schemaStore, proxyFactory, services);
     }
 
     @Override
@@ -46,7 +47,7 @@ public class ManagedModelInitializer<T> extends AbstractManagedModelInitializer<
 
     @Override
     public List<? extends ModelProjection> getProjections() {
-        return Collections.singletonList(new ManagedModelProjection<T>(schema, null, schemaStore, proxyFactory));
+        return Collections.singletonList(new ManagedModelProjection<T>(schema, null, schemaStore, proxyFactory, services));
     }
 
     @Nullable

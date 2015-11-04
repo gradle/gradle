@@ -19,6 +19,7 @@ package org.gradle.model.internal.core;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -37,18 +38,18 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     private final List<NodeInitializerExtractionStrategy> additionalStrategies;
     private final ModelSchemaStore schemaStore;
 
-    public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore) {
-        this(schemaStore, new ManagedProxyFactory());
+    public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore, ServiceRegistry services) {
+        this(schemaStore, services, new ManagedProxyFactory());
     }
 
-    public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+    public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore, ServiceRegistry services, ManagedProxyFactory proxyFactory) {
         this.schemaStore = schemaStore;
         this.allStrategies = Lists.newArrayList(
             new ModelSetNodeInitializerExtractionStrategy(),
             new ManagedSetNodeInitializerExtractionStrategy(),
             new ModelMapNodeInitializerExtractionStrategy(),
             new ScalarCollectionNodeInitializerExtractionStrategy(),
-            new ManagedImplStructNodeInitializerExtractionStrategy(schemaStore, proxyFactory)
+            new ManagedImplStructNodeInitializerExtractionStrategy(schemaStore, proxyFactory, services)
         );
         additionalStrategies = Lists.newArrayList();
     }
