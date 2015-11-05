@@ -21,7 +21,6 @@ import com.google.common.collect.*;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.model.ModelMap;
@@ -37,6 +36,7 @@ import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
+// TODO - mix Groovy DSL support in
 public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements ManagedInstance {
 
     private final ModelType<T> elementType;
@@ -166,7 +166,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
 
     @Override
     public void create(final String name) {
-        doCreate(name, elementType, Actions.doNothing());
+        doCreate(name, elementType, (Action<? super T>) null);
     }
 
     @Override
@@ -176,7 +176,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
 
     @Override
     public <S extends T> void create(final String name, final Class<S> type) {
-        doCreate(name, ModelType.of(type), Actions.doNothing());
+        doCreate(name, ModelType.of(type), (Action<? super T>) null);
     }
 
     @Override
@@ -205,23 +205,41 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
         modelNode.applyToAllLinks(ModelActionRole.Defaults, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
-    private <S extends T> void doCreate(final String name, final ModelType<S> type, final Action<? super S> initAction) {
-        viewState.assertCanMutate();
+    private <S extends T> void doCreate(String name, ModelType<S> type, final DeferredModelAction action) {
+        ModelPath childPath = modelNode.getPath().child(name);
+        doCreate(childPath, type, action.getDescriptor(), DirectNodeNoInputsModelAction.of(ModelReference.of(childPath, type), action.getDescriptor(), new Action<MutableModelNode>() {
+            @Override
+            public void execute(MutableModelNode node) {
+                action.execute(node, ModelActionRole.Initialize);
+            }
+        }));
+    }
+
+    private <S extends T> void doCreate(String name, ModelType<S> type, @Nullable Action<? super S> initAction) {
         ModelPath childPath = modelNode.getPath().child(name);
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name);
+        if (initAction != null) {
+            doCreate(childPath, type, descriptor, NoInputsModelAction.of(ModelReference.of(childPath, type), descriptor, initAction));
+        } else {
+            doCreate(childPath, type, descriptor, null);
+        }
+    }
 
+    private <S extends T> void doCreate(ModelPath childPath, ModelType<S> type, ModelRuleDescriptor descriptor, @Nullable ModelAction initAction) {
+        viewState.assertCanMutate();
         NodeInitializer nodeInitializer = creatorStrategy.initializer(type);
 
-        ModelRegistration registration = ModelRegistrations.of(childPath, nodeInitializer)
-            .descriptor(descriptor)
-            .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(childPath, type), descriptor, initAction))
-            .build();
+        ModelRegistrations.Builder builder = ModelRegistrations.of(childPath, nodeInitializer).descriptor(descriptor);
+        if (initAction != null) {
+            builder.action(ModelActionRole.Initialize, initAction);
+        }
+        ModelRegistration registration = builder.build();
 
         modelNode.addLink(registration);
 
         if (eager) {
             //noinspection ConstantConditions
-            modelNode.getLink(name).ensureUsable();
+            modelNode.getLink(childPath.getName()).ensureUsable();
         }
     }
 
@@ -268,7 +286,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
     }
 
     @Override
-    public void named(final String name, Action<? super T> configAction) {
+    public void named(String name, Action<? super T> configAction) {
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "named(%s)", name);
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
@@ -279,6 +297,17 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
     public void named(String name, Class<? extends RuleSource> ruleSource) {
         viewState.assertCanMutate();
         modelNode.applyToLink(name, ruleSource);
+    }
+
+    private void doNamed(String name, final DeferredModelAction action) {
+        viewState.assertCanMutate();
+        ModelReference<?> subject = ModelReference.of(modelNode.getPath().child(name));
+        modelNode.applyToLink(ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(subject, action.getDescriptor(), new Action<MutableModelNode>() {
+            @Override
+            public void execute(MutableModelNode node) {
+                action.execute(node, ModelActionRole.Mutate);
+            }
+        }));
     }
 
     @Override
@@ -359,4 +388,19 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
         });
     }
 
+    @Override
+    public Void methodMissing(String name, Object argsObj) {
+        Object[] args = (Object[]) argsObj;
+        if (args.length == 2 && args[0] instanceof Class<?> && args[1] instanceof DeferredModelAction) {
+            Class<? extends T> itemType = uncheckedCast(args[0]);
+            DeferredModelAction action = uncheckedCast(args[1]);
+            doCreate(name, ModelType.of(itemType), action);
+        } else if (args.length == 1 && args[0] instanceof DeferredModelAction) {
+            DeferredModelAction action = uncheckedCast(args[0]);
+            doNamed(name, action);
+        } else {
+            return super.methodMissing(name, argsObj);
+        }
+        return null;
+    }
 }

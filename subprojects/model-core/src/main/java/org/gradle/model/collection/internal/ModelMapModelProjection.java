@@ -26,6 +26,7 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.util.CollectionUtils;
@@ -113,7 +114,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     }
 
     public <T> boolean canBeViewedAsMutable(ModelType<T> targetType) {
-        return itemType(targetType) != null;
+        return itemType(targetType) != null || targetType.equals(ModelType.of(ManagedInstance.class)) && managed;
     }
 
     public <T> boolean canBeViewedAsImmutable(ModelType<T> type) {

@@ -19,6 +19,7 @@ import org.gradle.api.Named
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.UnboundModelRulesException
@@ -26,6 +27,7 @@ import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
+
 // TODO - extract out a common fixture for model map “impls”
 // This guy shares some duplication with UnmanagedNodeBackedModelMapTest
 class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
@@ -64,6 +66,14 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         registry.atState(path, ModelNode.State.SelfClosed)
     }
 
+    ModelMap<NamedThingInterface> realizeAsModelMap() {
+        registry.realize(path, modelMapType)
+    }
+
+    NamedThingInterface realizeChild(String name) {
+        realizeAsModelMap().get(name)
+    }
+
     def "can define an item with name"() {
         when:
         mutate { create("foo") }
@@ -71,10 +81,6 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         then:
         realizeChild("foo").name == "foo"
-    }
-
-    private NamedThingInterface realizeChild(String name) {
-        registry.realize(path.child(name), ModelType.of(NamedThingInterface))
     }
 
     def "does not eagerly create item"() {
@@ -115,6 +121,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         then:
         realizeChild("foo") instanceof SpecialNamedThingInterface
         realizeChild("bar") instanceof NamedThingInterface
+        !(realizeChild("bar") instanceof SpecialNamedThingInterface)
     }
 
     def "fails when using filtered collection to define item of type that is not assignable to collection item type"() {
@@ -166,10 +173,6 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         then:
         realizeAsModelMap().size() == 2
         !realizeAsModelMap().isEmpty()
-    }
-
-    private ModelMap<NamedThingInterface> realizeAsModelMap() {
-        registry.realize(path, modelMapType)
     }
 
     def "can query filtered collection size"() {
@@ -507,6 +510,47 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         then:
         realizeChild("foo").other == "changed"
         realizeChild("bar") instanceof SpecialNamedThingInterface
+    }
+
+    def "can create item using transformed DSL rule closure"() {
+        // DSL rules are represented using DeferredModelAction
+        def action = Mock(DeferredModelAction)
+
+        given:
+        action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            thing.other = "changed"
+        }
+
+        when:
+        mutate {
+            foo(NamedThingInterface, action)
+            bar(SpecialNamedThingInterface, action)
+        }
+
+        then:
+        realizeChild("foo").other == "changed"
+        realizeChild("bar").other == "changed"
+    }
+
+    def "can define config rules for named item using transformed DSL rule closure"() {
+        // DSL rules are represented using DeferredModelAction
+        def action = Mock(DeferredModelAction)
+
+        given:
+        action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            thing.other = "changed"
+        }
+
+        when:
+        mutate {
+            foo(action)
+            foo(NamedThingInterface)
+        }
+
+        then:
+        realizeChild("foo").other == "changed"
     }
 
     class MutableValue {
