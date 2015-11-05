@@ -36,11 +36,10 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.8', 'last']
+        runner.targetVersions = ['last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
-        // TODO: Remove this once we no longer scan directories so much
-        // runner.args += [ '-PincludeHack=true' ]
+
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
         }
