@@ -168,4 +168,39 @@ configure test
 ''')
         result.output.contains("value = 12")
     }
+
+    def "reports failure in initialization action"() {
+        buildFile << '''
+model {
+    things {
+        main(Thing) {
+            unknown = 12
+        }
+    }
+}
+'''
+
+        expect:
+        fails 'model'
+        failure.assertHasCause('Exception thrown while executing model rule: main(Thing) { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('No such property: unknown for class: Thing')
+    }
+
+    def "reports failure in configuration action"() {
+        buildFile << '''
+model {
+    things {
+        main {
+            unknown = 12
+        }
+        main(Thing)
+    }
+}
+'''
+
+        expect:
+        fails 'model'
+        failure.assertHasCause('Exception thrown while executing model rule: main { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('No such property: unknown for class: Thing')
+    }
 }

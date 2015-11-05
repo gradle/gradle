@@ -16,6 +16,7 @@
 
 package org.gradle.model.dsl.internal.transform;
 
+import com.google.common.base.Joiner;
 import org.codehaus.groovy.ast.*;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
@@ -26,11 +27,13 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.codehaus.groovy.syntax.Token;
 import org.codehaus.groovy.syntax.Types;
+import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.ExpressionReplacingVisitorSupport;
 import org.gradle.internal.SystemProperties;
 import org.gradle.model.dsl.internal.inputs.PotentialInputs;
 import org.gradle.model.internal.core.ModelPath;
+import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Modifier;
 import java.net.URI;
@@ -243,7 +246,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                     if (lastArg instanceof ClosureExpression) {
                         // TODO - other args need to be visited
                         ClosureExpression closureExpression = (ClosureExpression) lastArg;
-                        visitRuleClosure(closureExpression, call, call.getText());
+                        visitRuleClosure(closureExpression, call, displayName(call));
                         Expression replaced = new StaticMethodCallExpression(RULE_FACTORY, "decorate", new ArgumentListExpression(new VariableExpression(RULE_FACTORY_FIELD_NAME), closureExpression));
                         arguments.getExpressions().set(arguments.getExpressions().size() - 1, replaced);
                         return;
@@ -303,5 +306,35 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     private void error(ASTNode call, String message) {
         SyntaxException syntaxException = new SyntaxException(message, call.getLineNumber(), call.getColumnNumber());
         sourceUnit.getErrorCollector().addError(syntaxException, sourceUnit);
+    }
+
+    public static String displayName(MethodCallExpression expression) {
+        StringBuilder builder = new StringBuilder();
+        if (!expression.isImplicitThis()) {
+            builder.append(expression.getObjectExpression().getText());
+            builder.append('.');
+        }
+        builder.append(expression.getMethodAsString());
+        if (expression.getArguments() instanceof ArgumentListExpression) {
+            ArgumentListExpression arguments = (ArgumentListExpression) expression.getArguments();
+            boolean hasTrailingClosure = !arguments.getExpressions().isEmpty() && arguments.getExpression(arguments.getExpressions().size() - 1) instanceof ClosureExpression;
+            List<Expression> otherArgs = hasTrailingClosure ? arguments.getExpressions().subList(0, arguments.getExpressions().size() - 1) : arguments.getExpressions();
+            if (!otherArgs.isEmpty() || !hasTrailingClosure) {
+                builder.append("(");
+                builder.append(Joiner.on(", ").join(CollectionUtils.collect(otherArgs, new Transformer<Object, Expression>() {
+                    @Override
+                    public Object transform(Expression expression) {
+                        return expression.getText();
+                    }
+                })));
+                builder.append(")");
+            }
+            if (hasTrailingClosure) {
+                builder.append(" { ... }");
+            }
+        } else {
+            builder.append("()");
+        }
+        return builder.toString();
     }
 }

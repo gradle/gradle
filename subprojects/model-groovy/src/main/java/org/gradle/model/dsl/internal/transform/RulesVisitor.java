@@ -76,29 +76,28 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         ClosureExpression closureExpression = AstUtils.getSingleClosureArg(call);
         if (closureExpression != null) {
             // path { ... }
-            String modelPath = extractModelPathFromMethodTarget(call);
-            rewriteAction(call, modelPath, closureExpression, modelPath + " { ... }");
+            rewriteAction(call, extractModelPathFromMethodTarget(call), closureExpression, RuleVisitor.displayName(call));
             return;
         }
 
         Pair<ClassExpression, ClosureExpression> args = AstUtils.getClassAndClosureArgs(call);
         if (args != null) {
             // path(Type) { ... }
-            String modelPath = extractModelPathFromMethodTarget(call);
-            rewriteCreator(call, modelPath, args.getRight(), args.getLeft(), modelPath + "(" + args.getLeft().getText() + ") { ... }");
+            rewriteCreator(call, extractModelPathFromMethodTarget(call), args.getRight(), args.getLeft(), RuleVisitor.displayName(call));
             return;
         }
 
         ClassExpression classArg = AstUtils.getClassArg(call);
         if (classArg != null) {
             // path(Type)
+            String displayName = RuleVisitor.displayName(call);
             List<Statement> statements = Lists.newLinkedList();
             statements.add(new EmptyStatement());
             BlockStatement block = new BlockStatement(statements, new VariableScope());
             closureExpression = new ClosureExpression(Parameter.EMPTY_ARRAY, block);
             closureExpression.setVariableScope(block.getVariableScope());
             String modelPath = extractModelPathFromMethodTarget(call);
-            rewriteCreator(call, modelPath, closureExpression, classArg, modelPath + "(" + classArg.getText() + ")");
+            rewriteCreator(call, modelPath, closureExpression, classArg, displayName);
             return;
         }
 
