@@ -314,7 +314,7 @@ Infer a model element's hidden properties based on the parent's views:
 
 - When a property is declared on any of the parent's public view types, that property should be considered public, even if it is also declared on an internal view type
 - When a property is declared only on the parent's internal view types, that property should be considered hidden and not shown.
-- Add an option to model report to show all hidden elements and types.
+- Add an option to model report to show all hidden elements and types, named `showHidden`
 
 ### Test cases
 
@@ -334,7 +334,7 @@ This should be done as core model finalization rules for Component, Binary and L
 
 ### Open Issues
 
-Only extensible types (Binary, Component, Language) can have internal views for now.
+Only extensible types (BinarySpec, ComponentSpec, LanguageSourceSet) can have internal views for now.
 Once any type can have internal views, another story will be needed to assert that the implementation of this very story for extensible types works for any types.
 
 
