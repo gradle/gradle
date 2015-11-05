@@ -11,15 +11,23 @@
 ## Story: DSL rule references input using path expression syntax
 
 - Replace `$('path')` with `$.path`
+- Update user guide to mention syntax
+- Update samples to use this syntax
 
-## Story: DSL rule configures elements of ModelMap 
+### Test cases
+
+- Cannot use `$` expressions in non-transformed closure.
+
+## Story: DSL rule configures elements of ModelMap
 
 - Apply to creation, configure by name, configure all, configure all with type, before each, after each, etc.
 - Apply to chained withType and rule method calls
 - Allow arbitrary code to do:
     - for each in collection, apply a rule
     - if some condition is true, apply a rule
+    - TBD: handle `each { ... }`, `with { ... }` etc
 - Allow configuration of an element to take the configuration of a sibling as input.
+- Prevent unqualified access to owner closure
 - Out-of-scope: allow configuration of an element to take the configuration of siblings with type as input.
 
 For example:
@@ -55,9 +63,9 @@ For example:
             [some, collection].each { create(...) { ... } } // out-of-scope for this story, won't work
         }
     }
-    
+
 ## Story: DSL rule configures child of a structure
- 
+
 - Defer configuration, apply only to rule targets, eg nested structured or nested model containers.
 - Allow configuration for a nested structure to take configuration for a sibling as input.
 - Allow arbitrary code to conditionally configure a nested target.
@@ -75,9 +83,9 @@ For example:
                 }
             }
         }
-    }    
+    }
 
-## Story: DSL rule references input relative to subject 
+## Story: DSL rule references input relative to subject
 
 - Allow a closure parameter to be declared, this lvar can be used to reference inputs
 - Improve error message when extracted input cannot be bound
@@ -107,7 +115,7 @@ For example:
 
 - Can configure a component using a sibling component as input.
 
-## Story: DSL rule references input relative to another input reference 
+## Story: DSL rule references input relative to another input reference
 
     model {
         thing {
@@ -118,7 +126,7 @@ For example:
         }
     }
 
-## Story: DSL rule configures task action 
+## Story: DSL rule configures task action
 
 - Allow input references using subject parameter
 
@@ -133,7 +141,7 @@ For example:
             }
         }
     }
-    
+
 ## Story: Deprecate access to project and script from DSL rules
 
 - Warn when the project or script are used from the transformed DSL.
@@ -152,8 +160,8 @@ For example:
         all {
             // Later story might add a plugins { } block here
             components {
-                main(JavaLibrarySpec) { 
-                    ... 
+                main(JavaLibrarySpec) {
+                    ...
                 }
             }
             binaries.withType(NativeExecutableBinarySpec) {
@@ -188,4 +196,5 @@ For example:
 - Conveniences where subject is collection
 - Property references instead of nesting for simple configuration
 - Nice error reporting
+- Possibly use `?.` to allow optional references?
 - Etc
