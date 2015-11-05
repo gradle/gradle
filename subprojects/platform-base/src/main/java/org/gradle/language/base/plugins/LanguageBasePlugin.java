@@ -35,8 +35,6 @@ import org.gradle.model.*;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.ConstructableTypesRegistry;
 import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -102,16 +100,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @Service
-        ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ModelSchemaStore.class);
-        }
-
-        @Service
-        ManagedProxyFactory proxyFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ManagedProxyFactory.class);
-        }
-
         @Service
         ConstructableTypesRegistry constructableTypesRegistry() {
             return new DefaultConstructableTypesRegistry();
