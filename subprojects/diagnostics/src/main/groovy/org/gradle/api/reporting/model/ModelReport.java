@@ -19,6 +19,7 @@ package org.gradle.api.reporting.model;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.reporting.model.internal.ModelNodeRenderer;
 import org.gradle.api.reporting.model.internal.TextModelReportRenderer;
 import org.gradle.api.tasks.TaskAction;
@@ -31,9 +32,21 @@ import javax.inject.Inject;
 
 /**
  * Displays some details about the configuration model of the project.
+ * An instance of this type is used when you execute the {@code model} task from the command-line.
  */
 @Incubating
 public class ModelReport extends DefaultTask {
+
+    private boolean showHidden;
+
+    @Option(option = "showHidden", description = "Show hidden model elements.")
+    public void setShowHidden(boolean showHidden) {
+        this.showHidden = showHidden;
+    }
+
+    public boolean isShowHidden() {
+        return showHidden;
+    }
 
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {
@@ -49,7 +62,7 @@ public class ModelReport extends DefaultTask {
     public void report() {
         Project project = getProject();
         StyledTextOutput textOutput = getTextOutputFactory().create(ModelReport.class);
-        ModelNodeRenderer renderer = new ModelNodeRenderer();
+        ModelNodeRenderer renderer = new ModelNodeRenderer(isShowHidden());
 
         TextModelReportRenderer textModelReportRenderer = new TextModelReportRenderer(renderer);
 
