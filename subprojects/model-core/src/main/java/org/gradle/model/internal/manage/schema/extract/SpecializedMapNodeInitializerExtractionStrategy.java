@@ -17,7 +17,10 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Nullable;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Multimap;
+import org.gradle.api.Action;
+import org.gradle.internal.BiAction;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessor;
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
@@ -28,9 +31,6 @@ import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.type.ModelType;
-
-import java.util.Collections;
-import java.util.List;
 
 public class SpecializedMapNodeInitializerExtractionStrategy extends ModelMapNodeInitializerExtractionStrategy {
     private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {
@@ -62,26 +62,30 @@ public class SpecializedMapNodeInitializerExtractionStrategy extends ModelMapNod
         }
 
         @Override
-        public List<? extends ModelReference<?>> getInputs() {
-            return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
-        }
-
-        @Override
-        public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-            NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) inputs.get(0).getInstance();
-            ChildNodeInitializerStrategy<E> childFactory = NodeBackedModelMap.createUsingRegistry(schema.getElementType(), nodeInitializerRegistry);
-            modelNode.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
-        }
-
-        @Nullable
-        @Override
-        public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-            ChildNodeInitializerStrategyAccessor<E> strategyAccessor = ChildNodeInitializerStrategyAccessors.fromPrivateData();
-            Class<? extends T> implementationType = schema.getImplementationType().asSubclass(schema.getType().getConcreteClass());
-            return AddProjectionsAction.of(ModelReference.of(path), descriptor,
-                new SpecializedModelMapProjection<T, E>(schema.getType(), schema.getElementType(), implementationType, strategyAccessor),
-                ModelMapModelProjection.unmanaged(schema.getElementType(), strategyAccessor)
-            );
+        public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+            return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
+                .put(ModelActionRole.Discover, DirectNodeNoInputsModelAction.of(subject, descriptor,
+                    new Action<MutableModelNode>() {
+                        @Override
+                        public void execute(MutableModelNode modelNode) {
+                            ChildNodeInitializerStrategyAccessor<E> strategyAccessor = ChildNodeInitializerStrategyAccessors.fromPrivateData();
+                            Class<? extends T> implementationType = schema.getImplementationType().asSubclass(schema.getType().getConcreteClass());
+                            modelNode.addProjection(new SpecializedModelMapProjection<T, E>(schema.getType(), schema.getElementType(), implementationType, strategyAccessor));
+                            modelNode.addProjection(ModelMapModelProjection.unmanaged(schema.getElementType(), strategyAccessor));
+                        }
+                    }
+                ))
+                .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
+                    ModelReference.of(NodeInitializerRegistry.class),
+                    new BiAction<MutableModelNode, NodeInitializerRegistry>() {
+                        @Override
+                        public void execute(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry) {
+                            ChildNodeInitializerStrategy<E> childFactory = NodeBackedModelMap.createUsingRegistry(schema.getElementType(), nodeInitializerRegistry);
+                            modelNode.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
+                        }
+                    }
+                ))
+                .build();
         }
     }
 }

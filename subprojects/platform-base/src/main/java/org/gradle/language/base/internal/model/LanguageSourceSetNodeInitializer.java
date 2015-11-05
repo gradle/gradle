@@ -16,8 +16,11 @@
 
 package org.gradle.language.base.internal.model;
 
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Multimap;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.Nullable;
+import org.gradle.internal.BiAction;
+import org.gradle.internal.Cast;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
@@ -26,31 +29,31 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
-import java.util.Collections;
-import java.util.List;
-
 public class LanguageSourceSetNodeInitializer implements NodeInitializer {
 
-    private final LanguageRegistry languageRegistry;
     private final ModelType<?> type;
 
-    public LanguageSourceSetNodeInitializer(LanguageRegistry languageRegistry, ModelType<?> type) {
-        this.languageRegistry = languageRegistry;
+    public LanguageSourceSetNodeInitializer(ModelType<?> type) {
         this.type = type;
     }
 
     @Override
-    public List<? extends ModelReference<?>> getInputs() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-        String sourceSetName = modelNode.getPath().getName();
-        String parentName = determineParentName(modelNode);
-        LanguageSourceSet languageSourceSet = createLanguageSourceSet(parentName, sourceSetName, type.getConcreteClass());
-        modelNode.setPrivateData((ModelType<? super LanguageSourceSet>) type, languageSourceSet);
+    public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+        return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
+            .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor, UnmanagedModelProjection.of(type)))
+            .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
+                ModelReference.of(LanguageRegistry.class),
+                new BiAction<MutableModelNode, LanguageRegistry>() {
+                    @Override
+                    public void execute(MutableModelNode modelNode, LanguageRegistry languageRegistry) {
+                        String sourceSetName = modelNode.getPath().getName();
+                        String parentName = determineParentName(modelNode);
+                        LanguageSourceSet languageSourceSet = createLanguageSourceSet(parentName, sourceSetName, type.getConcreteClass(), languageRegistry);
+                        modelNode.setPrivateData(Cast.<ModelType<? super LanguageSourceSet>>uncheckedCast(type), languageSourceSet);
+                    }
+                }
+            ))
+            .build();
     }
 
     private String determineParentName(MutableModelNode modelNode) {
@@ -63,21 +66,13 @@ public class LanguageSourceSetNodeInitializer implements NodeInitializer {
         return parentName;
     }
 
-    @Nullable
-    @Override
-    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-        return AddProjectionsAction.of(ModelReference.of(path), descriptor,
-            UnmanagedModelProjection.of(type)
-        );
-    }
-
     @SuppressWarnings("unchecked")
-    private <U> U createLanguageSourceSet(String parentName, String name, Class<?> type) {
-        NamedDomainObjectFactory<? extends LanguageSourceSet> sourceSetFactory = findSourceSetFactory(type, parentName);
+    private <U> U createLanguageSourceSet(String parentName, String name, Class<?> type, LanguageRegistry languageRegistry) {
+        NamedDomainObjectFactory<? extends LanguageSourceSet> sourceSetFactory = findSourceSetFactory(type, parentName, languageRegistry);
         return (U) type.cast(sourceSetFactory.create(name));
     }
 
-    private <U extends LanguageSourceSet> NamedDomainObjectFactory<? extends LanguageSourceSet> findSourceSetFactory(Class<?> type, String parentName) {
+    private NamedDomainObjectFactory<? extends LanguageSourceSet> findSourceSetFactory(Class<?> type, String parentName, LanguageRegistry languageRegistry) {
         for (LanguageRegistration<?> languageRegistration : languageRegistry) {
             Class<? extends LanguageSourceSet> sourceSetType = languageRegistration.getSourceSetType();
             if (type.equals(sourceSetType)) {

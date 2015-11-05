@@ -18,27 +18,14 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.Cast;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.inspect.ManagedModelInitializer;
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
 public class ManagedImplStructNodeInitializerExtractionStrategy implements NodeInitializerExtractionStrategy {
-
-    private final ModelSchemaStore schemaStore;
-    private final ManagedProxyFactory proxyFactory;
-    private final ServiceRegistry services;
-
-    public ManagedImplStructNodeInitializerExtractionStrategy(ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
-        this.schemaStore = schemaStore;
-        this.proxyFactory = proxyFactory;
-        this.services = services;
-    }
 
     protected boolean isTarget(ModelType<?> type) {
         return type.getRawClass().isAnnotationPresent(Managed.class);
@@ -53,7 +40,7 @@ public class ManagedImplStructNodeInitializerExtractionStrategy implements NodeI
             return null;
         }
         ManagedImplStructSchema<T> managedSchema = Cast.<ManagedImplStructSchema<T>>uncheckedCast(schema);
-        return new ManagedModelInitializer<T>(managedSchema, schemaStore, proxyFactory, services);
+        return new ManagedModelInitializer<T>(managedSchema);
     }
 
     @Override

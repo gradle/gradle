@@ -30,6 +30,7 @@ import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElemen
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
+import java.util.Map;
 
 @NotThreadSafe
 public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor<Model> {
@@ -90,18 +91,11 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
                 public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                     NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
                     NodeInitializer initializer = getNodeInitializer(descriptor, modelSchema, nodeInitializerRegistry);
-                    ModelAction projector = initializer.getProjector(modelPath, descriptor);
-                    if (projector != null) {
-                        node.applyToSelf(ModelActionRole.Discover, projector);
+                    for (Map.Entry<ModelActionRole, ModelAction> actionInRole : initializer.getActions(ModelReference.of(modelPath), descriptor).entries()) {
+                        ModelActionRole role = actionInRole.getKey();
+                        ModelAction action = actionInRole.getValue();
+                        node.applyToSelf(role, action);
                     }
-                }
-            })
-            .action(ModelActionRole.Create, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                @Override
-                public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
-                    NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
-                    NodeInitializer initializer = getNodeInitializer(descriptor, modelSchema, nodeInitializerRegistry);
-                    node.applyToSelf(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(ModelReference.of(modelPath), descriptor, initializer.getInputs(), initializer));
                 }
             })
             .action(ModelActionRole.Initialize, InputUsingModelAction.of(

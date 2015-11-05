@@ -16,12 +16,10 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.api.Nullable;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Multimap;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
-import java.util.Collections;
-import java.util.List;
 
 public class ProjectionOnlyNodeInitializer implements NodeInitializer {
 
@@ -32,18 +30,9 @@ public class ProjectionOnlyNodeInitializer implements NodeInitializer {
     }
 
     @Override
-    public List<? extends ModelReference<?>> getInputs() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-
-    }
-
-    @Nullable
-    @Override
-    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-        return AddProjectionsAction.of(ModelReference.of(path), descriptor, projection);
+    public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+        return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
+            .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor, projection))
+            .build();
     }
 }

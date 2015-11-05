@@ -16,11 +16,8 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Nullable;
-import org.gradle.internal.BiAction;
+import com.google.common.collect.Multimap;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
-import java.util.List;
 
 /**
  * A standalone strategy for initializing a node.
@@ -30,13 +27,8 @@ import java.util.List;
  *
  * @see ModelRegistrations
  */
-public interface NodeInitializer extends BiAction<MutableModelNode, List<ModelView<?>>> {
+public interface NodeInitializer {
 
-    List<? extends ModelReference<?>> getInputs();
-
-    void execute(MutableModelNode modelNode, List<ModelView<?>> inputs);
-
-    @Nullable
-    ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor);
+    Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor);
 
 }

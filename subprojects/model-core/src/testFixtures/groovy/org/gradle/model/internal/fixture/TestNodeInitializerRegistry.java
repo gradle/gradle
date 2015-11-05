@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.fixture;
 
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.core.NodeInitializerContext;
@@ -24,10 +23,10 @@ import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
 public class TestNodeInitializerRegistry extends DefaultNodeInitializerRegistry {
-    public static final TestNodeInitializerRegistry INSTANCE = new TestNodeInitializerRegistry(null);
+    public static final TestNodeInitializerRegistry INSTANCE = new TestNodeInitializerRegistry();
 
-    private TestNodeInitializerRegistry(ServiceRegistry services) {
-        super(DefaultModelSchemaStore.getInstance(), services);
+    public TestNodeInitializerRegistry() {
+        super(DefaultModelSchemaStore.getInstance());
     }
 
     public <T> NodeInitializer getNodeInitializer(ModelType<T> type) {

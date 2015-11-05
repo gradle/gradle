@@ -30,20 +30,14 @@ import java.util.Collection;
 public abstract class AbstractManagedModelInitializer<T> implements NodeInitializer {
 
     protected final StructSchema<T> schema;
-    protected final ModelSchemaStore schemaStore;
-    protected final ManagedProxyFactory proxyFactory;
-    protected final ServiceRegistry services;
 
-    public AbstractManagedModelInitializer(StructSchema<T> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
+    public AbstractManagedModelInitializer(StructSchema<T> schema) {
         this.schema = schema;
-        this.schemaStore = schemaStore;
-        this.proxyFactory = proxyFactory;
-        this.services = services;
     }
 
-    protected void addPropertyLinks(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry, Collection<ModelProperty<?>> properties) {
+    protected void addPropertyLinks(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services, Collection<ModelProperty<?>> properties) {
         for (ModelProperty<?> property : properties) {
-            addPropertyLink(modelNode, property, nodeInitializerRegistry);
+            addPropertyLink(modelNode, property, nodeInitializerRegistry, schemaStore, proxyFactory, services);
         }
         if (isANamedType()) {
             // Only initialize "name" child node if the schema has such a managed property.
@@ -60,7 +54,7 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
         }
     }
 
-    private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry) {
+    private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
         // No need to create nodes for unmanaged properties
         if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
             return;

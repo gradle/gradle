@@ -206,25 +206,9 @@ abstract public class ModelRegistrations {
             return this;
         }
 
-        @SuppressWarnings("unchecked")
         public ModelRegistration build() {
             if (nodeInitializer != null) {
-                this.action(ModelActionRole.Create, new BuilderModelAction() {
-                    @Override
-                    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                        nodeInitializer.execute(modelNode, inputs);
-                    }
-
-                    @Override
-                    public List<? extends ModelReference<?>> getInputs() {
-                        return nodeInitializer.getInputs();
-                    }
-                });
-
-                ModelAction projector = nodeInitializer.getProjector(path, modelRuleDescriptor);
-                if (projector != null) {
-                    action(ModelActionRole.Discover, projector);
-                }
+                actions.putAll(nodeInitializer.getActions(ModelReference.of(path), modelRuleDescriptor));
             }
             if (!projections.isEmpty()) {
                 action(ModelActionRole.Discover, new BuilderModelAction() {

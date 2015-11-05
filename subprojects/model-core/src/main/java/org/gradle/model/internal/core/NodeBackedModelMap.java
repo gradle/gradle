@@ -17,9 +17,7 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -33,7 +31,9 @@ import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
@@ -88,23 +88,20 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
             public <S extends T> NodeInitializer initializer(final ModelType<S> type) {
                 return new NodeInitializer() {
                     @Override
-                    public List<? extends ModelReference<?>> getInputs() {
-                        return Collections.emptyList();
-                    }
-
-                    @Override
-                    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                        NamedEntityInstantiator<T> instantiator = instantiatorTransform.transform(modelNode.getParent());
-                        S item = instantiator.create(modelNode.getPath().getName(), type.getConcreteClass());
-                        modelNode.setPrivateData(type, item);
-                    }
-
-                    @Nullable
-                    @Override
-                    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-                        return AddProjectionsAction.of(ModelReference.of(path), descriptor,
-                            UnmanagedModelProjection.of(type)
-                        );
+                    public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+                        return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
+                            .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor,
+                                UnmanagedModelProjection.of(type)
+                            ))
+                            .put(ModelActionRole.Create, DirectNodeNoInputsModelAction.of(subject, descriptor, new Action<MutableModelNode>() {
+                                @Override
+                                public void execute(MutableModelNode modelNode) {
+                                    NamedEntityInstantiator<T> instantiator = instantiatorTransform.transform(modelNode.getParent());
+                                    S item = instantiator.create(modelNode.getPath().getName(), type.getConcreteClass());
+                                    modelNode.setPrivateData(type, item);
+                                }
+                            }))
+                            .build();
                     }
                 };
             }

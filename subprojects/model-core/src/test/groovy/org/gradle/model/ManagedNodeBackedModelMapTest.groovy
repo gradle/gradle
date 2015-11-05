@@ -17,29 +17,24 @@
 package org.gradle.model
 import org.gradle.api.Named
 import org.gradle.api.internal.ClosureBackedAction
+import org.gradle.model.internal.ProjectRegistrySpec
 import org.gradle.model.internal.core.*
-import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.UnboundModelRulesException
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
-import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 // TODO - extract out a common fixture for model map “impls”
 // This guy shares some duplication with UnmanagedNodeBackedModelMapTest
-class ManagedNodeBackedModelMapTest extends Specification {
+class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
     def path = ModelPath.path("map")
-    def registry = new ModelRegistryHelper()
     def itemType = ModelType.of(NamedThingInterface)
     def modelMapType = ModelTypes.modelMap(itemType)
-    def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
 
     def setup() {
-        registry.register(ModelRegistrations.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
         registry.register(ModelRegistrations.of(path, nodeInitializerRegistry.getNodeInitializer(modelMapType)).descriptor("creator").build())
     }
 

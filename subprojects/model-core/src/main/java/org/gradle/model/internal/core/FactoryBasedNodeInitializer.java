@@ -17,9 +17,11 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -29,50 +31,102 @@ import org.gradle.model.internal.manage.projection.ManagedModelProjection;
 import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManagedModelInitializer<S> implements NodeInitializer {
+public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManagedModelInitializer<S> {
     private final InstanceFactory<T> instanceFactory;
     private final Action<? super T> configureAction;
 
-    public FactoryBasedNodeInitializer(InstanceFactory<T> instanceFactory, StructSchema<S> modelSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services, Action<? super T> configureAction) {
-        super(modelSchema, schemaStore, proxyFactory, services);
+    public FactoryBasedNodeInitializer(InstanceFactory<T> instanceFactory, StructSchema<S> modelSchema, Action<? super T> configureAction) {
+        super(modelSchema);
         this.instanceFactory = instanceFactory;
         this.configureAction = configureAction;
     }
 
     @Override
-    public List<? extends ModelReference<?>> getInputs() {
-        return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
+    public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+        return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
+            .put(ModelActionRole.Discover, DirectNodeInputUsingModelAction.of(subject, descriptor,
+                Arrays.<ModelReference<?>>asList(
+                    ModelReference.of(ModelSchemaStore.class),
+                    ModelReference.of(ManagedProxyFactory.class),
+                    ModelReference.of(ServiceRegistry.class)
+                ),
+                new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                    @Override
+                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
+                        ModelSchemaStore schemaStore = ModelViews.getInstance(modelViews, 0, ModelSchemaStore.class);
+                        ManagedProxyFactory proxyFactory = ModelViews.getInstance(modelViews, 1, ManagedProxyFactory.class);
+                        ServiceRegistry serviceRegistry = ModelViews.getInstance(modelViews, 2, ServiceRegistry.class);
+
+                        ModelType<S> publicType = schema.getType();
+                        ModelType<? extends T> delegateType;
+                        if (schema instanceof ManagedImplSchema) {
+                            InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(publicType);
+                            if (implementationInfo == null) {
+                                throw new IllegalStateException(String.format("No default implementation registered for managed type '%s'", publicType));
+                            }
+                            delegateType = implementationInfo.getDelegateType();
+                        } else {
+                            delegateType = instanceFactory.getImplementationType(publicType);
+                        }
+                        ModelSchema<? extends T> delegateSchema = schemaStore.getSchema(delegateType);
+                        if (!(delegateSchema instanceof StructSchema)) {
+                            throw new IllegalStateException(String.format("Default implementation '%s' registered for managed type '%s' must be a struct",
+                                delegateType, publicType));
+                        }
+                        StructSchema<? extends T> delegateStructSchema = Cast.uncheckedCast(delegateSchema);
+
+                        addProjection(modelNode, publicType, delegateStructSchema, schemaStore, proxyFactory, serviceRegistry);
+                        for (ModelType<?> internalView : instanceFactory.getInternalViews(publicType)) {
+                            addProjection(modelNode, internalView, delegateStructSchema, schemaStore, proxyFactory, serviceRegistry);
+                        }
+                    }
+                }
+            ))
+            .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
+                Arrays.<ModelReference<?>>asList(
+                    ModelReference.of(NodeInitializerRegistry.class),
+                    ModelReference.of(ModelSchemaStore.class),
+                    ModelReference.of(ManagedProxyFactory.class),
+                    ModelReference.of(ServiceRegistry.class)
+                ),
+                new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                    @Override
+                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
+                        NodeInitializerRegistry nodeInitializerRegistry = ModelViews.getInstance(modelViews, 0, NodeInitializerRegistry.class);
+                        ModelSchemaStore schemaStore = ModelViews.getInstance(modelViews, 1, ModelSchemaStore.class);
+                        ManagedProxyFactory proxyFactory = ModelViews.getInstance(modelViews, 2, ManagedProxyFactory.class);
+                        ServiceRegistry serviceRegistry = ModelViews.getInstance(modelViews, 3, ServiceRegistry.class);
+
+                        ModelType<S> type = schema.getType();
+                        ModelType<? extends T> publicType;
+                        ModelType<T> delegateType;
+                        if (schema instanceof ManagedImplSchema) {
+                            InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(type);
+                            publicType = implementationInfo.getPublicType();
+                            delegateType = Cast.uncheckedCast(implementationInfo.getDelegateType());
+                        } else {
+                            publicType = type;
+                            delegateType = Cast.uncheckedCast(instanceFactory.getImplementationType(publicType));
+                        }
+                        T instance = instanceFactory.create(publicType, modelNode, modelNode.getPath().getName());
+                        configureAction.execute(instance);
+                        modelNode.setPrivateData(delegateType, instance);
+
+                        StructSchema<T> delegateSchema = Cast.uncheckedCast(schemaStore.getSchema(delegateType));
+                        addPropertyLinks(modelNode, nodeInitializerRegistry, schemaStore, proxyFactory, serviceRegistry, getProperties(delegateSchema, schemaStore));
+                        hideNodesOfHiddenProperties(modelNode, getHiddenProperties(delegateSchema, schemaStore));
+                    }
+                }
+            ))
+            .build();
     }
 
-    @Override
-    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-        ModelType<S> type = schema.getType();
-        ModelType<? extends T> publicType;
-        ModelType<T> delegateType;
-        if (schema instanceof ManagedImplSchema) {
-            InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(type);
-            publicType = implementationInfo.getPublicType();
-            delegateType = Cast.uncheckedCast(implementationInfo.getDelegateType());
-        } else {
-            publicType = type;
-            delegateType = Cast.uncheckedCast(instanceFactory.getImplementationType(publicType));
-        }
-        T instance = instanceFactory.create(publicType, modelNode, modelNode.getPath().getName());
-        configureAction.execute(instance);
-        modelNode.setPrivateData(delegateType, instance);
-
-        NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
-        StructSchema<T> delegateSchema = Cast.uncheckedCast(schemaStore.getSchema(delegateType));
-        addPropertyLinks(modelNode, nodeInitializerRegistry, getProperties(delegateSchema));
-        hideNodesOfHiddenProperties(modelNode, getHiddenProperties(delegateSchema));
-    }
-
-    private Collection<ModelProperty<?>> getProperties(StructSchema<T> delegateSchema) {
+    private Collection<ModelProperty<?>> getProperties(StructSchema<T> delegateSchema, ModelSchemaStore schemaStore) {
         ImmutableSet.Builder<ModelProperty<?>> properties = ImmutableSet.builder();
         addNonDelegatedManagedProperties(schema, delegateSchema, properties);
         for (ModelType<?> internalView : instanceFactory.getInternalViews(schema.getType())) {
@@ -96,8 +150,8 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
             properties.add(property);
         }
     }
-    
-    private Set<ModelProperty<?>> getHiddenProperties(StructSchema<T> delegateSchema) {
+
+    private Set<ModelProperty<?>> getHiddenProperties(StructSchema<T> delegateSchema, ModelSchemaStore schemaStore) {
         final ImmutableSet.Builder<ModelProperty<?>> pubPropsBuilder = ImmutableSet.builder();
         final ImmutableSet.Builder<ModelProperty<?>> intPropsBuilder = ImmutableSet.builder();
         addNonDelegatedManagedProperties(schema, delegateSchema, pubPropsBuilder);
@@ -120,53 +174,18 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
         }
     }
 
-    @Nullable
-    @Override
-    public ModelAction getProjector(final ModelPath path, final ModelRuleDescriptor descriptor) {
-        return new AbstractModelAction<Object>(ModelReference.of(path), descriptor, ModelReference.of(ModelSchemaStore.class), ModelReference.of(ManagedProxyFactory.class)) {
-            @Override
-            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                ModelSchemaStore schemaStore = ModelViews.getInstance(inputs.get(0), ModelSchemaStore.class);
-                ManagedProxyFactory proxyFactory = ModelViews.getInstance(inputs.get(1), ManagedProxyFactory.class);
-
-                ModelType<S> publicType = schema.getType();
-                ModelType<? extends T> delegateType;
-                if (schema instanceof ManagedImplSchema) {
-                    InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(publicType);
-                    if (implementationInfo == null) {
-                        throw new IllegalStateException(String.format("No default implementation registered for managed type '%s'", publicType));
-                    }
-                    delegateType = implementationInfo.getDelegateType();
-                } else {
-                    delegateType = instanceFactory.getImplementationType(publicType);
-                }
-                ModelSchema<? extends T> delegateSchema = schemaStore.getSchema(delegateType);
-                if (!(delegateSchema instanceof StructSchema)) {
-                    throw new IllegalStateException(String.format("Default implementation '%s' registered for managed type '%s' must be a struct",
-                        delegateType, publicType));
-                }
-                StructSchema<? extends T> delegateStructSchema = Cast.uncheckedCast(delegateSchema);
-
-                addProjection(modelNode, publicType, delegateStructSchema, schemaStore, proxyFactory);
-                for (ModelType<?> internalView : instanceFactory.getInternalViews(publicType)) {
-                    addProjection(modelNode, internalView, delegateStructSchema, schemaStore, proxyFactory);
-                }
-            }
-
-            private <D> void addProjection(MutableModelNode modelNode, ModelType<?> type, StructSchema<? extends D> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
-                ModelSchema<?> schema = schemaStore.getSchema(type);
-                if (!(schema instanceof StructSchema)) {
-                    throw new IllegalStateException("View type must be a struct: " + type);
-                }
-                StructSchema<D> structSchema = Cast.uncheckedCast(schema);
-                ModelProjection projection;
-                if (structSchema instanceof ManagedImplSchema) {
-                    projection = new ManagedModelProjection<D>(structSchema, delegateSchema, schemaStore, proxyFactory, services);
-                } else {
-                    projection = UnmanagedModelProjection.of(structSchema.getType());
-                }
-                modelNode.addProjection(projection);
-            }
-        };
+    private <D> void addProjection(MutableModelNode modelNode, ModelType<?> type, StructSchema<? extends D> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
+        ModelSchema<?> schema = schemaStore.getSchema(type);
+        if (!(schema instanceof StructSchema)) {
+            throw new IllegalStateException("View type must be a struct: " + type);
+        }
+        StructSchema<D> structSchema = Cast.uncheckedCast(schema);
+        ModelProjection projection;
+        if (structSchema instanceof ManagedImplSchema) {
+            projection = new ManagedModelProjection<D>(structSchema, delegateSchema, schemaStore, proxyFactory, services);
+        } else {
+            projection = UnmanagedModelProjection.of(structSchema.getType());
+        }
+        modelNode.addProjection(projection);
     }
 }

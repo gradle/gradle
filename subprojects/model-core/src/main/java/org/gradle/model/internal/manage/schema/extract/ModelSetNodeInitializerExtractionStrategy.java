@@ -17,7 +17,9 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Nullable;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Multimap;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.Cast;
 import org.gradle.model.ModelSet;
 import org.gradle.model.internal.core.*;
@@ -26,9 +28,6 @@ import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
-
-import java.util.Collections;
-import java.util.List;
 
 public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeInitializerExtractionSupport {
     private static final ModelType<ModelSet<?>> MODEL_SET_MODEL_TYPE = new ModelType<ModelSet<?>>() {
@@ -91,26 +90,25 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
         }
 
         @Override
-        public List<? extends ModelReference<?>> getInputs() {
-            return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
-        }
-
-        @Override
-        public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-            NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
-            ChildNodeInitializerStrategy<T> childStrategy = new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry);
-            modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
-        }
-
-        @Nullable
-        @Override
-        public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-            return AddProjectionsAction.of(ModelReference.of(path), descriptor,
-                TypedModelProjection.of(
-                    ModelTypes.modelSet(schema.getElementType()),
-                    new ModelSetModelViewFactory<E>(schema.getElementType())
-                )
-            );
+        public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+            return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
+                .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor,
+                    TypedModelProjection.of(
+                        ModelTypes.modelSet(schema.getElementType()),
+                        new ModelSetModelViewFactory<E>(schema.getElementType())
+                    )
+                ))
+                .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
+                    ModelReference.of(NodeInitializerRegistry.class),
+                    new BiAction<MutableModelNode, NodeInitializerRegistry>() {
+                        @Override
+                        public void execute(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry) {
+                            ChildNodeInitializerStrategy<T> childStrategy = new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry);
+                            modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
+                        }
+                    }
+                ))
+                .build();
         }
     }
 }

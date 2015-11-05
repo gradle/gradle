@@ -115,7 +115,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
             for (LanguageRegistration<?> languageRegistration : languageRegistry) {
                 ModelType<?> sourceSetType = ModelType.of(languageRegistration.getSourceSetType());
-                LanguageSourceSetNodeInitializer languageSourceSetNodeInitializer = new LanguageSourceSetNodeInitializer(languageRegistry, sourceSetType);
+                LanguageSourceSetNodeInitializer languageSourceSetNodeInitializer = new LanguageSourceSetNodeInitializer(sourceSetType);
                 constructableTypesRegistry.registerConstructableType(sourceSetType, languageSourceSetNodeInitializer);
             }
         }
