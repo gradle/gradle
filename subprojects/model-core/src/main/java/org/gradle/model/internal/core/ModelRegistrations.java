@@ -221,25 +221,12 @@ abstract public class ModelRegistrations {
                     }
                 });
 
+                this.projections.addAll(nodeInitializer.getProjections());
+
                 ModelAction projector = nodeInitializer.getProjector(path, modelRuleDescriptor);
                 if (projector != null) {
                     action(ModelActionRole.Discover, projector);
                 }
-            }
-            if (!projections.isEmpty()) {
-                action(ModelActionRole.Discover, new BuilderModelAction() {
-                    @Override
-                    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                        for (ModelProjection projection : projections) {
-                            modelNode.addProjection(projection);
-                        }
-                    }
-
-                    @Override
-                    public List<? extends ModelReference<?>> getInputs() {
-                        return Collections.emptyList();
-                    }
-                });
             }
             return new ProjectionBackedModelRegistration(path, modelRuleDescriptor, service, ephemeral, hidden || service, projections, actions);
         }

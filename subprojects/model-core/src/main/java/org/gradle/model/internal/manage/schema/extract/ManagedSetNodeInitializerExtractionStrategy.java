@@ -104,15 +104,20 @@ public class ManagedSetNodeInitializerExtractionStrategy extends CollectionNodeI
             modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
         }
 
-        @Nullable
         @Override
-        public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-            return AssignProjectionsNoInputsAction.of(ModelReference.of(path), descriptor,
+        public List<? extends ModelProjection> getProjections() {
+            return Collections.singletonList(
                 TypedModelProjection.of(
                     ModelTypes.managedSet(schema.getElementType()),
                     new ManagedSetModelViewFactory<E>(schema.getElementType())
                 )
             );
+        }
+
+        @Nullable
+        @Override
+        public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
+            return null;
         }
     }
 }

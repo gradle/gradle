@@ -41,9 +41,14 @@ public class ProjectionOnlyNodeInitializer implements NodeInitializer {
 
     }
 
+    @Override
+    public List<? extends ModelProjection> getProjections() {
+        return Collections.singletonList(projection);
+    }
+
     @Nullable
     @Override
     public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-        return AssignProjectionsNoInputsAction.of(ModelReference.of(path), descriptor, projection);
+        return null;
     }
 }

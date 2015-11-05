@@ -102,15 +102,20 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
             modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
         }
 
-        @Nullable
         @Override
-        public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-            return AssignProjectionsNoInputsAction.of(ModelReference.of(path), descriptor,
+        public List<? extends ModelProjection> getProjections() {
+            return Collections.singletonList(
                 TypedModelProjection.of(
                     ModelTypes.modelSet(schema.getElementType()),
                     new ModelSetModelViewFactory<E>(schema.getElementType())
                 )
             );
+        }
+
+        @Nullable
+        @Override
+        public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
+            return null;
         }
     }
 }

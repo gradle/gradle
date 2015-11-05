@@ -71,12 +71,17 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
             modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
         }
 
+        @Override
+        public List<? extends ModelProjection> getProjections() {
+            return Collections.singletonList(
+                ModelMapModelProjection.managed(schema.getElementType(), ChildNodeInitializerStrategyAccessors.fromPrivateData())
+            );
+        }
+
         @Nullable
         @Override
         public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-            return AssignProjectionsNoInputsAction.of(ModelReference.of(path), descriptor,
-                ModelMapModelProjection.managed(schema.getElementType(), ChildNodeInitializerStrategyAccessors.fromPrivateData())
-            );
+            return null;
         }
     }
 }

@@ -63,12 +63,15 @@ public class LanguageSourceSetNodeInitializer implements NodeInitializer {
         return parentName;
     }
 
+    @Override
+    public List<? extends ModelProjection> getProjections() {
+        return Collections.singletonList(UnmanagedModelProjection.of(type));
+    }
+
     @Nullable
     @Override
     public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-        return AssignProjectionsNoInputsAction.of(ModelReference.of(path), descriptor,
-            UnmanagedModelProjection.of(type)
-        );
+        return null;
     }
 
     @SuppressWarnings("unchecked")
