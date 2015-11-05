@@ -1332,8 +1332,13 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (childTarget == null) {
                 throw new NullPointerException("child is null");
             }
+            // TODO:LPTR Remove projection for reference node
+            // This shouldn't be needed, but if there's no actual value referenced, model report can only
+            // show the type of the node if we do this for now. It should use the schema instead to find
+            // the type of the property node instead.
             ModelRegistration registration = ModelRegistrations.of(path)
                 .descriptor(parent.getDescriptor())
+                .withProjection(childTarget.getRegistrationBinder().getRegistration().getProjection())
                 .build();
             ModelReferenceNode childNode = new ModelReferenceNode(toRegistrationBinder(registration), parent);
             childNode.setTarget(childTarget);
