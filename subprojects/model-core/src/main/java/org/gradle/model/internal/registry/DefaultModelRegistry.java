@@ -1334,7 +1334,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
             ModelRegistration registration = ModelRegistrations.of(path)
                 .descriptor(parent.getDescriptor())
-                .withProjection(childTarget.getRegistrationBinder().getRegistration().getProjection())
                 .build();
             ModelReferenceNode childNode = new ModelReferenceNode(toRegistrationBinder(registration), parent);
             childNode.setTarget(childTarget);

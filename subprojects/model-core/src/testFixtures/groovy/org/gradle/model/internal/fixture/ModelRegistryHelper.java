@@ -579,6 +579,18 @@ public class ModelRegistryHelper implements ModelRegistry {
                 .build();
         }
 
+        public <C> ModelRegistration unmanagedReference(final Action<? super MutableModelNode> action) {
+            return ModelRegistrations.of(path, new Action<MutableModelNode>() {
+                @Override
+                public void execute(MutableModelNode mutableModelNode) {
+                    action.execute(mutableModelNode);
+                }
+            })
+                .descriptor(descriptor)
+                .ephemeral(ephemeral)
+                .build();
+        }
+
         public <C> ModelRegistration unmanaged(C c) {
             return unmanaged(c, Actions.doNothing());
         }

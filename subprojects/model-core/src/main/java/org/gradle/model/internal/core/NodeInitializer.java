@@ -36,8 +36,6 @@ public interface NodeInitializer extends BiAction<MutableModelNode, List<ModelVi
 
     void execute(MutableModelNode modelNode, List<ModelView<?>> inputs);
 
-    List<? extends ModelProjection> getProjections();
-
     @Nullable
     ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor);
 

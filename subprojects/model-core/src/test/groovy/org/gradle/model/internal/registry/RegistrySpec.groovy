@@ -31,6 +31,7 @@ class RegistrySpec extends Specification {
 
         TestNode(String creationPath, Class<?> type) {
             super(toBinder(creationPath, type))
+            addProjection(new UnmanagedModelProjection(ModelType.of(type)))
         }
 
         TestNode(RegistrationRuleBinder registrationBinder) {
@@ -38,7 +39,7 @@ class RegistrySpec extends Specification {
         }
 
         private static RegistrationRuleBinder toBinder(String creationPath, Class<?> type) {
-            def registration = ModelRegistrations.of(ModelPath.path(creationPath)).descriptor("test").withProjection(new UnmanagedModelProjection(ModelType.of(type))).build()
+            def registration = ModelRegistrations.of(ModelPath.path(creationPath)).descriptor("test").build()
             def subject = new BindingPredicate()
             def binder = new RegistrationRuleBinder(registration, subject, [], [])
             binder
@@ -207,6 +208,7 @@ class RegistrySpec extends Specification {
 
         @Override
         void addProjection(ModelProjection projection) {
+            getRegistrationBinder().getRegistration().addProjection(projection);
         }
     }
 
@@ -265,7 +267,7 @@ class RegistrySpec extends Specification {
         RuleBinder build() {
             def binder
             if (subjectReference == null) {
-                def action = new ProjectionBackedModelRegistration(null, descriptor, false, false, false, [], ImmutableMultimap.of())
+                def action = new ProjectionBackedModelRegistration(null, descriptor, false, false, false, ImmutableMultimap.of())
                 binder = new RegistrationRuleBinder(action, new BindingPredicate(), inputReferences, [])
             } else {
                 def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})
