@@ -156,58 +156,61 @@ public class ApiJar extends DefaultTask {
             }
         });
         if (updated.get()) {
-            IoActions.withResource(new JarOutputStream(new BufferedOutputStream(new FileOutputStream(archivePath), 65536)), new ErroringAction<JarOutputStream>() {
-                private final SortedMap<String, File> sortedFiles = Maps.newTreeMap();
+            IoActions.withResource(
+                new JarOutputStream(new BufferedOutputStream(new FileOutputStream(archivePath), 65536)),
+                new ErroringAction<JarOutputStream>() {
+                    private final SortedMap<String, File> sortedFiles = Maps.newTreeMap();
 
-                private void writeEntries(JarOutputStream jos) throws Exception {
-                    for (Map.Entry<String, File> entry : sortedFiles.entrySet()) {
-                        JarEntry je = new JarEntry(entry.getKey());
-                        // Setting time to 0 because we need API jars to be identical independently of
-                        // the timestamps of class files
-                        je.setTime(0);
-                        File originalClassFile = entry.getValue();
-                        // get it from cache if it has just been converted
-                        byte[] apiClassBytes = apiClasses.get(originalClassFile);
-                        if (apiClassBytes == null) {
-                            // or get it from disk otherwise
-                            apiClassBytes = FileUtils.readFileToByteArray(originalClassFile);
+                    private void writeEntries(JarOutputStream jos) throws Exception {
+                        for (Map.Entry<String, File> entry : sortedFiles.entrySet()) {
+                            JarEntry je = new JarEntry(entry.getKey());
+                            // Setting time to 0 because we need API jars to be identical independently of
+                            // the timestamps of class files
+                            je.setTime(0);
+                            File originalClassFile = entry.getValue();
+                            // get it from cache if it has just been converted
+                            byte[] apiClassBytes = apiClasses.get(originalClassFile);
+                            if (apiClassBytes == null) {
+                                // or get it from disk otherwise
+                                apiClassBytes = FileUtils.readFileToByteArray(originalClassFile);
+                            }
+                            je.setSize(apiClassBytes.length);
+                            jos.putNextEntry(je);
+                            jos.write(apiClassBytes);
+                            jos.closeEntry();
                         }
-                        je.setSize(apiClassBytes.length);
+                    }
+
+                    private void collectFiles(String relativePath, File f) throws Exception {
+                        String path = "".equals(relativePath) ? f.getName() : relativePath + "/" + f.getName();
+                        if (f.isFile()) {
+                            sortedFiles.put(path, f);
+                        } else if (f.isDirectory()) {
+                            for (File file : f.listFiles()) {
+                                String root = relativePath == null ? "" : path;
+                                collectFiles(root, file);
+                            }
+                        }
+                    }
+
+                    @Override
+                    protected void doExecute(final JarOutputStream jos) throws Exception {
+                        writeManifest(jos);
+                        // Make sure all entries are always written in the same order
+                        collectFiles(null, apiClassesDir);
+                        writeEntries(jos);
+                        jos.close();
+                    }
+
+                    private void writeManifest(JarOutputStream jos) throws IOException {
+                        JarEntry je = new JarEntry("META-INF/MANIFEST.MF");
+                        je.setTime(0);
                         jos.putNextEntry(je);
-                        jos.write(apiClassBytes);
+                        jos.write("Manifest-Version: 1.0\n".getBytes());
                         jos.closeEntry();
                     }
                 }
-
-                private void collectFiles(String relativePath, File f) throws Exception {
-                    String path = "".equals(relativePath) ? f.getName() : relativePath + "/" + f.getName();
-                    if (f.isFile()) {
-                        sortedFiles.put(path, f);
-                    } else if (f.isDirectory()) {
-                        for (File file : f.listFiles()) {
-                            String root = relativePath == null ? "" : path;
-                            collectFiles(root, file);
-                        }
-                    }
-                }
-
-                @Override
-                protected void doExecute(final JarOutputStream jos) throws Exception {
-                    writeManifest(jos);
-                    // Make sure all entries are always written in the same order
-                    collectFiles(null, apiClassesDir);
-                    writeEntries(jos);
-                    jos.close();
-                }
-
-                private void writeManifest(JarOutputStream jos) throws IOException {
-                    JarEntry je = new JarEntry("META-INF/MANIFEST.MF");
-                    je.setTime(0);
-                    jos.putNextEntry(je);
-                    jos.write("Manifest-Version: 1.0\n".getBytes());
-                    jos.closeEntry();
-                }
-            });
+            );
         }
     }
 
@@ -227,5 +230,4 @@ public class ApiJar extends DefaultTask {
             FileUtils.deleteQuietly(apiClassFile);
         }
     }
-
 }

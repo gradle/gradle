@@ -54,7 +54,8 @@ class MethodStubbingApiMemberAdapter extends ClassVisitor {
         MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
         if ((access & ACC_ABSTRACT) == 0) {
             mv.visitCode();
-            mv.visitMethodInsn(INVOKESTATIC, internalClassName, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", false);
+            mv.visitMethodInsn(
+                INVOKESTATIC, internalClassName, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", false);
             mv.visitInsn(ATHROW);
             mv.visitMaxs(1, 0);
             mv.visitEnd();
@@ -67,12 +68,16 @@ class MethodStubbingApiMemberAdapter extends ClassVisitor {
      * The reason it is in a separate method is because it reduces the bytecode size.
      */
     private void generateUnsupportedOperationExceptionMethod() {
-        MethodVisitor mv = cv.visitMethod(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", null, null);
+        MethodVisitor mv = cv.visitMethod(
+            ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, UOE_METHOD,
+            "()Ljava/lang/UnsupportedOperationException;", null, null);
         mv.visitCode();
         mv.visitTypeInsn(NEW, "java/lang/UnsupportedOperationException");
         mv.visitInsn(DUP);
-        mv.visitLdcInsn("You tried to call a method on an API class. You probably added the API jar on classpath instead of the implementation jar.");
-        mv.visitMethodInsn(INVOKESPECIAL, "java/lang/UnsupportedOperationException", "<init>", "(Ljava/lang/String;)V", false);
+        mv.visitLdcInsn(
+            "You tried to call a method on an API class. Is the API jar on the classpath instead of the runtime jar?");
+        mv.visitMethodInsn(
+            INVOKESPECIAL, "java/lang/UnsupportedOperationException", "<init>", "(Ljava/lang/String;)V", false);
         mv.visitInsn(ARETURN);
         mv.visitMaxs(3, 0);
         mv.visitEnd();

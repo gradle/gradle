@@ -76,8 +76,9 @@ class ApiClassExtractor {
         final AtomicBoolean shouldExtract = new AtomicBoolean();
         originalClassReader.accept(new ClassVisitor(Opcodes.ASM5) {
             @Override
-            public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                String originalClassName = AsmUtils.convertInternalNameToClassName(name);
+            public void visit(int version, int access, String name, String signature, String superName,
+                              String[] interfaces) {
+                String originalClassName = convertAsmInternalNameToClassName(name);
                 shouldExtract.set(isApiClassExtractionCandidate(access, originalClassName));
             }
         }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
@@ -102,7 +103,9 @@ class ApiClassExtractor {
 
     byte[] extractApiClassFrom(ClassReader originalClassReader) {
         ClassWriter apiClassWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        originalClassReader.accept(new ApiMemberSelector(new MethodStubbingApiMemberAdapter(apiClassWriter), apiIncludesPackagePrivateMembers), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        originalClassReader.accept(
+            new ApiMemberSelector(new MethodStubbingApiMemberAdapter(apiClassWriter), apiIncludesPackagePrivateMembers),
+            ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return apiClassWriter.toByteArray();
     }
 

@@ -33,6 +33,7 @@ class FieldMember extends TypedMember implements Comparable<FieldMember> {
 
     @Override
     public String toString() {
-        return String.format("%s %s %s", Modifier.toString(getAccess()), Type.getType(getTypeDesc()).getClassName(), getName());
+        return String.format(
+            "%s %s %s", Modifier.toString(getAccess()), Type.getType(getTypeDesc()).getClassName(), getName());
     }
 }

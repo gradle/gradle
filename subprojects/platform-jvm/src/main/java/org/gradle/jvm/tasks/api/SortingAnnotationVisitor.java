@@ -39,7 +39,8 @@ class SortingAnnotationVisitor extends AnnotationVisitor {
     @Override
     public AnnotationVisitor visitAnnotation(String name, String desc) {
         AnnotationMember annotation = new AnnotationMember(desc, true);
-        SortingAnnotationVisitor visitor = new SortingAnnotationVisitor(annotation, super.visitAnnotation(name, desc));
+        SortingAnnotationVisitor visitor =
+            new SortingAnnotationVisitor(annotation, super.visitAnnotation(name, desc));
         visitor.parentVisitor = this;
         visitor.annotationValueName = (name == null) ? "value" : name;
         return visitor;
@@ -71,7 +72,8 @@ class SortingAnnotationVisitor extends AnnotationVisitor {
             parentVisitor.annotationValues.add(value);
             annotationValueName = null;
         } else if (arrayValueName != null) {
-            ArrayAnnotationValue value = new ArrayAnnotationValue(arrayValueName, annotationValues.toArray(new AnnotationValue<?>[annotationValues.size()]));
+            ArrayAnnotationValue value = new ArrayAnnotationValue(
+                arrayValueName, annotationValues.toArray(new AnnotationValue<?>[annotationValues.size()]));
             annotation.addValue(value);
             arrayValueName = null;
         }

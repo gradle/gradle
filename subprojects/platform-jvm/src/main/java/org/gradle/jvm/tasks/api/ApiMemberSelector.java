@@ -60,28 +60,35 @@ class ApiMemberSelector extends ClassVisitor {
     public void visitEnd() {
         super.visitEnd();
 
-        apiMemberAdapter.visit(classMember.getVersion(), classMember.getAccess(), classMember.getName(), classMember.getSignature(), classMember.getSuperName(), classMember.getInterfaces());
+        apiMemberAdapter.visit(
+            classMember.getVersion(), classMember.getAccess(), classMember.getName(), classMember.getSignature(),
+            classMember.getSuperName(), classMember.getInterfaces());
         visitAnnotationMembers(classMember.getAnnotations());
         for (MethodMember method : methods) {
-            MethodVisitor mv = apiMemberAdapter.visitMethod(method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(), method.getExceptions().toArray(new String[method.getExceptions().size()]));
+            MethodVisitor mv = apiMemberAdapter.visitMethod(
+                method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(),
+                method.getExceptions().toArray(new String[method.getExceptions().size()]));
             visitAnnotationMembers(mv, method.getAnnotations());
             visitAnnotationMembers(mv, method.getParameterAnnotations());
             mv.visitEnd();
         }
         for (FieldMember field : fields) {
-            FieldVisitor fieldVisitor = apiMemberAdapter.visitField(field.getAccess(), field.getName(), field.getTypeDesc(), field.getSignature(), null);
+            FieldVisitor fieldVisitor = apiMemberAdapter.visitField(
+                field.getAccess(), field.getName(), field.getTypeDesc(), field.getSignature(), null);
             visitAnnotationMembers(fieldVisitor, field.getAnnotations());
             fieldVisitor.visitEnd();
         }
         for (InnerClassMember innerClass : innerClasses) {
-            apiMemberAdapter.visitInnerClass(innerClass.getName(), innerClass.getOuterName(), innerClass.getInnerName(), innerClass.getAccess());
+            apiMemberAdapter.visitInnerClass(
+                innerClass.getName(), innerClass.getOuterName(), innerClass.getInnerName(), innerClass.getAccess());
         }
         apiMemberAdapter.visitEnd();
     }
 
     private void visitAnnotationMembers(Set<AnnotationMember> annotationMembers) {
         for (AnnotationMember annotation : annotationMembers) {
-            AnnotationVisitor annotationVisitor = apiMemberAdapter.visitAnnotation(annotation.getName(), annotation.isVisible());
+            AnnotationVisitor annotationVisitor =
+                apiMemberAdapter.visitAnnotation(annotation.getName(), annotation.isVisible());
             visitAnnotationValues(annotation, annotationVisitor);
         }
     }
@@ -90,7 +97,9 @@ class ApiMemberSelector extends ClassVisitor {
         for (AnnotationMember annotation : annotationMembers) {
             AnnotationVisitor annotationVisitor;
             if (annotation instanceof ParameterAnnotationMember) {
-                annotationVisitor = mv.visitParameterAnnotation(((ParameterAnnotationMember) annotation).getParameter(), annotation.getName(), annotation.isVisible());
+                annotationVisitor = mv.visitParameterAnnotation(
+                    ((ParameterAnnotationMember) annotation).getParameter(), annotation.getName(),
+                    annotation.isVisible());
             } else {
                 annotationVisitor = mv.visitAnnotation(annotation.getName(), annotation.isVisible());
             }
@@ -197,7 +206,9 @@ class ApiMemberSelector extends ClassVisitor {
     }
 
     public static boolean isCandidateApiMember(int access, boolean apiIncludesPackagePrivateMembers) {
-        return  isPublicMember(access) || isProtectedMember(access) || (isPackagePrivateMember(access) && apiIncludesPackagePrivateMembers);
+        return  isPublicMember(access)
+            || isProtectedMember(access)
+            || (isPackagePrivateMember(access) && apiIncludesPackagePrivateMembers);
     }
 
     private static boolean isPublicMember(int access) {
