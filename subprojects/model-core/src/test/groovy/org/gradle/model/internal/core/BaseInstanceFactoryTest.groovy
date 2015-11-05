@@ -19,8 +19,6 @@ package org.gradle.model.internal.core
 import org.gradle.internal.util.BiFunction
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
