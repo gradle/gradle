@@ -59,10 +59,9 @@ abstract class ModelNodeInternal implements MutableModelNode {
         ModelRegistration oldRegistration = registrationBinder.getRegistration();
 
         // Can't change type
-        // TODO:LPTR We can't ensure this with projections being determined later in the node lifecycle, should remove this or fix in some other way
-        // if (!oldRegistration.getPromise().equals(newRegistration.getPromise())) {
-        //     throw new IllegalStateException("can not replace node " + getPath() + " with different promise (old: " + oldRegistration.getPromise() + ", new: " + newRegistration.getPromise() + ")");
-        // }
+        if (!oldRegistration.getPromise().equals(newRegistration.getPromise())) {
+            throw new IllegalStateException("can not replace node " + getPath() + " with different promise (old: " + oldRegistration.getPromise() + ", new: " + newRegistration.getPromise() + ")");
+        }
 
         // Can't have different inputs
         if (!newRegistration.getInputs().equals(oldRegistration.getInputs())) {

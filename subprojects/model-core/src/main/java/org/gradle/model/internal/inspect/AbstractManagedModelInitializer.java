@@ -21,6 +21,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
+import org.gradle.model.internal.manage.projection.ManagedModelProjection;
 import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
@@ -84,7 +85,10 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
                         .build();
                     modelNode.addLink(registration);
                 } else {
+                    ManagedImplStructSchema<P> structSchema = (ManagedImplStructSchema<P>) propertySchema;
+                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, null, schemaStore, proxyFactory, services);
                     ModelRegistration registration = ModelRegistrations.of(childPath)
+                        .withProjection(projection)
                         .descriptor(descriptor).build();
                     modelNode.addReference(registration);
                 }

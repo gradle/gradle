@@ -42,7 +42,6 @@ class InstanceBackedModelRegistrationTest extends Specification {
         }
         def barRegistration = ModelRegistrations.unmanagedInstance(bar, factory).descriptor(descriptor).build()
         registry.register(barRegistration)
-        registry.atStateOrLater(foo.path, ModelNode.State.Discovered)
 
         then:
         !fooRegistration.promise.canBeViewedAsImmutable(ModelType.of(String))

@@ -90,6 +90,9 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
                 public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                     NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
                     NodeInitializer initializer = getNodeInitializer(descriptor, modelSchema, nodeInitializerRegistry);
+                    for (ModelProjection projection : initializer.getProjections()) {
+                        node.addProjection(projection);
+                    }
                     ModelAction projector = initializer.getProjector(modelPath, descriptor);
                     if (projector != null) {
                         node.applyToSelf(ModelActionRole.Discover, projector);

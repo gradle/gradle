@@ -418,55 +418,6 @@ apply plugin: ClassHolder.InnerRules
         !modelNode.components.sample.internalData
     }
 
-    def "properties on internal views of custom binaries are hidden in the model report"() {
-        given:
-        buildFile << """
-            interface UnmanagedBinarySpec extends BinarySpec {}
-            class DefaultUnmanagedBinarySpec extends BaseBinarySpec implements UnmanagedBinarySpec {}
-            
-            @Managed
-            interface SampleBinarySpec extends UnmanagedBinarySpec {
-                String getPublicData()
-                void setPublicData(String data)
-            }
-
-            @Managed
-            interface InternalSampleSpec {
-                String getPublicData()
-                void setPublicData(String data)
-                String getInternalData()
-                void setInternalData(String data)
-            }
-
-            class RegisterBinaryRules extends RuleSource {
-                @BinaryType
-                void register1(BinaryTypeBuilder<UnmanagedBinarySpec> builder) {
-                    builder.defaultImplementation(DefaultUnmanagedBinarySpec)
-                }
-
-                @BinaryType
-                void register2(BinaryTypeBuilder<SampleBinarySpec> builder) {
-                    builder.internalView(InternalSampleSpec)
-                }
-            }
-            apply plugin: RegisterBinaryRules
-
-            model {
-                binaries {
-                    sample(SampleBinarySpec)
-                }
-            }
-        """
-        
-        when:
-        succeeds "model"
-        
-        then:
-        def modelNode = ModelReportOutput.from(output).modelNode
-        modelNode.binaries.sample.publicData
-        !modelNode.binaries.sample.internalData
-    }
-
     private String managedNumbers() {
         return """@Managed
         public interface Numbers {

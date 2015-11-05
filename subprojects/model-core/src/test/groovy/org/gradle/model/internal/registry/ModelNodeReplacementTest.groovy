@@ -16,9 +16,7 @@
 
 package org.gradle.model.internal.registry
 
-import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class ModelNodeReplacementTest extends Specification {
@@ -48,11 +46,9 @@ class ModelNodeReplacementTest extends Specification {
         thrown IllegalStateException
     }
 
-    @Ignore("The whole reuse architecture needs a rethink")
     def "cannot replace node with different type"() {
         when:
         registry.registerInstance("foo", "foo")
-        registry.atState("foo", ModelNode.State.Discovered)
         registry.replace(registry.registration("foo").unmanaged(2))
 
         then:

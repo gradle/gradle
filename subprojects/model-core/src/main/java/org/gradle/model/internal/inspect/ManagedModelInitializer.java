@@ -45,9 +45,14 @@ public class ManagedModelInitializer<T> extends AbstractManagedModelInitializer<
         addPropertyLinks(modelNode, nodeInitializerRegistry, schema.getProperties());
     }
 
+    @Override
+    public List<? extends ModelProjection> getProjections() {
+        return Collections.singletonList(new ManagedModelProjection<T>(schema, null, schemaStore, proxyFactory, services));
+    }
+
     @Nullable
     @Override
     public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-        return AddProjectionsAction.of(ModelReference.of(path), descriptor, new ManagedModelProjection<T>(schema, null, schemaStore, proxyFactory, services));
+        return null;
     }
 }
