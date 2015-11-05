@@ -239,7 +239,7 @@ class DefaultModelRegistryTest extends Specification {
         def target = registry.node("target")
         registry.register("ref") { parentBuilder ->
             parentBuilder.unmanagedNode(Object) { node ->
-                def refDirectRegistration = registry.registration("ref.direct").descriptor("ref.direct creator").unmanagedNode(String, {})
+                def refDirectRegistration = registry.registration("ref.direct").descriptor("ref.direct creator").unmanagedReference({})
                 node.addReference(refDirectRegistration)
                 node.getLink("direct").setTarget(target)
             }
@@ -275,7 +275,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { parentBuilder ->
             parentBuilder.unmanagedNode(String) { node ->
-                node.addReference(registry.registration("parent.child").unmanagedNode(String, {}))
+                node.addReference(registry.registration("parent.child").unmanagedReference({}))
             }
         }
 
@@ -290,7 +290,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { parentBuilder ->
             parentBuilder.unmanagedNode(String) { node ->
-                node.addReference(registry.registration("parent.child").unmanagedNode(String, {}))
+                node.addReference(registry.registration("parent.child").unmanagedReference({}))
                 node.applyToSelf(ModelActionRole.Mutate, registry.action().path("parent").node { it.setPrivateData(String, "value")})
                 node.getLink("child").setTarget(node)
             }
@@ -319,7 +319,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.registerInstance("target", "value")
         def target = registry.node("target")
-        registry.root.addReference(registry.registration("ref").unmanagedNode(String) { node ->
+        registry.root.addReference(registry.registration("ref").unmanagedReference { node ->
             node.setTarget(target)
         })
         def ref = registry.atState("ref", ModelNode.State.SelfClosed)

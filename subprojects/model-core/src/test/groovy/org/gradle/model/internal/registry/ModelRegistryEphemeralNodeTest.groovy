@@ -21,6 +21,7 @@ import org.gradle.internal.Factory
 import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class ModelRegistryEphemeralNodeTest extends Specification {
@@ -108,6 +109,7 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         events.size() == 4
     }
 
+    @Ignore("The whole node replacement architecture needs to be rethought")
     def "registration inputs for replaced ephemeral nodes are bound"() {
         when:
         registry.registerOrReplace(registry.registration("foo") { it.ephemeral(true).unmanaged(List, {
