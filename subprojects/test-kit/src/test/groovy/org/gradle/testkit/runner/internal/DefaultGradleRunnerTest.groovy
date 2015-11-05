@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner.internal
 
 import org.gradle.api.GradleException
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
@@ -29,6 +30,8 @@ class DefaultGradleRunnerTest extends Specification {
 
     @Rule
     SetSystemProperties sysProp = new SetSystemProperties()
+    @Rule
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     GradleExecutor gradleExecutor = Mock(GradleExecutor)
     TestKitDirProvider testKitDirProvider = Mock(TestKitDirProvider)
     File workingDir = new File('my/tests')
@@ -61,7 +64,7 @@ class DefaultGradleRunnerTest extends Specification {
 
     def "can set custom test kit directory"() {
         given:
-        def testKitDir = new File('some/dir')
+        def testKitDir = testDirectoryProvider.createDir('some/dir')
 
         when:
         def runner = createRunner()
@@ -218,7 +221,7 @@ class DefaultGradleRunnerTest extends Specification {
 
     def "temporary working space directory is not created if Gradle user home directory is not provided by user"() {
         given:
-        def gradleUserHomeDir = new File('some/dir')
+        def gradleUserHomeDir = testDirectoryProvider.createDir('some/dir')
 
         when:
         createRunnerWithWorkingDirAndArgument().build()
@@ -230,7 +233,7 @@ class DefaultGradleRunnerTest extends Specification {
 
     def "debug flag determines runtime mode passed to executor"() {
         given:
-        def gradleUserHomeDir = new File('some/dir')
+        def gradleUserHomeDir = testDirectoryProvider.createDir('some/dir')
 
         when:
         createRunnerWithWorkingDirAndArgument().withDebug(debug).build()
@@ -279,7 +282,7 @@ class DefaultGradleRunnerTest extends Specification {
     def "standard output is passed on to executor"() {
         given:
         def standardOutput = new StringWriter()
-        def gradleUserHomeDir = new File('some/dir')
+        def gradleUserHomeDir = testDirectoryProvider.createDir('some/dir')
 
         when:
         createRunnerWithWorkingDirAndArgument()
@@ -294,7 +297,7 @@ class DefaultGradleRunnerTest extends Specification {
     def "standard error is passed on to executor"() {
         given:
         def standardError = new StringWriter()
-        def gradleUserHomeDir = new File('some/dir')
+        def gradleUserHomeDir = testDirectoryProvider.createDir('some/dir')
 
         when:
         createRunnerWithWorkingDirAndArgument()
@@ -310,7 +313,7 @@ class DefaultGradleRunnerTest extends Specification {
         given:
         Writer standardOutput = new StringWriter()
         Writer standardError = new StringWriter()
-        File gradleUserHomeDir = new File('some/dir')
+        File gradleUserHomeDir = testDirectoryProvider.createDir('some/dir')
 
         when:
         createRunnerWithWorkingDirAndArgument()
