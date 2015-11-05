@@ -169,7 +169,74 @@ configure test
         result.output.contains("value = 12")
     }
 
-    def "reports failure in initialization action"() {
+    def "can create and configure elements dynamically"() {
+        buildFile << '''
+model {
+    tasks {
+        show(Task) {
+            doLast {
+                println "value = " + $.things*.value
+            }
+        }
+    }
+    things {
+        main(Thing) {
+            value = 'foo'
+        }
+        for (name in ['a', 'b', 'c']) {
+            def n = name
+            "$name"(Thing) {
+                value = "$n:${$.things.main.value}"
+            }
+            "$name" {
+                value = "[$value]"
+            }
+        }
+    }
+}
+'''
+        when:
+        succeeds "show"
+
+        then:
+        result.output.contains("value = [[a:foo], [b:foo], [c:foo], foo]")
+    }
+
+    def "can create and configure elements conditionally"() {
+        buildFile << '''
+model {
+    tasks {
+        show(Task) {
+            doLast {
+                println "value = " + $.things*.value
+            }
+        }
+    }
+    things {
+        main(Thing) {
+            value = 'foo'
+        }
+        if (true) {
+            test(Thing) {
+                value = $.things.main.value
+            }
+        }
+        if ("true") {
+            test {
+                value = "[test:$value]"
+            }
+        }
+    }
+}
+'''
+        when:
+        succeeds "show"
+
+        then:
+        result.output.contains("value = [foo, [test:foo]]")
+    }
+
+    def "reports nested rule location for failure in initialization action"() {
         buildFile << '''
 model {
     things {
@@ -186,7 +253,7 @@ model {
         failure.assertHasCause('No such property: unknown for class: Thing')
     }
 
-    def "reports failure in configuration action"() {
+    def "reports nested rule location for failure in configuration action"() {
         buildFile << '''
 model {
     things {
