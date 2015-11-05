@@ -108,7 +108,6 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
 
     def "recompiles only source file that includes changed header file"() {
         given:
-        executer.withArgument("--info")
         sourceFile << """
             #include "${otherHeaderFile.name}"
 """
@@ -129,7 +128,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.recompiledFile sourceFile
     }
 
-    // We need to support this
+    // TODO: We need to support this
     @NotYetImplemented
     def "source is always recompiled if it includes header via macro"() {
         given:
@@ -166,6 +165,81 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
 
         and:
         outputs.recompiledFile sourceFile
+    }
+
+    // TODO: We need to support this
+    @NotYetImplemented
+    def "source is not recompiled when preprocessor removed header is changed"() {
+        given:
+        def notIncluded = file("src/main/headers/notIncluded.h")
+        notIncluded.text = """#pragma message("should not be used")"""
+        sourceFile << """
+            #if 0
+            #include "${notIncluded.name}"
+            #else
+            #include "${otherHeaderFile.name}"
+            #endif
+"""
+        and:
+        outputs.snapshot { run "mainExecutable" }
+
+        when:
+        otherHeaderFile << """
+            // Some extra content
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        outputs.recompiledFile sourceFile
+        and:
+        !output.contains("should not be used")
+
+        when:
+        // this header isn't included
+        notIncluded << """
+            // Dummy header file
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        skipped compileTask
+    }
+
+    def "source is compiled when preprocessor removed header does not exist"() {
+        given:
+        sourceFile << """
+            #if 0
+            #include "doesNotExist.h"
+            #else
+            #include "${otherHeaderFile.name}"
+            #endif
+"""
+        and:
+        outputs.snapshot { run "mainExecutable" }
+
+        when:
+        otherHeaderFile << """
+            // Some extra content
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        outputs.recompiledFile sourceFile
+
+        when:
+        run "mainExecutable"
+
+        then:
+        skipped compileTask
     }
 
     def "recompiles source file when transitively included header file is changed"() {

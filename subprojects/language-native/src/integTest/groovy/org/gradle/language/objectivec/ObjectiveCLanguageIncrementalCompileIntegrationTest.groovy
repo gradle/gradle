@@ -52,7 +52,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         outputs.recompiledFile sourceFile
     }
 
-    // We need to suppor this
+    // TODO: We need to support this
     @NotYetImplemented
     def "source is always recompiled if it imported header via macro"() {
         given:
