@@ -59,11 +59,11 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         "nativeMonolithicOverlapping" | millis(1000)               | 4
     }
 
-    @Unroll('Project #type native build 1 change')
-    def "build with 1 change"() {
+    @Unroll('Project #buildSize native build #changeType change')
+    def "build with changes"() {
         given:
-        runner.testId = "native build ${type} 1 change"
-        runner.testProject = "${type}NativeMonolithic"
+        runner.testId = "native build ${buildSize} ${changeType} change"
+        runner.testProject = "${buildSize}NativeMonolithic"
         runner.tasksToRun = ['build']
         runner.args = ["--parallel", "--max-workers=4"]
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
@@ -72,7 +72,8 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         runner.gradleOpts = ["-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
         runner.warmUpRuns = 2
         runner.runs = 10
-        String projectType = type
+        String fileName = changedFile
+        Closure fileChanger = changeClosure
         runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
             File file
             String originalContent
@@ -80,7 +81,7 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
                 if (file == null) {
-                    file = new File(invocationInfo.projectDir, projectType == "small" ? "modules/project1/src/src45_c.c" : "modules/project5/src/src100_c.c")
+                    file = new File(invocationInfo.projectDir, fileName)
                     assert file.exists()
                     def backupFile = new File(file.parentFile, file.name + "~")
                     if (backupFile.exists()) {
@@ -94,10 +95,7 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
                 if (invocationInfo.iterationNumber % 2 == 0) {
                     println "Changing $file"
                     // do change
-                    file.text = originalContent + """\nint C_function_added_in_test () {
-                    |  printf("Hello world!");
-                    |  return 0;
-                    |}\n""".stripMargin()
+                    fileChanger(file, originalContent)
                 } else if (invocationInfo.iterationNumber > 2) {
                     println "Reverting $file"
                     file.text = originalContent
@@ -120,8 +118,21 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        type     | maxExecutionTimeRegression
-        "small"  | millis(1000)
-        "medium" | millis(5000)
+        buildSize | changeType  | maxExecutionTimeRegression | changedFile                       | changeClosure
+        "small"   | '1'         | millis(1000)               | 'modules/project1/src/src45_c.c'  | this.&changeCSource
+        "medium"  | '1'         | millis(5000)               | 'modules/project5/src/src100_c.c' | this.&changeCSource
+        "small"   | 'few files' | millis(1000)               | 'common/common/include/header8.h' | this.&changeHeader
+        "medium"  | 'few files' | millis(5000)               | 'common/common/include/header8.h' | this.&changeHeader
+    }
+
+    void changeCSource(File file, String originalContent) {
+        file.text = originalContent + """\nint C_function_added_in_test () {
+                    |  printf("Hello world!");
+                    |  return 0;
+                    |}\n""".stripMargin()
+    }
+
+    void changeHeader(File file, String originalContent) {
+        file.text = originalContent.replaceFirst(~/#endif/, '#define HELLO_WORLD "Hello world!"\n#endif')
     }
 }
