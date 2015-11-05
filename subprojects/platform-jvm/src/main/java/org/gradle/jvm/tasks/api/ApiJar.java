@@ -118,7 +118,7 @@ public class ApiJar extends DefaultTask {
     }
 
     @TaskAction
-    public void extractApi(final IncrementalTaskInputs inputs) throws Exception {
+    public void createApiJar(final IncrementalTaskInputs inputs) throws Exception {
         final File archivePath = new File(destinationDir, archiveName);
         if (!inputs.isIncremental()) {
             FileUtils.deleteQuietly(archivePath);
@@ -161,10 +161,10 @@ public class ApiJar extends DefaultTask {
 
                 private void writeEntries(JarOutputStream jos) throws Exception {
                     for (Map.Entry<String, File> entry : sortedFiles.entrySet()) {
-                        JarEntry ze = new JarEntry(entry.getKey());
+                        JarEntry je = new JarEntry(entry.getKey());
                         // Setting time to 0 because we need API jars to be identical independently of
                         // the timestamps of class files
-                        ze.setTime(0);
+                        je.setTime(0);
                         File originalClassFile = entry.getValue();
                         // get it from cache if it has just been converted
                         byte[] apiClassBytes = apiClasses.get(originalClassFile);
@@ -172,8 +172,8 @@ public class ApiJar extends DefaultTask {
                             // or get it from disk otherwise
                             apiClassBytes = FileUtils.readFileToByteArray(originalClassFile);
                         }
-                        ze.setSize(apiClassBytes.length);
-                        jos.putNextEntry(ze);
+                        je.setSize(apiClassBytes.length);
+                        jos.putNextEntry(je);
                         jos.write(apiClassBytes);
                         jos.closeEntry();
                     }

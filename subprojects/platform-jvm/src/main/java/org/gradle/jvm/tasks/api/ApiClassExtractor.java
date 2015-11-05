@@ -116,13 +116,21 @@ class ApiClassExtractor {
         if (exportedPackages.isEmpty()) {
             return true;
         }
-        String packageName = candidateClassName.indexOf('.') > 0 ? candidateClassName.substring(0, candidateClassName.lastIndexOf('.')) : "";
+        String candidatePackageName = packageNameOf(candidateClassName);
         for (String exportedPackage : exportedPackages) {
-            if (packageName.equals(exportedPackage)) {
+            if (candidatePackageName.equals(exportedPackage)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static String convertAsmInternalNameToClassName(String internalName) {
+        return internalName.replace('/', '.');
+    }
+
+    private static String packageNameOf(String className) {
+        return className.indexOf('.') > 0 ? className.substring(0, className.lastIndexOf('.')) : "";
     }
 
     // See JLS3 "Binary Compatibility" (13.1)
