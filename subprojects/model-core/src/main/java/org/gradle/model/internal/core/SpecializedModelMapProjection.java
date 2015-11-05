@@ -20,7 +20,6 @@ import com.google.common.base.Optional;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -81,8 +80,7 @@ public class SpecializedModelMapProjection<P, E> implements ModelProjection {
         ChildNodeInitializerStrategy<? super E> creatorStrategy = creatorStrategyAccessor.getStrategy(modelNode);
         DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor, mutable, true);
         String description = publicType.getDisplayName() + " '" + modelNode.getPath() + "'";
-        ModelMap<E> rawView = new NodeBackedModelMap<E>(description, elementType, ruleDescriptor, modelNode, false, state, creatorStrategy);
-        P instance = DirectInstantiator.instantiate(viewImpl, rawView);
+        P instance = DirectInstantiator.instantiate(viewImpl, description, elementType, ruleDescriptor, modelNode, false, state, creatorStrategy);
         return InstanceModelView.of(modelNode.getPath(), publicType, instance, state.closer());
     }
 

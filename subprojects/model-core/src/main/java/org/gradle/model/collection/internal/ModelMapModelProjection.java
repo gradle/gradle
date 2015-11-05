@@ -146,7 +146,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         return InstanceModelView.of(
             node.getPath(),
             ModelTypes.modelMap(itemType),
-            ModelMapGroovyDecorator.wrap(builder.withType(itemClass)),
+            builder.withType(itemClass),
             state.closer()
         );
     }

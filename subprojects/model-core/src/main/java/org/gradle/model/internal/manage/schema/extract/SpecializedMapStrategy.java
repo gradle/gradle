@@ -21,7 +21,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.ModelMapGroovyDecorator;
+import org.gradle.model.internal.core.NodeBackedModelMap;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.type.ModelType;
 
@@ -39,7 +39,7 @@ public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
         .build(new CacheLoader<ModelType<?>, Class<?>>() {
             @Override
             public Class<?> load(ModelType<?> contractType) throws Exception {
-                return generator.generate(ModelMapGroovyDecorator.Managed.class, contractType.getConcreteClass());
+                return generator.generate(NodeBackedModelMap.class, contractType.getConcreteClass());
             }
         });
 

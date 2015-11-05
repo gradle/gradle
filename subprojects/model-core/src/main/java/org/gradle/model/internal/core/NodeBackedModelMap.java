@@ -37,7 +37,7 @@ import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
+public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements ManagedInstance {
 
     private final ModelType<T> elementType;
     private final ModelRuleDescriptor sourceDescriptor;

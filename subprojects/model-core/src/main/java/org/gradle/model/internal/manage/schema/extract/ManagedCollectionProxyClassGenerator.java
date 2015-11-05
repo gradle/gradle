@@ -62,7 +62,7 @@ public class ManagedCollectionProxyClassGenerator extends AbstractProxyClassGene
             constructorVisitor.visitCode();
             putThisOnStack(constructorVisitor);
             for (int i = 0; i < paramTypes.length; i++) {
-                constructorVisitor.visitVarInsn(Opcodes.ALOAD, i + 1);
+                constructorVisitor.visitVarInsn(paramTypes[i].getOpcode(Opcodes.ILOAD), i + 1);
             }
             constructorVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), CONSTRUCTOR_NAME, methodDescriptor, false);
             finishVisitingMethod(constructorVisitor);

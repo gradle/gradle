@@ -24,7 +24,6 @@ import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.internal.DefaultDomainObjectCollection
 import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator
 import org.gradle.internal.Actions
-import org.gradle.model.internal.manage.instance.ManagedInstance
 import spock.lang.Specification
 
 class DomainObjectCollectionBackedModelMapTest extends Specification {
@@ -46,18 +45,6 @@ class DomainObjectCollectionBackedModelMapTest extends Specification {
 
     class SomeType implements Named {
         String name
-    }
-
-    def "is not managed instance when wrapped in groovy decorator"() {
-        when:
-        def backingCollection = Mock(DomainObjectCollection)
-        def instantiator = Mock(NamedEntityInstantiator)
-        def modelMap = DomainObjectCollectionBackedModelMap.wrap(SomeType, backingCollection, instantiator, new Named.Namer(), Actions.doNothing())
-        def groovyWrapper = ModelMapGroovyDecorator.wrap(modelMap)
-
-        then:
-        !(groovyWrapper instanceof ManagedInstance)
-        !(groovyWrapper.withType(Object) instanceof ManagedInstance)
     }
 
     def "reasonable error message when creating a non-constructible type"() {
