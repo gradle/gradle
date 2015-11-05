@@ -62,6 +62,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     private final SourceUnit sourceUnit;
     private InputReferences inputs;
     private VariableExpression inputsVariable;
+    private int nestingDepth;
     private int counter;
 
     public RuleVisitor(SourceUnit sourceUnit, String scriptSourceDescription, URI location) {
@@ -78,13 +79,15 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         if (inputs != null) {
             SourceLocation sourceLocation = closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
             node.addInterface(TRANSFORMED_CLOSURE);
-            node.addField(new FieldNode(INPUTS_FIELD_NAME, Modifier.PRIVATE, POTENTIAL_INPUTS, node, null));
-            node.addField(new FieldNode(RULE_FACTORY_FIELD_NAME, Modifier.PRIVATE, RULE_FACTORY, node, null));
+            FieldNode inputsField = new FieldNode(INPUTS_FIELD_NAME, Modifier.PRIVATE, POTENTIAL_INPUTS, node, null);
+            FieldNode ruleFactoryField = new FieldNode(RULE_FACTORY_FIELD_NAME, Modifier.PRIVATE, RULE_FACTORY, node, null);
+            node.addField(inputsField);
+            node.addField(ruleFactoryField);
 
             // Generate makeRule() method
             List<Statement> statements = new ArrayList<Statement>();
-            statements.add(new ExpressionStatement(new BinaryExpression(new VariableExpression(INPUTS_FIELD_NAME), ASSIGN, new VariableExpression("inputs"))));
-            statements.add(new ExpressionStatement(new BinaryExpression(new VariableExpression(RULE_FACTORY_FIELD_NAME), ASSIGN, new VariableExpression("ruleFactory"))));
+            statements.add(new ExpressionStatement(new BinaryExpression(new FieldExpression(inputsField), ASSIGN, new VariableExpression("inputs"))));
+            statements.add(new ExpressionStatement(new BinaryExpression(new FieldExpression(ruleFactoryField), ASSIGN, new VariableExpression("ruleFactory"))));
             node.addMethod(new MethodNode("makeRule",
                     Modifier.PUBLIC,
                     ClassHelper.VOID_TYPE,
@@ -188,8 +191,13 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     @Override
     public void visitClosureExpression(ClosureExpression expression) {
         // Nested closure
-        expression.getVariableScope().putReferencedLocalVariable(inputsVariable);
-        super.visitClosureExpression(expression);
+        nestingDepth++;
+        try {
+            expression.getVariableScope().putReferencedLocalVariable(inputsVariable);
+            super.visitClosureExpression(expression);
+        } finally {
+            nestingDepth--;
+        }
     }
 
     @Override
@@ -226,7 +234,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
 
     @Override
     public void visitExpressionStatement(ExpressionStatement stat) {
-        if (stat.getExpression() instanceof MethodCallExpression) {
+        if (nestingDepth == 0 && stat.getExpression() instanceof MethodCallExpression) {
             MethodCallExpression call = (MethodCallExpression) stat.getExpression();
             if (call.isImplicitThis() && call.getArguments() instanceof ArgumentListExpression) {
                 ArgumentListExpression arguments = (ArgumentListExpression) call.getArguments();
