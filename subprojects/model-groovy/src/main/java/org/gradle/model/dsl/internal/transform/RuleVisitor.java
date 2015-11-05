@@ -215,6 +215,9 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     }
 
     private String isDollarPathExpression(PropertyExpression expr) {
+        if (expr.isSafe() || expr.isSpreadSafe()) {
+            return null;
+        }
         if (expr.getObjectExpression() instanceof VariableExpression) {
             VariableExpression objectExpression = (VariableExpression) expr.getObjectExpression();
             if (objectExpression.getName().equals(DOLLAR)) {

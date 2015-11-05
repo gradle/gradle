@@ -200,8 +200,37 @@ tasks configured
             '$',
             '$.toString()',
             '$.$("foo")',
-            '$."${ 1 + 2}"'
+            '$."${ 1 + 2}"',
+            '$*.things',
+            '$?.things',
         ]
+    }
+
+    def "path for dollar var expression ends with first non-property reference"() {
+        when:
+        buildScript '''
+        @Managed
+        interface Thing {
+            List<String> getValues()
+        }
+        model {
+            thing(Thing) {
+                values.addAll(['', '2', '3'])
+            }
+            tasks {
+                echo(Task) {
+                    doLast {
+                        println "values: " + $.thing.values*.empty
+                        println "values: " + $.thing.values?.empty
+                    }
+                }
+            }
+        }
+        '''
+
+        then:
+        succeeds "echo"
+        output.contains "values: [true, false, false]"
     }
 
     @Unroll
