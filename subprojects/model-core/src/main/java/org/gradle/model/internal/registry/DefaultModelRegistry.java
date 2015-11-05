@@ -96,8 +96,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         modelGraph.add(node);
         ruleBindings.nodeCreated(node);
 
-        node.setHidden(node.getRegistrationBinder().getRegistration().isHidden());
-        if (node.getRegistrationBinder().getRegistration().isService()) {
+        ModelRegistration registration = node.getRegistrationBinder().getRegistration();
+        node.setHidden(registration.isHidden());
+        if (registration.isService()) {
             node.ensureAtLeast(Discovered);
         }
 
