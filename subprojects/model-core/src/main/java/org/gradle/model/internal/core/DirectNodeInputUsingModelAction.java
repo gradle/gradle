@@ -21,6 +21,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.TriAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class DirectNodeInputUsingModelAction<T> extends AbstractModelActionWithView<T> {
@@ -51,6 +52,18 @@ public class DirectNodeInputUsingModelAction<T> extends AbstractModelActionWithV
             @Override
             public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
                 action.execute(modelNode, Cast.<I>uncheckedCast(inputs.get(0).getInstance()));
+            }
+        };
+    }
+
+    public static <T, I1, I2> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, ModelReference<I1> input1, ModelReference<I2> input2, final TriAction<? super MutableModelNode, ? super I1, ? super I2> action) {
+        return new AbstractModelAction<T>(reference, descriptor, Arrays.<ModelReference<?>>asList(input1, input2)) {
+            @Override
+            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                action.execute(modelNode,
+                    Cast.<I1>uncheckedCast(inputs.get(0).getInstance()),
+                    Cast.<I2>uncheckedCast(inputs.get(1).getInstance())
+                );
             }
         };
     }
