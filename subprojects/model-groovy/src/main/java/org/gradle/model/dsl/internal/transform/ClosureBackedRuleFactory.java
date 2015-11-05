@@ -19,6 +19,7 @@ package org.gradle.model.dsl.internal.transform;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.BiAction;
@@ -35,10 +36,19 @@ import java.util.List;
 import java.util.Map;
 
 public class ClosureBackedRuleFactory {
+    private static final ModelType<ManagedInstance> MANAGED_INSTANCE_TYPE = ModelType.of(ManagedInstance.class);
     private final Transformer<SourceLocation, TransformedClosure> ruleLocationExtractor;
 
     public ClosureBackedRuleFactory(RelativeFilePathResolver relativeFilePathResolver) {
         this.ruleLocationExtractor = new RelativePathSourceLocationTransformer(relativeFilePathResolver);
+    }
+
+    /**
+     * Used by generated code. See {@link RuleVisitor}.
+     */
+    @SuppressWarnings("unused")
+    public static Object decorate(@Nullable ClosureBackedRuleFactory factory, Closure<?> closure) {
+        return factory == null ? closure : factory.toAction(Object.class, closure);
     }
 
     public <T> DeferredModelAction toAction(final Class<T> subjectType, final Closure<?> closure) {
@@ -54,7 +64,7 @@ public class ClosureBackedRuleFactory {
 
             @Override
             public void execute(MutableModelNode node, ModelActionRole role) {
-                final boolean supportsNestedRules = node.canBeViewedAs(ModelType.of(ManagedInstance.class));
+                final boolean supportsNestedRules = node.canBeViewedAs(MANAGED_INSTANCE_TYPE);
                 InputReferences inputs = transformedClosure.inputReferences();
                 List<InputReference> inputReferences = supportsNestedRules ? inputs.getOwnReferences() : inputs.getAllReferences();
                 final Map<String, PotentialInput> inputValues = Maps.newLinkedHashMap();
@@ -74,7 +84,7 @@ public class ClosureBackedRuleFactory {
                     public void execute(T t, List<ModelView<?>> modelViews) {
                         // Make a copy of the closure, attach inputs and execute
                         Closure<?> cloned = closure.rehydrate(null, closure.getThisObject(), closure.getThisObject());
-                        ((TransformedClosure) cloned).makeRule(new PotentialInputs(modelViews, inputValues), supportsNestedRules);
+                        ((TransformedClosure) cloned).makeRule(new PotentialInputs(modelViews, inputValues), supportsNestedRules ? ClosureBackedRuleFactory.this : null);
                         ClosureBackedAction.execute(t, cloned);
                     }
                 }));

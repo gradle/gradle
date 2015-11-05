@@ -51,8 +51,10 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     private static final ClassNode TRANSFORMED_CLOSURE = new ClassNode(TransformedClosure.class);
     private static final ClassNode INPUT_REFERENCES = new ClassNode(InputReferences.class);
     private static final ClassNode SOURCE_LOCATION = new ClassNode(SourceLocation.class);
+    private static final ClassNode RULE_FACTORY = new ClassNode(ClosureBackedRuleFactory.class);
 
-    private static final String INPUTS_FIELD_NAME = "__rule_inputs__";
+    private static final String INPUTS_FIELD_NAME = "__inputs__";
+    private static final String RULE_FACTORY_FIELD_NAME = "__rule_factory__";
     private static final Token ASSIGN = new Token(Types.ASSIGN, "=", -1, -1);
 
     private final String scriptSourceDescription;
@@ -75,17 +77,18 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         InputReferences inputs = closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
         if (inputs != null) {
             SourceLocation sourceLocation = closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
-
             node.addInterface(TRANSFORMED_CLOSURE);
-            node.addField(new FieldNode(INPUTS_FIELD_NAME, Modifier.PUBLIC, POTENTIAL_INPUTS, node, null));
+            node.addField(new FieldNode(INPUTS_FIELD_NAME, Modifier.PRIVATE, POTENTIAL_INPUTS, node, null));
+            node.addField(new FieldNode(RULE_FACTORY_FIELD_NAME, Modifier.PRIVATE, RULE_FACTORY, node, null));
 
             // Generate makeRule() method
             List<Statement> statements = new ArrayList<Statement>();
             statements.add(new ExpressionStatement(new BinaryExpression(new VariableExpression(INPUTS_FIELD_NAME), ASSIGN, new VariableExpression("inputs"))));
+            statements.add(new ExpressionStatement(new BinaryExpression(new VariableExpression(RULE_FACTORY_FIELD_NAME), ASSIGN, new VariableExpression("ruleFactory"))));
             node.addMethod(new MethodNode("makeRule",
                     Modifier.PUBLIC,
                     ClassHelper.VOID_TYPE,
-                    new Parameter[]{new Parameter(POTENTIAL_INPUTS, "inputs"), new Parameter(ClassHelper.boolean_TYPE, "enabledNestedRules")},
+                    new Parameter[]{new Parameter(POTENTIAL_INPUTS, "inputs"), new Parameter(RULE_FACTORY, "ruleFactory")},
                     new ClassNode[0],
                     new BlockStatement(statements, new VariableScope())));
 
@@ -231,7 +234,10 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                     Expression lastArg = arguments.getExpression(arguments.getExpressions().size() - 1);
                     if (lastArg instanceof ClosureExpression) {
                         // TODO - other args need to be visited
-                        visitRuleClosure((ClosureExpression) lastArg, call, call.getText());
+                        ClosureExpression closureExpression = (ClosureExpression) lastArg;
+                        visitRuleClosure(closureExpression, call, call.getText());
+                        Expression replaced = new StaticMethodCallExpression(RULE_FACTORY, "decorate", new ArgumentListExpression(new VariableExpression(RULE_FACTORY_FIELD_NAME), closureExpression));
+                        arguments.getExpressions().set(arguments.getExpressions().size() - 1, replaced);
                         return;
                     }
                 }
