@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
@@ -31,6 +32,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManagedModelInitializer<S> implements NodeInitializer {
     private final InstanceFactory<T> instanceFactory;
@@ -67,6 +69,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
         NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
         StructSchema<T> delegateSchema = Cast.uncheckedCast(schemaStore.getSchema(delegateType));
         addPropertyLinks(modelNode, nodeInitializerRegistry, getProperties(delegateSchema));
+        hideNodesOfHiddenProperties(modelNode, getHiddenProperties(delegateSchema));
     }
 
     private Collection<ModelProperty<?>> getProperties(StructSchema<T> delegateSchema) {
@@ -91,6 +94,29 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
                 continue;
             }
             properties.add(property);
+        }
+    }
+    
+    private Set<ModelProperty<?>> getHiddenProperties(StructSchema<T> delegateSchema) {
+        final ImmutableSet.Builder<ModelProperty<?>> pubPropsBuilder = ImmutableSet.builder();
+        final ImmutableSet.Builder<ModelProperty<?>> intPropsBuilder = ImmutableSet.builder();
+        addNonDelegatedManagedProperties(schema, delegateSchema, pubPropsBuilder);
+        for (ModelType<?> internalView : instanceFactory.getInternalViews(schema.getType())) {
+            ModelSchema<?> internalViewSchema = schemaStore.getSchema(internalView);
+            if (!(internalViewSchema instanceof ManagedImplStructSchema)) {
+                continue;
+            }
+            addNonDelegatedManagedProperties((StructSchema<?>) internalViewSchema, delegateSchema, intPropsBuilder);
+        }
+        return Sets.difference(intPropsBuilder.build(), pubPropsBuilder.build());
+    }
+
+    private void hideNodesOfHiddenProperties(MutableModelNode modelNode, Set<ModelProperty<?>> hiddenProps) {
+        for (ModelProperty<?> hiddenProp : hiddenProps) {
+            MutableModelNode hiddenPropNode = modelNode.getLink(hiddenProp.getName());
+            if (hiddenPropNode != null) {
+                hiddenPropNode.setHidden(true);
+            }
         }
     }
 

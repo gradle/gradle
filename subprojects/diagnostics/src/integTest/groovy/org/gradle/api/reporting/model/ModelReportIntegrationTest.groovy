@@ -369,6 +369,55 @@ apply plugin: ClassHolder.InnerRules
         !modelNode.thingamajigger
     }
 
+    def "properties on internal views of custom component are hidden in the model report"() {
+        given:
+        buildFile << """
+            interface UnmanagedComponentSpec extends ComponentSpec {}
+            class DefaultUnmanagedComponentSpec extends BaseComponentSpec implements UnmanagedComponentSpec {}
+            
+            @Managed
+            interface SampleComponentSpec extends UnmanagedComponentSpec {
+                String getPublicData()
+                void setPublicData(String data)
+            }
+
+            @Managed
+            interface InternalSampleSpec {
+                String getPublicData()
+                void setPublicData(String data)
+                String getInternalData()
+                void setInternalData(String data)
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void register1(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                    builder.defaultImplementation(DefaultUnmanagedComponentSpec)
+                }
+
+                @ComponentType
+                void register2(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                    builder.internalView(InternalSampleSpec)
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    sample(SampleComponentSpec)
+                }
+            }
+        """
+        
+        when:
+        succeeds "model"
+        
+        then:
+        def modelNode = ModelReportOutput.from(output).modelNode
+        modelNode.components.sample.publicData
+        !modelNode.components.sample.internalData
+    }
+
     private String managedNumbers() {
         return """@Managed
         public interface Numbers {

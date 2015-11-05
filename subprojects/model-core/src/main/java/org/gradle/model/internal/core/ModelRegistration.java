@@ -45,6 +45,11 @@ public interface ModelRegistration extends ModelRule {
      * Returns whether the node registered is a {@link Service}.
      */
     boolean isService();
+    
+    /**
+     * Returns whether the registered node is hidden.
+     */
+    boolean isHidden();
 
     void addProjection(ModelProjection projection);
 }

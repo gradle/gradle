@@ -29,6 +29,7 @@ public class ProjectionBackedModelRegistration implements ModelRegistration {
     private final ModelRuleDescriptor descriptor;
     private final boolean service;
     private final boolean ephemeral;
+    private final boolean hidden;
     private final ModelProjection projection;
     private final List<ModelProjection> projections;
     private final ListMultimap<ModelActionRole, ? extends ModelAction> actions;
@@ -38,24 +39,19 @@ public class ProjectionBackedModelRegistration implements ModelRegistration {
         ModelRuleDescriptor descriptor,
         boolean service,
         boolean ephemeral,
-        final boolean hidden,
+        boolean hidden,
         Iterable<? extends ModelProjection> initialProjections,
         Multimap<ModelActionRole, ? extends ModelAction> actions) {
         this.path = path;
         this.descriptor = descriptor;
         this.service = service;
         this.ephemeral = ephemeral;
+        this.hidden = hidden;
         this.projections = Lists.newArrayList(initialProjections);
         this.projection = new ChainingModelProjection(projections);
 
         ImmutableListMultimap.Builder<ModelActionRole, ModelAction> actionsBuilder = ImmutableListMultimap.builder();
         actionsBuilder.putAll(actions);
-        actionsBuilder.put(ModelActionRole.Discover, new AbstractModelAction<Object>(ModelReference.of(path), descriptor) {
-            @Override
-            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                modelNode.setHidden(hidden);
-            }
-        });
         this.actions = actionsBuilder.build();
     }
 
@@ -98,6 +94,11 @@ public class ProjectionBackedModelRegistration implements ModelRegistration {
     @Override
     public boolean isService() {
         return service;
+    }
+
+    @Override
+    public boolean isHidden() {
+        return hidden;
     }
 
     @Override

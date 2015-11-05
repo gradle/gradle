@@ -282,48 +282,4 @@ class BaseInstanceFactoryTest extends Specification {
         ex.message == "Factory registration for '$ManagedThingSpec.name' is invalid because the default implementation type '$DefaultThingSpec.name' does not implement unmanaged internal view '$OtherThingSpec.name', internal view was registered by managed thing"
     }
 
-    static interface SomePublicType {
-        String getAlwaysPublic()
-        void setAlwaysPublic(String alwaysPublic)
-    }
-    static interface SomeSamePropertyType {
-        String getAlwaysPublic()
-        void setAlwaysPublic(String alwaysPublic)
-        String getHiddenOnBasePublicOnOthers()
-        void setHiddenOnBasePublicOnOthers(String hiddenOnBasePublicOnOthers)
-    }
-    static interface SomeInternalType extends SomeSamePropertyType {
-        String getAlwaysHidden()
-        void setAlwaysHidden(String alwaysHidden)
-        String getHiddenOnBasePublicOnOthers()
-        void setHiddenOnBasePublicOnOthers(String hiddenOnBasePublicOnOthers)
-    }
-    @Managed static interface SomeManagedPublicType extends SomePublicType, SomeSamePropertyType {}
-    @Managed static interface SomeManagedInternalType {}
-    @Managed static interface ChildManagedPublicType extends SomeManagedPublicType {
-        String getHiddenOnBasePublicOnOthers()
-        void setHiddenOnBasePublicOnOthers(String hiddenOnBasePublicOnOthers)
-    }
-    @Managed static interface ChildManagedInternalType {
-        String getOnlyOnChild()
-        void setOnlyOnChild(String onlyOnChild)
-    }
-    static abstract class SomeBaseImplementation {}
-
-    def "can get hidden properties"() {
-        def schemaStore = new DefaultModelSchemaStore(new ModelSchemaExtractor());
-        def instanceFactory = new BaseInstanceFactory<SomePublicType>("somes", SomePublicType, SomeBaseImplementation)
-
-        instanceFactory.register(ModelType.of(SomePublicType), new SimpleModelRuleDescriptor("base"))
-            .withInternalView(ModelType.of(SomeInternalType))
-        instanceFactory.register(ModelType.of(SomeManagedPublicType), new SimpleModelRuleDescriptor("managed"))
-            .withInternalView(ModelType.of(SomeManagedInternalType))
-        instanceFactory.register(ModelType.of(ChildManagedPublicType), new SimpleModelRuleDescriptor("child"))
-            .withInternalView(ModelType.of(ChildManagedInternalType))
-
-        expect:
-        instanceFactory.getHiddenProperties(ModelType.of(SomePublicType), schemaStore).collect{it.name} == ["alwaysHidden", "hiddenOnBasePublicOnOthers"]
-        instanceFactory.getHiddenProperties(ModelType.of(SomeManagedPublicType), schemaStore)*.name == ["alwaysHidden"]
-        instanceFactory.getHiddenProperties(ModelType.of(ChildManagedPublicType), schemaStore)*.name == ["onlyOnChild", "alwaysHidden"]
-    }
 }

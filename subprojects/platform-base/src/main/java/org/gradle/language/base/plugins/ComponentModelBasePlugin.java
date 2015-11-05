@@ -170,11 +170,13 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             }
         }
 
+        // TODO:PM Rename to validateComponentSpecRegistrations
         @Validate
         void validateComponentSpecInternalViews(ComponentSpecFactory instanceFactory) {
             instanceFactory.validateRegistrations();
         }
 
+        // TODO:PM Rename to validateBinarySpecRegistrations
         @Validate
         void validateBinarySpecInternalViews(BinarySpecFactory instanceFactory) {
             instanceFactory.validateRegistrations();
