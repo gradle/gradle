@@ -16,7 +16,7 @@
 
 package org.gradle.model
 import org.gradle.api.Named
-import org.gradle.model.internal.ProjectRegistrySpec
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.inspect.ReadonlyImmutableManagedPropertyException

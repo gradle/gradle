@@ -19,7 +19,7 @@ import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.Managed
 import org.gradle.model.ModelSet
 import org.gradle.model.ModelViewClosedException
-import org.gradle.model.internal.ProjectRegistrySpec
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRegistrations

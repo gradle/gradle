@@ -17,7 +17,7 @@
 package org.gradle.model
 import org.gradle.api.Named
 import org.gradle.api.internal.ClosureBackedAction
-import org.gradle.model.internal.ProjectRegistrySpec
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
