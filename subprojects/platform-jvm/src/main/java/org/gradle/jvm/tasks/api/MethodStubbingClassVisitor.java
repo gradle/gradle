@@ -19,9 +19,10 @@ package org.gradle.jvm.tasks.api;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 
-class MethodStubbingClassVisitor extends ClassVisitor implements Opcodes {
+import static org.objectweb.asm.Opcodes.*;
+
+class MethodStubbingClassVisitor extends ClassVisitor {
 
     private static final String UOE_METHOD = "$unsupportedOpEx";
 

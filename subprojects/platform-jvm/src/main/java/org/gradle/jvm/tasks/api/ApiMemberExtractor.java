@@ -24,7 +24,9 @@ import org.objectweb.asm.*;
 import java.util.List;
 import java.util.Set;
 
-class ApiMemberExtractor extends ClassVisitor implements Opcodes {
+import static org.objectweb.asm.Opcodes.*;
+
+class ApiMemberExtractor extends ClassVisitor {
 
     private final List<MethodSig> methods = Lists.newLinkedList();
     private final List<FieldSig> fields = Lists.newLinkedList();
