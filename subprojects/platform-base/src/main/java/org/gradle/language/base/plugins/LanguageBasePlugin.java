@@ -24,11 +24,9 @@ import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
-import org.gradle.language.base.internal.model.FunctionalSourceSetNodeInitializer;
 import org.gradle.language.base.internal.model.LanguageSourceSetNodeInitializer;
 import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
 import org.gradle.language.base.internal.registry.LanguageRegistration;
@@ -126,7 +124,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
         // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
         void registerSourceSetNodeInitializers(ConstructableTypesRegistry constructableTypesRegistry, ServiceRegistry serviceRegistry, LanguageRegistry languageRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer(instantiator));
 
             for (LanguageRegistration<?> languageRegistration : languageRegistry) {
                 ModelType<?> sourceSetType = ModelType.of(languageRegistration.getSourceSetType());

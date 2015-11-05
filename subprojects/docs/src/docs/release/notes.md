@@ -213,6 +213,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 - JVM libraries have a binary called `jar` rather than one qualified with the library name.
 - When building a JVM library with multiple variants, the task and output directory names have changed. The library name is now first.
 - The top-level `binaries` container is now a `ModelMap` instead of a `DomainObjectContainer`. It is still accessible as `BinaryContainer`.
+- `ComponentSpec.sources` and `BinarySpec.sources` now have true `ModelMap` semantics. Elements are created and configured on demand, and appear in the model report.
+- `FunctionalSourceSet` is now a subtype of `ModelMap`, and no longer extends `Named`
 
 ### Changes to incubating native software model
 

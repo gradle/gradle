@@ -111,7 +111,9 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
     private <P> void validateProperty(ModelSchema<P> propertySchema, ModelProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry) {
         if (propertySchema instanceof ManagedImplSchema) {
             if (!property.isWritable()) {
-                if (propertySchema instanceof CollectionSchema && !(propertySchema instanceof ScalarCollectionSchema)) {
+                if (propertySchema instanceof CollectionSchema
+                        && !(propertySchema instanceof ScalarCollectionSchema)
+                        && !(propertySchema instanceof SpecializedMapSchema)) {
                     CollectionSchema<P, ?> propertyCollectionsSchema = (CollectionSchema<P, ?>) propertySchema;
                     ModelType<?> elementType = propertyCollectionsSchema.getElementType();
                     nodeInitializerRegistry.ensureHasInitializer(NodeInitializerContext.forProperty(elementType, property, schema.getType()));
