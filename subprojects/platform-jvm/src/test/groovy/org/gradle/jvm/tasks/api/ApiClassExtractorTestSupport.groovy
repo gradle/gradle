@@ -31,13 +31,13 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class ApiUnitExtractorTestSupport extends Specification {
+class ApiClassExtractorTestSupport extends Specification {
     private static class JavaSourceFromString extends SimpleJavaFileObject {
 
         private final String code
 
         JavaSourceFromString(String name, String code) {
-            super(URI.create("string:///${ApiUnitExtractorTestSupport.toFileName(name)}"),
+            super(URI.create("string:///${ApiClassExtractorTestSupport.toFileName(name)}"),
                 JavaFileObject.Kind.SOURCE)
             this.code = code
         }
@@ -63,25 +63,25 @@ class ApiUnitExtractorTestSupport extends Specification {
     @CompileStatic
     public static class ApiContainer {
         private final ApiClassLoader apiClassLoader = new ApiClassLoader()
-        private final ApiUnitExtractor apiUnitExtractor
+        private final ApiClassExtractor apiClassExtractor
 
         public final Map<String, GeneratedClass> classes
 
         public ApiContainer(List<String> packages, Map<String, GeneratedClass> classes) {
-            this.apiUnitExtractor = new ApiUnitExtractor(packages.toSet())
+            this.apiClassExtractor = new ApiClassExtractor(packages.toSet())
             this.classes = classes
         }
 
         protected Class<?> extractAndLoadApiClassFrom(GeneratedClass clazz) {
-            apiClassLoader.loadClassFromBytes(apiUnitExtractor.extractApiUnitFrom(new ClassReader(clazz.bytes)))
+            apiClassLoader.loadClassFromBytes(apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes)))
         }
 
-        protected byte[] extractApiUnitFrom(GeneratedClass clazz) {
-            apiUnitExtractor.extractApiUnitFrom(new ClassReader(clazz.bytes))
+        protected byte[] extractApiClassFrom(GeneratedClass clazz) {
+            apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes))
         }
 
-        protected boolean shouldExtractApiUnitFrom(GeneratedClass clazz) {
-            apiUnitExtractor.shouldExtractApiUnitFrom(new ClassReader(clazz.bytes))
+        protected boolean shouldExtractApiClassFrom(GeneratedClass clazz) {
+            apiClassExtractor.shouldExtractApiClassFrom(new ClassReader(clazz.bytes))
         }
     }
 

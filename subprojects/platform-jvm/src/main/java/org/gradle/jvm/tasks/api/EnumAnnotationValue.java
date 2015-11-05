@@ -17,14 +17,15 @@
 package org.gradle.jvm.tasks.api;
 
 class EnumAnnotationValue extends SimpleAnnotationValue {
-    private final String desc;
 
-    public EnumAnnotationValue(String name, String desc, String value) {
+    private final String typeDesc;
+
+    public EnumAnnotationValue(String name, String value, String typeDesc) {
         super(name, value);
-        this.desc = desc;
+        this.typeDesc = typeDesc;
     }
 
-    public String getDesc() {
-        return desc;
+    public String getTypeDesc() {
+        return typeDesc;
     }
 }

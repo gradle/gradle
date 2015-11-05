@@ -24,7 +24,7 @@ import spock.lang.Unroll
 import java.lang.reflect.Modifier
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class ApiUnitExtractorInnerClassTest extends ApiUnitExtractorTestSupport {
+class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
 
     private final static int ACC_PUBLICSTATIC = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC
     private final static int ACC_PROTECTEDSTATIC = Opcodes.ACC_PROTECTED | Opcodes.ACC_STATIC
@@ -47,8 +47,8 @@ public class A {
         def extractedInner = api.extractAndLoadApiClassFrom(inner)
 
         then:
-        api.shouldExtractApiUnitFrom(outer)
-        api.shouldExtractApiUnitFrom(inner)
+        api.shouldExtractApiClassFrom(outer)
+        api.shouldExtractApiClassFrom(inner)
         inner.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
         extractedInner.modifiers == access
         hasMethod(extractedInner, 'foo').modifiers == Modifier.PUBLIC
@@ -89,8 +89,8 @@ public class A {
         def extractedOuter = api.extractAndLoadApiClassFrom(outer)
 
         then:
-        api.shouldExtractApiUnitFrom(outer)
-        !api.shouldExtractApiUnitFrom(inner)
+        api.shouldExtractApiClassFrom(outer)
+        !api.shouldExtractApiClassFrom(inner)
         inner.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
         extractedOuter.classes.length == 0
 
@@ -118,8 +118,8 @@ public class A {
         def extractedOuter = api.extractAndLoadApiClassFrom(outer)
 
         then:
-        api.shouldExtractApiUnitFrom(outer)
-        !api.shouldExtractApiUnitFrom(inner)
+        api.shouldExtractApiClassFrom(outer)
+        !api.shouldExtractApiClassFrom(inner)
         extractedOuter.classes.length == 0
     }
 
@@ -138,8 +138,8 @@ public class A {
         def extractedOuter = api.extractAndLoadApiClassFrom(outer)
 
         then:
-        api.shouldExtractApiUnitFrom(outer)
-        !api.shouldExtractApiUnitFrom(inner)
+        api.shouldExtractApiClassFrom(outer)
+        !api.shouldExtractApiClassFrom(inner)
         extractedOuter.classes.length == 0
     }
 

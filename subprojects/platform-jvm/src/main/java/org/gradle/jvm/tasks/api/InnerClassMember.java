@@ -16,31 +16,19 @@
 
 package org.gradle.jvm.tasks.api;
 
-import com.google.common.collect.ComparisonChain;
+class InnerClassMember extends AccessibleMember implements Comparable<InnerClassMember> {
 
-class InnerClassSig implements Comparable<InnerClassSig> {
-    private final String name;
     private final String outerName;
     private final String innerName;
-    private final int access;
 
-    public InnerClassSig(String name, String outerName, String innerName, int access) {
-        this.name = name;
+    public InnerClassMember(int access, String name, String outerName, String innerName) {
+        super(access, name);
         this.outerName = outerName;
         this.innerName = innerName;
-        this.access = access;
-    }
-
-    public int getAccess() {
-        return access;
     }
 
     public String getInnerName() {
         return innerName;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public String getOuterName() {
@@ -48,10 +36,8 @@ class InnerClassSig implements Comparable<InnerClassSig> {
     }
 
     @Override
-    public int compareTo(InnerClassSig o) {
-        return ComparisonChain.start()
-            .compare(access, o.access)
-            .compare(name, o.name)
+    public int compareTo(InnerClassMember o) {
+        return super.compare(o)
             .compare(outerName == null ? "" : outerName, o.outerName == null ? "" : o.outerName)
             .compare(innerName == null ? "" : innerName, o.innerName == null ? "" : o.innerName)
             .result();

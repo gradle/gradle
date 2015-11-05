@@ -16,19 +16,21 @@
 
 package org.gradle.jvm.tasks.api;
 
-abstract class AnnotationValue implements Comparable<AnnotationValue> {
-    private final String name;
+abstract class AnnotationValue<V> extends Member implements Comparable<AnnotationValue<?>> {
 
-    public AnnotationValue(String name) {
-        this.name = name;
+    private final V value;
+
+    public AnnotationValue(String name, V value) {
+        super(name);
+        this.value = value;
     }
 
-    public String getName() {
-        return name;
+    public V getValue() {
+        return value;
     }
 
     @Override
-    public int compareTo(AnnotationValue o) {
-        return name.compareTo(o.name);
+    public int compareTo(AnnotationValue<?> o) {
+        return super.compare(o).result();
     }
 }

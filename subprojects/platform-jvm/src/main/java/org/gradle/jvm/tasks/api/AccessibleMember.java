@@ -16,9 +16,22 @@
 
 package org.gradle.jvm.tasks.api;
 
-class SimpleAnnotationValue extends AnnotationValue<Object> {
+import com.google.common.collect.ComparisonChain;
 
-    public SimpleAnnotationValue(String name, Object value) {
-        super(name, value);
+abstract class AccessibleMember extends Member {
+
+    private final int access;
+
+    public AccessibleMember(int access, String name) {
+        super(name);
+        this.access = access;
+    }
+
+    public int getAccess() {
+        return access;
+    }
+
+    protected ComparisonChain compare(AccessibleMember o) {
+        return super.compare(o).compare(access, o.access);
     }
 }

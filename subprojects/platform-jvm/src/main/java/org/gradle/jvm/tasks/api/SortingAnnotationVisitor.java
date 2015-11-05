@@ -23,58 +23,60 @@ import org.objectweb.asm.Opcodes;
 import java.util.List;
 
 class SortingAnnotationVisitor extends AnnotationVisitor {
-    private final AnnotationSig sig;
-    SortingAnnotationVisitor parent;
-    String array;
-    String subAnnName;
-    final List<AnnotationValue> values = Lists.newLinkedList();
 
-    public SortingAnnotationVisitor(AnnotationSig parent, AnnotationVisitor av) {
+    private final List<AnnotationValue<?>> annotationValues = Lists.newLinkedList();
+    private final AnnotationMember annotation;
+
+    private SortingAnnotationVisitor parentVisitor;
+    private String annotationValueName;
+    private String arrayValueName;
+
+    public SortingAnnotationVisitor(AnnotationMember parentAnnotation, AnnotationVisitor av) {
         super(Opcodes.ASM5, av);
-        this.sig = parent;
+        this.annotation = parentAnnotation;
     }
 
     @Override
     public AnnotationVisitor visitAnnotation(String name, String desc) {
-        AnnotationSig subAnn = new AnnotationSig(desc, true);
-        SortingAnnotationVisitor sortingAnnotationVisitor = new SortingAnnotationVisitor(subAnn, super.visitAnnotation(name, desc));
-        sortingAnnotationVisitor.subAnnName = name == null ? "value" : name;
-        sortingAnnotationVisitor.parent = this;
-        return sortingAnnotationVisitor;
+        AnnotationMember annotation = new AnnotationMember(desc, true);
+        SortingAnnotationVisitor visitor = new SortingAnnotationVisitor(annotation, super.visitAnnotation(name, desc));
+        visitor.parentVisitor = this;
+        visitor.annotationValueName = (name == null) ? "value" : name;
+        return visitor;
     }
 
     @Override
     public void visit(String name, Object value) {
-        values.add(new SimpleAnnotationValue(name, value));
+        annotationValues.add(new SimpleAnnotationValue(name, value));
         super.visit(name, value);
     }
 
     @Override
     public AnnotationVisitor visitArray(String name) {
-        SortingAnnotationVisitor sortingAnnotationVisitor = new SortingAnnotationVisitor(sig, super.visitArray(name));
-        sortingAnnotationVisitor.array = name;
-        return sortingAnnotationVisitor;
+        SortingAnnotationVisitor visitor = new SortingAnnotationVisitor(annotation, super.visitArray(name));
+        visitor.arrayValueName = name;
+        return visitor;
     }
 
     @Override
     public void visitEnum(String name, String desc, String value) {
-        values.add(new EnumAnnotationValue(name == null ? "value" : name, desc, value));
+        annotationValues.add(new EnumAnnotationValue(name == null ? "value" : name, value, desc));
         super.visitEnum(name, desc, value);
     }
 
     @Override
     public void visitEnd() {
-        if (subAnnName != null) {
-            AnnotationAnnotationValue ann = new AnnotationAnnotationValue(subAnnName, sig);
-            parent.values.add(ann);
-            subAnnName = null;
-        } else if (array != null) {
-            ArrayAnnotationValue arr = new ArrayAnnotationValue(array, values.toArray(new AnnotationValue[values.size()]));
-            sig.getValues().add(arr);
-            array = null;
+        if (annotationValueName != null) {
+            AnnotationAnnotationValue value = new AnnotationAnnotationValue(annotationValueName, annotation);
+            parentVisitor.annotationValues.add(value);
+            annotationValueName = null;
+        } else if (arrayValueName != null) {
+            ArrayAnnotationValue value = new ArrayAnnotationValue(arrayValueName, annotationValues.toArray(new AnnotationValue<?>[annotationValues.size()]));
+            annotation.addValue(value);
+            arrayValueName = null;
         }
-        sig.getValues().addAll(values);
-        values.clear();
+        annotation.addValues(annotationValues);
+        annotationValues.clear();
         super.visitEnd();
     }
 }

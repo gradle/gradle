@@ -26,85 +26,85 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
-class ApiUnitExtractor {
+class ApiClassExtractor {
 
     // See JLS3 "Binary Compatibility" (13.1)
     private static final Pattern LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
 
     private final Set<String> exportedPackages;
-    private final boolean includePackagePrivate;
+    private final boolean apiIncludesPackagePrivateMembers;
 
-    public ApiUnitExtractor(Set<String> exportedPackages) {
+    public ApiClassExtractor(Set<String> exportedPackages) {
         this.exportedPackages = exportedPackages;
-        this.includePackagePrivate = exportedPackages.isEmpty();
+        this.apiIncludesPackagePrivateMembers = exportedPackages.isEmpty();
     }
 
     /**
      * Returns true if the binary class found in parameter is belonging to the API. It will check if the class package is in the list of exported packages, and if the access flags are ok with
      * regards to the list of packages: if the list is empty, then package private classes are included, whereas if the list is not empty, an API has been declared and the class should be excluded.
-     * Therefore, this method should be called on every .class file to process before it is either copied or processed through {@link #extractApiUnitFrom(File)}.
+     * Therefore, this method should be called on every .class file to process before it is either copied or processed through {@link #extractApiClassFrom(File)}.
      *
-     * @param compilationUnit the file containing the compilation unit to evaluate
-     * @return whether the given compilation unit is a candidate for API extraction
+     * @param originalClassFile the file containing the original class to evaluate
+     * @return whether the given class is a candidate for API extraction
      */
-    public boolean shouldExtractApiUnitFrom(File compilationUnit) throws IOException {
-        if (!compilationUnit.getName().endsWith(".class")) {
+    public boolean shouldExtractApiClassFrom(File originalClassFile) throws IOException {
+        if (!originalClassFile.getName().endsWith(".class")) {
             return false;
         }
-        InputStream inputStream = new FileInputStream(compilationUnit);
+        InputStream inputStream = new FileInputStream(originalClassFile);
         ClassReader classReader = new ClassReader(inputStream);
         try {
-            return shouldExtractApiUnitFrom(classReader);
+            return shouldExtractApiClassFrom(classReader);
         } finally {
             inputStream.close();
         }
     }
 
-    boolean shouldExtractApiUnitFrom(ClassReader classReader) {
+    boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
         final AtomicBoolean shouldExtract = new AtomicBoolean();
-        classReader.accept(new ClassVisitor(Opcodes.ASM5) {
+        originalClassReader.accept(new ClassVisitor(Opcodes.ASM5) {
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                String className = AsmUtils.convertInternalNameToClassName(name);
-                shouldExtract.set(isApiClass(access, className));
+                String originalClassName = AsmUtils.convertInternalNameToClassName(name);
+                shouldExtract.set(isApiClassExtractionCandidate(access, originalClassName));
             }
         }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
         return shouldExtract.get();
     }
 
     /**
-     * Extracts an API compilation unit from a given original compilation unit.
+     * Extracts an API class from a given original class.
      *
-     * @param compilationUnit the file containing the compilation unit to extract
-     * @return bytecode of the API compilation unit extracted from the original compilation unit
+     * @param originalClassFile the file containing the original class
+     * @return bytecode of the API class extracted from the original class
      */
-    public byte[] extractApiUnitFrom(File compilationUnit) throws IOException {
-        InputStream inputStream = new FileInputStream(compilationUnit);
+    public byte[] extractApiClassFrom(File originalClassFile) throws IOException {
+        InputStream inputStream = new FileInputStream(originalClassFile);
         try {
             ClassReader classReader = new ClassReader(inputStream);
-            return extractApiUnitFrom(classReader);
+            return extractApiClassFrom(classReader);
         } finally {
             inputStream.close();
         }
     }
 
-    byte[] extractApiUnitFrom(ClassReader cr) {
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        cr.accept(new ApiMemberExtractor(new MethodStubbingClassVisitor(cw), includePackagePrivate), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        return cw.toByteArray();
+    byte[] extractApiClassFrom(ClassReader originalClassReader) {
+        ClassWriter apiClassWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        originalClassReader.accept(new ApiMemberSelector(new MethodStubbingApiMemberAdapter(apiClassWriter), apiIncludesPackagePrivateMembers), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        return apiClassWriter.toByteArray();
     }
 
-    private boolean isApiClass(int access, String className) {
-        if (isLocalClass(className)) {
+    private boolean isApiClassExtractionCandidate(int access, String candidateClassName) {
+        if (isLocalClass(candidateClassName)) {
             return false;
         }
-        if (!ApiMemberExtractor.isApiMember(access, includePackagePrivate)) {
+        if (!ApiMemberSelector.isCandidateApiMember(access, apiIncludesPackagePrivateMembers)) {
             return false;
         }
         if (exportedPackages.isEmpty()) {
             return true;
         }
-        String packageName = className.indexOf('.') > 0 ? className.substring(0, className.lastIndexOf('.')) : "";
+        String packageName = candidateClassName.indexOf('.') > 0 ? candidateClassName.substring(0, candidateClassName.lastIndexOf('.')) : "";
         for (String exportedPackage : exportedPackages) {
             if (packageName.equals(exportedPackage)) {
                 return true;

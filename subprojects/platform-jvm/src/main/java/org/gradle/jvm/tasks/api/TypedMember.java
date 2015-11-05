@@ -16,9 +16,23 @@
 
 package org.gradle.jvm.tasks.api;
 
-class SimpleAnnotationValue extends AnnotationValue<Object> {
+import com.google.common.collect.ComparisonChain;
 
-    public SimpleAnnotationValue(String name, Object value) {
-        super(name, value);
+abstract class TypedMember extends AnnotatableMember {
+
+    private final String typeDesc;
+
+    public TypedMember(int access, String name, String signature, String typeDesc) {
+        super(access, name, signature);
+        this.typeDesc = typeDesc;
+    }
+
+    public String getTypeDesc() {
+        return typeDesc;
+    }
+
+    protected ComparisonChain compare(TypedMember o) {
+        return super.compare(o)
+            .compare(typeDesc == null ? "" : typeDesc, o.typeDesc == null ? "" : o.typeDesc);
     }
 }

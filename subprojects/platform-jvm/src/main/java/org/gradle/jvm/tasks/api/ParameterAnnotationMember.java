@@ -16,12 +16,11 @@
 
 package org.gradle.jvm.tasks.api;
 
-import com.google.common.collect.ComparisonChain;
+class ParameterAnnotationMember extends AnnotationMember {
 
-class ParameterAnnotationSig extends AnnotationSig {
     private final int parameter;
 
-    public ParameterAnnotationSig(String name, boolean visible, int parameter) {
+    public ParameterAnnotationMember(String name, boolean visible, int parameter) {
         super(name, visible);
         this.parameter = parameter;
     }
@@ -31,11 +30,9 @@ class ParameterAnnotationSig extends AnnotationSig {
     }
 
     @Override
-    public int compareTo(AnnotationSig o) {
-        return ComparisonChain.start()
-            .compare(parameter, ((ParameterAnnotationSig) o).parameter)
-            .compare(getName(), o.getName())
-            .compare(isVisible(), o.isVisible())
+    public int compareTo(AnnotationMember o) {
+        return super.compare(o)
+            .compare(parameter, ((ParameterAnnotationMember) o).parameter)
             .result();
     }
 }

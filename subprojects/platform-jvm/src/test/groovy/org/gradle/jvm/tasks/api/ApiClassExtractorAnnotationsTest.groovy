@@ -20,7 +20,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class ApiUnitExtractorAnnotationsTest extends ApiUnitExtractorTestSupport {
+class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 
     void "annotations on class are retained"() {
         given:
@@ -46,8 +46,8 @@ public @interface Ann {}
         def extractedAnnotations = extractedClass.annotations
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
-        api.shouldExtractApiUnitFrom(annClazz)
+        api.shouldExtractApiClassFrom(clazz)
+        api.shouldExtractApiClassFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         extractedAnnotations.size() == 1
@@ -81,8 +81,8 @@ public @interface Ann {}
         def extractedAnnotations = extractedClass.getDeclaredMethod('foo').annotations
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
-        api.shouldExtractApiUnitFrom(annClazz)
+        api.shouldExtractApiClassFrom(clazz)
+        api.shouldExtractApiClassFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         extractedAnnotations.size() == 1
@@ -117,8 +117,8 @@ public @interface Ann {
         def extractedAnnotations = extractedClass.getDeclaredMethod('foo', String).parameterAnnotations[0]
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
-        api.shouldExtractApiUnitFrom(annClazz)
+        api.shouldExtractApiClassFrom(clazz)
+        api.shouldExtractApiClassFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         extractedAnnotations.size() == 1
@@ -155,8 +155,8 @@ public @interface Ann {
         def extractedAnnotations = extractedClass.getDeclaredField('foo').annotations
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
-        api.shouldExtractApiUnitFrom(annClazz)
+        api.shouldExtractApiClassFrom(clazz)
+        api.shouldExtractApiClassFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         extractedAnnotations.size() == 1
@@ -206,8 +206,8 @@ public @interface SubAnn {
         def extractedAnnotations = extractedClass.annotations
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
-        api.shouldExtractApiUnitFrom(annClazz)
+        api.shouldExtractApiClassFrom(clazz)
+        api.shouldExtractApiClassFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         extractedAnnotations.size() == 1
@@ -261,8 +261,8 @@ public @interface SubAnn {
         def extractedAnnotations = extractedClass.annotations
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
-        api.shouldExtractApiUnitFrom(annClazz)
+        api.shouldExtractApiClassFrom(clazz)
+        api.shouldExtractApiClassFrom(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         extractedAnnotations.size() == 1

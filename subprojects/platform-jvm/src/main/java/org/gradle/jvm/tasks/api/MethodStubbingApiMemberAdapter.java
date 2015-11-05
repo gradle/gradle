@@ -22,13 +22,13 @@ import org.objectweb.asm.MethodVisitor;
 
 import static org.objectweb.asm.Opcodes.*;
 
-class MethodStubbingClassVisitor extends ClassVisitor {
+class MethodStubbingApiMemberAdapter extends ClassVisitor {
 
     private static final String UOE_METHOD = "$unsupportedOpEx";
 
     private String internalClassName;
 
-    public MethodStubbingClassVisitor(ClassWriter cv) {
+    public MethodStubbingApiMemberAdapter(ClassWriter cv) {
         super(ASM5, cv);
     }
 
@@ -42,7 +42,7 @@ class MethodStubbingClassVisitor extends ClassVisitor {
     }
 
     @Override
-    public MethodVisitor visitMethod(final int access, final String name, final String desc, final String signature, final String[] exceptions) {
+    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
         if ((access & ACC_ABSTRACT) == 0) {
             mv.visitCode();

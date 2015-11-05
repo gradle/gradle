@@ -16,15 +16,9 @@
 
 package org.gradle.jvm.tasks.api;
 
-class ArrayAnnotationValue extends AnnotationValue {
-    private final AnnotationValue[] value;
+class ArrayAnnotationValue extends AnnotationValue<AnnotationValue<?>[]> {
 
-    public ArrayAnnotationValue(String name, AnnotationValue[] value) {
-        super(name);
-        this.value = value;
-    }
-
-    public AnnotationValue[] getValue() {
-        return value;
+    public ArrayAnnotationValue(String name, AnnotationValue<?>[] value) {
+        super(name, value);
     }
 }

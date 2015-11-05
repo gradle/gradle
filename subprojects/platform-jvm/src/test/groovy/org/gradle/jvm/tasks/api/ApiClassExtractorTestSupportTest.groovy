@@ -21,7 +21,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class ApiUnitExtractorTestSupportTest extends ApiUnitExtractorTestSupport {
+class ApiClassExtractorTestSupportTest extends ApiClassExtractorTestSupport {
     @Unroll
     def "should create implementation class for #fqn"() {
         given:

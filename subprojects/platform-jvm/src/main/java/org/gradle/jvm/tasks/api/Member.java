@@ -17,38 +17,20 @@
 package org.gradle.jvm.tasks.api;
 
 import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Lists;
 
-import java.util.List;
+abstract class Member {
 
-class AnnotationSig implements Comparable<AnnotationSig> {
     private final String name;
-    private final boolean visible;
-    private final List<AnnotationValue> values = Lists.newLinkedList();
 
-    public AnnotationSig(String name, boolean visible) {
+    public Member(String name) {
         this.name = name;
-        this.visible = visible;
     }
 
     public String getName() {
         return name;
     }
 
-    public List<AnnotationValue> getValues() {
-        return values;
+    protected ComparisonChain compare(Member o) {
+        return ComparisonChain.start().compare(name, o.name);
     }
-
-    public boolean isVisible() {
-        return visible;
-    }
-
-    @Override
-    public int compareTo(AnnotationSig o) {
-        return ComparisonChain.start()
-            .compare(name, o.name)
-            .compare(visible, o.visible)
-            .result();
-    }
-
 }

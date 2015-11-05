@@ -24,7 +24,7 @@ import spock.lang.Unroll
 import java.lang.reflect.Modifier
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class ApiUnitExtractorTest extends ApiUnitExtractorTestSupport {
+class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
     def "should not remove public method"() {
         given:
@@ -37,7 +37,7 @@ class ApiUnitExtractorTest extends ApiUnitExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         clazz.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
         hasMethod(extracted, 'foo')
 
@@ -61,7 +61,7 @@ class ApiUnitExtractorTest extends ApiUnitExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Modifier.PROTECTED
         hasMethod(extracted, 'foo')
 
@@ -84,7 +84,7 @@ class ApiUnitExtractorTest extends ApiUnitExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Modifier.PRIVATE
         noSuchMethod(extracted, 'foo')
 
@@ -102,7 +102,7 @@ class ApiUnitExtractorTest extends ApiUnitExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == 0
         hasMethod(clazz.clazz, 'bar').modifiers == Opcodes.ACC_STATIC
         hasMethod(extracted, 'foo').modifiers == 0
@@ -122,7 +122,7 @@ class ApiUnitExtractorTest extends ApiUnitExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == 0
         hasMethod(clazz.clazz, 'bar').modifiers == Opcodes.ACC_STATIC
         noSuchMethod(extracted, 'foo')
@@ -141,7 +141,7 @@ class ApiUnitExtractorTest extends ApiUnitExtractorTestSupport {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
         hasMethod(extracted, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
 
@@ -170,8 +170,8 @@ public class B extends A {
         def extractedB = api.extractAndLoadApiClassFrom(clazzB)
 
         then:
-        api.shouldExtractApiUnitFrom(clazzA)
-        api.shouldExtractApiUnitFrom(clazzB)
+        api.shouldExtractApiClassFrom(clazzA)
+        api.shouldExtractApiClassFrom(clazzB)
         hasMethod(clazzA.clazz, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
         hasMethod(clazzA.clazz, 'bar').modifiers == Opcodes.ACC_PUBLIC
         hasMethod(extractedA, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
@@ -262,7 +262,7 @@ public abstract class A {
         def api = toApi(target, [A: 'public class A {}'])
 
         when:
-        def cr = new ClassReader(api.extractApiUnitFrom(api.classes.A))
+        def cr = new ClassReader(api.extractApiClassFrom(api.classes.A))
         def stubVersion = 0
         cr.accept(new ClassVisitor(Opcodes.ASM5) {
             @Override
@@ -291,7 +291,7 @@ public abstract class A {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PUBLIC
         hasField(extracted, 'foo', String)
 
@@ -315,7 +315,7 @@ public abstract class A {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PROTECTED
         hasField(extracted, 'foo', String)
 
@@ -338,7 +338,7 @@ public abstract class A {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PRIVATE
         noSuchField(extracted, 'foo', String)
 
@@ -355,7 +355,7 @@ public abstract class A {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == 0
         hasField(extracted, 'foo', String).modifiers == 0
 
@@ -372,7 +372,7 @@ public abstract class A {
         def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == 0
         noSuchField(extracted, 'foo', String)
 
@@ -390,8 +390,8 @@ public abstract class A {
     }
 }""")
         when:
-        def apiUnitBytes = api.extractApiUnitFrom(api.classes['com.acme.A'])
-        def cr = new ClassReader(apiUnitBytes)
+        def apiClassBytes = api.extractApiClassFrom(api.classes['com.acme.A'])
+        def cr = new ClassReader(apiClassBytes)
         cr.accept(new ClassVisitor(Opcodes.ASM5) {
             @Override
             void visitSource(String source, String debug) {
@@ -434,7 +434,7 @@ public abstract class A {
         def clazz = api.classes.A
 
         then:
-        api.shouldExtractApiUnitFrom(clazz)
+        api.shouldExtractApiClassFrom(clazz)
     }
 
     def "package private class does not belong to API if API declared"() {
@@ -447,7 +447,7 @@ public abstract class A {
         def clazz = api.classes.A
 
         then:
-        !api.shouldExtractApiUnitFrom(clazz)
+        !api.shouldExtractApiClassFrom(clazz)
     }
 
 }

@@ -100,23 +100,23 @@ public class ApiJar extends DefaultTask {
         }
         destinationDir.mkdirs();
         apiClassesDir.mkdirs();
-        final ApiUnitExtractor apiUnitExtractor = new ApiUnitExtractor(exportedPackages);
+        final ApiClassExtractor apiClassExtractor = new ApiClassExtractor(exportedPackages);
         final AtomicBoolean updated = new AtomicBoolean();
-        final Map<File, byte[]> apiUnits = Maps.newHashMap();
+        final Map<File, byte[]> apiClasses = Maps.newHashMap();
         inputs.outOfDate(new ErroringAction<InputFileDetails>() {
             @Override
             protected void doExecute(InputFileDetails inputFileDetails) throws Exception {
                 updated.set(true);
-                File originalUnitFile = inputFileDetails.getFile();
-                if (apiUnitExtractor.shouldExtractApiUnitFrom(originalUnitFile)) {
-                    final byte[] apiUnitBytes = apiUnitExtractor.extractApiUnitFrom(originalUnitFile);
-                    apiUnits.put(originalUnitFile, apiUnitBytes);
-                    File apiUnitFile = apiUnitFileFor(originalUnitFile);
-                    apiUnitFile.getParentFile().mkdirs();
-                    IoActions.withResource(new FileOutputStream(apiUnitFile), new ErroringAction<OutputStream>() {
+                File originalClassFile = inputFileDetails.getFile();
+                if (apiClassExtractor.shouldExtractApiClassFrom(originalClassFile)) {
+                    final byte[] apiClassBytes = apiClassExtractor.extractApiClassFrom(originalClassFile);
+                    apiClasses.put(originalClassFile, apiClassBytes);
+                    File apiClassFile = apiClassFileFor(originalClassFile);
+                    apiClassFile.getParentFile().mkdirs();
+                    IoActions.withResource(new FileOutputStream(apiClassFile), new ErroringAction<OutputStream>() {
                         @Override
                         protected void doExecute(OutputStream outputStream) throws Exception {
-                            outputStream.write(apiUnitBytes);
+                            outputStream.write(apiClassBytes);
                         }
                     });
                 }
@@ -124,9 +124,9 @@ public class ApiJar extends DefaultTask {
         });
         inputs.removed(new ErroringAction<InputFileDetails>() {
             @Override
-            protected void doExecute(InputFileDetails removedOriginalUnit) throws Exception {
+            protected void doExecute(InputFileDetails removedOriginalClassFile) throws Exception {
                 updated.set(true);
-                deleteApiUnitFileFor(removedOriginalUnit.getFile());
+                deleteApiClassFileFor(removedOriginalClassFile.getFile());
             }
         });
         if (updated.get()) {
@@ -139,16 +139,16 @@ public class ApiJar extends DefaultTask {
                         // Setting time to 0 because we need API jars to be identical independently of
                         // the timestamps of class files
                         ze.setTime(0);
-                        File originalUnitFile = entry.getValue();
+                        File originalClassFile = entry.getValue();
                         // get it from cache if it has just been converted
-                        byte[] apiUnitBytes = apiUnits.get(originalUnitFile);
-                        if (apiUnitBytes == null) {
+                        byte[] apiClassBytes = apiClasses.get(originalClassFile);
+                        if (apiClassBytes == null) {
                             // or get it from disk otherwise
-                            apiUnitBytes = FileUtils.readFileToByteArray(originalUnitFile);
+                            apiClassBytes = FileUtils.readFileToByteArray(originalClassFile);
                         }
-                        ze.setSize(apiUnitBytes.length);
+                        ze.setSize(apiClassBytes.length);
                         jos.putNextEntry(ze);
-                        jos.write(apiUnitBytes);
+                        jos.write(apiClassBytes);
                         jos.closeEntry();
                     }
                 }
@@ -185,9 +185,9 @@ public class ApiJar extends DefaultTask {
         }
     }
 
-    private File apiUnitFileFor(File originalUnitFile) {
-        StringBuilder sb = new StringBuilder(originalUnitFile.getName());
-        File cur = originalUnitFile.getParentFile();
+    private File apiClassFileFor(File originalClassFile) {
+        StringBuilder sb = new StringBuilder(originalClassFile.getName());
+        File cur = originalClassFile.getParentFile();
         while (!cur.equals(runtimeClassesDir)) {
             sb.insert(0, cur.getName() + File.separator);
             cur = cur.getParentFile();
@@ -195,10 +195,10 @@ public class ApiJar extends DefaultTask {
         return new File(apiClassesDir, sb.toString());
     }
 
-    private void deleteApiUnitFileFor(File originalUnitFile) {
-        File apiUnitFile = apiUnitFileFor(originalUnitFile);
-        if (apiUnitFile.exists()) {
-            FileUtils.deleteQuietly(apiUnitFile);
+    private void deleteApiClassFileFor(File originalClassFile) {
+        File apiClassFile = apiClassFileFor(originalClassFile);
+        if (apiClassFile.exists()) {
+            FileUtils.deleteQuietly(apiClassFile);
         }
     }
 

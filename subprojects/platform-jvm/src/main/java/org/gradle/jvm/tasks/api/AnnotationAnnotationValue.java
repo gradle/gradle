@@ -16,15 +16,9 @@
 
 package org.gradle.jvm.tasks.api;
 
-class AnnotationAnnotationValue extends AnnotationValue {
-    private final AnnotationSig annotation;
+class AnnotationAnnotationValue extends AnnotationValue<AnnotationMember> {
 
-    public AnnotationAnnotationValue(String name, AnnotationSig annotation) {
-        super(name);
-        this.annotation = annotation;
-    }
-
-    public AnnotationSig getAnnotation() {
-        return annotation;
+    public AnnotationAnnotationValue(String name, AnnotationMember value) {
+        super(name, value);
     }
 }
