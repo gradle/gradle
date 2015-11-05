@@ -179,11 +179,6 @@ It is now possible to reference external dependencies when building a `JvmLibrar
 
 TODO: Expand this and provide a DSL example.
 
-### Tooling API exposes source language level
-
-Clients of the Tooling API now can query the the Java source language level via the new
-<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings--">`getJavaSourceSettings()`</a> method defined on the `EclipseProject` model.
-
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

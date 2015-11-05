@@ -19,8 +19,6 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.ExternalDependency;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HasGradleProject;
-import org.gradle.tooling.model.java.JavaSourceAware;
-import org.gradle.tooling.model.java.JavaSourceSettings;
 
 /**
  * The complete model of an Eclipse project.
@@ -29,7 +27,7 @@ import org.gradle.tooling.model.java.JavaSourceSettings;
  *
  * @since 1.0-milestone-3
  */
-public interface EclipseProject extends HierarchicalEclipseProject, HasGradleProject, JavaSourceAware {
+public interface EclipseProject extends HierarchicalEclipseProject, HasGradleProject {
     /**
      * {@inheritDoc}
      */
@@ -39,11 +37,6 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
      * {@inheritDoc}
      */
     DomainObjectSet<? extends EclipseProject> getChildren();
-
-    /**
-     * {@inheritDoc}
-     */
-    JavaSourceSettings getJavaSourceSettings();
 
     /**
      * The gradle project that is associated with this project.
