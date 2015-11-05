@@ -1178,10 +1178,14 @@ public class DefaultModelRegistry implements ModelRegistry {
                     // No target, or target is an ancestor of this node, so is already being handled
                     return true;
                 }
-                dependencies.add(graph.nodeAtState(new NodeAtState(target.getPath(), targetState)));
+                if (!target.isAtLeast(targetState)) {
+                    dependencies.add(graph.nodeAtState(new NodeAtState(target.getPath(), targetState)));
+                }
             } else {
                 for (ModelNodeInternal child : node.getLinks()) {
-                    dependencies.add(graph.nodeAtState(new NodeAtState(child.getPath(), targetState)));
+                    if (!child.isAtLeast(targetState)) {
+                        dependencies.add(graph.nodeAtState(new NodeAtState(child.getPath(), targetState)));
+                    }
                 }
             }
             return true;
