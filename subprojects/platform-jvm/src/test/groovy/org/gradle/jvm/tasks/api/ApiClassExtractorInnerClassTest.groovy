@@ -34,11 +34,12 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
     def "should not remove #modifier inner class if no API is declared"() {
         given:
         def api = toApi 'A': """
-public class A {
-   $modifier class Inner {
-      public void foo() {}
-   }
-}"""
+            public class A {
+               $modifier class Inner {
+                  public void foo() {}
+               }
+            }
+        """
 
         when:
         def outer = api.classes.A
@@ -76,12 +77,14 @@ public class A {
     @Unroll
     def "should remove #modifier inner class if API is declared"() {
         given:
-        def api = toApi ([''], ['A': """
-public class A {
-   $modifier class Inner {
-      public void foo() {}
-   }
-}"""])
+        def api = toApi ([''], [ 'A': """
+            public class A {
+               $modifier class Inner {
+                  public void foo() {}
+               }
+            }
+        """
+        ])
 
         when:
         def outer = api.classes.A
@@ -103,14 +106,15 @@ public class A {
 
     def "should not keep anonymous inner classes"() {
         given:
-        def api = toApi 'A': """
-public class A {
-   public void foo() {
-       Runnable r = new Runnable() {
-          public void run() {}
-       };
-   }
-}"""
+        def api = toApi 'A': '''
+            public class A {
+               public void foo() {
+                   Runnable r = new Runnable() {
+                      public void run() {}
+                   };
+               }
+            }
+        '''
 
         when:
         def outer = api.classes.A
@@ -125,12 +129,13 @@ public class A {
 
     def "should not keep anonymous local classes"() {
         given:
-        def api = toApi 'A': """
-public class A {
-   public void foo() {
-       class Person { }
-   }
-}"""
+        def api = toApi 'A': '''
+            public class A {
+               public void foo() {
+                   class Person {}
+               }
+            }
+        '''
 
         when:
         def outer = api.classes.A
@@ -142,5 +147,4 @@ public class A {
         !api.shouldExtractApiClassFrom(inner)
         extractedOuter.classes.length == 0
     }
-
 }

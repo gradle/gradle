@@ -22,6 +22,7 @@ import spock.lang.Unroll
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
 class ApiClassExtractorTestSupportTest extends ApiClassExtractorTestSupport {
+
     @Unroll
     def "should create implementation class for #fqn"() {
         given:
@@ -33,31 +34,32 @@ class ApiClassExtractorTestSupportTest extends ApiClassExtractorTestSupport {
         where:
         fqn          | src
         'A'          | 'public class A {}'
-        'com.acme.A' | '''package com.acme;
-
-public class A {}
-'''
-        'com.acme.B' | '''package com.acme;
-
-public class B {
-    String getName() { return "foo"; }
-}
-'''
+        'com.acme.A' | '''
+                           package com.acme;
+                           public class A {}
+                       '''
+        'com.acme.B' | '''
+                           package com.acme;
+                           public class B {
+                               String getName() { return "foo"; }
+                           }
+                       '''
     }
-
 
     def "should compile classes together"() {
         given:
-        def api = toApi(
-            ['com.acme.A': '''package com.acme;
-public class A extends B {}
-''',
-             'com.acme.B': '''package com.acme;
-public class B {
-    public String getId() { return "id"; }
-}
-''']
-        )
+        def api = toApi([
+            'com.acme.A': '''
+                package com.acme;
+                public class A extends B {}
+            ''',
+            'com.acme.B': '''
+                package com.acme;
+                public class B {
+                    public String getId() { return "id"; }
+                }
+            '''
+        ])
 
         when:
         def a = api.classes['com.acme.A'].clazz
@@ -73,5 +75,4 @@ public class B {
         then:
         aa.id == 'id'
     }
-
 }

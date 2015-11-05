@@ -26,15 +26,16 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         given:
         def api = toApi([
             A  : '@Ann public class A {}',
-            Ann: '''import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface Ann {}
-'''
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE})
+                public @interface Ann {}
+            '''
         ])
 
         when:
@@ -57,19 +58,22 @@ public @interface Ann {}
     void "annotations on method are retained"() {
         given:
         def api = toApi([
-            A  : '''public class A {
-    @Ann
-    public void foo() {}
-}''',
-            Ann: '''import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+            A  : '''
+                public class A {
+                    @Ann
+                    public void foo() {}
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
-public @interface Ann {}
-'''
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.METHOD})
+                public @interface Ann {}
+            '''
         ])
 
         when:
@@ -92,20 +96,23 @@ public @interface Ann {}
     void "annotations on method params are retained"() {
         given:
         def api = toApi([
-            A  : '''public class A {
-    public void foo(@Ann(path="somePath") String foo) {}
-}''',
-            Ann: '''import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+            A  : '''
+                public class A {
+                    public void foo(@Ann(path="somePath") String foo) {}
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.PARAMETER})
-public @interface Ann {
-    String path();
-}
-'''
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.PARAMETER})
+                public @interface Ann {
+                    String path();
+                }
+            '''
         ])
 
         when:
@@ -129,21 +136,24 @@ public @interface Ann {
     void "annotations on field are retained"() {
         given:
         def api = toApi([
-            A  : '''public class A {
-    @Ann(a="b")
-    public String foo;
-}''',
-            Ann: '''import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+            A  : '''
+                public class A {
+                    @Ann(a="b")
+                    public String foo;
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
-public @interface Ann {
-    String a();
-}
-'''
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.FIELD})
+                public @interface Ann {
+                    String a();
+                }
+            '''
         ])
 
         when:
@@ -168,30 +178,33 @@ public @interface Ann {
         given:
         def api = toApi([
             A     : '''
-            @Ann(@SubAnn("foo"))
-            public class A {}''',
-            Ann   : '''import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+                @Ann(@SubAnn("foo"))
+                public class A {}
+            ''',
+            Ann   : '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface Ann {
-    SubAnn value();
-}
-''',
-            SubAnn: '''import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE})
+                public @interface Ann {
+                    SubAnn value();
+                }
+            ''',
+            SubAnn: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface SubAnn {
-    String value();
-}
-'''
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE})
+                public @interface SubAnn {
+                    String value();
+                }
+            '''
         ])
 
         when:
@@ -223,30 +236,33 @@ public @interface SubAnn {
         given:
         def api = toApi([
             A     : '''
-            @Ann({@SubAnn("foo"), @SubAnn("bar")})
-            public class A {}''',
-            Ann   : '''import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+                @Ann({@SubAnn("foo"), @SubAnn("bar")})
+                public class A {}
+            ''',
+            Ann   : '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface Ann {
-    SubAnn[] value();
-}
-''',
-            SubAnn: '''import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE})
+                public @interface Ann {
+                    SubAnn[] value();
+                }
+            ''',
+            SubAnn: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface SubAnn {
-    String value();
-}
-'''
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE})
+                public @interface SubAnn {
+                    String value();
+                }
+            '''
         ])
 
         when:
@@ -271,7 +287,5 @@ public @interface SubAnn {
         def subAnnotations = annotation.value()
         subAnnotations.length == 2
         subAnnotations.collect { it.value() } == ['foo', 'bar']
-
     }
-
 }

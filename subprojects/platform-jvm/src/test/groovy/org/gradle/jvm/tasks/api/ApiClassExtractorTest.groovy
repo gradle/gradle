@@ -28,9 +28,11 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
     def "should not remove public method"() {
         given:
-        def api = toApi 'A': '''public class A {
-    public void foo() {}
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                public void foo() {}
+            }
+        '''
 
         when:
         def clazz = api.classes.A
@@ -52,9 +54,11 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
     def "should not remove protected method"() {
         given:
-        def api = toApi 'A': '''public class A {
-    protected void foo() {}
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                protected void foo() {}
+            }
+        '''
 
         when:
         def clazz = api.classes.A
@@ -75,9 +79,11 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
     def "should remove private method"() {
         given:
-        def api = toApi 'A': '''public class A {
-    private void foo() {}
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                private void foo() {}
+            }
+        '''
 
         when:
         def clazz = api.classes.A
@@ -92,10 +98,12 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
     def "should not remove package private method if no API is defined"() {
         given:
-        def api = toApi 'A': '''public class A {
-    void foo() {}
-    static void bar() {}
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                void foo() {}
+                static void bar() {}
+            }
+        '''
 
         when:
         def clazz = api.classes.A
@@ -112,10 +120,13 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
     def "should remove package private method if API is defined"() {
         given:
-        def api = toApi([''], ['A': '''public class A {
-    void foo() {}
-    static void bar() {}
-}'''])
+        def api = toApi([''], ['A': '''
+            public class A {
+                void foo() {}
+                static void bar() {}
+            }
+        '''
+        ])
 
         when:
         def clazz = api.classes.A
@@ -132,9 +143,11 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
     def "interface type should not generate implementation"() {
         given:
-        def api = toApi 'A': '''public interface A {
-    void foo();
-}'''
+        def api = toApi 'A': '''
+            public interface A {
+                void foo();
+            }
+        '''
 
         when:
         def clazz = api.classes.A
@@ -150,18 +163,23 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
     def "abstract class can have both implemented and non-implemented methods"() {
         given:
         def api = toApi(
-            'com.acme.A': '''package com.acme;
+            'com.acme.A': '''
+                package com.acme;
 
-public abstract class A {
-    public static void STATIC_IN_A() {}
-    public abstract void foo();
-    public void bar() {}
-}''',
-            'com.acme.B': '''package com.acme;
-public class B extends A {
-    public static void STATIC_IN_B() {}
-    public void foo() {}
-}''')
+                public abstract class A {
+                    public static void STATIC_IN_A() {}
+                    public abstract void foo();
+                    public void bar() {}
+                }
+            ''',
+            'com.acme.B': '''
+                package com.acme;
+                public class B extends A {
+                    public static void STATIC_IN_B() {}
+                    public void foo() {}
+                }
+            '''
+        )
 
         when:
         def clazzA = api.classes['com.acme.A']
@@ -203,18 +221,20 @@ public class B extends A {
 
     void "static initializer is removed"() {
         given:
-        def api = toApi(
-            'com.acme.A': '''package com.acme;
+        def api = toApi 'com.acme.A': '''
+            package com.acme;
 
-public abstract class A {
-    public static void forceInit() {}
+            public abstract class A {
+                public static void forceInit() {}
 
-    static {
-        if (true) {
-            throw new RuntimeException("This is a static initializer");
-        }
-    }
-}''')
+                static {
+                    if (true) {
+                        throw new RuntimeException("This is a static initializer");
+                    }
+                }
+            }
+        '''
+
         when:
         api.classes['com.acme.A'].clazz.forceInit()
 
@@ -234,12 +254,14 @@ public abstract class A {
     @Unroll
     void "constant initial value for #type is #expected"() {
         given:
-        def api = toApi(
-            'com.acme.A': """package com.acme;
+        def api = toApi 'com.acme.A': """
+            package com.acme;
 
-public abstract class A {
-    public static $type CONSTANT = $value;
-}""")
+            public abstract class A {
+                public static $type CONSTANT = $value;
+            }
+        """
+
         when:
         def extracted = api.extractAndLoadApiClassFrom(api.classes['com.acme.A'])
         def extractedValue = extracted.CONSTANT
@@ -282,9 +304,11 @@ public abstract class A {
 
     def "should not remove public field"() {
         given:
-        def api = toApi 'A': '''public class A {
-    public String foo;
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                public String foo;
+            }
+        '''
 
         when:
         def clazz = api.classes.A
@@ -306,9 +330,11 @@ public abstract class A {
 
     def "should not remove protected field"() {
         given:
-        def api = toApi 'A': '''public class A {
-    protected String foo;
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                protected String foo;
+            }
+        '''
 
         when:
         def clazz = api.classes.A
@@ -329,9 +355,11 @@ public abstract class A {
 
     def "should remove private field"() {
         given:
-        def api = toApi 'A': '''public class A {
-    private String foo;
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                private String foo;
+            }
+        '''
 
         when:
         def clazz = api.classes.A
@@ -346,9 +374,11 @@ public abstract class A {
 
     def "should not remove package private field if no API is declared"() {
         given:
-        def api = toApi 'A': '''public class A {
-    String foo;
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                String foo;
+            }
+        '''
 
         when:
         def clazz = api.classes.A
@@ -363,9 +393,11 @@ public abstract class A {
 
     def "should remove package private field if API is declared"() {
         given:
-        def api = toApi([''], ['A': '''public class A {
-    String foo;
-}'''])
+        def api = toApi([''], ['A': '''
+            public class A {
+                String foo;
+            }
+        '''])
 
         when:
         def clazz = api.classes.A
@@ -380,15 +412,17 @@ public abstract class A {
 
     def "stubs should not contain any source or debug information"() {
         given:
-        def api = toApi(
-            'com.acme.A': """package com.acme;
+        def api = toApi 'com.acme.A': '''
+            package com.acme;
 
-public abstract class A {
-    public static int FOO = 666;
-    public void hello(String message) {
-        System.out.println(message);
-    }
-}""")
+            public abstract class A {
+                public static int FOO = 666;
+                public void hello(String message) {
+                    System.out.println(message);
+                }
+            }
+        '''
+
         when:
         def apiClassBytes = api.extractApiClassFrom(api.classes['com.acme.A'])
         def cr = new ClassReader(apiClassBytes)
@@ -409,12 +443,15 @@ public abstract class A {
                 new MethodVisitor(Opcodes.ASM5) {
                     @Override
                     void visitLineNumber(int line, Label start) {
-                        throw new AssertionError("Should not produce any line number information but method $name$desc contains line $line label $start")
+                        throw new AssertionError("Should not produce any line number information but " +
+                            "method $name$desc contains line $line label $start")
                     }
 
                     @Override
-                    void visitLocalVariable(String lname, String ldesc, String lsignature, Label start, Label end, int index) {
-                        throw new AssertionError("Should not visit any local variable, but found $lname in method $name$desc")
+                    void visitLocalVariable(String lname, String ldesc, String lsignature,
+                                            Label start, Label end, int index) {
+                        throw new AssertionError("Should not visit any local variable, but " +
+                            "found $lname in method $name$desc")
                     }
                 }
             }
@@ -426,9 +463,11 @@ public abstract class A {
 
     def "package private class belongs to API if no API declared"() {
         given:
-        def api = toApi 'A': '''class A {
-    String foo;
-}'''
+        def api = toApi 'A': '''
+            class A {
+                String foo;
+            }
+        '''
 
         when:
         def clazz = api.classes.A
@@ -439,9 +478,11 @@ public abstract class A {
 
     def "package private class does not belong to API if API declared"() {
         given:
-        def api = toApi([''], ['A': '''class A {
-    String foo;
-}'''])
+        def api = toApi([''], ['A': '''
+            class A {
+                String foo;
+            }
+        '''])
 
         when:
         def clazz = api.classes.A
@@ -449,5 +490,4 @@ public abstract class A {
         then:
         !api.shouldExtractApiClassFrom(clazz)
     }
-
 }

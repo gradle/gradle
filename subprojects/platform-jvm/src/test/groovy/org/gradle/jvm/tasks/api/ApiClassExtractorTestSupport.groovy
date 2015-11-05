@@ -175,7 +175,8 @@ class ApiClassExtractorTestSupport extends Specification {
         try {
             def f = c.getDeclaredField(name)
             if (f.type != type) {
-                throw new AssertionError("Field $name was found on class $c but with a different type: ${f.type} instead of $type")
+                throw new AssertionError("Field $name was found on class $c but " +
+                    "with a different type: ${f.type} instead of $type")
             }
         } catch (NoSuchFieldException ex) {
             return
@@ -187,9 +188,10 @@ class ApiClassExtractorTestSupport extends Specification {
         try {
             def f = c.getDeclaredField(name)
             if (f.type != type) {
-                throw new AssertionError("Field $name was found on class $c but with a different type: ${f.type} instead of $type")
+                throw new AssertionError("Field $name was found on class $c but " +
+                    "with a different type: ${f.type} instead of $type")
             }
-            f
+            return f
         } catch (NoSuchFieldException ex) {
             throw new AssertionError("Should have found field $name on class $c")
         }
