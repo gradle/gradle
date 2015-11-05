@@ -129,6 +129,19 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
     private Collection<ModelProperty<?>> getProperties(StructSchema<T> delegateSchema, ModelSchemaStore schemaStore) {
         ImmutableSet.Builder<ModelProperty<?>> properties = ImmutableSet.builder();
         addNonDelegatedManagedProperties(schema, delegateSchema, properties);
+        addInternalViewsProperties(delegateSchema, schemaStore, properties);
+        return properties.build();
+    }
+    
+    private Set<ModelProperty<?>> getHiddenProperties(StructSchema<T> delegateSchema, ModelSchemaStore schemaStore) {
+        final ImmutableSet.Builder<ModelProperty<?>> pubPropsBuilder = ImmutableSet.builder();
+        final ImmutableSet.Builder<ModelProperty<?>> intPropsBuilder = ImmutableSet.builder();
+        addNonDelegatedManagedProperties(schema, delegateSchema, pubPropsBuilder);
+        addInternalViewsProperties(delegateSchema, schemaStore, intPropsBuilder);
+        return Sets.difference(intPropsBuilder.build(), pubPropsBuilder.build());
+    }
+
+    private void addInternalViewsProperties(StructSchema<T> delegateSchema, ModelSchemaStore schemaStore, ImmutableSet.Builder<ModelProperty<?>> properties) {
         for (ModelType<?> internalView : instanceFactory.getInternalViews(schema.getType())) {
             ModelSchema<?> internalViewSchema = schemaStore.getSchema(internalView);
             if (!(internalViewSchema instanceof StructSchema)) {
@@ -136,7 +149,6 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
             }
             addNonDelegatedManagedProperties((StructSchema<?>) internalViewSchema, delegateSchema, properties);
         }
-        return properties.build();
     }
 
     private void addNonDelegatedManagedProperties(StructSchema<?> schema, StructSchema<T> delegateSchema, ImmutableSet.Builder<ModelProperty<?>> properties) {
@@ -149,20 +161,6 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
             }
             properties.add(property);
         }
-    }
-
-    private Set<ModelProperty<?>> getHiddenProperties(StructSchema<T> delegateSchema, ModelSchemaStore schemaStore) {
-        final ImmutableSet.Builder<ModelProperty<?>> pubPropsBuilder = ImmutableSet.builder();
-        final ImmutableSet.Builder<ModelProperty<?>> intPropsBuilder = ImmutableSet.builder();
-        addNonDelegatedManagedProperties(schema, delegateSchema, pubPropsBuilder);
-        for (ModelType<?> internalView : instanceFactory.getInternalViews(schema.getType())) {
-            ModelSchema<?> internalViewSchema = schemaStore.getSchema(internalView);
-            if (!(internalViewSchema instanceof StructSchema)) {
-                continue;
-            }
-            addNonDelegatedManagedProperties((StructSchema<?>) internalViewSchema, delegateSchema, intPropsBuilder);
-        }
-        return Sets.difference(intPropsBuilder.build(), pubPropsBuilder.build());
     }
 
     private void hideNodesOfHiddenProperties(MutableModelNode modelNode, Set<ModelProperty<?>> hiddenProps) {
