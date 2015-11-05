@@ -179,6 +179,12 @@ It is now possible to reference external dependencies when building a `JvmLibrar
 
 TODO: Expand this and provide a DSL example.
 
+### Rule DSL improvements
+
+TODO:
+
+- `ModelMap` creation and configuration DSL syntax is now treated as nested rule.
+
 ### Tooling API exposes source language level
 
 Clients of the Tooling API now can query the the Java source language level via the new
