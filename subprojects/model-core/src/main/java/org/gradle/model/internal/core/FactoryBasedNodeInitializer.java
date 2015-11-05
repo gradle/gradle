@@ -94,11 +94,6 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
         }
     }
 
-    @Override
-    public List<? extends ModelProjection> getProjections() {
-        return Collections.emptyList();
-    }
-
     @Nullable
     @Override
     public ModelAction getProjector(final ModelPath path, final ModelRuleDescriptor descriptor) {

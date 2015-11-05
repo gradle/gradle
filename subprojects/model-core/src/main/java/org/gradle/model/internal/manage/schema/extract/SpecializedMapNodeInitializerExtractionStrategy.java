@@ -17,7 +17,6 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessor;
@@ -74,20 +73,15 @@ public class SpecializedMapNodeInitializerExtractionStrategy extends ModelMapNod
             modelNode.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
         }
 
-        @Override
-        public List<? extends ModelProjection> getProjections() {
-            ChildNodeInitializerStrategyAccessor<E> strategyAccessor = ChildNodeInitializerStrategyAccessors.fromPrivateData();
-            Class<? extends T> implementationType = schema.getImplementationType().asSubclass(schema.getType().getConcreteClass());
-            return Lists.newArrayList(
-                    new SpecializedModelMapProjection<T, E>(schema.getType(), schema.getElementType(), implementationType, strategyAccessor),
-                    ModelMapModelProjection.unmanaged(schema.getElementType(), strategyAccessor)
-            );
-        }
-
         @Nullable
         @Override
         public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-            return null;
+            ChildNodeInitializerStrategyAccessor<E> strategyAccessor = ChildNodeInitializerStrategyAccessors.fromPrivateData();
+            Class<? extends T> implementationType = schema.getImplementationType().asSubclass(schema.getType().getConcreteClass());
+            return AssignProjectionsNoInputsAction.of(ModelReference.of(path), descriptor,
+                new SpecializedModelMapProjection<T, E>(schema.getType(), schema.getElementType(), implementationType, strategyAccessor),
+                ModelMapModelProjection.unmanaged(schema.getElementType(), strategyAccessor)
+            );
         }
     }
 }

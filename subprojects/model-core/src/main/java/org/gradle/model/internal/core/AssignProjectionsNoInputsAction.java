@@ -14,36 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.inspect;
+package org.gradle.model.internal.core;
 
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
-public class ProjectionOnlyNodeInitializer implements NodeInitializer {
+public class AssignProjectionsNoInputsAction<T> extends AbstractModelAction<T> {
+    private final Iterable<ModelProjection> projections;
 
-    private final ModelProjection projection;
-
-    public ProjectionOnlyNodeInitializer(ModelProjection projection) {
-        this.projection = projection;
+    private AssignProjectionsNoInputsAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, Iterable<ModelProjection> projections) {
+        super(subject, descriptor);
+        this.projections = projections;
     }
 
-    @Override
-    public List<? extends ModelReference<?>> getInputs() {
-        return Collections.emptyList();
+    public static <T> AssignProjectionsNoInputsAction<T> of(ModelReference<T> subject, ModelRuleDescriptor descriptor, ModelProjection... projections) {
+        return new AssignProjectionsNoInputsAction<T>(subject, descriptor, Arrays.asList(projections));
     }
 
     @Override
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-
-    }
-
-    @Nullable
-    @Override
-    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-        return AssignProjectionsNoInputsAction.of(ModelReference.of(path), descriptor, projection);
+        for (ModelProjection projection : projections) {
+            modelNode.addProjection(projection);
+        }
     }
 }
