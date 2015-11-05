@@ -17,14 +17,17 @@ package org.gradle.api.publication.maven.internal.pom;
 
 import groovy.util.FactoryBuilderSupport;
 import org.apache.maven.model.Model;
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.InitializationException;
 import org.gradle.api.publication.maven.internal.ModelFactory;
 import org.slf4j.LoggerFactory;
+import org.sonatype.maven.polyglot.PolyglotModelManager;
 import org.sonatype.maven.polyglot.execute.ExecuteManager;
 import org.sonatype.maven.polyglot.execute.ExecuteManagerImpl;
+import org.sonatype.maven.polyglot.groovy.GroovyMapping;
 import org.sonatype.maven.polyglot.groovy.builder.ModelBuilder;
+import org.sonatype.maven.polyglot.mapping.XmlMapping;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -33,17 +36,16 @@ import java.util.Map;
 public class CustomModelBuilder extends ModelBuilder {
 
     public CustomModelBuilder(Model model) {
+        PolyglotModelManager modelManager = new PolyglotModelManager();
+        setProp(modelManager.getClass(), modelManager, "log",
+                new PlexusLoggerAdapter(LoggerFactory.getLogger(PolyglotModelManager.class)));
+        setProp(modelManager.getClass(), modelManager, "mappings",
+                Arrays.asList(new XmlMapping(), new GroovyMapping()));
         ExecuteManager executeManager = new ExecuteManagerImpl();
         setProp(executeManager.getClass(), executeManager, "log",
                 new PlexusLoggerAdapter(LoggerFactory.getLogger(ExecuteManagerImpl.class)));
+        setProp(executeManager.getClass(), executeManager, "manager", modelManager);
         setProp(ModelBuilder.class, this, "executeManager", executeManager);
-        setProp(ModelBuilder.class, this, "log",
-                new PlexusLoggerAdapter(LoggerFactory.getLogger(ModelBuilder.class)));
-        try {
-            initialize();
-        } catch (InitializationException e) {
-            throw new RuntimeException(e);
-        }
         Map factories = (Map) getProp(FactoryBuilderSupport.class, this, "factories");
         factories.remove("project");
         ModelFactory modelFactory = new ModelFactory(model);
