@@ -131,10 +131,10 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
         addNonDelegatedManagedProperties(schema, delegateSchema, properties);
         for (ModelType<?> internalView : instanceFactory.getInternalViews(schema.getType())) {
             ModelSchema<?> internalViewSchema = schemaStore.getSchema(internalView);
-            if (!(internalViewSchema instanceof ManagedImplStructSchema)) {
+            if (!(internalViewSchema instanceof StructSchema)) {
                 continue;
             }
-            addNonDelegatedManagedProperties((ManagedImplStructSchema<?>) internalViewSchema, delegateSchema, properties);
+            addNonDelegatedManagedProperties((StructSchema<?>) internalViewSchema, delegateSchema, properties);
         }
         return properties.build();
     }
@@ -157,7 +157,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
         addNonDelegatedManagedProperties(schema, delegateSchema, pubPropsBuilder);
         for (ModelType<?> internalView : instanceFactory.getInternalViews(schema.getType())) {
             ModelSchema<?> internalViewSchema = schemaStore.getSchema(internalView);
-            if (!(internalViewSchema instanceof ManagedImplStructSchema)) {
+            if (!(internalViewSchema instanceof StructSchema)) {
                 continue;
             }
             addNonDelegatedManagedProperties((StructSchema<?>) internalViewSchema, delegateSchema, intPropsBuilder);
