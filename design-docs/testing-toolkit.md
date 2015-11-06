@@ -414,7 +414,7 @@ The `GradleRunner` abstract class will be extended to provide additional methods
 
 ## Story: GradleRunner functionality is verified to work with all "supported" Gradle versions
 
-The TestKit allows for executing functional test with a Gradle distribution specified by the user. `GradleRunner` passes the provided
+The TestKit allows for executing functional tests with a Gradle distribution specified by the user. `GradleRunner` passes the provided
 distribution to the Tooling API to execute Gradle. For the most part the internal implementation of the Tooling API build execution
 uses a conservative set of features though there's no there's no assurance that a Tooling API will work with older versions of Gradle
 in this context. This story aims for implementing appropriate test coverage to ensure backward compatibility or graceful handling of
@@ -426,12 +426,71 @@ unsupported functionality for other versions of the Tooling API.
     * version-under-test
     * the most recent released version
     * the oldest version for which the feature is supported
-* Implement annotation(s) used to indicate the tested Gradle version for a specific test method. An annotated test method will use
-the assigned versions to execute the test.
+* Reuse the annotations `org.gradle.integtests.fixtures.TargetVersions` and `org.gradle.integtests.fixtures.IgnoreVersions`.
+`TargetVersions` declares the restricted set of Gradle versions used for the cross-version tests, `IgnoreVersions` can be used
+if one of the specified versions should be ignored for a specific test class or method.
+
+<!-- -->
+
+    @TargetVersions(['2.6', GradleVersions.CURRENT.version.version])
+    class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+
+        @IgnoreVersions('2.6')
+        def "test something"() {
+            ...
+        }
+
+        def "test a condition"() {
+            ...
+        }
+    }
+
+* The JUnit rule `GradleRunnerIntegTestRunner` applied to AbstractGradleRunnerIntegrationTest needs to be extended to evaluate the annotations
+`TargetVersions` and `IgnoreVersions`. The implementation will need to build a matrix combination of targeted versions and debug mode on/off. For
+each target version, a `org.gradle.integtests.fixtures.executer.GradleDistribution` is created. The version-under-test could be mixed into automatically
+by creating an instance of `UnderDevelopmentGradleDistribution`. This `GradleDistribution` is used by the `GradleExecuter` to execute the build with the
+target distribution.
+* Each cross-version test needs to be executed with and without debug mode. There are some exceptions where using debug mode doesn't make sense e.g. tests
+ around the isolated daemon. For example:
+
+<!-- -->
+
+<table>
+    <tr>
+        <th>Gradle Version</th>
+        <th>Debug</th>
+    </tr>
+    <tr>
+        <td>2.7</td>
+        <td>off</td>
+    </tr>
+    <tr>
+        <td>2.7</td>
+        <td>on</td>
+    </tr>
+    <tr>
+        <td>2.9</td>
+        <td>off</td>
+    </tr>
+    <tr>
+        <td>2.9</td>
+        <td>on</td>
+    </tr>
+    <tr>
+        <td>2.10-20151106150702+0000</td>
+        <td>off</td>
+    </tr>
+    <tr>
+        <td>2.10-20151106150702+0000</td>
+        <td>on</td>
+    </tr>
+</table>
+
+* At the moment all tests extending `AbstractGradleRunnerIntegrationTest` do not use a `GradleExecuter` to execute the build. Instead they create the
+`GradleRunner` instance in the test class and not in an external build script. To be able to run these tests against different Gradle distributions,
+the code will need to be changed to use a `GradleExecuter`.
 * A TestKit feature that is not supported by the Gradle version used to execute the test should behave in a reasonable manner e.g. provide
 a human-readable error message that explains why this feature cannot be used.
-* Each cross-version test needs to be executed with and without debug mode. There are some exceptions where using debug mode doesn't make
-sense e.g. tests around the isolated daemon.
 
 ### Test Coverage
 
@@ -441,6 +500,7 @@ sense e.g. tests around the isolated daemon.
 
 ### Open issues
 
+* All test class extending from `AbstractGradleRunnerIntegrationTest` need to be changed to use a `GradleExecuter`? Maybe there's a way to avoud this.
 * Account for increased build time on CI (potentially requires re-sharding of jobs).
 
 # Milestone 3
