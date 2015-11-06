@@ -699,8 +699,9 @@ If any of the module dependencies matches on the coordinates of one of the selec
     - Iterate over all dependencies of a project accessible via `DefaultEclipseProject.getClasspath()`.
     - Each dependency provides its coordinates through `DefaultEclipseExternalDependency.getGradleModuleVersion()`.
     - Compare the dependency coordinates with the coordinates of the project through `DefaultEclipseProject.getGradleModuleVersion()`.
-    - If a match is determined, use the project path. Implement a de-dupe algorithm in case of duplicate project paths.
+    - If a match is determined, use the project path. If duplicate project paths are found, render a error message and disallow import.
     - Give a visual indication (e.g. icon) that a substitution was performed for a project.
+- Allow for a context menu that brings up the original substitution dialog in case the user wants to modify the project selection.
 - After selecting the projects the exposed Tooling API is consumed to form the workspace.
 - Buildship renders the workspace in the project view as a multi-project build.
 - The developer can make changes to any project's build script. Newly established (and substitutable) dependencies between projects are resolved as project dependencies.
@@ -712,17 +713,46 @@ If any of the module dependencies matches on the coordinates of one of the selec
 - Project that do not define the proper coordinates cannot be used to form a workspace.
 - If no substitutable module dependency can be determined, the dialog will render a error message.
 - Projects that are part of a workspace can be built together based on established project dependencies.
-    - Duplicate project paths are de-duped.
 - If the coordinates of a substituted module dependency is changed, Buildship needs to react properly.
     - If coordinates don't match up anymore, Buildship will depend on the module dependency.
     - If coordinates do match up, Buildship will re-establish the project dependency in the underlying model.
+    - Eclipse project synchronization is initiated.
 - Closing and re-opening Buildship will re-establish a workspace.
 
 #### Open issues
 
 - Out-of-scope for this feature would be the ability to run builds using the workspace definition from the IDE or from
 the command-line. This would be an additional feature.
-- Is there a concept in Eclipse we could use to represent a workspace visually e.g. a working set?
+- De-duping of duplicate project names is out-of-scope for this story. It's going to be addressed in a separate story.
+- The [concept of workspace exists in Eclipse](http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.user/concepts/cworkset.htm?cp=0_2_1_6)
+ which could be used to define a [custom extension point](http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.isv/reference/extension-points/org_eclipse_ui_workingSets.html?cp=2_1_1_202).
+ However, investigation is needed if and how can we use them.
+
+### Story - Ensure unique project names for a "workspace" in Buildship
+
+Selected projects in a workspace might have the same project name. At the moment Buildship does not allow more than one project with the same even though they might live
+in different locations of the project hierarchy (see [reported issue](https://bugs.eclipse.org/bugs/show_bug.cgi?id=479609)). The same situation might occur for imported
+projects for a workspace. This story implements a du-duping mechanism in Buildship.
+
+#### Estimate
+
+-
+
+#### Implementation
+
+- De-duping should work from the regular import dialog as well as the "workspace" import dialog.
+- If Buildship encounters two projects with the same project name, an algorithm will de-dedupe the project names. De-duped project names are only logic references to the
+original projects. The actual project name stays unchanged. Buildship should be able to render actual and logic project names e.g. `myProject [my-project-1]`, `myProject [my-project-2]`.
+- The logic should be implemented in a way that makes it reusable from different contexts within Buildship.
+- Gradle core implements a similar algorithm for the IDE plugins. Reuse it if possible.
+
+#### Test cases
+
+- If the names of all imported projects are unique, de-duping doesn't have to kick in.
+- If at least two imported projects have the same name, de-dupe the names. De-duped project names still reference the original project. The original and de-duped project names
+should be rendered in Eclipse's project view section.
+- De-duping may be required for more that one duplicate project name.
+- Multi-project builds can contain duplicate project names in any leaf of the project hierarchy.
 
 ## Feature - Developer uses subset of projects for a Gradle build from IDE
 
@@ -752,6 +782,7 @@ Build on the workspace concept from the previous feature, to replace source depe
     - Check for resolvable binary dependency available in any of the repositories defined for the coordinates.
     - If a match is determined, use the module coordinates. Replace the source dependency with a binary dependency.
     - Give a visual indication (e.g. icon) that a substitution was performed for a project.
+- Allow for a context menu that brings up the original substitution dialog in case the user wants to modify the project selection.
 - A workspace needs to be persistable.
 
 #### Test cases
@@ -763,6 +794,7 @@ Build on the workspace concept from the previous feature, to replace source depe
 - If the coordinates of a substituted module dependency are changed, Buildship needs to react properly.
     - If coordinates don't match up anymore, Buildship will depend on the project dependency.
     - If coordinates do match up, Buildship will re-establish the binary dependency in the underlying model.
+    - Eclipse project synchronization is initiated.
 - Closing and re-opening Buildship will re-establish a workspace.
 
 #### Open issues
