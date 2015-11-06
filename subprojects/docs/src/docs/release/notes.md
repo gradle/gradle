@@ -184,6 +184,7 @@ TODO: Expand this and provide a DSL example.
 TODO:
 
 - `ModelMap` creation and configuration DSL syntax is now treated as nested rule.
+- This means that a task can be configured using another task as input.
 
 ### Tooling API exposes source language level
 
@@ -215,6 +216,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 -->
 
 ## Potential breaking changes
+
+### Changes to model rules DSL
+
+- Properties and methods from owner closures are no longer visible.
 
 ### Changes to incubating software model
 
