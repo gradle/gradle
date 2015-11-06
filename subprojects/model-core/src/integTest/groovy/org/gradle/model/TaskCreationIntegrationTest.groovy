@@ -102,6 +102,30 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         output.contains "c - task c"
     }
 
+    def "can use rule DSL to configure task using another task as input"() {
+        given:
+        buildFile << '''
+            model {
+                tasks {
+                    a {
+                        message = 'greetings from task a'
+                    }
+                    a(MessageTask)
+                    b(MessageTask) {
+                        def taskA = $.tasks.a
+                        message = taskA.message + " via task b"
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds "b"
+
+        then:
+        output.contains "greetings from task a via task b"
+    }
+
     def "can configure tasks using rule DSL"() {
         given:
         buildFile << """
