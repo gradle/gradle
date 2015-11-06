@@ -34,8 +34,8 @@ class ModelReferenceNode extends ModelNodeInternal {
     private ModelNodeInternal target;
     private final MutableModelNode parent;
 
-    public ModelReferenceNode(RegistrationRuleBinder registrationBinder, MutableModelNode parent) {
-        super(registrationBinder);
+    public ModelReferenceNode(ModelRegistration registration, MutableModelNode parent) {
+        super(registration);
         this.parent = parent;
     }
 

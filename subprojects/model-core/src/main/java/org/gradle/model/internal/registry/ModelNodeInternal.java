@@ -36,7 +36,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelNodeInternal.class);
 
-    private RegistrationRuleBinder registrationBinder;
+    private ModelRegistration registration;
     private final Set<ModelNodeInternal> dependencies = Sets.newHashSet();
     private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
     private ModelNode.State state = ModelNode.State.Registered;
@@ -44,21 +44,21 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private final List<ModelRuleDescriptor> executedRules = Lists.newArrayList();
     private final List<ModelActionBinder> initializerRuleBinders = Lists.newArrayList();
 
-    public ModelNodeInternal(RegistrationRuleBinder registrationBinder) {
-        this.registrationBinder = registrationBinder;
+    public ModelNodeInternal(ModelRegistration registration) {
+        this.registration = registration;
     }
 
-    public RegistrationRuleBinder getRegistrationBinder() {
-        return registrationBinder;
+    public ModelRegistration getRegistration() {
+        return registration;
     }
 
-    public void replaceRegistrationBinder(RegistrationRuleBinder newRegistrationBinder) {
+    public void replaceRegistration(ModelRegistration registration) {
         if (isAtLeast(State.Created)) {
             throw new IllegalStateException("Cannot replace registration rule binder when node is already created (node: " + this + ", state: " + getState() + ")");
         }
 
-        ModelRegistration newRegistration = newRegistrationBinder.getRegistration();
-        ModelRegistration oldRegistration = registrationBinder.getRegistration();
+        ModelRegistration newRegistration = registration;
+        ModelRegistration oldRegistration = this.registration;
 
         // Can't change type
         // TODO:LPTR We can't ensure this with projections being determined later in the node lifecycle, should remove this or fix in some other way
@@ -72,7 +72,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
             throw new IllegalStateException("can not replace node " + getPath() + " with registration with different input bindings (old: [" + joiner.join(oldRegistration.getInputs()) + "], new: [" + joiner.join(newRegistration.getInputs()) + "])");
         }
 
-        this.registrationBinder = newRegistrationBinder;
+        this.registration = registration;
     }
 
     public List<ModelActionBinder> getInitializerRuleBinders() {
@@ -95,7 +95,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     @Override
     public boolean isEphemeral() {
-        return registrationBinder.getRegistration().isEphemeral();
+        return registration.isEphemeral();
     }
 
     public void notifyFired(RuleBinder binder) {
@@ -117,11 +117,11 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     public ModelPath getPath() {
-        return registrationBinder.getRegistration().getPath();
+        return registration.getPath();
     }
 
     public ModelRuleDescriptor getDescriptor() {
-        return registrationBinder.getDescriptor();
+        return registration.getDescriptor();
     }
 
     public ModelNode.State getState() {
@@ -144,14 +144,14 @@ abstract class ModelNodeInternal implements MutableModelNode {
         if (!state.isAtLeast(State.Discovered)) {
             throw new IllegalStateException(String.format("Cannot get promise for %s in state %s when not yet discovered", getPath(), state));
         }
-        return registrationBinder.getRegistration().getPromise();
+        return registration.getPromise();
     }
 
     public ModelAdapter getAdapter() {
         if (!state.isAtLeast(State.Created)) {
             throw new IllegalStateException(String.format("Cannot get adapter for %s in state %s when node is not created", getPath(), state));
         }
-        return registrationBinder.getRegistration().getAdapter();
+        return registration.getAdapter();
     }
 
     @Override
@@ -159,7 +159,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
         if (isAtLeast(Discovered)) {
             throw new IllegalStateException(String.format("Cannot add projections to node '%s' as it is already %s", getPath(), getState()));
         }
-        registrationBinder.getRegistration().addProjection(projection);
+        registration.addProjection(projection);
     }
 
     @Override

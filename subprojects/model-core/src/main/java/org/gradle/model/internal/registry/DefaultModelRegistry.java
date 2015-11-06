@@ -55,7 +55,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
         ModelRegistration rootRegistration = ModelRegistrations.of(ModelPath.ROOT).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
-        modelGraph = new ModelGraph(new ModelElementNode(toRegistrationBinder(rootRegistration), null));
+        modelGraph = new ModelGraph(new ModelElementNode(rootRegistration, null));
         modelGraph.getRoot().setState(Created);
         ruleBindings = new RuleBindings(modelGraph);
     }
@@ -77,14 +77,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         return this;
     }
 
-    private RegistrationRuleBinder toRegistrationBinder(ModelRegistration registration) {
-        BindingPredicate subject = new BindingPredicate(ModelReference.of(registration.getPath(), ModelType.untyped(), ModelNode.State.Created));
-        return new RegistrationRuleBinder(registration, subject, Collections.<BindingPredicate>emptyList(), unboundRules);
-    }
-
     private ModelNodeInternal registerNode(ModelNodeInternal node) {
         if (reset) {
-            unboundRules.remove(node.getRegistrationBinder());
             unboundRules.removeAll(node.getInitializerRuleBinders());
             return node;
         }
@@ -96,7 +90,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         modelGraph.add(node);
         ruleBindings.nodeCreated(node);
 
-        ModelRegistration registration = node.getRegistrationBinder().getRegistration();
+        ModelRegistration registration = node.getRegistration();
         node.setHidden(registration.isHidden());
         if (registration.isService()) {
             node.ensureAtLeast(Discovered);
@@ -106,9 +100,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void addRuleBindings(ModelNodeInternal node) {
-        ruleBindings.add(node.getRegistrationBinder());
-
-        for(Map.Entry<ModelActionRole, ? extends ModelAction> entry : node.getRegistrationBinder().getRegistration().getActions().entries()) {
+        for(Map.Entry<ModelActionRole, ? extends ModelAction> entry : node.getRegistration().getActions().entries()) {
             ModelActionRole role = entry.getKey();
             ModelAction action = entry.getValue();
             checkNodePath(node, action);
@@ -216,7 +208,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (Iterables.isEmpty(dependents)) {
             modelGraph.remove(node);
             ruleBindings.remove(node);
-            unboundRules.remove(node.getRegistrationBinder());
             unboundRules.removeAll(node.getInitializerRuleBinders());
         } else {
             throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: " + Joiner.on(", ").join(dependents));
@@ -252,14 +243,13 @@ public class DefaultModelRegistry implements ModelRegistry {
         try {
             boolean wasDiscovered = node.isAtLeast(Discovered);
 
-            ruleBindings.remove(node, node.getRegistrationBinder());
             for (RuleBinder ruleBinder : node.getInitializerRuleBinders()) {
                 ruleBindings.remove(node, ruleBinder);
             }
             node.getInitializerRuleBinders().clear();
 
             // Will internally verify that this is valid
-            node.replaceRegistrationBinder(toRegistrationBinder(newRegistration));
+            node.replaceRegistration(newRegistration);
             node.setState(Registered);
             addRuleBindings(node);
             if (wasDiscovered) {
@@ -561,8 +551,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         private Object privateData;
         private ModelType<?> privateDataType;
 
-        public ModelElementNode(RegistrationRuleBinder registrationRuleBinder, MutableModelNode parent) {
-            super(registrationRuleBinder);
+        public ModelElementNode(ModelRegistration registration, MutableModelNode parent) {
+            super(registration);
             this.parent = parent;
         }
 
@@ -824,12 +814,12 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void addReference(ModelRegistration registration) {
-            addNode(new ModelReferenceNode(toRegistrationBinder(registration), this), registration);
+            addNode(new ModelReferenceNode(registration, this), registration);
         }
 
         @Override
         public void addLink(ModelRegistration registration) {
-            addNode(new ModelElementNode(toRegistrationBinder(registration), this), registration);
+            addNode(new ModelElementNode(registration, this), registration);
         }
 
         private void addNode(ModelNodeInternal child, ModelRegistration registration) {
@@ -1337,9 +1327,9 @@ public class DefaultModelRegistry implements ModelRegistry {
             // the type of the property node instead.
             ModelRegistration registration = ModelRegistrations.of(path)
                 .descriptor(parent.getDescriptor())
-                .withProjection(childTarget.getRegistrationBinder().getRegistration().getProjection())
+                .withProjection(childTarget.getRegistration().getProjection())
                 .build();
-            ModelReferenceNode childNode = new ModelReferenceNode(toRegistrationBinder(registration), parent);
+            ModelReferenceNode childNode = new ModelReferenceNode(registration, parent);
             childNode.setTarget(childTarget);
             registerNode(childNode);
             ruleBindings.nodeDiscovered(childNode);

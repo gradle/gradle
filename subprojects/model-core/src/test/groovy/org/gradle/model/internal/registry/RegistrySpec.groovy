@@ -30,19 +30,12 @@ class RegistrySpec extends Specification {
         def links = []
 
         TestNode(String creationPath, Class<?> type) {
-            super(toBinder(creationPath, type))
+            super(ModelRegistrations.of(ModelPath.path(creationPath)).descriptor("test").build())
             addProjection(new UnmanagedModelProjection(ModelType.of(type)))
         }
 
-        TestNode(RegistrationRuleBinder registrationBinder) {
-            super(registrationBinder)
-        }
-
-        private static RegistrationRuleBinder toBinder(String creationPath, Class<?> type) {
-            def registration = ModelRegistrations.of(ModelPath.path(creationPath)).descriptor("test").build()
-            def subject = new BindingPredicate()
-            def binder = new RegistrationRuleBinder(registration, subject, [], [])
-            binder
+        TestNode(ModelRegistration registration) {
+            super(registration)
         }
 
         @Override
