@@ -16,25 +16,25 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-import java.util.List;
 import java.util.Set;
 
 @ThreadSafe
-public class ProjectionBackedModelRegistration implements ModelRegistration {
+public class DefaultModelRegistration implements ModelRegistration {
     private final ModelPath path;
     private final ModelRuleDescriptor descriptor;
     private final boolean service;
     private final boolean ephemeral;
     private final boolean hidden;
-    private final ModelProjection projection;
-    private final List<ModelProjection> projections = Lists.newArrayList();
     private final ListMultimap<ModelActionRole, ? extends ModelAction> actions;
 
-    public ProjectionBackedModelRegistration(
+    public DefaultModelRegistration(
         ModelPath path,
         ModelRuleDescriptor descriptor,
         boolean service,
@@ -46,25 +46,11 @@ public class ProjectionBackedModelRegistration implements ModelRegistration {
         this.service = service;
         this.ephemeral = ephemeral;
         this.hidden = hidden;
-        this.projection = new ChainingModelProjection(projections);
         this.actions = ImmutableListMultimap.copyOf(actions);
     }
 
     public ModelPath getPath() {
         return path;
-    }
-
-    public ModelPromise getPromise() {
-        return projection;
-    }
-
-    public ModelAdapter getAdapter() {
-        return projection;
-    }
-
-    @Override
-    public ModelProjection getProjection() {
-        return projection;
     }
 
     @Override
@@ -99,10 +85,5 @@ public class ProjectionBackedModelRegistration implements ModelRegistration {
     @Override
     public ModelRuleDescriptor getDescriptor() {
         return descriptor;
-    }
-
-    @Override
-    public void addProjection(ModelProjection projection) {
-        projections.add(projection);
     }
 }

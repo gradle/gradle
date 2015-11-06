@@ -27,31 +27,31 @@ class InstanceBackedModelRegistrationTest extends Specification {
 
     def "action is called"() {
         when:
-        def foo = ModelReference.of("foo", List)
-        def bar = ModelReference.of("bar", List)
+        def fooReference = ModelReference.of("foo", List)
+        def barReference = ModelReference.of("bar", List)
 
         def descriptor = new SimpleModelRuleDescriptor("foo")
 
         def fooList = []
-        def fooRegistration = ModelRegistrations.bridgedInstance(foo, fooList).descriptor(descriptor).build()
+        def fooRegistration = ModelRegistrations.bridgedInstance(fooReference, fooList).descriptor(descriptor).build()
         registry.register(fooRegistration)
 
         def barList = []
         def factory = Mock(org.gradle.internal.Factory) {
-            1 * create() >> barList
+            create() >> barList
         }
-        def barRegistration = ModelRegistrations.unmanagedInstance(bar, factory).descriptor(descriptor).build()
+        def barRegistration = ModelRegistrations.unmanagedInstance(barReference, factory).descriptor(descriptor).build()
         registry.register(barRegistration)
-        registry.atStateOrLater(foo.path, ModelNode.State.Discovered)
+        def foo = registry.atStateOrLater(fooReference.path, ModelNode.State.Discovered)
 
         then:
-        !fooRegistration.promise.canBeViewedAsImmutable(ModelType.of(String))
-        !fooRegistration.promise.canBeViewedAsMutable(ModelType.of(String))
-        fooRegistration.promise.canBeViewedAsImmutable(ModelType.of(List))
-        fooRegistration.promise.canBeViewedAsMutable(ModelType.of(List))
+        !foo.promise.canBeViewedAsImmutable(ModelType.of(String))
+        !foo.promise.canBeViewedAsMutable(ModelType.of(String))
+        foo.promise.canBeViewedAsImmutable(ModelType.of(List))
+        foo.promise.canBeViewedAsMutable(ModelType.of(List))
 
-        registry.realize(foo.path, foo.type).is(fooList)
-        registry.realize(bar.path, bar.type).is(barList)
+        registry.realize(fooReference.path, fooReference.type).is(fooList)
+        registry.realize(barReference.path, barReference.type).is(barList)
     }
 
 }

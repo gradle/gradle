@@ -1327,7 +1327,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             // the type of the property node instead.
             ModelRegistration registration = ModelRegistrations.of(path)
                 .descriptor(parent.getDescriptor())
-                .withProjection(childTarget.getRegistration().getProjection())
+                .withProjection(childTarget.getProjection())
                 .build();
             ModelReferenceNode childNode = new ModelReferenceNode(registration, parent);
             childNode.setTarget(childTarget);

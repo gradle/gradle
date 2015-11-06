@@ -225,7 +225,7 @@ abstract public class ModelRegistrations {
                     }
                 });
             }
-            return new ProjectionBackedModelRegistration(path, modelRuleDescriptor, service, ephemeral, hidden || service, actions);
+            return new DefaultModelRegistration(path, modelRuleDescriptor, service, ephemeral, hidden || service, actions);
         }
 
         private abstract class BuilderModelAction implements ModelAction {

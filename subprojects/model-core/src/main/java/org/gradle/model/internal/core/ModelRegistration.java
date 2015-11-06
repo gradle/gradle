@@ -26,12 +26,6 @@ public interface ModelRegistration {
 
     ModelPath getPath();
 
-    ModelPromise getPromise();
-
-    ModelAdapter getAdapter();
-
-    ModelProjection getProjection();
-
     /**
      * Actions that need to be registered when the node is registered.
      */
@@ -50,6 +44,4 @@ public interface ModelRegistration {
      * Returns whether the registered node is hidden.
      */
     boolean isHidden();
-
-    void addProjection(ModelProjection projection);
 }

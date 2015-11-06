@@ -43,9 +43,12 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private boolean hidden;
     private final List<ModelRuleDescriptor> executedRules = Lists.newArrayList();
     private final List<ModelActionBinder> initializerRuleBinders = Lists.newArrayList();
+    private final List<ModelProjection> projections = Lists.newArrayList();
+    private final ModelProjection projection;
 
     public ModelNodeInternal(ModelRegistration registration) {
         this.registration = registration;
+        this.projection = new ChainingModelProjection(projections);
     }
 
     public ModelRegistration getRegistration() {
@@ -141,14 +144,18 @@ abstract class ModelNodeInternal implements MutableModelNode {
         if (!state.isAtLeast(State.Discovered)) {
             throw new IllegalStateException(String.format("Cannot get promise for %s in state %s when not yet discovered", getPath(), state));
         }
-        return registration.getPromise();
+        return projection;
     }
 
     public ModelAdapter getAdapter() {
         if (!state.isAtLeast(State.Created)) {
             throw new IllegalStateException(String.format("Cannot get adapter for %s in state %s when node is not created", getPath(), state));
         }
-        return registration.getAdapter();
+        return projection;
+    }
+
+    public ModelProjection getProjection() {
+        return projection;
     }
 
     @Override
@@ -156,7 +163,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
         if (isAtLeast(Discovered)) {
             throw new IllegalStateException(String.format("Cannot add projections to node '%s' as it is already %s", getPath(), getState()));
         }
-        registration.addProjection(projection);
+        projections.add(projection);
     }
 
     @Override
