@@ -16,8 +16,8 @@
 
 package org.gradle.jvm.internal;
 
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
@@ -35,7 +35,6 @@ import static java.lang.String.format;
  *
  * @since 2.9
  */
-@Incubating
 class ApiSpec {
 
     private final Set<PackageName> exports = new HashSet<PackageName>();
@@ -64,7 +63,7 @@ class ApiSpec {
     }
 
     public Set<PackageName> getExports() {
-        return exports;
+        return ImmutableSet.copyOf(exports);
     }
 
     public DependencySpecContainer getDependencies() {

@@ -73,7 +73,7 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
         Iterable<String> transform = Iterables.transform(apiSpec.getExports(), new Function<PackageName, String>() {
             @Override
             public String apply(PackageName packageName) {
-                return packageName.toString();
+                return packageName.getValue();
             }
         });
         return ImmutableSet.copyOf(transform);

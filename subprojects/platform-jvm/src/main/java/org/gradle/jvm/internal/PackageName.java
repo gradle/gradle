@@ -52,6 +52,13 @@ class PackageName {
     }
 
     /**
+     * The underlying package name value, e.g. "com.example.p1".
+     */
+    public String getValue() {
+        return value;
+    }
+
+    /**
      * Validate, create and return a new {@code PackageName} instance from the given
      * package name.
      *

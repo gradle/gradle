@@ -28,7 +28,7 @@ class PackageNameTest extends Specification {
 
         then:
         notThrown(IllegalArgumentException)
-        packageName.toString() == value
+        packageName.getValue() == value
 
         where:
         value << [
@@ -67,5 +67,13 @@ class PackageNameTest extends Specification {
         packages.add(pkgA)
         packages.add(pkgB)
         !packages.add(pkgC)
+    }
+
+    def "should render toString based on underlying value"() {
+        given:
+        def pkg = PackageName.of('com.example.p1')
+
+        expect:
+        pkg.toString() == 'com.example.p1'
     }
 }
