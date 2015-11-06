@@ -57,9 +57,6 @@ abstract class ModelNodeInternal implements MutableModelNode {
             throw new IllegalStateException("Cannot replace registration rule binder when node is already created (node: " + this + ", state: " + getState() + ")");
         }
 
-        ModelRegistration newRegistration = registration;
-        ModelRegistration oldRegistration = this.registration;
-
         // Can't change type
         // TODO:LPTR We can't ensure this with projections being determined later in the node lifecycle, should remove this or fix in some other way
         // if (!oldRegistration.getPromise().equals(newRegistration.getPromise())) {
@@ -67,9 +64,9 @@ abstract class ModelNodeInternal implements MutableModelNode {
         // }
 
         // Can't have different inputs
-        if (!newRegistration.getInputs().equals(oldRegistration.getInputs())) {
+        if (!registration.getInputs().equals(this.registration.getInputs())) {
             Joiner joiner = Joiner.on(", ");
-            throw new IllegalStateException("can not replace node " + getPath() + " with registration with different input bindings (old: [" + joiner.join(oldRegistration.getInputs()) + "], new: [" + joiner.join(newRegistration.getInputs()) + "])");
+            throw new IllegalStateException("can not replace node " + getPath() + " with registration with different input bindings (old: [" + joiner.join(this.registration.getInputs()) + "], new: [" + joiner.join(registration.getInputs()) + "])");
         }
 
         this.registration = registration;

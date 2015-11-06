@@ -21,7 +21,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Set;
 
-public interface ModelRegistration extends ModelRule {
+public interface ModelRegistration {
     ModelRuleDescriptor getDescriptor();
 
     ModelPath getPath();
@@ -45,7 +45,7 @@ public interface ModelRegistration extends ModelRule {
      * Returns whether the node registered is a {@link Service}.
      */
     boolean isService();
-    
+
     /**
      * Returns whether the registered node is hidden.
      */
