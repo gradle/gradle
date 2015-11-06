@@ -55,6 +55,11 @@ model {
             cppCompiler.define "SOMETHING5=0"
             cppCompiler.define "SOMETHING6=0"
             cppCompiler.define "SOMETHING7=0"
+
+            if (project.hasProperty("addMoreDefines")) {
+                cCompiler.define "HELLOWORLD=1"
+                cppCompiler.define "HELLOWORLD=1"
+            }
         }
     }
 }

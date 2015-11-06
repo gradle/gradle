@@ -17,9 +17,7 @@
 package org.gradle.performance
 
 import org.apache.commons.io.FileUtils
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.performance.fixture.*
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.MeasuredOperation
 import org.junit.experimental.categories.Category
@@ -74,31 +72,53 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         runner.runs = 10
         String fileName = changedFile
         Closure fileChanger = changeClosure
+        boolean compilerOptionChange = (changeType == 'compiler options')
         runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
             File file
             String originalContent
 
             @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                if (file == null) {
-                    file = new File(invocationInfo.projectDir, fileName)
-                    assert file.exists()
-                    def backupFile = new File(file.parentFile, file.name + "~")
-                    if (backupFile.exists()) {
-                        originalContent = backupFile.text
-                        file.text = originalContent
-                    } else {
-                        originalContent = file.text
-                        FileUtils.copyFile(file, backupFile)
+            GradleInvocationCustomizer createInvocationCustomizer(BuildExperimentInvocationInfo invocationInfo) {
+                if (compilerOptionChange) {
+                    return new GradleInvocationCustomizer() {
+                        @Override
+                        GradleInvocationSpec customize(GradleInvocationSpec invocationSpec) {
+                            if (invocationInfo.iterationNumber % 2 == 0) {
+                                println "Adding -PaddMoreDefines to arguments"
+                                return invocationSpec.withAdditionalArgs(["-PaddMoreDefines"])
+                            } else {
+                                return invocationSpec
+                            }
+                        }
                     }
+                } else {
+                    null
                 }
-                if (invocationInfo.iterationNumber % 2 == 0) {
-                    println "Changing $file"
-                    // do change
-                    fileChanger(file, originalContent)
-                } else if (invocationInfo.iterationNumber > 2) {
-                    println "Reverting $file"
-                    file.text = originalContent
+            }
+
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                if (fileChanger != null) {
+                    if (file == null) {
+                        file = new File(invocationInfo.projectDir, fileName)
+                        assert file.exists()
+                        def backupFile = new File(file.parentFile, file.name + "~")
+                        if (backupFile.exists()) {
+                            originalContent = backupFile.text
+                            file.text = originalContent
+                        } else {
+                            originalContent = file.text
+                            FileUtils.copyFile(file, backupFile)
+                        }
+                    }
+                    if (invocationInfo.iterationNumber % 2 == 0) {
+                        println "Changing $file"
+                        // do change
+                        fileChanger(file, originalContent)
+                    } else if (invocationInfo.iterationNumber > 2) {
+                        println "Reverting $file"
+                        file.text = originalContent
+                    }
                 }
             }
 
@@ -118,11 +138,13 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        buildSize | changeType  | maxExecutionTimeRegression | changedFile                       | changeClosure
-        "small"   | '1'         | millis(1000)               | 'modules/project1/src/src45_c.c'  | this.&changeCSource
-        "medium"  | '1'         | millis(5000)               | 'modules/project5/src/src100_c.c' | this.&changeCSource
-        "small"   | 'few files' | millis(1000)               | 'common/common/include/header8.h' | this.&changeHeader
-        "medium"  | 'few files' | millis(5000)               | 'common/common/include/header8.h' | this.&changeHeader
+        buildSize | changeType         | maxExecutionTimeRegression | changedFile                       | changeClosure
+        "small"   | '1'                | millis(1000)               | 'modules/project1/src/src45_c.c'  | this.&changeCSource
+        "medium"  | '1'                | millis(5000)               | 'modules/project5/src/src100_c.c' | this.&changeCSource
+        "small"   | 'few files'        | millis(1000)               | 'common/common/include/header8.h' | this.&changeHeader
+        "medium"  | 'few files'        | millis(5000)               | 'common/common/include/header8.h' | this.&changeHeader
+        "small"   | 'compiler options' | millis(1000)               | null                              | null
+        "medium"  | 'compiler options' | millis(5000)               | null                              | null
     }
 
     void changeCSource(File file, String originalContent) {
