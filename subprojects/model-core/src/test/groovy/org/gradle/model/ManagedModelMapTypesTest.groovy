@@ -29,6 +29,12 @@ class ManagedModelMapTypesTest extends Specification {
     @Managed
     abstract static class ManagedThing {}
 
+    @Managed
+    static interface NamedThingInterface extends Named {
+        String getOther()
+        void setOther(String string)
+    }
+
     def "type doesn't need to implement named"() {
         when:
         schemaStore.getSchema(ModelTypes.modelMap(ManagedThing))
@@ -103,9 +109,7 @@ class ManagedModelMapTypesTest extends Specification {
 
         then:
         def e = thrown InvalidManagedModelElementTypeException
-        e.message == "Invalid managed model type org.gradle.model.ManagedModelMapTypesTest\$WritableMapProperty: property 'map' cannot have a setter (org.gradle.model.ModelMap<org.gradle.model.NamedThingInterface> properties must be read only)."
-
-
+        e.message == "Invalid managed model type org.gradle.model.ManagedModelMapTypesTest\$WritableMapProperty: property 'map' cannot have a setter (org.gradle.model.ModelMap<$NamedThingInterface.name> properties must be read only)."
     }
 
     def "set cannot be writable"() {
@@ -114,6 +118,6 @@ class ManagedModelMapTypesTest extends Specification {
 
         then:
         def e = thrown InvalidManagedModelElementTypeException
-        e.message == "Invalid managed model type org.gradle.model.ManagedModelMapTypesTest\$WritableSetProperty: property 'set' cannot have a setter (org.gradle.model.ModelSet<org.gradle.model.NamedThingInterface> properties must be read only)."
+        e.message == "Invalid managed model type org.gradle.model.ManagedModelMapTypesTest\$WritableSetProperty: property 'set' cannot have a setter (org.gradle.model.ModelSet<$NamedThingInterface.name> properties must be read only)."
     }
 }
