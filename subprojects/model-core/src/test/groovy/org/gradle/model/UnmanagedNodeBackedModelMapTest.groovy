@@ -26,7 +26,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.ObjectInstantiationException
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors
-import org.gradle.model.internal.fixture.PolymorphicModelMapProjection
+import org.gradle.model.collection.internal.ModelMapModelProjection
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
@@ -95,7 +95,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
                 { name, type -> DirectInstantiator.instantiate(type, name) } as NamedEntityInstantiator
             )
                 .descriptor("container")
-                .withProjection(PolymorphicModelMapProjection.of(
+                .withProjection(ModelMapModelProjection.unmanaged(
                     itemType,
                     ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(itemType)))
                 )

@@ -28,6 +28,7 @@ import org.gradle.internal.*;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
+import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -608,7 +609,7 @@ public class ModelRegistryHelper implements ModelRegistry {
                     }
                 }
             )
-                .withProjection(PolymorphicModelMapProjection.of(
+                .withProjection(ModelMapModelProjection.unmanaged(
                     modelType,
                     ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(modelType)))
                 )
