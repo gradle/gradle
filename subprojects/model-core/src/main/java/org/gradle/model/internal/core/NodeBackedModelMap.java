@@ -126,7 +126,13 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
         return ModelType.of(this.getClass());
     }
 
+    @Override
     public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
+        doFinalizeAll(ModelType.of(type), configAction);
+    }
+
+    // Called from transformed DSL rules
+    public <S> void afterEach(Class<S> type, DeferredModelAction configAction) {
         doFinalizeAll(ModelType.of(type), configAction);
     }
 
@@ -135,12 +141,24 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
         doFinalizeAll(elementType, configAction);
     }
 
+    // Called from transformed DSL rules
+    public void afterEach(DeferredModelAction configAction) {
+        doFinalizeAll(elementType, configAction);
+    }
+
     @Override
-    public void all(final Action<? super T> configAction) {
+    public void all(Action<? super T> configAction) {
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "all()");
         ModelReference<T> subject = ModelReference.of(elementType);
         modelNode.applyToAllLinks(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
+    }
+
+    // Called from transformed DSL rules
+    public void all(DeferredModelAction configAction) {
+        viewState.assertCanMutate();
+        ModelReference<T> subject = ModelReference.of(elementType);
+        modelNode.applyToAllLinks(ModelActionRole.Initialize, toInitializeAction(subject, configAction, ModelActionRole.Mutate));
     }
 
     @Override
@@ -148,8 +166,18 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
         doBeforeEach(elementType, configAction);
     }
 
+    // Called from transformed DSL rules
+    public void beforeEach(DeferredModelAction configAction) {
+        doBeforeEach(elementType, configAction);
+    }
+
     @Override
     public <S> void beforeEach(Class<S> type, Action<? super S> configAction) {
+        doBeforeEach(ModelType.of(type), configAction);
+    }
+
+    // Called from transformed DSL rules
+    public <S> void beforeEach(Class<S> type, DeferredModelAction configAction) {
         doBeforeEach(ModelType.of(type), configAction);
     }
 
@@ -174,13 +202,23 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
         doCreate(name, elementType, configAction);
     }
 
+    // Called from transformed DSL rules
+    public void create(String name, DeferredModelAction configAction) {
+        doCreate(name, elementType, configAction);
+    }
+
     @Override
-    public <S extends T> void create(final String name, final Class<S> type) {
+    public <S extends T> void create(String name, Class<S> type) {
         doCreate(name, ModelType.of(type), (Action<? super T>) null);
     }
 
     @Override
-    public <S extends T> void create(final String name, final Class<S> type, final Action<? super S> configAction) {
+    public <S extends T> void create(String name, Class<S> type, Action<? super S> configAction) {
+        doCreate(name, ModelType.of(type), configAction);
+    }
+
+    // Called from transformed DSL rules
+    public <S extends T> void create(String name, Class<S> type, DeferredModelAction configAction) {
         doCreate(name, ModelType.of(type), configAction);
     }
 
@@ -205,14 +243,15 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
         modelNode.applyToAllLinks(ModelActionRole.Defaults, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
-    private <S extends T> void doCreate(String name, ModelType<S> type, final DeferredModelAction action) {
+    private <S> void doBeforeEach(ModelType<S> type, DeferredModelAction configAction) {
+        viewState.assertCanMutate();
+        ModelReference<S> subject = ModelReference.of(type);
+        modelNode.applyToAllLinks(ModelActionRole.Defaults, toInitializeAction(subject, configAction, ModelActionRole.Defaults));
+    }
+
+    private <S extends T> void doCreate(String name, ModelType<S> type, DeferredModelAction action) {
         ModelPath childPath = modelNode.getPath().child(name);
-        doCreate(childPath, type, action.getDescriptor(), DirectNodeNoInputsModelAction.of(ModelReference.of(childPath, type), action.getDescriptor(), new Action<MutableModelNode>() {
-            @Override
-            public void execute(MutableModelNode node) {
-                action.execute(node, ModelActionRole.Initialize);
-            }
-        }));
+        doCreate(childPath, type, action.getDescriptor(), toInitializeAction(ModelReference.of(childPath, type), action, ModelActionRole.Initialize));
     }
 
     private <S extends T> void doCreate(String name, ModelType<S> type, @Nullable Action<? super S> initAction) {
@@ -248,6 +287,12 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "afterEach()");
         ModelReference<S> subject = ModelReference.of(type);
         modelNode.applyToAllLinks(ModelActionRole.Finalize, NoInputsModelAction.of(subject, descriptor, configAction));
+    }
+
+    private <S> void doFinalizeAll(ModelType<S> type, DeferredModelAction configAction) {
+        viewState.assertCanMutate();
+        ModelReference<S> subject = ModelReference.of(type);
+        modelNode.applyToAllLinks(ModelActionRole.Initialize, toInitializeAction(subject, configAction, ModelActionRole.Finalize));
     }
 
     @Nullable
@@ -299,15 +344,20 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
         modelNode.applyToLink(name, ruleSource);
     }
 
-    private void doNamed(String name, final DeferredModelAction action) {
+    // Called from transformed DSL rules
+    public void named(String name, final DeferredModelAction action) {
         viewState.assertCanMutate();
         ModelReference<?> subject = ModelReference.of(modelNode.getPath().child(name));
-        modelNode.applyToLink(ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(subject, action.getDescriptor(), new Action<MutableModelNode>() {
+        modelNode.applyToLink(ModelActionRole.Initialize, toInitializeAction(subject, action, ModelActionRole.Mutate));
+    }
+
+    private ModelAction toInitializeAction(ModelReference<?> subject, final DeferredModelAction action, final ModelActionRole role) {
+        return DirectNodeNoInputsModelAction.of(subject, action.getDescriptor(), new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode node) {
-                action.execute(node, ModelActionRole.Mutate);
+                action.execute(node, role);
             }
-        }));
+        });
     }
 
     @Override
@@ -356,10 +406,17 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
 
     @Override
     public <S> void withType(Class<S> type, Action<? super S> configAction) {
+        viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "withType()");
         ModelReference<S> subject = ModelReference.of(type);
-        viewState.assertCanMutate();
         modelNode.applyToAllLinks(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
+    }
+
+    // Called from transformed DSL rules
+    public <S> void withType(Class<S> type, DeferredModelAction configAction) {
+        viewState.assertCanMutate();
+        ModelReference<S> subject = ModelReference.of(type);
+        modelNode.applyToAllLinks(ModelActionRole.Initialize, toInitializeAction(subject, configAction, ModelActionRole.Mutate));
     }
 
     @Override
@@ -392,15 +449,18 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
     public Void methodMissing(String name, Object argsObj) {
         Object[] args = (Object[]) argsObj;
         if (args.length == 2 && args[0] instanceof Class<?> && args[1] instanceof DeferredModelAction) {
+            // Called from transformed DSL rules
             Class<? extends T> itemType = uncheckedCast(args[0]);
             DeferredModelAction action = uncheckedCast(args[1]);
             doCreate(name, ModelType.of(itemType), action);
-        } else if (args.length == 1 && args[0] instanceof DeferredModelAction) {
-            DeferredModelAction action = uncheckedCast(args[0]);
-            doNamed(name, action);
-        } else {
-            return super.methodMissing(name, argsObj);
+            return null;
         }
-        return null;
+        if (args.length == 1 && args[0] instanceof DeferredModelAction) {
+            // Called from transformed DSL rules
+            DeferredModelAction action = uncheckedCast(args[0]);
+            named(name, action);
+            return null;
+        }
+        return super.methodMissing(name, argsObj);
     }
 }

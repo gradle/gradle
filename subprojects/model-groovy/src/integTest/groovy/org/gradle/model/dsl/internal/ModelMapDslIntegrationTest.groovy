@@ -133,6 +133,41 @@ configure test
         result.output.contains("value = 12")
     }
 
+    def "nested create rule defined using ModelMap API methods can reference sibling as input"() {
+        buildFile << '''
+model {
+    tasks {
+        show(Task) {
+            doLast {
+                println "value = " + $.things.test.value
+            }
+        }
+    }
+    things {
+        create('test') {
+            println "configure test"
+            value = $.things.main.value
+        }
+        create('main')
+    }
+    things {
+        named('main') {
+            println "configure main"
+            value = "12"
+        }
+    }
+}
+'''
+        when:
+        succeeds "show"
+
+        then:
+        result.output.contains('''configure main
+configure test
+''')
+        result.output.contains("value = 12")
+    }
+
     def "nested configure rule can reference sibling as input"() {
         buildFile << '''
 model {
@@ -153,6 +188,42 @@ model {
             value = $.things.main.value
         }
         main {
+            println "configure main"
+            value = "12"
+        }
+    }
+}
+'''
+        when:
+        succeeds "show"
+
+        then:
+        result.output.contains('''configure main
+configure test
+''')
+        result.output.contains("value = 12")
+    }
+
+    def "nested configure rule defined using ModelMap API methods can reference sibling as input"() {
+        buildFile << '''
+model {
+    tasks {
+        show(Task) {
+            doLast {
+                println "value = " + $.things.test.value
+            }
+        }
+    }
+    things {
+        main(Thing)
+        test(Thing)
+    }
+    things {
+        named('test') {
+            println "configure test"
+            value = $.things.main.value
+        }
+        named('main') {
             println "configure main"
             value = "12"
         }
@@ -268,6 +339,78 @@ model {
         expect:
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: main { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('No such property: unknown for class: Thing')
+    }
+
+    def "reports nested rule location for failure in all() configuration action"() {
+        buildFile << '''
+model {
+    things {
+        all {
+            unknown = 12
+        }
+        main(Thing)
+    }
+}
+'''
+
+        expect:
+        fails 'model'
+        failure.assertHasCause('Exception thrown while executing model rule: all { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('No such property: unknown for class: Thing')
+    }
+
+    def "reports nested rule location for failure in withType() configuration action"() {
+        buildFile << '''
+model {
+    things {
+        withType(Thing) {
+            unknown = 12
+        }
+        main(Thing)
+    }
+}
+'''
+
+        expect:
+        fails 'model'
+        failure.assertHasCause('Exception thrown while executing model rule: withType(Thing) { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('No such property: unknown for class: Thing')
+    }
+
+    def "reports nested rule location for failure in defaults action"() {
+        buildFile << '''
+model {
+    things {
+        beforeEach(Thing) {
+            unknown = 12
+        }
+        main(Thing)
+    }
+}
+'''
+
+        expect:
+        fails 'model'
+        failure.assertHasCause('Exception thrown while executing model rule: beforeEach(Thing) { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('No such property: unknown for class: Thing')
+    }
+
+    def "reports nested rule location for failure in finalize action"() {
+        buildFile << '''
+model {
+    things {
+        afterEach(Thing) {
+            unknown = 12
+        }
+        main(Thing)
+    }
+}
+'''
+
+        expect:
+        fails 'model'
+        failure.assertHasCause('Exception thrown while executing model rule: afterEach(Thing) { ... } @ build.gradle line 17, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
     }
 }

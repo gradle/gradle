@@ -493,7 +493,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         realizeChild("foo").other == "create() all{} afterEach{}"
     }
 
-    def "provides groovy DSL"() {
+    def "provides groovy DSL to create and configure items"() {
         when:
         mutate {
             foo {
@@ -524,13 +524,19 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         when:
         mutate {
-            foo(NamedThingInterface, action)
-            bar(SpecialNamedThingInterface, action)
+            a(NamedThingInterface, action)
+            b(SpecialNamedThingInterface, action)
+            create('c', action)
+            create('d', SpecialNamedThingInterface, action)
         }
 
         then:
-        realizeChild("foo").other == "changed"
-        realizeChild("bar").other == "changed"
+        realizeChild("a").other == "changed"
+        realizeChild("b").other == "changed"
+        realizeChild("b") instanceof SpecialNamedThingInterface
+        realizeChild("c").other == "changed"
+        realizeChild("d").other == "changed"
+        realizeChild("d") instanceof SpecialNamedThingInterface
     }
 
     def "can define config rules for named item using transformed DSL rule closure"() {
@@ -545,12 +551,103 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         when:
         mutate {
-            foo(action)
-            foo(NamedThingInterface)
+            a(action)
+            named('b', action)
+            a(NamedThingInterface)
+            b(NamedThingInterface)
         }
 
         then:
-        realizeChild("foo").other == "changed"
+        realizeChild("a").other == "changed"
+        realizeChild("b").other == "changed"
+    }
+
+    def "can define config rules for all item using transformed DSL rule closure"() {
+        // DSL rules are represented using DeferredModelAction
+        def action = Mock(DeferredModelAction)
+
+        given:
+        action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            thing.other = "changed"
+        }
+
+        when:
+        mutate {
+            all(action)
+            create('a')
+            create('b')
+        }
+
+        then:
+        realizeChild("a").other == "changed"
+        realizeChild("b").other == "changed"
+    }
+
+    def "can define config rules for all item with given type using transformed DSL rule closure"() {
+        // DSL rules are represented using DeferredModelAction
+        def action = Mock(DeferredModelAction)
+
+        given:
+        action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            thing.other = "changed"
+        }
+
+        when:
+        mutate {
+            withType(SpecialNamedThingInterface, action)
+            create('a') { other = "original" }
+            create('b', SpecialNamedThingInterface)
+        }
+
+        then:
+        realizeChild("a").other == "original"
+        realizeChild("b").other == "changed"
+    }
+
+    def "can define default rules for all item using transformed DSL rule closure"() {
+        // DSL rules are represented using DeferredModelAction
+        def action = Mock(DeferredModelAction)
+
+        given:
+        action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            thing.other = "default"
+        }
+
+        when:
+        mutate {
+            create('a') { other = "[$other]" }
+            create('b')
+            beforeEach(action)
+        }
+
+        then:
+        realizeChild("a").other == "[default]"
+        realizeChild("b").other == "default"
+    }
+
+    def "can define finalize rules for all item using transformed DSL rule closure"() {
+        // DSL rules are represented using DeferredModelAction
+        def action = Mock(DeferredModelAction)
+
+        given:
+        action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            thing.other = "[$thing.other]"
+        }
+
+        when:
+        mutate {
+            afterEach(action)
+            create('a') { other = "a" }
+            create('b') { other = "b" }
+        }
+
+        then:
+        realizeChild("a").other == "[a]"
+        realizeChild("b").other == "[b]"
     }
 
     class MutableValue {
