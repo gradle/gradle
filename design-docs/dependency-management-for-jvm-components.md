@@ -114,6 +114,74 @@ Later work:
 
 ## Story: Build author defines repositories using model rules
 
+## Story: Plugin author can specialize how a custom component is shown in the components report
+
+### Motivation
+
+The need for this story came about as @lptr and I were investigating how to get the components report to show the API level and component level dependencies of a java library (`JvmLibrarySpec`).
+
+We've discovered there was no mechanism already in place that would let us specialize the reporting behavior for subtypes of `ComponentSpec` although such a mechanism does exist for subtypes of `BinarySpec` via the `TypeAwareBinaryRenderer` class.
+
+At the same time we were reviewing the tidying up of NodeInitializer semantics and found [some code](https://github.com/gradle/gradle/blob/45d3d3fbb8855638bb797ac34ec792f74aafca2b/subprojects/model-core/src/main/java/org/gradle/model/internal/core/DefaultNodeInitializerRegistry.java#L41) dealing with the same problem in a slightly different way using a chain-of-responsibility.
+
+So here they are, three instances of the same and very common problem. So common in fact that is deserving of its own name, *the expression problem*.
+
+Having slightly different solutions in different modules to the same basic problem adds unnecessary complexity and worse, keeps these subsystems closed to extension by plugin authors.
+
+We should devise a solution to the expression problem suitable to our setting and apply it uniformly throughout.
+
+As food for thought here's a sketch of how one of my favorite solutions to the expression problem, protocols as introduced by clojure, could let plugin authors extend behavior to the different types in a hierarchy.
+
+```java
+
+interface PrettyPrinter<T> {
+    PrettyDocument print(T subject);
+}
+
+class PrettyPrinterProtocolRules extends RuleSource {
+
+    /***
+     * Extends the PrettyPrinter protocol to the ComponentSpec type (and subtypes) relying on the PrettyPrinter
+     * for LanguageSourceSet to pretty print the component sources.
+     */
+    @Protocol PrettyPrinter<ComponentSpec> componentPrettyPrinter(PrettyPrinter<LanguageSourceSet> sourceSetPrinter) {
+        // Calling `sourceSetPrinter.print(sourceSet)` where `sourceSet` is a `JavaLanguageSourceSet`
+        // would trigger the version of the protocol specialized to `JavaLanguageSourceSet` declared below.
+        return new PrettyPrinter { ... };
+    }
+
+    /***
+     * Extends the PrettyPrinter protocol to the JvmLibrarySpec type (and subtypes) delegating common
+     * behavior to the ComponentSpec PrettyPrinter acquired via the Protocol definition / meta type.
+     */
+    @Protocol PrettyPrinter<JvmLibrarySpec> jvmLibraryPrettyPrinter(Protocol<PrettyPrinter<?>> prettyPrinterProtocol) {
+        final PrettyPrinter<ComponentSpec> base = prettyPrinterProtocol.specializedTo(ComponentSpec.class);
+        // Calling `base.print(component)` where `component` is a `JvmLibrarySpec` would still trigger
+        // the `ComponentSpec` version of the protocol defined above.
+        // A call to `prettyPrinterProtocol.specializedTo(JvmLibrarySpec.class)` here would be invalid as it leads to a cycle.
+        return new PrettyPrinter { ... };
+    }
+
+    /***
+     * Extends the PrettyPrinter protocol to the JavaSourceSet type (and subtypes).
+     */
+    @Protocol PrettyPrinter<JavaLanguageSourceSet> javaLanguageSourceSetPrettyPrinter() {
+        return new PrettyPrinter { ... };
+    }
+}
+```
+
+## Story: Components report shows component level and api level dependencies of a Java Library
+
+### Implementation
+
+The implementation will rely on the extension mechanism defined in `Plugin author can specialize how a custom component is shown in the components report` to specialize how `JvmLibrarySpec` components are shown in the report.
+
+### Test cases
+
+- Report shows component level dependencies
+- Report shows api dependencies
+
 ## Story: Build author defines dependencies for an entire component
 
 - Extend the JvmLibrarySpec DSL with a component scoped `dependencies` block with support for the usual dependency selectors:
@@ -145,7 +213,7 @@ model {
 - When library A declares a component level dependency on library B, defined in the same project or a different one, then:
     - library B is considered part of the compile classpath of all source sets in library A
     - the API of library B is _not_ considered part of the API of library A unless an explicit api dependency is also declared (which renders the component level dependency redundant)
-- Components report should show component level dependencies
+
 ### Test cases
 
 - Given the example above:

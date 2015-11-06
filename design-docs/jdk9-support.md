@@ -197,7 +197,6 @@ model {
     - ~~Compile classpath does _not_ include API jar from `D`~~
 - ~~When compiling sources for `B` above:~~
     - ~~Compile classpath includes API from `C`~~
-- Components report should show api dependencies
 ### Open issues
 
 - Declare a dependency set at the component level, to be used as the default for all its source sets.
