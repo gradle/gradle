@@ -205,11 +205,6 @@ class RegistrySpec extends Specification {
         MutableModelNode getParent() {
             return null
         }
-
-        @Override
-        void addProjection(ModelProjection projection) {
-            getRegistrationBinder().getRegistration().addProjection(projection);
-        }
     }
 
     protected static class RuleBinderTestBuilder {

@@ -223,15 +223,6 @@ class ModelReferenceNode extends ModelNodeInternal {
         return parent;
     }
 
-    @Override
-    public void addProjection(ModelProjection projection) {
-        // TODO:LPTR Remove projection for reference node
-        // This shouldn't be needed, but if there's no actual value referenced, model report can only
-        // show the type of the node if we do this for now. It should use the schema instead to find
-        // the type of the property node instead.
-        getRegistrationBinder().getRegistration().addProjection(projection);
-    }
-
     private static class ModelViewWrapper<T> implements ModelView<T> {
         private final ModelView<? extends T> view;
         private final ModelPath path;

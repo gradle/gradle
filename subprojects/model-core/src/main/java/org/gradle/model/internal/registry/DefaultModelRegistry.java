@@ -900,14 +900,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         public void ensureAtLeast(State state) {
             transition(this, state, true);
         }
-
-        @Override
-        public void addProjection(ModelProjection projection) {
-            if (isAtLeast(Discovered)) {
-                throw new IllegalStateException(String.format("Cannot add projections to node '%s' as it is already %s", getPath(), getState()));
-            }
-            getRegistrationBinder().getRegistration().addProjection(projection);
-        }
     }
 
     private class GoalGraph {

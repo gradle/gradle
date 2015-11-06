@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Set;
 
+import static org.gradle.model.internal.core.ModelNode.State.Discovered;
+
 abstract class ModelNodeInternal implements MutableModelNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelNodeInternal.class);
@@ -150,6 +152,14 @@ abstract class ModelNodeInternal implements MutableModelNode {
             throw new IllegalStateException(String.format("Cannot get adapter for %s in state %s when node is not created", getPath(), state));
         }
         return registrationBinder.getRegistration().getAdapter();
+    }
+
+    @Override
+    public void addProjection(ModelProjection projection) {
+        if (isAtLeast(Discovered)) {
+            throw new IllegalStateException(String.format("Cannot add projections to node '%s' as it is already %s", getPath(), getState()));
+        }
+        registrationBinder.getRegistration().addProjection(projection);
     }
 
     @Override
