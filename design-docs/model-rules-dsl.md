@@ -13,6 +13,7 @@
 - Replace `$('path')` with `$.path`
 - Update user guide to mention syntax
 - Update samples to use this syntax
+- TBD: Handle case where path traverses an unmanaged element, eg `$.tasks.compileJava.destinationDir`
 
 ### Test cases
 
@@ -191,6 +192,10 @@ For example:
 - Improve creation DSL to allow name to be left out when there is a reasonable default
 - Improve configuration DSL to allow subject's view type to be declared
 - Improve DSL to allow rule input's view type to be declared
+- Improve DSL so that it is more self-describing:
+    - Make more obvious that `<call> { ... }` defines a rule, where the closure runs later
+    - Distinguish between API methods such as `all { ... }` and dynamic config methods such as `someName { ... }`
+    - Distinguish between API methods such as `withType(Type) { ... }` and dynamic creation methods such as `someName(Type) { ... }`
 - Conveniences to target cases where subject is child with name, subject is children with type, subject is children that meet some criteria etc
 - Type coercion
 - Conveniences where subject is collection
