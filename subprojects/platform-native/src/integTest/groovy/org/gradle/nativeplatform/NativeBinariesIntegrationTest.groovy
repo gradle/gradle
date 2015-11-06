@@ -231,7 +231,7 @@ model {
 
         then:
         fails "mainExecutable"
-        failure.assertHasCause("Exception thrown while executing model rule: components { ... } @ build.gradle line 7, column 5 > create(main)");
+        failure.assertHasCause("Exception thrown while executing model rule: main(org.gradle.nativeplatform.NativeExecutableSpec) { ... } @ build.gradle line 8, column 9");
         failure.assertHasCause("A model element of type: 'org.gradle.language.java.JavaSourceSet' can not be constructed.")
         failure.assertThatCause(containsText("- org.gradle.language.c.CSourceSet"));
     }
