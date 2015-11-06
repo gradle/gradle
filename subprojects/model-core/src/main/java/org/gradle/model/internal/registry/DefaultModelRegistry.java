@@ -903,7 +903,9 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void addProjection(ModelProjection projection) {
-            transition(this, State.Registered, false);
+            if (isAtLeast(Discovered)) {
+                throw new IllegalStateException(String.format("Cannot add projections to node '%s' as it is already %s", getPath(), getState()));
+            }
             getRegistrationBinder().getRegistration().addProjection(projection);
         }
     }

@@ -47,10 +47,7 @@ public class ProjectionBackedModelRegistration implements ModelRegistration {
         this.ephemeral = ephemeral;
         this.hidden = hidden;
         this.projection = new ChainingModelProjection(projections);
-
-        ImmutableListMultimap.Builder<ModelActionRole, ModelAction> actionsBuilder = ImmutableListMultimap.builder();
-        actionsBuilder.putAll(actions);
-        this.actions = actionsBuilder.build();
+        this.actions = ImmutableListMultimap.copyOf(actions);
     }
 
     public ModelPath getPath() {
