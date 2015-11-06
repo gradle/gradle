@@ -63,27 +63,15 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
                         ServiceRegistry serviceRegistry = ModelViews.getInstance(modelViews, 2, ServiceRegistry.class);
 
                         ModelType<S> publicType = schema.getType();
-                        ModelType<? extends T> delegateType;
-                        if (schema instanceof ManagedImplSchema) {
-                            InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(publicType);
-                            if (implementationInfo == null) {
-                                throw new IllegalStateException(String.format("No default implementation registered for managed type '%s'", publicType));
-                            }
-                            delegateType = implementationInfo.getDelegateType();
-                        } else {
-                            delegateType = instanceFactory.getImplementationType(publicType);
-                        }
+                        ModelType<? extends T> delegateType = delegateTypeFor(publicType);
                         ModelSchema<? extends T> delegateSchema = schemaStore.getSchema(delegateType);
                         if (!(delegateSchema instanceof StructSchema)) {
                             throw new IllegalStateException(String.format("Default implementation '%s' registered for managed type '%s' must be a struct",
                                 delegateType, publicType));
                         }
                         StructSchema<? extends T> delegateStructSchema = Cast.uncheckedCast(delegateSchema);
-
                         addProjection(modelNode, publicType, delegateStructSchema, schemaStore, proxyFactory, serviceRegistry);
-                        for (ModelType<?> internalView : instanceFactory.getInternalViews(publicType)) {
-                            addProjection(modelNode, internalView, delegateStructSchema, schemaStore, proxyFactory, serviceRegistry);
-                        }
+                        addInternalViewProjections(modelNode, schemaStore, proxyFactory, serviceRegistry, publicType, delegateStructSchema);
                     }
                 }
             ))
@@ -126,13 +114,35 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
             .build();
     }
 
+    private void addInternalViewProjections(MutableModelNode modelNode, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry serviceRegistry, ModelType<S> publicType, StructSchema<? extends T> delegateStructSchema) {
+        for (ModelType<?> internalView : internalViewsFor(publicType)) {
+            addProjection(modelNode, internalView, delegateStructSchema, schemaStore, proxyFactory, serviceRegistry);
+        }
+    }
+
+    private Set<ModelType<?>> internalViewsFor(ModelType<S> publicType) {
+        return instanceFactory.getInternalViews(publicType);
+    }
+
+    private ModelType<? extends T> delegateTypeFor(ModelType<S> publicType) {
+        if (schema instanceof ManagedImplSchema) {
+            InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(publicType);
+            if (implementationInfo == null) {
+                throw new IllegalStateException(String.format("No default implementation registered for managed type '%s'", publicType));
+            }
+            return implementationInfo.getDelegateType();
+        } else {
+            return instanceFactory.getImplementationType(publicType);
+        }
+    }
+
     private Collection<ModelProperty<?>> getProperties(StructSchema<T> delegateSchema, ModelSchemaStore schemaStore) {
         ImmutableSet.Builder<ModelProperty<?>> properties = ImmutableSet.builder();
         addNonDelegatedManagedProperties(schema, delegateSchema, properties);
         addInternalViewsProperties(delegateSchema, schemaStore, properties);
         return properties.build();
     }
-    
+
     private Set<ModelProperty<?>> getHiddenProperties(StructSchema<T> delegateSchema, ModelSchemaStore schemaStore) {
         final ImmutableSet.Builder<ModelProperty<?>> pubPropsBuilder = ImmutableSet.builder();
         final ImmutableSet.Builder<ModelProperty<?>> intPropsBuilder = ImmutableSet.builder();
@@ -142,7 +152,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
     }
 
     private void addInternalViewsProperties(StructSchema<T> delegateSchema, ModelSchemaStore schemaStore, ImmutableSet.Builder<ModelProperty<?>> properties) {
-        for (ModelType<?> internalView : instanceFactory.getInternalViews(schema.getType())) {
+        for (ModelType<?> internalView : internalViewsFor(schema.getType())) {
             ModelSchema<?> internalViewSchema = schemaStore.getSchema(internalView);
             if (!(internalViewSchema instanceof StructSchema)) {
                 continue;
@@ -178,12 +188,14 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
             throw new IllegalStateException("View type must be a struct: " + type);
         }
         StructSchema<D> structSchema = Cast.uncheckedCast(schema);
-        ModelProjection projection;
+        modelNode.addProjection(modelProjectionFor(structSchema, delegateSchema, schemaStore, proxyFactory, services));
+    }
+
+    private <D> ModelProjection modelProjectionFor(StructSchema<D> structSchema, StructSchema<? extends D> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
         if (structSchema instanceof ManagedImplSchema) {
-            projection = new ManagedModelProjection<D>(structSchema, delegateSchema, schemaStore, proxyFactory, services);
+            return new ManagedModelProjection<D>(structSchema, delegateSchema, schemaStore, proxyFactory, services);
         } else {
-            projection = UnmanagedModelProjection.of(structSchema.getType());
+            return UnmanagedModelProjection.of(structSchema.getType());
         }
-        modelNode.addProjection(projection);
     }
 }
