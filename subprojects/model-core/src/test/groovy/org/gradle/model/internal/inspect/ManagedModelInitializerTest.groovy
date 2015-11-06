@@ -47,11 +47,19 @@ class ManagedModelInitializerTest extends Specification {
     static final List<Class<?>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
     def setup() {
-        r.register(ModelRegistrations.serviceInstance(ModelReference.of("schemaStore", ModelSchemaStore), DefaultModelSchemaStore.instance).build())
-        r.register(ModelRegistrations.serviceInstance(ModelReference.of("proxyFactory", ManagedProxyFactory), proxyFactory).build())
-        r.register(ModelRegistrations.serviceInstance(ModelReference.of("serviceRegistry", ServiceRegistry), Mock(ServiceRegistry)).build())
+        registerServiceInstance("schemaStore", ModelSchemaStore, DefaultModelSchemaStore.instance)
+        registerServiceInstance("proxyFactory", ManagedProxyFactory, proxyFactory)
+        registerServiceInstance("serviceRegistry", ServiceRegistry, Mock(ServiceRegistry))
         nodeInitializerRegistry = new TestNodeInitializerRegistry() //Not shared across tests as test may add constructable types only applying to that particular test
-        r.register(ModelRegistrations.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
+        registerServiceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry)
+    }
+
+    private <T> ModelRegistryHelper registerServiceInstance(String path, Class<T> clazz, T instance) {
+        registerServiceInstance(ModelReference.of(path, clazz), instance)
+    }
+
+    private <T> ModelRegistryHelper registerServiceInstance(ModelReference<T> reference, T instance) {
+        r.register(ModelRegistrations.serviceInstance(reference, instance).build())
     }
 
     def "should fail with a contextual exception for managed collections properties"() {
