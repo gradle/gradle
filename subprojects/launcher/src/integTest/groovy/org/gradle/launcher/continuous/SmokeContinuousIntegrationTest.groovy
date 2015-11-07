@@ -17,10 +17,17 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.internal.environment.GradleBuildEnvironment
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+    def setup() {
+        if (OperatingSystem.current().isWindows()) {
+            ignoreShutdownTimeoutException = true
+        }
+    }
+
     def "basic smoke test"() {
         given:
         def markerFile = file("marker")
