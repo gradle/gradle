@@ -17,6 +17,7 @@
 package org.gradle.launcher.continuous
 
 import com.google.common.util.concurrent.SimpleTimeLimiter
+import com.google.common.util.concurrent.UncheckedTimeoutException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.os.OperatingSystem
@@ -37,6 +38,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     int buildTimeout = WAIT_FOR_WATCHING_TIMEOUT_SECONDS
     int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean killToStop
+    boolean ignoreShutdownTimeoutException
 
     public void turnOnDebug() {
         executer.withDebug(true)
@@ -168,10 +170,17 @@ $lastOutput
                 gradle.abort()
             } else {
                 gradle.cancel()
-                new SimpleTimeLimiter().callWithTimeout(
-                    { gradle.waitForExit() },
-                    shutdownTimeout, TimeUnit.SECONDS, false
-                )
+                try {
+                    new SimpleTimeLimiter().callWithTimeout(
+                        { gradle.waitForExit() },
+                        shutdownTimeout, TimeUnit.SECONDS, false
+                    )
+                } catch (UncheckedTimeoutException e) {
+                    gradle.abort()
+                    if (!ignoreShutdownTimeoutException) {
+                        throw e
+                    }
+                }
             }
         }
     }
