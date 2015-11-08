@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitCoverage
-import org.gradle.util.TextUtil
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.is
@@ -90,7 +89,7 @@ public class OkTest {
         when: run "test"
 
         then:
-        result.output.contains(TextUtil.toPlatformLineSeparators("""Test class OkTest -> class loaded
+        result.output.contains """Test class OkTest -> class loaded
 Test class OkTest -> before class out
 Test class OkTest -> before class err
 Test class OkTest -> test constructed
@@ -109,7 +108,7 @@ Test ok(OkTest) -> after out
 Test ok(OkTest) -> after err
 Test class OkTest -> after class out
 Test class OkTest -> after class err
-"""))
+"""
 
         // This test covers current behaviour, not necessarily desired behaviour
 

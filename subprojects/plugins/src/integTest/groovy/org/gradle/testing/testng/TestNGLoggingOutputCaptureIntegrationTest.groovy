@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
-import org.gradle.util.TextUtil
 
 import static org.hamcrest.Matchers.is
 
@@ -90,7 +89,7 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
         when: run "test"
 
         then:
-        result.output.contains(TextUtil.toPlatformLineSeparators("""Gradle Test Executor 1 -> static out
+        result.output.contains """Gradle Test Executor 1 -> static out
 Gradle Test Executor 1 -> static err
 Gradle Test Executor 1 -> constructor out
 Gradle Test Executor 1 -> constructor err
@@ -106,7 +105,7 @@ Test suite 'The Foo Test' -> afterClass out
 Test suite 'The Foo Test' -> afterClass err
 Test suite 'The Foo Test' -> afterTest out
 Test suite 'The Foo Test' -> afterTest err
-"""))
+"""
 
         /**
          * This test documents the current behavior. It's not right, we're missing a lot of output in the report.
@@ -132,7 +131,7 @@ Test suite 'The Foo Test' -> afterTest err
         when: run "test"
 
         then:
-        result.output.contains(TextUtil.toPlatformLineSeparators("""Gradle Test Executor 1 -> static out
+        result.output.contains """Gradle Test Executor 1 -> static out
 Gradle Test Executor 1 -> static err
 Gradle Test Executor 1 -> constructor out
 Gradle Test Executor 1 -> constructor err
@@ -148,7 +147,7 @@ Test suite 'Gradle test' -> afterClass out
 Test suite 'Gradle test' -> afterClass err
 Test suite 'Gradle test' -> afterTest out
 Test suite 'Gradle test' -> afterTest err
-"""))
+"""
 
         def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
         def classResult = xmlReport.testClass("FooTest")

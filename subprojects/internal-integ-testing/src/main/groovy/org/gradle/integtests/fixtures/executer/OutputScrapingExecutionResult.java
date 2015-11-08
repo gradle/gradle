@@ -45,7 +45,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public String getOutput() {
-        return output;
+        return TextUtil.normaliseLineSeparators(output);
     }
 
     public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
@@ -56,12 +56,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertOutputContains(String expectedOutput) {
-        assertThat("Substring not found in build output", TextUtil.normaliseLineSeparators(getOutput()), org.hamcrest.core.StringContains.containsString(normaliseLineSeparators(expectedOutput)));
+        assertThat("Substring not found in build output", getOutput(), org.hamcrest.core.StringContains.containsString(normaliseLineSeparators(expectedOutput)));
         return this;
     }
 
     public String getError() {
-        return error;
+        return TextUtil.normaliseLineSeparators(error);
     }
 
     public List<String> getExecutedTasks() {
@@ -71,12 +71,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public ExecutionResult assertTasksExecuted(String... taskPaths) {
         List<String> expectedTasks = Arrays.asList(taskPaths);
         assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getExecutedTasks(), equalTo(expectedTasks));
-        return this;
-    }
-
-    public ExecutionResult assertTaskNotExecuted(String taskPath) {
-        Set<String> tasks = new HashSet<String>(getExecutedTasks());
-        assertThat(String.format("Expected task %s found in process output:%n%s", taskPath, getOutput()), tasks, not(hasItem(taskPath)));
         return this;
     }
 
