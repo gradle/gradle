@@ -89,16 +89,6 @@ apply plugin: 'project-report'
                 <td><apilink class="org.gradle.api.Task"/></td>
                 <td>Generates all project reports.</td>
             </tr>
-            <tr>
-                <td>
-                    <literal>projectReport</literal>
-                </td>
-                <td>
-                    <literal>dependencyReport</literal>, <literal>propertyReport</literal>, <literal>taskReport</literal>, <literal>htmlDependencyReport</literal>
-                </td>
-                <td><apilink class="org.gradle.api.Task"/></td>
-                <td>Generates all project reports.</td>
-            </tr>
         </table>
     </section>
 
