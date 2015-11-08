@@ -128,10 +128,10 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.recompiledFile sourceFile
     }
 
-    // TODO: We need to support this
-    @NotYetImplemented
     def "source is always recompiled if it includes header via macro"() {
         given:
+        def notIncluded = file("src/main/headers/notIncluded.h")
+        notIncluded.text = """#pragma message("should not be used")"""
         sourceFile << """
             #define MY_HEADER "${otherHeaderFile.name}"
             #include MY_HEADER
@@ -154,7 +154,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.recompiledFile sourceFile
 
         when: "Header that is NOT included is changed"
-        file("src/main/headers/notIncluded.h") << """
+        notIncluded << """
             // Dummy header file
 """
         and:
@@ -167,8 +167,6 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.recompiledFile sourceFile
     }
 
-    // TODO: We need to support this
-    @NotYetImplemented
     def "source is not recompiled when preprocessor removed header is changed"() {
         given:
         def notIncluded = file("src/main/headers/notIncluded.h")
@@ -207,7 +205,9 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         run "mainExecutable"
 
         then:
-        skipped compileTask
+        // TODO: This is inefficient behavior, we should skip the compile task because 'notIncluded' is not used.
+        // skipped compileTask
+        executedAndNotSkipped compileTask
     }
 
     def "source is compiled when preprocessor removed header does not exist"() {

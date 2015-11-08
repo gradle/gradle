@@ -16,7 +16,6 @@
 
 package org.gradle.language.objectivec
 
-import groovy.transform.NotYetImplemented
 import org.gradle.language.AbstractNativeLanguageIncrementalCompileIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
@@ -52,10 +51,10 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         outputs.recompiledFile sourceFile
     }
 
-    // TODO: We need to support this
-    @NotYetImplemented
     def "source is always recompiled if it imported header via macro"() {
         given:
+        def notIncluded = file("src/main/headers/notIncluded.h")
+        notIncluded.text = """#pragma message("should not be used")"""
         sourceFile << """
             #define MY_HEADER "${otherHeaderFile.name}"
             #import MY_HEADER
@@ -78,7 +77,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         outputs.recompiledFile sourceFile
 
         when: "Header that is NOT included is changed"
-        file("src/main/headers/notIncluded.h") << """
+        notIncluded << """
             // Dummy header file
 """
         and:

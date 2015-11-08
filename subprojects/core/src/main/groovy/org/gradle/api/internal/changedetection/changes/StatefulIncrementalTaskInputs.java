@@ -64,12 +64,6 @@ abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputsInt
 
     @Override
     public void newInput(File discoveredInput) {
-        if (!discoveredInput.exists()) {
-            throw new IllegalArgumentException("Discovered inputs must exist before they are discovered.");
-        }
-        if (!discoveredInput.isFile()) {
-            throw new IllegalArgumentException("Discovered inputs should be files, not directories.");
-        }
         discoveredInputs.add(discoveredInput);
     }
 
