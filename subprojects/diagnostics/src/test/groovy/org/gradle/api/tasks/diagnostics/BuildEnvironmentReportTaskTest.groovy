@@ -31,7 +31,7 @@ class BuildEnvironmentReportTaskTest extends Specification {
     private Configuration conf2 = project.buildscript.configurations.create("conf2")
     private Configuration classpath = project.buildscript.configurations.getByName("classpath")
 
-    def "renders all configurations in the project"() {
+    def "renders all build script configurations"() {
         when:
         task.setRenderer(renderer)
         task.generate()
