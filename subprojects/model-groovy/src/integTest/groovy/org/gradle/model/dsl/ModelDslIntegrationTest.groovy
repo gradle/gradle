@@ -156,6 +156,10 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
                     assert $.strings.is($.strings)
                     assert s == $.strings
                     assert $.strings.is($("strings"))
+                    this.with {
+                        // Nested in a closure
+                        assert $.strings.is(s)
+                    }
                   }
                 }
               }

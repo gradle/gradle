@@ -513,6 +513,7 @@ cl.call()
 ''')
     }
 
+    // This is temporary. Will be closed once more progress on DSL has been made
     def "can access project and script from rule"() {
         when:
         buildScript """

@@ -240,6 +240,56 @@ configure test
         result.output.contains("value = 12")
     }
 
+    def "nested rule cannot reference method of delegate of outer closure"() {
+        buildFile << '''
+model {
+    things {
+        create('main') {
+            create('test') { println "no" }
+        }
+    }
+}
+'''
+        expect:
+        fails "model"
+        failure.assertHasLineNumber(18)
+        failure.assertHasCause('Exception thrown while executing model rule: create(main) { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('Could not find method create()')
+    }
+
+    def "nested rule can reference vars defined in outer closure"() {
+        buildFile << '''
+model {
+    things {
+        def a = 12
+        main(Thing) {
+            value = a
+        }
+    }
+}
+'''
+        expect:
+        succeeds "model"
+    }
+
+    // This is temporary. Will be closed once more progress on DSL has been made
+    def "nested rule can reference methods of project and script"() {
+        buildFile << '''
+def a = 12
+model {
+    things {
+        main(Thing) {
+            a = files('a')
+            a == 9
+            project.tasks
+        }
+    }
+}
+'''
+        expect:
+        succeeds "model"
+    }
+
     def "can create and configure elements dynamically"() {
         buildFile << '''
 model {
