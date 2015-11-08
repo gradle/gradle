@@ -17,7 +17,6 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 /**
  * Tests the fundamental usages of the model dsl.
@@ -183,7 +182,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "tasks"
-        failure.assertHasCause(TextUtil.toPlatformLineSeparators('''The following model rules could not be applied due to unbound inputs and/or subjects:
+        failure.assertHasCause('''The following model rules could not be applied due to unbound inputs and/or subjects:
 
   tasks { ... } @ build.gradle line 3, column 15
     subject:
@@ -191,7 +190,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
     inputs:
       - unknown Object (@ line 4) [*]
 
-'''))
+''')
     }
 
     def "reports on configuration action failure"() {
