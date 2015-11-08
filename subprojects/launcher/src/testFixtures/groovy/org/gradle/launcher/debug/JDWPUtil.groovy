@@ -43,8 +43,8 @@ class JDWPUtil {
     }
 
     public JDWPUtil connect() {
-        InetAddress hostAdress = InetAddress.getLocalHost()
-        client = new Socket(hostAdress, port)
+        InetAddress hostAddress = InetAddress.getByName("127.0.0.1")
+        client = new Socket(hostAddress, port)
         toServer = new DataOutputStream(client.getOutputStream())
         fromServer = new DataInputStream(client.getInputStream())
         performHandshake()
