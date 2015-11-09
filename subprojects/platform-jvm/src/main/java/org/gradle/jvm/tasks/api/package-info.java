@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
 
-public class ArrayAnnotationValue extends AnnotationValue {
-    private final AnnotationValue[] value;
-
-    public ArrayAnnotationValue(String name, AnnotationValue[] value) {
-        super(name);
-        this.value = value;
-    }
-
-    public AnnotationValue[] getValue() {
-        return value;
-    }
-}
+/**
+ * Tasks supporting Gradle's "compile avoidance" feature through the generation and use of
+ * API classes and {@link org.gradle.jvm.tasks.api.ApiJar} files.
+ *
+ * @since 2.10
+ */
+@org.gradle.api.Incubating
+package org.gradle.jvm.tasks.api;

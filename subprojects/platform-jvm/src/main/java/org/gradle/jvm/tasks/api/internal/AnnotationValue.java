@@ -13,11 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
 
-public class AlwaysMemberOfApiChecker implements MemberOfApiChecker {
+package org.gradle.jvm.tasks.api.internal;
+
+public abstract class AnnotationValue<V> extends Member implements Comparable<AnnotationValue<?>> {
+
+    private final V value;
+
+    public AnnotationValue(String name, V value) {
+        super(name);
+        this.value = value;
+    }
+
+    public V getValue() {
+        return value;
+    }
+
     @Override
-    public boolean belongsToApi(String className) {
-        return true;
+    public int compareTo(AnnotationValue<?> o) {
+        return super.compare(o).result();
     }
 }

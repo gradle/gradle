@@ -13,10 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
 
-public class InvalidPublicAPIException extends RuntimeException {
-    public InvalidPublicAPIException(String message) {
-        super(message);
+package org.gradle.jvm.tasks.api.internal;
+
+import com.google.common.collect.ComparisonChain;
+
+public abstract class TypedMember extends AnnotatableMember {
+
+    private final String typeDesc;
+
+    public TypedMember(int access, String name, String signature, String typeDesc) {
+        super(access, name, signature);
+        this.typeDesc = typeDesc;
+    }
+
+    public String getTypeDesc() {
+        return typeDesc;
+    }
+
+    protected ComparisonChain compare(TypedMember o) {
+        return super.compare(o)
+            .compare(typeDesc == null ? "" : typeDesc, o.typeDesc == null ? "" : o.typeDesc);
     }
 }

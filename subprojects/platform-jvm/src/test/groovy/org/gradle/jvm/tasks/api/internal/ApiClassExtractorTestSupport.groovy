@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal.apigen
+package org.gradle.jvm.tasks.api.internal
+
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import org.objectweb.asm.ClassReader
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -29,13 +31,13 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class ApiStubGeneratorTestSupport extends Specification {
+class ApiClassExtractorTestSupport extends Specification {
     private static class JavaSourceFromString extends SimpleJavaFileObject {
 
         private final String code
 
         JavaSourceFromString(String name, String code) {
-            super(URI.create("string:///${ApiStubGeneratorTestSupport.toFileName(name)}"),
+            super(URI.create("string:///${ApiClassExtractorTestSupport.toFileName(name)}"),
                 JavaFileObject.Kind.SOURCE)
             this.code = code
         }
@@ -61,25 +63,25 @@ class ApiStubGeneratorTestSupport extends Specification {
     @CompileStatic
     public static class ApiContainer {
         private final ApiClassLoader apiClassLoader = new ApiClassLoader()
-        private final ApiStubGenerator stubgen
+        private final ApiClassExtractor apiClassExtractor
 
         public final Map<String, GeneratedClass> classes
 
-        public ApiContainer(List<String> allowedPackages, Map<String, GeneratedClass> classes, boolean validateApi) {
-            this.stubgen = new ApiStubGenerator(allowedPackages, validateApi)
+        public ApiContainer(List<String> packages, Map<String, GeneratedClass> classes) {
+            this.apiClassExtractor = new ApiClassExtractor(packages.toSet())
             this.classes = classes
         }
 
-        protected Class<?> loadStub(GeneratedClass clazz) {
-            apiClassLoader.loadClassFromBytes(stubgen.convertToApi(clazz.bytes))
+        protected Class<?> extractAndLoadApiClassFrom(GeneratedClass clazz) {
+            apiClassLoader.loadClassFromBytes(apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes)))
         }
 
-        protected byte[] getStubBytes(GeneratedClass clazz) {
-            stubgen.convertToApi(clazz.bytes)
+        protected byte[] extractApiClassFrom(GeneratedClass clazz) {
+            apiClassExtractor.extractApiClassFrom(new ClassReader(clazz.bytes))
         }
 
-        protected boolean belongsToAPI(GeneratedClass clazz) {
-            stubgen.belongsToAPI(clazz.bytes)
+        protected boolean shouldExtractApiClassFrom(GeneratedClass clazz) {
+            apiClassExtractor.shouldExtractApiClassFrom(new ClassReader(clazz.bytes))
         }
     }
 
@@ -101,12 +103,6 @@ class ApiStubGeneratorTestSupport extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    private boolean validateApi
-
-    protected void validationEnabled() {
-        validateApi = true
-    }
-
     protected ApiContainer toApi(Map<String, String> sources) {
         toApi('1.6', [], sources)
     }
@@ -119,7 +115,7 @@ class ApiStubGeneratorTestSupport extends Specification {
         toApi('1.6', packages, sources)
     }
 
-    protected ApiContainer toApi(String targetVersion, List<String> allowedPackages,  Map<String, String> sources) {
+    protected ApiContainer toApi(String targetVersion, List<String> packages,  Map<String, String> sources) {
         def dir = temporaryFolder.createDir('out')
         def fileManager = compiler.getStandardFileManager(null, null, null)
         def diagnostics = new DiagnosticCollector<JavaFileObject>()
@@ -141,7 +137,7 @@ class ApiStubGeneratorTestSupport extends Specification {
                 }
                 throw new AssertionError("Cannot find class $cn. Test is very likely not written correctly.")
             }
-            return new ApiContainer(allowedPackages, entries, validateApi)
+            return new ApiContainer(packages, entries)
         }
 
         StringBuilder sb = new StringBuilder("Error in compilation of test sources:\n")
@@ -179,7 +175,8 @@ class ApiStubGeneratorTestSupport extends Specification {
         try {
             def f = c.getDeclaredField(name)
             if (f.type != type) {
-                throw new AssertionError("Field $name was found on class $c but with a different type: ${f.type} instead of $type")
+                throw new AssertionError("Field $name was found on class $c but " +
+                    "with a different type: ${f.type} instead of $type")
             }
         } catch (NoSuchFieldException ex) {
             return
@@ -191,9 +188,10 @@ class ApiStubGeneratorTestSupport extends Specification {
         try {
             def f = c.getDeclaredField(name)
             if (f.type != type) {
-                throw new AssertionError("Field $name was found on class $c but with a different type: ${f.type} instead of $type")
+                throw new AssertionError("Field $name was found on class $c but " +
+                    "with a different type: ${f.type} instead of $type")
             }
-            f
+            return f
         } catch (NoSuchFieldException ex) {
             throw new AssertionError("Should have found field $name on class $c")
         }

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
 
-import com.google.common.collect.ComparisonChain;
+package org.gradle.jvm.tasks.api.internal;
 
-public class ParameterAnnotationSig extends AnnotationSig {
+public class ParameterAnnotationMember extends AnnotationMember {
+
     private final int parameter;
 
-    public ParameterAnnotationSig(String name, boolean visible, int parameter) {
+    public ParameterAnnotationMember(String name, boolean visible, int parameter) {
         super(name, visible);
         this.parameter = parameter;
     }
@@ -30,11 +30,9 @@ public class ParameterAnnotationSig extends AnnotationSig {
     }
 
     @Override
-    public int compareTo(AnnotationSig o) {
-        return ComparisonChain.start()
-            .compare(parameter, ((ParameterAnnotationSig) o).parameter)
-            .compare(getName(), o.getName())
-            .compare(isVisible(), o.isVisible())
+    public int compareTo(AnnotationMember o) {
+        return super.compare(o)
+            .compare(parameter, ((ParameterAnnotationMember) o).parameter)
             .result();
     }
 }

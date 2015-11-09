@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal.apigen
+package org.gradle.jvm.tasks.api.internal
+
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.objectweb.asm.Opcodes
@@ -23,7 +24,7 @@ import spock.lang.Unroll
 import java.lang.reflect.Modifier
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class ApiStubGeneratorInnerClassTest extends ApiStubGeneratorTestSupport {
+class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
 
     private final static int ACC_PUBLICSTATIC = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC
     private final static int ACC_PROTECTEDSTATIC = Opcodes.ACC_PROTECTED | Opcodes.ACC_STATIC
@@ -33,27 +34,28 @@ class ApiStubGeneratorInnerClassTest extends ApiStubGeneratorTestSupport {
     def "should not remove #modifier inner class if no API is declared"() {
         given:
         def api = toApi 'A': """
-public class A {
-   $modifier class Inner {
-      public void foo() {}
-   }
-}"""
+            public class A {
+               $modifier class Inner {
+                  public void foo() {}
+               }
+            }
+        """
 
         when:
         def outer = api.classes.A
         def inner = api.classes['A$Inner']
-        def stubbedOuter = api.loadStub(outer)
-        def stubbedInner = api.loadStub(inner)
+        def extractedOuter = api.extractAndLoadApiClassFrom(outer)
+        def extractedInner = api.extractAndLoadApiClassFrom(inner)
 
         then:
-        api.belongsToAPI(outer)
-        api.belongsToAPI(inner)
+        api.shouldExtractApiClassFrom(outer)
+        api.shouldExtractApiClassFrom(inner)
         inner.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
-        stubbedInner.modifiers == access
-        hasMethod(stubbedInner, 'foo').modifiers == Modifier.PUBLIC
+        extractedInner.modifiers == access
+        hasMethod(extractedInner, 'foo').modifiers == Modifier.PUBLIC
 
         when:
-        def o = !(modifier =~ /static/) ? stubbedInner.newInstance(null) : stubbedInner.newInstance()
+        def o = !(modifier =~ /static/) ? extractedInner.newInstance(null) : extractedInner.newInstance()
         o.foo()
 
         then:
@@ -75,23 +77,25 @@ public class A {
     @Unroll
     def "should remove #modifier inner class if API is declared"() {
         given:
-        def api = toApi ([''], ['A': """
-public class A {
-   $modifier class Inner {
-      public void foo() {}
-   }
-}"""])
+        def api = toApi ([''], [ 'A': """
+            public class A {
+               $modifier class Inner {
+                  public void foo() {}
+               }
+            }
+        """
+        ])
 
         when:
         def outer = api.classes.A
         def inner = api.classes['A$Inner']
-        def stubbedOuter = api.loadStub(outer)
+        def extractedOuter = api.extractAndLoadApiClassFrom(outer)
 
         then:
-        api.belongsToAPI(outer)
-        !api.belongsToAPI(inner)
+        api.shouldExtractApiClassFrom(outer)
+        !api.shouldExtractApiClassFrom(inner)
         inner.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
-        stubbedOuter.classes.length == 0
+        extractedOuter.classes.length == 0
 
         where:
         modifier           | access
@@ -102,44 +106,45 @@ public class A {
 
     def "should not keep anonymous inner classes"() {
         given:
-        def api = toApi 'A': """
-public class A {
-   public void foo() {
-       Runnable r = new Runnable() {
-          public void run() {}
-       };
-   }
-}"""
+        def api = toApi 'A': '''
+            public class A {
+               public void foo() {
+                   Runnable r = new Runnable() {
+                      public void run() {}
+                   };
+               }
+            }
+        '''
 
         when:
         def outer = api.classes.A
         def inner = api.classes['A$1']
-        def stubbedOuter = api.loadStub(outer)
+        def extractedOuter = api.extractAndLoadApiClassFrom(outer)
 
         then:
-        api.belongsToAPI(outer)
-        !api.belongsToAPI(inner)
-        stubbedOuter.classes.length == 0
+        api.shouldExtractApiClassFrom(outer)
+        !api.shouldExtractApiClassFrom(inner)
+        extractedOuter.classes.length == 0
     }
 
     def "should not keep anonymous local classes"() {
         given:
-        def api = toApi 'A': """
-public class A {
-   public void foo() {
-       class Person { }
-   }
-}"""
+        def api = toApi 'A': '''
+            public class A {
+               public void foo() {
+                   class Person {}
+               }
+            }
+        '''
 
         when:
         def outer = api.classes.A
         def inner = api.classes['A$1Person']
-        def stubbedOuter = api.loadStub(outer)
+        def extractedOuter = api.extractAndLoadApiClassFrom(outer)
 
         then:
-        api.belongsToAPI(outer)
-        !api.belongsToAPI(inner)
-        stubbedOuter.classes.length == 0
+        api.shouldExtractApiClassFrom(outer)
+        !api.shouldExtractApiClassFrom(inner)
+        extractedOuter.classes.length == 0
     }
-
 }

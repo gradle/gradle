@@ -13,18 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
 
-import org.gradle.internal.Factory;
+package org.gradle.jvm.tasks.api.internal;
 
-public interface ApiValidator {
+import com.google.common.collect.ComparisonChain;
 
-    <T> T validateAnnotation(String owner, String annotationDesc, Factory<T> onValidate);
+public abstract class AccessibleMember extends Member {
 
-    <T> T validateMethod(MethodSig methodSig, Factory<T> onValidate);
+    private final int access;
 
-    <T> T validateField(FieldSig fieldSig, Factory<T> onValidate);
+    public AccessibleMember(int access, String name) {
+        super(name);
+        this.access = access;
+    }
 
-    void validateSuperTypes(String name, String signature, String superName, String[] interfaces);
+    public int getAccess() {
+        return access;
+    }
 
+    protected ComparisonChain compare(AccessibleMember o) {
+        return super.compare(o).compare(access, o.access);
+    }
 }

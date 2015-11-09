@@ -13,54 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
 
-import com.google.common.collect.Lists;
+package org.gradle.jvm.tasks.api.internal;
 
-import java.util.List;
+public class ClassMember extends AnnotatableMember {
 
-public class ClassSig {
     private final int version;
-    private final int access;
-    private final String name;
-    private final String signature;
     private final String superName;
     private final String[] interfaces;
-    private final List<AnnotationSig> annotations = Lists.newArrayList();
 
-    public ClassSig(int version, int access, String name, String signature, String superName, String[] interfaces) {
+    public ClassMember(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        super(access, name, signature);
         this.version = version;
-        this.access = access;
-        this.name = name;
-        this.signature = signature;
         this.superName = superName;
         this.interfaces = interfaces;
     }
 
-    public AnnotationSig addAnnotation(String desc, boolean visible) {
-        AnnotationSig sig = new AnnotationSig(desc, visible);
-        annotations.add(sig);
-        return sig;
-    }
-
-    public int getAccess() {
-        return access;
-    }
-
-    public List<AnnotationSig> getAnnotations() {
-        return annotations;
-    }
-
     public String[] getInterfaces() {
         return interfaces;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getSignature() {
-        return signature;
     }
 
     public String getSuperName() {

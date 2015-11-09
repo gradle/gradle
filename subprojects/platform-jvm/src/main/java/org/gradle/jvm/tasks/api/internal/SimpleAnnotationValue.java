@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
 
-public abstract class AnnotationValue implements Comparable<AnnotationValue> {
-    private final String name;
+package org.gradle.jvm.tasks.api.internal;
 
-    public AnnotationValue(String name) {
-        this.name = name;
-    }
+public class SimpleAnnotationValue extends AnnotationValue<Object> {
 
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public int compareTo(AnnotationValue o) {
-        return name.compareTo(o.name);
+    public SimpleAnnotationValue(String name, Object value) {
+        super(name, value);
     }
 }

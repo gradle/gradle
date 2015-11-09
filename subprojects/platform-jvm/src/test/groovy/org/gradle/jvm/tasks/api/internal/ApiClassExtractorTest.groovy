@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal.apigen
+package org.gradle.jvm.tasks.api.internal
 
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -24,25 +24,27 @@ import spock.lang.Unroll
 import java.lang.reflect.Modifier
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
+class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
     def "should not remove public method"() {
         given:
-        def api = toApi 'A': '''public class A {
-    public void foo() {}
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                public void foo() {}
+            }
+        '''
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         clazz.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
-        hasMethod(stubbed, 'foo')
+        hasMethod(extracted, 'foo')
 
         when:
-        def o = stubbed.newInstance()
+        def o = extracted.newInstance()
         o.foo()
 
         then:
@@ -52,21 +54,23 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
 
     def "should not remove protected method"() {
         given:
-        def api = toApi 'A': '''public class A {
-    protected void foo() {}
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                protected void foo() {}
+            }
+        '''
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Modifier.PROTECTED
-        hasMethod(stubbed, 'foo')
+        hasMethod(extracted, 'foo')
 
         when:
-        stubbed.newInstance()
+        extracted.newInstance()
 
         then:
         thrown(UnsupportedOperationException)
@@ -75,126 +79,140 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
 
     def "should remove private method"() {
         given:
-        def api = toApi 'A': '''public class A {
-    private void foo() {}
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                private void foo() {}
+            }
+        '''
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Modifier.PRIVATE
-        noSuchMethod(stubbed, 'foo')
+        noSuchMethod(extracted, 'foo')
 
     }
 
     def "should not remove package private method if no API is defined"() {
         given:
-        def api = toApi 'A': '''public class A {
-    void foo() {}
-    static void bar() {}
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                void foo() {}
+                static void bar() {}
+            }
+        '''
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == 0
         hasMethod(clazz.clazz, 'bar').modifiers == Opcodes.ACC_STATIC
-        hasMethod(stubbed, 'foo').modifiers == 0
-        hasMethod(stubbed, 'bar').modifiers == Opcodes.ACC_STATIC
+        hasMethod(extracted, 'foo').modifiers == 0
+        hasMethod(extracted, 'bar').modifiers == Opcodes.ACC_STATIC
 
     }
 
     def "should remove package private method if API is defined"() {
         given:
-        def api = toApi([''], ['A': '''public class A {
-    void foo() {}
-    static void bar() {}
-}'''])
+        def api = toApi([''], ['A': '''
+            public class A {
+                void foo() {}
+                static void bar() {}
+            }
+        '''
+        ])
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == 0
         hasMethod(clazz.clazz, 'bar').modifiers == Opcodes.ACC_STATIC
-        noSuchMethod(stubbed, 'foo')
-        noSuchMethod(stubbed, 'bar')
+        noSuchMethod(extracted, 'foo')
+        noSuchMethod(extracted, 'bar')
 
     }
 
     def "interface type should not generate implementation"() {
         given:
-        def api = toApi 'A': '''public interface A {
-    void foo();
-}'''
+        def api = toApi 'A': '''
+            public interface A {
+                void foo();
+            }
+        '''
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
-        hasMethod(stubbed, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
+        hasMethod(extracted, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
 
     }
 
     def "abstract class can have both implemented and non-implemented methods"() {
         given:
         def api = toApi(
-            'com.acme.A': '''package com.acme;
+            'com.acme.A': '''
+                package com.acme;
 
-public abstract class A {
-    public static void STATIC_IN_A() {}
-    public abstract void foo();
-    public void bar() {}
-}''',
-            'com.acme.B': '''package com.acme;
-public class B extends A {
-    public static void STATIC_IN_B() {}
-    public void foo() {}
-}''')
+                public abstract class A {
+                    public static void STATIC_IN_A() {}
+                    public abstract void foo();
+                    public void bar() {}
+                }
+            ''',
+            'com.acme.B': '''
+                package com.acme;
+                public class B extends A {
+                    public static void STATIC_IN_B() {}
+                    public void foo() {}
+                }
+            '''
+        )
 
         when:
         def clazzA = api.classes['com.acme.A']
         def clazzB = api.classes['com.acme.B']
-        def stubbedA = api.loadStub(clazzA)
-        def stubbedB = api.loadStub(clazzB)
+        def extractedA = api.extractAndLoadApiClassFrom(clazzA)
+        def extractedB = api.extractAndLoadApiClassFrom(clazzB)
 
         then:
-        api.belongsToAPI(clazzA)
-        api.belongsToAPI(clazzB)
+        api.shouldExtractApiClassFrom(clazzA)
+        api.shouldExtractApiClassFrom(clazzB)
         hasMethod(clazzA.clazz, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
         hasMethod(clazzA.clazz, 'bar').modifiers == Opcodes.ACC_PUBLIC
-        hasMethod(stubbedA, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
-        hasMethod(stubbedA, 'bar').modifiers == Opcodes.ACC_PUBLIC
+        hasMethod(extractedA, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
+        hasMethod(extractedA, 'bar').modifiers == Opcodes.ACC_PUBLIC
 
         and:
         hasMethod(clazzB.clazz, 'foo').modifiers == Opcodes.ACC_PUBLIC
-        hasMethod(stubbedB, 'foo').modifiers == Opcodes.ACC_PUBLIC
+        hasMethod(extractedB, 'foo').modifiers == Opcodes.ACC_PUBLIC
 
         when:
-        stubbedB.newInstance()
+        extractedB.newInstance()
 
         then:
         thrown(UnsupportedOperationException)
 
         when:
-        stubbedA.STATIC_IN_A()
+        extractedA.STATIC_IN_A()
 
         then:
         thrown(UnsupportedOperationException)
 
         when:
-        stubbedB.STATIC_IN_B()
+        extractedB.STATIC_IN_B()
 
         then:
         thrown(UnsupportedOperationException)
@@ -203,18 +221,20 @@ public class B extends A {
 
     void "static initializer is removed"() {
         given:
-        def api = toApi(
-            'com.acme.A': '''package com.acme;
+        def api = toApi 'com.acme.A': '''
+            package com.acme;
 
-public abstract class A {
-    public static void forceInit() {}
+            public abstract class A {
+                public static void forceInit() {}
 
-    static {
-        if (true) {
-            throw new RuntimeException("This is a static initializer");
-        }
-    }
-}''')
+                static {
+                    if (true) {
+                        throw new RuntimeException("This is a static initializer");
+                    }
+                }
+            }
+        '''
+
         when:
         api.classes['com.acme.A'].clazz.forceInit()
 
@@ -223,7 +243,7 @@ public abstract class A {
         ex.cause.message == 'This is a static initializer'
 
         when:
-        def clazz = api.loadStub(api.classes['com.acme.A'])
+        def clazz = api.extractAndLoadApiClassFrom(api.classes['com.acme.A'])
         clazz.forceInit()
 
         then:
@@ -234,18 +254,20 @@ public abstract class A {
     @Unroll
     void "constant initial value for #type is #expected"() {
         given:
-        def api = toApi(
-            'com.acme.A': """package com.acme;
+        def api = toApi 'com.acme.A': """
+            package com.acme;
 
-public abstract class A {
-    public static $type CONSTANT = $value;
-}""")
+            public abstract class A {
+                public static $type CONSTANT = $value;
+            }
+        """
+
         when:
-        def stubbed = api.loadStub(api.classes['com.acme.A'])
-        def stubbedValue = stubbed.CONSTANT
+        def extracted = api.extractAndLoadApiClassFrom(api.classes['com.acme.A'])
+        def extractedValue = extracted.CONSTANT
 
         then:
-        stubbedValue == expected
+        extractedValue == expected
 
         where:
         type      | value          | expected
@@ -262,7 +284,7 @@ public abstract class A {
         def api = toApi(target, [A: 'public class A {}'])
 
         when:
-        def cr = new ClassReader(api.getStubBytes(api.classes.A))
+        def cr = new ClassReader(api.extractApiClassFrom(api.classes.A))
         def stubVersion = 0
         cr.accept(new ClassVisitor(Opcodes.ASM5) {
             @Override
@@ -282,21 +304,23 @@ public abstract class A {
 
     def "should not remove public field"() {
         given:
-        def api = toApi 'A': '''public class A {
-    public String foo;
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                public String foo;
+            }
+        '''
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PUBLIC
-        hasField(stubbed, 'foo', String)
+        hasField(extracted, 'foo', String)
 
         when:
-        def o = stubbed.newInstance()
+        def o = extracted.newInstance()
         o.foo()
 
         then:
@@ -306,21 +330,23 @@ public abstract class A {
 
     def "should not remove protected field"() {
         given:
-        def api = toApi 'A': '''public class A {
-    protected String foo;
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                protected String foo;
+            }
+        '''
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PROTECTED
-        hasField(stubbed, 'foo', String)
+        hasField(extracted, 'foo', String)
 
         when:
-        stubbed.newInstance()
+        extracted.newInstance()
 
         then:
         thrown(UnsupportedOperationException)
@@ -329,69 +355,77 @@ public abstract class A {
 
     def "should remove private field"() {
         given:
-        def api = toApi 'A': '''public class A {
-    private String foo;
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                private String foo;
+            }
+        '''
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PRIVATE
-        noSuchField(stubbed, 'foo', String)
+        noSuchField(extracted, 'foo', String)
 
     }
 
     def "should not remove package private field if no API is declared"() {
         given:
-        def api = toApi 'A': '''public class A {
-    String foo;
-}'''
+        def api = toApi 'A': '''
+            public class A {
+                String foo;
+            }
+        '''
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == 0
-        hasField(stubbed, 'foo', String).modifiers == 0
+        hasField(extracted, 'foo', String).modifiers == 0
 
     }
 
     def "should remove package private field if API is declared"() {
         given:
-        def api = toApi([''], ['A': '''public class A {
-    String foo;
-}'''])
+        def api = toApi([''], ['A': '''
+            public class A {
+                String foo;
+            }
+        '''])
 
         when:
         def clazz = api.classes.A
-        def stubbed = api.loadStub(clazz)
+        def extracted = api.extractAndLoadApiClassFrom(clazz)
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiClassFrom(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == 0
-        noSuchField(stubbed, 'foo', String)
+        noSuchField(extracted, 'foo', String)
 
     }
 
     def "stubs should not contain any source or debug information"() {
         given:
-        def api = toApi(
-            'com.acme.A': """package com.acme;
+        def api = toApi 'com.acme.A': '''
+            package com.acme;
 
-public abstract class A {
-    public static int FOO = 666;
-    public void hello(String message) {
-        System.out.println(message);
-    }
-}""")
+            public abstract class A {
+                public static int FOO = 666;
+                public void hello(String message) {
+                    System.out.println(message);
+                }
+            }
+        '''
+
         when:
-        def stubbed = api.getStubBytes(api.classes['com.acme.A'])
-        def cr = new ClassReader(stubbed)
+        def apiClassBytes = api.extractApiClassFrom(api.classes['com.acme.A'])
+        def cr = new ClassReader(apiClassBytes)
         cr.accept(new ClassVisitor(Opcodes.ASM5) {
             @Override
             void visitSource(String source, String debug) {
@@ -409,12 +443,15 @@ public abstract class A {
                 new MethodVisitor(Opcodes.ASM5) {
                     @Override
                     void visitLineNumber(int line, Label start) {
-                        throw new AssertionError("Should not produce any line number information but method $name$desc contains line $line label $start")
+                        throw new AssertionError("Should not produce any line number information but " +
+                            "method $name$desc contains line $line label $start")
                     }
 
                     @Override
-                    void visitLocalVariable(String lname, String ldesc, String lsignature, Label start, Label end, int index) {
-                        throw new AssertionError("Should not visit any local variable, but found $lname in method $name$desc")
+                    void visitLocalVariable(String lname, String ldesc, String lsignature,
+                                            Label start, Label end, int index) {
+                        throw new AssertionError("Should not visit any local variable, but " +
+                            "found $lname in method $name$desc")
                     }
                 }
             }
@@ -426,28 +463,31 @@ public abstract class A {
 
     def "package private class belongs to API if no API declared"() {
         given:
-        def api = toApi 'A': '''class A {
-    String foo;
-}'''
+        def api = toApi 'A': '''
+            class A {
+                String foo;
+            }
+        '''
 
         when:
         def clazz = api.classes.A
 
         then:
-        api.belongsToAPI(clazz)
+        api.shouldExtractApiClassFrom(clazz)
     }
 
     def "package private class does not belong to API if API declared"() {
         given:
-        def api = toApi([''], ['A': '''class A {
-    String foo;
-}'''])
+        def api = toApi([''], ['A': '''
+            class A {
+                String foo;
+            }
+        '''])
 
         when:
         def clazz = api.classes.A
 
         then:
-        !api.belongsToAPI(clazz)
+        !api.shouldExtractApiClassFrom(clazz)
     }
-
 }

@@ -13,8 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal.apigen.abi;
 
-public interface MemberOfApiChecker {
-    boolean belongsToApi(String className);
+package org.gradle.jvm.tasks.api.internal;
+
+public class EnumAnnotationValue extends SimpleAnnotationValue {
+
+    private final String typeDesc;
+
+    public EnumAnnotationValue(String name, String value, String typeDesc) {
+        super(name, value);
+        this.typeDesc = typeDesc;
+    }
+
+    public String getTypeDesc() {
+        return typeDesc;
+    }
 }

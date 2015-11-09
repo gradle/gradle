@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.plugins;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.*;
 import org.gradle.api.tasks.Copy;
 import org.gradle.internal.service.ServiceRegistry;
@@ -27,6 +26,7 @@ import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
 import org.gradle.language.base.internal.BuildDirHolder;
@@ -48,8 +48,9 @@ import java.util.Set;
 import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
- * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link JvmLibrarySpec} library type for the components
- * container.
+ * Base plugin for JVM component support. Applies the
+ * {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}.
+ * Registers the {@link JvmLibrarySpec} library type for the components container.
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
@@ -173,8 +174,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
             String libName = binaryName.substring(0, binaryName.lastIndexOf("Jar"));
             String createApiJar = "create" + capitalize(libName + "ApiJar");
-            final ImmutableList<String> allowedPackages = ImmutableList.copyOf(binary.getExportedPackages());
-            if (allowedPackages.isEmpty()) {
+            final Set<String> exportedPackages = binary.getExportedPackages();
+            if (exportedPackages.isEmpty()) {
                 tasks.create(createApiJar, Copy.class, new Action<Copy>() {
                     @Override
                     public void execute(Copy copy) {
@@ -185,13 +186,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     }
                 });
             } else {
-                tasks.create(createApiJar, StubbedJar.class, new Action<StubbedJar>() {
+                tasks.create(createApiJar, ApiJar.class, new Action<ApiJar>() {
                     @Override
-                    public void execute(StubbedJar jar) {
+                    public void execute(ApiJar jar) {
                         final File apiClassesDir = new File(new File(buildDir, "apiClasses"), runtimeClassesDir.getName());
                         jar.setDescription(String.format("Creates the API binary file for %s.", binary));
                         jar.setRuntimeClassesDir(runtimeClassesDir);
-                        jar.setExportedPackages(allowedPackages);
+                        jar.setExportedPackages(exportedPackages);
                         jar.setApiClassesDir(apiClassesDir);
                         jar.setDestinationDir(binary.getApiJarFile().getParentFile());
                         jar.setArchiveName(binary.getApiJarFile().getName());
