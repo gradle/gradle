@@ -771,7 +771,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     String error = executionResult.getError();
                     if (executionResult instanceof ExecutionFailure) {
                         // Axe everything after the expected exception
-                        int pos = error.indexOf("* Exception is:" + TextUtil.getPlatformLineSeparator());
+                        int pos = error.indexOf("* Exception is:\n");
                         if (pos >= 0) {
                             error = error.substring(0, pos);
                         }
