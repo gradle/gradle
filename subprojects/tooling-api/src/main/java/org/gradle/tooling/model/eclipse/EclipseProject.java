@@ -20,7 +20,6 @@ import org.gradle.tooling.model.ExternalDependency;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.java.JavaSourceAware;
-import org.gradle.tooling.model.java.JavaSourceSettings;
 
 /**
  * The complete model of an Eclipse project.
