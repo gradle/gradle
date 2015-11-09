@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -32,9 +32,9 @@ import static org.objectweb.asm.Opcodes.ASM5;
 
 /**
  * Extracts an "API class" from an original "runtime class" for subsequent inclusion
- * into an {@link ApiJar}.
+ * into an {@link org.gradle.jvm.tasks.api.ApiJar}.
  */
-class ApiClassExtractor {
+public class ApiClassExtractor {
 
     private static final Pattern LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
 

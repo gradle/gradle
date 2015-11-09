@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
 import com.google.common.collect.ComparisonChain;
 
@@ -31,7 +31,7 @@ import com.google.common.collect.ComparisonChain;
  * members, construct API classes out of them, and ultimately to assemble an
  * {@link ApiJar}.</p>
  */
-abstract class Member {
+public abstract class Member {
 
     private final String name;
 

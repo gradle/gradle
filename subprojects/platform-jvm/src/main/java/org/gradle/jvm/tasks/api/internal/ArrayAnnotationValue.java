@@ -14,25 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
-import com.google.common.collect.ComparisonChain;
+public class ArrayAnnotationValue extends AnnotationValue<AnnotationValue<?>[]> {
 
-abstract class TypedMember extends AnnotatableMember {
-
-    private final String typeDesc;
-
-    public TypedMember(int access, String name, String signature, String typeDesc) {
-        super(access, name, signature);
-        this.typeDesc = typeDesc;
-    }
-
-    public String getTypeDesc() {
-        return typeDesc;
-    }
-
-    protected ComparisonChain compare(TypedMember o) {
-        return super.compare(o)
-            .compare(typeDesc == null ? "" : typeDesc, o.typeDesc == null ? "" : o.typeDesc);
+    public ArrayAnnotationValue(String name, AnnotationValue<?>[] value) {
+        super(name, value);
     }
 }

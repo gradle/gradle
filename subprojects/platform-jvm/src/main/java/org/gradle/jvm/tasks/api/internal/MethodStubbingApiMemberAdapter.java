@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -28,9 +28,9 @@ import static org.objectweb.asm.Opcodes.*;
  * {@link UnsupportedOperationException} if called at runtime. All members (including but
  * not limited to stripped and stubbed methods) are delegated to a {@link ClassWriter}
  * responsible for writing new API classes that will then in turn be used to assemble an
- * {@link ApiJar}.
+ * {@link org.gradle.jvm.tasks.api.ApiJar}.
  */
-class MethodStubbingApiMemberAdapter extends ClassVisitor {
+public class MethodStubbingApiMemberAdapter extends ClassVisitor {
 
     private static final String UOE_METHOD = "$unsupportedOpEx";
 

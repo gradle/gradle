@@ -25,6 +25,7 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.jvm.tasks.api.internal.ApiClassExtractor;
 
 import java.io.*;
 import java.util.Map;

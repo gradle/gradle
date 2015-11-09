@@ -14,11 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
-class AnnotationAnnotationValue extends AnnotationValue<AnnotationMember> {
+import org.objectweb.asm.Type;
 
-    public AnnotationAnnotationValue(String name, AnnotationMember value) {
-        super(name, value);
+import java.lang.reflect.Modifier;
+
+public class FieldMember extends TypedMember implements Comparable<FieldMember> {
+
+    public FieldMember(int access, String name, String signature, String typeDesc) {
+        super(access, name, signature, typeDesc);
+    }
+
+    @Override
+    public int compareTo(FieldMember o) {
+        return super.compare(o).result();
+    }
+
+    @Override
+    public String toString() {
+        return String.format(
+            "%s %s %s", Modifier.toString(getAccess()), Type.getType(getTypeDesc()).getClassName(), getName());
     }
 }

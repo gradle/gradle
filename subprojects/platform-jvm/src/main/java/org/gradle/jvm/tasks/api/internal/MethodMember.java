@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
@@ -25,7 +25,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.SortedSet;
 
-class MethodMember extends TypedMember implements Comparable<MethodMember> {
+public class MethodMember extends TypedMember implements Comparable<MethodMember> {
 
     private final SortedSet<String> exceptions = Sets.newTreeSet();
     private final SortedSet<AnnotationMember> parameterAnnotations = Sets.newTreeSet();

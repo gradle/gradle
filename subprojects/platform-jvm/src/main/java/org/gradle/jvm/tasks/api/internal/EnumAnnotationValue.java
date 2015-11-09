@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
-class ArrayAnnotationValue extends AnnotationValue<AnnotationValue<?>[]> {
+public class EnumAnnotationValue extends SimpleAnnotationValue {
 
-    public ArrayAnnotationValue(String name, AnnotationValue<?>[] value) {
+    private final String typeDesc;
+
+    public EnumAnnotationValue(String name, String value, String typeDesc) {
         super(name, value);
+        this.typeDesc = typeDesc;
+    }
+
+    public String getTypeDesc() {
+        return typeDesc;
     }
 }

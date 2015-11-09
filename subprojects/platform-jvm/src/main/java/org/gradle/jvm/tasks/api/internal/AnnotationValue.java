@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
-import com.google.common.collect.ComparisonChain;
+public abstract class AnnotationValue<V> extends Member implements Comparable<AnnotationValue<?>> {
 
-abstract class AccessibleMember extends Member {
+    private final V value;
 
-    private final int access;
-
-    public AccessibleMember(int access, String name) {
+    public AnnotationValue(String name, V value) {
         super(name);
-        this.access = access;
+        this.value = value;
     }
 
-    public int getAccess() {
-        return access;
+    public V getValue() {
+        return value;
     }
 
-    protected ComparisonChain compare(AccessibleMember o) {
-        return super.compare(o).compare(access, o.access);
+    @Override
+    public int compareTo(AnnotationValue<?> o) {
+        return super.compare(o).result();
     }
 }

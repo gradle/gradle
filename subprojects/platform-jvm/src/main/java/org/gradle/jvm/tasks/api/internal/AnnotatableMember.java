@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableSortedSet;
@@ -22,7 +22,7 @@ import com.google.common.collect.Sets;
 
 import java.util.SortedSet;
 
-abstract class AnnotatableMember extends AccessibleMember {
+public abstract class AnnotatableMember extends AccessibleMember {
 
     private final SortedSet<AnnotationMember> annotations = Sets.newTreeSet();
     private final String signature;

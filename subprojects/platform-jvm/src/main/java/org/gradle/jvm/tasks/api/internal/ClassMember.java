@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
-class ClassMember extends AnnotatableMember {
+public class ClassMember extends AnnotatableMember {
 
     private final int version;
     private final String superName;

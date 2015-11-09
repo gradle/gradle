@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
 import com.google.common.collect.Lists;
 import org.objectweb.asm.AnnotationVisitor;
@@ -23,7 +23,7 @@ import java.util.List;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
-class SortingAnnotationVisitor extends AnnotationVisitor {
+public class SortingAnnotationVisitor extends AnnotationVisitor {
 
     private final List<AnnotationValue<?>> annotationValues = Lists.newLinkedList();
     private final AnnotationMember annotation;

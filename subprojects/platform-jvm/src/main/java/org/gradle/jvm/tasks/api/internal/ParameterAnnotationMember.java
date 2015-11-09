@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
-class ParameterAnnotationMember extends AnnotationMember {
+public class ParameterAnnotationMember extends AnnotationMember {
 
     private final int parameter;
 

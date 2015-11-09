@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
-class InnerClassMember extends AccessibleMember implements Comparable<InnerClassMember> {
+public class InnerClassMember extends AccessibleMember implements Comparable<InnerClassMember> {
 
     private final String outerName;
     private final String innerName;

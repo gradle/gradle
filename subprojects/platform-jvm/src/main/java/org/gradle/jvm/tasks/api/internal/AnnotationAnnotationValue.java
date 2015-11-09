@@ -14,23 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api;
+package org.gradle.jvm.tasks.api.internal;
 
-abstract class AnnotationValue<V> extends Member implements Comparable<AnnotationValue<?>> {
+public class AnnotationAnnotationValue extends AnnotationValue<AnnotationMember> {
 
-    private final V value;
-
-    public AnnotationValue(String name, V value) {
-        super(name);
-        this.value = value;
-    }
-
-    public V getValue() {
-        return value;
-    }
-
-    @Override
-    public int compareTo(AnnotationValue<?> o) {
-        return super.compare(o).result();
+    public AnnotationAnnotationValue(String name, AnnotationMember value) {
+        super(name, value);
     }
 }
