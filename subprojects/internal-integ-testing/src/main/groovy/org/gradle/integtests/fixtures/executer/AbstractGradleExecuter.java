@@ -34,7 +34,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.TextUtil;
 
 import java.io.*;
 import java.nio.charset.Charset;
