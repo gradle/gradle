@@ -15,7 +15,6 @@
  */
 
 package org.gradle.model.internal.inspect
-
 import org.gradle.api.credentials.Credentials
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.Managed
@@ -23,6 +22,7 @@ import org.gradle.model.ModelMap
 import org.gradle.model.Unmanaged
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.fixture.TestManagedProxyFactory
 import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
@@ -31,7 +31,6 @@ import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -43,7 +42,7 @@ class ManagedModelInitializerTest extends Specification {
     def nodeInitializerRegistry
     def r = new ModelRegistryHelper()
     def classLoader = new GroovyClassLoader(getClass().classLoader)
-    @Shared def proxyFactory = new ManagedProxyFactory()
+    def proxyFactory = TestManagedProxyFactory.INSTANCE
     static final List<Class<?>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
     def setup() {

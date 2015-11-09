@@ -22,13 +22,12 @@ import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
-import spock.lang.Shared
 import spock.lang.Specification
 
 class ProjectRegistrySpec extends Specification {
     def registry = new ModelRegistryHelper()
     def schemaStore = DefaultModelSchemaStore.instance
-    @Shared def proxyFactory = new ManagedProxyFactory()
+    def proxyFactory = TestManagedProxyFactory.INSTANCE
     def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
 
     def setup() {
