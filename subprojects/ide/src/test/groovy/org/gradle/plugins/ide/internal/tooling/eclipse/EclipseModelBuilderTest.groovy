@@ -120,7 +120,7 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.javaSourceSettings == null
     }
 
-    def "default source language level is set for Java projects"() {
+    def "default source language level is set for Java projects if source compatibility is not specified"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
         project.plugins.apply(plugin)
@@ -138,10 +138,10 @@ class EclipseModelBuilderTest extends Specification {
         ScalaPlugin  | _
     }
 
-    def "default source language is set if source compatibility is set to null"() {
+    def "default source language level is set for Java projects if source compatibility is set to null"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
-        project.plugins.apply(JavaPlugin)
+        project.plugins.apply(plugin)
         project.sourceCompatibility = null
 
         when:
@@ -149,6 +149,12 @@ class EclipseModelBuilderTest extends Specification {
 
         then:
         eclipseModel.javaSourceSettings.languageLevel.level == JavaVersion.current().toString()
+
+        where:
+        plugin       | _
+        JavaPlugin   | _
+        GroovyPlugin | _
+        ScalaPlugin  | _
     }
 
     def "custom source language level from Java plugin convention"() {
