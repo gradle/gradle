@@ -111,6 +111,7 @@ Later work:
 ## Story: Dependencies report shows compile time dependency graph of a Java library
 
 - Dependency report shows all JVM components for the project, and the resolved compile time graphs for each variant.
+- Dependency report implementation should not have any knowledge of the Java ecosystem. It may understand the abstract software model. 
 
 ## Story: Build author defines repositories using model rules
 
