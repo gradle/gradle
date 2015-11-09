@@ -58,6 +58,13 @@ Implementation details can be planned further after spiking the changes in the a
     - change input file of task C
       - a new build should get re-triggered
 
+### Open issues
+
+- Self modifying tasks will cause a loop
+- Builds with tasks that change inputs of tasks executed earlier in the build will cause a loop
+- Jar task might need this fix: https://github.com/gradle/gradle/commit/4bc280cff6745e78e0b764c604c19214c5b9c946
+
+
 ## Story: Detecting changes to build files or files that are input to the build configuration phase
 
 TBD
