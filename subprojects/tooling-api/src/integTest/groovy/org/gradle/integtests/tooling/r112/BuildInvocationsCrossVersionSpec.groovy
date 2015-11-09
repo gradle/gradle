@@ -211,7 +211,6 @@ project(':b:c') {
 
         then:
         result.result.assertTasksExecuted(':b:t2')
-        result.result.assertTaskNotExecuted(':b:c:t2')
     }
 
     def "build task from connection as Launchable"() {
