@@ -19,7 +19,6 @@ package org.gradle.integtests.language
 import com.sun.xml.internal.ws.util.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.TextUtil
 
 import java.util.regex.Pattern
 
@@ -166,21 +165,21 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         succeeds "components"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""
+        output.contains """
     JVM resources 'myLib:extraResources'
-        srcDir: src${File.separator}myLib${File.separator}extraResources"""))
+        srcDir: src${File.separator}myLib${File.separator}extraResources"""
 
-        output.contains(TextUtil.toPlatformLineSeparators("""
+        output.contains """
     ${StringUtils.capitalize(languageName)} source 'myLib:extra${languageName}'
-        srcDir: src${File.separator}myLib${File.separator}extra${languageName}"""))
+        srcDir: src${File.separator}myLib${File.separator}extra${languageName}"""
 
-        output.contains(TextUtil.toPlatformLineSeparators("""
+        output.contains """
     JVM resources 'myLib:resources'
-        srcDir: src${File.separator}myLib${File.separator}resources"""))
+        srcDir: src${File.separator}myLib${File.separator}resources"""
 
-        output.contains(TextUtil.toPlatformLineSeparators("""
+        output.contains """
     ${StringUtils.capitalize(languageName)} source 'myLib:${languageName}'
-        srcDir: src${File.separator}myLib${File.separator}${languageName}"""))
+        srcDir: src${File.separator}myLib${File.separator}${languageName}"""
     }
 
 }

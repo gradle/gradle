@@ -17,7 +17,6 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 /**
  * This whole test can be deleted with ManagedSet is removed.
@@ -254,11 +253,11 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printPeople"
 
         and:
-        output.contains TextUtil.toPlatformLineSeparators('''apply defaults
+        output.contains '''apply defaults
 initialize
 configure
 finalize
-''')
+'''
     }
 
     def "creation and configuration of managed set elements is deferred until required"() {
@@ -318,7 +317,7 @@ finalize
         succeeds "printPeople"
 
         and:
-        output.contains TextUtil.toPlatformLineSeparators('''p1 defined
+        output.contains '''p1 defined
 p2 defined
 p3 defined
 construct Person
@@ -327,7 +326,7 @@ construct Person
 configure p2
 construct Person
 configure p3
-''')
+'''
 
         output.contains "people: p1, p2, p3"
     }

@@ -154,7 +154,7 @@ GET     /newroute                          controllers.Application.index()
         succeeds "components"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
+        output.contains """
 Play Application 'play'
 -----------------------
 
@@ -179,7 +179,7 @@ Source sets
         includes: **/*.html
 
 Binaries
-"""))
+"""
     }
 
     def "can run RoutesCompile with namespaceReverseRouter set"() {

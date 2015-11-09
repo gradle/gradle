@@ -29,8 +29,6 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import spock.lang.Issue
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 @LeaksFileHandles
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -483,6 +481,6 @@ tasks.withType(RunTestExecutable) {
     }
 
     boolean contains(String content) {
-        return getOutput().contains(toPlatformLineSeparators(content))
+        return getOutput().contains(content)
     }
 }

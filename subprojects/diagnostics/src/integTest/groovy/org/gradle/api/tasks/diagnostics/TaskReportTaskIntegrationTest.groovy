@@ -40,11 +40,11 @@ task alpha { description = 'ALPHA_in_sub2' }
         run "tasks"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 Other tasks
 -----------
 alpha - ALPHA_in_sub1
-"""))
+"""
     }
 
     def "task report includes tasks defined via model rules"() {

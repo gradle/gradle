@@ -17,8 +17,6 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.requireOwnGradleUserHomeDir()
@@ -71,30 +69,30 @@ class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec 
         run(":impl:buildEnvironment")
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 classpath
 \\--- org:toplevel2:1.0
      +--- org:leaf3:1.0
      \\--- org:leaf4:1.0
-"""))
+"""
         when:
         run(":client:buildEnvironment")
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 classpath
 No dependencies
-"""))
+"""
 
         when:
         run(":buildEnvironment")
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 classpath
 \\--- org:toplevel1:1.0
      +--- org:leaf1:1.0
      \\--- org:leaf2:1.0
-"""))
+"""
     }
 }

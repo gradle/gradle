@@ -18,8 +18,6 @@ package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -94,14 +92,14 @@ model {
         then:
         succeeds "components"
         and:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 DefaultSampleComponent 'main'
 -----------------------------
 
 Source sets
     DefaultCustomLanguageSourceSet 'main:custom'
         srcDir: src${File.separator}main${File.separator}custom
-"""))
+"""
     }
 
 }

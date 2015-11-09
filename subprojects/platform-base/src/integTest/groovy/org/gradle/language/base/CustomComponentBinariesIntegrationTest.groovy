@@ -21,8 +21,6 @@ import org.gradle.model.ModelMap
 import org.gradle.model.collection.CollectionBuilder
 import spock.lang.Unroll
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
@@ -119,7 +117,7 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
         when:
         succeeds "components"
         then:
-        output.contains(toPlatformLineSeparators(
+        output.contains(
 """DefaultSampleLibrary 'sampleLib'
 --------------------------------
 
@@ -132,7 +130,7 @@ Binaries
         build using task: :sampleLibBinary
     OtherSampleBinaryImpl 'sampleLib:otherBinary'
         build using task: :sampleLibOtherBinary
-"""))
+""")
     }
 
     def "links components sourceSets to binaries"() {
@@ -230,7 +228,7 @@ Binaries
         when:
         succeeds "components"
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains("""
 DefaultSampleLibrary 'sampleLib'
 --------------------------------
 
@@ -243,7 +241,7 @@ Binaries
         build using task: :sampleLib1stBinary
     DefaultSampleBinary 'sampleLib:2ndBinary'
         build using task: :sampleLib2ndBinary
-"""))
+""")
         where:
         ruleInputs << ["SampleLibrary library, CustomModel myModel"]//,  "CustomModel myModel, SampleLibrary library"]
     }
@@ -281,11 +279,11 @@ Binaries
         succeeds "components"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains("""
 Binaries
     DefaultSampleBinary 'sampleLib:derivedFromMethodName'
         build using task: :sampleLibDerivedFromMethodName
-"""))
+""")
     }
 
     def "attempt to mutate the subject of a @ComponentBinaries after the method has finished results in an error"() {

@@ -16,11 +16,9 @@
 
 
 package org.gradle.integtests.resolve
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
-import spock.lang.Unroll
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -700,11 +698,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         fails "impl:check"
-        errorOutput.contains(TextUtil.toPlatformLineSeparators("""
-Execution failed for task ':impl:resolveConf'.
-> Could not resolve all dependencies for configuration ':impl:conf'.
-   > project ':doesnotexist' not found.
-"""))
+        failure.assertHasDescription("Execution failed for task ':impl:resolveConf'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':impl:conf'.")
+        failure.assertHasCause("project ':doesnotexist' not found.")
     }
 
     void "replacing external module dependency with project dependency keeps the original configuration"()
@@ -1247,9 +1243,9 @@ Execution failed for task ':impl:resolveConf'.
         succeeds "check", "dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""conf
+        output.contains """conf
 +--- org.utils:a:1.2 -> org.utils:b:2.1
-\\--- org.utils:b:2.0 -> 2.1"""))
+\\--- org.utils:b:2.0 -> 2.1"""
     }
 
     def "can substitute module group"()
@@ -1279,11 +1275,11 @@ Execution failed for task ':impl:resolveConf'.
         succeeds "dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 +--- org:a:1.0 -> 2.0
 |    \\--- org:c:1.0
 \\--- foo:b:1.0 -> org:b:1.0
-     \\--- org:a:2.0 (*)"""))
+     \\--- org:a:2.0 (*)"""
     }
 
     def "can substitute module group, name and version"()
@@ -1311,11 +1307,11 @@ Execution failed for task ':impl:resolveConf'.
         succeeds "dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 +--- org:a:1.0 -> 2.0
 |    \\--- org:c:1.0
 \\--- foo:bar:baz -> org:b:1.0
-     \\--- org:a:2.0 (*)"""))
+     \\--- org:a:2.0 (*)"""
     }
 
     def "provides decent feedback when target module incorrectly specified"()
@@ -1361,13 +1357,13 @@ Execution failed for task ':impl:resolveConf'.
         succeeds "dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 conf
 +--- org:a:1.0 -> org:c:2.0
 \\--- org:a:2.0
      \\--- org:b:2.0
           \\--- org:c:2.0
-"""))
+"""
     }
 
     String getCommon() {

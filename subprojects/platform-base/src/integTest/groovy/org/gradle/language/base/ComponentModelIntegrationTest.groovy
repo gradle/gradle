@@ -17,7 +17,6 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -353,11 +352,11 @@ model {
         succeeds "tasks"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'main'
+        output.contains """beforeEach DefaultCustomComponent 'main'
 afterEach DefaultCustomComponent 'main'
 beforeEach DefaultCustomComponent 'newComponent'
 creating DefaultCustomComponent 'newComponent'
-afterEach DefaultCustomComponent 'newComponent'"""))
+afterEach DefaultCustomComponent 'newComponent'"""
 
     }
 
@@ -478,11 +477,11 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "tasks"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'main'
+        output.contains """beforeEach DefaultCustomComponent 'main'
 afterEach DefaultCustomComponent 'main'
 beforeEach DefaultCustomComponent 'newComponent'
 creating DefaultCustomComponent 'newComponent'
-afterEach DefaultCustomComponent 'newComponent'"""))
+afterEach DefaultCustomComponent 'newComponent'"""
 
     }
 

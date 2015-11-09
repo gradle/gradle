@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 @RunWith(FluidDependenciesResolveRunner)
 class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -72,12 +70,12 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
         run "resolutionResult"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 cool-project:5.0 root
 foo:1.0 conflict resolution
 leaf:2.0 forced
 bar:1.0 requested
 baz:1.0 requested
-"""))
+"""
     }
 }

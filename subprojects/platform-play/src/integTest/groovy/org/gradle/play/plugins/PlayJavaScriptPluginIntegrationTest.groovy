@@ -84,6 +84,6 @@ class PlayJavaScriptPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private String getNormalizedOutput() {
-        return TextUtil.normaliseLineSeparators(TextUtil.normaliseFileSeparators(output))
+        return TextUtil.normaliseFileSeparators(output)
     }
 }
