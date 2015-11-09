@@ -145,6 +145,7 @@ Support read-write collection properties defined using both a getter and a sette
 - Convert input value:
     - `CharSequence` to any scalar type (eg `GString` to `Long`, `GString` to `String`)
     - Any scalar type to `String`.
+    - Note that although Files are scalar types, they're not handled here but rather in their own story
 - Update user guide, Javadocs and sample
 
 #### Implementation
@@ -166,10 +167,16 @@ Support read-write collection properties defined using both a getter and a sette
 - Convert input value `CharSequence` to `File` conversion relative to project directory, as per `Project.file()`.
 - Update user guide, Javadocs and sample
 
+#### Implementation
+
+- Add `NotationConverter` support in `DefaultTypeConverters`
+- Update `ManagedProxyClassGenerator` to include an overloaded setter for `File`
+- Use `FileResolver` from `ServiceRegistry` stored in `ModelElementState`
+
 #### Test cases
 
 - Nice error message when input value is not a `CharSequence`
-- TBD:More
+- Nice error message when a `CharSequence` input value cannot be converted to a File or an error occurs
 
 ### Convenient configuration of File typed properties from Java
 
