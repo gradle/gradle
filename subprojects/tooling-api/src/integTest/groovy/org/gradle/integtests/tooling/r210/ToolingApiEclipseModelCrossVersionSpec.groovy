@@ -32,10 +32,10 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=1.0-milestone-8 <2.10")
     def "older Gradle versions throw exception when querying Java source settings"() {
         given:
-        file('settings.gradle') << "rootProject.name = 'root'"
+        settingsFile << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
+        EclipseProject rootProject = loadEclipseProjectModel()
         rootProject.javaSourceSettings
 
         then:
@@ -45,10 +45,10 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.10")
     def "non-Java projects return null for source settings"() {
         given:
-        file('settings.gradle') << "rootProject.name = 'root'"
+        settingsFile << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
+        EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
         rootProject.javaSourceSettings == null
@@ -57,11 +57,11 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.10")
     def "Java project returns default source compatibility"() {
         given:
-        file('settings.gradle') << "rootProject.name = 'root'"
-        file('build.gradle') << "apply plugin: 'java'"
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << "apply plugin: 'java'"
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
+        EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
         rootProject.javaSourceSettings.languageLevel.level == JavaVersion.current().toString()
@@ -70,14 +70,14 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.10")
     def "source language level is defined in Java plugin convention"() {
         given:
-        file('settings.gradle') << "rootProject.name = 'root'"
-        file('build.gradle') << """
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
             apply plugin: 'java'
             sourceCompatibility = 1.6
         """
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
+        EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
         rootProject.javaSourceSettings.languageLevel.level == '1.6'
@@ -86,8 +86,8 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.10")
     def "source language level is defined in Eclipse JDT settings"() {
         given:
-        file('settings.gradle') << "rootProject.name = 'root'"
-        file('build.gradle') << """
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
             apply plugin: 'java'
             apply plugin: 'eclipse'
             eclipse {
@@ -98,7 +98,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
+        EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
         rootProject.javaSourceSettings.languageLevel.level == '1.5'
@@ -107,8 +107,8 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.10")
     def "Can' define JDT source language level without the java-base plugin"() {
         given:
-        file('settings.gradle') << "rootProject.name = 'root'"
-        file('build.gradle') << """
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
             apply plugin: 'eclipse'
             eclipse {
                 jdt {
@@ -118,7 +118,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
+        loadEclipseProjectModel()
 
         then:
         thrown(BuildException)
@@ -128,8 +128,8 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.10")
     def "Eclipse JDT setting has precedence over Java plugin convention when "() {
         given:
-        file('settings.gradle') << "rootProject.name = 'root'"
-        file('build.gradle') << """
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
             apply plugin: 'java'
             apply plugin: 'eclipse'
             sourceCompatibility = 1.4
@@ -141,7 +141,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
+        EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
         rootProject.javaSourceSettings.languageLevel.level == '1.3'
@@ -150,12 +150,12 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.10")
     def "Multi-project build can define different source language level for subprojects"() {
         given:
-        file('build.gradle') << """
+        buildFile << """
             project(':subproject-a') {
                 apply plugin: 'java'
                 sourceCompatibility = 1.1
             }
-            project('subproject-b') {
+            project(':subproject-b') {
                 apply plugin: 'java'
                 apply plugin: 'eclipse'
                 eclipse {
@@ -164,7 +164,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
                     }
                 }
             }
-            project('subproject-c') {
+            project(':subproject-c') {
                 apply plugin: 'java'
                 apply plugin: 'eclipse'
                 sourceCompatibility = 1.6
@@ -175,13 +175,13 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
-        file('settings.gradle') << """
+        settingsFile << """
             rootProject.name = 'root'
             include 'subproject-a', 'subproject-b', 'subproject-c'
         """
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
+        EclipseProject rootProject = loadEclipseProjectModel()
         EclipseProject subprojectA = rootProject.children.find{ it.name == 'subproject-a' }
         EclipseProject subprojectB = rootProject.children.find{ it.name == 'subproject-b' }
         EclipseProject subprojectC = rootProject.children.find{ it.name == 'subproject-c' }
@@ -190,6 +190,9 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         subprojectA.javaSourceSettings.languageLevel.level == '1.1'
         subprojectB.javaSourceSettings.languageLevel.level == '1.2'
         subprojectC.javaSourceSettings.languageLevel.level == '1.3'
+    }
 
+    private def loadEclipseProjectModel() {
+        withConnection { connection -> connection.getModel(EclipseProject) }
     }
 }

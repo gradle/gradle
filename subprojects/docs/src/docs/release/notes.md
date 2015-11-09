@@ -186,10 +186,11 @@ TODO:
 - `ModelMap` creation and configuration DSL syntax is now treated as nested rule.
 - This means that a task can be configured using another task as input.
 
-### Tooling API exposes source language level
+### Tooling API exposes source language level on EclipseProject model
 
-Clients of the Tooling API now can query the the Java source language level via the new
-<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings--">`getJavaSourceSettings()`</a> method defined on the `EclipseProject` model.
+The `EclipseProject` model now exposes the Java source language level via the
+<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
+IDE providers use this method to automatically determine the source language level. In turn users won't have to configure that anymore via the Gradle Eclipse plugin.
 
 ## Promoted features
 

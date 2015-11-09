@@ -18,11 +18,11 @@ package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import java.io.Serializable;
 
-public class DefaultJavaLanguageLevel implements Serializable {
+public class DefaultJavaSourceLevel implements Serializable {
 
     private final String level;
 
-    public DefaultJavaLanguageLevel(String level) {
+    public DefaultJavaSourceLevel(String level) {
         this.level = level;
     }
 

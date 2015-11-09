@@ -146,7 +146,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             if (eclipseJdt != null) {
                 JavaVersion sourceCompatibility = eclipseJdt.getSourceCompatibility();
                 if (sourceCompatibility != null) {
-                    DefaultJavaLanguageLevel languageLevel = new DefaultJavaLanguageLevel(sourceCompatibility.toString());
+                    DefaultJavaSourceLevel languageLevel = new DefaultJavaSourceLevel(sourceCompatibility.toString());
                     DefaultJavaSourceSettings sourceSettings = new DefaultJavaSourceSettings(languageLevel);
                     eclipseProject.setJavaSourceSettings(sourceSettings);
                 }

@@ -17,26 +17,28 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.Project
+import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
 import org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder
 import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.tooling.internal.gradle.DefaultGradleProject
 import org.gradle.util.TestUtil
-import spock.lang.Shared
 import spock.lang.Specification
 
 class EclipseModelBuilderTest extends Specification {
 
-    @Shared
-    def project = TestUtil.builder().withName("project").build()
-    @Shared
-    def child1 = TestUtil.builder().withName("child1").withParent(project).build()
-    @Shared
-    def child2 = TestUtil.builder().withName("child2").withParent(project).build()
+    Project project
+    Project child1
+    Project child2
 
-    def setupSpec() {
+    def setup() {
+        project = TestUtil.builder().withName("project").build()
+        child1 = TestUtil.builder().withName("child1").withParent(project).build()
+        child2 = TestUtil.builder().withName("child2").withParent(project).build()
         [project, child1, child2].each{ it.pluginManager.apply(EclipsePlugin.class) }
     }
 
@@ -118,10 +120,29 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.javaSourceSettings == null
     }
 
-    def "default source language level is set"() {
+    def "default source language level is set for Java projects"() {
+        given:
+        def modelBuilder = createEclipseModelBuilder()
+        project.plugins.apply(plugin)
+
+        when:
+        def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
+
+        then:
+        eclipseModel.javaSourceSettings.languageLevel.level == JavaVersion.current().toString()
+
+        where:
+        plugin       | _
+        JavaPlugin   | _
+        GroovyPlugin | _
+        ScalaPlugin  | _
+    }
+
+    def "default source language is set if source compatibility is set to null"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
         project.plugins.apply(JavaPlugin)
+        project.sourceCompatibility = null
 
         when:
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
@@ -141,7 +162,6 @@ class EclipseModelBuilderTest extends Specification {
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        JavaVersion.current()
         eclipseModel.javaSourceSettings.languageLevel.level == "1.2"
     }
 
@@ -172,10 +192,6 @@ class EclipseModelBuilderTest extends Specification {
 
         then:
         eclipseModel.javaSourceSettings.languageLevel.level == "1.2"
-
-        cleanup:
-        project.sourceCompatibility = JavaVersion.current().toString()
-        project.eclipse.jdt.sourceCompatibility = JavaVersion.current().toString()
     }
 
     def "multi-project build can have different source language level per project"() {

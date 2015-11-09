@@ -29,10 +29,9 @@ public interface JavaSourceLevel {
     /**
      * Returns the java source level in a string-representation.
      * <p>
-     * The result has the following format: {@code <major_version>.<minor_version>}. For example for Java 7 the result is {@code "1.7"}.
+     * The result has the <major_version>.<minor_version> format. For Java 7 the result is "1.7".
      *
      * @return The Java source level. Never returns {@code null}.
-     * @since 2.10
      */
     String getLevel();
 }

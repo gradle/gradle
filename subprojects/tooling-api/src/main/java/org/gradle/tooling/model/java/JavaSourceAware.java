@@ -31,7 +31,6 @@ public interface JavaSourceAware {
      * Returns the settings for Java sources or {@code null} if not a Java element.
      *
      * @return The source settings.
-     * @since 2.10
      */
     @Nullable
     JavaSourceSettings getJavaSourceSettings();
