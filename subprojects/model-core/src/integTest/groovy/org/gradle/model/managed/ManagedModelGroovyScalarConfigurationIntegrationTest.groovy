@@ -16,14 +16,11 @@
 
 package org.gradle.model.managed
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.containsString
 
-// TODO:BB temporarily disabling, seeing some failures with numeric types that shouldn't be passed to the overloaded method (e.g. int value for long type)
 class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String CLASSES = '''
@@ -135,7 +132,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         apply type: RulePlugin
         '''
 
-    @NotYetImplemented
     @Unroll
     void 'only CharSequence input values are supported'() {
         when:
@@ -163,7 +159,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
                     'theInteger', 'theLong', 'thelong', 'theshort', 'theShort', 'thebyte', 'theByte', 'theThing']
     }
 
-    @NotYetImplemented
     @Unroll
     void 'number types require stringified numeric inputs'() {
         when:
@@ -200,7 +195,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         'theByte'       | 42    | Byte
     }
 
-    @NotYetImplemented
     @Unroll
     void 'primitive types cannot accept null values'() {
         when:
@@ -225,7 +219,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         varname << ['bool1', 'thedouble', 'thefloat', 'theint', 'thelong', 'theshort', 'thebyte', 'thechar']
     }
 
-    @Ignore // can't use NotYetImplemented here
     @Unroll
     void 'non-primitive types can accept null values'() {
         when:
@@ -267,7 +260,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         output.contains 'prop theThing     : null'
     }
 
-    @NotYetImplemented
     void 'enum types require valid enum constants'() {
         when:
         buildFile << CLASSES
@@ -286,7 +278,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         failure.assertThatCause(containsString("Cannot coerce string value 'IS_NOT_A_TOASTER' to an enum value of type 'Thing'"))
     }
 
-    @Ignore // can't use NotYetImplemented here
     @Unroll
     void 'boolean types are only true for the literal string "true"'() {
         when:
@@ -312,7 +303,6 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         'false' | false
     }
 
-    @NotYetImplemented
     void 'can convert CharSequence to any scalar type'() {
         when:
         buildFile << CLASSES

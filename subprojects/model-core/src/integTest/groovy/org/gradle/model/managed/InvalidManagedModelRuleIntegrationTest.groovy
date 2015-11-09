@@ -25,14 +25,14 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         buildScript '''
             @Managed
             interface Person {
-                String getName()
-                void setName(String name)
+                int getThumbCount()
+                void setThumbCount(int c)
             }
 
             class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
-                    person.setName(123)
+                    person.setThumbCount(person)
                 }
 
                 @Mutate
@@ -48,7 +48,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#createPerson")
-        failure.assertHasCause("No signature of method: Person.setName() is applicable for argument types: (java.lang.Integer) values: [123]")
+        failure.assertHasCause("Cannot convert the provided notation to an object of type int")
     }
 
     def "provides a useful error message when setting an incompatible type on a managed instance in Java"() {

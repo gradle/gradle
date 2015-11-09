@@ -119,7 +119,7 @@ model {
     nullCredentials(PasswordCredentials) { }
     numbers(Numbers){
         value = 5
-        threshold = 0.8d
+        threshold = 0.8
     }
 }
 
@@ -187,7 +187,7 @@ model {
     nullCredentials(PasswordCredentials)
     numbers(Numbers){
         value = 5
-        threshold = 0.8d
+        threshold = 0.8
     }
 }
 
@@ -315,7 +315,7 @@ class NumberRules extends RuleSource {
     @Model("myNumbers")
     void createRule(Numbers n) {
        n.setValue(5)
-       n.setThreshold(0.8d)
+       n.setThreshold(0.8)
     }
     @Defaults void defaultsRule(Numbers n) {}
     @Mutate void mutateRule(Numbers n) {}
@@ -374,7 +374,7 @@ apply plugin: ClassHolder.InnerRules
         buildFile << """
             interface UnmanagedComponentSpec extends ComponentSpec {}
             class DefaultUnmanagedComponentSpec extends BaseComponentSpec implements UnmanagedComponentSpec {}
-            
+
             @Managed
             interface SampleComponentSpec extends UnmanagedComponentSpec {
                 String getPublicData()
@@ -408,10 +408,10 @@ apply plugin: ClassHolder.InnerRules
                 }
             }
         """
-        
+
         when:
         succeeds "model"
-        
+
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
         modelNode.components.sample.publicData
@@ -419,7 +419,7 @@ apply plugin: ClassHolder.InnerRules
 
         and:
         succeeds "model", "--showHidden"
-        
+
         then:
         ModelReportOutput.from(output).modelNode.components.sample.internalData
     }
@@ -429,7 +429,7 @@ apply plugin: ClassHolder.InnerRules
         buildFile << """
             interface UnmanagedBinarySpec extends BinarySpec {}
             class DefaultUnmanagedBinarySpec extends BaseBinarySpec implements UnmanagedBinarySpec {}
-            
+
             @Managed
             interface SampleBinarySpec extends UnmanagedBinarySpec {
                 String getPublicData()
@@ -463,10 +463,10 @@ apply plugin: ClassHolder.InnerRules
                 }
             }
         """
-        
+
         when:
         succeeds "model"
-        
+
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
         modelNode.binaries.sample.publicData
@@ -474,7 +474,7 @@ apply plugin: ClassHolder.InnerRules
 
         and:
         succeeds "model", "--showHidden"
-        
+
         then:
         ModelReportOutput.from(output).modelNode.binaries.sample.internalData
     }

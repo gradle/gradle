@@ -37,6 +37,8 @@ import org.objectweb.asm.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -441,8 +443,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
         finishVisitingMethod(methodVisitor);
 
-        /* TODO:BB temporarily disabling, seeing some failures with numeric types that shouldn't be passed to the overloaded method (e.g. int value for long type)
-
         if (!propertyTypeClass.isPrimitive() && !BOXED_TYPES.values().contains(propertyTypeClass) && !propertyTypeClass.isEnum()
             && !BigDecimal.class.equals(propertyTypeClass) && !BigInteger.class.equals(propertyTypeClass) && !String.class.equals(propertyTypeClass)) {
             return;
@@ -486,7 +486,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         // invoke the typed setter, popping 'this' and 'converted' from the stack
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), setter.getName(), methodDescriptor, false);
         finishVisitingMethod(methodVisitor);
-        */
     }
 
     private void writeHashCodeMethod(ClassVisitor visitor, Type generatedType) {
