@@ -40,6 +40,11 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
     DomainObjectSet<? extends EclipseProject> getChildren();
 
     /**
+     * {@inheritDoc}
+     */
+    EclipseJavaSourceSettings getJavaSourceSettings();
+
+    /**
      * The gradle project that is associated with this project.
      * Typically, a single Eclipse project corresponds to a single gradle project.
      * <p>
