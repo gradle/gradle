@@ -29,7 +29,7 @@ import com.google.common.collect.ComparisonChain;
  * model is minimalistic and has a few assumptions about being used in an ASM context, but
  * provides us in any case with what we need to effectively find and manipulate API
  * members, construct API classes out of them, and ultimately to assemble an
- * {@link ApiJar}.</p>
+ * {@link org.gradle.jvm.tasks.api.ApiJar}.</p>
  */
 public abstract class Member {
 
