@@ -18,7 +18,7 @@ package org.gradle.model.internal.manage.schema.extract
 import com.google.common.base.Optional
 import groovy.transform.NotYetImplemented
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.typeconversion.CharSequenceToScalarConverter
+import org.gradle.internal.typeconversion.DefaultTypeConverters
 import org.gradle.internal.typeconversion.TypeConverters
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.MutableModelNode
@@ -369,7 +369,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
             data[args[0]] = args[1]
         }
 
-        def converter = new CharSequenceToScalarConverter()
+        def converter = new DefaultTypeConverters()
         def services = Mock(ServiceRegistry)
         services.get(_ as Class) >> { Class type -> if (type == TypeConverters) { return converter } }
         state.getServices() >> services
@@ -419,7 +419,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         state.set(_, _) >> { args ->
             data[args[0]] = args[1]
         }
-        def converter = new CharSequenceToScalarConverter()
+        def converter = new DefaultTypeConverters()
         def services = Mock(ServiceRegistry)
         services.get(_ as Class) >> { Class type -> if (type == TypeConverters) { return converter } }
         state.getServices() >> services

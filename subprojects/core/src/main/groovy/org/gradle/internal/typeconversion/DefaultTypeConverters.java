@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-public class CharSequenceToScalarConverter implements TypeConverters {
+public class DefaultTypeConverters implements TypeConverters {
 
     private static final String CANDIDATE = "CharSequence instances.";
     private static final Collection<String> CANDIDATES = Collections.singleton(CANDIDATE);

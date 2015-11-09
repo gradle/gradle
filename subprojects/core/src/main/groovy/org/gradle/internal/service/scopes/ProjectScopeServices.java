@@ -48,7 +48,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.typeconversion.CharSequenceToScalarConverter;
+import org.gradle.internal.typeconversion.DefaultTypeConverters;
 import org.gradle.internal.typeconversion.TypeConverters;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -184,7 +184,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected TypeConverters createTypeConverters() {
-        return new CharSequenceToScalarConverter();
+        return new DefaultTypeConverters();
     }
 
     private class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {
