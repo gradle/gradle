@@ -25,26 +25,35 @@ from the TAPI.
     interface EclipseProject {
         ...
         ...
-        List<String> getProjectNatures(List<String> defaults)
-        List<BuildCommand> getBuildCommands(List<BuildCommand> defaults)
+        DomainObjectSet<? extends EclipseProjectNature> getProjectNatures();
+
+        DomainObjectSet<? extends BuildCommand> getBuildCommands()
         ...
     }
 
-    interface BuildCommand {
+    interface EclipseBuildCommand{
         String getName()
         Map<String,String> getArguments()
+    }
+
+    public interface EclipseProjectNature {
+
+        /**
+         * Returns the unique identifier of the project nature.
+         */
+        String getId();
     }
 
 
 #### Implementation
 
-- Add `List<String> getProjectNatures(List<String> defaults)` to the EclipseProject interface.
-- Add `List<String> projectNatures` property (setter + getter) to `DefaultEclipseProject`
+- Add `DomainObjectSet<? extends EclipseProjectNature> getProjectNatures()` to the EclipseProject interface.
+- Add `List<DefaultEclipseProjectNature> projectNatures` property (setter + getter) to `DefaultEclipseProject`
 - Change EclipseModelBuilder to
     - Add `org.eclipse.jdt.core.javanature` nature for all java projects in the multiproject build to EclipseProject.
-    - Add all natures declared via `eclipse.project.buildCommand` to EclipseProject model.
+    - Add all natures declared via `eclipse.project.natures` to EclipseProject model.
 
-- Add `getBuildCommand(List<BuildCommand> defaults)` to the EclipseProject interface.
+- Add `DomainObjectSet<? extends BuildCommand> getBuildCommands()` to the EclipseProject interface.
 - Add `List<BuildCommand> buildCommands` property to `DefaultEclipseProject`
 - Change EclipseModelBuilder to
     - Add build command with name `org.eclipse.jdt.core.javabuilder` and no arguments for all java projects in multiproject build
@@ -52,13 +61,13 @@ from the TAPI.
 
 #### Test coverage
 
-- `EclipseProject#getProjectNatures(List<String>)` of a Java project contains java nature (`org.eclipse.jdt.core.javanature`)
-- `EclipseProject#getProjectNatures(List<String>)` respects custom added natures (via `eclipse.eclipse.project.natures`)
-- older Gradle versions return default value when calling `EclipseProject#getProjectNatures(List<String> defaultValue)`
+- `EclipseProject#getProjectNatures()` of a Java project contains java nature (`org.eclipse.jdt.core.javanature`)
+- `EclipseProject#getProjectNatures()` respects custom added natures (via `eclipse.eclipse.project.natures`)
+- older Gradle versions throw decent error when calling `EclipseProject#getProjectNatures() `
 
-- `EclipseProject#getBuildCommands(List<BuildCommand>)` of a Java project contains java nature (`org.eclipse.jdt.core.javanature`)
-- `EclipseProject#getBuildCommands(List<BuildCommand>)` respects custom added build commands.
-- older Gradle versions return default value when calling `EclipseProject#getBuildCommands(List<String> defaultValue)`
+- `EclipseProject#getBuildCommands()` of a Java project contains java builder (`org.eclipse.jdt.core.javabuilder`)
+- `EclipseProject#getBuildCommands()` respects custom added build commands.
+- older Gradle versions throw decent error when calling `EclipseProject#getBuildCommands()`
 
 
 ### Story - Expose Java source level for Java projects to Eclipse
