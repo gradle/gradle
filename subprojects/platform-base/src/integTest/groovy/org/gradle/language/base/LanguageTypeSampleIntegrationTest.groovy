@@ -23,8 +23,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 @Requires(TestPrecondition.ONLINE)
 class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -36,7 +34,7 @@ class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds "components"
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 DefaultDocumentationComponent 'docs'
 ------------------------------------
 
@@ -47,8 +45,7 @@ Source sets
 Binaries
     DefaultDocumentationBinary 'docs:binary'
         build using task: :docsBinary
-"""))
-
+"""
     }
 
     def "can build binary"() {

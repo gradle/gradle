@@ -17,7 +17,6 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.util.TextUtil
 
 class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationTest {
 
@@ -108,11 +107,11 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
         """
         then:
         succeeds "verify"
-        output.contains TextUtil.toPlatformLineSeparators('''configured components.main.sources
+        output.contains '''configured components.main.sources
 before ss1
 created ss1
 configured ss1
 after ss1
-''')
+'''
     }
 }
