@@ -91,8 +91,8 @@ project.logger.debug("debug logging");
         def op = withBuild()
 
         then:
-        def out = op.standardOutput
-        def err = op.standardError
+        def out = op.result.output
+        def err = op.result.error
         normaliseOutput(out) == normaliseOutput(commandLineResult.output)
         err == commandLineResult.error
 
