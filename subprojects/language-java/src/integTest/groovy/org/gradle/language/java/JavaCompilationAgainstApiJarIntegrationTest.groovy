@@ -39,49 +39,11 @@ model {
             }
         }
         main(JvmLibrarySpec) {
-            ${scope.declaration}
+            ${scope.declarationFor 'myLib'}
         }
     }
 }
 """
-    }
-
-    static enum DependencyScope {
-        COMPONENT {
-            @Override
-            public String getDeclaration() {
-                return '''
-                dependencies {
-                    library 'myLib'
-                }'''
-            }
-        },
-        API {
-            @Override
-            public String getDeclaration() {
-                return '''
-                api {
-                    dependencies {
-                        library 'myLib'
-                    }
-                }'''
-            }
-        },
-        SOURCES {
-            @Override
-            public String getDeclaration() {
-                return '''
-                sources {
-                    java {
-                        dependencies {
-                            library 'myLib'
-                        }
-                    }
-                }'''
-            }
-        };
-
-        public abstract String getDeclaration();
     }
 
     static Collection<DependencyScope> scopes = DependencyScope.values()
@@ -133,7 +95,6 @@ import internal.PersonInternal;
 public class TestApp {
     private PersonInternal person;
 }
-
 '''
 
         expect:
