@@ -64,7 +64,8 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
         this.targetPlatforms.add(DefaultPlatformRequirement.create(targetPlatform));
     }
 
-    void api(Action<ApiSpec> configureAction) {
+    @Override
+    public void api(Action<? super ApiSpec> configureAction) {
         configureAction.execute(apiSpec);
     }
 

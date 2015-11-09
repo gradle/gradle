@@ -35,7 +35,7 @@ import static java.lang.String.format;
  *
  * @since 2.9
  */
-class ApiSpec {
+public class ApiSpec {
 
     private final Set<PackageName> exports = new HashSet<PackageName>();
     private final DefaultDependencySpecContainer dependencies = new DefaultDependencySpecContainer();

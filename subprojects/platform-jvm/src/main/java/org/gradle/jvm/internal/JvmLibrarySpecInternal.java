@@ -25,5 +25,8 @@ import org.gradle.platform.base.internal.PlatformAwareComponentSpecInternal;
  * Definition of a JVM library component that is to be built by Gradle.
  */
 public interface JvmLibrarySpecInternal extends JvmLibrarySpec, PlatformAwareComponentSpecInternal {
+
+    void api(Action<? super ApiSpec> configureAction);
+
     DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);
 }

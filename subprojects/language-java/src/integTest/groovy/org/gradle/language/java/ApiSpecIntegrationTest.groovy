@@ -261,6 +261,54 @@ class ApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(allClasses)
     }
 
+    def "should support configuring exported packages from rule method"() {
+        when:
+        addNonApiClasses()
+
+        and:
+        file('buildSrc/src/main/java/Rules.java') << '''
+            import org.gradle.api.Action;
+            import org.gradle.jvm.internal.ApiSpec;
+            import org.gradle.jvm.internal.JvmLibrarySpecInternal;
+            import org.gradle.model.Mutate;
+            import org.gradle.model.Path;
+            import org.gradle.model.RuleSource;
+
+            class Rules extends RuleSource {
+                @Mutate
+                void specifyMyLibApi(@Path("components.myLib") JvmLibrarySpecInternal myLib) {
+                    myLib.api(new Action<ApiSpec>() {
+                        @Override
+                        public void execute(ApiSpec apiSpec) {
+                            apiSpec.exports("compile.test");
+                        }
+                    });
+                }
+            }
+        '''
+
+        and:
+        buildFile << '''
+            apply type: Rules
+
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                    }
+                }
+            }
+        '''
+        then:
+        succeeds "createMyLibApiJar"
+
+        and:
+        def allClasses = app.sources*.classFile.fullPath as String[]
+        def apiClassesOnly = (allClasses -
+            ["non_api/pkg/InternalPerson.class", "compile/test/internal/Util.class"]) as String[];
+        jarFile("build/jars/myLibApiJar/myLib.jar").hasDescendants(apiClassesOnly)
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(allClasses)
+    }
+
     def addNonApiClasses() {
         app.sources.add(new JvmSourceFile("non_api/pkg", "InternalPerson.java", '''
             package non_api.pkg;
