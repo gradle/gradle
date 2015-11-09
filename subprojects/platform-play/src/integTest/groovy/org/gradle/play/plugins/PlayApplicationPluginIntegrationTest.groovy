@@ -111,7 +111,7 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     Java source 'play:extraJava'
         srcDir: src${File.separator}extraJava
 """
-        output.containsc"""
+        output.contains """
     Scala source 'play:extraScala'
         srcDir: src${File.separator}extraScala
 """
