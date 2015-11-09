@@ -1,9 +1,6 @@
 # Continuous Build improvements
 
-## Story: Detecting changes during a build
-
-The continuous build should detect changes to inputs during a running build. 
-When a change is detected, the current build should be cancelled and a new build should be re-triggered.
+## Story: Continuous build will trigger a rebuild when an input file is changed during build execution
 
 ### Current implementation
 
@@ -22,7 +19,7 @@ public interface FileSystemChangeWaiter {
 To be able to detect changes during the running build, the file watching should start before the task is executed.
 The current `FileSystemChangeWaiter` interface should be replaced (or modified) to support this.
 
-Usage of `FileSystemSubset.Builder` in `registerWatchPoints` method of `FileCollectionDependency` interface should be replaced with an interface that has the registration methods on it and so that registering inputs doesn't have to be coupled with `FileSystemSubset`.
+Usage of `FileSystemSubset.Builder` in `registerWatchPoints` method of `FileCollectionInternal` interface should be replaced with an interface that has the registration methods on it and so that registering inputs doesn't have to be coupled with `FileSystemSubset`.
 
 The current code in [ContinuousBuildActionExecuter](https://github.com/gradle/gradle/blob/fe03c3d452b6c04a152f4485e7598c0a4f295340/subprojects/launcher/src/main/java/org/gradle/launcher/exec/ContinuousBuildActionExecuter.java#L112-L117):
 
@@ -44,14 +41,22 @@ Implementation details can be planned further after spiking the changes in the a
 ### Test coverage
 
 - all current continuous build tests should pass
-- add test scenario with a simple build with tasks A, B, C, D , each having it's own directory as input
+
+- add test scenario with a simple build with tasks A, B, C, D each having it's own directory as input. Tasks have dependencies so that B depends on A, C on B and D on C. Request building task D.
   - change input files to tasks after each task has been executed, but before build has completed
     - check that build gets cancelled and a new build gets triggered
   - change input file for task before a task has been executed
     - check that build doesn't get cancelled and continues executing
-  - remove 'C' task from build and trigger a build by changing A's input file
-    - check that build doesn't get re-triggered after completion when the non-existing's C task's inputs are changed
- 
+  - change input file for task during the task is executed
+    - check that a new build gets re-triggered
+  - build executes and fails in task C
+    - change input file to D
+      - no build will be re-triggered because of the way how inputs are registered. 
+        - similar behaviour in current continuous build
+    - change input file of task B
+      - a new build should get re-triggered
+    - change input file of task C
+      - a new build should get re-triggered
 
 ## Story: Detecting changes to build files or files that are input to the build configuration phase
 
