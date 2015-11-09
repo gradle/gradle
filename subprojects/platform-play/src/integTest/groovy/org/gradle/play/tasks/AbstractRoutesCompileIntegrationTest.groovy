@@ -22,8 +22,8 @@ import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
-import static org.gradle.play.integtest.fixtures.Repositories.*
+
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORES
 
 abstract class AbstractRoutesCompileIntegrationTest extends MultiVersionIntegrationSpec {
     def destinationDirPath = "build/playBinary/src/compilePlayBinaryRoutes"
