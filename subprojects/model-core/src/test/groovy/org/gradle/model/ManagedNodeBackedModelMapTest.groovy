@@ -36,20 +36,6 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
     def itemType = ModelType.of(NamedThingInterface)
     def modelMapType = ModelTypes.modelMap(itemType)
 
-    @Managed
-    static interface NamedThingInterface extends Named {
-        String getOther()
-        void setOther(String string)
-    }
-
-    static interface Special {}
-
-    @Managed
-    static interface SpecialNamedThingInterface extends NamedThingInterface, Special {
-        String getSpecial()
-        void setSpecial(String string)
-    }
-
     def setup() {
         registry.register(ModelRegistrations.of(path, nodeInitializerRegistry.getNodeInitializer(modelMapType)).descriptor("creator").build())
     }

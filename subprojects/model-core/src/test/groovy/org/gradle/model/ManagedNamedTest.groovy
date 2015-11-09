@@ -38,11 +38,6 @@ class ManagedNamedTest extends ProjectRegistrySpec {
         registry.realize("bar", NamedThingInterface).name == "bar"
     }
 
-    @Managed
-    static interface NamedThingInterface extends Named {
-        String getOther()
-        void setOther(String string)
-    }
 
     @Managed
     static abstract class NonNamedThing {

@@ -58,20 +58,6 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         }
     }
 
-    static interface Special {}
-
-    @Managed
-    static interface NamedThingInterface extends Named {
-        String getOther()
-        void setOther(String string)
-    }
-
-    @Managed
-    static interface SpecialNamedThingInterface extends NamedThingInterface, Special {
-        String getSpecial()
-        void setSpecial(String string)
-    }
-
     static class Container<T> extends DefaultPolymorphicDomainObjectContainer<T> implements RuleAwareNamedDomainObjectFactoryRegistry<T>, NamedEntityInstantiator<T> {
         Container(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
             super(type, instantiator, namer)
