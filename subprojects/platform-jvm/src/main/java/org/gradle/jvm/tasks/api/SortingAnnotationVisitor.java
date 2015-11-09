@@ -18,9 +18,10 @@ package org.gradle.jvm.tasks.api;
 
 import com.google.common.collect.Lists;
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Opcodes;
 
 import java.util.List;
+
+import static org.objectweb.asm.Opcodes.ASM5;
 
 class SortingAnnotationVisitor extends AnnotationVisitor {
 
@@ -32,7 +33,7 @@ class SortingAnnotationVisitor extends AnnotationVisitor {
     private String arrayValueName;
 
     public SortingAnnotationVisitor(AnnotationMember parentAnnotation, AnnotationVisitor av) {
-        super(Opcodes.ASM5, av);
+        super(ASM5, av);
         this.annotation = parentAnnotation;
     }
 

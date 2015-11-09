@@ -16,7 +16,9 @@
 
 package org.gradle.jvm.tasks.api;
 
-import org.objectweb.asm.*;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,6 +27,8 @@ import java.io.InputStream;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
+
+import static org.objectweb.asm.Opcodes.ASM5;
 
 /**
  * Extracts an "API class" from an original "runtime class" for subsequent inclusion
@@ -74,7 +78,7 @@ class ApiClassExtractor {
 
     boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
         final AtomicBoolean shouldExtract = new AtomicBoolean();
-        originalClassReader.accept(new ClassVisitor(Opcodes.ASM5) {
+        originalClassReader.accept(new ClassVisitor(ASM5) {
             @Override
             public void visit(int version, int access, String name, String signature, String superName,
                               String[] interfaces) {

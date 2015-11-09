@@ -17,13 +17,16 @@
 package org.gradle.jvm.tasks.api;
 
 import com.google.common.collect.Sets;
-import org.objectweb.asm.*;
+
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 import java.util.SortedSet;
 
-import static org.objectweb.asm.Opcodes.ACC_SUPER;
-import static org.objectweb.asm.Opcodes.ASM5;
+import static org.objectweb.asm.Opcodes.*;
 
 /**
  * Visits each {@link Member} of a given class and selects only those members that should
@@ -157,7 +160,7 @@ class ApiMemberSelector extends ClassVisitor {
         if (isCandidateApiMember(access, apiIncludesPackagePrivateMembers) || ("<init>".equals(name) && isInnerClass)) {
             final MethodMember methodMember = new MethodMember(access, name, desc, signature, exceptions);
             methods.add(methodMember);
-            return new MethodVisitor(Opcodes.ASM5) {
+            return new MethodVisitor(ASM5) {
                 @Override
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     AnnotationMember ann = new AnnotationMember(desc, visible);
@@ -181,7 +184,7 @@ class ApiMemberSelector extends ClassVisitor {
         if (isCandidateApiMember(access, apiIncludesPackagePrivateMembers)) {
             final FieldMember fieldMember = new FieldMember(access, name, signature, desc);
             fields.add(fieldMember);
-            return new FieldVisitor(Opcodes.ASM5) {
+            return new FieldVisitor(ASM5) {
                 @Override
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     AnnotationMember ann = new AnnotationMember(desc, visible);
@@ -212,17 +215,17 @@ class ApiMemberSelector extends ClassVisitor {
     }
 
     private static boolean isPublicMember(int access) {
-        return (access & Opcodes.ACC_PUBLIC) == Opcodes.ACC_PUBLIC;
+        return (access & ACC_PUBLIC) == ACC_PUBLIC;
     }
 
     private static boolean isProtectedMember(int access) {
-        return (access & Opcodes.ACC_PROTECTED) == Opcodes.ACC_PROTECTED;
+        return (access & ACC_PROTECTED) == ACC_PROTECTED;
     }
 
     private static boolean isPackagePrivateMember(int access) {
         return access == 0
-            || access == Opcodes.ACC_STATIC
-            || access == Opcodes.ACC_SUPER
-            || access == (Opcodes.ACC_SUPER | Opcodes.ACC_STATIC);
+            || access == ACC_STATIC
+            || access == ACC_SUPER
+            || access == (ACC_SUPER | ACC_STATIC);
     }
 }
