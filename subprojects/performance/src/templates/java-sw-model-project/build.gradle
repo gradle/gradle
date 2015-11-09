@@ -1,12 +1,12 @@
 import org.gradle.api.plugins.quality.Checkstyle
-import org.gradle.jvm.JvmLibrarySpec
-import org.gradle.model.*
-import org.gradle.platform.base.BinaryContainer
-import org.gradle.platform.base.BinarySpec
 
 plugins {
     id 'jvm-component'
     id 'java-lang'
+}
+
+repositories {
+    jcenter()
 }
 
 <% if (repository) { %>
@@ -14,7 +14,6 @@ repositories {
     maven {
         url rootProject.file("${repository.rootDir.name}").toURI().toURL()
     }
-    mavenCentral()
 }
 <% } %>
 
@@ -48,6 +47,20 @@ model {
                         } %>
                     }
                 }
+            }
+        }
+<% } } %>
+        <% if (binding.hasVariable("apiExports")) {
+            def apiExports = apiExports.get(subprojectNumber)
+            if(apiExports) {
+            %>
+        main {
+            api {
+                <%
+                apiExports.each {
+                    %>
+                    exports 't${it}' <%
+                } %>
             }
         }
 <% } } %>

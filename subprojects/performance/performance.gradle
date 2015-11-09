@@ -383,14 +383,24 @@ task largeJavaSwModelProject(type: JvmProjectGeneratorTask) {
     sourceFiles = 1000
 }
 
-configure([smallJavaSwModelProject, largeJavaSwModelProject]) {
+task smallJavaSwModelProjectWithApi(type: JvmProjectGeneratorTask) {
+    projects = 10
+    sourceFiles = 100
+}
+
+task largeJavaSwModelProjectWithApi(type: JvmProjectGeneratorTask) {
+    projects = 100
+    sourceFiles = 1000
+}
+
+configure([smallJavaSwModelProject, largeJavaSwModelProject, smallJavaSwModelProjectWithApi, largeJavaSwModelProjectWithApi]) {
     linesOfCodePerSourceFile = 50
     filesPerPackage = 10
     useSubProjectNumberInSourceFileNames = true
     subProjectTemplates = ['java-source', 'java-sw-model-project', 'with-junit']
 
     def dependencyGenerator = DependencyGenerator.newInstance(numberOfProjects: it.projectCount)
-    boolean smallProjectType = (name == 'smallJavaSwModelProject')
+    boolean smallProjectType = (name.startsWith('small'))
     dependencyGenerator.numberOfDependencies = smallProjectType ? 3 : 10
     dependencyGenerator.numberOfLayers = smallProjectType ? 3 : 5
     dependencyGenerator.layerRatio = smallProjectType ? 1 : 2
@@ -409,6 +419,21 @@ configure([smallJavaSwModelProject, largeJavaSwModelProject]) {
     }
 
     numberOfExternalDependencies = smallProjectType ? 5 : 50
+}
+
+configure([smallJavaSwModelProjectWithApi, largeJavaSwModelProjectWithApi]) {
+    templateArgs.apiExports = [].withDefault { ['org.gradle.test.performance'] }
+    numberOfExternalDependencies = 0
+    dependencyGraph {
+        size = 0
+    }
+    createPackageName = { testProject, fileNumber ->
+        def pkg = 'org.gradle.test.performance'
+        if (fileNumber %2 == 1) {
+            pkg = "${pkg}.internal"
+        }
+        pkg.toString()
+    }
 }
 
 task nativeMonolithicOverlapping(type: MonolithicNativeProjectGeneratorTask) {

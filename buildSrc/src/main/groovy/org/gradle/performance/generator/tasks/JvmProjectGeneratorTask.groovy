@@ -16,14 +16,18 @@
 
 package org.gradle.performance.generator.tasks
 
-import org.gradle.performance.generator.*
-
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFiles
+import org.gradle.performance.generator.*
 
 class JvmProjectGeneratorTask extends ProjectGeneratorTask {
     boolean groovyProject
     boolean scalaProject
+    Closure createPackageName = { testProject, fileNumber ->
+        def pkg = "org.gradle.test.performance${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${(int) (fileNumber / filesPerPackage) + 1}"
+        pkg.toString()
+    }
+    Closure createFileName = { testProject, prefix, fileNumber -> "${prefix}${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${fileNumber + 1}".toString() }
 
     @InputFiles
     FileCollection testDependencies
@@ -75,10 +79,8 @@ class JvmProjectGeneratorTask extends ProjectGeneratorTask {
             testFilePrefix = "Test"
             testFileTemplate = "Test.java"
         }
-
-        def createPackageName = { fileNumber -> "org.gradle.test.performance${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${(int) (fileNumber / filesPerPackage) + 1}".toString() }
-        def createFileName = { prefix, fileNumber -> "${prefix}${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${fileNumber + 1}".toString() }
-
+        def createPackageName = this.createPackageName.rehydrate(this, this, this).curry(testProject)
+        def createFileName = this.createFileName.rehydrate(this, this, this).curry(testProject)
         testProject.sourceFiles.times {
             String packageName = createPackageName(it)
             Map classArgs = args + [packageName: packageName, productionClassName: createFileName(classFilePrefix, it)]
