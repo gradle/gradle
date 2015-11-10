@@ -25,9 +25,6 @@ import spock.lang.Unroll
 import java.util.regex.Pattern
 
 class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuildPerformanceTest {
-    private static int perc(int perc, int total) {
-        (int) Math.ceil(total * (double) perc / 100d)
-    }
 
     @Unroll("CompileAvoidance '#testCompileAvoidance' measuring compile avoidance speed when #cardinalityDesc #scenario #apiDesc")
     def "build java software model project"() {
@@ -57,24 +54,27 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
         'internal API changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 10            | 0                    | 0
         'internal API changes'   | "smallJavaSwModelCompileAvoidanceWithApi"    | 50            | 0                    | 0
         'internal API changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 50            | 0                    | 0
-        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 10            | 0                    | 0
-        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 10            | 0                    | 0
-        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 50            | 0                    | 0
-        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 50            | 0                    | 0
 
         'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 10                   | 0
         'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 10                   | 0
         'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 50                   | 0
         'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 50                   | 0
-        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 10                   | 0
-        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 10                   | 0
-        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 50                   | 0
-        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 50                   | 0
 
         'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 10
         'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 0                    | 10
         'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 50
         'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 0                    | 50
+
+        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 10            | 0                    | 0
+        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 10            | 0                    | 0
+        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 50            | 0                    | 0
+        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 50            | 0                    | 0
+
+        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 10                   | 0
+        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 10                   | 0
+        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 50                   | 0
+        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 50                   | 0
+
         'ABI breaking changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 10
         'ABI breaking changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 0                    | 10
         'ABI breaking changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 50
@@ -98,6 +98,10 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
             this.abiBreakingChanges = abiBreakingChanges
             this.nonApiChanges = nonApiChanges
             this.abiCompatibleChanges = abiCompatibleChanges
+        }
+
+        private static int perc(int perc, int total) {
+            (int) Math.ceil(total * (double) perc / 100d)
         }
 
         int nonApiChangesCount() {
@@ -128,8 +132,8 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
                 // make sure execution is consistent independently of time
                 Collections.shuffle(projects, new Random(31 * projectCount))
                 // we create an initial copy of all source files so that we are consistent accross builds even if interrupted
-                def backups = []
-                def sources = []
+                List<File> backups = []
+                List<File> sources = []
                 projectDir.eachFileRecurse { file ->
                     if (file.name.endsWith('~')) {
                         backups << file
@@ -138,12 +142,20 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
                     }
                 }
                 // restore files first
+                println "Restoring ${backups.size()} files"
                 backups.each { file ->
-                    FileUtils.copyFile(file, new File(file.parentFile, file.name - '~'), true)
+                    def targetFile = new File(file.parentFile, file.name - '~')
+                    if (!targetFile.exists() || targetFile.length()!=file.length() || targetFile.lastModified() != file.lastModified()) {
+                        FileUtils.copyFile(file, targetFile, true)
+                    }
                 }
                 // then create a copy of each source file
+                println "Creating ${sources.size()} backup files"
                 sources.each { file ->
-                    FileUtils.copyFile(file, new File(file.parentFile, file.name + '~'), true)
+                    def backupFile = new File(file.parentFile, file.name + '~')
+                    if (!backupFile.exists()) {
+                        FileUtils.copyFile(file, backupFile, true)
+                    }
                 }
             }
             if (!updatedFiles.isEmpty()) {
