@@ -11,6 +11,29 @@ Add-->
 TBD - Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
 might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
 
+#### Component level dependencies for Java libraries
+
+In most cases it is more natural and convenient to define dependencies per component rather than individually on a source set and it is now possible to do so when defining a Java library.
+
+Example:
+
+    apply plugin: "jvm-component"
+
+    model {
+      components {
+        main(JvmLibrarySpec) {
+          dependencies {
+            library "core"
+          }
+        }
+
+        core(JvmLibrarySpec) {
+        }
+      }
+    }
+
+Dependencies declared this way will apply to all source sets for the component.
+
 #### Managed internal views for binaries and components
 
 Now it is possible to attach a `@Managed` internal view to any `BinarySpec` or `ComponentSpec` type. This allows pluign authors to attach extra properties to already registered binary and component types like `JarBinarySpec`.
