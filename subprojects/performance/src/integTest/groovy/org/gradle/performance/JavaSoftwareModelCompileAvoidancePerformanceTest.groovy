@@ -89,7 +89,7 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
                 } else if (invocationInfo.phase != BuildExperimentRunner.Phase.WARMUP) {
                     projects.take(nonApiChangesCount(projectCount)).each { subproject ->
                         def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/internal'.replace((char) '/', File.separatorChar))
-                        def updatedFile = internalDir.listFiles().find { it.name.endsWith('.java') }
+                        def updatedFile = pickFirstJavaSource(internalDir)
                         println "Updating non-API source file $updatedFile"
                         backup[updatedFile] = updatedFile.bytes
                         updatedFile.text = updatedFile.text.replace('private final String property;', '''
@@ -100,7 +100,7 @@ public String addedProperty;
 
                     projects.take(compatibleApiChangesCount(projectCount)).each { subproject ->
                         def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
-                        def updatedFile = internalDir.listFiles()[0]
+                        def updatedFile = pickFirstJavaSource(internalDir)
                         println "Updating API source file $updatedFile in ABI compatible way"
                         backup[updatedFile] = updatedFile.bytes
                         updatedFile.text = updatedFile.text.replace('return property;', 'return property.toUpperCase();')
@@ -108,7 +108,7 @@ public String addedProperty;
 
                     projects.take(breakingApiChangesCount(projectCount)).each { subproject ->
                         def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
-                        def updatedFile = internalDir.listFiles()[0]
+                        def updatedFile = pickFirstJavaSource(internalDir)
                         println "Updating API source file $updatedFile in ABI breaking way"
                         backup[updatedFile] = updatedFile.bytes
                         updatedFile.text = updatedFile.text.replace('public String getProperty() {', '''public String getPropertyToUpper() {
@@ -118,6 +118,10 @@ public String addedProperty;
 public String getProperty() {''')
                     }
                 }
+            }
+
+            private File pickFirstJavaSource(File internalDir) {
+                internalDir.listFiles().find { it.name.endsWith('.java') }
             }
         }
 
@@ -137,23 +141,23 @@ public String getProperty() {''')
 
         // nonApiChanges, abiCompatibleChanges and abiBreakingChanges are expressed in percentage of projects that are going to be
         // updated in the test
-        scenario                        | testProject                      | nonApiChanges | abiCompatibleChanges | abiBreakingChanges
+        scenario                     | testProject                      | nonApiChanges | abiCompatibleChanges | abiBreakingChanges
         'internal API change made'   | "smallJavaSwModelProjectWithApi" | 10            | 0                    | 0
         'internal API change made'   | "smallJavaSwModelProjectWithApi" | 50            | 0                    | 0
-        //'internal API change made'   | "largeJavaSwModelProjectWithApi" | 10            | 0                    | 0
-        //'internal API change made'   | "largeJavaSwModelProjectWithApi" | 50            | 0                    | 0
+        'internal API change made'   | "largeJavaSwModelProjectWithApi" | 10            | 0                    | 0
+        'internal API change made'   | "largeJavaSwModelProjectWithApi" | 50            | 0                    | 0
 
         'ABI compatible change made' | "smallJavaSwModelProjectWithApi" | 0             | 10                   | 0
         'ABI compatible change made' | "smallJavaSwModelProjectWithApi" | 0             | 50                   | 0
-        //'ABI compatible change made' | "largeJavaSwModelProjectWithApi" | 0             | 10                   | 0
-        //'ABI compatible change made' | "largeJavaSwModelProjectWithApi" | 0             | 50                   | 0
+        'ABI compatible change made' | "largeJavaSwModelProjectWithApi" | 0             | 10                   | 0
+        'ABI compatible change made' | "largeJavaSwModelProjectWithApi" | 0             | 50                   | 0
 
         'ABI breaking change made'   | "smallJavaSwModelProjectWithApi" | 0             | 0                    | 10
         'ABI breaking change made'   | "smallJavaSwModelProjectWithApi" | 0             | 0                    | 50
-        //'ABI breaking change made'   | "largeJavaSwModelProjectWithApi" | 0             | 0                    | 10
-        //'ABI breaking change made'   | "largeJavaSwModelProjectWithApi" | 0             | 0                    | 50
+        'ABI breaking change made'   | "largeJavaSwModelProjectWithApi" | 0             | 0                    | 10
+        'ABI breaking change made'   | "largeJavaSwModelProjectWithApi" | 0             | 0                    | 50
 
         size = testProject[0..4]
-        cardinalityDesc = (nonApiChanges+abiCompatibleChanges+abiBreakingChanges)<50?'some':'many'
+        cardinalityDesc = (nonApiChanges + abiCompatibleChanges + abiBreakingChanges) < 50 ? 'some' : 'many'
     }
 }
