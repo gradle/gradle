@@ -132,10 +132,7 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.javaSourceSettings.languageLevel.level == JavaVersion.current().toString()
 
         where:
-        plugin       | _
-        JavaPlugin   | _
-        GroovyPlugin | _
-        ScalaPlugin  | _
+        plugin << [JavaPlugin, GroovyPlugin, ScalaPlugin]
     }
 
     def "default source language level is set for Java projects if source compatibility is set to null"() {
@@ -151,10 +148,7 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.javaSourceSettings.languageLevel.level == JavaVersion.current().toString()
 
         where:
-        plugin       | _
-        JavaPlugin   | _
-        GroovyPlugin | _
-        ScalaPlugin  | _
+        plugin << [JavaPlugin, GroovyPlugin, ScalaPlugin]
     }
 
     def "custom source language level from Java plugin convention"() {
