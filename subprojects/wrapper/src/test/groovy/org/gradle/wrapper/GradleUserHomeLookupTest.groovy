@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.internal
+package org.gradle.wrapper
 
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
@@ -33,7 +33,7 @@ class GradleUserHomeLookupTest extends Specification {
 
     def "returns default Gradle user home if environment variable or system property isn't defined"() {
         expect:
-        GradleUserHomeLookup.gradleUserHome() == GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME
+        GradleUserHomeLookup.gradleUserHome() == new File(GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME)
     }
 
     def "returns Gradle user home set by system property"() {
