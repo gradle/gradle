@@ -22,6 +22,8 @@ import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.BuildExperimentRunner
 import spock.lang.Unroll
 
+import java.util.regex.Pattern
+
 class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuildPerformanceTest {
     private static int perc(int perc, int total) {
         (int) Math.ceil(total * (double) perc / 100d)
@@ -87,7 +89,7 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
         private List<File> projects
         private int projectCount
 
-        private final Map<File, byte[]> backup = [:]
+        private final Set<File> updatedFiles = []
         private final int nonApiChanges
         private final int abiCompatibleChanges
         private final int abiBreakingChanges
@@ -144,18 +146,18 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
                     FileUtils.copyFile(file, new File(file.parentFile, file.name + '~'), true)
                 }
             }
-            if (!backup.isEmpty()) {
-                backup.each { File path, byte[] origContents ->
-                    println "Reverting changes to $path"
-                    path.withOutputStream { out -> out.write(origContents) }
+            if (!updatedFiles.isEmpty()) {
+                updatedFiles.each { File file ->
+                    println "Reverting changes to $file"
+                    FileUtils.copyFile(new File(file.parentFile, file.name + '~'), file, true)
                 }
-                backup.clear()
+                updatedFiles.clear()
             } else if (invocationInfo.phase != BuildExperimentRunner.Phase.WARMUP) {
                 projects.take(nonApiChangesCount()).each { subproject ->
                     def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/internal'.replace((char) '/', File.separatorChar))
                     def updatedFile = pickFirstJavaSource(internalDir)
                     println "Updating non-API source file $updatedFile"
-                    backup[updatedFile] = updatedFile.bytes
+                    updatedFiles << updatedFile
                     updatedFile.text = updatedFile.text.replace('private final String property;', '''
 private final String property;
 public String addedProperty;
@@ -166,7 +168,7 @@ public String addedProperty;
                     def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
                     def updatedFile = pickFirstJavaSource(internalDir)
                     println "Updating API source file $updatedFile in ABI compatible way"
-                    backup[updatedFile] = updatedFile.bytes
+                    updatedFiles << updatedFile
                     updatedFile.text = updatedFile.text.replace('return property;', 'return property.toUpperCase();')
                 }
 
@@ -174,12 +176,20 @@ public String addedProperty;
                     def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
                     def updatedFile = pickFirstJavaSource(internalDir)
                     println "Updating API source file $updatedFile in ABI breaking way"
-                    backup[updatedFile] = updatedFile.bytes
-                    updatedFile.text = updatedFile.text.replace('public String getProperty() {', '''public String getPropertyToUpper() {
-   return property.toUpperCase();
-}
-
-public String getProperty() {''')
+                    updatedFiles << updatedFile
+                    updatedFile.text = updatedFile.text.replace('one()', 'two()')
+                    // need to locate all affected classes
+                    def updatedClass = updatedFile.name - '.java'
+                    projectDir.eachFileRecurse { f->
+                        if (f.name.endsWith('.java')) {
+                            def txt = f.text
+                            if (txt.contains("${updatedClass}.one()")) {
+                                updatedFiles << f
+                                println "Updating consuming source $f"
+                                f.text = txt.replaceAll(Pattern.quote("${updatedClass}.one()"), "${updatedClass}.two()")
+                            }
+                        }
+                    }
                 }
             }
         }

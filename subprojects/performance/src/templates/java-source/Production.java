@@ -1,9 +1,12 @@
 package ${packageName};
 
 public class ${productionClassName} ${extendsAndImplementsClause} {
+
+    public static ${productionClassName} one() { return new ${productionClassName}(); }
+
     private final String property;
     <% extraFields.each { %>
-    ${it.modifier} ${it.type} ${it.name};
+    ${it.modifier} ${it.type} ${it.name} = ${it.type}.one();
     <% } %>
 
     public ${productionClassName}(){
