@@ -36,4 +36,5 @@
 atlassian-ide-plugin.xml
 *.sublime-*
 .nb-gradle
+.nb-gradle-properties
 .java-version
