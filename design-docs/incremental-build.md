@@ -197,10 +197,10 @@ example of using `BuildExperimentListener` for testing
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
                 if(invocationInfo.loopNumber % 2 == 0) {
                     // do change
-                    
+
                 } else if (invocationInfo.loopNumber > 2) {
                     // remove change
-                    
+
                 }
             }
 
@@ -280,6 +280,87 @@ unmodified.
 ### Test coverage
 
 TBD
+
+## Story: Author specifies all files to include in source directory
+
+Currently, all source sets consist of a collection of root directories and a set of
+include/exclude patterns. Since we do not distinguish between patterns that have a
+single match (path/to/foo.c) and a glob (**/*.c), we must always scan all root
+directory paths and check all include and exclude patterns.  It's common for some
+projects to have an exhaustive list of all source files and no globbing.  In those
+cases, we could avoid directory walking and pattern matching.
+
+### DSL
+
+Introduces a method `source(String, Closure<PatternFilterable-like>)` to `LanguageSourceSet`:
+
+    model {
+        components {
+            lib(NativeLibrarySpec) {
+                sources {
+                    cpp {
+                        source("src/lib/cpp") // 1. no configuration, assume default pattern for source set
+                        source("src/lib/cpp") {
+                            // 2. only include patterns
+                            include '**/*.cpp', '**/*.c++', '**/*.C'
+                        }
+                        source("src/lib/cpp") {
+                            // 3. mix of explicit files and patterns
+                            include 'foo/bar.cpp'
+                            include 'baz/**/*.cpp'
+                            exclude '**/*.h'
+                            exclude 'baz/fubar.cpp'
+                        }
+                        source("src/lib/cpp") {
+                            // 4. only explicit list of files
+                            include 'foo/bar.cpp'
+                            include 'baz/baz.cpp'
+                        }
+                        source {
+                            // 5. existing API
+                            srcDirs 'src/lib/cpp'
+                            include 'foo/bar.cpp', 'baz/**/*.cpp'
+                            exclude '**/*.h', 'baz/fubar.cpp'
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+1. turns into a file collection with 'src/lib/cpp' as a root dir and some default set of patterns
+1. turns into the same thing as #1 with a different set of patterns
+1. turns into a union of file collections:
+    - file collection with just "foo/bar.cpp" (no scanning needed)
+    - file collection root dir 'src/lib/cpp' with include pattern 'baz/**/*.cpp' and exclude pattern '**/*.h'
+    - file collection of excluded files 'baz/fubar.cpp' (no scanning needed)
+    - union = (a+b)-c
+1. is the fastest and turns into a file collection with just a set of files. (no scanning needed)
+1. is what we have today.  I think the migration would be
+    - Introduce new syntax (release X)
+    - Deprecate and warn that old syntax is going away -- part of the warning might be a generated "this is what it would look like" message
+    - Remove old API (release X+?), but keep source(Closure) around a bit longer to point people back to the migration path.  We wouldn't honor configuration done with source(Closure) anymore.
+1. Figuring out if an include/exclude pattern is really a file would be just checking for '*' in the pattern.
+
+### Things to consider:
+
+- What do the defaults look like and how do they mix with this? e.g., how do I add exclusions without duplicating the default path?
+
+    model {
+        components {
+            lib(NativeLibrarySpec) {
+                cpp {
+                    source("src/lib/cpp") {
+                        exclude 'fubar.cpp'
+                    }
+                    // maybe repurpose old syntax to mean "exclude/include patterns for default"?
+                    source {
+                        exclude 'fubar.cpp'
+                    }
+                }
+            }
+        }
+    }
 
 ## Story: Reduce number of directory scans in up-to-date checks
 
