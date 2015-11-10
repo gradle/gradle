@@ -6,8 +6,6 @@ plugins {
 // START SNIPPET simple-dependency
 model {
     components {
-        core(JvmLibrarySpec)
-
         server(JvmLibrarySpec) {
             sources {
                 java {
@@ -17,6 +15,22 @@ model {
                 }
             }
         }
+
+        core(JvmLibrarySpec) {
+            dependencies {
+                library 'commons'
+            }
+        }
+
+        commons(JvmLibrarySpec) {
+            api {
+                dependencies {
+                    library 'collections'
+                }
+            }
+        }
+
+        collections(JvmLibrarySpec)
     }
 }
 // END SNIPPET simple-dependency
@@ -24,7 +38,7 @@ model {
 model {
     components {
 // START SNIPPET dependency-other-project
-       client(JvmLibrarySpec) {
+        client(JvmLibrarySpec) {
             sources {
                 java {
                     dependencies {
