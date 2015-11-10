@@ -189,7 +189,7 @@ public String addedProperty;
                     def updatedFile = pickFirstJavaSource(internalDir)
                     println "Updating API source file $updatedFile in ABI breaking way"
                     updatedFiles << updatedFile
-                    updatedFile.text = updatedFile.text.replace('one()', 'two()')
+                    updatedFile.text = updatedFile.text.replace('one() {', 'two() {')
                     // need to locate all affected classes
                     def updatedClass = updatedFile.name - '.java'
                     projectDir.eachFileRecurse { f->
