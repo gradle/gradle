@@ -8,7 +8,7 @@ Currently continuous build registers inputs for watching after the build is comp
 Changes that happen after a task is executed, but before the file watching starts, will remain unnoticed.
 
 The current interfaces of `FileSystemChangeWaiter` is:
-```
+```java
 public interface FileSystemChangeWaiter {
     void wait(FileSystemSubset taskFileSystemInputs, BuildCancellationToken cancellationToken, Runnable notifier);
 }
@@ -52,7 +52,7 @@ Implementation details can be planned further after spiking the changes in the a
   - build executes and fails in task C
     - change input file to D
       - no build will be triggered because of the way how inputs are registered. 
-        - similar behaviour in current continuous build
+        - similar behavior in current continuous build
     - change input file of task B
       - a new build gets triggered
     - change input file of task C
@@ -60,13 +60,17 @@ Implementation details can be planned further after spiking the changes in the a
 
 ### Open issues
 
-- Self modifying tasks will cause a loop
-- Builds with tasks that change inputs of tasks executed earlier in the build will cause a loop
-- Jar task might need this fix: https://github.com/gradle/gradle/commit/4bc280cff6745e78e0b764c604c19214c5b9c946
+- Jar task needs this fix to prevent looping: https://github.com/gradle/gradle/commit/4bc280cff6745e78e0b764c604c19214c5b9c946
+
+## Story: Print the path of the task to console whose input changed
+
+This is an extension to the story "Continuous build will trigger a rebuild when an input file is changed during build execution". When a change is detected, the path of the task whose input changed should be printed to the console. 
+
+This helps the user find out the reason which triggered the build. It is possible that a continuous build keeps re-triggering new builds when the user isn't doing any changes. This happens when a task changes it's own inputs during execution or when a task changes the inputs of a task that has been executed in the build before it. The user should fix such builds since continuous build will not prevent such loops.
 
 ## Story: Currently running build is canceled before triggering a new build
 
-This is an extension to the previous story "Continuous build will trigger a rebuild when an input file is changed during build execution". When a change is detected, the currently executing build is canceled and a new build is triggered.
+This is an extension to the story "Continuous build will trigger a rebuild when an input file is changed during build execution". When a change is detected, the currently executing build is canceled and a new build is triggered.
 
 ### Test coverage
 
@@ -77,7 +81,6 @@ This is an extension to the previous story "Continuous build will trigger a rebu
     - check that the currently running build gets canceled and a new build gets triggered
   - change input file for task during the task is executed
     - check that the currently running build gets canceled and a new build gets triggered
-
 
 ## Story: Detecting changes to build files or files that are input to the build configuration phase
 
