@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
@@ -139,17 +139,14 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         }
         eclipseProject.setBuildCommands(buildCommands);
 
-        if (project.getConvention().findPlugin(JavaPluginConvention.class) != null) {
+        if (project.getPlugins().hasPlugin(JavaBasePlugin.class)) {
             // the default value for eclipse.jdt.sourceCompatibility is project.sourceCompatibility
             // hence we have to read the value only from there
-            EclipseJdt eclipseJdt = eclipseModel.getJdt();
-            if (eclipseJdt != null) {
-                JavaVersion sourceCompatibility = eclipseJdt.getSourceCompatibility();
-                if (sourceCompatibility != null) {
-                    DefaultJavaSourceLevel languageLevel = new DefaultJavaSourceLevel(sourceCompatibility.toString());
-                    DefaultJavaSourceSettings sourceSettings = new DefaultJavaSourceSettings(languageLevel);
-                    eclipseProject.setJavaSourceSettings(sourceSettings);
-                }
+            JavaVersion sourceCompatibility = eclipseModel.getJdt().getSourceCompatibility();
+            if (sourceCompatibility != null) {
+                DefaultJavaSourceLevel languageLevel = new DefaultJavaSourceLevel(sourceCompatibility.toString());
+                DefaultJavaSourceSettings sourceSettings = new DefaultJavaSourceSettings(languageLevel);
+                eclipseProject.setJavaSourceSettings(sourceSettings);
             }
         }
 
