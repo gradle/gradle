@@ -268,15 +268,15 @@ class ApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         and:
         file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.Action;
-            import org.gradle.jvm.internal.ApiSpec;
-            import org.gradle.jvm.internal.JvmLibrarySpecInternal;
+            import org.gradle.jvm.ApiSpec;
+            import org.gradle.jvm.JvmLibrarySpec;
             import org.gradle.model.Mutate;
             import org.gradle.model.Path;
             import org.gradle.model.RuleSource;
 
             class Rules extends RuleSource {
                 @Mutate
-                void specifyMyLibApi(@Path("components.myLib") JvmLibrarySpecInternal myLib) {
+                void specifyMyLibApi(@Path("components.myLib") JvmLibrarySpec myLib) {
                     myLib.api(new Action<ApiSpec>() {
                         @Override
                         public void execute(ApiSpec apiSpec) {

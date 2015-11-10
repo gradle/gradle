@@ -19,6 +19,8 @@ package org.gradle.jvm.internal;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.jvm.ApiSpec;
+import org.gradle.jvm.PackageName;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
 import org.gradle.util.ConfigureUtil;
@@ -28,26 +30,11 @@ import java.util.Set;
 
 import static java.lang.String.format;
 
-/**
- * Specifies the packages that constitute the API of a library. Facilitates separation of
- * API and implementation binaries for that library. Backing object for the
- * {@code api {}} DSL.
- *
- * @since 2.9
- */
-public class ApiSpec {
+public class DefaultApiSpec implements ApiSpec {
 
     private final Set<PackageName> exports = new HashSet<PackageName>();
     private final DefaultDependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
-    /**
-     * Specify a package to be exported as part of the library API.
-     *
-     * @param value the name of the package to be exported
-     * @throws InvalidUserDataException if the package name is not valid or has already
-     * been exported
-     * @see PackageName
-     */
     public void exports(String value) {
         final PackageName packageName;
         try {

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal;
+package org.gradle.jvm;
+
+import org.gradle.api.Incubating;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,9 +31,10 @@ import java.util.List;
  * always a valid type name.</p>
  *
  * @see #of(String)
- * @since 2.9
+ * @since 2.10
  */
-class PackageName {
+@Incubating
+public class PackageName {
 
     private static final List<String> JAVA_KEYWORDS = Arrays.asList(
         "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",

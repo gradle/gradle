@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal
+package org.gradle.jvm
 
 import spock.lang.Specification
 import spock.lang.Unroll

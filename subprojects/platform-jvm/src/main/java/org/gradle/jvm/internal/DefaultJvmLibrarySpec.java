@@ -21,8 +21,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.jvm.ApiSpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.JvmResources;
+import org.gradle.jvm.PackageName;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.TransformationFileType;
@@ -36,7 +38,7 @@ import java.util.*;
 public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibrarySpecInternal {
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
     private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
-    private final ApiSpec apiSpec = new ApiSpec();
+    private final ApiSpec apiSpec = new DefaultApiSpec();
     private final DependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
     public DefaultJvmLibrarySpec() {
