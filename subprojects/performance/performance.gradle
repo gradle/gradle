@@ -383,17 +383,29 @@ task largeJavaSwModelProject(type: JvmProjectGeneratorTask) {
     sourceFiles = 1000
 }
 
-task smallJavaSwModelProjectWithApi(type: JvmProjectGeneratorTask) {
+task smallJavaSwModelCompileAvoidanceWithApi(type: JvmProjectGeneratorTask) {
     projects = 10
     sourceFiles = 100
 }
 
-task largeJavaSwModelProjectWithApi(type: JvmProjectGeneratorTask) {
+task largeJavaSwModelCompileAvoidanceWithApi(type: JvmProjectGeneratorTask) {
     projects = 100
     sourceFiles = 1000
 }
 
-configure([smallJavaSwModelProject, largeJavaSwModelProject, smallJavaSwModelProjectWithApi, largeJavaSwModelProjectWithApi]) {
+task smallJavaSwModelCompileAvoidanceWithoutApi(type: JvmProjectGeneratorTask) {
+    projects = 10
+    sourceFiles = 100
+}
+
+task largeJavaSwModelCompileAvoidanceWithoutApi(type: JvmProjectGeneratorTask) {
+    projects = 100
+    sourceFiles = 1000
+}
+
+configure([smallJavaSwModelProject, largeJavaSwModelProject,
+           smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi,
+           smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi]) {
     linesOfCodePerSourceFile = 50
     filesPerPackage = 10
     useSubProjectNumberInSourceFileNames = true
@@ -421,8 +433,8 @@ configure([smallJavaSwModelProject, largeJavaSwModelProject, smallJavaSwModelPro
     numberOfExternalDependencies = smallProjectType ? 5 : 50
 }
 
-configure([smallJavaSwModelProjectWithApi, largeJavaSwModelProjectWithApi]) {
-    templateArgs.apiExports = [].withDefault { ['org.gradle.test.performance'] }
+configure([smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi, smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi]) {
+    templateArgs.apiExports = [].withDefault { name.contains('Without') ? [] : ['org.gradle.test.performance'] }
     numberOfExternalDependencies = 0
     dependencyGraph {
         size = 0
