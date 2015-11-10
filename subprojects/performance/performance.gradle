@@ -429,10 +429,26 @@ configure([smallJavaSwModelProjectWithApi, largeJavaSwModelProjectWithApi]) {
     }
     createPackageName = { testProject, fileNumber ->
         def pkg = 'org.gradle.test.performance'
-        if (fileNumber %2 == 1) {
+        if (fileNumber % 2 == 0) {
             pkg = "${pkg}.internal"
         }
         pkg.toString()
+    }
+    createFileName = { testProject, prefix, fileNumber ->
+        def suffix
+        if (fileNumber % 2 == 0) {
+            suffix = "${fileNumber}Internal"
+        } else {
+            suffix = "${fileNumber + 1}"
+        }
+        "${prefix}${testProject.subprojectNumber}_${suffix}".toString()
+    }
+    createExtendsAndImplementsClause = { testProject, prefix, fileNumber ->
+        if (fileNumber>0 && (fileNumber % 2 == 0)) {
+            "extends org.gradle.test.performance.${prefix}${testProject.subprojectNumber}_${fileNumber}"
+        } else {
+            ''
+        }
     }
 }
 

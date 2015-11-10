@@ -1,7 +1,11 @@
 package ${packageName};
 
-public class ${productionClassName} {
+public class ${productionClassName} ${extendsAndImplementsClause} {
     private final String property;
+
+    public ${productionClassName}(){
+        this.property = null;
+    }
 
     public ${productionClassName}(String param) {
         this.property = param;
