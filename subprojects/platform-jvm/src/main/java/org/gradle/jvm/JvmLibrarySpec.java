@@ -45,7 +45,7 @@ public interface JvmLibrarySpec extends LibrarySpec, JvmComponentSpec, PlatformA
     Set<String> getExportedPackages();
 
     /**
-     * Specify the API-level dependencies of this library.
+     * Specify the component-level dependencies of this library.
      */
     DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);
 
