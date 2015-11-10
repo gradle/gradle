@@ -29,6 +29,7 @@ class JvmProjectGeneratorTask extends ProjectGeneratorTask {
     }
     Closure createFileName = { testProject, prefix, fileNumber -> "${prefix}${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${fileNumber + 1}".toString() }
     Closure createExtendsAndImplementsClause = { testProject, prefix, fileNumber -> '' }
+    Closure<List<Map<String, String>>> createExtraFields = { testProject, prefix, fileNumber -> [] }
 
     @InputFiles
     FileCollection testDependencies
@@ -83,12 +84,15 @@ class JvmProjectGeneratorTask extends ProjectGeneratorTask {
         def createPackageName = this.createPackageName.rehydrate(this, this, this).curry(testProject)
         def createFileName = this.createFileName.rehydrate(this, this, this).curry(testProject)
         def createExtendsAndImplementsClause = this.createExtendsAndImplementsClause.rehydrate(this, this, this).curry(testProject)
+        def extraFields = this.createExtraFields.rehydrate(this, this, this).curry(testProject)
         testProject.sourceFiles.times {
             String packageName = createPackageName(it)
             Map classArgs = args + [
                 packageName: packageName,
                 productionClassName: createFileName(classFilePrefix, it),
-                extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it)]
+                extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it),
+                extraFields: extraFields(classFilePrefix, it)
+            ]
             generateWithTemplate(projectDir, "src/main/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.productionClassName}.${sourceLang}", classFileTemplate, classArgs)
         }
         testProject.testSourceFiles.times {
@@ -97,7 +101,8 @@ class JvmProjectGeneratorTask extends ProjectGeneratorTask {
                 packageName: packageName,
                 productionClassName: createFileName(classFilePrefix, it),
                 testClassName: createFileName(testFilePrefix, it),
-                extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it)]
+                extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it),
+                extraFields: extraFields(classFilePrefix, it)]
             generateWithTemplate(projectDir, "src/test/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.testClassName}.${sourceLang}", testFileTemplate, classArgs)
         }
     }

@@ -450,6 +450,16 @@ configure([smallJavaSwModelProjectWithApi, largeJavaSwModelProjectWithApi]) {
             ''
         }
     }
+    createExtraFields = { testProject, prefix, fileNumber ->
+        if (fileNumber % 2 == 1) {
+            templateArgs.generatedDependencies[testProject.subprojectNumber].collect {
+                [modifier: 'public', name: "projectDep${it}", type: "${prefix}${it}_${fileNumber + 1}"]
+            }
+        } else {
+            []
+        }
+    }
+
 }
 
 task nativeMonolithicOverlapping(type: MonolithicNativeProjectGeneratorTask) {

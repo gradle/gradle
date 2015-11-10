@@ -2,6 +2,9 @@ package ${packageName};
 
 public class ${productionClassName} ${extendsAndImplementsClause} {
     private final String property;
+    <% extraFields.each { %>
+    ${it.modifier} ${it.type} ${it.name};
+    <% } %>
 
     public ${productionClassName}(){
         this.property = null;
