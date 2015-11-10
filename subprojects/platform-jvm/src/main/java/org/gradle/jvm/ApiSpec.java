@@ -18,7 +18,6 @@ package org.gradle.jvm;
 
 import groovy.lang.Closure;
 import org.gradle.api.Incubating;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.platform.base.DependencySpecContainer;
 
 import java.util.Set;
@@ -37,8 +36,8 @@ public interface ApiSpec {
      * Specify a package to be exported as part of the library API.
      *
      * @param packageName the name of the package to be exported, e.g. "com.example.p1"
-     * @throws InvalidUserDataException if the package name is not valid or has already
-     * been exported
+     * @throws org.gradle.api.InvalidUserDataException if the package name is not valid or
+     * has already been exported
      * @see PackageName
      */
     void exports(String packageName);
