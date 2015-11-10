@@ -150,7 +150,7 @@ Based on IncrementalNativeCompiler's #include extractor, add header files as dis
 
 - How to deal with missing #include files (macros and missing files)
 
-## Story: Performance test and profiling for native incremental build where some files require recompilation
+## Story: Performance test for native incremental build where some files require recompilation
 
 #### Constraints
 - Change happens after a previous build, so it is not a clean build
@@ -236,6 +236,12 @@ example of using `BuildExperimentListener` for testing
 - 1 compiler option changed
 
 # Unprioritized
+
+## Story: Profiling for native incremental build where some files require recompilation
+
+- Profile and find performance hotspots for the 1 file / few files changed scenarios introduced in the "Performance test for native incremental build where some files require recompilation" story.
+- Spike changes for optimizing biggest bottlenecks to be able to find more hotspots that only show up in profiling after reducing/removing the current bottlenecks.
+- Document the findings and add stories for doing improvements.
 
 ## Story: not loading the file snapshots in up-to-date checking
 
