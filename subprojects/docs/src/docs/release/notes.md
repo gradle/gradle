@@ -235,6 +235,29 @@ The result of the <a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProje
 
 ## Potential breaking changes
 
+### The `binaries` container is no longer accessible as a project extension
+
+The `binaries` container is no longer bridged into the regular plugin space, and is now only visible to rules via model.
+The `binaries` project extension has been removed.
+
+For the following code that works in Gradle 2.8 and earlier:
+
+    binaries.all {
+        ...
+    }
+
+use this in Gradle 2.9:
+
+    model {
+        binaries {
+            all {
+                ...
+            }
+        }
+    }
+
+A similar change is required for `binaries.withType` and `binaries.matching`.
+
 ### Changes to the incubating native software model
 
 - `NativeExecutableBinarySpec.executableFile` is now reachable via `NativeExecutableBinarySpec.executable.file`.
@@ -243,11 +266,6 @@ The result of the <a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProje
 Tool settings like `cppCompiler.args` are no longer added via the Gradle extension mechanism. `PreprocessingTool` accessors
 are now implemented directly by `NativeBinarySpec`,
 which no longer implements `ExtensionAware`. No changes to build scripts should be required.
-
-### Changes to the experimental integration between the Java software model and the Java plugins
-
-The `binaries` container is no longer bridged into the regular plugin space, and is now only visible to rules via model.
-The `binaries` project extension has been removed.
 
 ### Changes to the experimental model rules DSL
 
