@@ -1,10 +1,43 @@
+import org.gradle.build.JarJarJar
+
 dependencies {
-    compile project(':baseServices')
-    compile(project(':toolingApi')) {
-        transitive = false
-    }
+    compile project(':toolingApi')
+    runtime project(':native')
     testCompile libraries.groovy
 }
 
 strictCompile()
 useTestFixtures()
+
+configurations.runtime {
+    artifacts.clear()
+}
+
+tasks.remove(jar)
+
+task jar(type: JarJarJar) {
+    from sourceSets.main.output
+    from { configurations.runtime.collect { zipTree(it) } }
+
+    exclude 'META-INF/**'
+    exclude 'gradle-plugins.properties'
+    exclude { details ->
+        details.file.name.endsWith('-classpath.properties') &&
+        details.file.name != 'gradle-test-kit-classpath.properties'
+    }
+
+    rule('org.gradle.testkit.**', '@0')
+    rule('org.gradle.tooling.**', '@0')
+    rule('org.gradle.**', 'org.gradle.jarjar.@0')
+
+    rule('org.**', 'org.gradle.jarjar.@0')
+    rule('com.**', 'org.gradle.jarjar.@0')
+    rule('net.**', 'org.gradle.jarjar.@0')
+
+    keep('org.gradle.testkit.**')
+    keep('org.gradle.tooling.**')
+}
+
+artifacts {
+    runtime jar
+}

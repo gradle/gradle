@@ -24,9 +24,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 
 import java.util.Arrays;
 
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.*;
 
 public class DependencyClassPathProvider implements ClassPathProvider {
     private final ModuleRegistry moduleRegistry;
@@ -52,9 +50,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         }
         if (name.equals(GRADLE_TEST_KIT.name())) {
             ClassPath classpath = new DefaultClassPath();
-            for (Module module : moduleRegistry.getModule("gradle-test-kit").getAllRequiredModules()) {
-                classpath = classpath.plus(module.getClasspath());
-            }
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-test-kit").getClasspath());
             return classpath;
         }
         if (name.equals(LOCAL_GROOVY.name())) {

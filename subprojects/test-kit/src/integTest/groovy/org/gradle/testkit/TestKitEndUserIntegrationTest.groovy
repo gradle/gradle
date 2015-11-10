@@ -16,7 +16,9 @@
 
 package org.gradle.testkit
 
+import com.google.common.math.IntMath
 import groovy.io.FileType
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -30,6 +32,7 @@ import org.gradle.util.GFileUtils
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.runner.RunWith
+import spock.lang.Unroll
 
 @RunWith(GradleRunnerIntegTestRunner)
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
@@ -61,7 +64,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         def jarsDir = testDirectoryProvider.createDir('jars')
 
         new File(distribution.gradleHomeDir, 'lib').eachFileRecurse(FileType.FILES) { f ->
-            if (["tooling-api", "base-services", "test-kit"].any { f.name.contains it }) {
+            if (["test-kit"].any { f.name.contains it }) {
                 GFileUtils.copyFile(f, new File(jarsDir, f.name))
             }
         }
@@ -81,6 +84,56 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.output.contains("Could not find a Gradle runtime to use based on the location of the GradleRunner class: $testKitJar.canonicalPath. Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar.")
+    }
+
+    @Unroll
+    def "attempt to use #origin class in functional test should fail"() {
+        buildFile << gradleTestKitDependency()
+        writeTest """
+            package org.gradle.test
+
+            import $clazz.name
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {}
+        """
+
+        when:
+        fails('build')
+
+        then:
+        errorOutput.contains("unable to resolve class $clazz.name")
+        executedAndNotSkipped(':compileTestGroovy')
+        assertDaemonsAreStopping()
+
+        where:
+        clazz       | origin
+        JavaVersion | 'Gradle core'
+        IntMath     | 'Google Guava'
+    }
+
+    def "class from user-defined library doesn't conflict with same Gradle core library in runtime classpath"() {
+        buildFile << gradleTestKitDependency()
+        buildFile << """
+            dependencies {
+                testCompile 'com.google.guava:guava-jdk5:13.0'
+            }
+        """
+        writeTest """
+            package org.gradle.test
+
+            import $IntMath.name
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {}
+        """
+
+        when:
+        succeeds('build')
+
+        then:
+        executedAndNotSkipped(":test", ":build")
+        assertDaemonsAreStopping()
     }
 
     def "successfully execute functional test and verify expected result"() {

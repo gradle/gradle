@@ -172,6 +172,14 @@ Internal views registered for a `@Managed` public type must themselves be `@Mana
 
 This functionality is available for types extending `ComponentSpec` and `BinarySpec`.
 
+### TestKit dependency decoupled from Gradle core dependencies
+
+The method `DependencyHandler.gradleTestKit()` creates a dependency on the classes of the Gradle TestKit runtime classpath. In previous versions
+of Gradle the TestKit dependency also declared transitive dependencies on other Gradle core classes and external libraries that ship with the Gradle distribution. This might lead to
+version conflicts between the runtime classpath of the TestKit and user-defined libraries required for functional testing. A typical example for this scenario would be Google Guava.
+With this version of Gradle, the Gradle TestKit dependency is represented by a fat and shaded JAR file containing Gradle core classes and classes of all required external dependencies
+to avoid convoluting the functional test runtime classpath.
+
 ### Visualising a project's build script dependencies
 
 The new `buildEnvironment` task can be used to visualise the project's `buildscript` dependencies.
