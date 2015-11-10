@@ -16,6 +16,7 @@ configurations.runtime {
 tasks.remove(jar)
 
 task jar(type: JarJarJar) {
+    ext.shadedPackage = 'org.gradle.testkit.jarjar'
     from sourceSets.main.output
     from { configurations.runtime.collect { zipTree(it) } }
 
@@ -28,11 +29,11 @@ task jar(type: JarJarJar) {
 
     rule('org.gradle.testkit.**', '@0')
     rule('org.gradle.tooling.**', '@0')
-    rule('org.gradle.**', 'org.gradle.jarjar.@0')
+    rule('org.gradle.**', "${shadedPackage}.@0")
 
-    rule('org.**', 'org.gradle.jarjar.@0')
-    rule('com.**', 'org.gradle.jarjar.@0')
-    rule('net.**', 'org.gradle.jarjar.@0')
+    rule('org.**', "${shadedPackage}.@0")
+    rule('com.**', "${shadedPackage}.@0")
+    rule('net.**', "${shadedPackage}.@0")
 
     keep('org.gradle.testkit.**')
     keep('org.gradle.tooling.**')
