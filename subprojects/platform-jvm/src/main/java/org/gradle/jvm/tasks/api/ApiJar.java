@@ -135,18 +135,19 @@ public class ApiJar extends DefaultTask {
             protected void doExecute(InputFileDetails inputFileDetails) throws Exception {
                 updated.set(true);
                 File originalClassFile = inputFileDetails.getFile();
-                if (apiClassExtractor.shouldExtractApiClassFrom(originalClassFile)) {
-                    final byte[] apiClassBytes = apiClassExtractor.extractApiClassFrom(originalClassFile);
-                    apiClasses.put(originalClassFile, apiClassBytes);
-                    File apiClassFile = apiClassFileFor(originalClassFile);
-                    apiClassFile.getParentFile().mkdirs();
-                    IoActions.withResource(new FileOutputStream(apiClassFile), new ErroringAction<OutputStream>() {
-                        @Override
-                        protected void doExecute(OutputStream outputStream) throws Exception {
-                            outputStream.write(apiClassBytes);
-                        }
-                    });
+                if (!apiClassExtractor.shouldExtractApiClassFrom(originalClassFile)) {
+                    return;
                 }
+                final byte[] apiClassBytes = apiClassExtractor.extractApiClassFrom(originalClassFile);
+                apiClasses.put(originalClassFile, apiClassBytes);
+                File apiClassFile = apiClassFileFor(originalClassFile);
+                apiClassFile.getParentFile().mkdirs();
+                IoActions.withResource(new FileOutputStream(apiClassFile), new ErroringAction<OutputStream>() {
+                    @Override
+                    protected void doExecute(OutputStream outputStream) throws Exception {
+                        outputStream.write(apiClassBytes);
+                    }
+                });
             }
         });
         inputs.removed(new ErroringAction<InputFileDetails>() {

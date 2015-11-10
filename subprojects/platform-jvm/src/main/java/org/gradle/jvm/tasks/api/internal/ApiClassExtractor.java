@@ -68,9 +68,8 @@ public class ApiClassExtractor {
             return false;
         }
         InputStream inputStream = new FileInputStream(originalClassFile);
-        ClassReader classReader = new ClassReader(inputStream);
         try {
-            return shouldExtractApiClassFrom(classReader);
+            return shouldExtractApiClassFrom(new ClassReader(inputStream));
         } finally {
             inputStream.close();
         }
@@ -123,13 +122,7 @@ public class ApiClassExtractor {
         if (exportedPackages.isEmpty()) {
             return true;
         }
-        String candidatePackageName = packageNameOf(candidateClassName);
-        for (String exportedPackage : exportedPackages) {
-            if (candidatePackageName.equals(exportedPackage)) {
-                return true;
-            }
-        }
-        return false;
+        return exportedPackages.contains(packageNameOf(candidateClassName));
     }
 
     private static String convertAsmInternalNameToClassName(String internalName) {

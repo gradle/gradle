@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.tasks.api.internal;
 
+import java.util.Arrays;
+
 public class ClassMember extends AnnotatableMember {
 
     private final int version;
@@ -30,7 +32,7 @@ public class ClassMember extends AnnotatableMember {
     }
 
     public String[] getInterfaces() {
-        return interfaces;
+        return Arrays.copyOf(interfaces, interfaces.length);
     }
 
     public String getSuperName() {
