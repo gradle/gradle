@@ -332,7 +332,7 @@ Investigate the `ComponentSpec` type hierarchy to find what types could benefit 
 ### Implementation notes
 
 - Introduce internal views all along the type hierarchy and remove as much casts as possible, mostly from rules.
-- Make types `@Manage`d starting from leafs of the `ComponentSpec` hierarchy.
+- Make types `@Managed` starting from leafs of the `ComponentSpec` hierarchy.
 
 #### Identified candidates
 
