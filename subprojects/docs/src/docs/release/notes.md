@@ -251,8 +251,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Changes to TestKit's runtime classpath
 
-- External dependencies e.g. Google Guava brought in by Gradle core libraries when using the TestKit runtime classpath are no longer usable in functional test code. They have been
-shaded and bundled with the TestKit dependency. Therefore, these libraries are no longer accessible under their default package name.
+- External dependencies e.g. Google Guava brought in by Gradle core libraries when using the TestKit runtime classpath are no longer usable in functional test code. Any external dependency
+required by the test code needs to be declared for the test classpath.
 
 ### Changes to model rules DSL
 
