@@ -163,8 +163,6 @@ This default implementation is then used as the super class for all `@Managed` s
 
 - Generalise the work done to allow `@Managed` subtypes of `JarBinarySpec` to support this.
 - Allow for binaries and components.
-- Change core plugins to declare default implementations for `ComponentSpec` and `BinarySpec`. This will allow `@Managed` subtypes of each
-of these types.
 
 ### Test cases
 
@@ -267,6 +265,45 @@ The views defined for the general type should also be applied to the specialized
 - Change all usages of `@ComponentType` and `@BinaryType` in core plugins to declare internal view types.
 - Add a rule to the base plugins, to declare internal view types for `ComponentSpec` and `BinarySpec`.
 - Change node creation so that implementation is no longer available as a view type.
+
+
+## Plugin author defines `@Managed` subtype of core type without providing implementation
+
+Change core plugins to declare default implementations for `ComponentSpec` and `BinarySpec`. This will allow `@Managed` subtypes of each
+of these types.
+
+```
+@Managed
+interface MyComponentSpec extends ComponentSpec {
+    String getValue()
+    void setValue(String value)
+}
+
+class Rules extends RuleSource {
+    @ComponentType
+    void registerMyComponent(ComponentTypeBuilder<MyComponentSpec> builder) {
+    }
+}
+
+model {
+    components {
+        myThing(MyComponentSpec) {
+            value = "alma"
+        }
+    }
+}
+```
+
+### Implementation
+
+- Default implementations needs to be allowed for multiple levels. In case of multiple default implementations the most specific one should be used.
+
+### Test cases
+
+- A `@Managed` subtype of `ComponentSpec` can be used to declare a component
+- An unmanaged subtype of `BinarySpec` (with its more-specific default implementation) can be extended via a `@Managed` subtype
+  - this is already covered by `CustomJarBinarySpecSubtypeIntegrationTest`
+
 
 ## Plugin author declares internal views for custom managed type
 
