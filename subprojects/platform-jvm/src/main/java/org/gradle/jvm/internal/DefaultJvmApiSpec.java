@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.internal;
 
-import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.jvm.JvmApiSpec;
@@ -50,7 +49,7 @@ public class DefaultJvmApiSpec implements JvmApiSpec {
     }
 
     public Set<JvmPackageName> getExports() {
-        return ImmutableSet.copyOf(exports);
+        return exports;
     }
 
     public DependencySpecContainer getDependencies() {
