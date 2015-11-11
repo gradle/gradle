@@ -81,12 +81,15 @@ we want to have a dedicated model for eclipse specific java information and grad
 
 #### The API
 
+    enum JavaVersion {
+    }
+
     interface JavaLanguageLevel {
-        String getLevel()
+        JavaVersion getVersion()
     }
 
     interface JavaSourceSettings {
-        JavaSourceLevel getLanguageLevel()
+        JavaLanguageLevel getLanguageLevel()
     }
 
     interface JavaSourceAware {
@@ -180,31 +183,35 @@ language levels for each module in a project.
 #### Estimate
 - 3 days
 
+
+#### The API
+
+    interface JavaRuntime {
+        JavaVersion getJavaVersion()
+        File getHomeDirectory()
+    }
+
+    interface JavaSourceSettings {
+        ...
+        JavaRuntimeEnvironment getTargetRuntime()
+    }
+
+
 #### Implementation
 
-- For `EclipseProject`, add details of the target JVM:
-    - JDK name
-    - JDK Java version
-    - JDK install directory
-- Improve the target SDK detection. Name and version should be based on the target compatibility of the project.
-    - consume this information from the eclipse plugin configuration if provided (`eclipse.jdt.targetCompatibility`)
+- Add `JavaRuntimeEnvironment getTargetRuntime()` to `JavaSourceSettings`.
+- `JavaRuntimeEnvironment` should expose
+    - `JavaVersion getJavaVersion()` - the version of the JRE
+    - `File getHomeDirectory()` - the directory of the JRE in use
 
-- For older Gradle versions:
-    - TBD - reasonable defaults for Java language version
-
-#### Implementation
-
-- Implement SDK detection (pointer: have a look at testfixture we already have for this: `AvailableJavaHomes`)
-- Extend EclipseProject to add TargetJvm Details (name, version, installdir)
+- Update `DefaultJavaSourceSettings` to expose JRE information based on current JVM in use
 
 #### Test coverage
 
-- EclipseProject#targetSdk points to matching SDK
-    - for java projects targetCompatibility matches specified project#targetCompatibility
-    - for projects with eclipse plugin targetCompatibility matches `eclipse.jdt.targetCompatibility`
-    point to exact match
-    - point to exact match if available (requested 1.6 -> installed jdk 1.6 found)
-    - points to complian sdk if exact match not available
+- `EclipseProject.getJavaSourceSettings().getTargetRuntime()` points to JVM in use
+    - `homeDirectory` pointing to the java home of the jvm in use
+    - `javaVersion` reflecting the java version of the jvm in use
+- throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetRuntime()
 
 ### Story - Expose target JDK for Java projects to IDEA
 
