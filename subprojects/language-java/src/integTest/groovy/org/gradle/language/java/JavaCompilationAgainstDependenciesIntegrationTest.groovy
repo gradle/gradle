@@ -30,25 +30,25 @@ class JavaCompilationAgainstDependenciesIntegrationTest extends AbstractIntegrat
         buildFile << """
             model {
                 components {
-                    A(JvmLibrarySpec) {
-                        ${scope.declarationFor 'B'}
+                    main(JvmLibrarySpec) {
+                        ${scope.declarationFor 'core'}
                         sources {
                             other(JavaSourceSet) {
                                 source.srcDir "src/other"
                             }
                         }
                     }
-                    B(JvmLibrarySpec) {}
+                    core(JvmLibrarySpec) {}
                 }
             }
         """
 
-        file('src/A/java/a/A1.java') << 'package a; class A1 extends b.B {}'
-        file('src/other/a/A2.java')  << 'package a; class A2 extends b.B {}'
-        file('src/B/java/b/B.java')  << 'package b; public class B {}'
+        file('src/main/java/main/Main.java') << 'package main; class Main extends core.Core {}'
+        file('src/other/main/Other.java')    << 'package main; class Other extends core.Core {}'
+        file('src/core/java/core/Core.java') << 'package core; public class Core {}'
 
         expect:
-        succeeds 'AJar'
+        succeeds 'mainJar'
 
         where:
         scope << [DependencyScope.API, DependencyScope.COMPONENT]
@@ -61,32 +61,32 @@ class JavaCompilationAgainstDependenciesIntegrationTest extends AbstractIntegrat
         buildFile << """
             model {
                 components {
-                    A(JvmLibrarySpec) {
-                        ${scope1.declarationFor 'B'}
-                        ${scope2.declarationFor 'B'}
-                    }
-                    B(JvmLibrarySpec) {}
-                    C(JvmLibrarySpec) {
+                    main(JvmLibrarySpec) {
                         dependencies {
-                            library 'A'
+                            library 'core'
                         }
                     }
+                    core(JvmLibrarySpec) {
+                        ${scope1.declarationFor 'lib'}
+                        ${scope2.declarationFor 'lib'}
+                    }
+                    lib(JvmLibrarySpec) {}
                 }
             }
         """
 
-        file('src/A/java/a/A.java') << 'package a; class A extends b.B {}'
-        file('src/B/java/b/B.java') << 'package b; public class B {}'
-        file('src/C/java/c/C.java') << 'package c; class C extends b.B {}'
+        file('src/main/java/main/Main.java') << 'package main; class Main extends lib.Lib {}'
+        file('src/core/java/core/Core.java') << 'package core; class Core extends lib.Lib {}'
+        file('src/lib/java/lib/Lib.java')    << 'package lib; public class Lib {}'
 
         expect:
-        succeeds 'AJar'
+        succeeds 'coreJar'
 
         and:
         if (exportedOrNot == 'exported') {
-            succeeds 'CJar'
+            succeeds 'mainJar'
         } else {
-            fails 'CJar'
+            fails 'mainJar'
         }
 
         where:
