@@ -31,7 +31,6 @@ import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
 public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpecInternal {
@@ -42,9 +41,9 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File resourcesDir;
     private File jarFile;
     private File apiJarFile;
-    private Set<String> exportedPackages = Collections.emptySet();
-    private Collection<DependencySpec> apiDependencies = Collections.emptySet();
-    private Collection<DependencySpec> componentLevelDependencies = Collections.emptySet();
+    private Set<String> exportedPackages = ImmutableSet.of();
+    private Set<DependencySpec> apiDependencies = ImmutableSet.of();
+    private Set<DependencySpec> componentLevelDependencies = ImmutableSet.of();
 
     @Override
     protected String getTypeName() {
@@ -124,7 +123,7 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public void setExportedPackages(Set<String> exportedPackages) {
-        this.exportedPackages = exportedPackages;
+        this.exportedPackages = ImmutableSet.copyOf(exportedPackages);
     }
 
     @Override
@@ -134,7 +133,7 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public void setApiDependencies(Collection<DependencySpec> apiDependencies) {
-       this.apiDependencies = apiDependencies;
+       this.apiDependencies = ImmutableSet.copyOf(apiDependencies);
     }
 
     @Override
