@@ -239,7 +239,7 @@ This diagram shows the intended ClassLoader hierarchy. The piece to be added is 
 
 # Milestone 2
 
-## Story: IDE user debugs test build
+## Story: IDE user debugs test build (DONE)
 
 By default functional tests are executed in a forked daemon process. Debugging test execution in a different JVM other than the "main" Gradle process would require additional setup from the end user.
 This story improves the end user experience by allowing for conveniently step through code for debugging purposes from the IDE without the need for any complicated configuration.
@@ -275,14 +275,14 @@ later story dealing with the plugin development plugin can deal with the automat
 - How do we reliably determine that the build is executed from an IDE?
 - Should the integration with `Test.debug` be moved to the story that addresses the plugin development plugin?
 
-## Story: Developer inspects build result of unexpected build failure
+## Story: Developer inspects build result of unexpected build failure (DONE)
 
 This story adds the ability to understand what happened with the test when it fails unexpectedly.
 
 - UnexpectedBuildFailure and Success should have-a BuildResult
 - Tooling API exceptions and infrastructure failures should be wrapped and provide build information (e.g. stdout)
 
-## Story: Test build code against different Gradle versions
+## Story: Test build code against different Gradle versions (DONE)
 
 Extend the capabilities of `GradleRunner` to allow for testing a build against more than one Gradle version. The typical use case is to check the runtime compatibility of build logic against a
 specific Gradle version. Example: Plugin X is built with 2.3, but check if it is also compatible with 2.2, 2.4 and 2.5.
@@ -382,7 +382,7 @@ This story improves usability of the test kit by not imposing any dependencies b
 - User tests cannot access classes from `gradle-core` (or any other part of the Gradle runtime) in tests where `gradleTestKit()` was used
 - Configuration containing just `gradleTestKit()` contains no other files than `gradle-test-kit` and `gradle-tooling-api`
 
-## Story: Ability to provide Writers for capturing standard output and error
+## Story: Ability to provide Writers for capturing standard output and error (DONE)
 
 At the moment the standard output and error can only be resolved from the `BuildResult`. There's not direct output of these streams to the console. Users cannot provide their own OutputStreams
 for other debugging or processing purposes. This story allows for specifying a Writer to the `GradleRunner` API that output will be forwarded to (e.g. `System.out`).
