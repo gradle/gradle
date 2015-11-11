@@ -422,7 +422,7 @@ unsupported functionality for other versions of the Tooling API.
 
 ### Implementation
 
-* Execute all existing integration tests in Gradle core with a restricted set of Gradle versions:
+* Execute all existing TestKit integration tests in Gradle core with a restricted set of Gradle versions:
     * version-under-test
     * the most recent released version
     * the oldest version for which the feature is supported
