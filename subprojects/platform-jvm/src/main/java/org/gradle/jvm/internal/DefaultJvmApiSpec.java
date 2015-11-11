@@ -19,7 +19,7 @@ package org.gradle.jvm.internal;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.jvm.ApiSpec;
+import org.gradle.jvm.JvmApiSpec;
 import org.gradle.jvm.PackageName;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
@@ -30,7 +30,7 @@ import java.util.Set;
 
 import static java.lang.String.format;
 
-public class DefaultApiSpec implements ApiSpec {
+public class DefaultJvmApiSpec implements JvmApiSpec {
 
     private final Set<PackageName> exports = new HashSet<PackageName>();
     private final DefaultDependencySpecContainer dependencies = new DefaultDependencySpecContainer();

@@ -24,7 +24,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.JDK8_OR_EARLIER)
-class ApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
+class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
     TestJvmComponent app = new TestJavaComponent()
 
@@ -268,7 +268,7 @@ class ApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         and:
         file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.Action;
-            import org.gradle.jvm.ApiSpec;
+            import org.gradle.jvm.JvmApiSpec;
             import org.gradle.jvm.JvmLibrarySpec;
             import org.gradle.model.Mutate;
             import org.gradle.model.Path;
@@ -277,9 +277,9 @@ class ApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
             class Rules extends RuleSource {
                 @Mutate
                 void specifyMyLibApi(@Path("components.myLib") JvmLibrarySpec myLib) {
-                    myLib.api(new Action<ApiSpec>() {
+                    myLib.api(new Action<JvmApiSpec>() {
                         @Override
-                        public void execute(ApiSpec apiSpec) {
+                        public void execute(JvmApiSpec apiSpec) {
                             apiSpec.exports("compile.test");
                         }
                     });

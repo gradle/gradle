@@ -30,7 +30,7 @@ import java.util.Set;
  * @since 2.10
  */
 @Incubating
-public interface ApiSpec {
+public interface JvmApiSpec {
 
     /**
      * Specify a package to be exported as part of the library API.
