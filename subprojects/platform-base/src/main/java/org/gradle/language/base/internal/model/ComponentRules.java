@@ -40,10 +40,9 @@ import static com.google.common.base.Strings.emptyToNull;
 @SuppressWarnings("UnusedDeclaration")
 public class ComponentRules extends RuleSource {
     @Defaults
-    void initializeSourceSets(ComponentSpec component, LanguageRegistry languageRegistry, LanguageTransformContainer languageTransforms) {
+    void initializeSourceSets(ComponentSpecInternal component, LanguageRegistry languageRegistry, LanguageTransformContainer languageTransforms) {
         for (LanguageRegistration<?> languageRegistration : languageRegistry) {
-            // TODO - allow view as internal type and remove the cast
-            ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms).execute((ComponentSpecInternal) component);
+            ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms).execute(component);
         }
     }
 
