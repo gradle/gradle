@@ -52,6 +52,8 @@ class NativeScenarioPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(*tasks).useDaemon().disableDaemonLogging()
             }
         }
+        /*
+        TODO: enable after fixing model reuse
         runner.buildSpec {
             projectName("${size}ScenarioNative").displayName("with daemon (reuse)").invocation {
                 tasksToRun(*tasks).useDaemon().enableModelReuse()
@@ -62,6 +64,7 @@ class NativeScenarioPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(*tasks).useToolingApi().enableModelReuse()
             }
         }
+        */
 
         then:
         runner.run()
