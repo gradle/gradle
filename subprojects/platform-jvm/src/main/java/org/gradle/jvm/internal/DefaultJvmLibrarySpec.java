@@ -21,10 +21,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.jvm.ApiSpec;
+import org.gradle.jvm.JvmApiSpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.JvmResources;
-import org.gradle.jvm.PackageName;
+import org.gradle.jvm.JvmPackageName;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.TransformationFileType;
@@ -38,7 +38,7 @@ import java.util.*;
 public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibrarySpecInternal {
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
     private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
-    private final ApiSpec apiSpec = new DefaultApiSpec();
+    private final JvmApiSpec apiSpec = new DefaultJvmApiSpec();
     private final DependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
     public DefaultJvmLibrarySpec() {
@@ -67,15 +67,20 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
     }
 
     @Override
-    public void api(Action<? super ApiSpec> configureAction) {
+    public void api(Action<? super JvmApiSpec> configureAction) {
         configureAction.execute(apiSpec);
     }
 
     @Override
+    public JvmApiSpec getApi() {
+        return apiSpec;
+    }
+
+    @Override
     public Set<String> getExportedPackages() {
-        Iterable<String> transform = Iterables.transform(apiSpec.getExports(), new Function<PackageName, String>() {
+        Iterable<String> transform = Iterables.transform(apiSpec.getExports(), new Function<JvmPackageName, String>() {
             @Override
-            public String apply(PackageName packageName) {
+            public String apply(JvmPackageName packageName) {
                 return packageName.getValue();
             }
         });

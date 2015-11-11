@@ -19,12 +19,12 @@ package org.gradle.jvm
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class PackageNameTest extends Specification {
+class JvmPackageNameTest extends Specification {
 
     @Unroll
     def "should accept valid package name '#value'"() {
         when:
-        def packageName = PackageName.of(value)
+        def packageName = JvmPackageName.of(value)
 
         then:
         notThrown(IllegalArgumentException)
@@ -40,7 +40,7 @@ class PackageNameTest extends Specification {
     @Unroll
     def "should reject invalid package name '#value'"() {
         when:
-        PackageName.of(value)
+        JvmPackageName.of(value)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -55,10 +55,10 @@ class PackageNameTest extends Specification {
 
     def "should compare equality based on string value"() {
         given:
-        def pkgA = PackageName.of('com.example.p1')
-        def pkgB = PackageName.of('com.example.p2')
-        def pkgC = PackageName.of('com.example.p1') // same value as pkgA
-        def packages = new HashSet<PackageName>()
+        def pkgA = JvmPackageName.of('com.example.p1')
+        def pkgB = JvmPackageName.of('com.example.p2')
+        def pkgC = JvmPackageName.of('com.example.p1') // same value as pkgA
+        def packages = new HashSet<JvmPackageName>()
 
         expect:
         pkgA != pkgB
@@ -71,7 +71,7 @@ class PackageNameTest extends Specification {
 
     def "should render toString based on underlying value"() {
         given:
-        def pkg = PackageName.of('com.example.p1')
+        def pkg = JvmPackageName.of('com.example.p1')
 
         expect:
         pkg.toString() == 'com.example.p1'

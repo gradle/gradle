@@ -24,8 +24,9 @@ import java.util.List;
 /**
  * An immutable representation of a valid Java package name.
  *
- * <p>While {@code PackageName} values are guaranteed to be valid per JLS package naming
- * rules, no validation is performed to ensure that the named package actually exists.</p>
+ * <p>While {@code JvmPackageName} values are guaranteed to be valid per JLS package
+ * naming rules, no validation is performed to ensure that the named package actually
+ * exists.</p>
  *
  * <p>Note that due to vagaries inherent in Java naming, a valid package name is also
  * always a valid type name.</p>
@@ -34,7 +35,7 @@ import java.util.List;
  * @since 2.10
  */
 @Incubating
-public class PackageName {
+public class JvmPackageName {
 
     private static final List<String> JAVA_KEYWORDS = Arrays.asList(
         "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
@@ -50,7 +51,7 @@ public class PackageName {
 
     private final String value;
 
-    private PackageName(String value) {
+    private JvmPackageName(String value) {
         this.value = value;
     }
 
@@ -82,11 +83,11 @@ public class PackageName {
      * @throws IllegalArgumentException if value is null or does not conform to valid
      * package naming per the JLS
      */
-    public static PackageName of(String value) {
+    public static JvmPackageName of(String value) {
         if (!isValidPackageName(value)) {
             throw new IllegalArgumentException(String.format("'%s' is not a valid package name", value));
         }
-        return new PackageName(value);
+        return new JvmPackageName(value);
     }
 
     private static boolean isValidPackageName(String value) {
@@ -136,7 +137,7 @@ public class PackageName {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        PackageName that = (PackageName) o;
+        JvmPackageName that = (JvmPackageName) o;
         return value.equals(that.value);
     }
 

@@ -255,7 +255,7 @@
         </para>
         <para>Dependencies are declared on a <apilink class="org.gradle.api.tasks.SourceSet">source set</apilink>,
 	on a <apilink class="org.gradle.jvm.JvmLibrarySpec">Java library component</apilink> or
-	as part of its <apilink class="org.gradle.jvm.ApiSpec">API specification</apilink>:
+	as part of its <apilink class="org.gradle.jvm.JvmApiSpec">API specification</apilink>:
 	</para>
         <sample id="newJavaMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a library">
             <sourcefile file="build.gradle" snippet="simple-dependency"/>

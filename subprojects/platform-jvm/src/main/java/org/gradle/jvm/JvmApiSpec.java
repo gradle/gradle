@@ -30,7 +30,7 @@ import java.util.Set;
  * @since 2.10
  */
 @Incubating
-public interface ApiSpec {
+public interface JvmApiSpec {
 
     /**
      * Specify a package to be exported as part of the library API.
@@ -38,11 +38,14 @@ public interface ApiSpec {
      * @param packageName the name of the package to be exported, e.g. "com.example.p1"
      * @throws org.gradle.api.InvalidUserDataException if the package name is not valid or
      * has already been exported
-     * @see PackageName
+     * @see JvmPackageName
      */
     void exports(String packageName);
 
-    Set<PackageName> getExports();
+    /**
+     * The packages exported in this API.
+     */
+    Set<JvmPackageName> getExports();
 
     void dependencies(Closure<?> configureAction);
 

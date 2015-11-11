@@ -16,11 +16,10 @@
 
 package org.gradle.jvm.internal;
 
-import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.jvm.ApiSpec;
-import org.gradle.jvm.PackageName;
+import org.gradle.jvm.JvmApiSpec;
+import org.gradle.jvm.JvmPackageName;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
 import org.gradle.util.ConfigureUtil;
@@ -30,15 +29,15 @@ import java.util.Set;
 
 import static java.lang.String.format;
 
-public class DefaultApiSpec implements ApiSpec {
+public class DefaultJvmApiSpec implements JvmApiSpec {
 
-    private final Set<PackageName> exports = new HashSet<PackageName>();
+    private final Set<JvmPackageName> exports = new HashSet<JvmPackageName>();
     private final DefaultDependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
     public void exports(String value) {
-        final PackageName packageName;
+        final JvmPackageName packageName;
         try {
-            packageName = PackageName.of(value);
+            packageName = JvmPackageName.of(value);
         } catch (IllegalArgumentException cause) {
             throw new InvalidUserDataException(
                 format("Invalid public API specification: %s", cause.getMessage()), cause);
@@ -49,8 +48,8 @@ public class DefaultApiSpec implements ApiSpec {
         }
     }
 
-    public Set<PackageName> getExports() {
-        return ImmutableSet.copyOf(exports);
+    public Set<JvmPackageName> getExports() {
+        return exports;
     }
 
     public DependencySpecContainer getDependencies() {
