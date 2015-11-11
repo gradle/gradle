@@ -30,7 +30,7 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
     def "build java software model project"() {
         given:
         runner.testGroup = "compile avoidance using Java software model"
-        runner.testId = "$size project compile avoidance $apiDesc and $cardinalityDesc $scenario"
+        runner.testId = "$size project compile avoidance $cardinalityDesc $scenario $apiDesc"
         runner.buildExperimentListener = new SourceFileUpdater(nonApiChanges, abiCompatibleChanges, abiBreakingChanges)
 
         runner.buildSpec {
