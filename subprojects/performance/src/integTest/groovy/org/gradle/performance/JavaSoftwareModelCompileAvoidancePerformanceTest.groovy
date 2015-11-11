@@ -52,33 +52,33 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
         scenario                 | testCompileAvoidance                         | nonApiChanges | abiCompatibleChanges | abiBreakingChanges
         'internal API changes'   | "smallJavaSwModelCompileAvoidanceWithApi"    | 10            | 0                    | 0
         'internal API changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 10            | 0                    | 0
-        'internal API changes'   | "smallJavaSwModelCompileAvoidanceWithApi"    | 50            | 0                    | 0
-        'internal API changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 50            | 0                    | 0
-
+//        'internal API changes'   | "smallJavaSwModelCompileAvoidanceWithApi"    | 50            | 0                    | 0
+//        'internal API changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 50            | 0                    | 0
+//
         'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 10                   | 0
         'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 10                   | 0
-        'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 50                   | 0
-        'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 50                   | 0
+//        'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 50                   | 0
+//        'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 50                   | 0
 
         'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 10
         'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 0                    | 10
-        'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 50
-        'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 0                    | 50
+//        'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 50
+//        'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 0                    | 50
 
         'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 10            | 0                    | 0
         'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 10            | 0                    | 0
-        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 50            | 0                    | 0
-        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 50            | 0                    | 0
-
+//        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 50            | 0                    | 0
+//        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 50            | 0                    | 0
+//
         'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 10                   | 0
         'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 10                   | 0
-        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 50                   | 0
-        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 50                   | 0
-
+//        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 50                   | 0
+//        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 50                   | 0
+//
         'ABI breaking changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 10
         'ABI breaking changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 0                    | 10
-        'ABI breaking changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 50
-        'ABI breaking changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 0                    | 50
+//        'ABI breaking changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 50
+//        'ABI breaking changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 0                    | 50
 
         size = testCompileAvoidance[0..4]
         cardinalityDesc = (nonApiChanges + abiCompatibleChanges + abiBreakingChanges) < 50 ? 'some' : 'many'
@@ -87,7 +87,10 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
 
     private static class SourceFileUpdater extends BuildExperimentListenerAdapter {
         private List<File> projects
+        private List<File> projectsWithDependencies
         private int projectCount
+        private Map<Integer, List<Integer>> dependencies
+        private Map<Integer, List<Integer>> reverseDependencies
 
         private final Set<File> updatedFiles = []
         private final int nonApiChanges
@@ -105,15 +108,15 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
         }
 
         private int nonApiChangesCount() {
-            perc(nonApiChanges, projectCount)
+            perc(nonApiChanges, projectsWithDependencies.size())
         }
 
         private int compatibleApiChangesCount() {
-            perc(abiCompatibleChanges, projectCount)
+            perc(abiCompatibleChanges, projectsWithDependencies.size())
         }
 
         private int breakingApiChangesCount() {
-            perc(abiBreakingChanges, projectCount)
+            perc(abiBreakingChanges, projectsWithDependencies.size())
         }
 
         private File backupFileFor(File file) {
@@ -160,14 +163,27 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
                         restoreFile(new File(file.parentFile, file.name - '~'))
                     }
                 }
+
+                // retrieve the dependencies in an exploitable form
+                dependencies = new GroovyShell().evaluate(new File(projectDir, 'generated-deps.groovy'))
+                reverseDependencies = [:].withDefault { [] }
+                dependencies.each { p, deps ->
+                    deps.each {
+                        reverseDependencies[it] << p
+                    }
+                }
+                projectsWithDependencies = projects.findAll { File it ->
+                    reverseDependencies[projectId(it)]
+                }
             }
             if (!updatedFiles.isEmpty()) {
                 restoreFiles()
             } else if (invocationInfo.phase != BuildExperimentRunner.Phase.WARMUP) {
-                projects.take(nonApiChangesCount()).each { subproject ->
+                projectsWithDependencies.take(nonApiChangesCount()).each { subproject ->
                     def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/internal'.replace((char) '/', File.separatorChar))
                     def updatedFile = pickFirstJavaSource(internalDir)
                     println "Updating non-API source file $updatedFile"
+                    Set<Integer> dependents = affectedProjects(subproject)
                     createBackupFor(updatedFile)
                     updatedFile.text = updatedFile.text.replace('private final String property;', '''
 private final String property;
@@ -175,15 +191,16 @@ public String addedProperty;
 ''')
                 }
 
-                projects.take(compatibleApiChangesCount()).each { subproject ->
+                projectsWithDependencies.take(compatibleApiChangesCount()).each { subproject ->
                     def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
                     def updatedFile = pickFirstJavaSource(internalDir)
                     println "Updating API source file $updatedFile in ABI compatible way"
+                    Set<Integer> dependents = affectedProjects(subproject)
                     createBackupFor(updatedFile)
                     updatedFile.text = updatedFile.text.replace('return property;', 'return property.toUpperCase();')
                 }
 
-                projects.take(breakingApiChangesCount()).each { subproject ->
+                projectsWithDependencies.take(breakingApiChangesCount()).each { subproject ->
                     def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
                     def updatedFile = pickFirstJavaSource(internalDir)
                     println "Updating API source file $updatedFile in ABI breaking way"
@@ -191,18 +208,46 @@ public String addedProperty;
                     updatedFile.text = updatedFile.text.replace('one() {', 'two() {')
                     // need to locate all affected classes
                     def updatedClass = updatedFile.name - '.java'
-                    projectDir.eachFileRecurse { f->
-                        if (f.name.endsWith('.java')) {
-                            def txt = f.text
-                            if (txt.contains("${updatedClass}.one()")) {
-                                createBackupFor(updatedFile)
-                                println "Updating consuming source $f"
-                                f.text = txt.replaceAll(Pattern.quote("${updatedClass}.one()"), "${updatedClass}.two()")
+                    affectedProjects(subproject).each {
+                        def subDir = new File(projectDir, "project$it")
+                        if (subDir.exists()) {
+                            // need to check for existence because dependency
+                            // generation strategy may be generating dependencies
+                            // outside what is really declared
+                            subDir.eachFileRecurse { f ->
+                                if (f.name.endsWith('.java')) {
+                                    def txt = f.text
+                                    if (txt.contains("${updatedClass}.one()")) {
+                                        createBackupFor(f)
+                                        println "Updating consuming source $f"
+                                        f.text = txt.replaceAll(Pattern.quote("${updatedClass}.one()"), "${updatedClass}.two()")
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
+        }
+
+        private Set<Integer> affectedProjects(File subproject) {
+            Set dependents = reverseDependencies[projectId(subproject)] as Set
+            Set transitiveClosure = new HashSet<>(dependents)
+            int size = -1
+            while (size != transitiveClosure.size()) {
+                size = transitiveClosure.size()
+                def newDeps = []
+                transitiveClosure.each {
+                    newDeps.addAll(reverseDependencies[it])
+                }
+                transitiveClosure.addAll(newDeps)
+            }
+            println "Changes will transitively affect projects ${transitiveClosure.join(' ')}"
+            dependents
+        }
+
+        private int projectId(File it) {
+            Integer.valueOf(it.name - 'project')
         }
 
         private static File pickFirstJavaSource(File internalDir) {

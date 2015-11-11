@@ -40,7 +40,7 @@ class JvmProjectGeneratorTask extends ProjectGeneratorTask {
 
     def generateRootProject() {
         super.generateRootProject()
-
+        generateProjectDependenciesDescriptor()
         project.copy {
             into(getDestDir())
             into('lib/test') {
@@ -104,6 +104,17 @@ class JvmProjectGeneratorTask extends ProjectGeneratorTask {
                 extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it),
                 extraFields: extraFields(classFilePrefix, it)]
             generateWithTemplate(projectDir, "src/test/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.testClassName}.${sourceLang}", testFileTemplate, classArgs)
+        }
+    }
+
+    // generates a descriptor which can be used in integration tests to find out easily
+    // what are the dependencies between projects
+    void generateProjectDependenciesDescriptor() {
+        def dependencies = templateArgs.generatedDependencies
+        if (dependencies) {
+            new File(destDir, "generated-deps.groovy") << """[
+   ${dependencies.collect {"($it.key): ${it.value}"}.join(',\n   ') }
+]"""
         }
     }
 }
