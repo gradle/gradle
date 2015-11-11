@@ -309,6 +309,31 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(allClasses)
     }
 
+    def "should support chained configuration of library api exports"() {
+        when:
+        addNonApiClasses()
+
+        and:
+        buildFile << """
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        api.exports('compile.test')
+                    }
+                }
+            }
+        """
+        then:
+        succeeds "createMyLibApiJar"
+
+        and:
+        def allClasses = app.sources*.classFile.fullPath as String[]
+        def apiClassesOnly = (allClasses -
+            ["non_api/pkg/InternalPerson.class", "compile/test/internal/Util.class"]) as String[];
+        jarFile("build/jars/myLibApiJar/myLib.jar").hasDescendants(apiClassesOnly)
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(allClasses)
+    }
+
     def addNonApiClasses() {
         app.sources.add(new JvmSourceFile("non_api/pkg", "InternalPerson.java", '''
             package non_api.pkg;

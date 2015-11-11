@@ -40,6 +40,11 @@ public interface JvmLibrarySpec extends LibrarySpec, JvmComponentSpec, PlatformA
     void api(Action<? super JvmApiSpec> configureAction);
 
     /**
+     * The public API of this library.
+     */
+    JvmApiSpec getApi();
+
+    /**
      * The set of packages that comprise this library's public API.
      */
     Set<String> getExportedPackages();

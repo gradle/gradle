@@ -72,6 +72,11 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
     }
 
     @Override
+    public JvmApiSpec getApi() {
+        return apiSpec;
+    }
+
+    @Override
     public Set<String> getExportedPackages() {
         Iterable<String> transform = Iterables.transform(apiSpec.getExports(), new Function<JvmPackageName, String>() {
             @Override
