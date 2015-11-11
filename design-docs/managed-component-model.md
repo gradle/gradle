@@ -300,7 +300,6 @@ model {
 
 - Default implementations needs to be allowed for multiple levels. In case of multiple default implementations the most specific one should be used.
   Example: `BinarySpec` has its own default implementation, yet `JarBinarySpec` can specify its own. `@Managed` types extending `JarBinarySpec` should delegate to the default implementation of `JarBinarySpec` as it is more specific than the default implementation declared for `BinarySpec`.
-- Need to change how `BaseComponentSpec.getDisplayName()` and `BaseBinarySpec.getDisplayName()` to get meaningful type names for managed subtypes. Make sure these methods always use the
 
 ### Test cases
 
@@ -310,6 +309,7 @@ model {
     - `isBuildable()` should return `true`
 - An unmanaged subtype of `BinarySpec` (with its more-specific default implementation) can be extended via a `@Managed` subtype
   - this is already covered by `CustomJarBinarySpecSubtypeIntegrationTest`
+- Verify how instances of managed subtypes show up in component report
 
 
 ## Plugin author declares internal views for custom managed type
