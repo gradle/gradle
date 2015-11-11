@@ -133,10 +133,14 @@ class Jdk7DirectoryWalkerTest extends Specification {
             def detailsFromJdk7Walker = visitedWithJdk7Walker.find { it.file.absolutePath == details.file.absolutePath }
 
             assert detailsFromJdk7Walker != null &&
-                details.lastModified == detailsFromJdk7Walker.lastModified &&
+                millisToSeconds(details.lastModified) == millisToSeconds(detailsFromJdk7Walker.lastModified) &&
                 details.directory == detailsFromJdk7Walker.directory &&
                 (details.directory || details.size == detailsFromJdk7Walker.size)
         }
+    }
+
+    private long millisToSeconds(long millis) {
+        millis / 1000L
     }
 
     private generateFilesAndSubDirectories(TestFile parentDir, int fileCount, int dirCount, int maxDepth, int currentDepth, AtomicInteger fileIdGenerator) {
