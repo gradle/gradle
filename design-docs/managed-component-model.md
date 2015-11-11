@@ -299,7 +299,13 @@ Investigate the `ComponentSpec` type hierarchy to find what types could benefit 
 
 ### Identified candidates
 
-- `PlayApplicationSpecInternal` to be made an internal view
+- `PlayApplicationSpec`
+    - `PlayApplicationSpecInternal` can be made an internal view
+    - `PlatformAwareComponentSpec` aspect of it can be extracted in a dedicated internal view registered with its own implementation
+    - Then, `PlayApplicationSpec` can be `@Manage`d with a single property: `injectedRoutesGenerator`
+- `NativeTestSuiteSpec`
+    - This one is more straightforward as no dedicated internal view extraction is necessary
+    - It can be `@Manage`d and its `testedComponent` property can be made `@Unmanaged`
 
 ### Tests
 
