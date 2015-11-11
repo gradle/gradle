@@ -104,16 +104,39 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
             (int) Math.ceil(total * (double) perc / 100d)
         }
 
-        int nonApiChangesCount() {
+        private int nonApiChangesCount() {
             perc(nonApiChanges, projectCount)
         }
 
-        int compatibleApiChangesCount() {
+        private int compatibleApiChangesCount() {
             perc(abiCompatibleChanges, projectCount)
         }
 
-        int breakingApiChangesCount() {
+        private int breakingApiChangesCount() {
             perc(abiBreakingChanges, projectCount)
+        }
+
+        private File backupFileFor(File file) {
+            new File(file.parentFile, "${file.name}~")
+        }
+
+        private void createBackupFor(File file) {
+            updatedFiles << file
+            FileUtils.copyFile(file, backupFileFor(file), true)
+        }
+
+        private void restoreFiles() {
+            updatedFiles.each { File file ->
+                restoreFile(file)
+            }
+            updatedFiles.clear()
+        }
+
+        private void restoreFile(File file) {
+            println "Restoring $file"
+            def backup = backupFileFor(file)
+            FileUtils.copyFile(backup, file, true)
+            backup.delete()
         }
 
         @Override
@@ -131,45 +154,21 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
 
                 // make sure execution is consistent independently of time
                 Collections.shuffle(projects, new Random(31 * projectCount))
-                // we create an initial copy of all source files so that we are consistent accross builds even if interrupted
-                List<File> backups = []
-                List<File> sources = []
+                // restore stale backup files in case a build was interrupted even if interrupted
                 projectDir.eachFileRecurse { file ->
-                    if (file.name.endsWith('~')) {
-                        backups << file
-                    } else if (file.name.endsWith('.java')) {
-                        sources << file
-                    }
-                }
-                // restore files first
-                println "Restoring ${backups.size()} files"
-                backups.each { file ->
-                    def targetFile = new File(file.parentFile, file.name - '~')
-                    if (!targetFile.exists() || targetFile.length()!=file.length() || targetFile.lastModified() != file.lastModified()) {
-                        FileUtils.copyFile(file, targetFile, true)
-                    }
-                }
-                // then create a copy of each source file
-                println "Creating ${sources.size()} backup files"
-                sources.each { file ->
-                    def backupFile = new File(file.parentFile, file.name + '~')
-                    if (!backupFile.exists()) {
-                        FileUtils.copyFile(file, backupFile, true)
+                    if (name.endsWith('~')) {
+                        restoreFile(new File(file.parentFile, file.name - '~'))
                     }
                 }
             }
             if (!updatedFiles.isEmpty()) {
-                updatedFiles.each { File file ->
-                    println "Reverting changes to $file"
-                    FileUtils.copyFile(new File(file.parentFile, file.name + '~'), file, true)
-                }
-                updatedFiles.clear()
+                restoreFiles()
             } else if (invocationInfo.phase != BuildExperimentRunner.Phase.WARMUP) {
                 projects.take(nonApiChangesCount()).each { subproject ->
                     def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/internal'.replace((char) '/', File.separatorChar))
                     def updatedFile = pickFirstJavaSource(internalDir)
                     println "Updating non-API source file $updatedFile"
-                    updatedFiles << updatedFile
+                    createBackupFor(updatedFile)
                     updatedFile.text = updatedFile.text.replace('private final String property;', '''
 private final String property;
 public String addedProperty;
@@ -180,7 +179,7 @@ public String addedProperty;
                     def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
                     def updatedFile = pickFirstJavaSource(internalDir)
                     println "Updating API source file $updatedFile in ABI compatible way"
-                    updatedFiles << updatedFile
+                    createBackupFor(updatedFile)
                     updatedFile.text = updatedFile.text.replace('return property;', 'return property.toUpperCase();')
                 }
 
@@ -188,7 +187,7 @@ public String addedProperty;
                     def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
                     def updatedFile = pickFirstJavaSource(internalDir)
                     println "Updating API source file $updatedFile in ABI breaking way"
-                    updatedFiles << updatedFile
+                    createBackupFor(updatedFile)
                     updatedFile.text = updatedFile.text.replace('one() {', 'two() {')
                     // need to locate all affected classes
                     def updatedClass = updatedFile.name - '.java'
@@ -196,7 +195,7 @@ public String addedProperty;
                         if (f.name.endsWith('.java')) {
                             def txt = f.text
                             if (txt.contains("${updatedClass}.one()")) {
-                                updatedFiles << f
+                                createBackupFor(updatedFile)
                                 println "Updating consuming source $f"
                                 f.text = txt.replaceAll(Pattern.quote("${updatedClass}.one()"), "${updatedClass}.two()")
                             }
