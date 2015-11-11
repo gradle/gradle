@@ -225,8 +225,8 @@ public class GlobalScopeServices {
         return new ModelSchemaAspectExtractor(strategies);
     }
 
-    protected ManagedProxyFactory createManagedProxyFactory() {
-        return new ManagedProxyFactory();
+    protected ManagedProxyFactory createManagedProxyFactory(Instantiator instantiator) {
+        return new ManagedProxyFactory(instantiator);
     }
 
     protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, ServiceRegistry serviceRegistry) {
