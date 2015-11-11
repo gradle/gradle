@@ -368,20 +368,6 @@ A functional test using Spock could look as such:
 arguments.
 * Do we need to deal with TestKit runtime behavior backward compatibility e.g. no isolated daemon environment when executing test with a Gradle version that doesn't support it yet?
 
-## Story: Test kit does not require any of the Gradle runtime
-
-This story improves usability of the test kit by not imposing any dependencies beyond the `gradle-test-kit` and `gradle-tooling-api` jars (including no transitive dependencies).
-
-### Implementation
-
-- Push responsibility for finding a Gradle distribution based on a class (i.e. what GradleDistributionLocator) does into the tooling API
-- Remove the dependency on `gradle-core` in the test kit project
-
-### Test Coverage
-
-- User tests cannot access classes from `gradle-core` (or any other part of the Gradle runtime) in tests where `gradleTestKit()` was used
-- Configuration containing just `gradleTestKit()` contains no other files than `gradle-test-kit` and `gradle-tooling-api`
-
 ## Story: Ability to provide Writers for capturing standard output and error (DONE)
 
 At the moment the standard output and error can only be resolved from the `BuildResult`. There's not direct output of these streams to the console. Users cannot provide their own OutputStreams
@@ -411,6 +397,20 @@ The `GradleRunner` abstract class will be extended to provide additional methods
 ### Open issues
 
 * Using `System.out` and `System.err` as default? This might produce to much log output.
+
+## Story: Test kit does not require any of the Gradle runtime
+
+This story improves usability of the test kit by not imposing any dependencies beyond the `gradle-test-kit` and `gradle-tooling-api` jars (including no transitive dependencies).
+
+### Implementation
+
+- Push responsibility for finding a Gradle distribution based on a class (i.e. what GradleDistributionLocator) does into the tooling API
+- Remove the dependency on `gradle-core` in the test kit project
+
+### Test Coverage
+
+- User tests cannot access classes from `gradle-core` (or any other part of the Gradle runtime) in tests where `gradleTestKit()` was used
+- Configuration containing just `gradleTestKit()` contains no other files than `gradle-test-kit` and `gradle-tooling-api`
 
 ## Story: GradleRunner functionality is verified to work with all "supported" Gradle versions
 
