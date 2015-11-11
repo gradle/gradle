@@ -38,15 +38,6 @@ class BaseComponentSpecTest extends Specification {
         e.message == "Direct instantiation of a BaseComponentSpec is not permitted. Use a ComponentTypeBuilder instead."
     }
 
-    def "cannot create instance of base class"() {
-        when:
-        create(BaseComponentSpec)
-
-        then:
-        def e = thrown ModelInstantiationException
-        e.message == "Cannot create instance of abstract class BaseComponentSpec."
-    }
-
     private <T extends BaseComponentSpec> T create(Class<T> type) {
         def file = new TestFile(".")
         BaseComponentFixtures.create(type, modelRegistry, componentId, instantiator, file)
