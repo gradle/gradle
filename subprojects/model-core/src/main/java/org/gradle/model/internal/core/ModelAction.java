@@ -20,7 +20,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
-public interface ModelAction extends ModelRule {
+public interface ModelAction {
 
     ModelReference<?> getSubject();
 

@@ -68,7 +68,7 @@ Source sets
         includes: **/*.html
 
 Binaries
-    Play Application Jar 'playBinary'
+    Play Application Jar 'play:binary'
         build using task: :playBinary
         targetPlatform: $defaultPlayPlatform
 """

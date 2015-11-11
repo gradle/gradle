@@ -24,6 +24,11 @@ import org.gradle.platform.base.BinarySpec;
 public interface BinarySpecInternal extends BinarySpec {
     ModelType<BinarySpec> PUBLIC_MODEL_TYPE = ModelType.of(BinarySpec.class);
 
+    /**
+     * Returns a name for this binary that is unique for all binaries in the current project.
+     */
+    String getProjectScopedName();
+
     Class<? extends BinarySpec> getPublicType();
 
     void setPublicType(Class<? extends BinarySpec> publicType);

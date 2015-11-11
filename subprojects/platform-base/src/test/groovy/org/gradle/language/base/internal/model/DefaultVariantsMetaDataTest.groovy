@@ -37,20 +37,20 @@ class DefaultVariantsMetaDataTest extends Specification {
         spec.platform >> platform
         spec.flavor >> flavor
         spec.buildType >> buildType
-        spec.notVariantDimension >> notVariantDimension
+        spec.notVariantAxis >> notVariantAxis
         def variants = DefaultVariantsMetaData.extractFrom(spec, schemaStore)
 
         then:
-        variants.nonNullDimensions == (nonNullDimensions as Set)
-        variants.allDimensions == (allDimensions as Set)
+        variants.nonNullVariantAxes == (nonNullVariantAxes as Set)
+        variants.declaredVariantAxes == (allVariantAxes as Set)
         variants.getValueAsString('platform') == platform
         variants.getValueAsString('flavor') == flavor
         variants.getValueAsString('buildType') == buildType?.name
         variants.getValueAsType(BuildType, 'buildType') == buildType
-        variants.getValueAsString('notVariantDimension') == null
+        variants.getValueAsString('notVariantAxis') == null
 
         where:
-        platform | flavor  | buildType       | notVariantDimension | nonNullDimensions                   | allDimensions
+        platform | flavor  | buildType       | notVariantAxis | nonNullVariantAxes                  | allVariantAxes
         'java6'  | null    | null            | null                | ['platform']                        | ['platform', 'flavor', 'buildType']
         'java6'  | null    | null            | 'foo'               | ['platform']                        | ['platform', 'flavor', 'buildType']
         'java6'  | 'debug' | null            | null                | ['platform', 'flavor']              | ['platform', 'flavor', 'buildType']
@@ -68,7 +68,7 @@ class DefaultVariantsMetaDataTest extends Specification {
         @Variant
         BuildType getBuildType()
 
-        String getNotVariantDimension()
+        String getNotVariantAxis()
     }
 
     private static interface BuildType extends Named {}

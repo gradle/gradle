@@ -18,6 +18,8 @@ package org.gradle.nativeplatform.test.internal;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.AbstractNativeBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
+import org.gradle.nativeplatform.NativeExecutableFileSpec;
+import org.gradle.nativeplatform.NativeInstallationSpec;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
@@ -32,7 +34,8 @@ import java.io.File;
 public abstract class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec implements NativeTestSuiteBinarySpecInternal {
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
     private NativeBinarySpecInternal testedBinary;
-    private File executableFile;
+    private NativeInstallationSpec installation = new NativeInstallationSpec();
+    private NativeExecutableFileSpec executable = new NativeExecutableFileSpec();
 
     @Override
     public NativeTestSuiteSpec getComponent() {
@@ -53,11 +56,17 @@ public abstract class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBin
     }
 
     public File getExecutableFile() {
-        return executableFile;
+        return getExecutable().getFile();
     }
 
-    public void setExecutableFile(File executableFile) {
-        this.executableFile = executableFile;
+    @Override
+    public NativeInstallationSpec getInstallation() {
+        return installation;
+    }
+
+    @Override
+    public NativeExecutableFileSpec getExecutable() {
+        return executable;
     }
 
     public File getPrimaryOutput() {

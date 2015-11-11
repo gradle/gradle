@@ -26,9 +26,7 @@ import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationsToArtifactsConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationsToModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
@@ -40,21 +38,15 @@ import java.util.List;
 import java.util.Set;
 
 public class IvyBackedArtifactPublisher implements ArtifactPublisher {
-    private final ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter;
-    private final DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter;
-    private final ConfigurationsToArtifactsConverter configurationsToArtifactsConverter;
+    private final ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder;
     private final IvyContextManager ivyContextManager;
     private final IvyDependencyPublisher dependencyPublisher;
     private final IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
 
-    public IvyBackedArtifactPublisher(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
-                                      DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter,
-                                      ConfigurationsToArtifactsConverter configurationsToArtifactsConverter, IvyContextManager ivyContextManager,
+    public IvyBackedArtifactPublisher(ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder, IvyContextManager ivyContextManager,
                                       IvyDependencyPublisher dependencyPublisher,
                                       IvyModuleDescriptorWriter ivyModuleDescriptorWriter) {
-        this.configurationsToModuleDescriptorConverter = configurationsToModuleDescriptorConverter;
-        this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
-        this.configurationsToArtifactsConverter = configurationsToArtifactsConverter;
+        this.configurationComponentMetaDataBuilder = configurationComponentMetaDataBuilder;
         this.ivyContextManager = ivyContextManager;
         this.dependencyPublisher = dependencyPublisher;
         this.ivyModuleDescriptorWriter = ivyModuleDescriptorWriter;
@@ -93,9 +85,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
     private BuildableIvyModulePublishMetaData toPublishMetaData(ModuleInternal module, Set<? extends Configuration> configurations) {
         ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
         DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(id, module.getStatus());
-        configurationsToModuleDescriptorConverter.addConfigurations(publishMetaData, configurations);
-        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(publishMetaData, configurations);
-        configurationsToArtifactsConverter.addArtifacts(publishMetaData, configurations);
+        configurationComponentMetaDataBuilder.addConfigurations(publishMetaData, configurations);
         return publishMetaData;
     }
 

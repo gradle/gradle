@@ -282,29 +282,6 @@ This story adds the ability to understand what happened with the test when it fa
 - UnexpectedBuildFailure and Success should have-a BuildResult
 - Tooling API exceptions and infrastructure failures should be wrapped and provide build information (e.g. stdout)
 
-## Story: Classes under test are visible to build scripts
-
-When using the plugin development plugin, plugins under test are visible to build scripts.
-
-### Implementation
-
-- Infer the classpath for classes under test classpath
-    - When running from the plugin dev plugin, use the main source set's runtime classpath.
-    - When running from the IDE, could use a generated resource or perhaps infer from the runtime classpath in the test JVM.
-- Add or expand sample to demonstrate this feature.
-- Add some brief user guide material.
-
-### Test coverage
-
-* The classpath of the tooling API execution is set up properly.
-    * Class files of project sources under test (e.g. plugin classes) are added to classpath of the tooling API execution.
-        * A plugin class under test can be referenced and tested in build script by type and id.
-        * A custom task class under test can be referenced and tested in build script by type.
-        * Arbitrary classes under test can be referenced and tested in build script.
-    * Classes originating from external libraries used by classes under tests are added to classpath of the tooling API execution.
-* IDEA and Eclipse projects are configured to run these tests. Manually verify that this works (in IDEA say).
-* Manually verify that when using an IDE, a breakpoint can be added in production classes, the test run, and the breakpoint hit.
-
 ## Story: Test build code against different Gradle versions
 
 Extend the capabilities of `GradleRunner` to allow for testing a build against more than one Gradle version. The typical use case is to check the runtime compatibility of build logic against a
@@ -435,7 +412,121 @@ The `GradleRunner` abstract class will be extended to provide additional methods
 
 * Using `System.out` and `System.err` as default? This might produce to much log output.
 
+## Story: GradleRunner functionality is verified to work with all "supported" Gradle versions
+
+The TestKit allows for executing functional tests with a Gradle distribution specified by the user. `GradleRunner` passes the provided
+distribution to the Tooling API to execute Gradle. For the most part the internal implementation of the Tooling API build execution
+uses a conservative set of features though there's no there's no assurance that a Tooling API will work with older versions of Gradle
+in this context. This story aims for implementing appropriate test coverage to ensure backward compatibility or graceful handling of
+unsupported functionality for other versions of the Tooling API.
+
+### Implementation
+
+* Execute all existing integration tests in Gradle core with a restricted set of Gradle versions:
+    * version-under-test
+    * the most recent released version
+    * the oldest version for which the feature is supported
+* Reuse the annotations `org.gradle.integtests.fixtures.TargetVersions` and `org.gradle.integtests.fixtures.IgnoreVersions`.
+`TargetVersions` declares the restricted set of Gradle versions used for the cross-version tests, `IgnoreVersions` can be used
+if one of the specified versions should be ignored for a specific test class or method.
+
+<!-- -->
+
+    @TargetVersions(['2.6', GradleVersions.CURRENT.version.version])
+    class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+
+        @IgnoreVersions('2.6')
+        def "test something"() {
+            ...
+        }
+
+        def "test a condition"() {
+            ...
+        }
+    }
+
+* The JUnit rule `GradleRunnerIntegTestRunner` applied to AbstractGradleRunnerIntegrationTest needs to be extended to evaluate the annotations
+`TargetVersions` and `IgnoreVersions`. The implementation will need to build a matrix combination of targeted versions and debug mode on/off. For
+each target version, a `org.gradle.integtests.fixtures.executer.GradleDistribution` is created. The version-under-test could be mixed into automatically
+by creating an instance of `UnderDevelopmentGradleDistribution`. This `GradleDistribution` is used by the `GradleExecuter` to execute the build with the
+target distribution.
+* Each cross-version test needs to be executed with and without debug mode. There are some exceptions where using debug mode doesn't make sense e.g. tests
+ around the isolated daemon. For example:
+
+<!-- -->
+
+<table>
+    <tr>
+        <th>Gradle Version</th>
+        <th>Debug</th>
+    </tr>
+    <tr>
+        <td>2.7</td>
+        <td>off</td>
+    </tr>
+    <tr>
+        <td>2.7</td>
+        <td>on</td>
+    </tr>
+    <tr>
+        <td>2.9</td>
+        <td>off</td>
+    </tr>
+    <tr>
+        <td>2.9</td>
+        <td>on</td>
+    </tr>
+    <tr>
+        <td>2.10-20151106150702+0000</td>
+        <td>off</td>
+    </tr>
+    <tr>
+        <td>2.10-20151106150702+0000</td>
+        <td>on</td>
+    </tr>
+</table>
+
+* At the moment all tests extending `AbstractGradleRunnerIntegrationTest` do not use a `GradleExecuter` to execute the build. Instead they create the
+`GradleRunner` instance in the test class and not in an external build script. To be able to run these tests against different Gradle distributions,
+the code will need to be changed to use a `GradleExecuter`.
+* A TestKit feature that is not supported by the Gradle version used to execute the test should behave in a reasonable manner e.g. provide
+a human-readable error message that explains why this feature cannot be used.
+
+### Test Coverage
+
+* Test passes for feature with Gradle versions supporting it.
+* Test fails with an appropriate error message if Gradle version does not support it.
+* Assigned Gradle versions used for testing are properly evaluated and used for execution.
+
+### Open issues
+
+* All test class extending from `AbstractGradleRunnerIntegrationTest` need to be changed to use a `GradleExecuter`? Maybe there's a way to avoud this.
+* Account for increased build time on CI (potentially requires re-sharding of jobs).
+
 # Milestone 3
+
+## Story: Classes under test are visible to build scripts
+
+When using the plugin development plugin, plugins under test are visible to build scripts.
+
+### Implementation
+
+- Infer the classpath for classes under test classpath
+    - When running from the plugin dev plugin, use the main source set's runtime classpath.
+    - When running from the IDE, could use a generated resource or perhaps infer from the runtime classpath in the test JVM.
+- Add or expand sample to demonstrate this feature.
+- Add some brief user guide material.
+
+### Test coverage
+
+* The classpath of the tooling API execution is set up properly.
+    * Class files of project sources under test (e.g. plugin classes) are added to classpath of the tooling API execution.
+        * A plugin class under test can be referenced and tested in build script by type and id.
+        * A custom task class under test can be referenced and tested in build script by type.
+        * Arbitrary classes under test can be referenced and tested in build script.
+    * Classes originating from external libraries used by classes under tests are added to classpath of the tooling API execution.
+* IDEA and Eclipse projects are configured to run these tests. Manually verify that this works (in IDEA say).
+* Manually verify that when using an IDE, a breakpoint can be added in production classes, the test run, and the breakpoint hit.
 
 ## Story: Integration with plugin-development-plugin
 

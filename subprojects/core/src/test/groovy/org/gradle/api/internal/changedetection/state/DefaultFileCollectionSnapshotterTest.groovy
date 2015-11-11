@@ -17,6 +17,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTreeElement
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
@@ -30,7 +31,7 @@ import spock.lang.Specification
 public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileTreeElementSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, new StringInterner())
 
     def listener = Mock(ChangeListener)
     @Rule
@@ -187,10 +188,10 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         0 * _
     }
 
-    def nonExistentFileIsAdded() {
+    def newFileIsAdded() {
         TestFile root = tmpDir.createDir('root')
         def fileCollection = files(root)
-        TestFile file = root.file('unknown')
+        TestFile file = root.file('newfile')
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection)
@@ -199,6 +200,20 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         then:
         1 * listener.added(file.path)
+    }
+
+    def deletedFileIsRemoved() {
+        TestFile root = tmpDir.createDir('root')
+        def fileCollection = files(root)
+        TestFile file = root.createFile('file')
+
+        when:
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection)
+        file.delete()
+        snapshotter.snapshot(fileCollection).iterateChangesSince(snapshot).next(listener)
+
+        then:
+        1 * listener.removed(file.path)
     }
 
     def ignoresDuplicatesInFileCollection() {

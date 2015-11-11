@@ -18,6 +18,7 @@ package org.gradle.language.java
 
 import spock.lang.Unroll
 
+import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.util.Matchers.containsText
 
 class MultipleBinaryTypesWithVariantsTest extends VariantAwareDependencyResolutionSpec {
@@ -179,14 +180,11 @@ class ComponentTypeRules extends RuleSource {
 
         def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${JavaVersion.current().majorVersion}"))
         def toolChain = toolChains.getForPlatform(platform)
-        def baseName = "${library.name}"
-        String binaryName = "${baseName}Jar"
-        binaries.create(binaryName) { jar ->
+        binaries.create('jar') { jar ->
             jar.toolChain = toolChain
             jar.targetPlatform = platform
             jar.buildType = jarBuildType
         }
-
     }
 
     @ComponentBinaries

@@ -15,20 +15,21 @@
  */
 
 package org.gradle.nativeplatform.plugins
-
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
+import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.BinaryContainer
+import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpecContainer
 import org.gradle.platform.base.PlatformContainer
 import org.gradle.util.TestUtil
@@ -50,8 +51,8 @@ class NativeComponentModelPluginTest extends Specification {
         project.modelRegistry.realize(ModelPath.path(path), type)
     }
 
-    BinaryContainer getBinaries() {
-        realizeModelElement("binaries", BinaryContainer)
+    ModelMap<BinarySpec> getBinaries() {
+        realizeModelElement("binaries", ModelTypes.modelMap(BinarySpec))
     }
 
     NativeToolChainRegistry getToolChains() {
@@ -137,7 +138,7 @@ class NativeComponentModelPluginTest extends Specification {
         NativeExecutableSpec executable = one(components.values()) as NativeExecutableSpec
         NativeExecutableBinarySpec executableBinary = one(binaries) as NativeExecutableBinarySpec
         with(executableBinary) {
-            name == 'testExecutable'
+            name == 'executable'
             component == executable
             toolChain.name == "tc"
             targetPlatform.name == "platform"
@@ -170,7 +171,7 @@ class NativeComponentModelPluginTest extends Specification {
         NativeLibrarySpec library = one(components.values()) as NativeLibrarySpec
         SharedLibraryBinarySpec sharedLibraryBinary = binaries.testSharedLibrary as SharedLibraryBinarySpec
         with(sharedLibraryBinary) {
-            name == 'testSharedLibrary'
+            name == 'sharedLibrary'
             component == library
 
             toolChain.name == "tc"
@@ -182,7 +183,7 @@ class NativeComponentModelPluginTest extends Specification {
         and:
         StaticLibraryBinarySpec staticLibraryBinary = binaries.testStaticLibrary as StaticLibraryBinarySpec
         with(staticLibraryBinary) {
-            name == 'testStaticLibrary'
+            name == 'staticLibrary'
             component == library
 
             toolChain.name == "tc"
@@ -209,17 +210,17 @@ class NativeComponentModelPluginTest extends Specification {
         then:
         NativeExecutableBinarySpec executableBinary = binaries.exeExecutable as NativeExecutableBinarySpec
         with(oneTask(executableBinary.buildDependencies)) {
-            name == executableBinary.name
+            name == "exeExecutable"
             group == LifecycleBasePlugin.BUILD_GROUP
         }
         SharedLibraryBinarySpec sharedLibraryBinary = binaries.libSharedLibrary as SharedLibraryBinarySpec
         with(oneTask(sharedLibraryBinary.buildDependencies)) {
-            name == sharedLibraryBinary.name
+            name == "libSharedLibrary"
             group == LifecycleBasePlugin.BUILD_GROUP
         }
         StaticLibraryBinarySpec staticLibraryBinary = binaries.libStaticLibrary as StaticLibraryBinarySpec
         with(oneTask(staticLibraryBinary.buildDependencies)) {
-            name == staticLibraryBinary.name
+            name == "libStaticLibrary"
             group == LifecycleBasePlugin.BUILD_GROUP
         }
     }

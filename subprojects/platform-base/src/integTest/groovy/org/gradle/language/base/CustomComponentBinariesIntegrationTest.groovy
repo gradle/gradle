@@ -19,10 +19,7 @@ package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.ModelMap
 import org.gradle.model.collection.CollectionBuilder
-import spock.lang.Ignore
 import spock.lang.Unroll
-
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -98,9 +95,9 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
                         def sampleBinary = binaries.sampleLibBinary
                         def othersSampleBinary = binaries.sampleLibOtherBinary
                         assert sampleBinary instanceof SampleBinary
-                        assert sampleBinary.displayName == "DefaultSampleBinary 'sampleLibBinary'"
+                        assert sampleBinary.displayName == "DefaultSampleBinary 'sampleLib:binary'"
                         assert othersSampleBinary instanceof OtherSampleBinary
-                        assert othersSampleBinary.displayName == "OtherSampleBinaryImpl 'sampleLibOtherBinary'"
+                        assert othersSampleBinary.displayName == "OtherSampleBinaryImpl 'sampleLib:otherBinary'"
                     }
                 }
             }
@@ -120,7 +117,7 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
         when:
         succeeds "components"
         then:
-        output.contains(toPlatformLineSeparators(
+        output.contains(
 """DefaultSampleLibrary 'sampleLib'
 --------------------------------
 
@@ -129,11 +126,11 @@ Source sets
         srcDir: src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
-    DefaultSampleBinary 'sampleLibBinary'
+    DefaultSampleBinary 'sampleLib:binary'
         build using task: :sampleLibBinary
-    OtherSampleBinaryImpl 'sampleLibOtherBinary'
+    OtherSampleBinaryImpl 'sampleLib:otherBinary'
         build using task: :sampleLibOtherBinary
-"""))
+""")
     }
 
     def "links components sourceSets to binaries"() {
@@ -213,7 +210,7 @@ Binaries
                @ComponentBinaries
                void createBinariesForSampleLibrary(ModelMap<SampleBinary> binaries, $ruleInputs) {
                    myModel.values.each{ value ->
-                        binaries.create("\${library.name}\${value}Binary")
+                        binaries.create("\${value}Binary")
                    }
                }
            }
@@ -231,7 +228,7 @@ Binaries
         when:
         succeeds "components"
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains("""
 DefaultSampleLibrary 'sampleLib'
 --------------------------------
 
@@ -240,11 +237,11 @@ Source sets
         srcDir: src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
-    DefaultSampleBinary 'sampleLib1stBinary'
+    DefaultSampleBinary 'sampleLib:1stBinary'
         build using task: :sampleLib1stBinary
-    DefaultSampleBinary 'sampleLib2ndBinary'
+    DefaultSampleBinary 'sampleLib:2ndBinary'
         build using task: :sampleLib2ndBinary
-"""))
+""")
         where:
         ruleInputs << ["SampleLibrary library, CustomModel myModel"]//,  "CustomModel myModel, SampleLibrary library"]
     }
@@ -257,8 +254,8 @@ Binaries
             static class Rules extends RuleSource {
                 @ComponentBinaries
                 void createBinariesForSampleLibrary(${binariesContainerType.simpleName}<SampleBinary> binaries, SampleLibrary library) {
-                    binaries.create("\${library.name}Binary")
-                    binaries.create("\${library.name}OtherBinary", OtherSampleBinary)
+                    binaries.create("binary")
+                    binaries.create("otherBinary", OtherSampleBinary)
                 }
             }
          }
@@ -282,14 +279,13 @@ Binaries
         succeeds "components"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains("""
 Binaries
-    DefaultSampleBinary 'derivedFromMethodName'
-        build using task: :derivedFromMethodName
-"""))
+    DefaultSampleBinary 'sampleLib:derivedFromMethodName'
+        build using task: :sampleLibDerivedFromMethodName
+""")
     }
 
-    @Ignore("Not supported due to BinaryTasks rules now operating directly on component.binaries, which is not managed - LD - 15/5/15")
     def "attempt to mutate the subject of a @ComponentBinaries after the method has finished results in an error"() {
         buildFile << """
             class BinariesHolder {
@@ -319,6 +315,6 @@ Binaries
         fails "tasks"
 
         then:
-        failure.assertHasCause("Attempt to mutate closed view of model of type '${ModelMap.name}<SampleBinary>' given to rule 'IllegallyMutatingComponentBinariesRules#createBinariesForSampleLibrary(org.gradle.model.ModelMap<SampleBinary>, SampleLibrary, BinariesHolder)'")
+        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.illegal' using creation rule 'IllegallyMutatingComponentBinariesRules#createBinariesForSampleLibrary > components.sampleLib.getBinaries() > create(illegal)' as model element 'components.sampleLib.binaries' is no longer mutable.")
     }
 }

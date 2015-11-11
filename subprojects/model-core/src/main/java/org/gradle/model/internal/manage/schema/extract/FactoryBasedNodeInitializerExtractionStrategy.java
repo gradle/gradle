@@ -20,26 +20,19 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.core.FactoryBasedManagedNodeInitializer;
 import org.gradle.model.internal.core.FactoryBasedNodeInitializer;
 import org.gradle.model.internal.core.InstanceFactory;
 import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.type.ModelType;
 
 public class FactoryBasedNodeInitializerExtractionStrategy<T> implements NodeInitializerExtractionStrategy {
     private final InstanceFactory<T> instanceFactory;
-    private final ModelSchemaStore schemaStore;
-    private final ManagedProxyFactory proxyFactory;
     private final BiAction<? super T, ? super ModelSchema<? extends T>> configAction;
 
-    public FactoryBasedNodeInitializerExtractionStrategy(InstanceFactory<T> instanceFactory, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, BiAction<? super T, ? super ModelSchema<? extends T>> configAction) {
+    public FactoryBasedNodeInitializerExtractionStrategy(InstanceFactory<T> instanceFactory, BiAction<? super T, ? super ModelSchema<? extends T>> configAction) {
         this.instanceFactory = instanceFactory;
-        this.schemaStore = schemaStore;
-        this.proxyFactory = proxyFactory;
         this.configAction = configAction;
     }
 
@@ -52,17 +45,13 @@ public class FactoryBasedNodeInitializerExtractionStrategy<T> implements NodeIni
     }
 
     private <S extends T> NodeInitializer getNodeInitializer(final ModelSchema<S> schema) {
-        if (schema instanceof ModelManagedImplStructSchema) {
-            ModelManagedImplStructSchema<S> managedSchema = Cast.uncheckedCast(schema);
-            return new FactoryBasedManagedNodeInitializer<T, S>(instanceFactory, managedSchema, schemaStore, proxyFactory, new Action<T>() {
-                @Override
-                public void execute(T instance) {
-                    configAction.execute(instance, schema);
-                }
-            });
-        } else {
-            return new FactoryBasedNodeInitializer<T, S>(instanceFactory, schema.getType());
-        }
+        StructSchema<S> managedSchema = Cast.uncheckedCast(schema);
+        return new FactoryBasedNodeInitializer<T, S>(instanceFactory, managedSchema, new Action<T>() {
+            @Override
+            public void execute(T instance) {
+                configAction.execute(instance, schema);
+            }
+        });
     }
 
     @Override

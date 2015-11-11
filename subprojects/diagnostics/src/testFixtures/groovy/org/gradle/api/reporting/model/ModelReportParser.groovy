@@ -124,7 +124,7 @@ class ModelReportParser {
     }
 
     private static Matcher lineIsANode(String line) {
-        return line =~ /\$NODE_SYMBOL (.+)$/
+        return line.trim() =~ /^\$NODE_SYMBOL (.+)$/
     }
 
     private static List<String> nodeOnlyLines(List<String> nodeLines) {

@@ -16,42 +16,64 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.api.Nullable;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Multimap;
+import org.gradle.internal.BiAction;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.projection.ManagedModelProjection;
-import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.ManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 public class ManagedModelInitializer<T> extends AbstractManagedModelInitializer<T> {
 
-    public ManagedModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
-        super(modelSchema, schemaStore, proxyFactory);
+    public ManagedModelInitializer(ManagedImplStructSchema<T> modelSchema) {
+        super(modelSchema);
     }
 
     @Override
-    public List<? extends ModelReference<?>> getInputs() {
-        return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
-    }
+    public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+        return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
+            .put(ModelActionRole.Discover, DirectNodeInputUsingModelAction.of(subject, descriptor,
+                Arrays.<ModelReference<?>>asList(
+                    ModelReference.of(ModelSchemaStore.class),
+                    ModelReference.of(ManagedProxyFactory.class),
+                    ModelReference.of(ServiceRegistry.class)
+                ),
+                new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                    @Override
+                    public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> modelViews) {
+                        ModelSchemaStore schemaStore = ModelViews.getInstance(modelViews.get(0), ModelSchemaStore.class);
+                        ManagedProxyFactory proxyFactory = ModelViews.getInstance(modelViews.get(1), ManagedProxyFactory.class);
+                        ServiceRegistry serviceRegistry = ModelViews.getInstance(modelViews.get(2), ServiceRegistry.class);
+                        mutableModelNode.addProjection(new ManagedModelProjection<T>(schema, null, schemaStore, proxyFactory, serviceRegistry));
+                    }
+                }
+            ))
+            .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
+                Arrays.<ModelReference<?>>asList(
+                    ModelReference.of(NodeInitializerRegistry.class),
+                    ModelReference.of(ModelSchemaStore.class),
+                    ModelReference.of(ManagedProxyFactory.class),
+                    ModelReference.of(ServiceRegistry.class)
+                ),
+                new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                    @Override
+                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
+                        NodeInitializerRegistry nodeInitializerRegistry = ModelViews.getInstance(modelViews, 0, NodeInitializerRegistry.class);
+                        ModelSchemaStore schemaStore = ModelViews.getInstance(modelViews, 1, ModelSchemaStore.class);
+                        ManagedProxyFactory proxyFactory = ModelViews.getInstance(modelViews, 2, ManagedProxyFactory.class);
+                        ServiceRegistry serviceRegistry = ModelViews.getInstance(modelViews, 3, ServiceRegistry.class);
 
-    @Override
-    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-        NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
-        addPropertyLinks(modelNode, nodeInitializerRegistry, schema.getProperties());
-    }
-
-    @Override
-    public List<? extends ModelProjection> getProjections() {
-        return Collections.singletonList(new ManagedModelProjection<T>(schema, null, schemaStore, proxyFactory));
-    }
-
-    @Nullable
-    @Override
-    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-        return null;
+                        addPropertyLinks(modelNode, nodeInitializerRegistry, schemaStore, proxyFactory, serviceRegistry, schema.getProperties());
+                    }
+                }
+            ))
+            .build();
     }
 }

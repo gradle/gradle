@@ -45,8 +45,8 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
         return parentName;
     }
 
-    public String getLifecycleTaskName() {
-        return getTaskName(null, null);
+    public String getBinaryName() {
+        return makeName(dimensionPrefix, typeString);
     }
 
     public String getOutputDirectoryBase() {

@@ -31,7 +31,6 @@ import java.util.concurrent.atomic.AtomicReference
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
-
     @Rule
     TestNameTestDirectoryProvider testDirectory
 
@@ -137,12 +136,13 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         when:
         def lastChangeRef = new AtomicLong(0)
-        fileChanger(instant, testfile, lastChangeRef)
+        gcAndIdleBefore()
+        fileChanger(instant, testfile, lastChangeRef, logger)
 
         then:
         waitFor.done
         lastChangeRef.get() != 0
-        System.currentTimeMillis() - lastChangeRef.get() >= quietPeriod
+        Math.round((System.nanoTime() - lastChangeRef.get()) / 1000000L) >= quietPeriod
 
         where:
         description            | fileChanger
@@ -150,24 +150,38 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         'append and keep open' | this.&changeByAppendingAndKeepingFileOpen
     }
 
-    private void changeByAppendingAndClosing(instant, testfile, lastChangeRef) {
+    private void changeByAppendingAndClosing(instant, testfile, lastChangeRef, testLogger) {
         for (int i = 0; i < 10; i++) {
+            if (i > 0) {
+                sleep(50)
+            }
+            testLogger.log("loop ${i + 1}/10")
             instant.assertNotReached('done')
             testfile << "change"
-            lastChangeRef.set(System.currentTimeMillis())
-            sleep(50)
+            testLogger.log("changed")
+            lastChangeRef.set(System.nanoTime())
         }
     }
 
-    private void changeByAppendingAndKeepingFileOpen(instant, testfile, lastChangeRef) {
-        testfile.withPrintWriter { PrintWriter out ->
+    private void changeByAppendingAndKeepingFileOpen(instant, testfile, lastChangeRef, testLogger) {
+        new FileWriter(testfile).withWriter { Writer out ->
             for (int i = 0; i < 10; i++) {
+                if (i > 0) {
+                    sleep(50)
+                }
+                testLogger.log("loop ${i + 1}/10")
                 instant.assertNotReached('done')
-                out.println("change")
+                out.write("change\n")
+                testLogger.log("written")
                 out.flush()
-                lastChangeRef.set(System.currentTimeMillis())
-                sleep(50)
+                testLogger.log("flushed")
+                lastChangeRef.set(System.nanoTime())
             }
         }
+    }
+
+    private void gcAndIdleBefore() {
+        System.gc()
+        sleep(500)
     }
 }

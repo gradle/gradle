@@ -17,30 +17,27 @@
 package org.gradle.model
 import org.gradle.api.Named
 import org.gradle.api.internal.ClosureBackedAction
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.core.*
-import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.UnboundModelRulesException
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
-import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
+
 // TODO - extract out a common fixture for model map “impls”
 // This guy shares some duplication with UnmanagedNodeBackedModelMapTest
-class ManagedNodeBackedModelMapTest extends Specification {
+class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
     def path = ModelPath.path("map")
-    def registry = new ModelRegistryHelper()
     def itemType = ModelType.of(NamedThingInterface)
     def modelMapType = ModelTypes.modelMap(itemType)
-    def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
 
     def setup() {
-        registry.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
-        registry.create(ModelCreators.of(path, nodeInitializerRegistry.getNodeInitializer(modelMapType)).descriptor("creator").build())
+        registry.register(ModelRegistrations.of(path, nodeInitializerRegistry.getNodeInitializer(modelMapType)).descriptor("creator").build())
     }
 
     void mutate(@DelegatesTo(ModelMap) Closure<?> action) {
@@ -55,6 +52,14 @@ class ManagedNodeBackedModelMapTest extends Specification {
         registry.atState(path, ModelNode.State.SelfClosed)
     }
 
+    ModelMap<NamedThingInterface> realizeAsModelMap() {
+        registry.realize(path, modelMapType)
+    }
+
+    NamedThingInterface realizeChild(String name) {
+        realizeAsModelMap().get(name)
+    }
+
     def "can define an item with name"() {
         when:
         mutate { create("foo") }
@@ -62,10 +67,6 @@ class ManagedNodeBackedModelMapTest extends Specification {
 
         then:
         realizeChild("foo").name == "foo"
-    }
-
-    private NamedThingInterface realizeChild(String name) {
-        registry.realize(path.child(name), ModelType.of(NamedThingInterface))
     }
 
     def "does not eagerly create item"() {
@@ -77,7 +78,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         selfClose()
 
         then:
-        registry.state(path.child("foo")) == ModelNode.State.Known
+        registry.state(path.child("foo")) == ModelNode.State.Registered
 
         when:
         realize()
@@ -106,6 +107,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         then:
         realizeChild("foo") instanceof SpecialNamedThingInterface
         realizeChild("bar") instanceof NamedThingInterface
+        !(realizeChild("bar") instanceof SpecialNamedThingInterface)
     }
 
     def "fails when using filtered collection to define item of type that is not assignable to collection item type"() {
@@ -157,10 +159,6 @@ class ManagedNodeBackedModelMapTest extends Specification {
         then:
         realizeAsModelMap().size() == 2
         !realizeAsModelMap().isEmpty()
-    }
-
-    private ModelMap<NamedThingInterface> realizeAsModelMap() {
-        registry.realize(path, modelMapType)
     }
 
     def "can query filtered collection size"() {
@@ -481,7 +479,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         realizeChild("foo").other == "create() all{} afterEach{}"
     }
 
-    def "provides groovy DSL"() {
+    def "provides groovy DSL to create and configure items"() {
         when:
         mutate {
             foo {
@@ -498,6 +496,144 @@ class ManagedNodeBackedModelMapTest extends Specification {
         then:
         realizeChild("foo").other == "changed"
         realizeChild("bar") instanceof SpecialNamedThingInterface
+    }
+
+    def "can create item using transformed DSL rule closure"() {
+        // DSL rules are represented using DeferredModelAction
+        def action = Mock(DeferredModelAction)
+
+        given:
+        action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            thing.other = "changed"
+        }
+
+        when:
+        mutate {
+            a(NamedThingInterface, action)
+            b(SpecialNamedThingInterface, action)
+            create('c', action)
+            create('d', SpecialNamedThingInterface, action)
+        }
+
+        then:
+        realizeChild("a").other == "changed"
+        realizeChild("b").other == "changed"
+        realizeChild("b") instanceof SpecialNamedThingInterface
+        realizeChild("c").other == "changed"
+        realizeChild("d").other == "changed"
+        realizeChild("d") instanceof SpecialNamedThingInterface
+    }
+
+    def "can define config rules for named item using transformed DSL rule closure"() {
+        // DSL rules are represented using DeferredModelAction
+        def action = Mock(DeferredModelAction)
+
+        given:
+        action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            thing.other = "changed"
+        }
+
+        when:
+        mutate {
+            a(action)
+            named('b', action)
+            a(NamedThingInterface)
+            b(NamedThingInterface)
+        }
+
+        then:
+        realizeChild("a").other == "changed"
+        realizeChild("b").other == "changed"
+    }
+
+    def "can define config rules for all item using transformed DSL rule closure"() {
+        // DSL rules are represented using DeferredModelAction
+        def action = Mock(DeferredModelAction)
+
+        given:
+        action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            thing.other = "changed"
+        }
+
+        when:
+        mutate {
+            all(action)
+            create('a')
+            create('b')
+        }
+
+        then:
+        realizeChild("a").other == "changed"
+        realizeChild("b").other == "changed"
+    }
+
+    def "can define config rules for all item with given type using transformed DSL rule closure"() {
+        // DSL rules are represented using DeferredModelAction
+        def action = Mock(DeferredModelAction)
+
+        given:
+        action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            thing.other = "changed"
+        }
+
+        when:
+        mutate {
+            withType(SpecialNamedThingInterface, action)
+            create('a') { other = "original" }
+            create('b', SpecialNamedThingInterface)
+        }
+
+        then:
+        realizeChild("a").other == "original"
+        realizeChild("b").other == "changed"
+    }
+
+    def "can define default rules for all item using transformed DSL rule closure"() {
+        // DSL rules are represented using DeferredModelAction
+        def action = Mock(DeferredModelAction)
+
+        given:
+        action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            thing.other = "default"
+        }
+
+        when:
+        mutate {
+            create('a') { other = "[$other]" }
+            create('b')
+            beforeEach(action)
+        }
+
+        then:
+        realizeChild("a").other == "[default]"
+        realizeChild("b").other == "default"
+    }
+
+    def "can define finalize rules for all item using transformed DSL rule closure"() {
+        // DSL rules are represented using DeferredModelAction
+        def action = Mock(DeferredModelAction)
+
+        given:
+        action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            thing.other = "[$thing.other]"
+        }
+
+        when:
+        mutate {
+            afterEach(action)
+            create('a') { other = "a" }
+            create('b') { other = "b" }
+        }
+
+        then:
+        realizeChild("a").other == "[a]"
+        realizeChild("b").other == "[b]"
     }
 
     class MutableValue {
@@ -546,7 +682,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         def mmType = ModelTypes.modelMap(Bean)
         def events = []
         registry
-            .create("input", "input") { events << "input created" }
+            .register("input", "input") { events << "input created" }
             .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
             it.path "beans" type mmType action { c ->
@@ -573,7 +709,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         def mmType = ModelTypes.modelMap(Bean)
 
         registry
-            .createInstance("foo", new Bean())
+            .registerInstance("foo", new Bean())
             .mutate {
             it.path("foo").type(Bean).action("beans.element.mutable", ModelType.of(MutableValue)) { Bean subject, MutableValue input ->
                 subject.value = input.value
@@ -587,7 +723,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         }
         .mutate {
             it.path "beans.element" node {
-                it.addLink(registry.instanceCreator("beans.element.mutable", new MutableValue(value: "bar")))
+                it.addLink(registry.instanceRegistration("beans.element.mutable", new MutableValue(value: "bar")))
             }
         }
 
@@ -619,7 +755,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         }
         .mutate {
             it.path "beans.element" descriptor "element child" node {
-                it.addLink(registry.instanceCreator("beans.element.mutable", new MutableValue()))
+                it.addLink(registry.instanceRegistration("beans.element.mutable", new MutableValue()))
             }
         }
 
@@ -674,7 +810,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
             it.registerFactory(Bean) { new Bean(name: it) }
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
-        .createInstance("s", "other")
+        .registerInstance("s", "other")
             .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("b1", Bean)
@@ -686,15 +822,15 @@ class ManagedNodeBackedModelMapTest extends Specification {
         }
 
         expect:
-        registry.node("s").state == ModelNode.State.Known
+        registry.node("s").state == ModelNode.State.Registered
 
         when:
         registry.atState("beans", ModelNode.State.SelfClosed)
 
         then:
-        registry.node("s").state == ModelNode.State.Known
+        registry.node("s").state == ModelNode.State.Registered
         registry.get("beans.b1", Bean).value != "changed"
-        registry.node("s").state == ModelNode.State.Known
+        registry.node("s").state == ModelNode.State.Registered
 
         when:
         def sb2 = registry.get("beans.sb2", SpecialBean)
@@ -724,7 +860,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
             it.registerFactory(Bean) { new Bean(name: it) }
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
-        .createInstance("s", "other")
+        .registerInstance("s", "other")
             .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("b1", Bean)
@@ -761,7 +897,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
 
-        .createInstance("s", "other")
+        .registerInstance("s", "other")
             .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("sb1", SpecialBean)
@@ -786,7 +922,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
 
-        .createInstance("s", "other")
+        .registerInstance("s", "other")
             .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("sb1", SpecialBean)
@@ -862,6 +998,28 @@ class ManagedNodeBackedModelMapTest extends Specification {
 
         then:
         realize()
+    }
+
+    def "can put existing unmanaged instance"() {
+        when:
+        mutate {
+            put("foo", "bar")
+        }
+
+        then:
+        registry.realize("map.foo", String) == "bar"
+    }
+
+    def "reasonable error message when creating a non-constructible type"() {
+        when:
+        mutate { create("foo", List) }
+        realize()
+
+        then:
+        ModelRuleExecutionException e = thrown()
+        normaliseLineSeparators(e.cause.message).contains('''A model element of type: 'java.util.List' can not be constructed.
+It must be one of:
+    - A managed type (annotated with @Managed)''')
     }
 
 }

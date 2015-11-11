@@ -34,7 +34,7 @@ import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-public class DomainObjectCollectionBackedModelMap<T> implements ModelMap<T> {
+public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyDecorator<T> {
 
     private final Class<T> elementType;
     private final DomainObjectCollection<T> collection;
@@ -164,6 +164,11 @@ public class DomainObjectCollectionBackedModelMap<T> implements ModelMap<T> {
         configAction.execute(s);
         onCreateAction.execute(s);
         collection.add(s);
+    }
+
+    @Override
+    public void put(String name, T instance) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

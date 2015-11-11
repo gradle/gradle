@@ -16,15 +16,26 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.gradle.api.Action;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.testkit.runner.*;
+import org.gradle.testkit.runner.internal.dist.GradleDistribution;
+import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution;
+import org.gradle.testkit.runner.internal.dist.URILocatedGradleDistribution;
+import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution;
+import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
+import org.gradle.testkit.runner.internal.io.WriterOutputStream;
+import org.gradle.tooling.internal.classpath.DefaultGradleDistributionLocator;
+import org.gradle.tooling.internal.classpath.GradleDistributionLocator;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.io.Writer;
+import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,35 +43,51 @@ import java.util.List;
 
 public class DefaultGradleRunner extends GradleRunner {
 
-    public static final String DIAGNOSTICS_MESSAGE_SEPARATOR = "-----";
+    public static final String DEBUG_SYS_PROP = "org.gradle.testkit.debug";
+
     private final GradleExecutor gradleExecutor;
 
+    private GradleDistribution distribution;
     private TestKitDirProvider testKitDirProvider;
-
     private File projectDirectory;
     private List<String> arguments = Collections.emptyList();
     private List<String> jvmArguments = Collections.emptyList();
     private ClassPath classpath = ClassPath.EMPTY;
     private boolean debug;
-    private Writer standardOutput;
-    private Writer standardError;
+    private OutputStream standardOutput;
+    private OutputStream standardError;
+    private boolean forwardingSystemStreams;
 
-    public DefaultGradleRunner(GradleDistribution<?> gradleDistribution) {
-        this(new TestKitGradleExecutor(gradleDistribution), new TempTestKitDirProvider());
+    public DefaultGradleRunner() {
+        this(new ToolingApiGradleExecutor(), new TempTestKitDirProvider());
     }
 
     DefaultGradleRunner(GradleExecutor gradleExecutor, TestKitDirProvider testKitDirProvider) {
         this.gradleExecutor = gradleExecutor;
         this.testKitDirProvider = testKitDirProvider;
-        debug = isDebugEnabled();
-    }
-
-    private boolean isDebugEnabled() {
-        return Boolean.parseBoolean(System.getProperty(DEBUG_SYS_PROP, "false"));
+        this.debug = Boolean.getBoolean(DEBUG_SYS_PROP);
     }
 
     public TestKitDirProvider getTestKitDirProvider() {
         return testKitDirProvider;
+    }
+
+    @Override
+    public GradleRunner withGradleVersion(String versionNumber) {
+        this.distribution = new VersionBasedGradleDistribution(versionNumber);
+        return this;
+    }
+
+    @Override
+    public GradleRunner withGradleInstallation(File installation) {
+        this.distribution = new InstalledGradleDistribution(installation);
+        return this;
+    }
+
+    @Override
+    public GradleRunner withGradleDistribution(URI distribution) {
+        this.distribution = new URILocatedGradleDistribution(distribution);
+        return this;
     }
 
     @Override
@@ -132,23 +159,44 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
-    public GradleRunner withDebug(boolean debug) {
-        this.debug = debug;
+    public GradleRunner withDebug(boolean flag) {
+        this.debug = flag;
         return this;
     }
 
     @Override
-    public GradleRunner withStandardOutput(Writer standardOutput) {
-        validateArgumentNotNull(standardOutput, "standardOutput");
-        this.standardOutput = standardOutput;
+    public GradleRunner forwardStdOutput(Writer writer) {
+        if (forwardingSystemStreams) {
+            forwardingSystemStreams = false;
+            this.standardError = null;
+        }
+        validateArgumentNotNull(writer, "standardOutput");
+        this.standardOutput = toOutputStream(writer);
         return this;
     }
 
     @Override
-    public GradleRunner withStandardError(Writer standardError) {
-        validateArgumentNotNull(standardError, "standardError");
-        this.standardError = standardError;
+    public GradleRunner forwardStdError(Writer writer) {
+        if (forwardingSystemStreams) {
+            forwardingSystemStreams = false;
+            this.standardOutput = null;
+        }
+        validateArgumentNotNull(writer, "standardError");
+        this.standardError = toOutputStream(writer);
         return this;
+    }
+
+    @Override
+    public GradleRunner forwardOutput() {
+        forwardingSystemStreams = true;
+        OutputStream systemOut = new SynchronizedOutputStream(System.out);
+        this.standardOutput = systemOut;
+        this.standardError = systemOut;
+        return this;
+    }
+
+    private static OutputStream toOutputStream(Writer standardOutput) {
+        return new WriterOutputStream(standardOutput, Charset.defaultCharset());
     }
 
     private void validateArgumentNotNull(Object argument, String argumentName) {
@@ -179,7 +227,8 @@ public class DefaultGradleRunner extends GradleRunner {
         });
     }
 
-    private String createDiagnosticsMessage(String trailingMessage, GradleExecutionResult gradleExecutionResult) {
+    @SuppressWarnings("StringBufferReplaceableByString")
+    String createDiagnosticsMessage(String trailingMessage, GradleExecutionResult gradleExecutionResult) {
         String lineBreak = SystemProperties.getInstance().getLineSeparator();
         StringBuilder message = new StringBuilder();
         message.append(trailingMessage);
@@ -187,33 +236,17 @@ public class DefaultGradleRunner extends GradleRunner {
         message.append(getProjectDir().getAbsolutePath());
         message.append(" with arguments ");
         message.append(getArguments());
-        message.append(lineBreak).append(lineBreak);
-        message.append("Output:");
-        message.append(lineBreak);
-        message.append(gradleExecutionResult.getStandardOutput());
-        message.append(lineBreak);
-        message.append(DIAGNOSTICS_MESSAGE_SEPARATOR);
-        message.append(lineBreak);
-        message.append("Error:");
-        message.append(lineBreak);
-        message.append(gradleExecutionResult.getStandardError());
-        message.append(lineBreak);
-        message.append(DIAGNOSTICS_MESSAGE_SEPARATOR);
 
-        if (gradleExecutionResult.getThrowable() != null) {
+        String output = gradleExecutionResult.getOutput();
+        if (output != null && !output.isEmpty()) {
             message.append(lineBreak);
-            message.append("Reason:");
             message.append(lineBreak);
-            message.append(determineExceptionMessage(gradleExecutionResult.getThrowable()));
+            message.append("Output:");
             message.append(lineBreak);
-            message.append(DIAGNOSTICS_MESSAGE_SEPARATOR);
+            message.append(output);
         }
 
         return message.toString();
-    }
-
-    private String determineExceptionMessage(Throwable throwable) {
-        return throwable.getCause() == null ? throwable.getMessage() : ExceptionUtils.getRootCause(throwable).getMessage();
     }
 
     private BuildResult run(Action<GradleExecutionResult> resultVerification) {
@@ -223,7 +256,10 @@ public class DefaultGradleRunner extends GradleRunner {
 
         File testKitDir = createTestKitDir(testKitDirProvider);
 
+        GradleDistribution effectiveDistribution = distribution == null ? findGradleInstallFromGradleRunner() : distribution;
+
         GradleExecutionResult execResult = gradleExecutor.run(new GradleExecutionParameters(
+            effectiveDistribution,
             testKitDir,
             projectDirectory,
             arguments,
@@ -231,8 +267,8 @@ public class DefaultGradleRunner extends GradleRunner {
             classpath,
             debug,
             standardOutput,
-            standardError)
-        );
+            standardError
+        ));
 
         resultVerification.execute(execResult);
         return createBuildResult(execResult);
@@ -240,8 +276,7 @@ public class DefaultGradleRunner extends GradleRunner {
 
     private BuildResult createBuildResult(GradleExecutionResult execResult) {
         return new DefaultBuildResult(
-            execResult.getStandardOutput(),
-            execResult.getStandardError(),
+            execResult.getOutput(),
             execResult.getTasks()
         );
     }
@@ -260,6 +295,22 @@ public class DefaultGradleRunner extends GradleRunner {
         } else {
             throw new InvalidRunnerConfigurationException("Unable to create test kit directory: " + dir.getAbsolutePath());
         }
+    }
+
+    private static GradleDistribution findGradleInstallFromGradleRunner() {
+        GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator(GradleRunner.class);
+        File gradleHome = gradleDistributionLocator.getGradleHome();
+        if (gradleHome == null) {
+            String messagePrefix = "Could not find a Gradle runtime to use based on the location of the GradleRunner class";
+            try {
+                File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
+                messagePrefix += ": " + classpathForClass.getAbsolutePath();
+            } catch (Exception ignore) {
+                // ignore
+            }
+            throw new InvalidRunnerConfigurationException(messagePrefix + ". Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar.");
+        }
+        return new InstalledGradleDistribution(gradleHome);
     }
 
 }

@@ -200,22 +200,24 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("oh no!")
     }
 
-    def "informative error message when dsl mutation rule throws"() {
+    def "informative error message when mutation rule throws"() {
         when:
         buildScript '''
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
                     String string() { "foo" }
+
+                    @Mutate
+                    void broken(String s) {
+                        throw new RuntimeException("oh no!")
+                    }
                 }
             }
 
             apply type: MyPlugin
 
             model {
-                string {
-                    throw new RuntimeException("oh no!")
-                }
                 tasks {
                     $("string")
                 }
@@ -226,11 +228,11 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: model.string")
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin.Rules#broken")
         failure.assertHasCause("oh no!")
     }
 
-    def "model creator must provide instance"() {
+    def "model registration must provide instance"() {
         when:
         buildScript '''
             class MyPlugin {

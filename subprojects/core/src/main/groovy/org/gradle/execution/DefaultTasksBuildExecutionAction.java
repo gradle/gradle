@@ -22,7 +22,7 @@ import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -54,7 +54,7 @@ public class DefaultTasksBuildExecutionAction implements BuildConfigurationActio
 
         List<String> defaultTasks = project.getDefaultTasks();
         if (defaultTasks.size() == 0) {
-            defaultTasks = Arrays.asList(ProjectInternal.HELP_TASK);
+            defaultTasks = Collections.singletonList(ProjectInternal.HELP_TASK);
             LOGGER.info("No tasks specified. Using default task {}", GUtil.toString(defaultTasks));
         } else {
             LOGGER.info("No tasks specified. Using project default tasks {}", GUtil.toString(defaultTasks));

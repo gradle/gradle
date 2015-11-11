@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.file.CachingFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
@@ -26,21 +24,15 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -167,88 +159,6 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     public PatternSet getPatternSet() {
         return patternSet;
-    }
-
-    public interface DirectoryWalker {
-        void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag, FileSystem fileSystem, boolean postfix);
-    }
-
-    static class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
-        private final JavaVersion javaVersion;
-        private final ClassLoader classLoader;
-        private DirectoryWalker instance;
-
-        DefaultDirectoryWalkerFactory(JavaVersion javaVersion, ClassLoader classLoader) {
-            this.javaVersion = javaVersion;
-            this.classLoader = classLoader;
-            reset();
-        }
-
-        DefaultDirectoryWalkerFactory() {
-            this(JavaVersion.current(), DefaultDirectoryWalkerFactory.class.getClassLoader());
-        }
-
-        public DirectoryWalker create() {
-            return instance;
-        }
-
-        private void reset() {
-            this.instance = createInstance();
-        }
-
-        private DirectoryWalker createInstance() {
-            if (javaVersion.isJava7Compatible() && Charset.defaultCharset().name().equals("UTF-8")) {
-                try {
-                    Class clazz = classLoader.loadClass("org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker");
-                    return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz));
-                } catch (ClassNotFoundException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            } else {
-                return new DefaultDirectoryWalker();
-            }
-        }
-    }
-
-    static class DefaultDirectoryWalker implements DirectoryWalker {
-
-        @Override
-        public void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag, FileSystem fileSystem, boolean postfix) {
-            File[] children = file.listFiles();
-            if (children == null) {
-                if (file.isDirectory() && !file.canRead()) {
-                    throw new GradleException(String.format("Could not list contents of directory '%s' as it is not readable.", file));
-                }
-                // else, might be a link which points to nothing, or has been removed while we're visiting, or ...
-                throw new GradleException(String.format("Could not list contents of '%s'.", file));
-            }
-            List<FileVisitDetails> dirs = new ArrayList<FileVisitDetails>();
-            for (int i = 0; !stopFlag.get() && i < children.length; i++) {
-                File child = children[i];
-                boolean isFile = child.isFile();
-                RelativePath childPath = path.append(isFile, child.getName());
-                FileVisitDetails details = new CachingFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, !isFile);
-                if (isAllowed(details, spec)) {
-                    if (isFile) {
-                        visitor.visitFile(details);
-                    } else {
-                        dirs.add(details);
-                    }
-                }
-            }
-
-            // now handle dirs
-            for (int i = 0; !stopFlag.get() && i < dirs.size(); i++) {
-                FileVisitDetails dir = dirs.get(i);
-                if (postfix) {
-                    walkDir(dir.getFile(), dir.getRelativePath(), visitor, spec, stopFlag, fileSystem, postfix);
-                    visitor.visitDir(dir);
-                } else {
-                    visitor.visitDir(dir);
-                    walkDir(dir.getFile(), dir.getRelativePath(), visitor, spec, stopFlag, fileSystem, postfix);
-                }
-            }
-        }
     }
 
 }

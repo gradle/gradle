@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
@@ -32,7 +31,8 @@ import org.gradle.language.java.JavaSourceSet
 import org.gradle.language.jvm.JvmResourceSet
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.type.ModelType
-import org.gradle.platform.base.BinaryContainer
+import org.gradle.model.internal.type.ModelTypes
+import org.gradle.platform.base.BinarySpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
@@ -295,12 +295,12 @@ class JavaBasePluginTest extends Specification {
         }
 
         when:
-        def binaries = project.modelRegistry.realize(ModelPath.path("binaries"), ModelType.of(BinaryContainer))
+        def binaries = project.modelRegistry.realize(ModelPath.path("binaries"), ModelTypes.modelMap(BinarySpec))
         def sources = project.modelRegistry.realize(ModelPath.path("sources"), ModelType.of(ProjectSourceSet))
 
         then:
         binaries.size() == 1
-        def binary = binaries.findByName("customClasses")
+        def binary = binaries.get("customClasses")
         binary instanceof ClassDirectoryBinarySpec
         binary.classesDir == project.file("classes")
         binary.resourcesDir == project.file("resources")
@@ -318,10 +318,11 @@ class JavaBasePluginTest extends Specification {
                 output.resourcesDir = project.file("resources")
             }
         }
-        def binaries = project.modelRegistry.realize(ModelPath.path("binaries"), ModelType.of(BinaryContainer))
+        def binaries = project.modelRegistry.realize(ModelPath.path("binaries"), ModelTypes.modelMap(BinarySpec))
 
         then:
-        ClassDirectoryBinarySpec binary = binaries.findByName("customClasses")
+        def binary = binaries.get("customClasses")
+        assert binary instanceof ClassDirectoryBinarySpec
         def classesTask = project.tasks.findByName("customClasses")
         binary.buildTask == classesTask
         binary.tasks.contains(classesTask)

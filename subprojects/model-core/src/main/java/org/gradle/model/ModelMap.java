@@ -111,6 +111,12 @@ public interface ModelMap<T> extends CollectionBuilder<T>, Iterable<T> {
     <S extends T> void create(String name, Class<S> type, Action<? super S> configAction);
 
     /**
+     * Add an unmanaged instance to the {@code ModelMap}.
+     */
+    // TODO:LPTR This should add a reference to the backing node of the managed instance instead
+    void put(String name, T instance);
+
+    /**
      * {@inheritDoc}
      */
     @Override

@@ -17,16 +17,18 @@
 package org.gradle.sample
 
 import org.gradle.testkit.runner.GradleRunner
-import static org.gradle.testkit.runner.TaskOutcome.*
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+
+import static org.gradle.testkit.runner.TaskOutcome.*
 
 class BuildLogicFunctionalTest extends Specification {
 
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
     // START SNIPPET functional-test-classpath-setup
+    // START SNIPPET functional-test-classpath-setup-older-gradle
     List<File> pluginClasspath
 
     def setup() {
@@ -37,10 +39,9 @@ class BuildLogicFunctionalTest extends Specification {
             throw new IllegalStateException("Did not find plugin classpath resource, run `testClasses` build task.")
         }
 
-        pluginClasspath = pluginClasspathResource.readLines()
-            .collect { it.replace('\\', '\\\\') } // escape backslashes in Windows paths
-            .collect { new File(it) }
+        pluginClasspath = pluginClasspathResource.readLines().collect { new File(it) }
     }
+    // END SNIPPET functional-test-classpath-setup-older-gradle
 
     def "hello world task prints hello world"() {
         given:
@@ -58,8 +59,38 @@ class BuildLogicFunctionalTest extends Specification {
             .build()
 
         then:
-        result.standardOutput.contains('Hello world!')
+        result.output.contains('Hello world!')
         result.task(":helloWorld").outcome == SUCCESS
     }
     // END SNIPPET functional-test-classpath-setup
+    // START SNIPPET functional-test-classpath-setup-older-gradle
+
+    def "hello world task prints hello world with pre Gradle 2.8"() {
+        given:
+        def classpathString = pluginClasspath
+            .collect { it.absolutePath.replace('\\', '\\\\') } // escape backslashes in Windows paths
+            .collect { "'$it'" }
+            .join(", ")
+
+        buildFile << """
+            buildscript {
+                dependencies {
+                    classpath files($classpathString)
+                }
+            }
+            apply plugin: "org.gradle.sample.helloworld"
+        """
+
+        when:
+        def result = GradleRunner.create()
+            .withProjectDir(testProjectDir.root)
+            .withArguments('helloWorld')
+            .withGradleVersion("2.7")
+            .build()
+
+        then:
+        result.output.contains('Hello world!')
+        result.task(":helloWorld").outcome == SUCCESS
+    }
+    // END SNIPPET functional-test-classpath-setup-older-gradle
 }

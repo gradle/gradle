@@ -17,31 +17,48 @@
 package org.gradle.testkit.runner.internal;
 
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.testkit.runner.internal.dist.GradleDistribution;
 
 import java.io.File;
-import java.io.Writer;
+import java.io.OutputStream;
 import java.util.List;
 
 public class GradleExecutionParameters {
+
+    private final GradleDistribution gradleDistribution;
     private final File gradleUserHome;
     private final File projectDir;
     private final List<String> buildArgs;
     private final List<String> jvmArgs;
     private final ClassPath injectedClassPath;
-    private final boolean debug;
-    private final Writer standardOutput;
-    private final Writer standardError;
+    private final boolean embedded;
+    private final OutputStream standardOutput;
+    private final OutputStream standardError;
 
-    public GradleExecutionParameters(File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, ClassPath injectedClassPath, boolean debug,
-                                     Writer standardOutput, Writer standardError) {
+    public GradleExecutionParameters(
+        GradleDistribution gradleDistribution,
+        File gradleUserHome,
+        File projectDir,
+        List<String> buildArgs,
+        List<String> jvmArgs,
+        ClassPath injectedClassPath,
+        boolean embedded,
+        OutputStream standardOutput,
+        OutputStream standardError
+    ) {
+        this.gradleDistribution = gradleDistribution;
         this.gradleUserHome = gradleUserHome;
         this.projectDir = projectDir;
         this.buildArgs = buildArgs;
         this.jvmArgs = jvmArgs;
         this.injectedClassPath = injectedClassPath;
-        this.debug = debug;
+        this.embedded = embedded;
         this.standardOutput = standardOutput;
         this.standardError = standardError;
+    }
+
+    public GradleDistribution getGradleDistribution() {
+        return gradleDistribution;
     }
 
     public File getGradleUserHome() {
@@ -64,64 +81,16 @@ public class GradleExecutionParameters {
         return injectedClassPath;
     }
 
-    public boolean isDebug() {
-        return debug;
+    public boolean isEmbedded() {
+        return embedded;
     }
 
-    public Writer getStandardOutput() {
+    public OutputStream getStandardOutput() {
         return standardOutput;
     }
 
-    public Writer getStandardError() {
+    public OutputStream getStandardError() {
         return standardError;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        GradleExecutionParameters that = (GradleExecutionParameters) o;
-
-        if (debug != that.debug) {
-            return false;
-        }
-        if (gradleUserHome != null ? !gradleUserHome.equals(that.gradleUserHome) : that.gradleUserHome != null) {
-            return false;
-        }
-        if (projectDir != null ? !projectDir.equals(that.projectDir) : that.projectDir != null) {
-            return false;
-        }
-        if (buildArgs != null ? !buildArgs.equals(that.buildArgs) : that.buildArgs != null) {
-            return false;
-        }
-        if (jvmArgs != null ? !jvmArgs.equals(that.jvmArgs) : that.jvmArgs != null) {
-            return false;
-        }
-        if (injectedClassPath != null ? !injectedClassPath.equals(that.injectedClassPath) : that.injectedClassPath != null) {
-            return false;
-        }
-        if (standardOutput != null ? !standardOutput.equals(that.standardOutput) : that.standardOutput != null) {
-            return false;
-        }
-        return !(standardError != null ? !standardError.equals(that.standardError) : that.standardError != null);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = gradleUserHome != null ? gradleUserHome.hashCode() : 0;
-        result = 31 * result + (projectDir != null ? projectDir.hashCode() : 0);
-        result = 31 * result + (buildArgs != null ? buildArgs.hashCode() : 0);
-        result = 31 * result + (jvmArgs != null ? jvmArgs.hashCode() : 0);
-        result = 31 * result + (injectedClassPath != null ? injectedClassPath.hashCode() : 0);
-        result = 31 * result + (debug ? 1 : 0);
-        result = 31 * result + (standardOutput != null ? standardOutput.hashCode() : 0);
-        result = 31 * result + (standardError != null ? standardError.hashCode() : 0);
-        return result;
-    }
 }

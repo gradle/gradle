@@ -20,10 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.taskdefs.Tar;
 import org.apache.tools.ant.taskdefs.Zip;
-import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -511,41 +508,45 @@ public class TestFile extends File {
         zip.setDestFile(zipFile);
         zip.setBasedir(this);
         zip.setExcludes("**");
-        execute(zip);
+        zip.setProject(new Project());
+        zip.execute();
         return zipFile;
     }
 
     public TestFile zipTo(TestFile zipFile) {
-        new TestFileHelper(this).zipTo(zipFile, useNativeTools);
+        return zipTo(zipFile, false);
+    }
+
+    public TestFile zipTo(TestFile zipFile, boolean readOnly) {
+        new TestFileHelper(this).zipTo(zipFile, useNativeTools, readOnly);
         return this;
     }
 
     public TestFile tarTo(TestFile tarFile) {
-        new TestFileHelper(this).tarTo(tarFile, useNativeTools);
+        return tarTo(tarFile, false);
+    }
+
+    public TestFile tarTo(TestFile tarFile, boolean readOnly) {
+        new TestFileHelper(this).tarTo(tarFile, useNativeTools, readOnly);
         return this;
     }
 
     public TestFile tgzTo(TestFile tarFile) {
-        Tar tar = new Tar();
-        tar.setBasedir(this);
-        tar.setDestFile(tarFile);
-        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "gzip"));
-        execute(tar);
+        return tgzTo(tarFile, false);
+    }
+
+    public TestFile tgzTo(TestFile tarFile, boolean readOnly) {
+        new TestFileHelper(this).tgzTo(tarFile, readOnly);
         return this;
     }
 
     public TestFile tbzTo(TestFile tarFile) {
-        Tar tar = new Tar();
-        tar.setBasedir(this);
-        tar.setDestFile(tarFile);
-        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "bzip2"));
-        execute(tar);
-        return this;
+        return tbzTo(tarFile, false);
     }
 
-    private void execute(Task task) {
-        task.setProject(new Project());
-        task.execute();
+    public TestFile tbzTo(TestFile tarFile, boolean readOnly) {
+        new TestFileHelper(this).tbzTo(tarFile, readOnly);
+        return this;
     }
 
     public Snapshot snapshot() {

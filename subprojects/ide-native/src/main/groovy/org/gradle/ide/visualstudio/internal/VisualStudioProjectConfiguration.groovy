@@ -15,7 +15,6 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.language.PreprocessingTool
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.NativeBinarySpec
@@ -86,8 +85,7 @@ class VisualStudioProjectConfiguration {
     }
 
     private PreprocessingTool findCompiler(String tool) {
-        ExtensionAware extendedBinary = binary as ExtensionAware;
-        return extendedBinary.extensions.findByName(tool) as PreprocessingTool
+        return binary.getToolByName(tool) as PreprocessingTool
     }
 
     List<File> getIncludePaths() {

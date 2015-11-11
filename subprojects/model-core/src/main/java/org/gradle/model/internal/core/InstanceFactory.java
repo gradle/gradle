@@ -33,6 +33,8 @@ public interface InstanceFactory<T> {
 
     <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> type);
 
+    <S extends T> ModelType<? extends S> getImplementationType(ModelType<S> publicType);
+
     /**
      * Return information about the implementation of a managed type with an unmanaged super-type.
      */

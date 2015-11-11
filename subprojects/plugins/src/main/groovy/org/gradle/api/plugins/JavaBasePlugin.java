@@ -48,13 +48,15 @@ import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
+import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.ModelCreators;
 import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
@@ -98,11 +100,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureCompileDefaults(project, javaConvention);
         BridgedBinaries binaries = configureSourceSetDefaults(javaConvention);
 
-        modelRegistry.createOrReplace(ModelCreators.bridgedInstance(ModelReference.of("bridgedBinaries", BridgedBinaries.class), binaries)
-                .descriptor("JavaBasePlugin.apply()")
-                .ephemeral(true)
-                .hidden(true)
-                .build());
+        modelRegistry.registerOrReplace(ModelRegistrations.bridgedInstance(ModelReference.of("bridgedBinaries", BridgedBinaries.class), binaries)
+            .descriptor("JavaBasePlugin.apply()")
+            .ephemeral(true)
+            .hidden(true)
+            .build());
 
         configureJavaDoc(project, javaConvention);
         configureTest(project, javaConvention);
@@ -401,8 +403,10 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void attachBridgedBinaries(BinaryContainer binaries, @Path("bridgedBinaries") BridgedBinaries bridgedBinaries) {
-            binaries.addAll(bridgedBinaries.binaries);
+        void attachBridgedBinaries(ModelMap<BinarySpec> binaries, @Path("bridgedBinaries") BridgedBinaries bridgedBinaries) {
+            for (BinarySpecInternal binary : bridgedBinaries.binaries) {
+                binaries.put(binary.getProjectScopedName(), binary);
+            }
         }
     }
 }

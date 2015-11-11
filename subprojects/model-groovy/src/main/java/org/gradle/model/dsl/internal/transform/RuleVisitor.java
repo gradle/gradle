@@ -16,29 +16,31 @@
 
 package org.gradle.model.dsl.internal.transform;
 
-import com.google.common.collect.Lists;
-import net.jcip.annotations.NotThreadSafe;
+import com.google.common.base.Joiner;
 import org.codehaus.groovy.ast.*;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
+import org.codehaus.groovy.ast.stmt.ReturnStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.codehaus.groovy.syntax.Token;
 import org.codehaus.groovy.syntax.Types;
+import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.ExpressionReplacingVisitorSupport;
 import org.gradle.internal.SystemProperties;
 import org.gradle.model.dsl.internal.inputs.PotentialInputs;
 import org.gradle.model.internal.core.ModelPath;
+import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Modifier;
+import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
 
-@NotThreadSafe
 public class RuleVisitor extends ExpressionReplacingVisitorSupport {
 
     public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";
@@ -48,78 +50,130 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
 
     private static final String DOLLAR = "$";
     private static final String GET = "get";
-    private static final ClassNode RULE_METADATA = new ClassNode(RuleMetadata.class);
     private static final ClassNode POTENTIAL_INPUTS = new ClassNode(PotentialInputs.class);
     private static final ClassNode TRANSFORMED_CLOSURE = new ClassNode(TransformedClosure.class);
+    private static final ClassNode INPUT_REFERENCES = new ClassNode(InputReferences.class);
+    private static final ClassNode SOURCE_LOCATION = new ClassNode(SourceLocation.class);
+    private static final ClassNode RULE_FACTORY = new ClassNode(ClosureBackedRuleFactory.class);
 
-    private static final String INPUTS_LVAR_NAME = "__rule_inputs_var__";
-    private static final String INPUTS_FIELD_NAME = "__rule_inputs__";
+    private static final String INPUTS_FIELD_NAME = "__inputs__";
+    private static final String RULE_FACTORY_FIELD_NAME = "__rule_factory__";
     private static final Token ASSIGN = new Token(Types.ASSIGN, "=", -1, -1);
 
+    private final String scriptSourceDescription;
+    private final URI location;
     private final SourceUnit sourceUnit;
     private InputReferences inputs;
     private VariableExpression inputsVariable;
+    private int nestingDepth;
+    private int counter;
 
-    public RuleVisitor(SourceUnit sourceUnit) {
+    public RuleVisitor(SourceUnit sourceUnit, String scriptSourceDescription, URI location) {
+        this.scriptSourceDescription = scriptSourceDescription;
+        this.location = location;
         this.sourceUnit = sourceUnit;
     }
 
     // Not part of a normal visitor, see ClosureCreationInterceptingVerifier
     public static void visitGeneratedClosure(ClassNode node) {
-        MethodNode method = AstUtils.getGeneratedClosureImplMethod(node);
-        Statement closureCode = method.getCode();
-        SourceLocation sourceLocation = closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
-        if (sourceLocation != null) {
-            AnnotationNode metadataAnnotation = new AnnotationNode(RULE_METADATA);
-
-            metadataAnnotation.addMember("absoluteScriptSourceLocation", new ConstantExpression(sourceLocation.getUri()));
-            metadataAnnotation.addMember("lineNumber", new ConstantExpression(sourceLocation.getLineNumber()));
-            metadataAnnotation.addMember("columnNumber", new ConstantExpression(sourceLocation.getColumnNumber()));
-
-            InputReferences inputs = closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
-            if (!inputs.isEmpty()) {
-                metadataAnnotation.addMember("absoluteInputPaths", new ListExpression(constants(inputs.getAbsolutePaths())));
-                metadataAnnotation.addMember("absoluteInputLineNumbers", new ListExpression(constants(inputs.getAbsolutePathLineNumbers())));
-            }
-
-            node.addAnnotation(metadataAnnotation);
-
+        MethodNode closureCallMethod = AstUtils.getGeneratedClosureImplMethod(node);
+        Statement closureCode = closureCallMethod.getCode();
+        InputReferences inputs = closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
+        if (inputs != null) {
+            SourceLocation sourceLocation = closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
             node.addInterface(TRANSFORMED_CLOSURE);
-            node.addField(new FieldNode(INPUTS_FIELD_NAME, Modifier.PUBLIC, POTENTIAL_INPUTS, node, null));
+            FieldNode inputsField = new FieldNode(INPUTS_FIELD_NAME, Modifier.PRIVATE, POTENTIAL_INPUTS, node, null);
+            FieldNode ruleFactoryField = new FieldNode(RULE_FACTORY_FIELD_NAME, Modifier.PRIVATE, RULE_FACTORY, node, null);
+            node.addField(inputsField);
+            node.addField(ruleFactoryField);
+
+            // Generate makeRule() method
             List<Statement> statements = new ArrayList<Statement>();
-            statements.add(new ExpressionStatement(new BinaryExpression(new VariableExpression(INPUTS_FIELD_NAME), ASSIGN, new VariableExpression("inputs"))));
-            node.addMethod(new MethodNode("applyRuleInputs", Modifier.PUBLIC, ClassHelper.VOID_TYPE,
-                    new Parameter[]{new Parameter(POTENTIAL_INPUTS, "inputs")},
+            statements.add(new ExpressionStatement(new BinaryExpression(new FieldExpression(inputsField), ASSIGN, new VariableExpression("inputs"))));
+            statements.add(new ExpressionStatement(new BinaryExpression(new FieldExpression(ruleFactoryField), ASSIGN, new VariableExpression("ruleFactory"))));
+            node.addMethod(new MethodNode("makeRule",
+                    Modifier.PUBLIC,
+                    ClassHelper.VOID_TYPE,
+                    new Parameter[]{new Parameter(POTENTIAL_INPUTS, "inputs"), new Parameter(RULE_FACTORY, "ruleFactory")},
                     new ClassNode[0],
                     new BlockStatement(statements, new VariableScope())));
+
+            // Generate inputReferences() method
+            VariableExpression inputsVar = new VariableExpression("inputs", INPUT_REFERENCES);
+            VariableScope methodVarScope = new VariableScope();
+            methodVarScope.putDeclaredVariable(inputsVar);
+            statements = new ArrayList<Statement>();
+            statements.add(new ExpressionStatement(new DeclarationExpression(inputsVar, ASSIGN, new ConstructorCallExpression(INPUT_REFERENCES, new ArgumentListExpression()))));
+            for (InputReference inputReference : inputs.getOwnReferences()) {
+                statements.add(new ExpressionStatement(new MethodCallExpression(inputsVar,
+                        "ownReference",
+                        new ArgumentListExpression(
+                                new ConstantExpression(inputReference.getPath()),
+                                new ConstantExpression(inputReference.getLineNumber())))));
+            }
+            for (InputReference inputReference : inputs.getNestedReferences()) {
+                statements.add(new ExpressionStatement(new MethodCallExpression(inputsVar,
+                        "nestedReference",
+                        new ArgumentListExpression(
+                                new ConstantExpression(inputReference.getPath()),
+                                new ConstantExpression(inputReference.getLineNumber())))));
+            }
+            statements.add(new ReturnStatement(inputsVar));
+            node.addMethod(new MethodNode("inputReferences",
+                                Modifier.PUBLIC,
+                                INPUT_REFERENCES,
+                                new Parameter[0],
+                                new ClassNode[0],
+                                new BlockStatement(statements, methodVarScope)));
+
+            // Generate sourceLocation() method
+            statements = new ArrayList<Statement>();
+            statements.add(new ReturnStatement(new ConstructorCallExpression(SOURCE_LOCATION,
+                    new ArgumentListExpression(Arrays.<Expression>asList(
+                            new ConstantExpression(sourceLocation.getUri().toString()),
+                            new ConstantExpression(sourceLocation.toString()),
+                            new ConstantExpression(sourceLocation.getExpression()),
+                            new ConstantExpression(sourceLocation.getLineNumber()),
+                            new ConstantExpression(sourceLocation.getColumnNumber())
+                    )))));
+            node.addMethod(new MethodNode("sourceLocation",
+                                Modifier.PUBLIC,
+                                SOURCE_LOCATION,
+                                new Parameter[0],
+                                new ClassNode[0],
+                                new BlockStatement(statements, new VariableScope())));
         }
     }
 
-    private static List<Expression> constants(Collection<?> values) {
-        List<Expression> expressions = Lists.newArrayListWithCapacity(values.size());
-        for (Object value : values) {
-            expressions.add(new ConstantExpression(value));
-        }
-        return expressions;
-    }
-
-    public void visitRuleClosure(ClosureExpression expression, SourceLocation sourceLocation) {
-        if (inputs != null) {
-            throw new IllegalStateException("Already visiting a rule closure");
-        }
-        inputs = new InputReferences();
+    public void visitRuleClosure(ClosureExpression expression, Expression invocation, String invocationDisplayName) {
+        InputReferences parentInputs = inputs;
+        VariableExpression parentInputsVariable = inputsVariable;
         try {
-            inputsVariable = new VariableExpression(INPUTS_LVAR_NAME, POTENTIAL_INPUTS);
+            inputs = new InputReferences();
+            inputsVariable = new VariableExpression("__rule_inputs_var_" + (counter++), POTENTIAL_INPUTS);
+            inputsVariable.setClosureSharedVariable(true);
             super.visitClosureExpression(expression);
             BlockStatement code = (BlockStatement) expression.getCode();
-            code.setNodeMetaData(AST_NODE_METADATA_LOCATION_KEY, sourceLocation);
+            code.setNodeMetaData(AST_NODE_METADATA_LOCATION_KEY, new SourceLocation(location, scriptSourceDescription, invocationDisplayName, invocation.getLineNumber(), invocation.getColumnNumber()));
             code.setNodeMetaData(AST_NODE_METADATA_INPUTS_KEY, inputs);
-            inputsVariable.setClosureSharedVariable(true);
+            if (parentInputsVariable != null) {
+                expression.getVariableScope().putReferencedLocalVariable(parentInputsVariable);
+            }
             code.getVariableScope().putDeclaredVariable(inputsVariable);
 
-            // <inputs-lvar> = <inputs-field>
-            DeclarationExpression variableDeclaration = new DeclarationExpression(inputsVariable, ASSIGN, new VariableExpression(INPUTS_FIELD_NAME));
-            code.getStatements().add(0, new ExpressionStatement(variableDeclaration));
+            if (parentInputsVariable == null) {
+                // <inputs-lvar> = <inputs-field>
+                DeclarationExpression variableDeclaration = new DeclarationExpression(inputsVariable, ASSIGN, new VariableExpression(INPUTS_FIELD_NAME));
+                code.getStatements().add(0, new ExpressionStatement(variableDeclaration));
+
+            } else {
+                // <inputs-lvar> = <inputs-field> ?: <parent-inputs-lvar>
+                DeclarationExpression variableDeclaration = new DeclarationExpression(inputsVariable, ASSIGN,
+                        new ElvisOperatorExpression(
+                                new VariableExpression(INPUTS_FIELD_NAME),
+                                parentInputsVariable));
+                code.getStatements().add(0, new ExpressionStatement(variableDeclaration));
+            }
 
             // Move default values into body of closure, so they can use <inputs-lvar>
             for (Parameter parameter : expression.getParameters()) {
@@ -129,22 +183,31 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                 }
             }
         } finally {
-            inputs = null;
+            if (parentInputs != null) {
+                parentInputs.addNestedReferences(inputs);
+            }
+            inputs = parentInputs;
+            inputsVariable = parentInputsVariable;
         }
     }
 
     @Override
     public void visitClosureExpression(ClosureExpression expression) {
         // Nested closure
-        expression.getVariableScope().putReferencedLocalVariable(inputsVariable);
-        super.visitClosureExpression(expression);
+        nestingDepth++;
+        try {
+            expression.getVariableScope().putReferencedLocalVariable(inputsVariable);
+            super.visitClosureExpression(expression);
+        } finally {
+            nestingDepth--;
+        }
     }
 
     @Override
     public void visitPropertyExpression(PropertyExpression expr) {
         String modelPath = isDollarPathExpression(expr);
         if (modelPath != null) {
-            inputs.absolutePath(modelPath, expr.getLineNumber());
+            inputs.ownReference(modelPath, expr.getLineNumber());
             replaceVisitedExpressionWith(inputReferenceExpression(modelPath));
         } else {
             super.visitPropertyExpression(expr);
@@ -152,6 +215,9 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     }
 
     private String isDollarPathExpression(PropertyExpression expr) {
+        if (expr.isSafe() || expr.isSpreadSafe()) {
+            return null;
+        }
         if (expr.getObjectExpression() instanceof VariableExpression) {
             VariableExpression objectExpression = (VariableExpression) expr.getObjectExpression();
             if (objectExpression.getName().equals(DOLLAR)) {
@@ -173,14 +239,36 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     }
 
     @Override
+    public void visitExpressionStatement(ExpressionStatement stat) {
+        if (nestingDepth == 0 && stat.getExpression() instanceof MethodCallExpression) {
+            MethodCallExpression call = (MethodCallExpression) stat.getExpression();
+            if (call.isImplicitThis() && call.getArguments() instanceof ArgumentListExpression) {
+                ArgumentListExpression arguments = (ArgumentListExpression) call.getArguments();
+                if (!arguments.getExpressions().isEmpty()) {
+                    Expression lastArg = arguments.getExpression(arguments.getExpressions().size() - 1);
+                    if (lastArg instanceof ClosureExpression) {
+                        // TODO - other args need to be visited
+                        ClosureExpression closureExpression = (ClosureExpression) lastArg;
+                        visitRuleClosure(closureExpression, call, displayName(call));
+                        Expression replaced = new StaticMethodCallExpression(RULE_FACTORY, "decorate", new ArgumentListExpression(new VariableExpression(RULE_FACTORY_FIELD_NAME), closureExpression));
+                        arguments.getExpressions().set(arguments.getExpressions().size() - 1, replaced);
+                        return;
+                    }
+                }
+            }
+        }
+        super.visitExpressionStatement(stat);
+    }
+
+    @Override
     public void visitMethodCallExpression(MethodCallExpression call) {
         String methodName = call.getMethodAsString();
         if (call.isImplicitThis() && methodName != null && methodName.equals(DOLLAR)) {
             visitInputMethod(call);
-        } else {
-            // visit the method call, because one of the args may be an input method call
-            super.visitMethodCallExpression(call);
+            return;
         }
+        // visit the method call, because one of the args may be an input method call
+        super.visitMethodCallExpression(call);
     }
 
     private void visitInputMethod(MethodCallExpression call) {
@@ -209,7 +297,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                 return;
             }
 
-            inputs.absolutePath(modelPath, call.getLineNumber());
+            inputs.ownReference(modelPath, call.getLineNumber());
             replaceVisitedExpressionWith(inputReferenceExpression(modelPath));
         }
     }
@@ -221,5 +309,35 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     private void error(ASTNode call, String message) {
         SyntaxException syntaxException = new SyntaxException(message, call.getLineNumber(), call.getColumnNumber());
         sourceUnit.getErrorCollector().addError(syntaxException, sourceUnit);
+    }
+
+    public static String displayName(MethodCallExpression expression) {
+        StringBuilder builder = new StringBuilder();
+        if (!expression.isImplicitThis()) {
+            builder.append(expression.getObjectExpression().getText());
+            builder.append('.');
+        }
+        builder.append(expression.getMethodAsString());
+        if (expression.getArguments() instanceof ArgumentListExpression) {
+            ArgumentListExpression arguments = (ArgumentListExpression) expression.getArguments();
+            boolean hasTrailingClosure = !arguments.getExpressions().isEmpty() && arguments.getExpression(arguments.getExpressions().size() - 1) instanceof ClosureExpression;
+            List<Expression> otherArgs = hasTrailingClosure ? arguments.getExpressions().subList(0, arguments.getExpressions().size() - 1) : arguments.getExpressions();
+            if (!otherArgs.isEmpty() || !hasTrailingClosure) {
+                builder.append("(");
+                builder.append(Joiner.on(", ").join(CollectionUtils.collect(otherArgs, new Transformer<Object, Expression>() {
+                    @Override
+                    public Object transform(Expression expression) {
+                        return expression.getText();
+                    }
+                })));
+                builder.append(")");
+            }
+            if (hasTrailingClosure) {
+                builder.append(" { ... }");
+            }
+        } else {
+            builder.append("()");
+        }
+        return builder.toString();
     }
 }

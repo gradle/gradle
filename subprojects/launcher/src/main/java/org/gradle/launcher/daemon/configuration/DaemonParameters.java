@@ -107,9 +107,9 @@ public class DaemonParameters {
             return;
         }
         if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
-            jvmOptions.setAllJvmArgs(DEFAULT_JVM_9_ARGS);
+            jvmOptions.jvmArgs(DEFAULT_JVM_9_ARGS);
         } else {
-            jvmOptions.setAllJvmArgs(DEFAULT_JVM_ARGS);
+            jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
         }
     }
 

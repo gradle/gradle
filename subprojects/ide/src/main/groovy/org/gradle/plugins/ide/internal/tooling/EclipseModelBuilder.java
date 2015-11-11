@@ -17,8 +17,10 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
@@ -124,6 +126,29 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             tasks.add(new DefaultEclipseTask(eclipseProject, t.getPath(), t.getName(), t.getDescription()));
         }
         eclipseProject.setTasks(tasks);
+
+        List<DefaultEclipseProjectNature> natures = new ArrayList<DefaultEclipseProjectNature>();
+        for(String n: eclipseModel.getProject().getNatures()) {
+            natures.add(new DefaultEclipseProjectNature(n));
+        }
+        eclipseProject.setProjectNatures(natures);
+
+        List<DefaultEclipseBuildCommand> buildCommands = new ArrayList<DefaultEclipseBuildCommand>();
+        for (BuildCommand b : eclipseModel.getProject().getBuildCommands()) {
+            buildCommands.add(new DefaultEclipseBuildCommand(b.getName(), b.getArguments()));
+        }
+        eclipseProject.setBuildCommands(buildCommands);
+
+        if (project.getPlugins().hasPlugin(JavaBasePlugin.class)) {
+            // the default value for eclipse.jdt.sourceCompatibility is project.sourceCompatibility
+            // hence we have to read the value only from there
+            JavaVersion sourceCompatibility = eclipseModel.getJdt().getSourceCompatibility();
+            if (sourceCompatibility != null) {
+                DefaultJavaSourceLevel languageLevel = new DefaultJavaSourceLevel(sourceCompatibility.toString());
+                DefaultJavaSourceSettings sourceSettings = new DefaultJavaSourceSettings(languageLevel);
+                eclipseProject.setJavaSourceSettings(sourceSettings);
+            }
+        }
 
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);

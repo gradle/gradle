@@ -33,7 +33,9 @@ class SamplesRepositoriesIntegrationTest extends AbstractIntegrationTest {
         // This test is not very strong. Its main purpose is to the for the correct syntax as we use many
         // code snippets from this build script in the user's guide.
         File projectDir = sample.dir
-        String output = executer.inDirectory(projectDir).withQuietLogging().withTasks('lookup').run().getOutput()
-        assertThat(output, equalTo(String.format("localRepository%nlocalRepository%n")))
+        String output = executer.inDirectory(projectDir).withQuietLogging().withTasks('lookup').run().output
+        assertThat(output, equalTo("""localRepository
+localRepository
+"""))
     }
 }

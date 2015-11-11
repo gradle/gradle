@@ -66,6 +66,11 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     @Override
+    public String getProjectScopedName() {
+        return getName();
+    }
+
+    @Override
     public Class<? extends BinarySpec> getPublicType() {
         return ClassDirectoryBinarySpec.class;
     }

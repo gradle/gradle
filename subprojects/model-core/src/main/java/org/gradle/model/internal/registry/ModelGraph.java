@@ -33,12 +33,12 @@ class ModelGraph {
 
     private final ModelNodeInternal root;
     private final Map<ModelPath, ModelNodeInternal> flattened = Maps.newTreeMap();
-    private final SetMultimap<ModelPath, ModelCreationListener> pathListeners = LinkedHashMultimap.create();
-    private final SetMultimap<ModelPath, ModelCreationListener> parentListeners = LinkedHashMultimap.create();
-    private final SetMultimap<ModelPath, ModelCreationListener> ancestorListeners = LinkedHashMultimap.create();
-    private final Set<ModelCreationListener> listeners = new LinkedHashSet<ModelCreationListener>();
+    private final SetMultimap<ModelPath, ModelListener> pathListeners = LinkedHashMultimap.create();
+    private final SetMultimap<ModelPath, ModelListener> parentListeners = LinkedHashMultimap.create();
+    private final SetMultimap<ModelPath, ModelListener> ancestorListeners = LinkedHashMultimap.create();
+    private final Set<ModelListener> listeners = new LinkedHashSet<ModelListener>();
     private boolean notifying;
-    private final List<ModelCreationListener> pendingListeners = new ArrayList<ModelCreationListener>();
+    private final List<ModelListener> pendingListeners = new ArrayList<ModelListener>();
     private final Map<ModelNodeInternal, PendingState> pendingNodes = Maps.newLinkedHashMap();
 
     public ModelGraph(ModelNodeInternal rootNode) {
@@ -64,7 +64,7 @@ class ModelGraph {
         flush();
     }
 
-    public void nodeProjectionsDefined(ModelNodeInternal node) {
+    public void nodeDiscovered(ModelNodeInternal node) {
         if (notifying) {
             if (!pendingNodes.containsKey(node)) {
                 pendingNodes.put(node, PendingState.NOTIFY);
@@ -78,7 +78,7 @@ class ModelGraph {
 
     private void doAdd(ModelNodeInternal node) {
         flattened.put(node.getPath(), node);
-        if (node.isAtLeast(ModelNode.State.ProjectionsDefined)) {
+        if (node.isAtLeast(ModelNode.State.Discovered)) {
             doNotify(node);
         }
     }
@@ -100,17 +100,17 @@ class ModelGraph {
         }
     }
 
-    private void notifyListeners(ModelNodeInternal node, Iterable<ModelCreationListener> listeners) {
-        Iterator<ModelCreationListener> iterator = listeners.iterator();
+    private void notifyListeners(ModelNodeInternal node, Iterable<ModelListener> listeners) {
+        Iterator<ModelListener> iterator = listeners.iterator();
         while (iterator.hasNext()) {
-            ModelCreationListener listener = iterator.next();
+            ModelListener listener = iterator.next();
             if (maybeNotify(node, listener)) {
                 iterator.remove();
             }
         }
     }
 
-    public void addListener(ModelCreationListener listener) {
+    public void addListener(ModelListener listener) {
         if (notifying) {
             pendingListeners.add(listener);
             return;
@@ -120,7 +120,7 @@ class ModelGraph {
         flush();
     }
 
-    private void doAddListener(ModelCreationListener listener) {
+    private void doAddListener(ModelListener listener) {
         notifying = true;
         try {
             if (listener.getPath() != null) {
@@ -141,7 +141,7 @@ class ModelGraph {
         }
     }
 
-    private void addEverythingListener(ModelCreationListener listener) {
+    private void addEverythingListener(ModelListener listener) {
         for (ModelNodeInternal node : flattened.values()) {
             if (maybeNotify(node, listener)) {
                 return;
@@ -150,7 +150,7 @@ class ModelGraph {
         listeners.add(listener);
     }
 
-    private void addAncestorListener(ModelCreationListener listener) {
+    private void addAncestorListener(ModelListener listener) {
         if (ModelPath.ROOT.equals(listener.getAncestor())) {
             // Don't need to match on path
             addEverythingListener(listener);
@@ -174,7 +174,7 @@ class ModelGraph {
         ancestorListeners.put(listener.getAncestor(), listener);
     }
 
-    private void addParentListener(ModelCreationListener listener) {
+    private void addParentListener(ModelListener listener) {
         ModelNodeInternal parent = flattened.get(listener.getParent());
         if (parent != null) {
             for (ModelNodeInternal node : parent.getLinks()) {
@@ -186,7 +186,7 @@ class ModelGraph {
         parentListeners.put(listener.getParent(), listener);
     }
 
-    private void addPathListener(ModelCreationListener listener) {
+    private void addPathListener(ModelListener listener) {
         ModelNodeInternal node = flattened.get(listener.getPath());
         if (node != null) {
             if (maybeNotify(node, listener)) {
@@ -216,16 +216,16 @@ class ModelGraph {
         }
     }
 
-    private boolean maybeNotify(ModelNodeInternal node, ModelCreationListener listener) {
+    private boolean maybeNotify(ModelNodeInternal node, ModelListener listener) {
         if (listener.getType() != null) {
-            if (!node.isAtLeast(ModelNode.State.ProjectionsDefined)) {
+            if (!node.isAtLeast(ModelNode.State.Discovered)) {
                 return false;
             }
             if (!node.getPromise().canBeViewedAsMutable(listener.getType()) && !node.getPromise().canBeViewedAsImmutable(listener.getType())) {
                 return false;
             }
         }
-        return listener.onCreate(node);
+        return listener.onDiscovered(node);
     }
 
     @Nullable

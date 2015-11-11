@@ -25,7 +25,6 @@ import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.tasks.testing.Test
 import org.gradle.language.scala.tasks.PlatformScalaCompile
 import org.gradle.model.ModelMap
-import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.BinaryTasksCollection
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal
 import org.gradle.play.internal.toolchain.PlayToolChainInternal
@@ -36,7 +35,7 @@ import spock.lang.Specification
 class PlayTestPluginTest extends Specification {
 
     ModelMap<Task> taskModelMap = Mock(ModelMap)
-    def binaryContainer = Mock(BinaryContainer)
+    def binaryContainer = Mock(ModelMap)
     def projectIdentifier = Mock(ProjectIdentifier)
     def binary = Mock(PlayApplicationBinarySpecInternal)
     def playPlatform = Mock(PlayPlatform)
@@ -52,10 +51,12 @@ class PlayTestPluginTest extends Specification {
     PlayTestPlugin plugin = new PlayTestPlugin()
 
     def setup(){
-        _ * binaryContainer.withType(PlayApplicationBinarySpecInternal.class) >> binaryContainer
         _ * binaryContainer.iterator() >> [binary].iterator()
-        _ * binary.name >> "someBinary"
-        _ * binary.getTasks() >> Mock(BinaryTasksCollection)
+        _ * binary.projectScopedName >> "someBinary"
+        _ * binary.getTasks() >> Stub(BinaryTasksCollection) {
+            taskName(_, _) >> { String verb, String object -> "${verb}SomeBinary${object.capitalize()}"}
+            taskName(_) >> { String verb -> "${verb}SomeBinary"}
+        }
 
         _ * configurations.create(_) >> configuration
         _ * configurations.maybeCreate(_) >> configuration

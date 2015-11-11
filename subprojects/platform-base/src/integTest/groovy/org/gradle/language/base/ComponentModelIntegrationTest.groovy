@@ -17,7 +17,6 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -43,7 +42,7 @@ class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTes
                 components {
                     main {
                         sources {
-                            main(CustomLanguageSourceSet)
+                            someLang(CustomLanguageSourceSet)
                         }
                     }
                 }
@@ -57,8 +56,8 @@ class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTes
             class ComponentBinaryRules extends RuleSource {
                 @ComponentBinaries
                 void addBinaries(ModelMap<CustomBinary> binaries, CustomComponent component) {
-                    binaries.create("main", CustomBinary)
-                    binaries.create("test", CustomBinary)
+                    binaries.create("b1", CustomBinary)
+                    binaries.create("b2", CustomBinary)
                 }
             }
 
@@ -162,7 +161,7 @@ model {
         succeeds "printSourceNames"
 
         then:
-        output.contains "names: [main]"
+        output.contains "names: [someLang]"
     }
 
     def "component sources container elements are visible in model report"() {
@@ -225,7 +224,7 @@ model {
             model {
                 tasks {
                     create("printSourceDisplayName") {
-                        def sources = $("components.main.sources.main")
+                        def sources = $("components.main.sources.someLang")
                         doLast {
                             println "sources display name: ${sources.displayName}"
                         }
@@ -238,7 +237,7 @@ model {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: DefaultCustomLanguageSourceSet 'main:main'"
+        output.contains "sources display name: DefaultCustomLanguageSourceSet 'main:someLang'"
     }
 
     def "can reference sources container elements using specialized type in a rule"() {
@@ -247,7 +246,7 @@ model {
         buildFile << '''
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.sources.main") CustomLanguageSourceSet sourceSet) {
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.sources.someLang") CustomLanguageSourceSet sourceSet) {
                     tasks.create("printSourceData") {
                         doLast {
                             println "sources data: ${sourceSet.data}"
@@ -264,31 +263,6 @@ model {
 
         then:
         output.contains "sources data: foo"
-    }
-
-    def "cannot remove source sets"() {
-        given:
-        withMainSourceSet()
-        buildFile << '''
-            class SourceSetRemovalRules extends RuleSource {
-                @Mutate
-                void clearSourceSets(@Path("components.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
-                    sourceSets.clear()
-                }
-
-                @Mutate
-                void closeMainComponentSourceSetsForTasks(ModelMap<Task> tasks, @Path("components.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
-                }
-            }
-
-            apply type: SourceSetRemovalRules
-        '''
-
-        when:
-        fails()
-
-        then:
-        failureHasCause("This collection does not support element removal.")
     }
 
     def "plugin can create component"() {
@@ -352,7 +326,6 @@ model {
                     }
                 }
             }
-
         }
     }
 
@@ -379,11 +352,11 @@ model {
         succeeds "tasks"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'main'
+        output.contains """beforeEach DefaultCustomComponent 'main'
 afterEach DefaultCustomComponent 'main'
 beforeEach DefaultCustomComponent 'newComponent'
 creating DefaultCustomComponent 'newComponent'
-afterEach DefaultCustomComponent 'newComponent'"""))
+afterEach DefaultCustomComponent 'newComponent'"""
 
     }
 
@@ -440,7 +413,6 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                 sources()
             }
         }
-
     }
 
     def "buildscript can configure component with given name"() {
@@ -505,11 +477,11 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "tasks"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'main'
+        output.contains """beforeEach DefaultCustomComponent 'main'
 afterEach DefaultCustomComponent 'main'
 beforeEach DefaultCustomComponent 'newComponent'
 creating DefaultCustomComponent 'newComponent'
-afterEach DefaultCustomComponent 'newComponent'"""))
+afterEach DefaultCustomComponent 'newComponent'"""
 
     }
 
@@ -537,7 +509,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                 binaries()
                 sources {
                     bar(nodeValue: "DefaultCustomLanguageSourceSet 'main:bar'")
-                    main(nodeValue: "DefaultCustomLanguageSourceSet 'main:main'")
+                    someLang(nodeValue: "DefaultCustomLanguageSourceSet 'main:someLang'")
                 }
             }
         }
@@ -577,6 +549,56 @@ afterEach DefaultCustomComponent 'newComponent'"""))
 
         and:
         failure.assertThatCause(containsText("Cannot create a 'AnotherCustomComponent' because this type is not known to components. Known types are: CustomComponent"))
+    }
+
+    def "reasonable error message when creating binary with default implementation"() {
+        given:
+        withBinaries()
+
+        when:
+        buildFile << """
+        model {
+            components {
+                main {
+                    binaries {
+                        another(DefaultCustomBinary)
+                    }
+                }
+            }
+        }
+
+        """
+        then:
+        fails "model"
+
+        and:
+        failure.assertThatCause(containsText("Cannot create a 'DefaultCustomBinary' because this type is not known to binaries. Known types are: CustomBinary"))
+    }
+
+    def "reasonable error message when creating binary with no implementation"() {
+        given:
+        withBinaries()
+
+        when:
+        buildFile << """
+        interface AnotherCustomBinary extends BinarySpec {}
+
+        model {
+            components {
+                main {
+                    binaries {
+                        another(AnotherCustomBinary)
+                    }
+                }
+            }
+        }
+
+        """
+        then:
+        fails "model"
+
+        and:
+        failure.assertThatCause(containsText("Cannot create a 'AnotherCustomBinary' because this type is not known to binaries. Known types are: CustomBinary"))
     }
 
     def "componentSpecContainer is groovy decorated when used in rules"() {
@@ -697,7 +719,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "printBinaryNames"
 
         then:
-        output.contains "names: [main, test]"
+        output.contains "names: [b1, b2]"
     }
 
     def "can reference binaries container elements using specialized type in a rule"() {
@@ -706,7 +728,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         buildFile << '''
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.main") CustomBinary binary) {
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.b1") CustomBinary binary) {
                     tasks.create("printBinaryData") {
                         doLast {
                             println "binary data: ${binary.data}"
@@ -733,7 +755,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
             model {
                 tasks {
                     create("printBinaryTaskNames") {
-                        def tasks = $("components.main.binaries.main.tasks")
+                        def tasks = $("components.main.binaries.b1.tasks")
                         doLast {
                             println "names: ${tasks*.name}"
                         }
@@ -746,7 +768,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "printBinaryTaskNames"
 
         then:
-        output.contains "names: [customMainMainMain]"
+        output.contains "names: [customMainB1MainSomeLang]"
     }
 
     def "can view components container as a model map and as a collection builder"() {

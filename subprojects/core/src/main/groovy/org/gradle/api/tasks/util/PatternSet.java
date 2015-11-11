@@ -16,26 +16,22 @@
 
 package org.gradle.api.tasks.util;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
-import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.RelativePathSpec;
-import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.api.tasks.util.internal.PatternSetAntBuilderDelegate;
+import org.gradle.api.tasks.util.internal.PatternSpecFactory;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -44,13 +40,26 @@ import java.util.Set;
 public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     private static final NotationParser<Object, String> PARSER = NotationParserBuilder.toType(String.class).fromCharSequence().toComposite();
+    private static final PatternSpecFactory PATTERN_SPEC_FACTORY = createPatternSpecFactory();
 
     private final Set<String> includes = Sets.newLinkedHashSet();
     private final Set<String> excludes = Sets.newLinkedHashSet();
     private final Set<Spec<FileTreeElement>> includeSpecs = Sets.newLinkedHashSet();
     private final Set<Spec<FileTreeElement>> excludeSpecs = Sets.newLinkedHashSet();
 
+
     boolean caseSensitive = true;
+
+    private static PatternSpecFactory createPatternSpecFactory() {
+        try {
+            // prevents adding CachingPatternSpecFactory and it's dependencies to the Tooling API jar
+            // Jarjar scans all String literals for class names and this prevents that scanning from finding the class name and adding it as a dependency
+            Class clazz = PatternSet.class.getClassLoader().loadClass(new StringBuilder("org.gradle.api.tasks.util.internal.").append("CachingPatternSpecFactory").toString());
+            return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz));
+        } catch (ClassNotFoundException e) {
+            return new PatternSpecFactory();
+        }
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -149,32 +158,15 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public Spec<FileTreeElement> getAsSpec() {
-        return Specs.and(getAsIncludeSpec(), Specs.not(getAsExcludeSpec()));
+        return PATTERN_SPEC_FACTORY.createSpec(this);
     }
 
     public Spec<FileTreeElement> getAsIncludeSpec() {
-        List<Spec<FileTreeElement>> matchers = Lists.newArrayList();
-        for (String include : includes) {
-            Spec<RelativePath> patternMatcher = PatternMatcherFactory.getPatternMatcher(true, caseSensitive, include);
-            matchers.add(new RelativePathSpec(patternMatcher));
-        }
-
-        matchers.addAll(includeSpecs);
-        return Specs.or(matchers);
+        return PATTERN_SPEC_FACTORY.createIncludeSpec(this);
     }
 
     public Spec<FileTreeElement> getAsExcludeSpec() {
-        Collection<String> allExcludes = Sets.newLinkedHashSet(excludes);
-        Collections.addAll(allExcludes, DirectoryScanner.getDefaultExcludes());
-
-        List<Spec<FileTreeElement>> matchers = Lists.newArrayList();
-        for (String exclude : allExcludes) {
-            Spec<RelativePath> patternMatcher = PatternMatcherFactory.getPatternMatcher(false, caseSensitive, exclude);
-            matchers.add(new RelativePathSpec(patternMatcher));
-        }
-
-        matchers.addAll(excludeSpecs);
-        return Specs.or(false, matchers);
+        return PATTERN_SPEC_FACTORY.createExcludeSpec(this);
     }
 
     public Set<String> getIncludes() {

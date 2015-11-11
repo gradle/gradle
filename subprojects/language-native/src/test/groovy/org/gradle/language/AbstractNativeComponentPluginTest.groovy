@@ -15,7 +15,6 @@
  */
 
 package org.gradle.language
-
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -31,7 +30,7 @@ import org.gradle.nativeplatform.NativeBinary
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
-import org.gradle.platform.base.BinaryContainer
+import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
@@ -56,8 +55,8 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         project.modelRegistry.find(ModelPath.path("sources"), ModelType.of(ProjectSourceSet))
     }
 
-    BinaryContainer realizeBinaries() {
-        project.modelRegistry.find(ModelPath.path("binaries"), ModelType.of(BinaryContainer))
+    ModelMap<BinarySpec> realizeBinaries() {
+        project.modelRegistry.find(ModelPath.path("binaries"), ModelTypes.modelMap(BinarySpec))
     }
 
     def "creates source set with conventional locations for components"() {

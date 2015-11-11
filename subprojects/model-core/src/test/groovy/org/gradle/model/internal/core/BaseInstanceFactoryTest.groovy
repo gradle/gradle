@@ -20,6 +20,7 @@ import org.gradle.internal.util.BiFunction
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class BaseInstanceFactoryTest extends Specification {
@@ -27,6 +28,7 @@ class BaseInstanceFactoryTest extends Specification {
     static interface ThingSpecInternal extends ThingSpec {}
     static abstract class BaseThingSpec implements ThingSpecInternal {}
     static class DefaultThingSpec extends BaseThingSpec {}
+    static class DefaultOtherThingSpec extends BaseThingSpec implements OtherThingSpec {}
     static abstract class AbstractThingSpec implements ThingSpec {}
 
     static class NoDefaultConstructorThingSpec extends BaseThingSpec {
@@ -66,12 +68,32 @@ class BaseInstanceFactoryTest extends Specification {
         noExceptionThrown()
     }
 
-    def "can register internal view"() {
+    def "can register unmanaged internal view for unmanaged type"() {
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
+            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
             .withInternalView(ModelType.of(ThingSpecInternal))
+
+        when:
+        instanceFactory.validateRegistrations()
+        then:
+        noExceptionThrown()
 
         expect:
         instanceFactory.getInternalViews(ModelType.of(ThingSpec)) == ([ModelType.of(ThingSpecInternal)] as Set)
+    }
+
+    def "can register managed internal view for unmanaged type"() {
+        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
+            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+            .withInternalView(ModelType.of(ManagedThingSpecInternal))
+
+        when:
+        instanceFactory.validateRegistrations()
+        then:
+        noExceptionThrown()
+
+        expect:
+        instanceFactory.getInternalViews(ModelType.of(ThingSpec)) == ([ModelType.of(ManagedThingSpecInternal)] as Set)
     }
 
     def "internal views registered for super-type are returned"() {
@@ -203,11 +225,12 @@ class BaseInstanceFactoryTest extends Specification {
         ex.message == "Factory registration for '$UnmanagedThingSpec.name' is invalid because no implementation was registered"
     }
 
+    @Ignore("This would be hard to check, and we only use this internally, so we'll just be careful")
     def "fails validation if unmanaged type extends two interface with a default implementation"() {
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("impl rule"))
             .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
         instanceFactory.register(ModelType.of(OtherThingSpec), new SimpleModelRuleDescriptor("other impl rule"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+            .withImplementation(ModelType.of(DefaultOtherThingSpec), factoryMock)
         instanceFactory.register(ModelType.of(BothThingSpec), new SimpleModelRuleDescriptor("both rule"))
 
         when:
@@ -235,15 +258,6 @@ class BaseInstanceFactoryTest extends Specification {
         ex.message == "Internal view '$ThingSpecInternal.name' registered for managed type '$ManagedThingSpec.name' must be managed"
     }
 
-    def "fails when registering managed internal view for unmanaged type"() {
-        when:
-        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withInternalView(ModelType.of(ManagedThingSpecInternal))
-        then:
-        def ex = thrown IllegalArgumentException
-        ex.message == "Internal view '$ManagedThingSpecInternal.name' registered for unmanaged type '$ThingSpec.name' must be unmanaged"
-    }
-
     def "can register managed internal view for managed type that extends interface that is implemented by delegate type"() {
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
             .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
@@ -268,4 +282,5 @@ class BaseInstanceFactoryTest extends Specification {
         def ex = thrown IllegalStateException
         ex.message == "Factory registration for '$ManagedThingSpec.name' is invalid because the default implementation type '$DefaultThingSpec.name' does not implement unmanaged internal view '$OtherThingSpec.name', internal view was registered by managed thing"
     }
+
 }

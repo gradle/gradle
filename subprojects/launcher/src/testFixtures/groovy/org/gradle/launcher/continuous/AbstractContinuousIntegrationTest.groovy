@@ -17,6 +17,7 @@
 package org.gradle.launcher.continuous
 
 import com.google.common.util.concurrent.SimpleTimeLimiter
+import com.google.common.util.concurrent.UncheckedTimeoutException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.os.OperatingSystem
@@ -27,6 +28,7 @@ import java.util.concurrent.TimeUnit
 abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
     private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 10
+    private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
 
     GradleHandle gradle
 
@@ -36,6 +38,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     int buildTimeout = WAIT_FOR_WATCHING_TIMEOUT_SECONDS
     int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean killToStop
+    boolean ignoreShutdownTimeoutException
 
     public void turnOnDebug() {
         executer.withDebug(true)
@@ -58,11 +61,11 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         executer.beforeExecute {
             def initScript = file("init.gradle")
             initScript.text = """
-                def startAt = System.currentTimeMillis()
+                def startAt = System.nanoTime()
                 gradle.buildFinished {
-                    def sinceStart = System.currentTimeMillis() - startAt
-                    if (sinceStart < 2000) {
-                      sleep 2000 - sinceStart
+                    long sinceStart = (System.nanoTime() - startAt) / 1000000L
+                    if (sinceStart > 0 && sinceStart < 2000) {
+                      sleep(2000 - sinceStart)
                     }
                 }
             """
@@ -126,19 +129,20 @@ ${result.error}
 
     private void waitForBuild() {
         def lastOutput = buildOutputSoFar()
-        def lastActivity = System.currentTimeMillis()
+        def lastActivity = monotonicClockMillis()
         boolean endOfBuildReached = false
 
-        while (gradle.isRunning() && System.currentTimeMillis() - lastActivity < (buildTimeout * 1000)) {
+        while (gradle.isRunning() && monotonicClockMillis() - lastActivity < (buildTimeout * 1000)) {
             sleep 100
             def lastLength = lastOutput.size()
             lastOutput = buildOutputSoFar()
 
             if (lastOutput.contains("Waiting for changes to input files of tasks...")) {
                 endOfBuildReached = true
+                sleep 100
                 break
             } else if (lastOutput.size() > lastLength) {
-                lastActivity = System.currentTimeMillis()
+                lastActivity = monotonicClockMillis()
             }
         }
         if (gradle.isRunning() && !endOfBuildReached) {
@@ -156,16 +160,27 @@ $lastOutput
         result = out.contains("BUILD SUCCESSFUL") ? new OutputScrapingExecutionResult(out, err) : new OutputScrapingExecutionFailure(out, err)
     }
 
+    private long monotonicClockMillis() {
+        System.nanoTime() / 1000000L
+    }
+
     void stopGradle() {
         if (gradle && gradle.isRunning()) {
             if (killToStop) {
                 gradle.abort()
             } else {
                 gradle.cancel()
-                new SimpleTimeLimiter().callWithTimeout(
-                    { gradle.waitForExit() },
-                    shutdownTimeout, TimeUnit.SECONDS, false
-                )
+                try {
+                    new SimpleTimeLimiter().callWithTimeout(
+                        { gradle.waitForExit() },
+                        shutdownTimeout, TimeUnit.SECONDS, false
+                    )
+                } catch (UncheckedTimeoutException e) {
+                    gradle.abort()
+                    if (!ignoreShutdownTimeoutException) {
+                        throw e
+                    }
+                }
             }
         }
     }
@@ -211,6 +226,18 @@ $lastOutput
 
     void sendEOT() {
         gradle.cancelWithEOT()
+    }
+
+    void waitBeforeModification(File file) {
+        long waitMillis = 100L
+        if(OS_IS_WINDOWS && file.exists()) {
+            // ensure that file modification time changes on windows
+            long fileAge = System.currentTimeMillis() - file.lastModified()
+            if (fileAge > 0L && fileAge < 900L) {
+                waitMillis = 1000L - fileAge
+            }
+        }
+        sleep(waitMillis)
     }
 
     private static class UnexpectedBuildStartedException extends Exception {

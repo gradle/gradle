@@ -22,7 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelUnmanagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
@@ -42,7 +42,7 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
                 return propertyResult.getProperty();
             }
         });
-        return new ModelUnmanagedImplStructSchema<R>(extractionContext.getType(), properties, aspects);
+        return new UnmanagedImplStructSchema<R>(extractionContext.getType(), properties, aspects);
     }
 
     @Override

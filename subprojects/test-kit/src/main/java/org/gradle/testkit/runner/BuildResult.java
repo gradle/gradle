@@ -34,26 +34,13 @@ public interface BuildResult {
     /**
      * The textual output produced during the build.
      * <p>
-     * This is equivalent to the console output produced when running a build from the command line,
-     * except for any error output (which is available via {@link #getStandardError()}).
+     * This is equivalent to the console output produced when running a build from the command line.
+     * It contains both the standard output, and standard error output, of the build.
      *
-     * @return the build output text, or empty string if there was no build output (e.g. ran with {@code -q})
+     * @return the build output, or an empty string if there was no build output (e.g. ran with {@code -q})
+     * @since 2.9
      */
-    String getStandardOutput();
-
-    /**
-     * The textual error output produced during the build (i.e. text written to {@link System#err}).
-     * <p>
-     * During a build, Gradle itself does not write its output to the error output stream.
-     * However, tools used by the build, as well as processes forked by the build
-     * (who's output is forwarded) may write to the error output stream.
-     * <p>
-     * If the build fails to start, due to an invalid argument for example, the message will be written to the error output
-     * and hence available here.
-     *
-     * @return the build error output text, or empty string if there was no error output
-     */
-    String getStandardError();
+    String getOutput();
 
     /**
      * The tasks that were part of the build.

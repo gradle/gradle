@@ -31,7 +31,6 @@ class ToolingApiBackedGradleSession implements GradleSession {
     private final TestDirectoryProvider testDirectoryProvider
     private final GradleExecuterBackedSession executerBackedSession
     private ProjectConnection projectConnection
-    private BuildLauncher buildLauncher
 
     ToolingApiBackedGradleSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider
@@ -49,17 +48,19 @@ class ToolingApiBackedGradleSession implements GradleSession {
                 .forProjectDirectory(invocation.workingDirectory)
                 .useInstallation(invocation.gradleDistribution.gradleHomeDir)
                 .connect()
-
-        buildLauncher = projectConnection.newBuild()
-                .withArguments(invocation.args + ["-u"] as String[])
-                .forTasks(invocation.tasksToRun as String[])
-                .setJvmArguments(invocation.jvmOpts as String[])
-                .setStandardOutput(System.out)
-                .setStandardError(System.err)
     }
 
     @Override
-    Runnable runner() {
+    Runnable runner(GradleInvocationCustomizer invocationCustomizer) {
+        def invocation = invocationCustomizer ? invocationCustomizer.customize(this.invocation) : this.invocation
+
+        BuildLauncher buildLauncher = projectConnection.newBuild()
+            .withArguments(invocation.args + ["-u"] as String[])
+            .forTasks(invocation.tasksToRun as String[])
+            .setJvmArguments(invocation.jvmOpts as String[])
+            .setStandardOutput(System.out)
+            .setStandardError(System.err)
+
         return { buildLauncher.run() }
     }
 

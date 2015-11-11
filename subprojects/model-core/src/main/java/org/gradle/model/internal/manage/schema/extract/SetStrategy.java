@@ -17,7 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.api.Action;
-import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
+import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
@@ -45,7 +45,7 @@ public abstract class SetStrategy extends CollectionStrategy {
             throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", modelType.getConcreteClass().getName()));
         }
 
-        ModelCollectionSchema<T, E> schema = new ModelCollectionSchema<T, E>(extractionContext.getType(), elementType);
+        CollectionSchema<T, E> schema = new CollectionSchema<T, E>(extractionContext.getType(), elementType);
         extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
             public void execute(ModelSchema<E> typeParamSchema) {
             }

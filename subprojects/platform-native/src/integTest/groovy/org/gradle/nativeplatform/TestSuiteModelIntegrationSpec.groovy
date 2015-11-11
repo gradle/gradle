@@ -238,32 +238,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         then:
         output.contains "sources data: foo"
     }
-
-    def "cannot remove source sets"() {
-        given:
-        withMainSourceSet()
-        buildFile << '''
-            class SourceSetRemovalRules extends RuleSource {
-                @Mutate
-                void clearSourceSets(@Path("testSuites.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
-                    sourceSets.clear()
-                }
-
-                @Mutate
-                void closeMainComponentSourceSetsForTasks(ModelMap<Task> tasks, @Path("testSuites.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
-                }
-            }
-
-            apply type: SourceSetRemovalRules
-        '''
-
-        when:
-        fails()
-
-        then:
-        failureHasCause("This collection does not support element removal.")
-    }
-
+    
     def "test suite binaries container elements and their tasks containers are visible in model report"() {
         given:
         withTestBinaryFactory()

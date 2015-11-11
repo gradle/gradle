@@ -25,7 +25,21 @@ import org.gradle.api.reporting.SingleFileReport;
 public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
 
     /**
+     * The checkstyle HTML report.
+     * <p>
+     * This report IS enabled by default.
+     * <p>
+     * Enabling this report will also cause the XML report to be generated, as the HTML is derived from the XML.
+     *
+     * @return The checkstyle HTML report
+     * @since 2.10
+     */
+    SingleFileReport getHtml();
+
+    /**
      * The checkstyle XML report
+     * <p>
+     * This report IS enabled by default.
      *
      * @return The checkstyle XML report
      */

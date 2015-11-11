@@ -41,9 +41,14 @@ public class JvmPluginServiceRegistry implements PluginServiceRegistry {
     }
 
     private static class ComponentRegistrationAction {
-        public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
-            componentTypeRegistry.maybeRegisterComponentType(JvmLibrary.class)
-                    .registerArtifactType(SourcesArtifact.class, ArtifactType.SOURCES);
+        /***
+         * @param registration unused parameter required by convention, see {@link org.gradle.internal.service.DefaultServiceRegistry}.
+         */
+        public void configure(ServiceRegistration registration,
+                              ComponentTypeRegistry componentTypeRegistry) {
+            componentTypeRegistry
+                .maybeRegisterComponentType(JvmLibrary.class)
+                .registerArtifactType(SourcesArtifact.class, ArtifactType.SOURCES);
         }
     }
 }

@@ -15,14 +15,17 @@
  */
 
 package org.gradle.model.internal.inspect
-
 import org.gradle.api.credentials.Credentials
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
 import org.gradle.model.Unmanaged
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.fixture.TestManagedProxyFactory
 import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory
+import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
@@ -39,11 +42,23 @@ class ManagedModelInitializerTest extends Specification {
     def nodeInitializerRegistry
     def r = new ModelRegistryHelper()
     def classLoader = new GroovyClassLoader(getClass().classLoader)
+    def proxyFactory = TestManagedProxyFactory.INSTANCE
     static final List<Class<?>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
     def setup() {
+        registerServiceInstance("schemaStore", ModelSchemaStore, DefaultModelSchemaStore.instance)
+        registerServiceInstance("proxyFactory", ManagedProxyFactory, proxyFactory)
+        registerServiceInstance("serviceRegistry", ServiceRegistry, Mock(ServiceRegistry))
         nodeInitializerRegistry = new TestNodeInitializerRegistry() //Not shared across tests as test may add constructable types only applying to that particular test
-        r.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
+        registerServiceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry)
+    }
+
+    private <T> ModelRegistryHelper registerServiceInstance(String path, Class<T> clazz, T instance) {
+        registerServiceInstance(ModelReference.of(path, clazz), instance)
+    }
+
+    private <T> ModelRegistryHelper registerServiceInstance(ModelReference<T> reference, T instance) {
+        r.register(ModelRegistrations.serviceInstance(reference, instance).build())
     }
 
     def "should fail with a contextual exception for managed collections properties"() {
@@ -330,7 +345,7 @@ interface Managed${typeName} {
     }
 
     void realizeNodeOfType(Class type) {
-        r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)))).descriptor(r.desc("bar")).build())
+        r.register(ModelRegistrations.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)))).descriptor(r.desc("bar")).build())
         r.realize("bar", type)
     }
 

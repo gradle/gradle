@@ -17,7 +17,6 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
@@ -291,7 +290,7 @@ model {
         when:
         succeeds "components"
         then:
-        output.contains(TextUtil.toPlatformLineSeparators(""":components
+        output.contains """:components
 
 ------------------------------------------------------------
 Root project
@@ -306,7 +305,7 @@ DefaultSampleBinary 'sampleBinary'
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
-BUILD SUCCESSFUL"""))
+BUILD SUCCESSFUL"""
     }
 
     def buildWithCustomBinaryPlugin() {

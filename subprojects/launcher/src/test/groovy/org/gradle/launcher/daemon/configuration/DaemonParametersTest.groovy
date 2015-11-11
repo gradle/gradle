@@ -105,6 +105,19 @@ class DaemonParametersTest extends Specification {
         flag << ["true", "false"]
     }
 
+    def "debug mode is persisted when defaults are applied"() {
+        when:
+        parameters.setDebug(true)
+        parameters.applyDefaultsFor(jvmDefault)
+
+        then:
+        parameters.effectiveJvmArgs.contains("-Xdebug")
+        parameters.effectiveJvmArgs.contains("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")
+
+        where:
+        jvmDefault << [JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_9]
+    }
+
     def "can enable the daemon"() {
         when:
         def parametersWithEnabledDaemon = parameters().setEnabled(true)

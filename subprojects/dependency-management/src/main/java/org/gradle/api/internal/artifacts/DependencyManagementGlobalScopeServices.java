@@ -42,10 +42,6 @@ class DependencyManagementGlobalScopeServices {
         return new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverter);
     }
 
-    ConfigurationsToModuleDescriptorConverter createConfigurationsToModuleDescriptorConverter() {
-        return new DefaultConfigurationsToModuleDescriptorConverter();
-    }
-
     DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {
         return new DefaultDependencyDescriptorFactory(
             new ProjectIvyDependencyDescriptorFactory(
@@ -58,15 +54,8 @@ class DependencyManagementGlobalScopeServices {
         return new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter);
     }
 
-    ConfigurationsToArtifactsConverter createConfigurationsToArtifactsConverter() {
-        return new DefaultConfigurationsToArtifactsConverter();
-    }
-
-    ConfigurationLocalComponentConverter createConfigurationLocalComponentConverter(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
-                                                                                    DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter,
-                                                                                    ConfigurationsToArtifactsConverter configurationsToArtifactsConverter,
-                                                                                    ComponentIdentifierFactory componentIdentifierFactory) {
-        return new ConfigurationLocalComponentConverter(configurationsToModuleDescriptorConverter, dependenciesToModuleDescriptorConverter, componentIdentifierFactory, configurationsToArtifactsConverter);
+    ConfigurationComponentMetaDataBuilder createConfigurationComponentMetaDataBuilder(DependenciesToModuleDescriptorConverter dependenciesConverter) {
+        return new DefaultConfigurationComponentMetaDataBuilder(dependenciesConverter);
     }
 
     ResourceConnectorFactory createFileConnectorFactory() {

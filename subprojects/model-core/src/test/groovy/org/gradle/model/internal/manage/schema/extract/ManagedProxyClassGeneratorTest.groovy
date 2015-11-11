@@ -17,11 +17,14 @@
 package org.gradle.model.internal.manage.schema.extract
 import com.google.common.base.Optional
 import groovy.transform.NotYetImplemented
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.typeconversion.DefaultTypeConverters
+import org.gradle.internal.typeconversion.TypeConverters
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.instance.ModelElementState
-import org.gradle.model.internal.manage.schema.ModelStructSchema
+import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -185,20 +188,23 @@ class ManagedProxyClassGeneratorTest extends Specification {
         1 * node.hashCode() >> 123
     }
 
-    def "mixes in unmanaged delegate"() {
+    @Unroll
+    def "mixes in unmanaged delegate from #managedType.simpleName"() {
         def node = Stub(MutableModelNode)
         def state = Mock(ModelElementState) {
             getBackingNode() >> node
         }
 
         when:
-        Class<? extends ManagedSubType> proxyClass = generate(ManagedSubType, UnmanagedImplType)
+        Class<? extends PublicUnmanagedType> proxyClass = generate(managedType, UnmanagedImplType)
         def unmanagedInstance = new UnmanagedImplType()
-        ManagedSubType impl = proxyClass.newInstance(state, unmanagedInstance)
+        PublicUnmanagedType impl = proxyClass.newInstance(state, unmanagedInstance)
 
         then:
         impl instanceof ManagedInstance
         ((ManagedInstance) impl).backingNode == node
+        managedType.isAssignableFrom(proxyClass)
+        managedType.isAssignableFrom(impl.class)
 
         when:
         impl.unmanagedValue = "Lajos"
@@ -241,6 +247,11 @@ class ManagedProxyClassGeneratorTest extends Specification {
         then:
         def ex = thrown RuntimeException
         ex.message == "error"
+
+        where:
+        managedType                    | _
+        ManagedSubTypeViaInterface     | _
+        ManagedSubTypeViaAbstractClass | _
     }
 
     static interface OverloadingNumber {
@@ -336,18 +347,6 @@ class ManagedProxyClassGeneratorTest extends Specification {
         e.message.startsWith("No signature of method: ${SomeType.name}.unknown() is applicable")
     }
 
-    def "reports contract type rather than implementation class when attempting to invoke method with unsupported parameters"() {
-        given:
-        def impl = newInstance(SomeType)
-
-        when:
-        impl.setValue('12')
-
-        then:
-        MissingMethodException e = thrown()
-        e.message.startsWith("No signature of method: ${SomeType.name}.setValue() is applicable")
-    }
-
     @Unroll
     def "can read and write #value to managed property of type #primitiveType"() {
         def loader = new GroovyClassLoader(getClass().classLoader)
@@ -369,6 +368,12 @@ class ManagedProxyClassGeneratorTest extends Specification {
         state.set(_, _) >> { args ->
             data[args[0]] = args[1]
         }
+
+        def converter = new DefaultTypeConverters()
+        def services = Mock(ServiceRegistry)
+        services.get(_ as Class) >> { Class type -> if (type == TypeConverters) { return converter } }
+        state.getServices() >> services
+
         def proxy = generate(interfaceWithPrimitiveProperty)
         def instance = proxy.newInstance(state)
 
@@ -381,17 +386,16 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         where:
         primitiveType | value
-        byte          | "123"
+        byte          | "(byte)123"
         boolean       | "false"
         boolean       | "true"
         char          | "'c'"
         float         | "123.45f"
         long          | "123L"
-        short         | "123"
+        short         | "(short)123"
         int           | "123"
         double        | "123.456d"
     }
-
 
     @Unroll
     def "can read and write #value to managed property of type List<#scalarType>"() {
@@ -415,6 +419,11 @@ class ManagedProxyClassGeneratorTest extends Specification {
         state.set(_, _) >> { args ->
             data[args[0]] = args[1]
         }
+        def converter = new DefaultTypeConverters()
+        def services = Mock(ServiceRegistry)
+        services.get(_ as Class) >> { Class type -> if (type == TypeConverters) { return converter } }
+        state.getServices() >> services
+
         def proxy = generate(clazz)
         def instance = proxy.newInstance(state)
 
@@ -464,7 +473,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         if (generated == null) {
             def managedSchema = schemaStore.getSchema(managedType)
             def delegateSchema = delegateType == null ? null : schemaStore.getSchema(delegateType)
-            generated = generator.generate((ModelStructSchema) managedSchema, (ModelStructSchema) delegateSchema)
+            generated = generator.generate((StructSchema) managedSchema, (StructSchema) delegateSchema)
             generatedForDelegateType[delegateType] = generated
         }
         return generated
@@ -530,10 +539,14 @@ class ManagedProxyClassGeneratorTest extends Specification {
     }
 
     @Managed
-    static interface ManagedSubType extends PublicUnmanagedType {
+    static interface ManagedSubTypeViaInterface extends PublicUnmanagedType {
         String getManagedValue()
-
         void setManagedValue(String managedValue)
     }
 
+    @Managed
+    static abstract class ManagedSubTypeViaAbstractClass implements PublicUnmanagedType {
+        abstract String getManagedValue()
+        abstract void setManagedValue(String managedValue)
+    }
 }

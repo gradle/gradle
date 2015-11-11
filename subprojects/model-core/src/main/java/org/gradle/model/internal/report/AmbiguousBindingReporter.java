@@ -62,8 +62,8 @@ public class AmbiguousBindingReporter {
 
     public AmbiguousBindingReporter(ModelReference<?> reference, ModelPath path1, ModelRuleDescriptor creator1, ModelPath path2, ModelRuleDescriptor creator2) {
         this(reference.getType().toString(), reference.getDescription(), ImmutableList.of(
-                new Provider(path1.toString(), creator1.toString()),
-                new Provider(path2.toString(), creator2.toString())
+                new Provider(String.valueOf(path1), String.valueOf(creator1)),
+                new Provider(String.valueOf(path2), String.valueOf(creator2))
         ));
     }
 

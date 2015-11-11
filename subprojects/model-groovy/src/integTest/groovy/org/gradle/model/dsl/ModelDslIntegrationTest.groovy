@@ -17,9 +17,6 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.model.dsl.internal.transform.RulesVisitor
-
-import static org.hamcrest.Matchers.containsString
 
 /**
  * Tests the fundamental usages of the model dsl.
@@ -154,6 +151,14 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
                 create("assertDuplicateInputIsSameObject") {
                   doLast {
                     assert $("strings").is($("strings"))
+                    def s = $.strings
+                    assert $.strings.is($.strings)
+                    assert s == $.strings
+                    assert $.strings.is($("strings"))
+                    this.with {
+                        // Nested in a closure
+                        assert $.strings.is(s)
+                    }
                   }
                 }
               }
@@ -162,6 +167,45 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds "assertDuplicateInputIsSameObject"
+    }
+
+    def "reports on the first reference to unknown input"() {
+        when:
+        buildScript '''
+            model {
+              tasks {
+                $.unknown
+                $("unknown")
+              }
+            }
+        '''
+
+        then:
+        fails "tasks"
+        failure.assertHasCause('''The following model rules could not be applied due to unbound inputs and/or subjects:
+
+  tasks { ... } @ build.gradle line 3, column 15
+    subject:
+      - tasks Object
+    inputs:
+      - unknown Object (@ line 4) [*]
+
+''')
+    }
+
+    def "reports on configuration action failure"() {
+        when:
+        buildScript '''
+            model {
+              tasks {
+                unknown = 12
+              }
+            }
+        '''
+
+        then:
+        fails "tasks"
+        failure.assertHasCause('Exception thrown while executing model rule: tasks { ... } @ build.gradle line 3, column 15')
     }
 
     def "can use model block in script plugin"() {
@@ -217,30 +261,4 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         output.contains "a: " + ["foo", "a"]
         output.contains "b: " + ["foo", "b"]
     }
-
-    def "only closure literals can be used as rules"() {
-        when:
-        buildScript """
-            class MyPlugin extends RuleSource {
-                @Model
-                String foo() {
-                  "foo"
-                }
-            }
-
-            apply type: MyPlugin
-
-            def c = {};
-            model {
-                foo(c)
-            }
-        """
-
-        then:
-        fails "tasks"
-        failure.assertHasLineNumber 13
-        failure.assertHasFileName("Build file '${buildFile}'")
-        failure.assertThatCause(containsString(RulesVisitor.INVALID_RULE_SIGNATURE))
-    }
-
 }

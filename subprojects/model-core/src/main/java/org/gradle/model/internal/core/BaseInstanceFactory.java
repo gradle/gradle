@@ -62,6 +62,12 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
     }
 
     @Override
+    public <S extends T> ModelType<? extends S> getImplementationType(ModelType<S> publicType) {
+        ImplementationRegistration<S> implementationRegistration = getImplementationRegistration(publicType);
+        return implementationRegistration.getImplementationType();
+    }
+
+    @Override
     public <S extends T> ManagedSubtypeImplementationInfo<? extends T> getManagedSubtypeImplementationInfo(ModelType<S> managedType) {
         if (!managedType.getConcreteClass().isAnnotationPresent(Managed.class)) {
             throw new IllegalArgumentException(String.format("Type '%s' is not managed", managedType));
@@ -76,16 +82,12 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
                 }
             }
         });
-        switch (implementationInfos.size()) {
-            case 1:
-                return implementationInfos.get(0);
-            case 0:
-                throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it doesn't extend an interface with a default implementation", managedType));
-            default:
-                throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it has multiple default implementations registered, super-types that registered an implementation are: %s",
-                    managedType,
-                    Joiner.on(", ").join(implementationInfos)));
+
+        if (implementationInfos.isEmpty()) {
+            throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it doesn't extend an interface with a default implementation", managedType));
         }
+
+        return implementationInfos.get(0);
     }
 
     @Override
@@ -104,12 +106,8 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
     @Override
     public <S extends T> S create(ModelType<S> type, MutableModelNode modelNode, String name) {
-        TypeRegistration<S> registration = getRegistration(type);
-        if (registration == null || registration.implementationRegistration == null) {
-            throw new IllegalArgumentException(
-                String.format("Cannot create a '%s' because this type is not known to %s. Known types are: %s", type, displayName, getSupportedTypeNames()));
-        }
-        BiFunction<? extends S, String, ? super MutableModelNode> factory = registration.implementationRegistration.getFactory();
+        ImplementationRegistration<S> implementationRegistration = getImplementationRegistration(type);
+        BiFunction<? extends S, String, ? super MutableModelNode> factory = implementationRegistration.getFactory();
         return factory.apply(name, modelNode);
     }
 
@@ -129,6 +127,15 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
     private <S extends T> TypeRegistration<S> getRegistration(ModelType<S> type) {
         return Cast.uncheckedCast(registrations.get(type));
+    }
+
+    private <S extends T> ImplementationRegistration<S> getImplementationRegistration(ModelType<S> type) {
+        TypeRegistration<S> registration = getRegistration(type);
+        if (registration == null || registration.implementationRegistration == null) {
+            throw new IllegalArgumentException(
+                String.format("Cannot create a '%s' because this type is not known to %s. Known types are: %s", type, displayName, getSupportedTypeNames()));
+        }
+        return registration.implementationRegistration;
     }
 
     @Override
@@ -208,9 +215,6 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
             if (managedPublicType && !managedInternalView) {
                 throw new IllegalArgumentException(String.format("Internal view '%s' registered for managed type '%s' must be managed", internalView, publicType));
             }
-            if (!managedPublicType && managedInternalView) {
-                throw new IllegalArgumentException(String.format("Internal view '%s' registered for unmanaged type '%s' must be unmanaged", internalView, publicType));
-            }
             internalViewRegistrations.add(new InternalViewRegistration<V>(source, internalView));
         }
 
@@ -253,6 +257,10 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
             ModelType<? extends S> implementationType = implementationRegistration.getImplementationType();
             for (InternalViewRegistration<?> internalViewRegistration : internalViewRegistrations) {
                 ModelType<?> internalView = internalViewRegistration.getInternalView();
+                // Managed internal views are allowed not to be implemented by the default implementation
+                if (internalView.getConcreteClass().isAnnotationPresent(Managed.class)) {
+                    continue;
+                }
                 if (!internalView.isAssignableFrom(implementationType)) {
                     throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because the implementation type '%s' does not implement internal view '%s', "
                             + "implementation type was registered by %s, "

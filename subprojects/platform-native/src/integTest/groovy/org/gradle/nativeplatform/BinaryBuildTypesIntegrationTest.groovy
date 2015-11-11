@@ -17,6 +17,7 @@ package org.gradle.nativeplatform
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
@@ -53,7 +54,7 @@ model {
                 if (toolChain in VisualCpp) {
                     // Apply to all debug build types: 'debug' and 'integration'
                     if (buildType.debug) {
-                        cppCompiler.args '/Zi'
+                        cppCompiler.args ${toolChain.meets(ToolChainRequirement.VisualCpp2013) ? "'/Zi', '/FS'" : "'/Zi'"}
                         cppCompiler.define 'DEBUG'
                         linker.args '/DEBUG'
                     }
@@ -68,7 +69,7 @@ model {
 }
         """
         and:
-        succeeds "debugMainExecutable", "integrationMainExecutable", "releaseMainExecutable"
+        succeeds "mainDebugExecutable", "mainIntegrationExecutable", "mainReleaseExecutable"
 
         then:
         with(executable("build/binaries/mainExecutable/debug/main")) {
@@ -209,7 +210,7 @@ model {
 """
 
         and:
-        fails "releaseMainExecutable"
+        fails "mainReleaseExecutable"
 
         then:
         failure.assertHasDescription("No static library binary available for library 'hello' with [flavor: 'default', platform: '${NativePlatformsTestFixture.defaultPlatformName}', buildType: 'release']")

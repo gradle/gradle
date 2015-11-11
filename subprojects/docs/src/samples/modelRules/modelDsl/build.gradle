@@ -25,4 +25,14 @@ model {
     firstName = "John"
   }
 // END SNIPPET create-rule
+// START SNIPPET rule-inputs
+  tasks {
+    create("helloFromDsl") {
+      def p = $.person
+      doLast {
+        println "Hello $p.firstName $p.lastName!"
+      }
+    }
+  }
+// END SNIPPET rule-inputs
 }

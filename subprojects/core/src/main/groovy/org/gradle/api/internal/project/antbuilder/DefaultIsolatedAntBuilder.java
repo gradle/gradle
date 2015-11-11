@@ -27,10 +27,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.CachingClassLoader;
-import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.MultiParentClassLoader;
+import org.gradle.internal.classloader.*;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.Stoppable;
@@ -39,7 +36,6 @@ import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Vector;
 
@@ -87,7 +83,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
 
         // Need Transformer (part of AntBuilder API) from base services
         gradleCoreUrls = gradleCoreUrls.plus(classPathRegistry.getClassPath("GRADLE_BASE_SERVICES"));
-        this.antAdapterLoader = new URLClassLoader(gradleCoreUrls.getAsURLArray(), baseAntLoader);
+        this.antAdapterLoader = new MutableURLClassLoader(baseAntLoader, gradleCoreUrls);
 
         gradleApiGroovyLoader = groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
         antAdapterGroovyLoader = groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
@@ -121,7 +117,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             new Factory<ClassLoader>() {
                 @Override
                 public ClassLoader create() {
-                    return new URLClassLoader(libClasspath.getAsURLArray(), baseAntLoader);
+                    return new MutableURLClassLoader(baseAntLoader, libClasspath);
                 }
             }, new Action<CachedClassLoader>() {
                 @Override

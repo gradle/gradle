@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ContextualArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
-import org.gradle.api.internal.artifacts.ivyservice.LocalComponentConverter;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -36,14 +35,13 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -77,7 +75,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     @Override
     public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler,
                         final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor) {
-        ivyContextManager.withIvy(new Action<Ivy>() {
+       ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
                 LOGGER.debug("Resolving {}", resolveContext);
                 ComponentResolvers componentSource = createComponentSource(resolveContext, repositories, metadataHandler);
@@ -118,8 +116,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     }
 
     private ResolveContextToComponentResolver createResolveContextConverter() {
-        List<LocalComponentConverter> localComponentFactories = allServices(LocalComponentConverter.class);
-        return new DefaultResolveContextToComponentResolver(new ChainedLocalComponentConverter(localComponentFactories));
+        return new DefaultResolveContextToComponentResolver();
     }
 
     private ConflictHandler createConflictHandler(ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {
@@ -137,46 +134,10 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         return Lists.newArrayList(serviceRegistry.getAll(serviceType));
     }
 
-    private static class ChainedLocalComponentConverter implements LocalComponentConverter {
-        private final List<LocalComponentConverter> factories;
-
-        public ChainedLocalComponentConverter(List<LocalComponentConverter> factories) {
-            this.factories = factories;
-        }
-
-        @Override
-        public boolean canConvert(Object source) {
-            for (LocalComponentConverter factory : factories) {
-                if (factory.canConvert(source)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public LocalComponentMetaData convert(Object context) {
-            for (LocalComponentConverter factory : factories) {
-                if (factory.canConvert(context)) {
-                    return factory.convert(context);
-                }
-            }
-            throw new IllegalArgumentException("Unable to find a local converter factory for type " + context.getClass());
-        }
-    }
-
     private static class DefaultResolveContextToComponentResolver implements ResolveContextToComponentResolver {
-        private final LocalComponentConverter localComponentFactory;
-
-        public DefaultResolveContextToComponentResolver(ChainedLocalComponentConverter localComponentFactory) {
-            this.localComponentFactory = localComponentFactory;
-        }
-
         @Override
         public void resolve(ResolveContext resolveContext, BuildableComponentResolveResult result) {
-            LocalComponentMetaData componentMetaData = localComponentFactory.convert(resolveContext);
-            result.resolved(componentMetaData);
+            result.resolved(resolveContext.toRootComponentMetaData());
         }
     }
 

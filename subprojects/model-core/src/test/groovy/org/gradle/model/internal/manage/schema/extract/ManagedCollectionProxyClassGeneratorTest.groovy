@@ -76,6 +76,10 @@ class ManagedCollectionProxyClassGeneratorTest extends Specification {
             this.target = target
         }
 
+        SomeTypeImpl(SomeType target, boolean somePrimitiveType) {
+            this.target = target
+        }
+
         @Override
         Integer getValue() {
             return target.value

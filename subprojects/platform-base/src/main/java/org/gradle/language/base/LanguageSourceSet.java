@@ -42,4 +42,7 @@ public interface LanguageSourceSet extends Named, BuildableModelElement {
     void source(Action<? super SourceDirectorySet> config);
 
     void generatedBy(Task generatorTask);
+
+    @Nullable
+    String getParentName();
 }

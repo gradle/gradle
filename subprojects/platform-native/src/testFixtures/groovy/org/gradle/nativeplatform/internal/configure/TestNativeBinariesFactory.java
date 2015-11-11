@@ -29,11 +29,11 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 public class TestNativeBinariesFactory {
 
-    public static <T extends BaseBinarySpec & NativeBinarySpec> T create(Class<T> type, String name, Instantiator instantiator, ITaskFactory taskFactory, final NativeComponentSpec component,
+    public static <T extends BaseBinarySpec> T create(Class<T> type, String name, Instantiator instantiator, ITaskFactory taskFactory, final NativeComponentSpec component,
         final BinaryNamingScheme namingScheme, final NativeDependencyResolver resolver,
         final NativePlatform platform, final BuildType buildType, final Flavor flavor) {
-        T binary = BaseBinarySpec.create(type, type, name, instantiator, taskFactory);
-        NativeBinaries.initialize(binary, namingScheme, resolver, platform, buildType, flavor);
+        T binary = BaseBinarySpec.create(type, type, name, null, instantiator, taskFactory);
+        NativeBinaries.initialize((NativeBinarySpec) binary, namingScheme, resolver, platform, buildType, flavor);
         binary.getInputs().addAll(component.getSources().values());
         return binary;
     }

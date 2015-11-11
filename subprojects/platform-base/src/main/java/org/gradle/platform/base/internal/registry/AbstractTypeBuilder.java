@@ -17,7 +17,7 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.Sets;
-import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
+import org.gradle.model.internal.manage.schema.ManagedImplSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.TypeBuilder;
@@ -38,7 +38,7 @@ public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
 
     @Override
     public TypeBuilderInternal<T> defaultImplementation(Class<? extends T> implementation) {
-        if (this.schema instanceof ManagedImplModelSchema) {
+        if (this.schema instanceof ManagedImplSchema) {
             throw new InvalidModelException(String.format("Method annotated with @%s cannot set default implementation for managed type %s.", markerAnnotation.getSimpleName(), schema.getType().getName()));
         }
         if (this.implementation != null) {

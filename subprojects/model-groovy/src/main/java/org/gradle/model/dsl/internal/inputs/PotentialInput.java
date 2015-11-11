@@ -21,23 +21,13 @@ import org.gradle.model.internal.core.ModelView;
 import java.util.List;
 
 public class PotentialInput {
-    private final String consumerPath;
     private final int inputIndex;
 
-    private PotentialInput(String consumerPath, int inputIndex) {
+    public PotentialInput(int inputIndex) {
         this.inputIndex = inputIndex;
-        this.consumerPath = consumerPath;
-    }
-
-    public String getConsumerPath() {
-        return consumerPath;
     }
 
     public Object get(List<ModelView<?>> views) {
         return views.get(inputIndex).getInstance();
-    }
-
-    public static PotentialInput absoluteInput(String consumerPath, int indexPath) {
-        return new PotentialInput(consumerPath, indexPath);
     }
 }

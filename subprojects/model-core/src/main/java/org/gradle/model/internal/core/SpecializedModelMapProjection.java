@@ -20,9 +20,9 @@ import com.google.common.base.Optional;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
@@ -31,7 +31,9 @@ import java.util.List;
 /**
  * Should be used along with {@code PolymorphicModelMapProjection}.
  */
-public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements ModelProjection {
+// TODO:DAZ Removed `P extends ModelMap<E>` : find a generics expert to help me put it back
+public class SpecializedModelMapProjection<P, E> implements ModelProjection {
+    private static final ModelType<ManagedInstance> MANAGED_INSTANCE_TYPE = ModelType.of(ManagedInstance.class);
 
     private final ModelType<P> publicType;
     private final ModelType<E> elementType;
@@ -80,8 +82,7 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
         ChildNodeInitializerStrategy<? super E> creatorStrategy = creatorStrategyAccessor.getStrategy(modelNode);
         DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor, mutable, true);
         String description = publicType.getDisplayName() + " '" + modelNode.getPath() + "'";
-        ModelMap<E> rawView = new NodeBackedModelMap<E>(description, elementType, ruleDescriptor, modelNode, false, state, creatorStrategy);
-        P instance = DirectInstantiator.instantiate(viewImpl, rawView);
+        P instance = DirectInstantiator.instantiate(viewImpl, description, elementType, ruleDescriptor, modelNode, false, state, creatorStrategy);
         return InstanceModelView.of(modelNode.getPath(), publicType, instance, state.closer());
     }
 
@@ -111,7 +112,7 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
 
     @Override
     public <T> boolean canBeViewedAsMutable(ModelType<T> targetType) {
-        return targetType.equals(publicType) || targetType.equals(ModelType.of(Object.class));
+        return targetType.equals(publicType) || targetType.equals(ModelType.UNTYPED) || targetType.equals(MANAGED_INSTANCE_TYPE);
     }
 
     @Override

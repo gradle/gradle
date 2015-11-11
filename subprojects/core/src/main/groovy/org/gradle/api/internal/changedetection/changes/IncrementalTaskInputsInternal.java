@@ -19,6 +19,10 @@ package org.gradle.api.internal.changedetection.changes;
 import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
+import java.io.File;
+import java.util.Set;
+
 public interface IncrementalTaskInputsInternal extends IncrementalTaskInputs {
     FilesSnapshotSet getInputFilesSnapshot();
+    Set<File> getDiscoveredInputs();
 }

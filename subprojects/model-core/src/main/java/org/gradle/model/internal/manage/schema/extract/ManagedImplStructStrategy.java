@@ -88,7 +88,7 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
     }
 
     @Override
-    protected <R> ModelManagedImplStructSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects) {
+    protected <R> ManagedImplStructSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects) {
         ModelType<R> type = extractionContext.getType();
         Iterable<ModelProperty<?>> properties = Iterables.transform(propertyResults, new Function<ModelPropertyExtractionResult<?>, ModelProperty<?>>() {
             @Override
@@ -96,7 +96,7 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
                 return propertyResult.getProperty();
             }
         });
-        return new ModelManagedImplStructSchema<R>(type, properties, aspects);
+        return new ManagedImplStructSchema<R>(type, properties, aspects);
     }
 
     @Override
@@ -184,8 +184,8 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
                 }
 
                 // Only managed implementation and value types are allowed as a managed property type unless marked with @Unmanaged
-                boolean isAllowedPropertyTypeOfManagedType = propertySchema instanceof ManagedImplModelSchema
-                    || propertySchema instanceof ModelValueSchema;
+                boolean isAllowedPropertyTypeOfManagedType = propertySchema instanceof ManagedImplSchema
+                    || propertySchema instanceof ValueSchema;
 
                 boolean isDeclaredAsHavingUnmanagedType = propertyResult.getGetter().isAnnotationPresent(Unmanaged.class);
 
@@ -206,7 +206,7 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
                     }
                 }
 
-                if (propertySchema instanceof ModelCollectionSchema) {
+                if (propertySchema instanceof CollectionSchema) {
                     if (!(propertySchema instanceof ScalarCollectionSchema) && property.isWritable()) {
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                             "property '%s' cannot have a setter (%s properties must be read only).",

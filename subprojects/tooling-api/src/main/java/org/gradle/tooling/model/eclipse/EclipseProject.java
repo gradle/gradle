@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.tooling.model.eclipse;
-
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.ExternalDependency;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HasGradleProject;
+import org.gradle.tooling.model.java.JavaSourceAware;
 
 /**
  * The complete model of an Eclipse project.
@@ -27,7 +28,7 @@ import org.gradle.tooling.model.HasGradleProject;
  *
  * @since 1.0-milestone-3
  */
-public interface EclipseProject extends HierarchicalEclipseProject, HasGradleProject {
+public interface EclipseProject extends HierarchicalEclipseProject, HasGradleProject, JavaSourceAware {
     /**
      * {@inheritDoc}
      */
@@ -37,6 +38,11 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
      * {@inheritDoc}
      */
     DomainObjectSet<? extends EclipseProject> getChildren();
+
+    /**
+     * {@inheritDoc}
+     */
+    EclipseJavaSourceSettings getJavaSourceSettings();
 
     /**
      * The gradle project that is associated with this project.
@@ -56,4 +62,37 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
      * @since 1.0-milestone-3
      */
     DomainObjectSet<? extends ExternalDependency> getClasspath();
+
+    /**
+     * Returns the Eclipse natures configured on the project.
+     * <p>
+     * If the Gradle project applies a plugin which is recognized by 'eclipse' plugin then the corresponding
+     * nature will be automatically part of the result. For example, if the project applies the 'java' plugin the
+     * result will contain the {@code "org.eclipse.jdt.core.javanature"} entry. The 'scala' plugin behaves similarly:
+     * when applied then the result will contain the {@code "org.scala-ide.sdt.core.scalanature"} entry.
+     * <p>
+     * The result can be customized via the 'eclipse' plugin configuration.
+     *
+     * @return The list of Eclipse project natures.
+     * @since 2.9
+     */
+    @Incubating
+    DomainObjectSet<? extends EclipseProjectNature> getProjectNatures();
+
+    /**
+     * Returns the Eclipse build commands configured on the project.
+     * <p>
+     * If the Gradle project applies a plugin which is recognized by 'eclipse' plugin then the corresponding
+     * build command will be automatically part of the result. For example, if the project applies the 'java' plugin the
+     * result will contain the {@code "org.eclipse.jdt.core.javabuilder"} build command. The
+     * 'scala' plugin behaves similarly: when applied then the result will contain the
+     * {@code "org.scala-ide.sdt.core.scalabuilder"} entry.
+     * <p>
+     * The result can be customized via the 'eclipse' plugin configuration.
+     *
+     * @return The list of Eclipse build commands.
+     * @since 2.9
+     */
+    @Incubating
+    DomainObjectSet<? extends EclipseBuildCommand> getBuildCommands();
 }

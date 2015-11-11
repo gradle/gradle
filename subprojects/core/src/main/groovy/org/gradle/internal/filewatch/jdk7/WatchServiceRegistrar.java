@@ -18,6 +18,7 @@ package org.gradle.internal.filewatch.jdk7;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import com.sun.nio.file.ExtendedWatchEventModifier;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.FileUtils;
@@ -25,6 +26,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherListener;
+import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,9 +34,11 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
 class WatchServiceRegistrar implements FileWatcherListener {
-    // http://stackoverflow.com/a/18362404
-    // make watch sensitivity as 2 seconds on MacOSX, polls every 2 seconds for changes. Default is 10 seconds.
-    private static final WatchEvent.Modifier[] WATCH_MODIFIERS = new WatchEvent.Modifier[]{SensitivityWatchEventModifier.HIGH};
+    private static final boolean FILE_TREE_WATCHING_SUPPORTED = OperatingSystem.current().isWindows();
+    private static final WatchEvent.Modifier[] WATCH_MODIFIERS =
+        FILE_TREE_WATCHING_SUPPORTED
+        ? new WatchEvent.Modifier[]{ExtendedWatchEventModifier.FILE_TREE, SensitivityWatchEventModifier.HIGH}
+        : new WatchEvent.Modifier[]{SensitivityWatchEventModifier.HIGH};
     private static final WatchEvent.Kind[] WATCH_KINDS = new WatchEvent.Kind[]{StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY};
 
     private final WatchService watchService;
@@ -138,7 +142,9 @@ class WatchServiceRegistrar implements FileWatcherListener {
             return;
         }
         if (dir.exists()) {
-            watchDir(dir.toPath());
+            if (!FILE_TREE_WATCHING_SUPPORTED) {
+                watchDir(dir.toPath());
+            }
             File[] contents = dir.listFiles();
             if (contents != null) {
                 for (File file : contents) {

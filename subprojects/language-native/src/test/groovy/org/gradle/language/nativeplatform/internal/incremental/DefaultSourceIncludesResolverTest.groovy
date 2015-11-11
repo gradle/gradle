@@ -142,6 +142,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         with (dependencies[0]) {
             unknown
             include == 'DEFINE_1'
+            maybeMacro
             file == null
         }
     }

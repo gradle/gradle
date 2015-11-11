@@ -26,10 +26,12 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.BinaryContainer;
+import org.gradle.model.internal.type.ModelTypes;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.test.TestSuiteContainer;
@@ -74,28 +76,36 @@ public class ComponentReport extends DefaultTask {
         renderer.startProject(project);
 
         Collection<ComponentSpec> components = new ArrayList<ComponentSpec>();
-        ComponentSpecContainer componentSpecs = getModelRegistry().find(ModelPath.path("components"), ModelType.of(ComponentSpecContainer.class));
+        ComponentSpecContainer componentSpecs = find("components", ComponentSpecContainer.class);
         if (componentSpecs != null) {
             components.addAll(componentSpecs.values());
         }
 
-        TestSuiteContainer testSuites = getModelRegistry().find(ModelPath.path("testSuites"), ModelType.of(TestSuiteContainer.class));
+        TestSuiteContainer testSuites = find("testSuites", TestSuiteContainer.class);
         if (testSuites != null) {
             components.addAll(testSuites.values());
         }
 
         renderer.renderComponents(components);
 
-        ProjectSourceSet sourceSets = getModelRegistry().find(ModelPath.path("sources"), ModelType.of(ProjectSourceSet.class));
+        ProjectSourceSet sourceSets = find("sources", ProjectSourceSet.class);
         if (sourceSets != null) {
             renderer.renderSourceSets(sourceSets);
         }
-        BinaryContainer binaries = getModelRegistry().find(ModelPath.path("binaries"), ModelType.of(BinaryContainer.class));
+        ModelMap<BinarySpec> binaries = find("binaries", ModelTypes.modelMap(BinarySpec.class));
         if (binaries != null) {
             renderer.renderBinaries(binaries);
         }
 
         renderer.completeProject(project);
         renderer.complete();
+    }
+
+    private <T> T find(String path, Class<T> clazz) {
+        return find(path, ModelType.of(clazz));
+    }
+
+    private <T> T find(String path, ModelType<T> modelType) {
+        return getModelRegistry().find(ModelPath.path(path), modelType);
     }
 }

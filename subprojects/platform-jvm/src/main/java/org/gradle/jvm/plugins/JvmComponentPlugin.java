@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.jvm.plugins;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
+import org.gradle.api.tasks.Copy;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
@@ -25,9 +26,12 @@ import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
+import org.gradle.language.base.internal.BuildDirHolder;
 import org.gradle.model.*;
+import org.gradle.model.internal.core.Service;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
@@ -36,15 +40,21 @@ import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+
+import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
- * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link org.gradle.jvm.JvmLibrarySpec} library type for
- * the components container.
+ * Base plugin for JVM component support. Applies the
+ * {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}.
+ * Registers the {@link JvmLibrarySpec} library type for the components container.
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
+
     private final ModelRegistry modelRegistry;
 
     @Inject
@@ -60,30 +70,30 @@ public class JvmComponentPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @ComponentType
-        void register(ComponentTypeBuilder<JvmLibrarySpec> builder) {
+        public void register(ComponentTypeBuilder<JvmLibrarySpec> builder) {
             builder.defaultImplementation(DefaultJvmLibrarySpec.class);
             builder.internalView(JvmLibrarySpecInternal.class);
         }
 
         @BinaryType
-        void registerJar(BinaryTypeBuilder<JarBinarySpec> builder) {
+        public void registerJar(BinaryTypeBuilder<JarBinarySpec> builder) {
             builder.defaultImplementation(DefaultJarBinarySpec.class);
             builder.internalView(JarBinarySpecInternal.class);
         }
 
-        @Model
-        BinaryNamingSchemeBuilder binaryNamingSchemeBuilder() {
+        @Service
+        public BinaryNamingSchemeBuilder binaryNamingSchemeBuilder() {
             return new DefaultBinaryNamingSchemeBuilder();
         }
 
         @Model
-        JavaToolChainRegistry javaToolChain(ServiceRegistry serviceRegistry) {
+        public JavaToolChainRegistry javaToolChain(ServiceRegistry serviceRegistry) {
             JavaToolChainInternal toolChain = serviceRegistry.get(JavaToolChainInternal.class);
             return new DefaultJavaToolChainRegistry(toolChain);
         }
 
         @Model
-        BuildDirHolder buildDirHolder(@Path("buildDir") File buildDir) {
+        public BuildDirHolder buildDirHolder(@Path("buildDir") File buildDir) {
             return new BuildDirHolder(buildDir);
         }
 
@@ -93,58 +103,102 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @ComponentBinaries
-        public void createBinaries(ModelMap<JarBinarySpec> binaries, final JvmLibrarySpec jvmLibrary,
-                                   PlatformResolvers platforms, BinaryNamingSchemeBuilder namingSchemeBuilder,
-                                   @Path("buildDir") File buildDir) {
-            List<JavaPlatform> selectedPlatforms = resolvePlatforms(jvmLibrary, platforms);
+        public void createBinaries(ModelMap<JarBinarySpec> binaries, BinaryNamingSchemeBuilder namingSchemeBuilder,
+                                   PlatformResolvers platforms, final JvmLibrarySpecInternal jvmLibrary) {
+            List<JavaPlatform> selectedPlatforms = resolvePlatforms(platforms, jvmLibrary);
+            final Set<String> exportedPackages = jvmLibrary.getExportedPackages();
+            final Collection<DependencySpec> apiDependencies = jvmLibrary.getApiDependencies();
+            final Collection<DependencySpec> dependencies = jvmLibrary.getDependencies();
             for (final JavaPlatform platform : selectedPlatforms) {
-                final String binaryName = createBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
+                String binaryName = buildBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
                 binaries.create(binaryName, new Action<JarBinarySpec>() {
                     @Override
                     public void execute(JarBinarySpec jarBinary) {
                         jarBinary.setTargetPlatform(platform);
+                        jarBinary.setExportedPackages(exportedPackages);
+                        jarBinary.setApiDependencies(apiDependencies);
+                        jarBinary.setDependencies(dependencies);
                     }
                 });
             }
         }
 
-        private List<JavaPlatform> resolvePlatforms(JvmLibrarySpec jvmLibrary, final PlatformResolvers platforms) {
-            List<PlatformRequirement> targetPlatforms = ((JvmLibrarySpecInternal) jvmLibrary).getTargetPlatforms();
+        private List<JavaPlatform> resolvePlatforms(final PlatformResolvers platformResolver,
+                                                    JvmLibrarySpecInternal jvmLibrarySpec) {
+            List<PlatformRequirement> targetPlatforms = jvmLibrarySpec.getTargetPlatforms();
             if (targetPlatforms.isEmpty()) {
-                targetPlatforms = Collections.singletonList(DefaultPlatformRequirement.create(DefaultJavaPlatform.current().getName()));
+                targetPlatforms = Collections.singletonList(
+                    DefaultPlatformRequirement.create(DefaultJavaPlatform.current().getName()));
             }
             return CollectionUtils.collect(targetPlatforms, new Transformer<JavaPlatform, PlatformRequirement>() {
                 @Override
                 public JavaPlatform transform(PlatformRequirement platformRequirement) {
-                    return platforms.resolve(JavaPlatform.class, platformRequirement);
+                    return platformResolver.resolve(JavaPlatform.class, platformRequirement);
                 }
             });
         }
 
-        @BinaryTasks
-        public void createTasks(ModelMap<Task> tasks, final JarBinarySpec binary) {
-            String taskName = "create" + StringUtils.capitalize(binary.getName());
-            tasks.create(taskName, Jar.class, new Action<Jar>() {
-                @Override
-                public void execute(Jar jar) {
-                    jar.setDescription(String.format("Creates the binary file for %s.", binary));
-                    jar.from(binary.getClassesDir());
-                    jar.from(binary.getResourcesDir());
-
-                    jar.setDestinationDir(binary.getJarFile().getParentFile());
-                    jar.setArchiveName(binary.getJarFile().getName());
-                }
-            });
-        }
-
-        private String createBinaryName(JvmLibrarySpec jvmLibrary, BinaryNamingSchemeBuilder namingSchemeBuilder, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
+        private String buildBinaryName(JvmLibrarySpec jvmLibrary, BinaryNamingSchemeBuilder namingSchemeBuilder,
+                                       List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
             BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
                 .withComponentName(jvmLibrary.getName())
                 .withTypeString("jar");
             if (selectedPlatforms.size() > 1) {
                 componentBuilder = componentBuilder.withVariantDimension(platform.getName());
             }
-            return componentBuilder.build().getLifecycleTaskName();
+            return componentBuilder.build().getBinaryName();
+        }
+
+        @BinaryTasks
+        public void createTasks(ModelMap<Task> tasks, final JarBinarySpecInternal binary, final @Path("buildDir") File buildDir) {
+           final File runtimeClassesDir = binary.getClassesDir();
+            final File runtimeJarDestDir = binary.getJarFile().getParentFile();
+            final String runtimeJarArchiveName = binary.getJarFile().getName();
+            final String createRuntimeJar = "create" + capitalize(binary.getProjectScopedName());
+            tasks.create(createRuntimeJar, Jar.class, new Action<Jar>() {
+                @Override
+                public void execute(Jar jar) {
+                    jar.setDescription(String.format("Creates the binary file for %s.", binary));
+                    jar.from(runtimeClassesDir);
+                    jar.from(binary.getResourcesDir());
+                    jar.setDestinationDir(runtimeJarDestDir);
+                    jar.setArchiveName(runtimeJarArchiveName);
+                }
+            });
+
+            String binaryName = binary.getProjectScopedName();
+            if (!binaryName.endsWith("Jar")) {
+                return;
+            }
+
+            String libName = binaryName.substring(0, binaryName.lastIndexOf("Jar"));
+            String createApiJar = "create" + capitalize(libName + "ApiJar");
+            final Set<String> exportedPackages = binary.getExportedPackages();
+            if (exportedPackages.isEmpty()) {
+                tasks.create(createApiJar, Copy.class, new Action<Copy>() {
+                    @Override
+                    public void execute(Copy copy) {
+                        copy.setDescription(String.format("Creates the API binary file for %s.", binary));
+                        copy.from(new File(runtimeJarDestDir, runtimeJarArchiveName));
+                        copy.setDestinationDir(binary.getApiJarFile().getParentFile());
+                        copy.dependsOn(createRuntimeJar);
+                    }
+                });
+            } else {
+                tasks.create(createApiJar, ApiJar.class, new Action<ApiJar>() {
+                    @Override
+                    public void execute(ApiJar jar) {
+                        final File apiClassesDir = new File(new File(buildDir, "apiClasses"), runtimeClassesDir.getName());
+                        jar.setDescription(String.format("Creates the API binary file for %s.", binary));
+                        jar.setRuntimeClassesDir(runtimeClassesDir);
+                        jar.setExportedPackages(exportedPackages);
+                        jar.setApiClassesDir(apiClassesDir);
+                        jar.setDestinationDir(binary.getApiJarFile().getParentFile());
+                        jar.setArchiveName(binary.getApiJarFile().getName());
+                        jar.dependsOn(createRuntimeJar);
+                    }
+                });
+            }
         }
     }
 }

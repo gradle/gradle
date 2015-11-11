@@ -26,8 +26,13 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.model.ModelMap;
 import org.gradle.model.ModelSet;
-import org.gradle.model.internal.manage.schema.*;
+import org.gradle.model.internal.manage.schema.CollectionSchema;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Thrown when a NodeInitializer can not be found for a given type or when the type is not managed and can not be constructed.
@@ -38,28 +43,30 @@ public class ModelTypeInitializationException extends GradleException {
     private static final String MANAGED_TYPE_DESCRIPTION = "A managed type (annotated with @Managed)";
     private static final String UNMANAGED_PROPERTY_DESCRIPTION = "An unmanaged property (i.e. annotated with @Unmanaged)";
 
-    public ModelTypeInitializationException(NodeInitializerContext context,
+    public ModelTypeInitializationException(NodeInitializerContext<?, ?, ?> context,
                                             ModelSchemaStore schemaStore,
                                             Iterable<ModelType<?>> scalarTypes,
                                             Iterable<ModelType<?>> constructableTypes) {
         super(toMessage(context, schemaStore, scalarTypes, constructableTypes));
     }
 
-    private static String toMessage(NodeInitializerContext context,
+    private static String toMessage(NodeInitializerContext<?, ?, ?> context,
                                     ModelSchemaStore schemaStore,
                                     Iterable<ModelType<?>> scalarTypes,
                                     Iterable<ModelType<?>> constructableTypes) {
-        Optional<ModelProperty<?>> modelPropertyOptional = context.getModelProperty();
+
+        Optional<? extends NodeInitializerContext.PropertyContext<?, ?>> propertyContextOptional = context.getPropertyContextOptional();
         StringBuilder s = new StringBuilder();
-        if (modelPropertyOptional.isPresent()) {
-            s.append(String.format("A model element of type: '%s' can not be constructed.%n", context.getDeclaringType().get().getName()));
-            ModelProperty<?> modelProperty = modelPropertyOptional.get();
+        if (propertyContextOptional.isPresent()) {
+            NodeInitializerContext.PropertyContext<?, ?> propertyContext = propertyContextOptional.get();
+            s.append(String.format("A model element of type: '%s' can not be constructed.%n", propertyContext.getDeclaringType().getName()));
+            ModelProperty<?> modelProperty = propertyContext.getModelProperty();
             if (isManagedCollection(modelProperty.getType())) {
                 s.append(String.format("Its property '%s %s' is not a valid managed collection%n", modelProperty.getType().getName(), modelProperty.getName()));
-                ModelCollectionSchema<?, ?> schema = (ModelCollectionSchema) schemaStore.getSchema(modelProperty.getType());
+                CollectionSchema<?, ?> schema = (CollectionSchema) schemaStore.getSchema(modelProperty.getType());
                 s.append(String.format("A managed collection can not contain '%s's%n", schema.getElementType()));
                 appendManagedCollections(s, 1, constructableTypes);
-            } else if (isAnUnamagedCollection(modelProperty.getType(), schemaStore) && !modelProperty.isDeclaredAsHavingUnmanagedType()) {
+            } else if (isAScalarCollection(modelProperty)) {
                 ModelType<?> innerType = modelProperty.getType().getTypeVariables().get(0);
                 s.append(String.format("Its property '%s %s' is not a valid scalar collection%n", modelProperty.getType().getName(), modelProperty.getName()));
                 s.append(String.format("A scalar collection can not contain '%s's%n", innerType));
@@ -106,9 +113,10 @@ public class ModelTypeInitializationException extends GradleException {
         return Strings.padStart("", padding * 4, ' ');
     }
 
-    private static boolean isAnUnamagedCollection(ModelType<?> type, ModelSchemaStore schemaStore) {
-        ModelSchema<?> schema = schemaStore.getSchema(type);
-        return schema instanceof UnmanagedCollectionSchema;
+    private static boolean isAScalarCollection(ModelProperty<?> modelProperty) {
+        Class<?> concreteClass = modelProperty.getType().getConcreteClass();
+        return (concreteClass.equals(List.class) || concreteClass.equals(Set.class))
+            && !modelProperty.isDeclaredAsHavingUnmanagedType();
     }
 
     private static String describe(Iterable<ModelType<?>> types) {
@@ -125,5 +133,3 @@ public class ModelTypeInitializationException extends GradleException {
         return concreteClass.equals(ModelMap.class) || concreteClass.equals(ModelSet.class);
     }
 }
-
-

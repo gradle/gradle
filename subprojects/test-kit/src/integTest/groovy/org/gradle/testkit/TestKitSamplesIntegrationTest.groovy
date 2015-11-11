@@ -30,6 +30,7 @@ class TestKitSamplesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireGradleHome()
+        executer.withEnvironmentVars(GRADLE_USER_HOME: executer.gradleUserHomeDir.absolutePath)
     }
 
     @UsesSample("testKit/testKitJunit")
@@ -54,8 +55,8 @@ class TestKitSamplesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
-    @UsesSample("testKit/testKitSpockGradleDistribution")
-    def gradleDistribution() {
+    @UsesSample("testKit/testKitSpockGradleVersion")
+    def version() {
         expect:
         executer.inDirectory(sample.dir)
         succeeds "check"

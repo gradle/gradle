@@ -111,6 +111,72 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    def "install and run executable with dependencies"() {
+        given:
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        sources {
+                            ${helloWorldApp.sourceType}.lib library: "hello"
+                        }
+                    }
+                    hello(NativeLibrarySpec)
+                }
+            }
+        """
+
+        and:
+        helloWorldApp.executable.writeSources(file("src/main"))
+        helloWorldApp.library.writeSources(file("src/hello"))
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        sharedLibrary("build/binaries/helloSharedLibrary/hello").assertExists()
+        executable("build/binaries/mainExecutable/main").assertExists()
+
+        def install = installation("build/install/mainExecutable")
+        install.assertInstalled()
+        install.assertIncludesLibraries("hello")
+        install.exec().out == helloWorldApp.englishOutput
+    }
+
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    def "install and run executable with dependencies and customized installation"() {
+        given:
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        sources {
+                            ${helloWorldApp.sourceType}.lib library: "hello"
+                        }
+                        binaries.withType(NativeExecutableBinarySpec) {
+                            installation.directory = file("foo/custom")
+                        }
+                    }
+                    hello(NativeLibrarySpec)
+                }
+            }
+        """
+
+        and:
+        helloWorldApp.executable.writeSources(file("src/main"))
+        helloWorldApp.library.writeSources(file("src/hello"))
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        def install = installation("foo/custom")
+        install.assertInstalled()
+        install.assertIncludesLibraries("hello")
+        install.exec().out == helloWorldApp.englishOutput
+    }
+
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build shared library and link into executable"() {
         given:
         buildFile << """

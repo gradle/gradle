@@ -23,9 +23,9 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.net.URLClassLoader;
 import java.util.Map;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache {
@@ -77,7 +77,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
                 classLoader = new FilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
             } else {
-                classLoader = new URLClassLoader(classPath.getAsURLArray(), spec.parent);
+                classLoader = new MutableURLClassLoader(spec.parent, classPath);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);

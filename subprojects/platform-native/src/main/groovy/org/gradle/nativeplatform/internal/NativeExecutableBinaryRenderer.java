@@ -40,6 +40,6 @@ public class NativeExecutableBinaryRenderer extends AbstractNativeBinaryRenderer
 
     @Override
     protected void renderOutputs(NativeExecutableBinarySpec binary, TextReportBuilder builder) {
-        builder.item("executable file", binary.getExecutableFile());
+        builder.item("executable file", binary.getExecutable().getFile());
     }
 }

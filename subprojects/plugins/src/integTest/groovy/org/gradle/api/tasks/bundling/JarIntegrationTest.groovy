@@ -278,109 +278,55 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         confirmDuplicateServicesPreserved()
     }
 
-    def "adding a property in incremental build goes in to manifest"() {
+    def "changes to manifest attributes should be honoured by incremental build"() {
         given:
-        def jar = file('build/test.jar')
+        def jarWithManifest = { manifest ->
+            """
+            task jar(type: Jar) {
+                from 'test'
+                destinationDir = buildDir
+                archiveName = 'test.jar'
+                manifest { $manifest }
+            }
+"""
+        }
 
         createDir('test') {
             dir1 {
                 file 'file1.txt'
             }
         }
-        and:
-        buildFile << """
-            task jar(type: Jar) {
-                from 'test'
-                destinationDir = buildDir
-                archiveName = 'test.jar'
-            }
-        """
+        def jar = file('build/test.jar')
 
         when:
+        buildFile.text = jarWithManifest("")
         run 'jar'
 
         then:
         jar.manifest.mainAttributes.getValue('attr') == null
 
-
-        when:
-        buildFile << """
-            jar.manifest.attributes(attr: 'Hello')
-        """
+        when: "Attribute added"
+        buildFile.text = jarWithManifest("attributes(attr: 'Hello')")
         run 'jar'
 
         then:
-        jar.manifest.mainAttributes.getValue('attr') == 'Hello'
-    }
-
-    def "modifying a property in incremental build goes in to manifest"() {
-        given:
-        def jar = file('build/test.jar')
-
-        createDir('test') {
-            dir1 {
-                file 'file1.txt'
-            }
-        }
-        and:
-        buildFile << """
-            task jar(type: Jar) {
-                from 'test'
-                destinationDir = buildDir
-                archiveName = 'test.jar'
-                manifest { attributes(attr: 'Hello') }
-            }
-        """
-
-        when:
-        run 'jar'
-
-        then:
+        executedAndNotSkipped ':jar'
         jar.manifest.mainAttributes.getValue('attr') == 'Hello'
 
-
-        when:
-        buildFile << """
-            jar.manifest.attributes(attr: 'Hi')
-        """
+        when: "Attribute modified"
+        buildFile.text = jarWithManifest("attributes(attr: 'Hi')")
         run 'jar'
 
         then:
+        executedAndNotSkipped ':jar'
         jar.manifest.mainAttributes.getValue('attr') == 'Hi'
-    }
 
-    def "removing a property in incremental build goes in to manifest"() {
-        given:
-        def jar = file('build/test.jar')
-        createDir('test') {
-            dir1 {
-                file 'file1.txt'
-            }
-        }
-        and:
-        buildFile << """
-            task jar(type: Jar) {
-                from 'test'
-                destinationDir = buildDir
-                archiveName = 'test.jar'
-                manifest { attributes(attr: 'Hello') }
-            }
-        """
-
-        when:
+        when: "Attribute removed"
+        buildFile.text = jarWithManifest("")
         run 'jar'
 
         then:
-        jar.manifest.mainAttributes.getValue('attr') == 'Hello'
-
-
-        when:
-        buildFile << """
-            jar.manifest.attributes.clear()
-        """
-        run 'jar'
-
-        then:
+        executedAndNotSkipped ':jar'
         jar.manifest.mainAttributes.getValue('attr') == null
     }
 

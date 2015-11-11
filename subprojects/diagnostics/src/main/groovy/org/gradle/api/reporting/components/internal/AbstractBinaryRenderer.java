@@ -25,7 +25,7 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelStructSchema;
+import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -73,11 +73,11 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
 
     protected void renderVariants(T binary, TextReportBuilder builder) {
         ModelSchema<?> schema = schemaStore.getSchema(((BinarySpecInternal)binary).getPublicType());
-        if (!(schema instanceof ModelStructSchema)) {
+        if (!(schema instanceof StructSchema)) {
             return;
         }
         Map<String, Object> variants = Maps.newTreeMap();
-        VariantAspect variantAspect = ((ModelStructSchema<?>) schema).getAspect(VariantAspect.class);
+        VariantAspect variantAspect = ((StructSchema<?>) schema).getAspect(VariantAspect.class);
         if (variantAspect != null) {
             for (ModelProperty<?> property : variantAspect.getDimensions()) {
                 variants.put(property.getName(), property.getPropertyValue(binary));

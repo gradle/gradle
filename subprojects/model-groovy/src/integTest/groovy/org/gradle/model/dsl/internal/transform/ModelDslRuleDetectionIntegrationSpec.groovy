@@ -141,4 +141,29 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
                 'try {} catch(e) {}',
         ]
     }
+
+    def "only closure literals can be used as rules"() {
+        when:
+        buildScript """
+            class MyPlugin extends RuleSource {
+                @Model
+                String foo() {
+                  "foo"
+                }
+            }
+
+            apply type: MyPlugin
+
+            def c = {};
+            model {
+                foo(c)
+            }
+        """
+
+        then:
+        fails "tasks"
+        failure.assertHasLineNumber 13
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertThatCause(containsString(RulesVisitor.INVALID_RULE_SIGNATURE))
+    }
 }

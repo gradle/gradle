@@ -17,14 +17,23 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.internal.environment.GradleBuildEnvironment
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+    def setup() {
+        if (OperatingSystem.current().isWindows()) {
+            ignoreShutdownTimeoutException = true
+        }
+    }
 
     def "basic smoke test"() {
+        given:
+        def markerFile = file("marker")
+
         when:
-        file("marker").text = "original"
+        markerFile.text = "original"
 
         buildFile << """
             task echo {
@@ -41,7 +50,8 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         output.contains "value: original"
 
         when:
-        file("marker").text = "changed"
+        waitBeforeModification(markerFile)
+        markerFile.text = "changed"
 
         then:
         succeeds()
@@ -49,6 +59,9 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
     }
 
     def "can recover from build failure"() {
+        given:
+        def markerFile = file("marker")
+
         when:
         executer.withStackTraceChecksDisabled()
         buildFile << """
@@ -64,13 +77,14 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
               }
             }
         """
-        def markerFile = file("marker") << "original"
+        markerFile << "original"
 
         then:
         succeeds "build"
         output.contains "value: original"
 
         when:
+        waitBeforeModification(markerFile)
         markerFile.delete()
 
         then:
@@ -78,6 +92,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         errorOutput.contains "file does not exist"
 
         when:
+        waitBeforeModification(markerFile)
         markerFile << "changed"
 
         then:
@@ -86,6 +101,9 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
     }
 
     def "does not trigger when changes is made to task that is not required"() {
+        given:
+        def aFile = file("a")
+
         when:
         buildFile << """
             task a {
@@ -103,7 +121,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         ":a" in executedTasks
 
         when:
-        file("a") << "original"
+        aFile << "original"
 
         then:
         succeeds()
@@ -114,7 +132,8 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         ":b" in executedTasks
 
         when:
-        file("a").text = "changed"
+        waitBeforeModification(aFile)
+        aFile.text = "changed"
 
         then:
         noBuildTriggered()
@@ -157,8 +176,11 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
     }
 
     def "reuses build script classes"() {
+        given:
+        def markerFile = file("marker")
+
         when:
-        file("marker").text = "original"
+        markerFile.text = "original"
 
         buildFile << """
             task echo {
@@ -180,7 +202,8 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         output.contains "reuse: false"
 
         when:
-        file("marker").text = "changed"
+        waitBeforeModification(markerFile)
+        markerFile.text = "changed"
 
         then:
         succeeds()
@@ -252,6 +275,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
     def "project directory can be used as input"() {
         given:
+        def aFile = file("A")
         buildFile << """
         task a {
             inputs.dir projectDir
@@ -264,21 +288,23 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         executedAndNotSkipped(":a")
 
         when:
-        file("A").text = "A"
+        aFile.text = "A"
 
         then:
         succeeds()
         executedAndNotSkipped(":a")
 
         when: "file is changed"
-        file("A").text = "B"
+        waitBeforeModification(aFile)
+        aFile.text = "B"
 
         then:
         succeeds()
         executedAndNotSkipped(":a")
 
         when:
-        file("A").delete()
+        waitBeforeModification(aFile)
+        aFile.delete()
 
         then:
         succeeds()
@@ -302,7 +328,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
         then:
         succeeds "a"
-        output.endsWith("(ctrl-d then enter to exit)\r\n")
+        output.endsWith("(ctrl-d then enter to exit)\n")
     }
 
 }

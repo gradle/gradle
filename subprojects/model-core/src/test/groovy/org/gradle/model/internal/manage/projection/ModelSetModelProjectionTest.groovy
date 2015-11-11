@@ -15,19 +15,19 @@
  */
 
 package org.gradle.model.internal.manage.projection
-
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.Managed
 import org.gradle.model.ModelSet
 import org.gradle.model.ModelViewClosedException
-import org.gradle.model.internal.core.*
-import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelRegistrations
+import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Specification
 import spock.lang.Unroll
 
-class ModelSetModelProjectionTest extends Specification {
+class ModelSetModelProjectionTest extends ProjectRegistrySpec {
     @Managed
     interface NamedThing {
         String getName()
@@ -41,14 +41,11 @@ class ModelSetModelProjectionTest extends Specification {
 
     def collectionPath = ModelPath.path("collection")
     def collectionType = new ModelType<ModelSet<NamedThing>>() {}
-    def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
-    def registry = new ModelRegistryHelper()
     private ModelReference<ModelSet<NamedThing>> reference = ModelReference.of(collectionPath, new ModelType<ModelSet<NamedThing>>() {})
 
     def setup() {
-        registry.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
-        registry.create(
-            ModelCreators.of(collectionPath, nodeInitializerRegistry.getNodeInitializer(collectionType))
+        registry.register(
+            ModelRegistrations.of(collectionPath, nodeInitializerRegistry.getNodeInitializer(collectionType))
                 .descriptor("define collection")
                 .build()
         )
@@ -141,7 +138,7 @@ class ModelSetModelProjectionTest extends Specification {
     @Unroll
     def "cannot configure children when used as an input - #method"() {
         when:
-        registry.createInstance("things", []).mutate {
+        registry.registerInstance("things", []).mutate {
             it.path("things").action(reference.path, reference.type, { things, set ->
                 set."$method" {
 

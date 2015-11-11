@@ -28,28 +28,26 @@ import java.util.Collections;
 import java.util.List;
 
 public class DefaultBuildResult implements BuildResult {
-    private final String standardOutput;
-    private final String standardError;
+
+    private final String output;
     private final List<BuildTask> tasks;
 
-    public DefaultBuildResult(String standardOutput, String standardError, List<BuildTask> tasks) {
-        this.standardOutput = standardOutput;
-        this.standardError = standardError;
+    public DefaultBuildResult(String output, List<BuildTask> tasks) {
+        this.output = output;
         this.tasks = tasks;
     }
 
-    public String getStandardOutput() {
-        return standardOutput;
+    @Override
+    public String getOutput() {
+        return output;
     }
 
-    public String getStandardError() {
-        return standardError;
-    }
-
+    @Override
     public List<BuildTask> getTasks() {
         return Collections.unmodifiableList(tasks);
     }
 
+    @Override
     public List<BuildTask> tasks(final TaskOutcome outcome) {
         return Collections.unmodifiableList(CollectionUtils.filter(tasks, new Spec<BuildTask>() {
             public boolean isSatisfiedBy(BuildTask element) {
@@ -58,6 +56,7 @@ public class DefaultBuildResult implements BuildResult {
         }));
     }
 
+    @Override
     public List<String> taskPaths(TaskOutcome outcome) {
         return Collections.unmodifiableList(CollectionUtils.collect(tasks(outcome), new Transformer<String, BuildTask>() {
             public String transform(BuildTask buildTask) {
@@ -77,4 +76,5 @@ public class DefaultBuildResult implements BuildResult {
 
         return null;
     }
+
 }

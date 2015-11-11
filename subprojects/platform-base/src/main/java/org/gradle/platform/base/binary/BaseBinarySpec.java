@@ -16,9 +16,11 @@
 
 package org.gradle.platform.base.binary;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
@@ -30,14 +32,11 @@ import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.DomainObjectCollectionBackedModelMap;
-import org.gradle.model.internal.core.ModelMapGroovyDecorator;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
+import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
-import org.gradle.platform.base.internal.BinaryBuildAbility;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
-import org.gradle.platform.base.internal.FixedBuildAbility;
+import org.gradle.platform.base.internal.*;
 import org.gradle.util.DeprecationLogger;
 
 /**
@@ -51,25 +50,22 @@ import org.gradle.util.DeprecationLogger;
 @Incubating
 // Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
 @SuppressWarnings("deprecation")
-public abstract class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
+public class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
     private final NamedDomainObjectFactoryRegistry<LanguageSourceSet> entityInstantiator;
     private final ModelMap<LanguageSourceSet> ownedSourceSets;
     private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final BinaryTasksCollection tasks;
-
+    private final ComponentSpecInternal owner;
     private final String name;
     private final String typeName;
     private Class<? extends BinarySpec> publicType;
 
     private boolean disabled;
 
-    public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType, String name, Instantiator instantiator, ITaskFactory taskFactory) {
-        if (implementationType.equals(BaseBinarySpec.class)) {
-            throw new ModelInstantiationException("Cannot create instance of abstract class BaseBinarySpec.");
-        }
-        nextBinaryInfo.set(new BinaryInfo(name, publicType, implementationType, taskFactory, instantiator));
+    public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType, String name, @Nullable ComponentSpecInternal owner, Instantiator instantiator, ITaskFactory taskFactory) {
+        nextBinaryInfo.set(new BinaryInfo(name, publicType, implementationType, owner, taskFactory, instantiator));
         try {
             try {
                 return instantiator.newInstance(implementationType);
@@ -81,7 +77,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         }
     }
 
-    protected BaseBinarySpec() {
+    public BaseBinarySpec() {
         this(nextBinaryInfo.get());
     }
 
@@ -89,6 +85,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         if (info == null) {
             throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead.");
         }
+        this.owner = info.owner;
         this.name = info.name;
         this.publicType = info.publicType;
         this.typeName = info.implementationType.getSimpleName();
@@ -113,12 +110,26 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         this.publicType = publicType;
     }
 
+    @Nullable
+    public ComponentSpec getComponent() {
+        return owner;
+    }
+
     protected String getTypeName() {
         return typeName;
     }
 
+    @Override
+    public String getProjectScopedName() {
+        return owner == null ? name : owner.getName() + StringUtils.capitalize(name);
+    }
+
     public String getDisplayName() {
-        return String.format("%s '%s'", getTypeName(), getName());
+        if (owner == null) {
+            return String.format("%s '%s'", getTypeName(), name);
+        } else {
+            return String.format("%s '%s:%s'", getTypeName(), owner.getName(), name);
+        }
     }
 
     public String getName() {
@@ -156,7 +167,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
-        return ModelMapGroovyDecorator.wrap(ownedSourceSets);
+        return ownedSourceSets;
     }
 
     public BinaryTasksCollection getTasks() {
@@ -176,13 +187,15 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         private final String name;
         private final Class<? extends BinarySpec> publicType;
         private final Class<? extends BaseBinarySpec> implementationType;
+        private final ComponentSpecInternal owner;
         private final ITaskFactory taskFactory;
         private final Instantiator instantiator;
 
-        private BinaryInfo(String name, Class<? extends BinarySpec> publicType, Class<? extends BaseBinarySpec> implementationType, ITaskFactory taskFactory, Instantiator instantiator) {
+        private BinaryInfo(String name, Class<? extends BinarySpec> publicType, Class<? extends BaseBinarySpec> implementationType, ComponentSpecInternal owner, ITaskFactory taskFactory, Instantiator instantiator) {
             this.name = name;
             this.publicType = publicType;
             this.implementationType = implementationType;
+            this.owner = owner;
             this.taskFactory = taskFactory;
             this.instantiator = instantiator;
         }

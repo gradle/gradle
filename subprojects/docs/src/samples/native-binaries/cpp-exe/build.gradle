@@ -16,7 +16,7 @@ model {
     tasks { t ->
         $("components.main").binaries { binaries ->
             binaries.values().each { binary ->
-                def stripTask = "strip${binary.name.capitalize()}"
+                def stripTask = binary.tasks.taskName("strip")
                 t.create(stripTask) {
                     dependsOn binary.tasks.link
                     doFirst {

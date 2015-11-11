@@ -31,25 +31,39 @@ class UnmanagedCollectionPropertyIntegrationTest extends AbstractIntegrationSpec
         @Managed
         interface Container {
             @Unmanaged
-            $type.name<Widget> getItems()
-            void setItems($type.name<Widget> items )
+            List<Widget> getWidgets()
+            void setWidgets(List<Widget> l)
+
+            @Unmanaged
+            Set<Widget> getItems()
+            void setItems(Set<Widget> s)
+
+            @Unmanaged
+            List getRawWidgets()
+            void setRawWidgets(List l)
         }
 
         class Rules extends RuleSource {
             @Model
             void createContainer(Container c) {
                 c.items = []
+                c.widgets = []
+                c.rawWidgets = []
             }
 
             @Mutate
             void addItems(Container c) {
                 c.items.add new Widget()
+                c.widgets.add new Widget()
+                c.rawWidgets.add new Widget()
             }
 
             @Mutate
             void addCheckTask(ModelMap<Task> tasks, Container c) {
                 tasks.create('check') {
                     assert c.items.size() == 1
+                    assert c.widgets.size() == 1
+                    assert c.rawWidgets.size() == 1
                 }
             }
         }
@@ -59,8 +73,5 @@ class UnmanagedCollectionPropertyIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         succeeds 'check'
-
-        where:
-        type << [List, Set]
     }
 }

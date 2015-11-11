@@ -16,6 +16,8 @@
 
 package org.gradle.language.java
 
+import static JavaIntegrationTesting.applyJavaPlugin
+
 class JarBinaryTypeVariantsTest extends VariantAwareDependencyResolutionSpec {
 
     def "can depend on a component without specifying any variant dimension"() {
@@ -47,7 +49,7 @@ model {
         firstDefaultDefaultJar {
             doLast {
                 assert compileFirstDefaultDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstDefaultDefaultJarFirstJava).contains(secondDefaultDefaultJar)
-                assert compileFirstDefaultDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondDefaultDefaultJar/second.jar")] as Set
+                assert compileFirstDefaultDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondDefaultDefaultApiJar/second.jar")] as Set
             }
         }
     }
@@ -92,13 +94,13 @@ model {
         firstPaidDefaultJar {
             doLast {
                 assert compileFirstPaidDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstPaidDefaultJarFirstJava).contains(secondPaidDefaultJar)
-                assert compileFirstPaidDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondPaidDefaultJar/second.jar")] as Set
+                assert compileFirstPaidDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondPaidDefaultApiJar/second.jar")] as Set
             }
         }
         firstFreeDefaultJar {
             doLast {
                 assert compileFirstFreeDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstFreeDefaultJarFirstJava).contains(secondFreeDefaultJar)
-                assert compileFirstFreeDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondFreeDefaultJar/second.jar")] as Set
+                assert compileFirstFreeDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondFreeDefaultApiJar/second.jar")] as Set
             }
         }
     }

@@ -19,9 +19,9 @@ package org.gradle.play.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.TextUtil
 import org.junit.Rule
-import static org.gradle.play.integtest.fixtures.Repositories.*
+
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORES
 
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -107,14 +107,14 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds("components")
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
+        output.contains """
     Java source 'play:extraJava'
         srcDir: src${File.separator}extraJava
-"""))
-        output.contains(TextUtil.toPlatformLineSeparators("""
+"""
+        output.contains """
     Scala source 'play:extraScala'
         srcDir: src${File.separator}extraScala
-"""))
+"""
 
         when:
         succeeds("assemble")

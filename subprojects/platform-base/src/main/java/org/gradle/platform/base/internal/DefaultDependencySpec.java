@@ -15,6 +15,7 @@
  */
 package org.gradle.platform.base.internal;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.Nullable;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecBuilder;
@@ -74,6 +75,7 @@ public class DefaultDependencySpec implements DependencySpec {
         public String getLibraryName() {
             return libraryName;
         }
+
     }
 
     @Override
@@ -87,11 +89,8 @@ public class DefaultDependencySpec implements DependencySpec {
 
         DefaultDependencySpec that = (DefaultDependencySpec) o;
 
-        if (projectPath != null ? !projectPath.equals(that.projectPath) : that.projectPath != null) {
-            return false;
-        }
-        return !(libraryName != null ? !libraryName.equals(that.libraryName) : that.libraryName != null);
-
+        return ObjectUtils.equals(projectPath, that.projectPath)
+                && ObjectUtils.equals(libraryName, that.libraryName);
     }
 
     @Override

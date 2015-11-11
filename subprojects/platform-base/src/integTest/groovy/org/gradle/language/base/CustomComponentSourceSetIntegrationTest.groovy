@@ -64,7 +64,7 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
         buildFile << '''
 class Dump extends RuleSource {
     @Mutate
-    void tasks(ModelMap<Task> tasks, BinaryContainer binaries) {
+    void tasks(ModelMap<Task> tasks, ModelMap<BinarySpec> binaries) {
         tasks.create("verify") {
             doLast {
                 binaries.each { binary ->

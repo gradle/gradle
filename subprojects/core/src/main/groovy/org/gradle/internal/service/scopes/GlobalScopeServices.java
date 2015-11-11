@@ -19,6 +19,7 @@ package org.gradle.internal.service.scopes;
 import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.*;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.*;
@@ -206,9 +207,9 @@ public class GlobalScopeServices {
         return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors));
     }
 
-    ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment) {
+    ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, StringInterner stringInterner) {
         if (environment.isLongLivingProcess()) {
-            CachingFileSnapshotter fileSnapshotter = new CachingFileSnapshotter(new DefaultHasher(), new NonThreadsafeInMemoryStore());
+            CachingFileSnapshotter fileSnapshotter = new CachingFileSnapshotter(new DefaultHasher(), new NonThreadsafeInMemoryStore(), stringInterner);
             return new HashClassPathSnapshotter(fileSnapshotter);
         } else {
             return new FileClassPathSnapshotter();
@@ -224,8 +225,8 @@ public class GlobalScopeServices {
         return new ModelSchemaAspectExtractor(strategies);
     }
 
-    protected ManagedProxyFactory createManagedProxyFactory() {
-        return new ManagedProxyFactory();
+    protected ManagedProxyFactory createManagedProxyFactory(Instantiator instantiator) {
+        return new ManagedProxyFactory(instantiator);
     }
 
     protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, ServiceRegistry serviceRegistry) {
@@ -258,4 +259,7 @@ public class GlobalScopeServices {
         return new DefaultFileWatcherFactory(executorFactory);
     }
 
+    StringInterner createStringInterner() {
+        return new StringInterner();
+    }
 }

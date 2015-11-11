@@ -93,9 +93,9 @@ public interface ModelRegistry {
 
     void remove(ModelPath path);
 
-    ModelRegistry replace(ModelCreator newCreator);
+    ModelRegistry replace(ModelRegistration newRegistration);
 
-    ModelRegistry createOrReplace(ModelCreator newCreator);
+    ModelRegistry registerOrReplace(ModelRegistration newRegistration);
 
     /**
      * Attempts to bind the references of all model rules known at this point in time.
@@ -115,7 +115,7 @@ public interface ModelRegistry {
      */
     void bindAllReferences() throws UnboundModelRulesException;
 
-    ModelRegistry create(ModelCreator creator);
+    ModelRegistry register(ModelRegistration registration);
 
     ModelRegistry configure(ModelActionRole role, ModelAction action);
 

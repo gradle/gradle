@@ -16,9 +16,91 @@
 
 package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.platform.base.internal.ComponentSpecInternal
 
 class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     def "can declare custom managed component"() {
+        buildFile << """
+            @Managed
+            interface SampleLibrarySpec extends ComponentSpec {
+                String getPublicData()
+                void setPublicData(String publicData)
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    sampleLib(SampleLibrarySpec) {
+                        publicData = "public"
+                    }
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
+                    tasks.create("validate") {
+                        assert components*.name == ["sampleLib"]
+                        assert components.withType(ComponentSpec)*.name == ["sampleLib"]
+                        assert components.withType(SampleLibrarySpec)*.name == ["sampleLib"]
+                        assert components*.publicData == ["public"]
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
+        expect:
+        succeeds "validate"
+    }
+
+    def "can add binaries to custom managed component"() {
+        buildFile << """
+            apply plugin: 'jvm-component'
+
+            @Managed
+            interface SampleLibrarySpec extends ComponentSpec {
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    sampleLib(SampleLibrarySpec) {
+                        binaries {
+                            jar(JarBinarySpec)
+                        }
+                    }
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
+                    tasks.create("validate") {
+                        assert components*.binaries*.values().flatten()*.name == ["jar"]
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
+        expect:
+        succeeds "validate"
+    }
+
+    def "can declare custom managed Jvm library component"() {
         buildFile << """
             apply plugin: "jvm-component"
 
@@ -188,6 +270,152 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
             }
             apply plugin: ValidateTaskRules
         """
+        expect:
+        succeeds "validate"
+    }
+
+    def "public view of managed component does not expose any internal views or implementation"() {
+        buildFile << """
+            import ${ComponentSpecInternal.name}
+
+            interface UnmanagedComponentSpec extends ComponentSpec {
+                String getUnmanagedData()
+                void setUnmanagedData(String value)
+            }
+
+            class DefaultUnmanagedComponentSpec extends BaseComponentSpec implements UnmanagedComponentSpec {
+                String unmanagedData
+            }
+
+            @Managed
+            interface SampleComponentSpec extends UnmanagedComponentSpec {
+                String getPublicData()
+                void setPublicData(String value)
+            }
+
+            @Managed
+            interface InternalSampleSpec {
+                String getInternalData()
+                void setInternalData(String value)
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void register1(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                    builder.defaultImplementation(DefaultUnmanagedComponentSpec)
+                }
+
+                @ComponentType
+                void register2(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                    builder.internalView(InternalSampleSpec)
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    sample(SampleComponentSpec)
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Validate
+                void validateInternal(@Path('components.sample') InternalSampleSpec spec) {
+//                    assert !(spec instanceof ComponentSpec)
+//                    assert !(spec instanceof ComponentSpecInternal)
+//                    assert !(spec instanceof UnmanagedComponentSpec)
+                    assert !(spec instanceof SampleComponentSpec)
+                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
+                    spec.internalData
+                    try {
+                        spec.publicData
+                        assert false
+                    } catch(MissingPropertyException e) {
+                        assert e.message == "Could not find property 'publicData' on InternalSampleSpec 'components.sample'."
+                    }
+                }
+
+                @Validate
+                void validateInternal(@Path('components.sample') ComponentSpecInternal spec) {
+//                    assert !(spec instanceof UnmanagedComponentSpec)
+                    assert !(spec instanceof SampleComponentSpec)
+                    // TODO:LPTR This should not be true once we stop returning raw unmanaged instances
+                    assert spec instanceof DefaultUnmanagedComponentSpec
+                    assert !(spec instanceof InternalSampleSpec)
+                    try {
+                        spec.publicData
+                        assert false
+                    } catch(MissingPropertyException e) {
+                        assert e.message == "Could not find property 'publicData' on DefaultUnmanagedComponentSpec 'sample'."
+                    }
+                    try {
+                        spec.internalData
+                        assert false
+                    } catch (MissingPropertyException e) {
+                        assert e.message == "Could not find property 'internalData' on DefaultUnmanagedComponentSpec 'sample'."
+                    }
+                }
+
+                @Validate
+                void validatePublic(@Path('components.sample') SampleComponentSpec spec) {
+                    assert !(spec instanceof InternalSampleSpec)
+                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
+//                    assert !(spec instanceof ComponentSpecInternal)
+                    spec.publicData
+                    try {
+                        spec.internalData
+                        assert false
+                    } catch (MissingPropertyException e) {
+                        assert e.message == "Could not find property 'internalData' on SampleComponentSpec 'components.sample'."
+                    }
+                }
+
+                @Validate
+                void validatePublic(@Path('components.sample') ComponentSpec spec) {
+                    assert spec instanceof UnmanagedComponentSpec
+                    assert spec instanceof SampleComponentSpec
+                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
+                    assert !(spec instanceof InternalSampleSpec)
+//                    assert !(spec instanceof ComponentSpecInternal)
+                    spec.publicData
+                    try {
+                        spec.internalData
+                        assert false
+                    } catch (MissingPropertyException e) {
+                        assert e.message == "Could not find property 'internalData' on SampleComponentSpec 'components.sample'."
+                    }
+                }
+
+                @Validate
+                void validatePublic(@Path('components.sample') Object spec) {
+                    assert spec instanceof ComponentSpec
+                    assert spec instanceof UnmanagedComponentSpec
+                    assert spec instanceof SampleComponentSpec
+                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
+                    assert !(spec instanceof InternalSampleSpec)
+//                    assert !(spec instanceof ComponentSpecInternal)
+                    spec.publicData
+                    try {
+                        spec.internalData
+                        assert false
+                    } catch (MissingPropertyException e) {
+                        assert e.message == "Could not find property 'internalData' on SampleComponentSpec 'components.sample'."
+                    }
+                }
+
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
+                    tasks.create("validate") {
+                        assert components*.name == ["sample"]
+                        assert components.withType(ComponentSpec)*.name == ["sample"]
+                        assert components.withType(SampleComponentSpec)*.name == ["sample"]
+                        assert components.withType(ComponentSpecInternal)*.name == ["sample"]
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
         expect:
         succeeds "validate"
     }

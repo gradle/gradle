@@ -19,11 +19,14 @@ package org.gradle.api.reporting.components.internal;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.reporting.ReportRenderer;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -69,28 +72,37 @@ public class ComponentReportRenderer extends TextReportRenderer {
     }
 
     public void renderSourceSets(Collection<LanguageSourceSet> sourceSets) {
-        Set<LanguageSourceSet> additionalSourceSets = Sets.newTreeSet(SourceSetRenderer.SORT_ORDER);
-        for (LanguageSourceSet sourceSet : sourceSets) {
-            if (!componentSourceSets.contains(sourceSet)) {
-                additionalSourceSets.add(sourceSet);
-            }
-        }
-        if (!additionalSourceSets.isEmpty()) {
-            getBuilder().getOutput().println();
-            getBuilder().collection("Additional source sets", additionalSourceSets, sourceSetRenderer, "source sets");
-        }
+        Set<LanguageSourceSet> additionalSourceSets = collectAdditionalSourceSets(sourceSets);
+        outputCollection(additionalSourceSets, "Additional source sets", sourceSetRenderer, "source sets");
     }
 
-    public void renderBinaries(Collection<BinarySpec> binaries) {
-        Set<BinarySpec> additionalBinaries = Sets.newTreeSet(TypeAwareBinaryRenderer.SORT_ORDER);
-        for (BinarySpec binary : binaries) {
-            if (!componentBinaries.contains(binary)) {
-                additionalBinaries.add(binary);
+   public void renderBinaries(Iterable<BinarySpec> binaries) {
+        Set<BinarySpec> additionalBinaries = collectAdditionalBinaries(binaries);
+        outputCollection(additionalBinaries, "Additional binaries", binaryRenderer, "binaries");
+    }
+
+    private Set<LanguageSourceSet> collectAdditionalSourceSets(Collection<LanguageSourceSet> sourceSets) {
+        return elementsNotIn(componentSourceSets, sourceSets, SourceSetRenderer.SORT_ORDER);
+    }
+
+   private Set<BinarySpec> collectAdditionalBinaries(Iterable<BinarySpec> binaries) {
+        return elementsNotIn(componentBinaries, binaries, TypeAwareBinaryRenderer.SORT_ORDER);
+    }
+
+    private static <T> Set<T> elementsNotIn(Set<T> set, Iterable<T> elements, Comparator<? super T> comparator) {
+        Set<T> result = Sets.newTreeSet(comparator);
+        for (T element : elements) {
+            if (!set.contains(element)) {
+                result.add(element);
             }
         }
-        if (!additionalBinaries.isEmpty()) {
+        return result;
+    }
+
+    private <T> void outputCollection(Collection<? extends T> items, String title, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
+        if (!items.isEmpty()) {
             getBuilder().getOutput().println();
-            getBuilder().collection("Additional binaries", additionalBinaries, binaryRenderer, "binaries");
+            getBuilder().collection(title, items, renderer, elementsPlural);
         }
     }
 }

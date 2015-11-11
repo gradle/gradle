@@ -17,8 +17,8 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.api.Action;
-import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
+import org.gradle.language.base.internal.BuildDirHolder;
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.ComponentSpec;
@@ -29,15 +29,21 @@ import java.io.File;
 public class JarBinaryRules extends RuleSource {
     @Defaults
     void configureJarBinaries(final ComponentSpec jvmLibrary, BuildDirHolder buildDirHolder, final JavaToolChainRegistry toolChains) {
-        final File binariesDir = new File(buildDirHolder.getBuildDir(), "jars");
-        final File classesDir = new File(buildDirHolder.getBuildDir(), "classes");
-        jvmLibrary.getBinaries().withType(JarBinarySpec.class).beforeEach(new Action<JarBinarySpec>() {
+        final File binariesDir = new File(buildDirHolder.getDir(), "jars");
+        final File classesDir = new File(buildDirHolder.getDir(), "classes");
+        jvmLibrary.getBinaries().withType(JarBinarySpecInternal.class).beforeEach(new Action<JarBinarySpecInternal>() {
             @Override
-            public void execute(JarBinarySpec jarBinary) {
-                File outputDir = new File(classesDir, jarBinary.getName());
+            public void execute(JarBinarySpecInternal jarBinary) {
+                String jarBinaryName = jarBinary.getProjectScopedName();
+                int idx = jarBinaryName.lastIndexOf("Jar");
+                String apiJarBinaryName = idx>0?jarBinaryName.substring(0, idx) + "ApiJar" : jarBinaryName + "ApiJar";
+                String libraryName = jarBinary.getId().getLibraryName();
+                File outputDir = new File(classesDir, jarBinaryName);
+
                 jarBinary.setClassesDir(outputDir);
                 jarBinary.setResourcesDir(outputDir);
-                jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", jarBinary.getName(), jarBinary.getId().getLibraryName())));
+                jarBinary.setJarFile(new File(binariesDir, String.format("%s%s%s.jar", jarBinaryName, File.separator, libraryName)));
+                jarBinary.setApiJarFile(new File(binariesDir, String.format("%s%s%s.jar", apiJarBinaryName, File.separator, libraryName)));
                 jarBinary.setToolChain(toolChains.getForPlatform(jarBinary.getTargetPlatform()));
             }
         });

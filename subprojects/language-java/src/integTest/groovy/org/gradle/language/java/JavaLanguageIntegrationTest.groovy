@@ -71,7 +71,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLibJar/myLib.jar").getJavaVersion() == JavaVersion.VERSION_1_6
+        jarFile("build/jars/myLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(app.sources*.classFile.fullPath as String[])
     }
 
@@ -97,10 +97,10 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/java5MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_5
-        jarFile("build/jars/java6MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
-        jarFile("build/jars/java7MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_7
-        jarFile("build/jars/java8MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_8
+        jarFile("build/jars/myLibJava5Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_5
+        jarFile("build/jars/myLibJava6Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
+        jarFile("build/jars/myLibJava7Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_7
+        jarFile("build/jars/myLibJava8Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_8
     }
 
     def "erroneous target should produce reasonable error message"() {
@@ -148,7 +148,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/${current.name}MyLibJar/myLib.jar").javaVersion == current.targetCompatibility
+        jarFile("build/jars/myLib${current.name.capitalize()}Jar/myLib.jar").javaVersion == current.targetCompatibility
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
@@ -172,107 +172,5 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         and:
         failure.assertHasCause("Could not target platform: 'Java SE 9' using tool chain: " +
             "'JDK ${JavaVersion.current().majorVersion} (${JavaVersion.current()})'")
-    }
-
-    def "should succeed when public api specification is absent"() {
-        when:
-        buildFile << """
-            model {
-                components {
-                    myLib(JvmLibrarySpec) {
-                    }
-                }
-            }
-        """
-        then:
-        succeeds "assemble"
-    }
-
-    def "should succeed when public api specification is present but empty"() {
-        when:
-        buildFile << """
-            model {
-                components {
-                    myLib(JvmLibrarySpec) {
-                        api {
-                        }
-                    }
-                }
-            }
-        """
-        then:
-        succeeds "assemble"
-    }
-
-    def "should succeed when public api specification is present and fully configured"() {
-        when:
-        buildFile << """
-            model {
-                components {
-                    myLib(JvmLibrarySpec) {
-                        api {
-                            exports 'com.example.p1'
-                            exports 'com.example.p2'
-                        }
-                    }
-                }
-            }
-        """
-        then:
-        succeeds "assemble"
-    }
-
-    def "should succeed when public api exports an unnamed package"() {
-        when:
-        buildFile << """
-            model {
-                components {
-                    myLib(JvmLibrarySpec) {
-                        api {
-                            exports ''
-                        }
-                    }
-                }
-            }
-        """
-        then:
-        succeeds "assemble"
-    }
-
-    def "should fail when public api exports an invalid package name"() {
-        when:
-        buildFile << """
-            model {
-                components {
-                    myLib(JvmLibrarySpec) {
-                        api {
-                            exports 'com.example.p-1'
-                        }
-                    }
-                }
-            }
-        """
-        then:
-        fails "assemble"
-        failure.assertHasCause("Invalid public API specification: 'com.example.p-1' is not a valid package name")
-    }
-
-    def "should fail when public api exports the same package more than once"() {
-        when:
-        buildFile << """
-            model {
-                components {
-                    myLib(JvmLibrarySpec) {
-                        api {
-                            exports 'com.example.p1'
-                            exports 'com.example.p1'
-                        }
-                    }
-                }
-            }
-        """
-        then:
-        fails "assemble"
-        failure.assertHasCause("Invalid public API specification: package 'com.example.p1' has already been exported")
     }
 }

@@ -8,10 +8,45 @@ model {
     components {
         main(JvmLibrarySpec) {
             api {
-                exports 'com.example.p1'
-                exports 'com.example.p2'
+                exports 'org.gradle'
+                exports 'org.gradle.utils'
             }
         }
     }
 }
 // END SNIPPET specify-library-api
+
+// START SNIPPET client-api
+model {
+    components {
+        client(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'main'
+                    }
+                }
+            }
+        }
+    }
+}
+// END SNIPPET client-api
+
+model {
+    components {
+        brokenclient(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'main'
+                    }
+                }
+            }
+        }
+    }
+}
+
+task updateMainComponent(type: Copy) {
+    from 'update'
+    into 'src'
+}

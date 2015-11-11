@@ -41,4 +41,5 @@ public interface DependencySpec {
      */
     @Nullable
     String getLibraryName();
+
 }

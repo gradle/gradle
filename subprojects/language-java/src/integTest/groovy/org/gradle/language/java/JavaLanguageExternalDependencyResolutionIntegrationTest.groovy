@@ -18,20 +18,24 @@ package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
+
 class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
+
+    def theModel(String model) {
+        applyJavaPlugin(buildFile)
+        buildFile << """
+repositories {
+    maven { url '${mavenRepo.uri}' }
+}"""
+        buildFile << model
+    }
 
     def "can resolve dependency on library in maven repository"() {
         given:
         def module = mavenRepo.module("org.gradle", "test").publish()
 
-        buildFile << """
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-repositories {
-    maven { url '${mavenRepo.uri}' }
-}
+        theModel """
 model {
     components {
         main(JvmLibrarySpec) {
@@ -71,14 +75,7 @@ model {
                 .dependsOn("org.gradle", "runtimeDep", "1.0", null, "runtime")
                 .publish()
 
-        buildFile << """
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-repositories {
-    maven { url '${mavenRepo.uri}' }
-}
+        theModel """
 model {
     components {
         main(JvmLibrarySpec) {
@@ -114,14 +111,7 @@ model {
         given:
         mavenRepo.module("org.gradle", "compileDep").publish()
 
-        buildFile << """
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-repositories {
-    maven { url '${mavenRepo.uri}' }
-}
+        theModel """
 model {
     components {
         main(JvmLibrarySpec) {
@@ -168,5 +158,125 @@ model {
         then:
         file('mainLibs').assertHasDescendants('other.jar')
         file('otherLibs').assertHasDescendants('compileDep-1.0.jar')
+    }
+
+    def "resolved classpath for jvm library includes transitive api-scoped dependencies of local library dependency"() {
+        given:
+        theModel """
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'other'
+                    }
+                }
+            }
+        }
+        other(JvmLibrarySpec) {
+            api {
+                dependencies {
+                    library 'apiLib'
+                }
+            }
+            sources {
+                java {
+                    dependencies {
+                        library 'compileLib'
+                    }
+                }
+            }
+        }
+        apiLib(JvmLibrarySpec) {
+            api {
+                dependencies {
+                    library 'transitiveApiLib'
+                }
+            }
+            sources {
+                java {
+                    dependencies {
+                        library 'transitiveCompileLib'
+                    }
+                }
+            }
+        }
+        compileLib(JvmLibrarySpec) {
+        }
+        transitiveApiLib(JvmLibrarySpec) {
+        }
+        transitiveCompileLib(JvmLibrarySpec) {
+        }
+    }
+    tasks {
+        create('copyDeps', Copy) {
+            into 'mainLibs'
+            from compileMainJarMainJava.classpath
+        }
+    }
+}
+"""
+        file('src/main/java/TestApp.java') << '''public class TestApp {}'''
+
+        when:
+        succeeds ':copyDeps'
+
+        then:
+        file('mainLibs').assertHasDescendants('other.jar', 'apiLib.jar', 'transitiveApiLib.jar')
+    }
+
+    def "resolved classpath includes transitive api-scoped dependencies of maven library dependency"() {
+        given:
+        mavenRepo.module("org.gradle", "compileDep").publish()
+        mavenRepo.module("org.gradle", "transitiveDep").publish()
+        mavenRepo.module("org.gradle", "transitiveApiDep").publish()
+        mavenRepo.module("org.gradle", "apiDep")
+                .dependsOn("org.gradle", "transitiveApiDep", "1.0", null, "compile")
+                .dependsOn("org.gradle", "transitiveDep", "1.0", null, "runtime")
+                .publish()
+
+        theModel """
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'other'
+                    }
+                }
+            }
+        }
+        other(JvmLibrarySpec) {
+            api {
+                dependencies {
+                    library 'org.gradle:apiDep:1.0'
+                }
+            }
+            sources {
+                java {
+                    dependencies {
+                        library 'org.gradle:compileDep:1.0'
+                    }
+                }
+            }
+        }
+    }
+    tasks {
+        create('copyDeps', Copy) {
+            into 'mainLibs'
+            from compileMainJarMainJava.classpath
+        }
+    }
+}
+"""
+        file('src/main/java/TestApp.java') << '''public class TestApp {}'''
+
+        when:
+        succeeds ':copyDeps'
+
+        then:
+        file('mainLibs').assertHasDescendants('other.jar', 'apiDep-1.0.jar', 'transitiveApiDep-1.0.jar')
     }
 }

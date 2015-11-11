@@ -34,8 +34,8 @@ class ModelReferenceNode extends ModelNodeInternal {
     private ModelNodeInternal target;
     private final MutableModelNode parent;
 
-    public ModelReferenceNode(CreatorRuleBinder creatorBinder, MutableModelNode parent) {
-        super(creatorBinder);
+    public ModelReferenceNode(ModelRegistration registration, MutableModelNode parent) {
+        super(registration);
         this.parent = parent;
     }
 
@@ -49,6 +49,11 @@ class ModelReferenceNode extends ModelNodeInternal {
 
     public ModelNodeInternal getTarget() {
         return target;
+    }
+
+    @Override
+    public boolean canBeViewedAs(ModelType<?> type) {
+        return target != null && target.canBeViewedAs(type);
     }
 
     @Override
@@ -80,12 +85,12 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public void addLink(ModelCreator creator) {
+    public void addLink(ModelRegistration registration) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void addReference(ModelCreator creator) {
+    public void addReference(ModelRegistration registration) {
         throw new UnsupportedOperationException();
     }
 
@@ -221,11 +226,6 @@ class ModelReferenceNode extends ModelNodeInternal {
     @Override
     public MutableModelNode getParent() {
         return parent;
-    }
-
-    @Override
-    public void addProjection(ModelProjection projection) {
-        throw new UnsupportedOperationException();
     }
 
     private static class ModelViewWrapper<T> implements ModelView<T> {

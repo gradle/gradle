@@ -134,7 +134,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasCause(NonTransformedModelDslBacking.ATTEMPTED_INPUT_SYNTAX_USED_MESSAGE)
     }
 
-    def "model block must received transformed closure"() {
+    def "model block must receive transformed closure"() {
         when:
         buildScript """
             ${testPluginImpl()}

@@ -16,16 +16,17 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.serialize.SerializerSpec
 
 class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
 
-    def serializer = new DefaultFileSnapshotterSerializer()
+    def serializer = new DefaultFileSnapshotterSerializer(new StringInterner())
 
     def "reads and writes the snapshot"() {
         when:
         DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl out = serialize(new DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl([
-                "1": new DefaultFileCollectionSnapshotter.DirSnapshot(),
+                "1": DefaultFileCollectionSnapshotter.DirSnapshot.getInstance(),
                 "2": new DefaultFileCollectionSnapshotter.MissingFileSnapshot(),
                 "3": new DefaultFileCollectionSnapshotter.FileHashSnapshot("foo".bytes)]), serializer)
 

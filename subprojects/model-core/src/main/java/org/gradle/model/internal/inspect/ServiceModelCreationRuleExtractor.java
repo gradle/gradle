@@ -16,13 +16,13 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.Service;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelCreators;
+import org.gradle.model.internal.core.ModelRegistration;
+import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.Service;
 
 public class ServiceModelCreationRuleExtractor extends AbstractUnmanagedModelCreationRuleExtractor<Service> {
     @Override
-    protected ModelCreator buildCreator(ModelCreators.Builder builder) {
+    protected ModelRegistration buildRegistration(ModelRegistrations.Builder builder) {
         return builder.service(true).build();
     }
 

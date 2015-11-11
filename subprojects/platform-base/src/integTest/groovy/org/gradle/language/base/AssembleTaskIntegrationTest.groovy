@@ -59,8 +59,8 @@ class AssembleTaskIntegrationTest extends AbstractIntegrationSpec {
         failureDescriptionContains("Execution failed for task ':assemble'.")
         failure.assertThatCause(Matchers.<String>allOf(
             Matchers.startsWith("No buildable binaries found:"),
-            Matchers.containsString("notBuildableBinary1: Binary notBuildableBinary1 has 'notBuildable' in the name"),
-            Matchers.containsString("notBuildableBinary2: Binary notBuildableBinary2 has 'notBuildable' in the name")
+            Matchers.containsString("DefaultSampleBinary 'notBuildableBinary1': Binary notBuildableBinary1 has 'notBuildable' in the name"),
+            Matchers.containsString("DefaultSampleBinary 'notBuildableBinary2': Binary notBuildableBinary2 has 'notBuildable' in the name")
         ))
     }
 

@@ -31,6 +31,26 @@ public class ResolvedInclude implements Serializable {
         return dependencyFile == null;
     }
 
+    public boolean isMaybeMacro() {
+        // TODO: Someone could be evil and include a file called "validIdentifier"
+        return isUnknown() && isMacro(include);
+    }
+
+    private static boolean isMacro(String token) {
+        if (token.isEmpty()
+            || !Character.isJavaIdentifierStart(token.charAt(0))) {
+            return false;
+        }
+        if (token.length() > 1) {
+            for (char c : token.substring(1).toCharArray()) {
+                if (!Character.isJavaIdentifierPart(c)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     public String getInclude() {
         return include;
     }

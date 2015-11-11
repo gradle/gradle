@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
 
 class OutputFilesSnapshotSerializerTest extends SerializerSpec {
     def targetSerializer = Mock(Serializer)
-    def serializer = new OutputFilesSnapshotSerializer(targetSerializer)
+    def serializer = new OutputFilesSnapshotSerializer(targetSerializer, new StringInterner())
 
     def "reads and writes the snapshot"() {
         def snapshot = Stub(FileCollectionSnapshot)

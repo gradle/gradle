@@ -34,7 +34,7 @@ public abstract class BridgedCollections {
     private BridgedCollections() {
     }
 
-    public static <I, C extends NamedDomainObjectCollection<I>> ModelCreators.Builder creator(
+    public static <I, C extends NamedDomainObjectCollection<I>> ModelRegistrations.Builder registration(
         final ModelReference<C> containerReference,
         final Transformer<? extends C, ? super MutableModelNode> containerFactory,
         final Namer<? super I> namer,
@@ -45,7 +45,7 @@ public abstract class BridgedCollections {
         final ModelType<C> containerType = containerReference.getType();
         assert containerPath != null : "container reference path cannot be null";
 
-        return ModelCreators.of(
+        return ModelRegistrations.of(
             containerPath,
             new Action<MutableModelNode>() {
                 public void execute(final MutableModelNode containerNode) {
@@ -62,14 +62,14 @@ public abstract class BridgedCollections {
                             }
 
                             if (!containerNode.hasLink(name)) {
-                                ModelCreator itemCreator = ModelCreators
+                                ModelRegistration itemRegistration = ModelRegistrations
                                     .unmanagedInstanceOf(
                                         ModelReference.of(containerPath.child(name), DynamicObjectAwareTypeUtils.extractModelTypeFromInstance(item)),
                                         new ExtractFromParentContainer<I, C>(name, containerType)
                                     )
                                     .descriptor(itemDescriptorGenerator.transform(name))
                                     .build();
-                                containerNode.addLink(itemCreator);
+                                containerNode.addLink(itemRegistration);
                             }
                         }
                     });

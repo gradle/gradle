@@ -19,6 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
@@ -88,7 +89,10 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             List<Method> overloadedMethods = getOverloadedMethods(methods);
             if (overloadedMethods != null) {
                 handleOverloadedMethods(extractionContext, overloadedMethods);
-                continue;
+                methods = filterGetterMethods(methods);
+                if (methods.isEmpty()) {
+                    continue;
+                }
             }
 
             int getterPrefixLen = getterPrefixLength(methodName);
@@ -117,18 +121,20 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
                         List<Method> overloadedIsGetterMethods = getOverloadedMethods(isGetterMethods);
                         if (overloadedIsGetterMethods != null) {
                             handleOverloadedMethods(extractionContext, overloadedIsGetterMethods);
-                            continue;
+                            isGetterMethods = filterGetterMethods(isGetterMethods);
                         }
 
-                        Method mostSpecificIsGetter = ModelSchemaUtils.findMostSpecificMethod(isGetterMethods);
-                        if (mostSpecificGetter.getReturnType() != boolean.class || mostSpecificIsGetter.getReturnType() != boolean.class) {
-                            handleInvalidGetter(extractionContext, mostSpecificIsGetter,
-                                String.format("property '%s' has both '%s()' and '%s()' getters, but they don't both return a boolean",
-                                    propertyName, isGetterName, methodName));
-                            continue;
+                        if (!isGetterMethods.isEmpty()) {
+                            Method mostSpecificIsGetter = ModelSchemaUtils.findMostSpecificMethod(isGetterMethods);
+                            if (mostSpecificGetter.getReturnType() != boolean.class || mostSpecificIsGetter.getReturnType() != boolean.class) {
+                                handleInvalidGetter(extractionContext, mostSpecificIsGetter,
+                                    String.format("property '%s' has both '%s()' and '%s()' getters, but they don't both return a boolean",
+                                        propertyName, isGetterName, methodName));
+                                continue;
+                            }
+                            getterMethods = Iterables.concat(getterMethods, isGetterMethods);
+                            skippedMethodNames.add(isGetterName);
                         }
-                        getterMethods = Iterables.concat(getterMethods, isGetterMethods);
-                        skippedMethodNames.add(isGetterName);
                     }
                 }
 
@@ -147,6 +153,15 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
         validateAllNecessaryMethodsHandled(extractionContext, methodsByName.values(), handledMethods);
         return results;
+    }
+
+    private static Collection<Method> filterGetterMethods(Collection<Method> methods) {
+        return Lists.newArrayList(Iterables.filter(methods, new Predicate<Method>() {
+            @Override
+            public boolean apply(Method method) {
+                return method.getParameterTypes().length == 0;
+            }
+        }));
     }
 
     private static int getterPrefixLength(String methodName) {

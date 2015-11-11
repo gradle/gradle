@@ -36,46 +36,46 @@ public class VariantsMatcher {
         }
     };
 
-    private final List<VariantDimensionSelectorFactory> factories;
+    private final List<VariantAxisCompatibilityFactory> factories;
     private final Class<? extends BinarySpec> binarySpecType;
     private final ModelSchemaStore schemaStore;
 
-    public VariantsMatcher(List<VariantDimensionSelectorFactory> factories, Class<? extends BinarySpec> binarySpecType, ModelSchemaStore schemaStore) {
+    public VariantsMatcher(List<VariantAxisCompatibilityFactory> factories, Class<? extends BinarySpec> binarySpecType, ModelSchemaStore schemaStore) {
         this.factories = factories;
         this.binarySpecType = binarySpecType;
         this.schemaStore = schemaStore;
     }
 
-    private VariantDimensionSelector<Object> createSelector(Object o) {
-        for (VariantDimensionSelectorFactory factory : factories) {
+    private VariantAxisCompatibility<Object> createSelector(Object o) {
+        for (VariantAxisCompatibilityFactory factory : factories) {
             @SuppressWarnings("unchecked")
-            VariantDimensionSelector<Object> selector = factory.getVariantDimensionSelector(o);
+            VariantAxisCompatibility<Object> selector = factory.getVariantAxisCompatibility(o);
             if (selector != null) {
                 return selector;
             }
         }
-        return new DefaultVariantDimensionSelector();
+        return new DefaultVariantAxisCompatibility();
     }
 
     public Collection<? extends BinarySpec> filterBinaries(VariantsMetaData variantsMetaData, Collection<BinarySpec> binaries) {
         if (binaries.isEmpty()) {
             return binaries;
         }
-        Set<String> resolveDimensions = variantsMetaData.getNonNullDimensions();
+        Set<String> resolveDimensions = variantsMetaData.getNonNullVariantAxes();
         TreeMultimap<String, VariantValue> selectedVariants = TreeMultimap.create(String.CASE_INSENSITIVE_ORDER, SPEC_COMPARATOR);
         Set<BinarySpec> removedSpecs = Sets.newHashSet();
         for (BinarySpec binarySpec : binaries) {
             if (binarySpecType.isAssignableFrom(binarySpec.getClass())) {
                 VariantsMetaData binaryVariants = DefaultVariantsMetaData.extractFrom(binarySpec, schemaStore);
-                Set<String> commonsDimensions = Sets.intersection(resolveDimensions, binaryVariants.getNonNullDimensions());
-                Set<String> incompatibleDimensionTypes = VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData, binaryVariants, commonsDimensions);
+                Set<String> commonsDimensions = Sets.intersection(resolveDimensions, binaryVariants.getNonNullVariantAxes());
+                Set<String> incompatibleDimensionTypes = VariantsMetaDataHelper.determineAxesWithIncompatibleTypes(variantsMetaData, binaryVariants, commonsDimensions);
                 if (incompatibleDimensionTypes.isEmpty()) {
                     for (String dimension : commonsDimensions) {
-                        Class<?> dimensionType = variantsMetaData.getDimensionType(dimension).getConcreteClass();
+                        Class<?> dimensionType = variantsMetaData.getVariantAxisType(dimension).getConcreteClass();
                         boolean isStringType = String.class == dimensionType;
                         Object requestedValue = isStringType ? variantsMetaData.getValueAsString(dimension) : variantsMetaData.getValueAsType(Cast.<Class<? extends Named>>uncheckedCast(dimensionType), dimension);
                         Object binaryValue = isStringType ? binaryVariants.getValueAsString(dimension) : binaryVariants.getValueAsType(Cast.<Class<? extends Named>>uncheckedCast(dimensionType), dimension);
-                        VariantDimensionSelector<Object> selector = createSelector(requestedValue);
+                        VariantAxisCompatibility<Object> selector = createSelector(requestedValue);
                         if (selector.isCompatibleWithRequirement(requestedValue, binaryValue)) {
                             VariantValue value = new VariantValue(binaryValue, binarySpec);
                             SortedSet<VariantValue> variantValues = selectedVariants.get(dimension);

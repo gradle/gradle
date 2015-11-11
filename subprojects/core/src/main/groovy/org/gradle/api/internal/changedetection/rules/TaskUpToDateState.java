@@ -29,6 +29,7 @@ public class TaskUpToDateState {
 
     private TaskStateChanges noHistoryState;
     private TaskStateChanges inputFilesState;
+    private DiscoveredTaskStateChanges discoveredInputFilesState;
     private TaskStateChanges inputPropertiesState;
     private TaskStateChanges taskTypeState;
     private TaskStateChanges outputFilesState;
@@ -59,7 +60,14 @@ public class TaskUpToDateState {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.  See stacktrace for details.", task.getName()), e);
         }
 
-        allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState);
+        // Capture discovered inputs state from previous execution
+        try {
+            discoveredInputFilesState = DiscoveredInputFilesStateChangeRule.create(lastExecution, thisExecution, inputFilesSnapshotter);
+        } catch (UncheckedIOException e) {
+            throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.  See stacktrace for details.", task.getName()), e);
+        }
+
+        allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState, caching(discoveredInputFilesState));
         rebuildChanges = new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState);
     }
 
@@ -81,5 +89,9 @@ public class TaskUpToDateState {
 
     public FilesSnapshotSet getInputFilesSnapshot() {
         return inputFilesSnapshot;
+    }
+
+    public DiscoveredTaskStateChanges getDiscoveredInputFilesChanges() {
+        return discoveredInputFilesState;
     }
 }

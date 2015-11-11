@@ -35,7 +35,7 @@ abstract class VariantAwareDependencyResolutionSpec extends AbstractIntegrationS
                         while (!(t instanceof PlatformJavaCompile)) {
                             t = t.taskDependencies.getDependencies(t)[0]
                         }
-                        assert t.classpath.files == [file("\${buildDir}/jars/$target/second.jar")] as Set
+                        assert t.classpath.files == [file("\${buildDir}/jars/${target.replace('Jar','ApiJar')}/second.jar")] as Set
                     }
                 }
 """
@@ -179,8 +179,8 @@ class ComponentTypeRules extends RuleSource {
                 buildTypes.each { buildType ->
                     def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${version}"))
                     def toolChain = toolChains.getForPlatform(platform)
-                    def baseName = "${library.name}${flavor.capitalize()}${buildType.name.capitalize()}"
-                    String binaryName = "$baseName${javaVersions.size() > 1 ? version : ''}Jar"
+                    def baseName = "${flavor}${buildType.name.capitalize()}${javaVersions.size() > 1 ? version : ''}"
+                    String binaryName = "${baseName}Jar"
                     binaries.create(binaryName) { jar ->
                         jar.toolChain = toolChain
                         jar.targetPlatform = platform
@@ -209,8 +209,7 @@ class ComponentTypeRules extends RuleSource {
             flavors.each { flavor ->
                 def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${version}"))
                 def toolChain = toolChains.getForPlatform(platform)
-                def baseName = "${library.name}${flavor.capitalize()}"
-                String binaryName = "$baseName${javaVersions.size() > 1 ? version : ''}Jar"
+                String binaryName = "${flavor}${javaVersions.size() > 1 ? version : ''}Jar"
                 binaries.create(binaryName) { jar ->
                     jar.toolChain = toolChain
                     jar.targetPlatform = platform
@@ -235,8 +234,7 @@ class ComponentTypeRules extends RuleSource {
             buildTypes.each { buildType ->
                 def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${version}"))
                 def toolChain = toolChains.getForPlatform(platform)
-                def baseName = "${library.name}${buildType.name.capitalize()}"
-                String binaryName = "$baseName${javaVersions.size() > 1 ? version : ''}Jar"
+                String binaryName = "${buildType.name}${javaVersions.size() > 1 ? version : ''}Jar"
                 binaries.create(binaryName) { jar ->
                     jar.toolChain = toolChain
                     jar.targetPlatform = platform
@@ -254,20 +252,14 @@ apply type: ComponentTypeRules
         '''
     }
 
-    protected static void applyJavaPlugin(File buildFile) {
-        buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-'''
-    }
-
     protected void checkResolution(Map<String, String> errors, Set<String> consumedErrors, String taskName) {
         if (errors[taskName]) {
             consumedErrors << taskName
             fails taskName
-            failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
+            // Need to restructure the calling tasks
+            assert taskName.startsWith("first")
+            def binaryDisplayName = "first:" + taskName.toLowerCase().charAt(5) + taskName.substring(6)
+            failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$binaryDisplayName'' source set 'Java source 'first:java''")
             errors[taskName].each { err ->
                 failure.assertThatCause(containsText(err))
             }
@@ -281,7 +273,7 @@ plugins {
             calledWithTaskName 'firstJar'
         } else {
             platforms.each { platform ->
-                calledWithTaskName "java${platform}FirstJar"
+                calledWithTaskName "firstJava${platform}Jar"
             }
         }
     }

@@ -78,6 +78,7 @@
                     a consumer is going to be compiled against an <firstterm>API</firstterm>.</listitem>
                 <listitem>An <firstterm>API jar</firstterm> is a collection of <firstterm>API classes</firstterm>. There can be multiple API jars depending on the combinations of variant dimensions.</listitem>
                 <listitem>A <firstterm>stubbed API jar</firstterm> is a collection of <firstterm>stubbed API classes</firstterm>. There can be multiple stubbed API jars depending on the combinations of variant dimensions.</listitem>
+                <listitem>An <firstterm>ABI (application binary interface)</firstterm> corresponds to the public signature of an API, that is to say the set of stubbed API classes that it exposes (and their API visible members).</listitem>
             </itemizedlist>
             <para>
                 We avoid the use of the term <firstterm>implementation</firstterm> because it is too vague: both <firstterm>API classes</firstterm> and <firstterm>Non-API classes</firstterm> can have an implementation.
@@ -238,26 +239,33 @@
 
     <section>
         <title>Dependencies between components</title>
-        <para>The JVM component plugins support API dependencies between components. Having an API dependency means that if
+        <para>The JVM component plugins support dependencies between components. Having a dependency means that if
             <literal>A</literal> depends on <literal>B</literal>, then the API of <literal>B</literal>
             is required to compile <literal>A</literal>. Gradle will then
             make sure that the dependency is built before the dependent component, and that the dependency
             appears on the <firstterm>compile classpath</firstterm>.
-            API dependencies are (by nature) not transitive.  Runtime (transitive) dependency management is not implemented yet.
+            Dependencies are (by nature) not transitive.  Runtime (transitive) dependency management is not implemented yet.
         </para>
         <para>Currently the plugin supports two kinds of dependencies:
             <itemizedlist>
-                <listitem>API dependencies onto a local project</listitem>
-                <listitem>API dependencies onto a local library</listitem>
+                <listitem>Dependencies onto a local project</listitem>
+                <listitem>Dependencies onto a local library</listitem>
             </itemizedlist>
             Dependencies onto external components are not yet supported.
         </para>
-        <para>Dependencies are declared on a <apilink class="org.gradle.api.tasks.SourceSet">source set</apilink>:</para>
+        <para>Dependencies are declared on a <apilink class="org.gradle.api.tasks.SourceSet">source set</apilink>,
+	on a <apilink class="org.gradle.jvm.JvmLibrarySpec">Java library component</apilink> or
+	as part of its <apilink class="org.gradle.jvm.ApiSpec">API specification</apilink>:
+	</para>
         <sample id="newJavaMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a library">
             <sourcefile file="build.gradle" snippet="simple-dependency"/>
             <output args="serverJar" outputFile="newJavaMultiComponents-serverJar.out" ignoreExtraLines="true"/>
         </sample>
-        <para>This example declares an API dependency for the <literal>java</literal> source set of the <literal>server</literal> library
+	<para>Dependencies declared at the component level apply to all source sets for the component.</para>
+	<para>Declaring a dependency at the <literal>api</literal> level means the API of the dependent library is exported as
+	part of the consuming component's API. See <link linkend="enforcing_api_boundaries">Enforcing API boundaries at compile time</link>
+	for more details.</para>
+        <para>This next example declares a dependency for the <literal>java</literal> source set of the <literal>server</literal> library
         onto the <literal>core</literal> library of the same project. However, it is possible to create a dependency on a library in a different
         project as well:</para>
         <sample id="newJavaMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a project with an explicit library">
@@ -297,11 +305,11 @@
         <section>
             <title>Binary specific source sets</title>
             <para>For each <apilink class="org.gradle.jvm.JvmLibrarySpec"/> it is possible to define additional source sets for each binary. A common use case for this
-            is having specific dependencies for each variant and source sets that conform to those dependencies. The example below configures a <literal>java6</literal> source set on the <literal>java6MainJar</literal>
+            is having specific dependencies for each variant and source sets that conform to those dependencies. The example below configures a <literal>java6</literal> source set on the <literal>main.java6Jar</literal>
             binary:</para>
             <sample id="newJavaTargetPlatforms-java6MainJar" dir="javaLibraryPlugin/targetplatforms" title="Declaring binary specific sources">
                 <sourcefile file="core/build.gradle" snippet="binary-specific-sourceset"/>
-                <output args="clean :core:java6MainJar" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-java6MainJar.out"/>
+                <output args="clean :core:mainJava6Jar" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-java6MainJar.out"/>
             </sample>
         </section>
         <section id="java_dependency_resolution">
@@ -333,7 +341,7 @@
             in testing this incubating feature can check out the documentation of the <apilink class="org.gradle.platform.base.Variant"/>
             annotation.</para>
     </section>
-    <section>
+    <section id="enforcing_api_boundaries">
         <title>Enforcing API boundaries at compile time</title>
         <para>Often a library will contain many types that—despite having <literal>public</literal> visibility—are intended for internal use only within that library. JDK 9 will introduce <emphasis>Jigsaw</emphasis>, the reference implementation of the <emphasis>Java Module System</emphasis>, which will provide both compile-time and run-time enforcement of <emphasis>strong encapsulation</emphasis> at the library (aka: <emphasis>module</emphasis>) level. This means that packages not intended for public consumption can remain private to the library, regardless whether the types within those packages have public visibility.</para>
         <para>Gradle anticipates the arrival of JDK 9 and the Java Module System with an approach to specifying and enforcing strong encapsulation at compile-time. However, users need not wait for the arrival of JDK 9 to use it; this feature can be used on any version of the Java platform that Gradle supports.</para>
@@ -344,5 +352,37 @@
             <sourcefile file="build.gradle" snippet="specify-library-api"/>
         </sample>
         <para>When <literal>gradle assemble</literal> is run, both an <emphasis>api jar</emphasis> and <emphasis>implementation jar</emphasis> will be generated.</para>
+    </section>
+    <section>
+        <title>Downstream dependencies compile avoidance</title>
+        <para>If you define an API for your library, Gradle will automatically enforce usage of the API at compile-time. It comes with 3 direct consequences:</para>
+        <para><itemizedlist>
+            <listitem>Trying to use a non exported class in a dependency will now result in a compilation error.</listitem>
+            <listitem>Changing the implementation of an API class will not result in recompilation of consumers if the ABI doesn't change (that is to say, all public methods have the same signature but not necessarily the same body).</listitem>
+            <listitem>Changing the implementation of a non-API class will not result in recompilation of consumers. This means that changes to internal classes will not trigger recompilation of downstream dependencies, because the ABI of the component doesn't change.</listitem>
+        </itemizedlist>
+        </para>
+        <para>Given a <emphasis>main</emphasis> component that exports <literal>org.gradle</literal>, <literal>org.gradle.utils</literal> and defines those classes:</para>
+        <sample id="apiSpecification-main-classes" dir="javaLibraryPlugin/apispec" title="Main sources">
+            <sourcefile file="src/main/java/org/gradle/Person.java"/>
+            <sourcefile file="src/main/java/org/gradle/internal/PersonInternal.java"/>
+            <sourcefile file="src/main/java/org/gradle/utils/StringUtils.java"/>
+        </sample>
+        <para>Compiling a component <emphasis>client</emphasis> that declares a dependency onto <emphasis>main</emphasis> will succeed:</para>
+        <sample id="apiSpecification-client" dir="javaLibraryPlugin/apispec" title="Client component">
+            <sourcefile file="build.gradle" snippet="client-api"/>
+            <sourcefile file="src/client/java/org/gradle/Client.java"/>
+            <output args=":clientJar" ignoreExtraLines="true" outputFile="buildingJavaLibraries-compile-first.out"/>
+        </sample>
+        <para>But trying to compile a component <emphasis>brokenclient</emphasis> that declares a dependency onto <emphasis>main</emphasis> but uses an internal, non-API class of <emphasis>main</emphasis> will result in a compile-time error:</para>
+        <sample id="apiSpecification-brokenclient" dir="javaLibraryPlugin/apispec" title="Broken client component">
+            <sourcefile file="src/brokenclient/java/org/gradle/Client.java"/>
+            <output args=":brokenclientJar" expectFailure="true" ignoreExtraLines="true" outputFile="buildingJavaLibraries-compile-brokenclient.out"/>
+        </sample>
+        <para>On the other hand, if <emphasis>Person.java</emphasis> in <emphasis>client</emphasis> is updated and its API hasn't changed, <emphasis>client</emphasis> will not be recompiled. This is in particular important for incremental builds of large projects, where we can avoid the compilation of dependencies in chain, and then dramatically reduce build duration:</para>
+        <sample id="apiSpecification-client" dir="javaLibraryPlugin/apispec" title="Recompiling the client">
+            <sourcefile file="update/main/java/org/gradle/Person.java"/>
+            <output args=":updateMainComponent :clientJar" ignoreExtraLines="true" outputFile="buildingJavaLibraries-compile-avoid.out"/>
+        </sample>
     </section>
 </chapter>

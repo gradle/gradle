@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
@@ -29,89 +30,34 @@ public class CachingFileSnapshotter implements FileSnapshotter, FileTreeElementS
     private final PersistentIndexedCache<String, FileInfo> cache;
     private final Hasher hasher;
     private final FileInfoSerializer serializer = new FileInfoSerializer();
+    private final StringInterner stringInterner;
 
-    public CachingFileSnapshotter(Hasher hasher, PersistentStore store) {
+    public CachingFileSnapshotter(Hasher hasher, PersistentStore store, StringInterner stringInterner) {
         this.hasher = hasher;
         this.cache = store.createCache("fileHashes", String.class, serializer);
+        this.stringInterner = stringInterner;
     }
 
     public FileInfo snapshot(File file) {
-        return snapshot(new FileAccessor(file));
+        return snapshot(file, file.length(), file.lastModified());
     }
 
     public FileInfo snapshot(FileTreeElement file) {
-        return snapshot(new FileTreeElementAccessor(file));
+        return snapshot(file.getFile(), file.getSize(), file.getLastModified());
     }
 
-    private FileInfo snapshot(FileWithMetadata fileWithMetadata) {
-        File file = fileWithMetadata.getFile();
+    private FileInfo snapshot(File file, long length, long timestamp) {
         String absolutePath = file.getAbsolutePath();
         FileInfo info = cache.get(absolutePath);
 
-        long length = fileWithMetadata.getSize();
-        long timestamp = fileWithMetadata.getLastModified();
         if (info != null && length == info.length && timestamp == info.timestamp) {
             return info;
         }
 
         byte[] hash = hasher.hash(file);
         info = new FileInfo(hash, length, timestamp);
-        cache.put(absolutePath, info);
+        cache.put(stringInterner.intern(absolutePath), info);
         return info;
-    }
-
-    private interface FileWithMetadata {
-        File getFile();
-
-        long getSize();
-
-        long getLastModified();
-    }
-
-    private static class FileTreeElementAccessor implements FileWithMetadata {
-        private final FileTreeElement fileTreeElement;
-
-        private FileTreeElementAccessor(FileTreeElement fileTreeElement) {
-            this.fileTreeElement = fileTreeElement;
-        }
-
-        @Override
-        public File getFile() {
-            return fileTreeElement.getFile();
-        }
-
-        @Override
-        public long getSize() {
-            return fileTreeElement.getSize();
-        }
-
-        @Override
-        public long getLastModified() {
-            return fileTreeElement.getLastModified();
-        }
-    }
-
-    private static class FileAccessor implements FileWithMetadata {
-        private final File file;
-
-        private FileAccessor(File file) {
-            this.file = file;
-        }
-
-        @Override
-        public File getFile() {
-            return file;
-        }
-
-        @Override
-        public long getSize() {
-            return file.length();
-        }
-
-        @Override
-        public long getLastModified() {
-            return file.lastModified();
-        }
     }
 
     public static class FileInfo implements FileSnapshot {

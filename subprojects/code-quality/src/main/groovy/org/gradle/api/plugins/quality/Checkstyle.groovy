@@ -109,8 +109,8 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
      * <pre>
      * checkstyleTask {
      *   reports {
-     *     xml {
-     *       destination "build/codenarc.xml"
+     *     html {
+     *       destination "build/codenarc.html"
      *     }
      *   }
      * }
@@ -136,7 +136,7 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
     @TaskAction
     public void run() {
         def propertyName = "org.gradle.checkstyle.violations"
-    antBuilder.withClasspath(getCheckstyleClasspath()).execute {
+        antBuilder.withClasspath(getCheckstyleClasspath()).execute {
             try {
                 ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
             } catch (ClassNotFoundException cnfe) {
@@ -146,10 +146,12 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
             ant.checkstyle(config: getConfig().asFile(), failOnViolation: false, failureProperty: propertyName) {
                 getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
                 getClasspath().addToAntBuilder(ant, 'classpath')
+
                 if (showViolations) {
                     formatter(type: 'plain', useFile: false)
                 }
-                if (reports.xml.enabled) {
+
+                if (reports.xml.enabled || reports.html.enabled) {
                     formatter(type: 'xml', toFile: reports.xml.destination)
                 }
 
@@ -158,9 +160,18 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
                 }
             }
 
+            if (reports.html.enabled) {
+                def xsl = Checkstyle.getClassLoader().getResourceAsStream('checkstyle-noframes-sorted.xsl')
+                ant.xslt(in: reports.xml.destination, out: reports.html.destination) {
+                    style {
+                        string(value: xsl.text)
+                    }
+                }
+            }
+
             if (ant.project.properties[propertyName]) {
                 def message = "Checkstyle rule violations were found."
-                def report = reports.firstEnabled
+                def report = reports.html.enabled ? reports.html : reports.xml.enabled ? reports.xml : null
                 if (report) {
                     def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
                     message += " See the report at: $reportUrl"

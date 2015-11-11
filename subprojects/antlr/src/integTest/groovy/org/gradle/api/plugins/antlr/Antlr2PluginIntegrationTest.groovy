@@ -15,8 +15,6 @@
  */
 package org.gradle.api.plugins.antlr
 
-import org.gradle.util.TextUtil
-
 class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     String antlrDependency = "antlr:antlr:2.7.7"
@@ -44,12 +42,9 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         output.contains("TestGrammar.g:7:24: rule classDef trapped:")
         output.contains("TestGrammar.g:7:24: unexpected token: extra")
         assertAntlrVersion(2)
-        errorOutput.contains(TextUtil.toPlatformLineSeparators("""
-* What went wrong:
-Execution failed for task ':generateGrammarSource'.
-> There was 1 error during grammar generation
-   > ANTLR Panic: Exiting due to errors.
-"""))
+        failure.assertHasDescription("Execution failed for task ':generateGrammarSource'.")
+        failure.assertHasCause("There was 1 error during grammar generation")
+        failure.assertHasCause("ANTLR Panic: Exiting due to errors.")
     }
 
     def "uses antlr v2 if no explicit dependency is set"() {

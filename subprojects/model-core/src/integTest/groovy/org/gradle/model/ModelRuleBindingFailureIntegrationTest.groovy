@@ -142,11 +142,11 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         then:
         // TODO - should report unknown inputs as well
         failureCauseContains """
-  model.foo.bar @ build.gradle line 5, column 17
+  foo.bar { ... } @ build.gradle line 5, column 17
     subject:
       - foo.bar Object [*]
 
-  model.foo.bla @ build.gradle line 8, column 17
+  foo.bla { ... } @ build.gradle line 8, column 17
     subject:
       - foo.bla Object [*]
 """
@@ -178,7 +178,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureCauseContains '''
-  model.tasks.foonar @ build.gradle line 15, column 17
+  tasks.foonar { ... } @ build.gradle line 15, column 17
     subject:
       - tasks.foonar Object [*]
           suggestions: tasks.foobar
@@ -309,11 +309,11 @@ model {
       - person.parent.parent Person (parameter 1) [*]
       - person.parent.parent.parent.parent Person (parameter 2) [*]
 
-  model.person.parent.name @ build.gradle line 25, column 5
+  person.parent.name { ... } @ build.gradle line 25, column 5
     subject:
       - person.parent.name Object [*]
 
-  model.person.parent.parent.parent.parent.parent.name @ build.gradle line 28, column 5
+  person.parent.parent.parent.parent.parent.name { ... } @ build.gradle line 28, column 5
     subject:
       - person.parent.parent.parent.parent.parent.name Object [*]
 """

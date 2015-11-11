@@ -16,9 +16,6 @@
 
 package org.gradle.nativeplatform.internal.configure;
 
-import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.language.base.internal.registry.LanguageTransform;
-import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
@@ -27,46 +24,111 @@ import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.NativeExecutableFileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
-import java.util.Map;
 
 public class NativeBinaryRules extends RuleSource {
     @Defaults
-    void addToolExtensions(NativeBinarySpec nativeBinarySpec, LanguageTransformContainer languageTransforms) {
-        for (LanguageTransform<?, ?> language : languageTransforms) {
-            Map<String, Class<?>> binaryTools = language.getBinaryTools();
-            for (String toolName : binaryTools.keySet()) {
-                ((ExtensionAware) nativeBinarySpec).getExtensions().create(toolName, binaryTools.get(toolName));
-            }
-        }
-    }
-
-    @Defaults
     public static void assignTools(NativeBinarySpec nativeBinarySpec, NativeToolChainRegistryInternal toolChains, /* @Path("buildDir") */ File buildDir) {
-        NativeBinarySpecInternal binarySpecInternal = (NativeBinarySpecInternal) nativeBinarySpec;
+        NativeBinarySpecInternal nativeBinary = (NativeBinarySpecInternal) nativeBinarySpec;
+        assignToolsToNativeBinary(nativeBinary, nativeBinarySpec, toolChains);
+        assignToolsToNativeBinaryExtension(nativeBinary, buildDir);
+    }
 
-        NativeToolChainInternal toolChain = (NativeToolChainInternal) toolChains.getForPlatform(nativeBinarySpec.getTargetPlatform());
-        binarySpecInternal.setToolChain(toolChain);
+    private static void assignToolsToNativeBinary(NativeBinarySpecInternal nativeBinary, NativeBinarySpec nativeBinarySpec, NativeToolChainRegistryInternal toolChains) {
+        NativeToolChainInternal toolChain = toolChainFor(nativeBinarySpec, toolChains);
         PlatformToolProvider toolProvider = toolChain.select((NativePlatformInternal) nativeBinarySpec.getTargetPlatform());
-        binarySpecInternal.setPlatformToolProvider(toolProvider);
+        nativeBinary.setToolChain(toolChain);
+        nativeBinary.setPlatformToolProvider(toolProvider);
+    }
 
-        File binariesOutputDir = new File(buildDir, "binaries");
-        BinaryNamingScheme namingScheme = binarySpecInternal.getNamingScheme();
-        File binaryOutputDir = new File(binariesOutputDir, namingScheme.getOutputDirectoryBase());
-        String baseName = binarySpecInternal.getComponent().getBaseName();
-
-        if (binarySpecInternal instanceof NativeExecutableBinarySpec) {
-            ((NativeExecutableBinarySpec) binarySpecInternal).setExecutableFile(new File(binaryOutputDir, toolProvider.getExecutableName(baseName)));
-        } else if (binarySpecInternal instanceof SharedLibraryBinarySpec) {
-            ((SharedLibraryBinarySpec) binarySpecInternal).setSharedLibraryFile(new File(binaryOutputDir, toolProvider.getSharedLibraryName(baseName)));
-            ((SharedLibraryBinarySpec) binarySpecInternal).setSharedLibraryLinkFile(new File(binaryOutputDir, toolProvider.getSharedLibraryLinkFileName(baseName)));
-        } else if (binarySpecInternal instanceof StaticLibraryBinarySpec) {
-            ((StaticLibraryBinarySpec) binarySpecInternal).setStaticLibraryFile(new File(binaryOutputDir, toolProvider.getStaticLibraryName(baseName)));
+    private static void assignToolsToNativeBinaryExtension(NativeBinarySpecInternal nativeBinary, File buildDir) {
+        if (nativeBinary instanceof NativeExecutableBinarySpec) {
+            assignToolsToNativeExecutableBinary(nativeBinary, buildDir);
+        } else if (nativeBinary instanceof SharedLibraryBinarySpec) {
+            assignToolsToSharedLibraryBinary(nativeBinary, buildDir);
+        } else if (nativeBinary instanceof StaticLibraryBinarySpec) {
+            assignToolsToStaticLibraryBinary(buildDir, nativeBinary);
         }
     }
+
+    private static void assignToolsToNativeExecutableBinary(NativeBinarySpecInternal nativeBinary, File buildDir) {
+        NativeExecutableBinarySpec nativeExecutable = (NativeExecutableBinarySpec) nativeBinary;
+        NativeExecutableFileSpec executable = nativeExecutable.getExecutable();
+        executable.setFile(executableFileFor(nativeBinary, buildDir));
+        executable.setToolChain(nativeBinary.getToolChain());
+        nativeExecutable.getInstallation().setDirectory(installationDirFor(nativeBinary, buildDir));
+    }
+
+    private static void assignToolsToSharedLibraryBinary(NativeBinarySpecInternal nativeBinary, File buildDir) {
+        SharedLibraryBinarySpec sharedLibrary = (SharedLibraryBinarySpec) nativeBinary;
+        sharedLibrary.setSharedLibraryFile(sharedLibraryFileFor(nativeBinary, buildDir));
+        sharedLibrary.setSharedLibraryLinkFile(sharedLibraryLinkFileFor(nativeBinary, buildDir));
+    }
+
+    private static void assignToolsToStaticLibraryBinary(File buildDir, NativeBinarySpecInternal nativeBinary) {
+        StaticLibraryBinarySpec staticLibrary = (StaticLibraryBinarySpec) nativeBinary;
+        staticLibrary.setStaticLibraryFile(staticLibraryFileFor(nativeBinary, buildDir));
+    }
+
+    private static File executableFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
+        return binaryOutputFileFor(nativeBinary, buildDir, executableNameFor(nativeBinary));
+    }
+
+    private static File sharedLibraryLinkFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
+        return binaryOutputFileFor(nativeBinary, buildDir, sharedLibraryLinkFileNameFor(nativeBinary));
+    }
+
+    private static File sharedLibraryFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
+        return binaryOutputFileFor(nativeBinary, buildDir, sharedLibraryNameFor(nativeBinary));
+    }
+
+    private static File staticLibraryFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
+        return binaryOutputFileFor(nativeBinary, buildDir, staticLibraryNameFor(nativeBinary));
+    }
+
+    private static File binaryOutputFileFor(NativeBinarySpecInternal nativeBinary, File buildDir, String fileName) {
+        return new File(binaryOutputDirFor(nativeBinary, buildDir), fileName);
+    }
+
+    private static File binaryOutputDirFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
+        return outputDirectoryFor(nativeBinary, buildDir, "binaries");
+    }
+
+    private static File installationDirFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
+        return outputDirectoryFor(nativeBinary, buildDir, "install");
+    }
+
+    private static File outputDirectoryFor(NativeBinarySpecInternal nativeBinary, File buildDir, String purpose) {
+        return new File(new File(buildDir, purpose), nativeBinary.getNamingScheme().getOutputDirectoryBase());
+    }
+
+    private static String executableNameFor(NativeBinarySpecInternal nativeBinary) {
+        return nativeBinary.getPlatformToolProvider().getExecutableName(baseNameOf(nativeBinary));
+    }
+
+    private static String sharedLibraryLinkFileNameFor(NativeBinarySpecInternal nativeBinary) {
+        return nativeBinary.getPlatformToolProvider().getSharedLibraryLinkFileName(baseNameOf(nativeBinary));
+    }
+
+    private static String sharedLibraryNameFor(NativeBinarySpecInternal nativeBinary) {
+        return nativeBinary.getPlatformToolProvider().getSharedLibraryName(baseNameOf(nativeBinary));
+    }
+
+    private static String staticLibraryNameFor(NativeBinarySpecInternal nativeBinary) {
+        return nativeBinary.getPlatformToolProvider().getStaticLibraryName(baseNameOf(nativeBinary));
+    }
+
+    private static String baseNameOf(NativeBinarySpecInternal nativeBinary) {
+        return nativeBinary.getComponent().getBaseName();
+    }
+
+    private static NativeToolChainInternal toolChainFor(NativeBinarySpec nativeBinary, NativeToolChainRegistryInternal toolChains) {
+        return (NativeToolChainInternal) toolChains.getForPlatform(nativeBinary.getTargetPlatform());
+    }
+
 }

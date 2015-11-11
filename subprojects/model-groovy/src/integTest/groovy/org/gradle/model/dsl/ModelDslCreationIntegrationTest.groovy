@@ -15,9 +15,8 @@
  */
 
 package org.gradle.model.dsl
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.util.Matchers.containsText
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -78,6 +77,35 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds "echo"
         output.contains "thing2.name: foo bar"
+    }
+
+    def "reports failure in initialization closure"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Thing {
+                String getName()
+                void setName(String name)
+            }
+
+            model {
+                thing1(Thing) {
+                    unknown = 12
+                }
+                tasks {
+                    create("echo") {
+                        doLast {
+                            println "thing1.name: " + $("thing1.name")
+                        }
+                    }
+                }
+            }
+        '''
+
+        then:
+        fails "echo"
+        failure.assertHasCause('Exception thrown while executing model rule: thing1(Thing) { ... } @ build.gradle line 9, column 17')
+        failure.assertHasCause('No such property: unknown for class: Thing')
     }
 
     def "can create elements without mutating"() {
@@ -153,6 +181,35 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
             }
 
             model {
+                thing1(Thing)
+                tasks {
+                    create("echo") {
+                        doLast {
+                            println "thing1.name: " + $("thing1.name")
+                        }
+                    }
+                }
+            }
+        '''
+
+        then:
+        fails "dependencies" // something that doesn't actually require thing1 to be built
+        failure.assertHasCause("Declaration of model rule thing1(Thing) @ build.gradle line 9, column 17 is invalid.")
+        failureCauseContains("""A model element of type: 'Thing' can not be constructed.
+It must be one of:
+    - A managed type (annotated with @Managed)""")
+    }
+
+    def "cannot create non managed types and provide an initialization closure"() {
+        when:
+        buildScript '''
+            apply plugin: 'language-base'
+            interface Thing {
+                String getName()
+                void setName(String name)
+            }
+
+            model {
                 thing1(Thing) {
                     name = "foo"
                 }
@@ -168,14 +225,10 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "dependencies" // something that doesn't actually require thing1 to be built
-        failure.assertThatCause(containsText('model.thing1 @ build.gradle'))
-        failure.assertThatCause(containsText("Declaration of model rule model.thing1 @ build.gradle line 9, column 17 is invalid."))
-        //TODO AK - reenable and fx on windows
+        failure.assertHasCause("Declaration of model rule thing1(Thing) { ... } @ build.gradle line 9, column 17 is invalid.")
         failureCauseContains("""A model element of type: 'Thing' can not be constructed.
 It must be one of:
-    - A managed type (annotated with @Managed)
-    - or a type which Gradle is capable of constructing:
-        - org.gradle.language.base.FunctionalSourceSet""")
+    - A managed type (annotated with @Managed""")
     }
 }
 

@@ -40,6 +40,9 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
     private Iterable<? extends DefaultEclipseTask> tasks;
     private Iterable<? extends DefaultEclipseLinkedResource> linkedResources;
     private DefaultGradleProject gradleProject;
+    private List<DefaultEclipseProjectNature> projectNatures;
+    private List<DefaultEclipseBuildCommand> buildCommands;
+    private DefaultJavaSourceSettings javaSourceSettings;
 
     public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends DefaultEclipseProject> children) {
         this.name = name;
@@ -51,6 +54,8 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
         this.classpath = Collections.emptyList();
         this.sourceDirectories = Collections.emptyList();
         this.projectDependencies = Collections.emptyList();
+        this.projectNatures = Collections.emptyList();
+        this.buildCommands = Collections.emptyList();
     }
 
     @Override
@@ -133,5 +138,29 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
     public DefaultEclipseProject setGradleProject(DefaultGradleProject gradleProject) {
         this.gradleProject = gradleProject;
         return this;
+    }
+
+    public List<DefaultEclipseProjectNature> getProjectNatures() {
+        return projectNatures;
+    }
+
+    public void setProjectNatures(List<DefaultEclipseProjectNature> projectNatures) {
+        this.projectNatures = projectNatures;
+    }
+
+    public List<DefaultEclipseBuildCommand> getBuildCommands() {
+        return buildCommands;
+    }
+
+    public void setBuildCommands(List<DefaultEclipseBuildCommand> buildCommands) {
+        this.buildCommands = buildCommands;
+    }
+
+    public DefaultJavaSourceSettings getJavaSourceSettings() {
+        return javaSourceSettings;
+    }
+
+    public void setJavaSourceSettings(DefaultJavaSourceSettings javaSourceSettings) {
+        this.javaSourceSettings = javaSourceSettings;
     }
 }

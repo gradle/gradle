@@ -16,29 +16,19 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Nullable;
-import org.gradle.internal.BiAction;
+import com.google.common.collect.Multimap;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
-import java.util.List;
 
 /**
  * A standalone strategy for initializing a node.
  * <p>
- * Differs from {@link ModelCreator} in that it's more of a template for a creator.
+ * Differs from {@link ModelRegistration} in that it's more of a template for a creator.
  * It does not say anything about the actual entity (e.g. its path) or the identity of the creation rule.
  *
- * @see ModelCreators
+ * @see ModelRegistrations
  */
-public interface NodeInitializer extends BiAction<MutableModelNode, List<ModelView<?>>> {
+public interface NodeInitializer {
 
-    List<? extends ModelReference<?>> getInputs();
-
-    void execute(MutableModelNode modelNode, List<ModelView<?>> inputs);
-
-    List<? extends ModelProjection> getProjections();
-
-    @Nullable
-    ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor);
+    Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor);
 
 }

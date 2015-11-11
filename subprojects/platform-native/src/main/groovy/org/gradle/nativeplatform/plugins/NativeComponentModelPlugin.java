@@ -55,6 +55,7 @@ import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegist
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.*;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.PlatformResolvers;
 
 import javax.inject.Inject;
@@ -251,7 +252,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                             if (dependentSourceSet.getPreCompiledHeader() != null) {
                                 nativeBinarySpec.getPrefixFileToPCH().put(((DependentSourceSetInternal) dependentSourceSet).getPrefixHeaderFile(), new PreCompiledHeader());
                                 final SourceTransformTaskConfig pchTransformTaskConfig = transform.getPchTransformTask();
-                                String pchTaskName = String.format("%s%s%sPreCompiledHeader", pchTransformTaskConfig.getTaskPrefix(), StringUtils.capitalize(nativeBinarySpec.getName()), StringUtils.capitalize(dependentSourceSet.getName()));
+                                String pchTaskName = String.format("%s%s%sPreCompiledHeader", pchTransformTaskConfig.getTaskPrefix(), StringUtils.capitalize(nativeBinarySpec.getProjectScopedName()), StringUtils.capitalize(dependentSourceSet.getName()));
                                 Task pchTask = tasks.create(pchTaskName, pchTransformTaskConfig.getTaskType(), new Action<DefaultTask>() {
                                     @Override
                                     public void execute(DefaultTask task) {
@@ -313,7 +314,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         @BinaryTasks
         public void createTasks(ModelMap<Task> tasks, final NativeExecutableBinarySpecInternal executableBinary) {
-            createExecutableTask(tasks, executableBinary, executableBinary.getExecutableFile());
+            createExecutableTask(tasks, executableBinary, executableBinary.getExecutable().getFile());
         }
 
         @BinaryTasks
@@ -350,28 +351,25 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         void createInstallTasks(TaskContainer tasks, ModelMap<NativeBinarySpecInternal> binaries, @Path("buildDir") File buildDir) {
             // There's no common API for NativeExecutableBinarySpec and NativeTestSuiteBinarySpec
             for (NativeExecutableBinarySpecInternal binary : binaries.withType(NativeExecutableBinarySpecInternal.class).values()) {
-                Task installTask = createInstallTask(tasks, binary, binary.getExecutableFile(), buildDir);
+                Task installTask = createInstallTask(tasks, binary, binary.getInstallation(), binary.getExecutable(), buildDir, binary.getNamingScheme());
                 binary.getTasks().add(installTask);
             }
             for (NativeTestSuiteBinarySpecInternal binary : binaries.withType(NativeTestSuiteBinarySpecInternal.class).values()) {
-                Task installTask = createInstallTask(tasks, binary, binary.getExecutableFile(), buildDir);
+                Task installTask = createInstallTask(tasks, binary, binary.getInstallation(), binary.getExecutable(), buildDir, binary.getNamingScheme());
                 binary.getTasks().add(installTask);
             }
         }
 
-        private Task createInstallTask(TaskContainer tasks, final NativeBinarySpecInternal binary, final File executableFile, final File buildDirectory) {
-            return tasks.create(binary.getNamingScheme().getTaskName("install"), InstallExecutable.class, new Action<InstallExecutable>() {
+        private Task createInstallTask(TaskContainer tasks, final NativeBinarySpecInternal binary, final NativeInstallationSpec installation, final NativeExecutableFileSpec executable, final File buildDirectory, final BinaryNamingScheme namingScheme) {
+            return tasks.create(namingScheme.getTaskName("install"), InstallExecutable.class, new Action<InstallExecutable>() {
                 @Override
                 public void execute(InstallExecutable installTask) {
-                    installTask.setDescription("Installs a development image of " + binary.getName());
+                    installTask.setDescription("Installs a development image of " + namingScheme.getBaseName());
                     installTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-                    installTask.setToolChain(binary.getToolChain());
-
-                    File defaultDestination = new File(buildDirectory, "install/" + binary.getNamingScheme().getOutputDirectoryBase());
-                    installTask.setDestinationDir(defaultDestination);
-
-                    installTask.setExecutable(executableFile);
-
+                    installTask.setToolChain(executable.getToolChain());
+                    installTask.setExecutable(executable.getFile());
+                    installTask.setDestinationDir(installation.getDirectory());
+                    //TODO:HH wire binary libs via executable
                     installTask.lib(new BinaryLibs(binary) {
                         @Override
                         protected FileCollection getFiles(NativeDependencySet nativeDependencySet) {
@@ -379,6 +377,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                         }
                     });
 
+                    //TODO:HH installTask.dependsOn(executable)
                     installTask.dependsOn(binary);
                 }
             });

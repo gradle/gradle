@@ -129,6 +129,21 @@
                 Similarly, if the effective classpath of the code under test changes, the manifest must be regenerated.
                 In either case, executing the <literal>testClasses</literal> task of the build will ensure that things are up to date.
             </para>
+            <section>
+                <title>Working with Gradle versions prior to 2.8</title>
+                <para>
+                    The <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/> method will not work when
+                    executing the build with a Gradle version earlier than 2.8 (see: <xref linkend="gradle-runner-gradle-version"/>),
+                    as this feature is not supported on such Gradle versions.
+                </para>
+                <para>
+                    Instead, the code must be injected via the build script itself.
+                    The following sample demonstrates how this can be done.
+                </para>
+                <sample id="testKitFunctionalTestSpockClassesTestConfig" dir="testKit/testKitSpockClasspath" includeLocation="true" title="Injecting the code under test classes into test builds">
+                    <sourcefile file="plugin/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-older-gradle"/>
+                </sample>
+            </section>
         </section>
         <section>
             <title>Controlling the build environment</title>
@@ -143,14 +158,14 @@
                 The TestKit uses dedicated daemon processes that are automatically shut down after test execution.
             </para>
         </section>
-        <section>
+        <section id="gradle-runner-gradle-version">
             <title>The Gradle version used to test</title>
             <para>
                 The Gradle runner requires a Gradle distribution in order to execute the build.
                 The TestKit does not depend on all of Gradle's implementation.
             </para>
             <para>
-                When a runner is created, it will attempt to find a Gradle distribution based on where the <literal>GradleRunner</literal> class was loaded from.
+                By default, the runner will attempt to find a Gradle distribution based on where the <literal>GradleRunner</literal> class was loaded from.
                 That is, it is expected that the class was loaded from a Gradle distribution, as is the case when using the <literal>gradleTestKit()</literal> dependency declaration.
             </para>
             <para>
@@ -159,32 +174,22 @@
                 This means that the plugin will effectively be tested with the same version of Gradle that it is being built with.
             </para>
             <para>
-                If a Gradle distribution cannot be found, creation of the runner instance will fail.
+                Alternatively, a different and specific version of Gradle to use can be specified by the any of the following <literal>GradleRunner</literal> methods:
             </para>
+            <itemizedlist>
+                <listitem><apilink class="org.gradle.testkit.runner.GradleRunner" method="withGradleVersion(java.lang.String)"/></listitem>
+                <listitem><apilink class="org.gradle.testkit.runner.GradleRunner" method="withGradleInstallation(java.io.File)"/></listitem>
+                <listitem><apilink class="org.gradle.testkit.runner.GradleRunner" method="withGradleDistribution(java.net.URI)"/></listitem>
+            </itemizedlist>
             <para>
-                An alternative to relying on the default Gradle distribution determined during the creation of the <literal>GradleRunner</literal> instance is to specify a custom Gradle distribution.
-                Gradle distributions are defined as implementations of the interface <apilink class="org.gradle.testkit.runner.GradleDistribution"/>. The following implementations are available:
-                <itemizedlist>
-                    <listitem>A distribution identified by a Gradle version;</listitem>
-                    <listitem>A URI pointing to distribution ZIP file;</listitem>
-                    <listitem>A extracted distribution located in the filesystem.</listitem>
-                </itemizedlist>
-            </para>
-            <para>
-                This functionality is extremely useful to verify that build logic is working as expected for across multiple versions of Gradle. The typical use case would be to test the
-                cross-version compatibility of a plugin or task.
-            </para>
-            <para>
-                The TestKit does not allow the use of custom implementations of the <literal>GradleDistribution</literal> interface.
-            </para>
-            <para>
+                This can potentially be used to test build logic across Gradle versions.
                 The following demonstrates a cross-version compatibility test written as Groovy Spock test:
             </para>
-            <sample id="testKitFunctionalTestSpockGradleDistribution" dir="testKit/testKitSpockGradleDistribution/src/test/groovy/org/gradle/sample" title="Specifying a Gradle distribution for test execution">
-                <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock-gradle-distribution"/>
+            <sample id="testKitFunctionalTestSpockGradleDistribution" dir="testKit/testKitSpockGradleVersion/src/test/groovy/org/gradle/sample" title="Specifying a Gradle version for test execution">
+                <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock-gradle-version"/>
             </sample>
         </section>
-        <section>
+        <section id="test-kit-debug">
             <title>Debugging build logic</title>
             <para>
                 The runner uses the <link linkend="embedding">Tooling API</link> to execute builds.
@@ -195,23 +200,13 @@
             <para>
                 The TestKit provides two different ways to enable the debug mode:
                 <itemizedlist>
-                    <listitem>By setting a system property;</listitem>
-                    <listitem>By enabling it programmatically through the <literal>GradleRunner</literal> API.</listitem>
+                    <listitem>Setting “<literal>org.gradle.testkit.debug</literal>” system property to <literal>true</literal> for the JVM <emphasis>using</emphasis> the <literal>GradleRunner</literal> (i.e. not the build being executed with the runner);</listitem>
+                    <listitem>Calling the <apilink class="org.gradle.testkit.runner.GradleRunner" method="withDebug"/> method.</listitem>
                 </itemizedlist>
             </para>
             <para>
-                By setting the system property <literal>org.gradle.testkit.debug</literal> to <literal>true</literal>
-                in the IDE run configuration, a user can execute the functional tests in the same JVM process as the spawning Gradle process.
-                Future versions of Gradle will provide a way to predetermine this setting based on the runtime environment.
-            </para>
-            <para>
-                The following screenshot shows the use of the system property in a IntelliJ run configuration:
-            </para>
-            <imageobject>
-                <imagedata fileref="img/testkit-idea-run-config.jpg" width="989px" depth="464px"/>
-            </imageobject>
-            <para>
-                Alternatively, the debug mode can also be activated through the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withDebug"/>.
+                The system property approach can be used when it is desirable to enable debugging support without making an adhoc change to the runner configuration.
+                Most IDEs offer the capability to set JVM system properties for test execution, and such a feature can be used to set this system property.
             </para>
         </section>
     </section>

@@ -15,18 +15,17 @@
  */
 
 package org.gradle.language.base.plugins
-
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
+import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.type.ModelType
-import org.gradle.platform.base.BinaryContainer
+import org.gradle.model.internal.type.ModelTypes
+import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.internal.BinarySpecInternal
-import org.gradle.platform.base.internal.DefaultBinaryContainer
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -40,7 +39,7 @@ class LanguageBasePluginTest extends Specification {
 
     def "adds a 'binaries' container to the project model"() {
         expect:
-        project.modelRegistry.find(ModelPath.path("binaries"), ModelType.of(BinaryContainer)) != null
+        project.modelRegistry.find(ModelPath.path("binaries"), ModelTypes.modelMap(BinarySpec)) != null
     }
 
     def "adds a 'sources' container to the project model"() {
@@ -50,7 +49,7 @@ class LanguageBasePluginTest extends Specification {
 
     def "copies binary tasks into task container"() {
         def tasks = Mock(TaskContainer)
-        def binaries = new DefaultBinaryContainer(DirectInstantiator.INSTANCE)
+        def binaries = Mock(ModelMap)
         def binary = Mock(BinarySpecInternal)
         def binaryTasks = new DefaultBinaryTasksCollection(binary, Mock(ITaskFactory))
         def someTask = Mock(Task) { getName() >> "someTask" }
@@ -58,11 +57,11 @@ class LanguageBasePluginTest extends Specification {
         binaryTasks.add(someTask)
 
         when:
-        binaries.add(binary)
         def rules = new LanguageBasePlugin.Rules()
         rules.copyBinaryTasksToTaskContainer(tasks, binaries)
 
         then:
+        binaries.iterator() >> [binary].iterator()
         binary.name >> "binaryName"
         binary.toString() >> "binary foo"
         binary.getTasks() >> binaryTasks

@@ -24,8 +24,9 @@ import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.reflect.ObjectInstantiationException
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors
-import org.gradle.model.collection.internal.PolymorphicModelMapProjection
+import org.gradle.model.collection.internal.ModelMapModelProjection
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
@@ -74,13 +75,13 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
     def itemType = ModelType.of(NamedThing)
 
     def setup() {
-        registry.create(
-            ModelCreators.bridgedInstance(
+        registry.register(
+            ModelRegistrations.bridgedInstance(
                 ModelReference.of("container", new ModelType<NamedEntityInstantiator<NamedThing>>() {}),
                 { name, type -> DirectInstantiator.instantiate(type, name) } as NamedEntityInstantiator
             )
                 .descriptor("container")
-                .withProjection(PolymorphicModelMapProjection.of(
+                .withProjection(ModelMapModelProjection.unmanaged(
                     itemType,
                     ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(itemType)))
                 )
@@ -134,7 +135,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         selfClose()
 
         then:
-        registry.state("container.foo") == ModelNode.State.Known
+        registry.state("container.foo") == ModelNode.State.Registered
 
         when:
         realize()
@@ -619,7 +620,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         def mmType = ModelTypes.modelMap(Bean)
         def events = []
         registry
-            .create("input", "input") { events << "input created" }
+            .register("input", "input") { events << "input created" }
             .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
             it.path "beans" type mmType action { c ->
@@ -646,7 +647,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         def mmType = ModelTypes.modelMap(Bean)
 
         registry
-            .createInstance("foo", new Bean())
+            .registerInstance("foo", new Bean())
             .mutate {
             it.path("foo").type(Bean).action("beans.element.mutable", ModelType.of(MutableValue)) { Bean subject, MutableValue input ->
                 subject.value = input.value
@@ -660,7 +661,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         }
         .mutate {
             it.path "beans.element" node {
-                it.addLink(registry.instanceCreator("beans.element.mutable", new MutableValue(value: "bar")))
+                it.addLink(registry.instanceRegistration("beans.element.mutable", new MutableValue(value: "bar")))
             }
         }
 
@@ -692,7 +693,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         }
         .mutate {
             it.path "beans.element" descriptor "element child" node {
-                it.addLink(registry.instanceCreator("beans.element.mutable", new MutableValue()))
+                it.addLink(registry.instanceRegistration("beans.element.mutable", new MutableValue()))
             }
         }
 
@@ -747,7 +748,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
             it.registerFactory(Bean) { new Bean(name: it) }
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
-        .createInstance("s", "other")
+        .registerInstance("s", "other")
             .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("b1", Bean)
@@ -759,15 +760,15 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         }
 
         expect:
-        registry.node("s").state == ModelNode.State.Known
+        registry.node("s").state == ModelNode.State.Registered
 
         when:
         registry.atState("beans", ModelNode.State.SelfClosed)
 
         then:
-        registry.node("s").state == ModelNode.State.Known
+        registry.node("s").state == ModelNode.State.Registered
         registry.get("beans.b1", Bean).value != "changed"
-        registry.node("s").state == ModelNode.State.Known
+        registry.node("s").state == ModelNode.State.Registered
 
         when:
         def sb2 = registry.get("beans.sb2", SpecialBean)
@@ -797,7 +798,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
             it.registerFactory(Bean) { new Bean(name: it) }
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
-        .createInstance("s", "other")
+        .registerInstance("s", "other")
             .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("b1", Bean)
@@ -834,7 +835,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
 
-        .createInstance("s", "other")
+        .registerInstance("s", "other")
             .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("sb1", SpecialBean)
@@ -859,7 +860,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
 
-        .createInstance("s", "other")
+        .registerInstance("s", "other")
             .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("sb1", SpecialBean)
@@ -893,5 +894,15 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         realize()
     }
 
+    def "reasonable error message when creating a non-constructible type"() {
+        when:
+        mutate { create("foo", List) }
+        realize()
+
+        then:
+        def e = thrown ModelRuleExecutionException
+        e.cause instanceof ObjectInstantiationException
+        e.cause.message == "Could not create an instance of type java.util.List."
+    }
 
 }

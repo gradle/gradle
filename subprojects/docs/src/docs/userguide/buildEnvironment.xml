@@ -76,6 +76,13 @@
                 <listitem><para>When configured, Gradle will use a maximum of the given number of workers.  See <literal>--max-workers</literal> for details.</para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term><literal>org.gradle.debug</literal></term>
+                <listitem><para>When set to true, Gradle will run the build with remote debugging enabled, listening on port 5005.
+                    Note that this is the equivalent of adding <literal>-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005</literal> to
+                    the JVM command line and will suspend the virtual machine until a debugger is attached.</para>
+                </listitem>
+            </varlistentry>
         </para>
         <section>
             <title>Forked Java processes</title>
@@ -154,7 +161,7 @@
             </para>
         </section>
     </section>
-    
+
     <section id='sec:accessing_the_web_via_a_proxy'>
         <title>Accessing the web via a proxy</title>
         <para>Configuring an HTTP proxy (for downloading dependencies, for example) is done via standard JVM system
@@ -171,7 +178,7 @@ systemProp.http.proxyHost=www.somehost.org
 systemProp.http.proxyPort=8080
 systemProp.http.proxyUser=userid
 systemProp.http.proxyPassword=password
-systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost	
+systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
 ]]></programlisting>
         </example>
         <para>There are separate settings for HTTPS.</para>

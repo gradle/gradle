@@ -35,4 +35,9 @@ public class DefaultBuildTask implements BuildTask {
     public TaskOutcome getOutcome() {
         return outcome;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s=%s", path, outcome);
+    }
 }

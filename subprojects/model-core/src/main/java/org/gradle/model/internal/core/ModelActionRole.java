@@ -22,9 +22,8 @@ package org.gradle.model.internal.core;
  * <p>This is pretty much a placeholder for something more descriptive.
  */
 public enum ModelActionRole {
-    DefineProjections(ModelNode.State.ProjectionsDefined, false), // Defines projections for the node
+    Discover(ModelNode.State.Discovered, false), // Defines all projections for the node
     Create(ModelNode.State.Created, false), // Initializes the node
-    DefineRules(ModelNode.State.RulesDefined, true), // Defines rules for an element. Does not use the subject as input
     Defaults(ModelNode.State.DefaultsApplied, true), // Allows a mutation to setup default values for an element
     Initialize(ModelNode.State.Initialized, true), // Mutation action provided when an element is defined
     Mutate(ModelNode.State.Mutated, true), // Customisations

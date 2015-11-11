@@ -487,8 +487,8 @@ class RuleBindingsTest extends RegistrySpec {
 
     private void addProjections(TestNode node, ModelProjection... projections) {
         projections.each { node.addProjection it }
-        node.setState(ModelNode.State.ProjectionsDefined)
-        bindings.nodeProjectionsDefined(node)
+        node.setState(ModelNode.State.Discovered)
+        bindings.nodeDiscovered(node)
     }
 
     void removeNode(TestNode node) {

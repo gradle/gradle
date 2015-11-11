@@ -17,11 +17,14 @@
 package org.gradle.api.internal.file.collections.jdk7
 
 import org.gradle.api.GradleException
+import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.collections.DefaultDirectoryWalker
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
+import org.gradle.internal.resource.CharsetUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -55,8 +58,10 @@ class Jdk7DirectoryWalkerTest extends Specification {
     }
 
     // java.nio2 cannot access files with unicode characters when using single-byte non-unicode platform encoding
+    // bug seems to show up only on JDK7 when file.encoding != sun.jnu.encoding
     @Issue("GRADLE-2181")
-    def "check that JDK7 walker gets picked only with UTF-8 encoding as default"() {
+    @Requires(adhoc = { JavaVersion.current().isJava7() && (System.getProperty("sun.jnu.encoding") == null || Charset.forName(System.getProperty("sun.jnu.encoding")).contains(CharsetUtil.UTF_8)) })
+    def "check that JDK7 walker gets picked with Unicode encoding as default"() {
         setup:
         System.setProperty("file.encoding", fileEncoding)
         Charset.defaultCharset = null
@@ -67,6 +72,9 @@ class Jdk7DirectoryWalkerTest extends Specification {
         where:
         fileEncoding | expectedClassName
         "UTF-8"      | "Jdk7DirectoryWalker"
+        "UTF-16be" | "Jdk7DirectoryWalker"
+        "UTF-16le" | "Jdk7DirectoryWalker"
+        "UTF-16"   | "Jdk7DirectoryWalker"
         "ISO-8859-1" | "DefaultDirectoryWalker"
     }
 
@@ -102,7 +110,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         !visited.contains(doesNotExist.absolutePath)
 
         where:
-        walkerInstance << [new DirectoryFileTree.DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
     }
 
     def "both DirectoryWalker implementations return same set of files and attributes"() {
@@ -112,7 +120,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
 
         when:
         def visitedWithJdk7Walker = walkFiles(rootDir, new Jdk7DirectoryWalker())
-        def visitedWithDefaultWalker = walkFiles(rootDir, new DirectoryFileTree.DefaultDirectoryWalker())
+        def visitedWithDefaultWalker = walkFiles(rootDir, new DefaultDirectoryWalker())
 
         then:
         visitedWithDefaultWalker.size() == 340
@@ -120,11 +128,11 @@ class Jdk7DirectoryWalkerTest extends Specification {
         checkFileVisitDetailsEqual(visitedWithDefaultWalker, visitedWithJdk7Walker)
     }
 
-    private boolean checkFileVisitDetailsEqual(List<FileVisitDetails> visitedWithDefaultWalker, List<FileVisitDetails> visitedWithJdk7Walker) {
-        visitedWithDefaultWalker.every { FileVisitDetails details ->
+    private void checkFileVisitDetailsEqual(List<FileVisitDetails> visitedWithDefaultWalker, List<FileVisitDetails> visitedWithJdk7Walker) {
+        visitedWithDefaultWalker.each { FileVisitDetails details ->
             def detailsFromJdk7Walker = visitedWithJdk7Walker.find { it.file.absolutePath == details.file.absolutePath }
 
-            detailsFromJdk7Walker != null &&
+            assert detailsFromJdk7Walker != null &&
                 details.lastModified == detailsFromJdk7Walker.lastModified &&
                 details.directory == detailsFromJdk7Walker.directory &&
                 (details.directory || details.size == detailsFromJdk7Walker.size)
@@ -180,7 +188,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DirectoryFileTree.DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -211,7 +219,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DirectoryFileTree.DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -240,7 +248,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DirectoryFileTree.DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
     }
 
 

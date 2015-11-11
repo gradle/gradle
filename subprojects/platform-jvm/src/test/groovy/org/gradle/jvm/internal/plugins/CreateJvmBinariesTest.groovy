@@ -26,7 +26,6 @@ import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.jvm.plugins.JvmComponentPlugin
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.ComponentSpecIdentifier
@@ -34,10 +33,10 @@ import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.platform.base.internal.PlatformResolvers
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
 class CreateJvmBinariesTest extends Specification {
-    def buildDir = new File("buildDir")
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
     def toolChain = Mock(JavaToolChainInternal)
     def rule = new JvmComponentPlugin.Rules()
@@ -46,22 +45,23 @@ class CreateJvmBinariesTest extends Specification {
     def instantiator = Mock(Instantiator)
 
     def "adds a binary for each jvm library"() {
-        def library = BaseComponentFixtures.create(DefaultJvmLibrarySpec, new ModelRegistryHelper(), componentId("jvmLibOne", ":project-path"), Stub(ProjectSourceSet), DirectInstantiator.INSTANCE)
+        def library = BaseComponentFixtures.create(DefaultJvmLibrarySpec, new ModelRegistryHelper(), componentId("jvmLibOne", ":project-path"), DirectInstantiator.INSTANCE, new TestFile("."))
         def namingScheme = Mock(BinaryNamingScheme)
         def platform = DefaultJavaPlatform.current()
         def source1 = sourceSet("ss1")
         def source2 = sourceSet("ss2")
 
         when:
-        library.functionalSourceSet.addAll([source1, source2])
-        rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, buildDir)
+        library.sources.put("ss1", source1)
+        library.sources.put("ss2", source2)
+        rule.createBinaries(binaries, namingSchemeBuilder, platforms, library)
 
         then:
         1 * platforms.resolve(JavaPlatform, _) >> platform
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        _ * namingScheme.lifecycleTaskName >> "jvmLibJar"
+        _ * namingScheme.binaryName >> "jvmLibJar"
         1 * binaries.create("jvmLibJar", _ as Action)
         0 * _
     }

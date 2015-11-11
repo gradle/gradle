@@ -167,7 +167,5 @@ model {
         then:
         executable("build/binaries/mainExecutable/main").exec().out == HelloWorldApp.HELLO_WORLD + HelloWorldApp.HELLO_WORLD_FRENCH
     }
-
-
 }
 

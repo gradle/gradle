@@ -76,6 +76,6 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
                 .withVariantDimension(platform.getName())
                 .withVariantDimension(buildType.getName())
                 .withVariantDimension(flavor.getName());
-        return namingScheme.build().getLifecycleTaskName();
+        return namingScheme.build().getBinaryName();
     }
 }

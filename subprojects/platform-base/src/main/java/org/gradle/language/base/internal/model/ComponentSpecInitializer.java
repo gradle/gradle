@@ -18,8 +18,8 @@ package org.gradle.language.base.internal.model;
 
 import org.gradle.api.Action;
 import org.gradle.internal.BiAction;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelCreators;
+import org.gradle.model.internal.core.ModelRegistration;
+import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.UnmanagedModelProjection;
 import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
@@ -33,7 +33,7 @@ public class ComponentSpecInitializer {
         @Override
         public void execute(MutableModelNode node, BinarySpec spec) {
             final ModelType<BinaryTasksCollection> itemType = ModelType.of(BinaryTasksCollection.class);
-            ModelCreator itemCreator = ModelCreators.of(node.getPath().child("tasks"), new Action<MutableModelNode>() {
+            ModelRegistration itemRegistration = ModelRegistrations.of(node.getPath().child("tasks"), new Action<MutableModelNode>() {
                 @Override
                 public void execute(MutableModelNode modelNode) {
                     BinaryTasksCollection tasks = modelNode.getParent().getPrivateData(ModelType.of(BinarySpec.class)).getTasks();
@@ -43,7 +43,7 @@ public class ComponentSpecInitializer {
                 .withProjection(new UnmanagedModelProjection<BinaryTasksCollection>(itemType))
                 .descriptor(new StandardDescriptorFactory(node.getDescriptor()).transform("tasks"))
                 .build();
-            node.addLink(itemCreator);
+            node.addLink(itemRegistration);
         }
     };
 

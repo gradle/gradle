@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.nativeplatform.internal.BinaryToolSpec;
 
@@ -81,4 +82,7 @@ public interface NativeCompileSpec extends BinaryToolSpec {
     Map<File, SourceIncludes> getSourceFileIncludes();
 
     void setSourceFileIncludes(Map<File, SourceIncludes> map);
+
+    void setIncrementalInputs(IncrementalTaskInputs inputs);
+    IncrementalTaskInputs getIncrementalInputs();
 }

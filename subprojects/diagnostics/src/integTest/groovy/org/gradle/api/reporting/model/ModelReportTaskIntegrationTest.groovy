@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 class ModelReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
@@ -26,7 +25,7 @@ class ModelReportTaskIntegrationTest extends AbstractIntegrationSpec {
         run "help", "--task", "model"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("Displays the configuration model of root project '${getTestDirectory().name}'. [incubating]"))
+        output.contains("Displays the configuration model of root project '${getTestDirectory().name}'. [incubating]")
     }
 
 }

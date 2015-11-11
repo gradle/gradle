@@ -326,6 +326,9 @@
                 <td>org.gradle.api.plugins.antlr.AntlrTask</td>
             </tr>
             <tr>
+                <td>org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.plugins.quality.Checkstyle</td>
             </tr>
             <tr>

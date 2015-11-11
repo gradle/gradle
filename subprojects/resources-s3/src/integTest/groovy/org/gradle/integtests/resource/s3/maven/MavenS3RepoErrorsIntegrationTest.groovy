@@ -20,7 +20,6 @@ package org.gradle.integtests.resource.s3.maven
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.integtests.resource.s3.AbstractS3DependencyResolutionTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Module
-import org.gradle.util.TextUtil
 
 class MavenS3RepoErrorsIntegrationTest extends AbstractS3DependencyResolutionTest {
     final String artifactVersion = "1.85"
@@ -112,13 +111,13 @@ repositories {
 
         and:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-        errorOutput.contains(TextUtil.toPlatformLineSeparators(
+        failure.assertHasCause(
                 """Could not find org.gradle:test:1.85.
 Searched in the following locations:
     ${module.pom.uri}
     ${module.artifact.uri}
 Required by:
-"""))
+""")
     }
 
     def "cannot add invalid authentication types for s3 repo"() {
@@ -140,6 +139,6 @@ Required by:
         expect:
         fails 'retrieve'
         and:
-        errorOutput.contains("> Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 's3'")
+        failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 's3'")
     }
 }

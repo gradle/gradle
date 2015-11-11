@@ -18,9 +18,12 @@ package org.gradle.model.internal.core
 
 import com.google.common.collect.Iterators
 import org.gradle.api.DomainObjectCollection
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
+import org.gradle.api.NamedDomainObjectFactory
+import org.gradle.api.internal.DefaultDomainObjectCollection
+import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator
 import org.gradle.internal.Actions
-import org.gradle.model.internal.manage.instance.ManagedInstance
 import spock.lang.Specification
 
 class DomainObjectCollectionBackedModelMapTest extends Specification {
@@ -28,31 +31,38 @@ class DomainObjectCollectionBackedModelMapTest extends Specification {
         given:
         def backingCollection = Mock(DomainObjectCollection)
         def instantiator = Mock(NamedEntityInstantiator)
-        def modelMap = DomainObjectCollectionBackedModelMap.wrap(Item, backingCollection, instantiator, new Named.Namer(), Actions.doNothing())
+        def modelMap = DomainObjectCollectionBackedModelMap.wrap(SomeType, backingCollection, instantiator, new Named.Namer(), Actions.doNothing())
 
         when:
         modelMap.create("alma")
 
         then:
-        1 * instantiator.create("alma", Item) >>  { new Item(name: "alma") }
+        1 * instantiator.create("alma", SomeType) >>  { new SomeType(name: "alma") }
         1 * backingCollection.add({ item -> item.name == "alma" })
         1 * backingCollection.iterator() >> { Iterators.emptyIterator() }
         0 * _
     }
 
-    class Item implements Named {
+    class SomeType implements Named {
         String name
     }
 
-    def "is not managed instance when wrapped in groovy decorator"() {
+    def "reasonable error message when creating a non-constructible type"() {
+        given:
+        def backingCollection = new DefaultDomainObjectCollection(SomeType, []);
+        def instantiator = new DefaultPolymorphicNamedEntityInstantiator(SomeType, "the collection")
+        instantiator.registerFactory(SomeType, new NamedDomainObjectFactory<SomeType>(){
+            public SomeType create(String name) {
+                return new SomeType(name: name)
+            }
+        })
+        def modelMap = new DomainObjectCollectionBackedModelMap(SomeType, backingCollection, instantiator, new Named.Namer(), Actions.doNothing())
+
         when:
-        def backingCollection = Mock(DomainObjectCollection)
-        def instantiator = Mock(NamedEntityInstantiator)
-        def modelMap = DomainObjectCollectionBackedModelMap.wrap(Item, backingCollection, instantiator, new Named.Namer(), Actions.doNothing())
-        def groovyWrapper = ModelMapGroovyDecorator.wrap(modelMap)
+        modelMap.create("alma", List)
 
         then:
-        !(groovyWrapper instanceof ManagedInstance)
-        !(groovyWrapper.withType(Object) instanceof ManagedInstance)
+        def e = thrown InvalidUserDataException
+        e.message.contains("Cannot create a List because this type is not known to the collection. Known types are: SomeType")
     }
 }

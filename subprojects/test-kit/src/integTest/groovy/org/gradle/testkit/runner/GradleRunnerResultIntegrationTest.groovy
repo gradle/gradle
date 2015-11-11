@@ -16,10 +16,7 @@
 
 package org.gradle.testkit.runner
 
-import java.util.concurrent.CountDownLatch
-
 import static org.gradle.testkit.runner.TaskOutcome.*
-
 /**
  * Tests more intricate aspects of the BuildResult object
  */
@@ -38,12 +35,10 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerIntegrationT
         """
 
         when:
-        BuildResult result = runner('helloWorld', 'byeWorld').build()
+        def result = runner('helloWorld', 'byeWorld')
+            .build()
 
         then:
-        noExceptionThrown()
-        result.standardOutput.contains(':helloWorld UP-TO-DATE')
-        result.standardOutput.contains(':byeWorld SKIPPED')
         result.tasks.collect { it.path } == [':helloWorld', ':byeWorld']
         result.taskPaths(SUCCESS) == []
         result.taskPaths(SKIPPED) == [':byeWorld']
@@ -51,44 +46,42 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerIntegrationT
         result.taskPaths(FAILED).empty
     }
 
-    def "executed buildSrc tasks are never listed in result"() {
+    def "executed buildSrc tasks are not part of tasks in result object"() {
         given:
         testProjectDir.createDir('buildSrc')
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        BuildResult result = gradleRunner.build()
+        def result = runner('helloWorld')
+            .build()
 
         then:
-        noExceptionThrown()
-        result.standardOutput.contains(':buildSrc:compileJava UP-TO-DATE')
-        result.standardOutput.contains(':buildSrc:build')
-        result.standardOutput.contains('Hello world!')
-        !result.standardError
+        result.output.contains(':buildSrc:compileJava UP-TO-DATE')
+        result.output.contains(':buildSrc:build')
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS) == [':helloWorld']
         result.taskPaths(SKIPPED).empty
         result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
-        result.task(":helloWorld") == result.tasks.find { it.path == ":helloWorld" }
-        result.task(":nonsense") == null
     }
 
     def "task order represents execution order"() {
         when:
         file("settings.gradle") << "include 'a', 'b', 'c', 'd'"
         buildFile << """
-            def latch = new $CountDownLatch.name(1)
-
+            def startLatch = new java.util.concurrent.CountDownLatch(1)
+            def stopLatch = new java.util.concurrent.CountDownLatch(1)
             project(":a") {
               task t << {
-                latch.await()
+                startLatch.countDown() // allow b to finish
+                stopLatch.await() // wait for d to start
               }
             }
 
             project(":b") {
-              task t
+              task t << {
+                startLatch.await() // wait for a to start
+              }
             }
 
             project(":c") { // c is guaranteed to start after a, but finish before it does
@@ -101,7 +94,7 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerIntegrationT
               task t {
                 dependsOn ":c:t"
                 doLast {
-                  latch.countDown()
+                  stopLatch.countDown() // allow a to finish
                 }
               }
             }

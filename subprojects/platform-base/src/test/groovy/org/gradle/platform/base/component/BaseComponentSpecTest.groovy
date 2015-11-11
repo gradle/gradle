@@ -18,10 +18,10 @@ package org.gradle.platform.base.component
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
 class BaseComponentSpecTest extends Specification {
@@ -48,7 +48,8 @@ class BaseComponentSpecTest extends Specification {
     }
 
     private <T extends BaseComponentSpec> T create(Class<T> type) {
-        BaseComponentFixtures.create(type, modelRegistry, componentId, Stub(ProjectSourceSet), instantiator)
+        def file = new TestFile(".")
+        BaseComponentFixtures.create(type, modelRegistry, componentId, instantiator, file)
     }
 
     def "library has name, path and sensible display name"() {
@@ -79,8 +80,8 @@ class BaseComponentSpecTest extends Specification {
         def component = create(MySampleComponent)
         def lss1 = languageSourceSet("lss1")
         def lss2 = languageSourceSet("lss2")
-        component.functionalSourceSet.add(lss1)
-        component.functionalSourceSet.add(lss2)
+        component.sources.put("lss1", lss1)
+        component.sources.put("lss2", lss2)
 
         then:
         component.sources as List == [lss1, lss2]
@@ -90,7 +91,7 @@ class BaseComponentSpecTest extends Specification {
         when:
         def component = create(MySampleComponent)
         def lss1 = languageSourceSet("lss1")
-        component.functionalSourceSet.add(lss1)
+        component.sources.put("lss1", lss1)
 
         then:
         component.source.values() == [lss1]

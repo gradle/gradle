@@ -144,25 +144,47 @@ Support read-write collection properties defined using both a getter and a sette
 
 - Convert input value:
     - `CharSequence` to any scalar type (eg `GString` to `Long`, `GString` to `String`)
-    - `CharSequence` to `File` conversion relative to project directory, as per `Project.file()`.
     - Any scalar type to `String`.
+    - Note that although Files are scalar types, they're not handled here but rather in their own story
 - Update user guide, Javadocs and sample
 
 #### Implementation
 
-- Update `ManagedProxyClassGenerator.writeSetter()` to add an overloaded setter with a single `Object` argument in addition to the typed setter for each mutable property.
-- Groovy will invoke the setter that corresponds to the runtime type, so for values that don't need coercion the typed setters will be invoked. `Object` isn't a valid managed model type, so the overloaded setter will only be invoked for values that need coercion and for unsupported types.
-- There are a few cases where Groovy already coerces values, including anything to `String`, `String`/`GString` to `Enum`, and `String`/`GString` with length 1 to `char`/`Character` or `byte`/`Byte`
-- The implementation of the overloaded setters will reuse the `NotationConverter` infrastructure, passing the value and the expected type, and will invoke the real setter with the coerced value, or fail with a helpful message if the conversion isn't supported or an error occurs (e.g. trying to set an `int` property from "27b/6")
+- Implementation must reuse `NotationConverter` infrastructure.
 
 #### Test cases
 
-- Nice error message when configuring a property that does not exist, for each supported pattern.
-- Nice error message when input value cannot be converted.
+- Nice error message when input value is not a `CharSequence` or of the actual property type
+- Nice error message when a `CharSequence` input value cannot be converted to the property type
+- `null` values are allowed for non-primitive types
+- Nice error message when configuring a primitive type from a `null` input value
+- "Groovy truth" is not used for configuring `boolean` or `Boolean` types; to support `boolean`/`Boolean` values resulting from `GString` expressions, only "true" (case-sensitive) is considered `true`
+- No conversion is performed on input values already of the expected type
+- No tests required for non-existent properties as this is handled earlier in the processing flow
+
+### Convenient configuration of File typed properties from Groovy
+
+- Convert input value `CharSequence` to `File` conversion relative to project directory, as per `Project.file()`.
+- Update user guide, Javadocs and sample
+
+#### Implementation
+
+- Add `NotationConverter` support in `DefaultTypeConverters`
+- Update `ManagedProxyClassGenerator` to include an overloaded setter for `File`
+- Use `FileResolver` from `ServiceRegistry` stored in `ModelElementState`
+
+#### Test cases
+
+- Nice error message when input value is not a `CharSequence`
+- Nice error message when a `CharSequence` input value cannot be converted to a File or an error occurs
 
 ### Convenient configuration of File typed properties from Java
 
 TBD: make some kind of 'project layout' or 'file resolver' service available as input to rules, which can convert String and friends to File.
+
+#### Test cases
+
+TBD
 
 ### Convenient configuration of collection typed properties from Groovy
 

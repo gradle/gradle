@@ -34,12 +34,12 @@ import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Model;
+import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
-import org.gradle.platform.base.BinaryContainer;
 
 
 /**
@@ -75,8 +75,8 @@ public class VisualStudioPlugin implements Plugin<Project> {
 
         @Mutate
         @SuppressWarnings("GroovyUnusedDeclaration")
-        public static void createVisualStudioModelForBinaries(VisualStudioExtensionInternal visualStudioExtension, BinaryContainer binaryContainer) {
-            for (NativeBinarySpec binary : binaryContainer.withType(NativeBinarySpec.class)) {
+        public static void createVisualStudioModelForBinaries(VisualStudioExtensionInternal visualStudioExtension, ModelMap<NativeBinarySpec> nativeBinaries) {
+            for (NativeBinarySpec binary : nativeBinaries) {
                 VisualStudioProjectConfiguration configuration = visualStudioExtension.getProjectRegistry().addProjectConfiguration(binary);
 
                 // Only create a solution if one of the binaries is buildable

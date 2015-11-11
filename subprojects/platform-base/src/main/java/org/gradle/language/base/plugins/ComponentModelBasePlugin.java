@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
@@ -32,26 +31,23 @@ import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.model.ComponentBinaryRules;
 import org.gradle.language.base.internal.model.ComponentRules;
-import org.gradle.language.base.internal.registry.*;
+import org.gradle.language.base.internal.registry.DefaultLanguageTransformContainer;
+import org.gradle.language.base.internal.registry.LanguageTransform;
+import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.core.Service;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.binary.internal.BinarySpecFactory;
+import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.DefaultPlatformContainer;
-import org.gradle.platform.base.internal.DefaultPlatformResolvers;
-import org.gradle.platform.base.internal.PlatformResolvers;
+import org.gradle.platform.base.internal.*;
 
 import javax.inject.Inject;
 
@@ -67,29 +63,15 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 @Incubating
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     private final ModelRegistry modelRegistry;
-    private final ModelSchemaStore schemaStore;
 
     @Inject
-    public ComponentModelBasePlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
+    public ComponentModelBasePlugin(ModelRegistry modelRegistry) {
         this.modelRegistry = modelRegistry;
-        this.schemaStore = schemaStore;
     }
 
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
 
-        SimpleModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(ComponentModelBasePlugin.class.getSimpleName() + ".apply()");
-
-        SpecializedMapSchema<ComponentSpecContainer> schema = (SpecializedMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
-        ModelPath components = ModelPath.path("components");
-        ModelCreator componentsCreator = ModelMapCreators.specialized(
-            components,
-            ComponentSpec.class,
-            ComponentSpecContainer.class,
-            schema.getImplementationType().asSubclass(ComponentSpecContainer.class),
-            descriptor
-        );
-        modelRegistry.create(componentsCreator);
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), ComponentRules.class);
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), ComponentBinaryRules.class);
     }
@@ -101,15 +83,24 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             return new ComponentSpecFactory("components");
         }
 
+        @ComponentType
+        void registerBaseComponentSpec(ComponentTypeBuilder<ComponentSpec> builder) {
+            builder.defaultImplementation(BaseComponentSpec.class);
+            builder.internalView(ComponentSpecInternal.class);
+        }
+
         @Service
         BinarySpecFactory binarySpecFactory() {
             return new BinarySpecFactory("binaries");
         }
 
+        @Model
+        void components(ComponentSpecContainer componentSpecs) {}
+
         @Mutate
         void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, BinarySpecFactory binarySpecFactory, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, schemaStore, proxyFactory, BiActions.doNothing()));
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, schemaStore, proxyFactory, new BiAction<BinarySpec, ModelSchema<? extends BinarySpec>>() {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, BiActions.doNothing()));
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, new BiAction<BinarySpec, ModelSchema<? extends BinarySpec>>() {
                 @Override
                 public void execute(BinarySpec binarySpec, ModelSchema<? extends BinarySpec> schema) {
                     BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binarySpec;
@@ -118,11 +109,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                     }
                 }
             }));
-        }
-
-        @Service
-        LanguageRegistry languages() {
-            return new DefaultLanguageRegistry();
         }
 
         @Service
@@ -137,9 +123,9 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
         @Finalize
-        void createSourceTransformTasks(final TaskContainer tasks, final BinaryContainer binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
+        void createSourceTransformTasks(final TaskContainer tasks, final ModelMap<BinarySpecInternal> binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
             for (LanguageTransform<?, ?> language : languageTransforms) {
-                for (final BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+                for (final BinarySpecInternal binary : binaries) {
                     if (binary.isLegacyBinary() || !language.applyToBinary(binary)) {
                         continue;
                     }
@@ -148,7 +134,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                     for (LanguageSourceSet languageSourceSet : binary.getInputs()) {
                         LanguageSourceSetInternal sourceSet = (LanguageSourceSetInternal) languageSourceSet;
                         if (language.getSourceSetType().isInstance(sourceSet) && sourceSet.getMayHaveSources()) {
-                            String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getName()) + capitalize(sourceSet.getFullName());
+                            String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(sourceSet.getProjectScopedName());
                             Task task = tasks.create(taskName, taskConfig.getTaskType());
                             taskConfig.configureTask(task, binary, sourceSet, serviceRegistry);
 
@@ -176,29 +162,22 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             extensions.add("platforms", platforms);
         }
 
-        @Mutate
-        void registerLegacyBinaryFactories(BinaryContainer binaries, BinarySpecFactory binarySpecFactory) {
-            // This is used by the BinaryContainer API, which we still need for the time being.
-            // We are adapting it to BinarySpecFactory here so it can be used by component.binaries model maps
-            binarySpecFactory.copyDomainObjectFactoriesInto(binaries);
-        }
-
         @Defaults
-        void collectBinaries(BinaryContainer binaries, ComponentSpecContainer componentSpecs) {
+        void collectBinaries(ModelMap<BinarySpec> binaries, ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs.values()) {
                 for (BinarySpec binary : componentSpec.getBinaries().values()) {
-                    binaries.add(binary);
+                    binaries.put(((BinarySpecInternal) binary).getProjectScopedName(), binary);
                 }
             }
         }
 
         @Validate
-        void validateComponentSpecInternalViews(ComponentSpecFactory instanceFactory) {
+        void validateComponentSpecRegistrations(ComponentSpecFactory instanceFactory) {
             instanceFactory.validateRegistrations();
         }
 
         @Validate
-        void validateBinarySpecInternalViews(BinarySpecFactory instanceFactory) {
+        void validateBinarySpecRegistrations(BinarySpecFactory instanceFactory) {
             instanceFactory.validateRegistrations();
         }
 

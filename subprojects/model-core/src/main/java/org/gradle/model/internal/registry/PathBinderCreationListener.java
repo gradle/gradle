@@ -33,7 +33,7 @@ class PathBinderCreationListener extends ModelBinding {
 
     @Override
     public boolean canBindInState(ModelNode.State state) {
-        return predicate.isUntyped() || state.isAtLeast(ModelNode.State.ProjectionsDefined);
+        return predicate.isUntyped() || state.isAtLeast(ModelNode.State.Discovered);
     }
 
     public void doOnBind(ModelNodeInternal node) {

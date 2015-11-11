@@ -26,12 +26,11 @@ class DefaultBuildResultTest extends Specification {
     BuildTask failedBuildResult = new DefaultBuildTask(':b', FAILED)
     BuildTask skippedBuildResult = new DefaultBuildTask(':c', SKIPPED)
     def buildTasks = [successBuildResult, failedBuildResult]
-    DefaultBuildResult defaultBuildResult = new DefaultBuildResult('output', 'error', buildTasks)
+    DefaultBuildResult defaultBuildResult = new DefaultBuildResult('output', buildTasks)
 
     def "provides expected field values"() {
         expect:
-        defaultBuildResult.standardOutput == 'output'
-        defaultBuildResult.standardError == 'error'
+        defaultBuildResult.output == 'output'
         defaultBuildResult.tasks == buildTasks
         defaultBuildResult.tasks(SUCCESS) == [successBuildResult]
         defaultBuildResult.tasks(FAILED) == [failedBuildResult]
@@ -58,4 +57,5 @@ class DefaultBuildResultTest extends Specification {
         then:
         thrown(UnsupportedOperationException)
     }
+
 }

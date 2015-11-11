@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.internal
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
@@ -41,10 +40,10 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
 
     def "has useful string representation"() {
         given:
-        def executable = BaseComponentFixtures.create(DefaultNativeExecutableSpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "name"), Stub(ProjectSourceSet), instantiator)
+        def executable = BaseComponentFixtures.create(DefaultNativeExecutableSpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "name"), instantiator)
 
         when:
-        def binary = TestNativeBinariesFactory.create(DefaultNativeExecutableBinarySpec, namingScheme.getLifecycleTaskName(), instantiator, taskFactory, executable, namingScheme,
+        def binary = TestNativeBinariesFactory.create(DefaultNativeExecutableBinarySpec, namingScheme.getBinaryName(), instantiator, taskFactory, executable, namingScheme,
             Mock(NativeDependencyResolver), Stub(NativePlatform), Stub(BuildType), new DefaultFlavor("flavorOne"))
 
         then:

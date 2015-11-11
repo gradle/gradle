@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.cache.*;
+import org.gradle.api.internal.cache.HeapProportionalSizer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -36,11 +37,6 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
     static class CacheCapSizer {
         private static final Map<String, Integer> DEFAULT_CAP_SIZES = new HashMap<String, Integer>();
 
-        private static final int DEFAULT_SIZES_MAX_HEAP_MB = 910; // when -Xmx1024m, Runtime.maxMemory() returns about 910
-        private static final int ASSUMED_USED_HEAP = 150; // assume that Gradle itself uses about 150MB heap
-
-        private static final double MIN_RATIO = 0.2d;
-
         static {
             DEFAULT_CAP_SIZES.put("fileSnapshots", 10000);
             DEFAULT_CAP_SIZES.put("taskArtifacts", 2000);
@@ -49,35 +45,22 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
             DEFAULT_CAP_SIZES.put("compilationState", 1000);
         }
 
-        private final int maxHeapMB;
+        final HeapProportionalSizer sizer;
 
         CacheCapSizer(int maxHeapMB) {
-            this.maxHeapMB = maxHeapMB;
+            this.sizer = maxHeapMB > 0 ? new HeapProportionalSizer(maxHeapMB) : new HeapProportionalSizer();
         }
 
         CacheCapSizer() {
-            this(calculateMaxHeapMB());
-        }
-
-        private static int calculateMaxHeapMB() {
-            return (int) (Runtime.getRuntime().maxMemory() / (1024 * 1024));
+            this(0);
         }
 
         public Map<String, Integer> calculateCaps() {
-            double ratio = calculateRatio();
             Map<String, Integer> capSizes = new HashMap<String, Integer>();
             for (Map.Entry<String, Integer> entry : DEFAULT_CAP_SIZES.entrySet()) {
-                capSizes.put(entry.getKey(), calculateNewSize(entry.getValue(), ratio));
+                capSizes.put(entry.getKey(), sizer.scaleValue(entry.getValue(), 100));
             }
             return capSizes;
-        }
-
-        private int calculateNewSize(int oldvalue, double ratio) {
-            return (int) ((double) oldvalue * ratio) / 100 * 100;
-        }
-
-        private double calculateRatio() {
-            return Math.max((double) (maxHeapMB - ASSUMED_USED_HEAP) / (double) (DEFAULT_SIZES_MAX_HEAP_MB - ASSUMED_USED_HEAP), MIN_RATIO);
         }
     }
 

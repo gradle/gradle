@@ -16,18 +16,22 @@
 
 package org.gradle.platform.base.component
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.base.ProjectSourceSet
-import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.ModelNode
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelRegistrations
+import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import org.gradle.platform.base.ComponentSpecIdentifier
 
 class BaseComponentFixtures {
 
-    static <T extends BaseComponentSpec> T create(Class<T> type, ModelRegistryHelper modelRegistry, ComponentSpecIdentifier componentId, ProjectSourceSet allSourceSets, Instantiator instantiator) {
+    static <T extends BaseComponentSpec> T create(Class<T> type, ModelRegistryHelper modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
         try {
-            modelRegistry.create(
-                ModelCreators.unmanagedInstanceOf(ModelReference.of(componentId.name, type), {
-                    BaseComponentSpec.create(type, componentId, it, allSourceSets, instantiator)
+            modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
+            modelRegistry.register(
+                ModelRegistrations.unmanagedInstanceOf(ModelReference.of(componentId.name, type), {
+                    BaseComponentSpec.create(type, componentId, it, instantiator)
                 })
                     .descriptor(componentId.name)
                     .build()

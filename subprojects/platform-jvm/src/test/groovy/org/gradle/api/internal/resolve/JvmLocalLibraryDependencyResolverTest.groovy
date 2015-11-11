@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.resolve
+
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleVersionSelector
@@ -32,11 +33,12 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResu
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult
 import org.gradle.jvm.JarBinarySpec
 import org.gradle.jvm.JvmLibrarySpec
-import org.gradle.jvm.internal.DefaultJavaPlatformVariantDimensionSelector
+import org.gradle.jvm.internal.DefaultJavaPlatformVariantAxisCompatibility
 import org.gradle.jvm.internal.JarBinarySpecInternal
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
-import org.gradle.language.base.internal.model.DefaultVariantDimensionSelectorFactory
+import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.internal.model.DefaultVariantAxisCompatibilityFactory
 import org.gradle.language.base.internal.model.VariantsMetaData
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
@@ -50,13 +52,15 @@ import org.gradle.platform.base.internal.VariantAspectExtractionStrategy
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.util.WrapUtil.toDomainObjectSet
+
 class JvmLocalLibraryDependencyResolverTest extends Specification {
 
     Map<String, Project> projects
     ProjectRegistry<ProjectInternal> projectRegistry
     ProjectModelResolver projectModelResolver
     Project rootProject
-    JvmLocalLibraryDependencyResolver resolver
+    LocalLibraryDependencyResolver resolver
     DependencyMetaData metadata
     LibraryComponentSelector selector
     ModuleVersionSelector requested
@@ -74,11 +78,14 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         platform = DefaultJavaPlatform.current()
         def variants = Mock(VariantsMetaData)
         variants.getValueAsType(JavaPlatform, 'targetPlatform') >> platform
-        variants.nonNullDimensions >> ['targetPlatform']
-        variants.allDimensions >> ['targetPlatform']
-        variants.getDimensionType(_) >> ModelType.of(JavaPlatform)
+        variants.nonNullVariantAxes >> ['targetPlatform']
+        variants.declaredVariantAxes >> ['targetPlatform']
+        variants.getVariantAxisType(_) >> ModelType.of(JavaPlatform)
         def schemaStore = new DefaultModelSchemaStore(new ModelSchemaExtractor([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
-        resolver = new JvmLocalLibraryDependencyResolver(projectModelResolver, variants, [DefaultVariantDimensionSelectorFactory.of(JavaPlatform, new DefaultJavaPlatformVariantDimensionSelector())], schemaStore)
+        def libraryAdapter = new JvmLocalLibraryMetaDataAdapter()
+        def errorMessageBuilder = new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
+        def variantDimensionSelectorFactories = [DefaultVariantAxisCompatibilityFactory.of(JavaPlatform, new DefaultJavaPlatformVariantAxisCompatibility())]
+        resolver = new LocalLibraryDependencyResolver(JarBinarySpec, projectModelResolver, variantDimensionSelectorFactories, variants, schemaStore, libraryAdapter, errorMessageBuilder)
         metadata = Mock(DependencyMetaData)
         selector = Mock(LibraryComponentSelector)
         requested = Mock(ModuleVersionSelector)
@@ -233,6 +240,10 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
                 binary.buildTask >> Mock(Task)
                 binary.targetPlatform >> platform
                 binary.jarFile >> new File("api.jar")
+                binary.apiJarFile >> new File("api.jar")
+                binary.apiDependencies >> []
+                binary.dependencies >> []
+                binary.inputs >> toDomainObjectSet(LanguageSourceSet)
                 def values = [binary]
                 binaries.values() >> { values }
                 binaries.withType(JarBinarySpec) >> {

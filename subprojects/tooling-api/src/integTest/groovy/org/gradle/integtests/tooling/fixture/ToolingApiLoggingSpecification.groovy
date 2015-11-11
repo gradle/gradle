@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.tooling.fixture
-
 /**
  * A base class for all logging tooling API tests
  */

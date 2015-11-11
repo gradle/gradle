@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import org.gradle.model.ModelMap
-import org.gradle.model.RuleSource
-
 interface ImageComponent extends LibrarySpec {
     String title
     List<String> sizes
@@ -51,17 +48,17 @@ class MyImageRenderingPlugin extends RuleSource {
 
     @ComponentBinaries
     void createBinariesForBinaryComponent(ModelMap<ImageBinary> binaries, ImageComponent library) {
-        library.sizes.each{ fontSize ->
-            binaries.create("${library.title}${fontSize}Binary"){
-                it.size = fontSize;
-                it.title = library.title
+        library.sizes.each { fontSize ->
+            binaries.create(fontSize) {
+                size = fontSize;
+                title = library.title
             }
         }
     }
 
     @BinaryTasks
     void createRenderingTasks(ModelMap<Task> tasks, ImageBinary binary) {
-        tasks.create("render${binary.title}${binary.size}Svg", RenderSvg){
+        tasks.create(binary.tasks.taskName("render", "svg"), RenderSvg){
             it.content = binary.title;
             it.fontSize = binary.size;
             it.outputFile = new File(it.project.buildDir, "renderedSvg/${binary.title}_${binary.size}.svg")

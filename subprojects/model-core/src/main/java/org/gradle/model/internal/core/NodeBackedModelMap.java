@@ -17,13 +17,12 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
-import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
+import org.gradle.internal.Factories;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -31,11 +30,14 @@ import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
+// TODO - mix Groovy DSL support in
+public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements ManagedInstance {
 
     private final ModelType<T> elementType;
     private final ModelRuleDescriptor sourceDescriptor;
@@ -86,26 +88,20 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
             public <S extends T> NodeInitializer initializer(final ModelType<S> type) {
                 return new NodeInitializer() {
                     @Override
-                    public List<? extends ModelReference<?>> getInputs() {
-                        return Collections.emptyList();
-                    }
-
-                    @Override
-                    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                        NamedEntityInstantiator<T> instantiator = instantiatorTransform.transform(modelNode.getParent());
-                        S item = instantiator.create(modelNode.getPath().getName(), type.getConcreteClass());
-                        modelNode.setPrivateData(type, item);
-                    }
-
-                    @Override
-                    public List<? extends ModelProjection> getProjections() {
-                        return Collections.singletonList(UnmanagedModelProjection.of(type));
-                    }
-
-                    @Nullable
-                    @Override
-                    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-                        return null;
+                    public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+                        return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
+                            .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor,
+                                UnmanagedModelProjection.of(type)
+                            ))
+                            .put(ModelActionRole.Create, DirectNodeNoInputsModelAction.of(subject, descriptor, new Action<MutableModelNode>() {
+                                @Override
+                                public void execute(MutableModelNode modelNode) {
+                                    NamedEntityInstantiator<T> instantiator = instantiatorTransform.transform(modelNode.getParent());
+                                    S item = instantiator.create(modelNode.getPath().getName(), type.getConcreteClass());
+                                    modelNode.setPrivateData(type, item);
+                                }
+                            }))
+                            .build();
                     }
                 };
             }
@@ -130,7 +126,13 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         return ModelType.of(this.getClass());
     }
 
+    @Override
     public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
+        doFinalizeAll(ModelType.of(type), configAction);
+    }
+
+    // Called from transformed DSL rules
+    public <S> void afterEach(Class<S> type, DeferredModelAction configAction) {
         doFinalizeAll(ModelType.of(type), configAction);
     }
 
@@ -139,12 +141,24 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         doFinalizeAll(elementType, configAction);
     }
 
+    // Called from transformed DSL rules
+    public void afterEach(DeferredModelAction configAction) {
+        doFinalizeAll(elementType, configAction);
+    }
+
     @Override
-    public void all(final Action<? super T> configAction) {
+    public void all(Action<? super T> configAction) {
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "all()");
         ModelReference<T> subject = ModelReference.of(elementType);
         modelNode.applyToAllLinks(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
+    }
+
+    // Called from transformed DSL rules
+    public void all(DeferredModelAction configAction) {
+        viewState.assertCanMutate();
+        ModelReference<T> subject = ModelReference.of(elementType);
+        modelNode.applyToAllLinks(ModelActionRole.Initialize, toInitializeAction(subject, configAction, ModelActionRole.Mutate));
     }
 
     @Override
@@ -152,8 +166,18 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         doBeforeEach(elementType, configAction);
     }
 
+    // Called from transformed DSL rules
+    public void beforeEach(DeferredModelAction configAction) {
+        doBeforeEach(elementType, configAction);
+    }
+
     @Override
     public <S> void beforeEach(Class<S> type, Action<? super S> configAction) {
+        doBeforeEach(ModelType.of(type), configAction);
+    }
+
+    // Called from transformed DSL rules
+    public <S> void beforeEach(Class<S> type, DeferredModelAction configAction) {
         doBeforeEach(ModelType.of(type), configAction);
     }
 
@@ -170,7 +194,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
     @Override
     public void create(final String name) {
-        doCreate(name, elementType, Actions.doNothing());
+        doCreate(name, elementType, (Action<? super T>) null);
     }
 
     @Override
@@ -178,14 +202,38 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         doCreate(name, elementType, configAction);
     }
 
-    @Override
-    public <S extends T> void create(final String name, final Class<S> type) {
-        doCreate(name, ModelType.of(type), Actions.doNothing());
+    // Called from transformed DSL rules
+    public void create(String name, DeferredModelAction configAction) {
+        doCreate(name, elementType, configAction);
     }
 
     @Override
-    public <S extends T> void create(final String name, final Class<S> type, final Action<? super S> configAction) {
+    public <S extends T> void create(String name, Class<S> type) {
+        doCreate(name, ModelType.of(type), (Action<? super T>) null);
+    }
+
+    @Override
+    public <S extends T> void create(String name, Class<S> type, Action<? super S> configAction) {
         doCreate(name, ModelType.of(type), configAction);
+    }
+
+    // Called from transformed DSL rules
+    public <S extends T> void create(String name, Class<S> type, DeferredModelAction configAction) {
+        doCreate(name, ModelType.of(type), configAction);
+    }
+
+    @Override
+    public void put(String name, T instance) {
+        Class<T> type = Cast.uncheckedCast(instance.getClass());
+        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "put()");
+        modelNode.addLink(
+            ModelRegistrations.unmanagedInstance(
+                ModelReference.of(modelNode.getPath().child(name), type),
+                Factories.constant(instance)
+            )
+            .descriptor(descriptor)
+            .build()
+        );
     }
 
     private <S> void doBeforeEach(ModelType<S> type, Action<? super S> configAction) {
@@ -195,23 +243,42 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         modelNode.applyToAllLinks(ModelActionRole.Defaults, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
-    private <S extends T> void doCreate(final String name, final ModelType<S> type, final Action<? super S> initAction) {
+    private <S> void doBeforeEach(ModelType<S> type, DeferredModelAction configAction) {
         viewState.assertCanMutate();
+        ModelReference<S> subject = ModelReference.of(type);
+        modelNode.applyToAllLinks(ModelActionRole.Defaults, toInitializeAction(subject, configAction, ModelActionRole.Defaults));
+    }
+
+    private <S extends T> void doCreate(String name, ModelType<S> type, DeferredModelAction action) {
+        ModelPath childPath = modelNode.getPath().child(name);
+        doCreate(childPath, type, action.getDescriptor(), toInitializeAction(ModelReference.of(childPath, type), action, ModelActionRole.Initialize));
+    }
+
+    private <S extends T> void doCreate(String name, ModelType<S> type, @Nullable Action<? super S> initAction) {
         ModelPath childPath = modelNode.getPath().child(name);
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name);
+        if (initAction != null) {
+            doCreate(childPath, type, descriptor, NoInputsModelAction.of(ModelReference.of(childPath, type), descriptor, initAction));
+        } else {
+            doCreate(childPath, type, descriptor, null);
+        }
+    }
 
+    private <S extends T> void doCreate(ModelPath childPath, ModelType<S> type, ModelRuleDescriptor descriptor, @Nullable ModelAction initAction) {
+        viewState.assertCanMutate();
         NodeInitializer nodeInitializer = creatorStrategy.initializer(type);
 
-        ModelCreator creator = ModelCreators.of(childPath, nodeInitializer)
-            .descriptor(descriptor)
-            .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(childPath, type), descriptor, initAction))
-            .build();
+        ModelRegistrations.Builder builder = ModelRegistrations.of(childPath, nodeInitializer).descriptor(descriptor);
+        if (initAction != null) {
+            builder.action(ModelActionRole.Initialize, initAction);
+        }
+        ModelRegistration registration = builder.build();
 
-        modelNode.addLink(creator);
+        modelNode.addLink(registration);
 
         if (eager) {
             //noinspection ConstantConditions
-            modelNode.getLink(name).ensureUsable();
+            modelNode.getLink(childPath.getName()).ensureUsable();
         }
     }
 
@@ -220,6 +287,12 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "afterEach()");
         ModelReference<S> subject = ModelReference.of(type);
         modelNode.applyToAllLinks(ModelActionRole.Finalize, NoInputsModelAction.of(subject, descriptor, configAction));
+    }
+
+    private <S> void doFinalizeAll(ModelType<S> type, DeferredModelAction configAction) {
+        viewState.assertCanMutate();
+        ModelReference<S> subject = ModelReference.of(type);
+        modelNode.applyToAllLinks(ModelActionRole.Initialize, toInitializeAction(subject, configAction, ModelActionRole.Finalize));
     }
 
     @Nullable
@@ -258,7 +331,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     }
 
     @Override
-    public void named(final String name, Action<? super T> configAction) {
+    public void named(String name, Action<? super T> configAction) {
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "named(%s)", name);
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
@@ -269,6 +342,22 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     public void named(String name, Class<? extends RuleSource> ruleSource) {
         viewState.assertCanMutate();
         modelNode.applyToLink(name, ruleSource);
+    }
+
+    // Called from transformed DSL rules
+    public void named(String name, final DeferredModelAction action) {
+        viewState.assertCanMutate();
+        ModelReference<?> subject = ModelReference.of(modelNode.getPath().child(name));
+        modelNode.applyToLink(ModelActionRole.Initialize, toInitializeAction(subject, action, ModelActionRole.Mutate));
+    }
+
+    private ModelAction toInitializeAction(ModelReference<?> subject, final DeferredModelAction action, final ModelActionRole role) {
+        return DirectNodeNoInputsModelAction.of(subject, action.getDescriptor(), new Action<MutableModelNode>() {
+            @Override
+            public void execute(MutableModelNode node) {
+                action.execute(node, role);
+            }
+        });
     }
 
     @Override
@@ -287,6 +376,8 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     }
 
     public <S extends T> ModelMap<S> toSubType(Class<S> type) {
+        // TODO:HH Filtering should be additive
+        // map.withType(Foo).withType(Bar) should return only elements that implement both Foo and Bar
         ChildNodeInitializerStrategy<S> creatorStrategy = uncheckedCast(this.creatorStrategy);
         return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, viewState, creatorStrategy);
     }
@@ -315,10 +406,17 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
     @Override
     public <S> void withType(Class<S> type, Action<? super S> configAction) {
+        viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "withType()");
         ModelReference<S> subject = ModelReference.of(type);
-        viewState.assertCanMutate();
         modelNode.applyToAllLinks(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
+    }
+
+    // Called from transformed DSL rules
+    public <S> void withType(Class<S> type, DeferredModelAction configAction) {
+        viewState.assertCanMutate();
+        ModelReference<S> subject = ModelReference.of(type);
+        modelNode.applyToAllLinks(ModelActionRole.Initialize, toInitializeAction(subject, configAction, ModelActionRole.Mutate));
     }
 
     @Override
@@ -347,4 +445,22 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         });
     }
 
+    @Override
+    public Void methodMissing(String name, Object argsObj) {
+        Object[] args = (Object[]) argsObj;
+        if (args.length == 2 && args[0] instanceof Class<?> && args[1] instanceof DeferredModelAction) {
+            // Called from transformed DSL rules
+            Class<? extends T> itemType = uncheckedCast(args[0]);
+            DeferredModelAction action = uncheckedCast(args[1]);
+            doCreate(name, ModelType.of(itemType), action);
+            return null;
+        }
+        if (args.length == 1 && args[0] instanceof DeferredModelAction) {
+            // Called from transformed DSL rules
+            DeferredModelAction action = uncheckedCast(args[0]);
+            named(name, action);
+            return null;
+        }
+        return super.methodMissing(name, argsObj);
+    }
 }

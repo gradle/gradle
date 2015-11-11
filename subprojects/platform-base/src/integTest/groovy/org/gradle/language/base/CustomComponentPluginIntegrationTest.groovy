@@ -17,7 +17,6 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 class CustomComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
@@ -158,7 +157,7 @@ model {
         succeeds "components"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators(""":components
+        output.contains """:components
 
 ------------------------------------------------------------
 Root project
@@ -175,7 +174,7 @@ Binaries
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
-BUILD SUCCESSFUL"""))
+BUILD SUCCESSFUL"""
     }
 
     def "can have component declaration and creation in separate plugins"() {

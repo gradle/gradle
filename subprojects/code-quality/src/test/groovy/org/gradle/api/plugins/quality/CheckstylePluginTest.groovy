@@ -84,6 +84,7 @@ class CheckstylePluginTest extends Specification {
             assert config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
             assert configProperties == [:]
             assert reports.xml.destination == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
+            assert reports.html.destination == project.file("build/reports/checkstyle/${sourceSet.name}.html")
             assert !ignoreFailures
             assert showViolations
         }
@@ -100,6 +101,7 @@ class CheckstylePluginTest extends Specification {
         task.config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
         task.configProperties == [:]
         task.reports.xml.destination == project.file("build/reports/checkstyle/custom.xml")
+        task.reports.html.destination == project.file("build/reports/checkstyle/custom.html")
         !task.ignoreFailures
     }
 
@@ -151,6 +153,7 @@ class CheckstylePluginTest extends Specification {
             assert config.inputFiles.singleFile == project.file("checkstyle-config")
             assert configProperties == [foo: "foo"]
             assert reports.xml.destination == project.file("checkstyle-reports/${sourceSet.name}.xml")
+            assert reports.html.destination == project.file("checkstyle-reports/${sourceSet.name}.html")
             assert ignoreFailures
             assert showViolations
         }
@@ -173,6 +176,7 @@ class CheckstylePluginTest extends Specification {
         task.config.inputFiles.singleFile == project.file("checkstyle-config")
         task.configProperties == [foo: "foo"]
         task.reports.xml.destination == project.file("checkstyle-reports/custom.xml")
+        task.reports.html.destination == project.file("checkstyle-reports/custom.html")
         task.ignoreFailures
     }
 

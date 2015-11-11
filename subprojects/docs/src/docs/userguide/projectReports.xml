@@ -162,5 +162,5 @@ apply plugin: 'project-report'
 
         <para>These convention properties are provided by a convention object of type <apilink class="org.gradle.api.plugins.ProjectReportsPluginConvention"/>.</para>
     </section>
-    
+
 </chapter>

@@ -44,6 +44,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
+    BuildExperimentListener buildExperimentListener
+
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter) {
         this.reporter = reporter
         this.experimentRunner = experimentRunner
@@ -51,6 +53,10 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     CrossVersionPerformanceResults run() {
         assert testId
+
+        if (System.getProperty("org.gradle.performance.heapdump")) {
+            args.add("-Pheapdump")
+        }
 
         def results = new CrossVersionPerformanceResults(
                 testId: testId,
@@ -100,6 +106,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 .displayName(dist.version.version)
                 .warmUpCount(warmUpRuns)
                 .invocationCount(runs)
+                .listener(buildExperimentListener)
                 .invocation {
             workingDirectory(projectDir)
             distribution(dist)

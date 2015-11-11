@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.CachingFileVisitDetails;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.*;
@@ -33,14 +34,16 @@ import java.util.*;
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
     private final FileTreeElementSnapshotter snapshotter;
     private TaskArtifactStateCacheAccess cacheAccess;
+    private final StringInterner stringInterner;
 
-    public DefaultFileCollectionSnapshotter(FileTreeElementSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess) {
+    public DefaultFileCollectionSnapshotter(FileTreeElementSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner) {
         this.snapshotter = snapshotter;
         this.cacheAccess = cacheAccess;
+        this.stringInterner = stringInterner;
     }
 
     public void registerSerializers(SerializerRegistry<FileCollectionSnapshot> registry) {
-        registry.register(FileCollectionSnapshotImpl.class, new DefaultFileSnapshotterSerializer());
+        registry.register(FileCollectionSnapshotImpl.class, new DefaultFileSnapshotterSerializer(stringInterner));
     }
 
     public FileCollectionSnapshot emptySnapshot() {
@@ -59,10 +62,10 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         cacheAccess.useCache("Create file snapshot", new Runnable() {
             public void run() {
                 for (FileVisitDetails fileDetails : allFileVisitDetails) {
-                    final String absolutePath = fileDetails.getFile().getAbsolutePath();
+                    final String absolutePath = stringInterner.intern(fileDetails.getFile().getAbsolutePath());
                     if (!snapshots.containsKey(absolutePath)) {
                         if (fileDetails.isDirectory()) {
-                            snapshots.put(absolutePath, new DirSnapshot());
+                            snapshots.put(absolutePath, DirSnapshot.getInstance());
                         } else {
                             snapshots.put(absolutePath, new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash()));
                         }
@@ -82,9 +85,9 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         List<FileTreeInternal> fileTrees = context.resolveAsFileTrees();
 
         for (FileTreeInternal fileTree : fileTrees) {
-            Set<File> fileTreeSourceFiles = unwrapFileTreeSourceFilesIfAvailable(fileTree);
-            if (fileTreeSourceFiles != null) {
-                for (File fileTreeSourceFile : fileTreeSourceFiles) {
+            Set<File> fileTreeBackingFiles = unwrapFileTreeBackingFilesIfAvailable(fileTree);
+            if (fileTreeBackingFiles != null) {
+                for (File fileTreeSourceFile : fileTreeBackingFiles) {
                     allFileVisitDetails.add(new CachingFileVisitDetails(fileTreeSourceFile));
                 }
             } else {
@@ -104,18 +107,20 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         return allFileVisitDetails;
     }
 
-    private Set<File> unwrapFileTreeSourceFilesIfAvailable(Object fileTree) {
-        if (fileTree instanceof FileTreeWithSourceFile) {
-            File sourceFile = ((FileTreeWithSourceFile) fileTree).getSourceFile();
-            if (sourceFile == null && fileTree instanceof FileSystemMirroringFileTree) {
+    private static Set<File> unwrapFileTreeBackingFilesIfAvailable(Object fileTree) {
+        if (fileTree instanceof FileTreeWithBackingFile) {
+            File backingFile = ((FileTreeWithBackingFile) fileTree).getBackingFile();
+            if (backingFile != null) {
+                return Collections.singleton(backingFile);
+            }
+            if (fileTree instanceof FileSystemMirroringFileTree) {
                 // custom resource as source for TarFileTree, fallback to snapshotting files in archive
                 return new FileTreeAdapter((FileSystemMirroringFileTree) fileTree).getFiles();
             }
-            return Collections.singleton(sourceFile);
         } else if (fileTree instanceof FileTreeAdapter) {
-            return unwrapFileTreeSourceFilesIfAvailable(((FileTreeAdapter) fileTree).getTree());
+            return unwrapFileTreeBackingFilesIfAvailable(((FileTreeAdapter) fileTree).getTree());
         } else if (fileTree instanceof FilteredFileTree) {
-            return unwrapFileTreeSourceFilesIfAvailable(((FilteredFileTree) fileTree).getOriginalFileTree());
+            return unwrapFileTreeBackingFilesIfAvailable(((FilteredFileTree) fileTree).getOriginalFileTree());
         }
         return null;
     }
@@ -151,6 +156,15 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     static class DirSnapshot implements IncrementalFileSnapshot {
+        private static DirSnapshot instance = new DirSnapshot();
+
+        private DirSnapshot() {
+        }
+
+        static DirSnapshot getInstance() {
+            return instance;
+        }
+
         public boolean isUpToDate(IncrementalFileSnapshot snapshot) {
             return snapshot instanceof DirSnapshot;
         }

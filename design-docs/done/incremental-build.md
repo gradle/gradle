@@ -153,3 +153,26 @@ See discussion about parameters.  Uses cpp software model plugins.
 
 - Test with --parallel --max-workers=4
 - add test scenario to NewJavaPluginPerformanceTest for parallel execution to existing test
+
+
+## Story: Changes to reduce byte/char array allocations and array copying
+
+- Just do it
+
+## Story: Changes for adjusting collection sizes when final size is known
+
+- Just do it
+
+## Story: High number of UnknownDomainObjectExceptions when resolving libraries in native projects.
+
+### Implementation
+
+- remove the use of UnknownDomainObjectException as flow control of normal program flow in LibraryBinaryLocator implementations (ChainedLibraryBinaryLocator, PrebuiltLibraryBinaryLocator, ProjectLibraryBinaryLocator). 
+  - return null from LibraryBinaryLocator.getBinaries method when binaries cannot be located.
+  - since exceptions won't be used for passing detailed error messages, they will be removed.
+- LibraryResolveException should be thrown in DefaultLibraryResolver.resolveLibraryBinary method if LibraryBinaryLocator returns a null.
+
+### Test coverage
+
+- No new test coverage is needed. Change existing test to follow the changed interface contract of LibraryBinaryLocator.
+

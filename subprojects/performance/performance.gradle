@@ -1,5 +1,5 @@
-import org.gradle.performance.generator.tasks.*
 import org.gradle.performance.generator.*
+import org.gradle.performance.generator.tasks.*
 
 apply plugin: 'javascript-base'
 
@@ -373,24 +373,24 @@ task bigOldJavaMoreSource(type: JvmProjectGeneratorTask) {
     testDependencies = files()
 }
 
-task smallNewMultiprojectJava(type: JvmProjectGeneratorTask) {
+task smallJavaSwModelProject(type: JvmProjectGeneratorTask) {
     projects = 10
     sourceFiles = 100
 }
 
-task largeNewMultiprojectJava(type: JvmProjectGeneratorTask) {
+task largeJavaSwModelProject(type: JvmProjectGeneratorTask) {
     projects = 100
     sourceFiles = 1000
 }
 
-configure([smallNewMultiprojectJava, largeNewMultiprojectJava]) {
+configure([smallJavaSwModelProject, largeJavaSwModelProject]) {
     linesOfCodePerSourceFile = 50
     filesPerPackage = 10
     useSubProjectNumberInSourceFileNames = true
-    subProjectTemplates = ['java-source', 'new-java-project', 'with-junit']
+    subProjectTemplates = ['java-source', 'java-sw-model-project', 'with-junit']
 
     def dependencyGenerator = DependencyGenerator.newInstance(numberOfProjects: it.projectCount)
-    boolean smallProjectType = (name == 'smallNewMultiprojectJava')
+    boolean smallProjectType = (name == 'smallJavaSwModelProject')
     dependencyGenerator.numberOfDependencies = smallProjectType ? 3 : 10
     dependencyGenerator.numberOfLayers = smallProjectType ? 3 : 5
     dependencyGenerator.layerRatio = smallProjectType ? 1 : 2
@@ -419,11 +419,28 @@ task nativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
     templateArgs = [ overlapWithOutput: false ]
 }
 
-configure([nativeMonolithicOverlapping, nativeMonolithic]) {
+task smallNativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
+    templateArgs = [overlapWithOutput: false]
+}
+
+task mediumNativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
+    templateArgs = [overlapWithOutput: false]
+}
+
+configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic, mediumNativeMonolithic]) {
     projects = 100
+
     // number of source files to generate in each project of each type
     // this generates 200 C, 200 C++, 200 headers and 400 unused C/C++ files
     sourceFiles = 200
+
+    if (name.startsWith('small')) {
+        projects = 2
+        sourceFiles = 100
+    } else if (name.startsWith('medium')) {
+        projects = 10
+    }
+
     templateArgs += [
             // number of functions created in each source file
             functionCount: 50,
@@ -438,6 +455,7 @@ configure([nativeMonolithicOverlapping, nativeMonolithic]) {
     ]
     rootProjectTemplates = [ 'native-monolithic' ]
     subProjectTemplates = [ ]
+    additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
 }
 
 task all {
@@ -452,8 +470,8 @@ task prepareSamples {
         smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
         variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
         smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
-        bigOldJavaMoreSource, lotProjectDependencies, smallNewMultiprojectJava, largeNewMultiprojectJava,
-        nativeMonolithic, nativeMonolithicOverlapping
+        bigOldJavaMoreSource, lotProjectDependencies, smallJavaSwModelProject, largeJavaSwModelProject,
+        nativeMonolithic, nativeMonolithicOverlapping, smallNativeMonolithic, mediumNativeMonolithic
     group = "Project Setup"
     description = "Generates all sample projects for automated performance tests"
 }
@@ -498,6 +516,12 @@ if (project.hasProperty('org.gradle.performance.use_yourkit')) {
         testLogging.showStandardStreams = true
         systemProperties['org.gradle.performance.use_yourkit'] = '1'
         outputs.upToDateWhen { false }
+    }
+}
+
+if (project.hasProperty('org.gradle.performance.heapdump')) {
+    configure([performanceTest, performanceExperiments]) {
+        systemProperties['org.gradle.performance.heapdump'] = '1'
     }
 }
 

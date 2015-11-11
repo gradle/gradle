@@ -17,17 +17,17 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
+import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 
 public abstract class CollectionNodeInitializerExtractionSupport implements NodeInitializerExtractionStrategy {
     @Override
     public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema) {
-        if (!(schema instanceof ModelCollectionSchema)) {
+        if (!(schema instanceof CollectionSchema)) {
             return null;
         }
-        return extractNodeInitializer((ModelCollectionSchema<T, ?>) schema);
+        return extractNodeInitializer((CollectionSchema<T, ?>) schema);
     }
 
-    protected abstract <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema);
+    protected abstract <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema);
 }

@@ -106,9 +106,9 @@ public class CyclicBarrierHttpServer extends ExternalResource {
                     connected = true;
                     lock.notifyAll();
 
-                    long expiry = System.currentTimeMillis() + 30000;
+                    long expiry = monotonicClockMillis() + 30000;
                     while (!released && !stopped) {
-                        long delay = expiry - System.currentTimeMillis();
+                        long delay = expiry - monotonicClockMillis();
                         if (delay <= 0) {
                             System.out.println("Timeout waiting for client to be released.");
                             outputStream.write("HTTP/1.1 500 Timeout waiting for client to be released.\r\nConnection: close\r\nContent-length: 0\r\n\r\n".getBytes());
@@ -169,10 +169,10 @@ public class CyclicBarrierHttpServer extends ExternalResource {
      * {@link #release()} is called.
      */
     public void waitFor() {
-        long expiry = System.currentTimeMillis() + 20000;
+        long expiry = monotonicClockMillis() + 20000;
         synchronized (lock) {
             while (!connected && !stopped) {
-                long delay = expiry - System.currentTimeMillis();
+                long delay = expiry - monotonicClockMillis();
                 if (delay <= 0) {
                     throw new AssertionFailedError(String.format("Timeout waiting for client to connect to %s.", getUri()));
                 }
@@ -188,6 +188,10 @@ public class CyclicBarrierHttpServer extends ExternalResource {
             }
             System.out.println("client connected - unblocking");
         }
+    }
+
+    private long monotonicClockMillis() {
+        return System.nanoTime() / 1000000L;
     }
 
     /**
@@ -226,10 +230,10 @@ public class CyclicBarrierHttpServer extends ExternalResource {
      *
      */
     public void waitForDisconnect() {
-        long expiry = System.currentTimeMillis() + 20000;
+        long expiry = monotonicClockMillis() + 20000;
         synchronized (lock) {
             while (released && connected && !stopped) {
-                long delay = expiry - System.currentTimeMillis();
+                long delay = expiry - monotonicClockMillis();
                 if (delay <= 0) {
                     throw new AssertionFailedError(String.format("Timeout waiting for client to disconnect from %s.", getUri()));
                 }

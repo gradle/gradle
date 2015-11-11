@@ -2,26 +2,10 @@ apply plugin: 'cpp'
 apply plugin: 'c'
 
 <% if (overlapWithOutput) { %>
-    buildDir = new File(rootProject.buildDir, project.name)    
+    if (project != rootProject) {
+       buildDir = new File(rootProject.buildDir, project.name)
+    }
 <% } %>
-
-binaries.all {
-    cCompiler.define "SOMETHING1=0"
-    cCompiler.define "SOMETHING2=0"
-    cCompiler.define "SOMETHING3=0"
-    cCompiler.define "SOMETHING4=0"
-    cCompiler.define "SOMETHING5=0"
-    cCompiler.define "SOMETHING6=0"
-    cCompiler.define "SOMETHING7=0"
-
-    cppCompiler.define "SOMETHING1=0"
-    cppCompiler.define "SOMETHING2=0"
-    cppCompiler.define "SOMETHING3=0"
-    cppCompiler.define "SOMETHING4=0"
-    cppCompiler.define "SOMETHING5=0"
-    cppCompiler.define "SOMETHING6=0"
-    cppCompiler.define "SOMETHING7=0"
-}
 
 model {
     buildTypes {
@@ -52,6 +36,30 @@ model {
         linux64 {
             architecture "x64"
             operatingSystem "linux"
+        }
+    }
+    binaries {
+        all {
+            cCompiler.define "SOMETHING1=0"
+            cCompiler.define "SOMETHING2=0"
+            cCompiler.define "SOMETHING3=0"
+            cCompiler.define "SOMETHING4=0"
+            cCompiler.define "SOMETHING5=0"
+            cCompiler.define "SOMETHING6=0"
+            cCompiler.define "SOMETHING7=0"
+
+            cppCompiler.define "SOMETHING1=0"
+            cppCompiler.define "SOMETHING2=0"
+            cppCompiler.define "SOMETHING3=0"
+            cppCompiler.define "SOMETHING4=0"
+            cppCompiler.define "SOMETHING5=0"
+            cppCompiler.define "SOMETHING6=0"
+            cppCompiler.define "SOMETHING7=0"
+
+            if (project.hasProperty("addMoreDefines")) {
+                cCompiler.define "HELLOWORLD=1"
+                cppCompiler.define "HELLOWORLD=1"
+            }
         }
     }
 }

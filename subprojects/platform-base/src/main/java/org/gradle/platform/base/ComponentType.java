@@ -24,7 +24,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares that a custom {@link org.gradle.platform.base.ComponentSpec} type.
+ * Declares a custom {@link org.gradle.platform.base.ComponentSpec} type.
  *
  * The following example demonstrates how to register a custom component type using a plugin with a
  * {@link ComponentType} annotation.

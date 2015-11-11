@@ -132,7 +132,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
 
     @Override
     public boolean isToolingApiLoggingInEmbeddedModeSupported() {
-        return isSameOrNewer("2.8-rc-1");
+        return isSameOrNewer("2.9-rc-1");
     }
 
     public VersionNumber getArtifactCacheLayoutVersion() {

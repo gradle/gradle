@@ -38,17 +38,19 @@ class GradleExecuterBackedSession implements GradleSession {
     }
 
     @Override
-    Runnable runner() {
-        def runner = createExecuter(true)
+    Runnable runner(GradleInvocationCustomizer invocationCustomizer) {
+        def runner = createExecuter(invocationCustomizer, true)
         return { runner.run() }
     }
 
     @Override
     void cleanup() {
-        createExecuter(false).withTasks().withArgument("--stop").run()
+        createExecuter(null, false).withTasks().withArgument("--stop").run()
     }
 
-    private GradleExecuter createExecuter(boolean withGradleOpts) {
+    private GradleExecuter createExecuter(GradleInvocationCustomizer invocationCustomizer, boolean withGradleOpts) {
+        def invocation = invocationCustomizer ? invocationCustomizer.customize(this.invocation) : this.invocation
+
         def executer = invocation.gradleDistribution.executer(testDirectoryProvider).
                 requireGradleHome().
                 requireIsolatedDaemons().

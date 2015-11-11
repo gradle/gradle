@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.file.collections.FileTreeWithSourceFile;
+import org.gradle.api.internal.file.collections.FileTreeWithBackingFile;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
@@ -42,7 +42,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree, FileTreeWithSourceFile {
+public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree, FileTreeWithBackingFile {
     private final File zipFile;
     private final Chmod chmod;
     private final File tmpDir;
@@ -101,7 +101,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     }
 
     @Override
-    public File getSourceFile() {
+    public File getBackingFile() {
         return zipFile;
     }
 

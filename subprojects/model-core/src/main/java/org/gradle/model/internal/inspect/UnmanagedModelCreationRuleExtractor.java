@@ -18,13 +18,13 @@ package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.Model;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelCreators;
+import org.gradle.model.internal.core.ModelRegistration;
+import org.gradle.model.internal.core.ModelRegistrations;
 
 @ThreadSafe
 public class UnmanagedModelCreationRuleExtractor extends AbstractUnmanagedModelCreationRuleExtractor<Model> {
     @Override
-    protected ModelCreator buildCreator(ModelCreators.Builder builder) {
+    protected ModelRegistration buildRegistration(ModelRegistrations.Builder builder) {
         return builder.build();
     }
 

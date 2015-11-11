@@ -19,17 +19,22 @@ package org.gradle.language.java
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 import spock.lang.Unroll
+
+import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 
 class JavaLanguageCustomLibraryDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can depend on a custom component producing a JVM library"() {
-        given:
+    def theModel(String model) {
         applyJavaPlugin(buildFile)
         addCustomLibraryType(buildFile)
+        buildFile << model
+    }
 
-        buildFile << '''
-
+    def "can depend on a custom component producing a JVM library"() {
+        given:
+        theModel '''
 model {
     components {
         zdep(CustomLibrary)
@@ -123,11 +128,7 @@ model {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "can depend on a custom component producing a JVM library with corresponding platform"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         zdep(CustomLibrary) {
@@ -147,16 +148,16 @@ model {
     }
 
     tasks {
-        java6MainJar {
+        mainJava6Jar {
             doLast {
-                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(zdep6Jar)
-                assert compileJava6MainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep6Jar/zdep.jar")] as Set
+                assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(zdep6Jar)
+                assert compileMainJava6JarMainJava.classpath.files == [file("${buildDir}/jars/zdep6ApiJar/zdep.jar")] as Set
             }
         }
-        java7MainJar {
+        mainJava7Jar {
             doLast {
-                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(zdep7Jar)
-                assert compileJava7MainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep7Jar/zdep.jar")] as Set
+                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(zdep7Jar)
+                assert compileMainJava7JarMainJava.classpath.files == [file("${buildDir}/jars/zdep7ApiJar/zdep.jar")] as Set
             }
         }
     }
@@ -165,20 +166,16 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
-        succeeds ':tasks', ':java6MainJar', ':java7MainJar'
+        succeeds ':tasks', ':mainJava6Jar', ':mainJava7Jar'
 
         then:
-        executedAndNotSkipped ':tasks', ':java6MainJar', ':java7MainJar'
+        executedAndNotSkipped ':tasks', ':mainJava6Jar', ':mainJava7Jar'
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should fail resolving dependencies only for the missing dependency variant"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         zdep(CustomLibrary) {
@@ -198,10 +195,10 @@ model {
     }
 
     tasks {
-        java7MainJar {
+        mainJava7Jar {
             doLast {
-                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(zdepJar)
-                assert compileJava7MainJarMainJava.classpath.files == [file("${buildDir}/jars/zdepJar/zdep.jar")] as Set
+                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(zdepJar)
+                assert compileMainJava7JarMainJava.classpath.files == [file("${buildDir}/jars/zdepApiJar/zdep.jar")] as Set
             }
         }
     }
@@ -210,29 +207,23 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when: 'The Java 7 variant of the main jar can be built'
-        succeeds ':tasks', ':java7MainJar'
+        succeeds ':tasks', ':mainJava7Jar'
 
         then:
-        executedAndNotSkipped ':tasks', ':java7MainJar'
+        executedAndNotSkipped ':tasks', ':mainJava7Jar'
 
         and: 'the Java 6 variant fails'
-        fails ':java6MainJar'
+        fails ':mainJava6Jar'
 
         and: 'error message indicates the available platforms for the target dependency'
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java''")
-        failure.assertHasCause("Cannot find a compatible binary for library 'zdep' (Java SE 6). Available platforms: [Java SE 7]")
-
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:java6Jar'' source set 'Java source 'main:java''")
+        failure.assertHasCause(TextUtil.normaliseLineSeparators("Cannot find a compatible variant for library 'zdep'.\n    Required platform 'java6', available: 'java7'"))
     }
-
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should choose the highest compatible platform variant of the target binary when dependency is a JVM component"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         zdep(JvmLibrarySpec) {
@@ -255,8 +246,8 @@ model {
     tasks {
         mainJar {
             doLast {
-                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(java7ZdepJar)
-                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/java7ZdepJar/zdep.jar")] as Set
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdepJava7Jar)
+                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/zdepJava7ApiJar/zdep.jar")] as Set
             }
         }
     }
@@ -274,11 +265,7 @@ model {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should choose the highest compatible platform variant of the target binary when dependency is a custom component"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         zdep(CustomLibrary) {
@@ -300,7 +287,7 @@ model {
         mainJar {
             doLast {
                 assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdep7Jar)
-                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep7Jar/zdep.jar")] as Set
+                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep7ApiJar/zdep.jar")] as Set
             }
         }
     }
@@ -317,11 +304,7 @@ model {
 
     def "custom component can consume a JVM library"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec)
@@ -340,7 +323,7 @@ model {
         zdepJar {
             doLast {
                 assert compileZdepJarZdepJava.taskDependencies.getDependencies(compileZdepJarZdepJava).contains(mainJar)
-                assert compileZdepJarZdepJava.classpath.files == [file("${buildDir}/jars/mainJar/main.jar")] as Set
+                assert compileZdepJarZdepJava.classpath.files == [file("${buildDir}/jars/mainApiJar/main.jar")] as Set
             }
         }
     }
@@ -358,11 +341,7 @@ model {
 
     def "Java consumes custom component consuming Java component"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
@@ -390,10 +369,10 @@ model {
         mainJar {
             doLast {
                 assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(secondJar)
-                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/secondJar/second.jar")] as Set
+                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/secondApiJar/second.jar")] as Set
 
                 assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdJar)
-                assert compileSecondJarSecondJava.classpath.files == [file("${buildDir}/jars/thirdJar/third.jar")] as Set
+                assert compileSecondJarSecondJava.classpath.files == [file("${buildDir}/jars/thirdApiJar/third.jar")] as Set
             }
         }
     }
@@ -412,11 +391,7 @@ model {
 
     def "Custom consumes Java component consuming custom component"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(CustomLibrary) {
@@ -448,10 +423,10 @@ model {
         mainJar {
             doLast {
                 assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(secondJar)
-                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/secondJar/second.jar")] as Set
+                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/secondApiJar/second.jar")] as Set
 
                 assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdJar)
-                assert compileSecondJarSecondJava.classpath.files == [file("${buildDir}/jars/thirdJar/third.jar")] as Set
+                assert compileSecondJarSecondJava.classpath.files == [file("${buildDir}/jars/thirdApiJar/third.jar")] as Set
             }
         }
     }
@@ -471,11 +446,7 @@ model {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "Cannot build all variants of main component because of missing dependency variant"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
@@ -505,9 +476,9 @@ model {
     }
 
     tasks {
-        java7MainJar {
+        mainJava7Jar {
             doLast {
-                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(secondJar)
+                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(secondJar)
                 assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdJar)
             }
         }
@@ -519,29 +490,25 @@ model {
         file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
 
         when: "Can resolve dependencies and compile the Java 7 variant of the main Jar"
-        succeeds ':tasks', ':java7MainJar'
+        succeeds ':tasks', ':mainJava7Jar'
 
         then:
-        executedAndNotSkipped ':tasks', ':java7MainJar'
+        executedAndNotSkipped ':tasks', ':mainJava7Jar'
 
         and: "Can resolve dependencies and compile any of the dependencies"
         succeeds ':secondJar'
         succeeds ':thirdJar'
 
         and: "Trying to compile the Java 6 variant fails"
-        fails ':java6MainJar'
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java''")
-        failure.assertHasCause("Cannot find a compatible binary for library 'second' (Java SE 6). Available platforms: [Java SE 7]")
+        fails ':mainJava6Jar'
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:java6Jar'' source set 'Java source 'main:java''")
+        failure.assertHasCause(TextUtil.normaliseLineSeparators("Cannot find a compatible variant for library 'second'.\n    Required platform 'java6', available: 'java7'"))
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "Not all components target the same Java platforms"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
@@ -573,8 +540,8 @@ model {
     tasks {
         create('checkMainDependencies') {
             doLast {
-                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(second7Jar)
-                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(second6Jar)
+                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(second7Jar)
+                assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(second6Jar)
             }
         }
         create('checkSecondJava7VariantDependencies') {
@@ -611,7 +578,7 @@ model {
         succeeds ':checkSecondJava6VariantDependencies'
 
         and: "Can build the Java 7 variant of all components"
-        succeeds ':java7MainJar'
+        succeeds ':mainJava7Jar'
         succeeds ':second7Jar'
         succeeds ':thirdJar'
     }
@@ -619,11 +586,7 @@ model {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "All components should depend on the corresponding variants"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
@@ -654,28 +617,28 @@ model {
     }
 
     tasks {
-        java6MainJar {
+        mainJava6Jar {
             doLast {
-                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(second6Jar)
-                assert compileJava6MainJarMainJava.classpath.files == [file("${buildDir}/jars/second6Jar/second.jar")] as Set
+                assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(second6Jar)
+                assert compileMainJava6JarMainJava.classpath.files == [file("${buildDir}/jars/second6ApiJar/second.jar")] as Set
             }
         }
-        java7MainJar {
+        mainJava7Jar {
             doLast {
-                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(second7Jar)
-                assert compileJava7MainJarMainJava.classpath.files == [file("${buildDir}/jars/second7Jar/second.jar")] as Set
+                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(second7Jar)
+                assert compileMainJava7JarMainJava.classpath.files == [file("${buildDir}/jars/second7ApiJar/second.jar")] as Set
             }
         }
         second6Jar {
             doLast {
-                assert compileSecond6JarSecondJava.taskDependencies.getDependencies(compileSecond6JarSecondJava).contains(java6ThirdJar)
-                assert compileSecond6JarSecondJava.classpath.files == [file("${buildDir}/jars/java6ThirdJar/third.jar")] as Set
+                assert compileSecond6JarSecondJava.taskDependencies.getDependencies(compileSecond6JarSecondJava).contains(thirdJava6Jar)
+                assert compileSecond6JarSecondJava.classpath.files == [file("${buildDir}/jars/thirdJava6ApiJar/third.jar")] as Set
             }
         }
         second7Jar {
             doLast {
-                assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(java7ThirdJar)
-                assert compileSecond7JarSecondJava.classpath.files == [file("${buildDir}/jars/java7ThirdJar/third.jar")] as Set
+                assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(thirdJava7Jar)
+                assert compileSecond7JarSecondJava.classpath.files == [file("${buildDir}/jars/thirdJava7ApiJar/third.jar")] as Set
             }
         }
     }
@@ -692,23 +655,19 @@ model {
         executedAndNotSkipped ':tasks'
 
         and: "Can build the Java 7 variant of all components"
-        succeeds ':java7MainJar'
+        succeeds ':mainJava7Jar'
         succeeds ':second7Jar'
-        succeeds ':java7ThirdJar'
+        succeeds ':thirdJava7Jar'
 
         and: "Can build the Java 6 variant of all components"
-        succeeds ':java6MainJar'
+        succeeds ':mainJava6Jar'
         succeeds ':second6Jar'
-        succeeds ':java6ThirdJar'
+        succeeds ':thirdJava6Jar'
     }
 
     def "can define a cyclic dependency"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
@@ -766,11 +725,7 @@ model {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "Fails if one of the dependencies provides more than one binary for the selected variant"() {
         given:
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
@@ -804,13 +759,13 @@ model {
     tasks {
         create('checkJava7Dependencies') {
             doLast {
-                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(second7Jar)
-                assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(java7ThirdJar)
+                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(second7Jar)
+                assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(thirdJava7Jar)
             }
         }
         create('checkMainJava6Dependencies') {
             doLast {
-                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).empty
+                assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).empty
             }
         }
     }
@@ -833,9 +788,9 @@ model {
         succeeds ':checkMainJava6Dependencies'
 
         and: "Can build the Java 7 variant of all components"
-        succeeds ':java7MainJar'
+        succeeds ':mainJava7Jar'
         succeeds ':second7Jar'
-        succeeds ':java7ThirdJar'
+        succeeds ':thirdJava7Jar'
     }
 
     def "complex graph of dependencies without variants"() {
@@ -859,11 +814,7 @@ model {
                    +-----------------+
 
          */
-        applyJavaPlugin(buildFile)
-        addCustomLibraryType(buildFile)
-
-        buildFile << '''
-
+        theModel '''
 model {
     components {
         main(JvmLibrarySpec) {
@@ -946,15 +897,6 @@ model {
         succeeds ':fifthJar'
     }
 
-    void applyJavaPlugin(File buildFile) {
-        buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-'''
-    }
-
     void addCustomLibraryType(File buildFile) {
         buildFile << '''
 import org.gradle.internal.service.ServiceRegistry
@@ -994,7 +936,7 @@ class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {
                     javaVersions.each { version ->
                         def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${version}"))
                         def toolChain = toolChains.getForPlatform(platform)
-                        String binaryName = "${library.name}${javaVersions.size() > 1 ? version :''}Jar"
+                        String binaryName = javaVersions.size() > 1 ? "${version}Jar" : "jar"
                         while (binaries.containsKey(binaryName)) { binaryName = "${binaryName}x" }
                         binaries.create(binaryName) { jar ->
                             jar.toolChain = toolChain

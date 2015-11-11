@@ -108,6 +108,9 @@ buildTypes {
     }
 }
 
+apply from: "gradle/testGroupings.gradle"
+apply from: 'gradle/buildSplits.gradle'
+
 ext {
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
@@ -117,7 +120,7 @@ ext {
     if (project.hasProperty("maxParallelForks")) {
         project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
     } else {
-        ext.maxParallelForks = Math.max(2, (int) (Runtime.runtime.availableProcessors() / 2))
+        ext.maxParallelForks = 1
     }
 
     if (project.hasProperty("useIncomingDistributions")) {
@@ -170,7 +173,6 @@ apply from: "gradle/classycle.gradle"
 apply from: "gradle/strictCompile.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
-apply from: "gradle/testGroupings.gradle"
 apply from: "gradle/taskOrdering.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
 
@@ -264,10 +266,12 @@ task installAll(type: Install) {
     installDirPropertyName = 'gradle_installPath'
 }
 
+clean {
+    dependsOn ':killExistingDaemons'
+}
 
 apply from: "gradle/intTestImage.gradle"
 apply from: 'gradle/pullRequestBuild.gradle'
-apply from: 'gradle/buildSplits.gradle'
 
 def reportsFolder = new File(buildDir, "reports")
 ext.preferencesTraceFile = new File(reportsFolder, "preferences.trace.log")

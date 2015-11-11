@@ -20,23 +20,24 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
-import org.gradle.api.internal.resolve.JvmLocalLibraryDependencyResolver;
-import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.api.internal.resolve.*;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.jvm.internal.DefaultJavaPlatformVariantDimensionSelector;
+import org.gradle.jvm.JarBinarySpec;
+import org.gradle.jvm.internal.DefaultJavaPlatformVariantAxisCompatibility;
 import org.gradle.jvm.internal.JarBinaryRenderer;
 import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.language.base.internal.model.DefaultVariantDimensionSelectorFactory;
-import org.gradle.language.base.internal.model.VariantDimensionSelectorFactory;
+import org.gradle.language.base.internal.model.DefaultVariantAxisCompatibilityFactory;
+import org.gradle.language.base.internal.model.VariantAxisCompatibilityFactory;
+import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 public class PlatformJvmServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JarBinaryRenderer.class);
-        registration.add(VariantDimensionSelectorFactory.class, DefaultVariantDimensionSelectorFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantDimensionSelector()));
+        registration.add(VariantAxisCompatibilityFactory.class, DefaultVariantAxisCompatibilityFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantAxisCompatibility()));
     }
 
     public void registerBuildSessionServices(ServiceRegistration registration) {
@@ -74,10 +75,19 @@ public class PlatformJvmServices implements PluginServiceRegistry {
 
         @Override
         public ComponentResolvers create(ResolveContext context) {
-            JvmLocalLibraryDependencyResolver delegate = new JvmLocalLibraryDependencyResolver(projectModelResolver,
-                ((DependentSourceSetResolveContext) context).getVariants(),
-                registry.getAll(VariantDimensionSelectorFactory.class),
-                registry.get(ModelSchemaStore.class));
+            final ModelSchemaStore schemaStore = registry.get(ModelSchemaStore.class);
+            VariantsMetaData variants = ((DependentSourceSetResolveContext) context).getVariants();
+            JvmLocalLibraryMetaDataAdapter libraryMetaDataAdapter = new JvmLocalLibraryMetaDataAdapter();
+            LocalLibraryDependencyResolver<JarBinarySpec> delegate =
+                    new LocalLibraryDependencyResolver<JarBinarySpec>(
+                            JarBinarySpec.class,
+                            projectModelResolver,
+                            registry.getAll(VariantAxisCompatibilityFactory.class),
+                            variants,
+                            schemaStore,
+                            libraryMetaDataAdapter,
+                            new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
+                    );
             return DelegatingComponentResolvers.of(delegate);
         }
     }

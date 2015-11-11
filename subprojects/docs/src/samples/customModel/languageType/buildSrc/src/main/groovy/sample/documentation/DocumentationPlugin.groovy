@@ -19,7 +19,6 @@ import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.model.ModelMap
-import org.gradle.model.Mutate
 import org.gradle.model.Path
 import org.gradle.model.RuleSource
 import org.gradle.platform.base.*
@@ -37,12 +36,12 @@ class DocumentationPlugin extends RuleSource {
 
     @ComponentBinaries
     void createBinariesForBinaryComponent(ModelMap<DocumentationBinary> binaries, DocumentationComponent component) {
-        binaries.create("${component.name}Binary")
+        binaries.create("binary")
     }
 
     @BinaryTasks
     void createZip(ModelMap<Task> tasks, final DocumentationBinary binary, @Path("buildDir") final File buildDir) {
-        tasks.create("zip${binary.name.capitalize()}", Zip, new Action<Zip>() {
+        tasks.create(binary.tasks.taskName("zip"), Zip, new Action<Zip>() {
             @Override
             public void execute(Zip zipBinary) {
                 binary.inputs.withType(DocumentationSourceSet) { source ->
