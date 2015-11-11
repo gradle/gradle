@@ -416,7 +416,7 @@ This story improves usability of the test kit by not imposing any dependencies b
 
 The TestKit allows for executing functional tests with a Gradle distribution specified by the user. `GradleRunner` passes the provided
 distribution to the Tooling API to execute Gradle. For the most part the internal implementation of the Tooling API build execution
-uses a conservative set of features though there's no there's no assurance that a Tooling API will work with older versions of Gradle
+uses a conservative set of features though there's no assurance that a Tooling API will work with older versions of Gradle
 in this context. This story aims for implementing appropriate test coverage to ensure backward compatibility or graceful handling of
 unsupported functionality for other versions of the Tooling API.
 
