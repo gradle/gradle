@@ -24,7 +24,7 @@ import org.gradle.api.Action;
 import org.gradle.jvm.JvmApiSpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.JvmResources;
-import org.gradle.jvm.PackageName;
+import org.gradle.jvm.JvmPackageName;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.TransformationFileType;
@@ -73,9 +73,9 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
 
     @Override
     public Set<String> getExportedPackages() {
-        Iterable<String> transform = Iterables.transform(apiSpec.getExports(), new Function<PackageName, String>() {
+        Iterable<String> transform = Iterables.transform(apiSpec.getExports(), new Function<JvmPackageName, String>() {
             @Override
-            public String apply(PackageName packageName) {
+            public String apply(JvmPackageName packageName) {
                 return packageName.getValue();
             }
         });

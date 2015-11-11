@@ -38,11 +38,11 @@ public interface JvmApiSpec {
      * @param packageName the name of the package to be exported, e.g. "com.example.p1"
      * @throws org.gradle.api.InvalidUserDataException if the package name is not valid or
      * has already been exported
-     * @see PackageName
+     * @see JvmPackageName
      */
     void exports(String packageName);
 
-    Set<PackageName> getExports();
+    Set<JvmPackageName> getExports();
 
     void dependencies(Closure<?> configureAction);
 
