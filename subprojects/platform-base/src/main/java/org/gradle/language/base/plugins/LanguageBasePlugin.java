@@ -33,7 +33,6 @@ import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.extract.ConstructableTypesRegistry;
 import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry;
@@ -73,13 +72,14 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     private void applyRules(ModelRegistry modelRegistry) {
-        final String descriptor = LanguageBasePlugin.class.getSimpleName() + ".apply()";
-        final ModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(descriptor);
+        final String baseDescriptor = LanguageBasePlugin.class.getSimpleName() + "#";
 
-        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(ModelReference.of("binaries"), ruleDescriptor, new Action<MutableModelNode>() {
+        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(ModelReference.of("binaries"),
+                new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTasks"), new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode binariesNode) {
-                binariesNode.applyToAllLinks(ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpec.class), ruleDescriptor, ModelReference.of(ITaskFactory.class), new BiAction<BinarySpec, ITaskFactory>() {
+                binariesNode.applyToAllLinks(ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpec.class),
+                                new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTask"), ModelReference.of(ITaskFactory.class), new BiAction<BinarySpec, ITaskFactory>() {
                     @Override
                     public void execute(BinarySpec binary, ITaskFactory taskFactory) {
                         BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binary;
@@ -97,7 +97,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
             DirectNodeNoInputsModelAction.of(
                 ModelReference.of(BinarySpec.class),
-                new SimpleModelRuleDescriptor(descriptor),
+                new SimpleModelRuleDescriptor(baseDescriptor + ComponentSpecInitializer.class.getSimpleName() + ".binaryAction()"),
                 ComponentSpecInitializer.binaryAction()));
     }
 
