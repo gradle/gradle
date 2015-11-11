@@ -37,7 +37,6 @@ import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.binary.internal.BinarySpecFactory;
-import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
@@ -76,8 +75,6 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
     }
 
     private static class RegistrationAction<S extends BinarySpec> extends AbstractModelActionWithView<BinarySpecFactory> {
-        private static final ModelType<BinarySpecInternal> BINARY_SPEC_INTERNAL_MODEL_TYPE = ModelType.of(BinarySpecInternal.class);
-
         private final ModelType<S> publicType;
         private final ModelType<? extends BaseBinarySpec> implementationType;
         private final Set<ModelType<?>> internalViews;
@@ -113,9 +110,6 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
                                 taskFactory));
                     }
                 });
-                if (BINARY_SPEC_INTERNAL_MODEL_TYPE.isAssignableFrom(implementationType)) {
-                    registration.withInternalView(BINARY_SPEC_INTERNAL_MODEL_TYPE);
-                }
             }
             for (ModelType<?> internalView : internalViews) {
                 registration.withInternalView(internalView);
