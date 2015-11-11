@@ -19,6 +19,87 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.platform.base.internal.ComponentSpecInternal
 
 class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
+    def "can declare custom managed component"() {
+        buildFile << """
+            @Managed
+            interface SampleLibrarySpec extends ComponentSpec {
+                String getPublicData()
+                void setPublicData(String publicData)
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    sampleLib(SampleLibrarySpec) {
+                        publicData = "public"
+                    }
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
+                    tasks.create("validate") {
+                        assert components*.name == ["sampleLib"]
+                        assert components.withType(ComponentSpec)*.name == ["sampleLib"]
+                        assert components.withType(SampleLibrarySpec)*.name == ["sampleLib"]
+                        assert components*.publicData == ["public"]
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
+        expect:
+        succeeds "validate"
+    }
+
+    def "can add binaries to custom managed component"() {
+        buildFile << """
+            apply plugin: 'jvm-component'
+
+            @Managed
+            interface SampleLibrarySpec extends ComponentSpec {
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    sampleLib(SampleLibrarySpec) {
+                        binaries {
+                            jar(JarBinarySpec)
+                        }
+                    }
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
+                    tasks.create("validate") {
+                        assert components*.binaries*.values().flatten()*.name == ["jar"]
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
+        expect:
+        succeeds "validate"
+    }
+
     def "can declare custom managed Jvm library component"() {
         buildFile << """
             apply plugin: "jvm-component"
@@ -250,7 +331,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                         spec.publicData
                         assert false
                     } catch(MissingPropertyException e) {
-                        assert e.message == "No such property: publicData for class: InternalSampleSpec"
+                        assert e.message == "Could not find property 'publicData' on InternalSampleSpec 'components.sample'."
                     }
                 }
 
@@ -285,7 +366,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                         spec.internalData
                         assert false
                     } catch (MissingPropertyException e) {
-                        assert e.message == 'No such property: internalData for class: SampleComponentSpec'
+                        assert e.message == "Could not find property 'internalData' on SampleComponentSpec 'components.sample'."
                     }
                 }
 
@@ -301,7 +382,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                         spec.internalData
                         assert false
                     } catch (MissingPropertyException e) {
-                        assert e.message == 'No such property: internalData for class: SampleComponentSpec'
+                        assert e.message == "Could not find property 'internalData' on SampleComponentSpec 'components.sample'."
                     }
                 }
 
@@ -318,7 +399,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                         spec.internalData
                         assert false
                     } catch (MissingPropertyException e) {
-                        assert e.message == 'No such property: internalData for class: SampleComponentSpec'
+                        assert e.message == "Could not find property 'internalData' on SampleComponentSpec 'components.sample'."
                     }
                 }
 

@@ -50,7 +50,7 @@ import org.gradle.util.DeprecationLogger;
 @Incubating
 // Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
 @SuppressWarnings("deprecation")
-public abstract class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
+public class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
     private final NamedDomainObjectFactoryRegistry<LanguageSourceSet> entityInstantiator;
     private final ModelMap<LanguageSourceSet> ownedSourceSets;
     private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
@@ -65,9 +65,6 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     private boolean disabled;
 
     public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType, String name, @Nullable ComponentSpecInternal owner, Instantiator instantiator, ITaskFactory taskFactory) {
-        if (implementationType.equals(BaseBinarySpec.class)) {
-            throw new ModelInstantiationException("Cannot create instance of abstract class BaseBinarySpec.");
-        }
         nextBinaryInfo.set(new BinaryInfo(name, publicType, implementationType, owner, taskFactory, instantiator));
         try {
             try {
@@ -80,7 +77,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         }
     }
 
-    protected BaseBinarySpec() {
+    public BaseBinarySpec() {
         this(nextBinaryInfo.get());
     }
 

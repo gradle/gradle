@@ -63,6 +63,8 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 It must be one of:
     - A managed type (annotated with @Managed)
     - or a type which Gradle is capable of constructing:
+        - org.gradle.platform.base.BinarySpec
+        - org.gradle.platform.base.ComponentSpec
         - org.gradle.language.java.JavaSourceSet""")
 
         where:
