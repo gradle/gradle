@@ -42,6 +42,9 @@ public interface JvmApiSpec {
      */
     void exports(String packageName);
 
+    /**
+     * The packages exported in this API.
+     */
     Set<JvmPackageName> getExports();
 
     void dependencies(Closure<?> configureAction);
