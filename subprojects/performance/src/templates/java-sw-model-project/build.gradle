@@ -38,14 +38,11 @@ model {
             def projectDependencies = generatedDependencies.get(subprojectNumber)
             if(projectDependencies) {
             %> {
-            sources {
-                java {
-                    dependencies {<%
-                        projectDependencies.each {
-%>
-                        project ':project${it}' library 'main'<%
-                        } %>
-                    }
+            api {
+                dependencies {<%
+                    projectDependencies.each {
+%>                  project ':project${it}' library 'main'
+                    <% } %>
                 }
             }
         }
@@ -59,11 +56,12 @@ model {
                 <%
                 apiExports.each {
                     %>
-                    exports 't${it}' <%
-                } %>
+                    exports 't${it}'
+                <% } %>
             }
         }
 <% } } %>
+        <% if (binding.hasVariable('testComponent') && testComponent) { %>
         test(JvmLibrarySpec) {
             sources {
                 java {
@@ -73,6 +71,7 @@ model {
                 }
             }
         }
+        <% } %>
     }
 }
 
@@ -91,6 +90,7 @@ class ClasspathWiring extends RuleSource {
     }
 }
 
+<% if (binding.hasVariable('testComponent') && testComponent) { %>
 class TestTaskWiring extends RuleSource {
     @Mutate
     void createTestTask(ModelMap<Task> tasks, ModelMap<BinarySpec> binaries, ModelMap<JvmLibrarySpec> libraries) {
@@ -122,6 +122,7 @@ class TestTaskWiring extends RuleSource {
         new File(new File(project.buildDir, 'reports'), testReportDirName)
     }
 }
+<% } %>
 
 class CheckstyleWiring extends RuleSource {
     @Mutate
@@ -150,5 +151,7 @@ class CheckstyleWiring extends RuleSource {
 }
 
 apply plugin: ClasspathWiring
-apply plugin: TestTaskWiring
 apply plugin: CheckstyleWiring
+<% if (binding.hasVariable('testComponent') && testComponent) { %>
+apply plugin: TestTaskWiring
+<% } %>

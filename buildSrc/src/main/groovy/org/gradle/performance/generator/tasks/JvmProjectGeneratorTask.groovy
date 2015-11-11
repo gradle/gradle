@@ -23,6 +23,7 @@ import org.gradle.performance.generator.*
 class JvmProjectGeneratorTask extends ProjectGeneratorTask {
     boolean groovyProject
     boolean scalaProject
+    boolean createTestComponent = true
     Closure createPackageName = { testProject, fileNumber ->
         def pkg = "org.gradle.test.performance${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${(int) (fileNumber / filesPerPackage) + 1}"
         pkg.toString()
@@ -35,7 +36,7 @@ class JvmProjectGeneratorTask extends ProjectGeneratorTask {
     FileCollection testDependencies
 
     Map getTaskArgs() {
-        [ groovyProject: groovyProject, scalaProject: scalaProject ]
+        [ groovyProject: groovyProject, scalaProject: scalaProject, testComponent: createTestComponent ]
     }
 
     def generateRootProject() {

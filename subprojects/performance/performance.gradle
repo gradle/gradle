@@ -436,6 +436,7 @@ configure([smallJavaSwModelProject, largeJavaSwModelProject,
 configure([smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi, smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi]) {
     templateArgs.apiExports = [].withDefault { name.contains('Without') ? [] : ['org.gradle.test.performance'] }
     numberOfExternalDependencies = 0
+    createTestComponent = false
     dependencyGraph {
         size = 0
     }
