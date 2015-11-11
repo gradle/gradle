@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.jvm.JvmBinaryTasks;
@@ -143,7 +144,7 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public void setDependencies(Collection<DependencySpec> dependencies) {
-        componentLevelDependencies = dependencies;
+        componentLevelDependencies = ImmutableSet.copyOf(dependencies);
     }
 
     @Override
