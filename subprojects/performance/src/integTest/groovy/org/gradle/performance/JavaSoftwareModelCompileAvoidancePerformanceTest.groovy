@@ -159,7 +159,7 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
                 Collections.shuffle(projects, new Random(31 * projectCount))
                 // restore stale backup files in case a build was interrupted even if interrupted
                 projectDir.eachFileRecurse { file ->
-                    if (name.endsWith('~')) {
+                    if (file.name.endsWith('~')) {
                         restoreFile(new File(file.parentFile, file.name - '~'))
                     }
                 }
