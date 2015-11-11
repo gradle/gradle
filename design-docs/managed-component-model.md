@@ -297,15 +297,15 @@ Investigate the `ComponentSpec` type hierarchy to find what types could benefit 
 - Introduce internal views all along the type hierarchy and remove as much casts as possible, mostly from rules.
 - Make types `@Manage`d starting from leafs of the `ComponentSpec` hierarchy.
 
-### Identified candidates
+#### Identified candidates
 
 - `PlayApplicationSpec`
-    - `PlayApplicationSpecInternal` can be made an internal view
-    - `PlatformAwareComponentSpec` aspect of it can be extracted in a dedicated internal view registered with its own implementation
-    - Then, `PlayApplicationSpec` can be `@Manage`d with a single property: `injectedRoutesGenerator`
+    - `PlayApplicationSpecInternal` can be made an internal view.
+    - `PlatformAwareComponentSpec` aspect of it can be extracted in a dedicated unmanaged super-type (eg. `PlayPlatformAwareComponentSpec`) registered with its own implementation
+      which would provide the implementation for the unmanaged `platform(String)` behavior method.
+    - Then, `PlayApplicationSpec` can be `@Managed` with a single property: `injectedRoutesGenerator`.
 - `NativeTestSuiteSpec`
-    - This one is more straightforward as no dedicated internal view extraction is necessary
-    - It can be `@Manage`d and its `testedComponent` property can be made `@Unmanaged`
+    - It can be `@Managed` and its `testedComponent` property can be made `@Unmanaged`
 
 ### Tests
 
