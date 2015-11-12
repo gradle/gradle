@@ -719,6 +719,103 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         gradleVersion << ['2.6', '2.7']
     }
 
+    @LeaksFileHandles
+    def "can test settings plugin as external files by adding them to the build script's classpath"() {
+        buildFile <<
+            gradleApiDependency() <<
+            gradleTestKitDependency() <<
+            """
+                task createClasspathManifest {
+                    def outputDir = file("\$buildDir/\$name")
+
+                    inputs.files sourceSets.main.runtimeClasspath
+                    outputs.dir outputDir
+
+                    doLast {
+                        outputDir.mkdirs()
+                        file("\$outputDir/plugin-classpath.txt").text = sourceSets.main.runtimeClasspath.join("\\n")
+                    }
+                }
+
+                dependencies {
+                    testCompile files(createClasspathManifest)
+                }
+            """
+
+        file("src/main/groovy/org/gradle/test/HelloWorldSettingsPlugin.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.initialization.Settings
+
+            class HelloWorldSettingsPlugin implements Plugin<Settings> {
+                void apply(Settings settings) {
+                    println 'Hello world!'
+                }
+            }
+        """
+
+        writeTest """
+            package org.gradle.test
+
+            import org.gradle.testkit.runner.GradleRunner
+            import static org.gradle.testkit.runner.TaskOutcome.*
+            import org.junit.Rule
+            import org.junit.rules.TemporaryFolder
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {
+                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                File buildFile
+                File settingsFile
+
+                def setup() {
+                    buildFile = testProjectDir.newFile('build.gradle')
+                    settingsFile = testProjectDir.newFile('settings.gradle')
+                    def pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
+                      .readLines()
+                      .collect { it.replace('\\\\', '\\\\\\\\') } // escape backslashes in Windows paths
+                      .collect { "'\$it'" }
+                      .join(", ")
+
+                    settingsFile << \"\"\"
+                        buildscript {
+                            dependencies {
+                                classpath files(\$pluginClasspath)
+                            }
+                        }
+                    \"\"\"
+                }
+
+                def "apply settings plugin"() {
+                    given:
+                    settingsFile << 'apply plugin: org.gradle.test.HelloWorldSettingsPlugin'
+
+                    when:
+                    def result = GradleRunner.create()
+                        .withProjectDir(testProjectDir.root)
+                        .withArguments('tasks')
+                        .withDebug($GradleRunnerIntegTestRunner.debug)
+                        .build()
+
+                    then:
+                    result.output.contains('Hello world!')
+                    result.taskPaths(SUCCESS) == [':tasks']
+                    result.taskPaths(SKIPPED).empty
+                    result.taskPaths(UP_TO_DATE).empty
+                    result.taskPaths(FAILED).empty
+                }
+            }
+        """
+
+        when:
+        succeeds('build')
+
+        then:
+        executedAndNotSkipped(':test')
+        assertDaemonsAreStopping()
+    }
+
     private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
         File daemonBaseDir = new File(new TempTestKitDirProvider().getDir(), 'daemon')
         DaemonLogsAnalyzer.newAnalyzer(daemonBaseDir, executer.distribution.version.version)
