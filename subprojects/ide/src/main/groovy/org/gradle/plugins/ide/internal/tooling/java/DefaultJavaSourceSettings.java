@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.tooling.eclipse;
-
-import org.gradle.tooling.model.java.JavaSourceLevel;
+package org.gradle.plugins.ide.internal.tooling.java;
 
 import java.io.Serializable;
 
 public class DefaultJavaSourceSettings implements Serializable {
-    private final JavaSourceLevel javaSourceLevel;
+    private final DefaultJavaLanguageLevel sourceLanguageLevel;
 
-    public DefaultJavaSourceSettings(JavaSourceLevel javaSourceLevel) {
-        this.javaSourceLevel = javaSourceLevel;
+    public DefaultJavaSourceSettings(DefaultJavaLanguageLevel sourceLanguageLevel) {
+        this.sourceLanguageLevel = sourceLanguageLevel;
     }
 
-    public JavaSourceLevel getLanguageLevel() {
-        return javaSourceLevel;
+    public DefaultJavaLanguageLevel getSourceLanguageLevel() {
+        return sourceLanguageLevel;
     }
 }

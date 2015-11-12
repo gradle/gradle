@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.java;
+package org.gradle.plugins.ide.internal.tooling.java;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.model.java.JavaVersion;
 
-/**
- * Describes Java source settings.
- *
- * @since 2.10
- */
-@Incubating
-public interface JavaSourceSettings {
-    /**
-     * Returns the Java source language level.
-     *
-     * @return The source language level. Never returns {@code null}.
-     */
-    JavaLanguageLevel getSourceLanguageLevel();
+import java.io.Serializable;
+
+public class DefaultJavaLanguageLevel implements Serializable {
+
+    private final JavaVersion version;
+
+    public DefaultJavaLanguageLevel(JavaVersion version) {
+        this.version = version;
+    }
+
+    public JavaVersion getVersion() {
+        return version;
+    }
 }

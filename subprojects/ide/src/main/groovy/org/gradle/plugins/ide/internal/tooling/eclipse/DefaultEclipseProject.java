@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import com.google.common.collect.Lists;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaSourceSettings;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 

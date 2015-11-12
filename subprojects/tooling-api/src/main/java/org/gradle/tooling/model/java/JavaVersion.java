@@ -24,31 +24,31 @@ import org.gradle.api.Incubating;
  * @since 2.10
  */
 @Incubating
-public enum JavaSourceLevel {
+public enum JavaVersion {
 
     VERSION_1_1("1.1"), VERSION_1_2("1.2"), VERSION_1_3("1.3"), VERSION_1_4("1.4"), VERSION_1_5("1.5"), VERSION_1_6("1.6"), VERSION_1_7("1.7"), VERSION_1_8("1.8"), VERSION_1_9("1.9");
 
-    private final String version;
+    private final String name;
 
-    private JavaSourceLevel(String version) {
-        this.version = version;
+    private JavaVersion(String name) {
+        this.name = name;
     }
 
     /**
-     * Returns the string representation of the source level in a [major_version].[minor_version] format.
+     * Returns the string representation of the Java version in a [major_version].[minor_version] format.
      *
-     * @return The string representation of the Java source level.
+     * @return The string representation of the Java version.
      */
-    public String getVersion() {
-        return version;
+    public String getName() {
+        return name;
     }
 
-    public static JavaSourceLevel from(String version) {
-        for (JavaSourceLevel javaSourceLevel : JavaSourceLevel.values()) {
-            if (javaSourceLevel.version.equals(version)) {
-                return javaSourceLevel;
+    public static JavaVersion from(String name) {
+        for (JavaVersion javaVersion : JavaVersion.values()) {
+            if (javaVersion.name.equals(name)) {
+                return javaVersion;
             }
         }
-        throw new IllegalArgumentException(String.format("No JavaSourceLevel constant defined with version '%s'", version));
+        throw new IllegalArgumentException(String.format("No JavaSourceLevel constant defined with name '%s'", name));
     }
 }
