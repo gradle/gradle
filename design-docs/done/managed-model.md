@@ -577,3 +577,35 @@ Runtime error received when trying to mutate an immutable object should include 
 
 - Similar to `String` etc., getter must be accompanied by setter
 - Similar to `String` etc. `setFile()` cannot be called when the object is read only
+
+### Support managed properties with primitive type
+
+- Add support for all primitive types.
+- Add support for missing boxed types (Byte, Short, Float).
+- Update user guide and Javadocs
+
+##### Test cases
+
+- Can define RW properties of any scalar type
+- Cannot have read only properties of scalar types.
+- Fail type validation when getter uses primitive type and setter uses boxed type (and vice versa).
+- Cannot mutate properties of scalar types when view is immutable (eg used as input for rule, used as subject for validation rule).
+- Model report renders primitive values
+
+##### Implementation
+
+- Update `PrimitiveStrategy` to support an extraction result for primitive types
+- Add support for missing boxed types to `ManagedProxyClassGenerator`
+- Add support for primitive types to `ManagedProxyClassGenerator`. Handle case where state returns null by setting a default value.
+- Make sure `org.gradle.api.reporting.model.internal.ModelNodeRenderer.maybePrintValue` handles primitive types in a human readable form
+
+### Support `is` style getters for managed properties of type boolean
+
+- Should follow the JavaBeans specification: only type `boolean` should allow `is` getter style: `Boolean` shouldn't be supported.
+- Update user guide and Javadoc
+
+#### Test cases
+- Support `is` style accessor for properties with type `boolean`
+- Support type with both `is` and `get` accessors for property with type `boolean`
+- Prohibit `is` style accessors for properties of any type other than `boolean`(including Boolean)
+- Delegated boolean property declared with `is` getter in unmanaged super-type is supported

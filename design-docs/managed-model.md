@@ -36,41 +36,9 @@ may also be internal mechanisms to define such properties on other types.
 
 ## Feature: Support more types for managed properties
 
-### Support managed properties with primitive type
-
-- Add support for all primitive types.
-- Add support for missing boxed types (Byte, Short, Float).
-- Update user guide and Javadocs
-
-##### Test cases
-
-- Can define RW properties of any scalar type
-- Cannot have read only properties of scalar types.
-- Fail type validation when getter uses primitive type and setter uses boxed type (and vice versa).
-- Cannot mutate properties of scalar types when view is immutable (eg used as input for rule, used as subject for validation rule).
-- Model report renders primitive values
-
-##### Implementation
-
-- Update `PrimitiveStrategy` to support an extraction result for primitive types
-- Add support for missing boxed types to `ManagedProxyClassGenerator`
-- Add support for primitive types to `ManagedProxyClassGenerator`. Handle case where state returns null by setting a default value.
-- Make sure `org.gradle.api.reporting.model.internal.ModelNodeRenderer.maybePrintValue` handles primitive types in a human readable form
-
 #### Backlog
 
 - Values for properties with primitive and other scalar types do not show up in model report unless they have been set
-
-### Support `is` style getters for managed properties of type boolean
-
-- Should follow the JavaBeans specification: only type `boolean` should allow `is` getter style: `Boolean` shouldn't be supported.
-- Update user guide and Javadoc
-
-#### Test cases
-- Support `is` style accessor for properties with type `boolean`
-- Support type with both `is` and `get` accessors for property with type `boolean`
-- Prohibit `is` style accessors for properties of any type other than `boolean`(including Boolean)
-- Delegated boolean property declared with `is` getter in unmanaged super-type is supported
 
 ### Support for managed properties with collection of scalar types
 
