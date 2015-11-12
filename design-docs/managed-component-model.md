@@ -357,7 +357,22 @@ Investigate the `ComponentSpec` type hierarchy to find what types could benefit 
 
 ## Convert our plugins to use internal views and managed subtypes of BinarySpec
 
+Investigate the `BinarySpec` type hierarchy to find what types could benefit from the following new features, and apply them:
+- internal views, they now work for both unmanaged and managed types
+- managed subtypes of unmanaged types
+
+### Implementation notes
+
+- Introduce internal views all along the type hierarchy and remove as much casts as possible, mostly from rules.
+- Make types `@Managed` starting from leafs of the `BinarySpec` hierarchy.
+
+#### Identified candidates
+
 - TBD
+
+### Tests
+
+- No existing test should break
 
 ## Convert our plugins to use internal views and managed subtypes of LanguageSourceSet
 
