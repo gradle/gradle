@@ -58,10 +58,10 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         "nativeMonolithicOverlapping" | millis(1000)               | 4
     }
 
-    @Unroll('Project #buildSize native build #changeType change')
+    @Unroll('Project #buildSize native build #changeType')
     def "build with changes"() {
         given:
-        runner.testId = "native build ${buildSize} ${changeType} change"
+        runner.testId = "native build ${buildSize} ${changeType}"
         runner.testProject = "${buildSize}NativeMonolithic"
         runner.tasksToRun = ['build']
         runner.args = ["--parallel", "--max-workers=4"]
@@ -73,7 +73,7 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         runner.runs = 10
         String fileName = changedFile
         Closure fileChanger = changeClosure
-        boolean compilerOptionChange = (changeType == 'compiler options')
+        boolean compilerOptionChange = (changeClosure == null)
         runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
             File file
             String originalContent
@@ -139,13 +139,13 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        buildSize | changeType         | maxExecutionTimeRegression | changedFile                       | changeClosure
-        "small"   | '1'                | millis(1000)               | 'modules/project1/src/src45_c.c'  | this.&changeCSource
-        "medium"  | '1'                | millis(5000)               | 'modules/project5/src/src100_c.c' | this.&changeCSource
-        "small"   | 'few files'        | millis(1000)               | 'common/common/include/header8.h' | this.&changeHeader
-        "medium"  | 'few files'        | millis(5000)               | 'common/common/include/header8.h' | this.&changeHeader
-        "small"   | 'compiler options' | millis(1000)               | null                              | null
-        "medium"  | 'compiler options' | millis(5000)               | null                              | null
+        buildSize | changeType              | maxExecutionTimeRegression | changedFile                       | changeClosure
+        "small"   | 'source file change'    | millis(1000)               | 'modules/project1/src/src45_c.c'  | this.&changeCSource
+        "medium"  | 'source file change'    | millis(5000)               | 'modules/project5/src/src100_c.c' | this.&changeCSource
+        "small"   | 'header file change'    | millis(1000)               | 'common/common/include/header8.h' | this.&changeHeader
+        "medium"  | 'header file change'    | millis(5000)               | 'common/common/include/header8.h' | this.&changeHeader
+        "small"   | 'recompile all sources' | millis(1000)               | null                              | null
+        "medium"  | 'recompile all sources' | millis(5000)               | null                              | null
     }
 
     void changeCSource(File file, String originalContent) {
