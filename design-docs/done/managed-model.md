@@ -609,3 +609,75 @@ Runtime error received when trying to mutate an immutable object should include 
 - Support type with both `is` and `get` accessors for property with type `boolean`
 - Prohibit `is` style accessors for properties of any type other than `boolean`(including Boolean)
 - Delegated boolean property declared with `is` getter in unmanaged super-type is supported
+
+### Support for managed properties with collection of scalar types
+
+Add support managed properties of `List<T>` and `Set<T>` where `T` is any non primitive scalar type (as defined above).
+- Any returned collection instance will be mutable when view is mutable (eg used as subject for rule).
+- Any returned collection instance will be immutable when view is immutable (eg used as input for rule, used as subject for validation rule).
+- Properties of type `Set` will retain insertion order
+
+Support read-only collection properties defined as:
+
+    @Managed
+    interface ReadOnlyProperty {
+        List<String> getItems()
+    }
+
+- Default value is an empty collection
+- Multiple calls to a getter may not return the same instance of a collection
+
+Support read-write collection properties defined using both a getter and a setter:
+
+    @Managed
+    interface ReadWriteProperty {
+        List<String> getItems()
+        void setItems(List<String> items)
+    }
+
+- Defaults to a null value
+- Can set to a null value
+- Multiple calls to a getter may not return the same instance of a collection
+- Collection returned by getter may not be the same instance as provided to the setter
+- When a setter is called, a new managed collection is created, ensuring immutability. Documentation should mention a similarity with the defensive copy pattern.
+- The collection property will only be writable when the view is mutable
+
+#### Implementation notes
+- Update user guide and Javadocs, add sample
+- Make sure `org.gradle.api.reporting.model.internal.ModelNodeRenderer.maybePrintValue` handles collection types in a human readable form (aka, not `toString()`)
+
+#### Test cases
+
+- calling the getter of a read-only property for a created node must return an empty collection
+- calling the getter of a read-write property for a created node must return `null`
+- cannot assign a collection to a read-only property
+- can assign `null` to a read-write property
+- Model report renders collection values
+    * Format should be similar to the one of `Arrays.toString`
+- For a managed type that defines a `Set<String>` read-only property
+```
+    foo.getItems().addAll(['b', 'c'])
+    foo.getItems().add('d')
+    foo.getItems().add('a')
+    foo.getItems() == ['b','c','d','a'] as Set
+```
+- For a managed type `foo` that defines a `Set<String>` read-write property
+```
+    SortedSet<String> sortedSet = Sets.newTreeSet('c', 'b')
+    foo.setItems(sortedSet)
+    sortedSet.add('d')
+    foo.getItems().add('a')
+    foo.getItems() == ['b','c','a'] as Set
+```
+- Copy on write semantics:
+```
+    List<String> list = ['a', 'b']
+    foo.setItems(list)
+    list.add 'c'
+    foo.getItems() == ['a', 'b']
+```
+- Useful error message presented when validating schema:
+    * `T` is not a scalar type
+    * `T` is not the same for getter and setter
+    * Property type is `Collection<T>`, `ArrayList<T>`, `HashSet<T>`
+    * Suggest to use interface type `List<T>` or `Set<T>` if a concrete implementation is used in the interface declaration
