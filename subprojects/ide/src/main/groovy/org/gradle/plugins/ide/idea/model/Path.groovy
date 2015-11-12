@@ -34,14 +34,17 @@ class Path {
      */
     final String canonicalUrl
 
+    final String group
+
     Path(String url) {
         this(url, url, null)
     }
 
-    Path(String url, String canonicalUrl, String relPath) {
+    Path(String url, String canonicalUrl, String relPath, String group = null) {
         this.relPath = relPath
         this.url = url
         this.canonicalUrl = canonicalUrl
+        this.group = group
     }
 
     boolean equals(o) {

@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea.model
-
 import org.gradle.api.JavaVersion
 import org.gradle.internal.xml.XmlTransformer
 import spock.lang.Specification
 
 class ProjectTest extends Specification {
     final PathFactory pathFactory = new PathFactory()
-    final customModules = [path('file://$PROJECT_DIR$/gradle-idea-plugin.iml')]
+    final customModules = [
+	    path('file://$PROJECT_DIR$/gradle-idea-plugin.iml')
+    , path('file://$PROJECT_DIR$/gradle-idea-plugin1.iml', 'test')
+    ]
     final customWildcards = ["?*.gradle", "?*.grails"] as Set
     Project project = new Project(new XmlTransformer(), pathFactory)
 
@@ -33,6 +35,9 @@ class ProjectTest extends Specification {
         project.modulePaths as Set == customModules as Set
         project.wildcards == customWildcards
         project.jdk == new Jdk(true, false, null, "1.4")
+        project.modulePaths.eachWithIndex { Path path, int i ->
+	        assert path.group == customModules[i].group
+        }
     }
 
     def customJdkAndWildcards_shouldBeMerged() {
@@ -103,7 +108,7 @@ class ProjectTest extends Specification {
         return getClass().getResourceAsStream('customProject.xml')
     }
 
-    private Path path(String url) {
-        pathFactory.path(url)
+    private Path path(String url, String group = null) {
+        pathFactory.path(url, null, group)
     }
 }
