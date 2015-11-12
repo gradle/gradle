@@ -38,9 +38,9 @@ may also be internal mechanisms to define such properties on other types.
 
 ### Backlog
 
-- Need reasonable `toString()` value for the collection implementations. Should match that of other managed types.
-- Documentation does not mention copy-on-write semantics.
-- Default value for property with type collection of scalars is not shown in model report
+- Need reasonable `toString()` value for scalar collection implementations. Should match that of other managed types.
+- Documentation does not mention copy-on-write semantics for mutable properties of type scalar collection.
+- Default value for property with type collection of scalars is not shown in model report.
 - `null` value for mutable property is not shown in model report (but empty list is).
 - Support `Collection` as property type, at least for mutable property.
 - Support `Collection` (or `Iterable`) and arrays as parameter to setter.
