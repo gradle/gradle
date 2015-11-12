@@ -96,6 +96,19 @@ Assuming A) implementation strategy is chosen:
 
 TBD
 
+## Story: Continuous build does not trigger rebuild when an intermediate file is changed
+
+The current implementation of continuous build registers to watch changes to the input files of all tasks that are executed. 
+
+Benefits of not watching for changes in intermediate files:
+- Some builds might end up in a loop when their intermediate files keep changing. These builds would be able to use continuous build mode without changing the build logic.
+
+- It would reduce file system I/O when we watch for changes in less files.
+
+Intermediate files are outputs from one task and inputs to another task in the same task graph.
+
+TBD
+
 
 # Open issues
 
