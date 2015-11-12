@@ -375,7 +375,15 @@ int main (int argc, char *argv[]) {
             apply plugin: "cpp"
             model {
                 components {
-                    exe(NativeExecutableSpec)
+                    exe(NativeExecutableSpec) {
+                        binaries {
+                            all {
+                                sources {
+                                    other(CSourceSet)
+                                }
+                            }
+                        }
+                    }
                     lib(NativeLibrarySpec)
                 }
             }
@@ -389,7 +397,9 @@ int main (int argc, char *argv[]) {
                 exe {
                     binaries {
                         executable(type: "org.gradle.nativeplatform.NativeExecutableBinarySpec") {
-                            sources()
+                            sources {
+                                other(type: "org.gradle.language.c.CSourceSet", nodeValue: "C source 'exe:other'")
+                            }
                             tasks()
                         }
                     }

@@ -87,7 +87,7 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
         ))
     }
 
-    def "model report should display configured components"() {
+    def "model report should display configured components and binaries"() {
         given:
         buildFile << """
             plugins {
@@ -98,6 +98,13 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
                     jvmLibrary(JvmLibrarySpec) {
                         sources {
                             other(JavaSourceSet)
+                        }
+                        binaries {
+                            jar {
+                                sources {
+                                    binarySources(JavaSourceSet)
+                                }
+                            }
                         }
                     }
                 }
@@ -112,7 +119,9 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
                 jvmLibrary {
                     binaries {
                         jar(type: "org.gradle.jvm.JarBinarySpec") {
-                            sources()
+                            sources {
+                                binarySources(type: "org.gradle.language.java.JavaSourceSet", nodeValue: "Java source 'jvmLibrary:binarySources'")
+                            }
                             tasks()
                         }
                     }

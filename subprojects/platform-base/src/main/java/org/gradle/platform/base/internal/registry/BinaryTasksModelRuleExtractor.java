@@ -87,6 +87,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
             super(ModelReference.of(binaryType), binaryType, ruleDefinition, ModelReference.of(ITaskFactory.class));
         }
 
+        // TODO:DAZ Clean this up, and remove DomainObjectCollectionBackedModelMap
         protected void execute(final MutableModelNode modelNode, final T binary, List<ModelView<?>> inputs) {
             NamedEntityInstantiator<Task> taskFactory = Cast.uncheckedCast(ModelViews.getInstance(inputs.get(0), ITaskFactory.class));
             ModelMap<Task> cast = DomainObjectCollectionBackedModelMap.wrap(
