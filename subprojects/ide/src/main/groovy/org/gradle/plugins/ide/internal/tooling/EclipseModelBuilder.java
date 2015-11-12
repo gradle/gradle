@@ -25,6 +25,7 @@ import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
+import org.gradle.tooling.model.java.JavaSourceLevel;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.util.GUtil;
 
@@ -144,8 +145,8 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             // hence we have to read the value only from there
             JavaVersion sourceCompatibility = eclipseModel.getJdt().getSourceCompatibility();
             if (sourceCompatibility != null) {
-                DefaultJavaSourceLevel languageLevel = new DefaultJavaSourceLevel(sourceCompatibility.toString());
-                DefaultJavaSourceSettings sourceSettings = new DefaultJavaSourceSettings(languageLevel);
+                JavaSourceLevel sourceLevel = JavaSourceLevel.from(sourceCompatibility.toString());
+                DefaultJavaSourceSettings sourceSettings = new DefaultJavaSourceSettings(sourceLevel);
                 eclipseProject.setJavaSourceSettings(sourceSettings);
             }
         }
