@@ -211,12 +211,20 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         fails 'printResolvedValues'
 
         and:
-        failure.assertThatCause(containsString('Cannot convert null to a primitive type'))
+        failure.assertThatCause(containsString("Cannot assign null value to primitive type $type"))
         failure.assertThatCause(containsString('The following types/formats are supported:'))
         failure.assertThatCause(containsString('CharSequence instances'))
 
         where:
-        varname << ['bool1', 'thedouble', 'thefloat', 'theint', 'thelong', 'theshort', 'thebyte', 'thechar']
+        varname     | type
+        'bool1'     | boolean
+        'thedouble' | double
+        'thefloat'  | float
+        'theint'    | int
+        'thelong'   | long
+        'theshort'  | short
+        'thebyte'   | byte
+        'thechar'   | char
     }
 
     @Unroll

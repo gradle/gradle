@@ -287,7 +287,8 @@ public class DefaultTypeConverters implements TypeConverters {
         if (notation == null) {
 
             if (primitive) {
-                throw new UnsupportedNotationException(notation, "Cannot convert null to a primitive type.", null, CANDIDATES);
+                throw new UnsupportedNotationException(notation,
+                    String.format("Cannot assign null value to primitive type %s.", UNBOXED_TYPES.get(type).getSimpleName()), null, CANDIDATES);
             }
 
             return null;
