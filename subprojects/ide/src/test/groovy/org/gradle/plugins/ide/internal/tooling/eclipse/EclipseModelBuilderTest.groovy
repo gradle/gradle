@@ -40,7 +40,7 @@ class EclipseModelBuilderTest extends Specification {
         project = TestUtil.builder().withName("project").build()
         child1 = TestUtil.builder().withName("child1").withParent(project).build()
         child2 = TestUtil.builder().withName("child2").withParent(project).build()
-        [project, child1, child2].each{ it.pluginManager.apply(EclipsePlugin.class) }
+        [project, child1, child2].each { it.pluginManager.apply(EclipsePlugin.class) }
     }
 
     def "can read natures"() {
@@ -52,7 +52,7 @@ class EclipseModelBuilderTest extends Specification {
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.projectNatures.collect{ it.id } == ['nature.a', 'nature.b']
+        eclipseModel.projectNatures.collect { it.id } == ['nature.a', 'nature.b']
     }
 
     def "nature list independent from project hierarchy"() {
@@ -66,11 +66,11 @@ class EclipseModelBuilderTest extends Specification {
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.projectNatures.collect{ it.id } == ['nature.for.root']
+        eclipseModel.projectNatures.collect { it.id } == ['nature.for.root']
         eclipseModel.children[0].name == 'child1'
-        eclipseModel.children[0].projectNatures.collect{ it.id } == ['nature.for.child1']
+        eclipseModel.children[0].projectNatures.collect { it.id } == ['nature.for.child1']
         eclipseModel.children[1].name == 'child2'
-        eclipseModel.children[1].projectNatures.collect{ it.id } == ['nature.for.child2']
+        eclipseModel.children[1].projectNatures.collect { it.id } == ['nature.for.child2']
     }
 
     def "can read build commands"() {
@@ -85,8 +85,8 @@ class EclipseModelBuilderTest extends Specification {
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.buildCommands.collect{ it.name } == ['buildCommandWithoutArguments', 'buildCommandWithArguments']
-        eclipseModel.buildCommands.collect{ it.arguments } == [[:], ['argumentOneKey': 'argumentOneValue', 'argumentTwoKey': 'argumentTwoValue']]
+        eclipseModel.buildCommands.collect { it.name } == ['buildCommandWithoutArguments', 'buildCommandWithArguments']
+        eclipseModel.buildCommands.collect { it.arguments } == [[:], ['argumentOneKey': 'argumentOneValue', 'argumentTwoKey': 'argumentTwoValue']]
     }
 
     def "build command list independent from project hierarchy"() {
@@ -100,14 +100,14 @@ class EclipseModelBuilderTest extends Specification {
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.buildCommands.collect{ it.name } == ['rootBuildCommand']
-        eclipseModel.buildCommands.collect{ it.arguments } == [ ['rootKey': 'rootValue'] ]
+        eclipseModel.buildCommands.collect { it.name } == ['rootBuildCommand']
+        eclipseModel.buildCommands.collect { it.arguments } == [ ['rootKey': 'rootValue'] ]
         eclipseModel.children[0].name == 'child1'
-        eclipseModel.children[0].buildCommands.collect{ it.name } == ['child1BuildCommand']
-        eclipseModel.children[0].buildCommands.collect{ it.arguments } == [['child1Key': 'child1Value']]
+        eclipseModel.children[0].buildCommands.collect { it.name } == ['child1BuildCommand']
+        eclipseModel.children[0].buildCommands.collect { it.arguments } == [['child1Key': 'child1Value']]
         eclipseModel.children[1].name == 'child2'
-        eclipseModel.children[1].buildCommands.collect{ it.name } == ['child2BuildCommand']
-        eclipseModel.children[1].buildCommands.collect{ it.arguments } == [['child2Key': 'child2Value']]
+        eclipseModel.children[1].buildCommands.collect { it.name } == ['child2BuildCommand']
+        eclipseModel.children[1].buildCommands.collect { it.arguments } == [['child2Key': 'child2Value']]
     }
 
     def "no source language level set for non-Java projects"() {
@@ -209,8 +209,8 @@ class EclipseModelBuilderTest extends Specification {
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.children.find{ it.name == "child1" }.javaSourceSettings.languageLevel == JavaSourceLevel.VERSION_1_2
-        eclipseModel.children.find{ it.name == "child2" }.javaSourceSettings.languageLevel == JavaSourceLevel.VERSION_1_1
+        eclipseModel.children.find { it.name == "child1" }.javaSourceSettings.languageLevel == JavaSourceLevel.VERSION_1_2
+        eclipseModel.children.find { it.name == "child2" }.javaSourceSettings.languageLevel == JavaSourceLevel.VERSION_1_1
     }
 
     private def createEclipseModelBuilder() {

@@ -183,9 +183,9 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         EclipseProject rootProject = loadEclipseProjectModel()
-        EclipseProject subprojectA = rootProject.children.find{ it.name == 'subproject-a' }
-        EclipseProject subprojectB = rootProject.children.find{ it.name == 'subproject-b' }
-        EclipseProject subprojectC = rootProject.children.find{ it.name == 'subproject-c' }
+        EclipseProject subprojectA = rootProject.children.find { it.name == 'subproject-a' }
+        EclipseProject subprojectB = rootProject.children.find { it.name == 'subproject-b' }
+        EclipseProject subprojectC = rootProject.children.find { it.name == 'subproject-c' }
 
         then:
         subprojectA.javaSourceSettings.languageLevel == JavaSourceLevel.VERSION_1_1
