@@ -36,16 +36,6 @@ may also be internal mechanisms to define such properties on other types.
 
 ## Feature: Support more types for managed properties
 
-### Backlog
-
-- Need reasonable `toString()` value for scalar collection implementations. Should match that of other managed types.
-- Documentation does not mention copy-on-write semantics for mutable properties of type scalar collection.
-- Default value for property with type collection of scalars is not shown in model report.
-- `null` value for mutable property is not shown in model report (but empty list is).
-- Support `Collection` as property type, at least for mutable property.
-- Support `Collection` (or `Iterable`) and arrays as parameter to setter.
-- Support conversion of scalar types when added elements to a collection of scalars.
-
 ### Convenient configuration of scalar typed properties from Groovy
 
 - Convert input value:
@@ -104,6 +94,8 @@ TBD
 
 ### DSL improvements
 
+- support `Collection` (or `Iterable`) and arrays as parameter to setter.
+- support conversion of scalar types when added elements to a collection of scalars.
 - support the 'setter method' pattern from legacy domain types. For a simple type, the 'setter method' is equivalent to calling `set` or using `=`(equals) in the DSL:
 
 <!-- -->
@@ -130,17 +122,7 @@ TBD
 - support `=`(equals) in the DSL for read-only properties of collection type: in that case, there should not be a call to a (non existent) setter, but it should
 be syntactic sugar for `clear` followed by `addAll`.
 
-#### Open issues
-
-- Support for nested properties, that is to say support nested closures to configure properties of sub-elements
-
-
 ## Backlog
-
-### Performance issues
-
-- `ModelElementState` only supports boxed types, using `get` and `set`. If the model is often updated, it could lead to performance issues, in which case it
-could be necessary to introduce primitive versions of `get` and `set`.
 
 ### Support managed types declaring properties of type `ModelMap<T>`
 

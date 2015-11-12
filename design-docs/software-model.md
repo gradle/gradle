@@ -42,7 +42,23 @@ Unordered and not all appropriately story sized.
 
 ## Reporting
 
+- Model report shows too much detail by default, should probably not include tasks and just show 'data'
 - Values for properties with primitive and other scalar types do not show up in model report unless they have been set
+- Value for property with type collection of scalars is not shown in model report unless value has been set.
+- `null` value for mutable property with type collection of scalars is not shown in model report (but empty list is).
+
+## RuleSource
+
+- How to write a rule based plugin is not documented (need to tidy up docs on `PluginAware` and `ObjectConfigurationAction`)
+- Methods of rule source classes must be private, or be declared as rules, but cannot be both.
+    - Remove constraints on private methods (eg allow parameterized private methods).
+- Allow helper (i.e. non rule) methods to be parameterized for types in rule source plugins (currently we do not allow any parameterized methods)
+
+## Managed types
+
+- Need reasonable `toString()` value for scalar collection implementations. Should match that of other managed types.
+- Documentation does not mention copy-on-write semantics for mutable properties of type scalar collection.
+- Support `Collection` of scalar as property type, at least for mutable property.
 
 ## Cleanup
 
@@ -54,19 +70,15 @@ These should be rationalised and ideally replaced with model rules.
 - SonarRunnerExtension.sonarProperties
 - Move native plugin suite to new mechanism
 - Move publishing plugin suite to new mechanism
-- How to write a rule based plugin is not documented (need to tidy up docs on `PluginAware` and `ObjectConfigurationAction`)
-- Allow helper (i.e. non rule) methods to be parameterized for types in rule source plugins (currently we do not allow any parameterized methods)
 
 ## Tasks
 
 - Remove `TaskContainer` view from model space
 - Prevent illegal mutation of `Task` in model space
+- Task command line arguments are applied _after_ all configuration rules
 
 ## Misc
 
-- Methods of rule source classes must be private, or be declared as rules, but cannot be both.
-    - Remove constraints on private methods (eg allow parameterized private methods).
-- Task command line arguments are applied _after_ all configuration rules
 - Select internal services are made available to configuration rules (i.e. remove `ServiceRegistry` from model space)
 - Make `buildDir` available in model space
 - Remove `ExtensionContainer` from model space
@@ -101,10 +113,6 @@ These should be rationalised and ideally replaced with model rules.
 - Sugar for common types of external (volatile) inputs
 - Short circuit invalidation propagation downstream by stopping transitive invalidation when rebuilt element matches “previous” state
 - Model is reused when changing between different logical projects
-
-## Productization
-
-- Document rule source plugin concepts
 
 ## Migration/Bridging
 
