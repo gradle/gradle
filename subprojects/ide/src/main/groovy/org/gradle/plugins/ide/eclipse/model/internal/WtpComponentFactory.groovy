@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule
+import org.gradle.plugins.ide.eclipse.model.WbProjectDependentModule
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.eclipse.model.WtpComponent
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
@@ -63,7 +64,7 @@ class WtpComponentFactory {
 
         allProjects.collect { project ->
             def moduleName = project.plugins.hasPlugin(EclipsePlugin) ? project.eclipse.project.name : project.name
-            new WbDependentModule(deployPath, "module:/resource/" + moduleName + "/" + moduleName)
+            new WbProjectDependentModule(moduleName + ".jar",deployPath ,"module:/resource/" + moduleName + "/" + moduleName)
         }
     }
 
