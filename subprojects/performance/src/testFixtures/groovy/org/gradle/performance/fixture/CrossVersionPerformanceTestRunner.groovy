@@ -55,10 +55,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     CrossVersionPerformanceResults run() {
         assert testId
 
-        if (System.getProperty("org.gradle.performance.heapdump")) {
-            args.add("-Pheapdump")
-        }
-
         def results = new CrossVersionPerformanceResults(
                 testId: testId,
                 testProject: testProject,

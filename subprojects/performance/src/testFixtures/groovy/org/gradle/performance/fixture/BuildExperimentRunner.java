@@ -53,6 +53,9 @@ public class BuildExperimentRunner {
         final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
         final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
         additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
+        if (System.getProperty("org.gradle.performance.heapdump") != null) {
+            additionalArgs.add("-Pheapdump");
+        }
 
         GradleInvocationSpec buildSpec = experiment.getInvocation().withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
         File projectDir = buildSpec.getWorkingDirectory();
