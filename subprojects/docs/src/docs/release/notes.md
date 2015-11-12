@@ -81,6 +81,33 @@ Note: `@Managed` internal views registered on unmanaged types (like `JarBinarySp
 
 This feature is available for subtypes of `BinarySpec` and `ComponentSpec`.
 
+#### Managed binary and component types
+
+The `BinarySpec` and `ComponentSpec` types can now be extended via `@Managed` subtypes, allowing for declaration of `@Managed` components and binaries without having to provide a default implementation. `LibrarySpec` and `ApplicationSpec` can also be extended in this manner.
+
+Example:
+
+    @Managed
+    interface SampleLibrarySpec extends LibrarySpec {
+        String getPublicData()
+        void setPublicData(String publicData)
+    }
+
+    class RegisterComponentRules extends RuleSource {
+        @ComponentType
+        void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+        }
+    }
+    apply plugin: RegisterComponentRules
+
+    model {
+        components {
+            sampleLib(SampleLibrarySpec) {
+                publicData = "public"
+            }
+        }
+    }
+
 
 #### Default implementation for unmanaged base binary and component types
 
