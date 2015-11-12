@@ -45,6 +45,9 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
         then:
         noExceptionThrown()
 
+        cleanup:
+        runner.buildExperimentListener.cleanup()
+
         where:
 
         // nonApiChanges, abiCompatibleChanges and abiBreakingChanges are expressed in percentage of projects that are going to be
@@ -86,6 +89,7 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
     }
 
     private static class SourceFileUpdater extends BuildExperimentListenerAdapter {
+        private File projectDir
         private List<File> projects
         private List<File> projectsWithDependencies
         private int projectCount
@@ -144,7 +148,7 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
 
         @Override
         void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-            def projectDir = invocationInfo.projectDir
+            projectDir = invocationInfo.projectDir
             if (projects == null) {
 
                 projects = projectDir.listFiles().findAll { it.directory && it.name.startsWith('project') }.sort { it.name }
@@ -158,11 +162,7 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
                 // make sure execution is consistent independently of time
                 Collections.shuffle(projects, new Random(31 * projectCount))
                 // restore stale backup files in case a build was interrupted even if interrupted
-                projectDir.eachFileRecurse { file ->
-                    if (file.name.endsWith('~')) {
-                        restoreFile(new File(file.parentFile, file.name - '~'))
-                    }
-                }
+                cleanup()
 
                 // retrieve the dependencies in an exploitable form
                 dependencies = new GroovyShell().evaluate(new File(projectDir, 'generated-deps.groovy'))
@@ -226,6 +226,14 @@ public String addedProperty;
                             }
                         }
                     }
+                }
+            }
+        }
+
+        void cleanup() {
+            projectDir?.eachFileRecurse { file ->
+                if (file.name.endsWith('~')) {
+                    restoreFile(new File(file.parentFile, file.name - '~'))
                 }
             }
         }
