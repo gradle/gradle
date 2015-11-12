@@ -110,7 +110,7 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.children[1].buildCommands.collect { it.arguments } == [['child2Key': 'child2Value']]
     }
 
-    def "no source language level set for non-Java projects"() {
+    def "no source language level set for non-JVM projects"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
 
@@ -121,10 +121,10 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.javaSourceSettings == null
     }
 
-    def "default source language level is set for Java projects if source compatibility is not specified"() {
+    def "default source language level is set for JVM projects if source compatibility is not specified"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
-        project.plugins.apply(plugin)
+        project.plugins.apply(pluginType)
 
         when:
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
@@ -133,13 +133,13 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.javaSourceSettings.languageLevel.version == JavaVersion.current().toString()
 
         where:
-        plugin << [JavaPlugin, GroovyPlugin, ScalaPlugin]
+        pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
     }
 
-    def "default source language level is set for Java projects if source compatibility is set to null"() {
+    def "default source language level is set for JVM projects if source compatibility is set to null"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
-        project.plugins.apply(plugin)
+        project.plugins.apply(pluginType)
         project.sourceCompatibility = null
 
         when:
@@ -149,7 +149,7 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.javaSourceSettings.languageLevel.version == JavaVersion.current().toString()
 
         where:
-        plugin << [JavaPlugin, GroovyPlugin, ScalaPlugin]
+        pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
     }
 
     def "custom source language level from Java plugin convention"() {

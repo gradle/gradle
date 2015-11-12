@@ -127,7 +127,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
 
     @TargetGradleVersion(">=2.10")
-    def "Eclipse JDT setting has precedence over Java plugin convention when "() {
+    def "Eclipse JDT setting has precedence over Java plugin convention"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
