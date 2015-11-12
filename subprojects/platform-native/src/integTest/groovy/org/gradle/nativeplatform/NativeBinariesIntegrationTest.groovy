@@ -178,17 +178,19 @@ apply plugin: "cpp"
 model {
     components {
         main(NativeExecutableSpec)
-    }
-    binaries {
         all {
-            sources {
-                testCpp(CppSourceSet) {
-                    source.srcDir "src/test/cpp"
-                    exportedHeaders.srcDir "src/test/headers"
-                }
-                testC(CSourceSet) {
-                    source.srcDir "src/test/c"
-                    exportedHeaders.srcDir "src/test/headers"
+            binaries {
+                all {
+                    sources {
+                        testCpp(CppSourceSet) {
+                            source.srcDir "src/test/cpp"
+                            exportedHeaders.srcDir "src/test/headers"
+                        }
+                        testC(CSourceSet) {
+                            source.srcDir "src/test/c"
+                            exportedHeaders.srcDir "src/test/headers"
+                        }
+                    }
                 }
             }
         }
@@ -387,6 +389,7 @@ int main (int argc, char *argv[]) {
                 exe {
                     binaries {
                         executable(type: "org.gradle.nativeplatform.NativeExecutableBinarySpec") {
+                            sources()
                             tasks()
                         }
                     }
@@ -398,9 +401,11 @@ int main (int argc, char *argv[]) {
                 lib {
                     binaries {
                         sharedLibrary(type: "org.gradle.nativeplatform.SharedLibraryBinarySpec") {
+                            sources()
                             tasks()
                         }
                         staticLibrary(type: "org.gradle.nativeplatform.StaticLibraryBinarySpec") {
+                            sources()
                             tasks()
                         }
                     }

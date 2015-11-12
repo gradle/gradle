@@ -264,9 +264,11 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
                 main {
                     binaries {
                         first {
+                            sources()
                             tasks(nodeValue: "[]")
                         }
                         second {
+                            sources()
                             tasks(nodeValue: "[]")
                         }
 
