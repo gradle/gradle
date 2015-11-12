@@ -303,7 +303,7 @@ model {
 
 ### Test cases
 
-- A `@Managed` subtype of `ComponentSpec` can be used to declare a component
+- A `@Managed` subtype of `ComponentSpec`, `LibrarySpec` and `ApplicationSpec` can be used to declare a component
     - it should be possible to attach binaries to the `@Managed` component
 - A `@Managed` subtype of `BinarySpec` can be used to declare a binary
     - `isBuildable()` should return `true`

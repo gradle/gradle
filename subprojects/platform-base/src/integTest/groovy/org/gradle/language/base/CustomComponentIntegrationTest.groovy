@@ -15,28 +15,34 @@
  */
 
 package org.gradle.language.base
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.platform.base.ApplicationSpec
+import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.LibrarySpec
 import org.gradle.platform.base.internal.ComponentSpecInternal
+import spock.lang.Unroll
 
 class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
-    def "can declare custom managed component"() {
+    @Unroll
+    def "can declare custom managed #componentSpecType"() {
         buildFile << """
             @Managed
-            interface SampleLibrarySpec extends ComponentSpec {
+            interface SampleComponentSpec extends $componentSpecType {
                 String getPublicData()
                 void setPublicData(String publicData)
             }
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                void register(ComponentTypeBuilder<SampleComponentSpec> builder) {
                 }
             }
             apply plugin: RegisterComponentRules
 
             model {
                 components {
-                    sampleLib(SampleLibrarySpec) {
+                    sampleLib(SampleComponentSpec) {
                         publicData = "public"
                     }
                 }
@@ -48,7 +54,8 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                     tasks.create("validate") {
                         assert components*.name == ["sampleLib"]
                         assert components.withType(ComponentSpec)*.name == ["sampleLib"]
-                        assert components.withType(SampleLibrarySpec)*.name == ["sampleLib"]
+                        assert components.withType($componentSpecType)*.name == ["sampleLib"]
+                        assert components.withType(SampleComponentSpec)*.name == ["sampleLib"]
                         assert components*.publicData == ["public"]
                     }
                 }
@@ -58,26 +65,30 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "validate"
+
+        where:
+        componentSpecType << [ComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
     }
 
-    def "can add binaries to custom managed component"() {
+    @Unroll
+    def "can add binaries to custom managed #componentSpecType"() {
         buildFile << """
             apply plugin: 'jvm-component'
 
             @Managed
-            interface SampleLibrarySpec extends ComponentSpec {
+            interface SampleComponentSpec extends $componentSpecType {
             }
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                void register(ComponentTypeBuilder<SampleComponentSpec> builder) {
                 }
             }
             apply plugin: RegisterComponentRules
 
             model {
                 components {
-                    sampleLib(SampleLibrarySpec) {
+                    sampleLib(SampleComponentSpec) {
                         binaries {
                             jar(JarBinarySpec)
                         }
@@ -98,6 +109,9 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "validate"
+
+        where:
+        componentSpecType << [ComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
     }
 
     def "can declare custom managed Jvm library component"() {
