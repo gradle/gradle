@@ -7,6 +7,7 @@ Specific sub streams have been broken out into other concurrent specs.
 * `component-model-for-jvm-components.md`
 * `model-rules-dsl.md`
 * `model-reporting.md`
+* `task-bridging.md`
 
 # Backlog
 
@@ -19,8 +20,10 @@ Unordered and not all appropriately story sized.
 
 ## Diagnostics
 
-- Error message for rule execution/validation failure should include information about 'identity' of the rule, eg the same method attached to different projects.
-- Error message for rule execution/validation failure should include information about 'why' the rule was executed, eg during build script execution, as input to some rule.
+- Error message for rule execution/validation failure:
+    - Should include source file and line information, when known
+    - Should include information about 'identity' of the rule, eg the same method attached to different projects.
+    - Should include information about 'why' the rule was executed, eg during build script execution, as input to some rule.
 - Progress logging should show something about rule execution, eg when closing the task container for a project.
 - When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
 - Error message when applying a plugin with a task definition rule during task execution should include more context about the failed rule.
@@ -31,8 +34,9 @@ Unordered and not all appropriately story sized.
 - Collapse rule descriptors to “plugin” granularity where appropriate in error message (i.e. plugin users typically don't need information about plugin internals, but need to know which plugin failed).
 - Error message when no collection builder of requested type should provide more help about what is available
 - When should validation of rule reference binding occur?
-- Error message when DSl rule or compiled rule fail should report the purpose (eg could not configure task thing) rather than
+- Error message when DSl rule or method rule fail should report the purpose (eg could not configure task thing) rather than
   the mechanics (eg SomeClass.method() threw an exception).
+- Error message on mutating input could be improved
 
 ## Cleanup
 

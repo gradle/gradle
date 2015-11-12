@@ -1,5 +1,5 @@
 This spec outlines some initial stories for what's generally termed “managed model”.
-This is a sub stream of the “unified-configuration-model” stream.
+This is a sub stream of the “software-model” stream.
 
 ## Background
 
@@ -56,6 +56,10 @@ may also be internal mechanisms to define such properties on other types.
 - Add support for missing boxed types to `ManagedProxyClassGenerator`
 - Add support for primitive types to `ManagedProxyClassGenerator`. Handle case where state returns null by setting a default value.
 - Make sure `org.gradle.api.reporting.model.internal.ModelNodeRenderer.maybePrintValue` handles primitive types in a human readable form
+
+#### Backlog
+
+- Values for properties with primitive and other scalar types do not show up in model report unless they have been set
 
 ### Support `is` style getters for managed properties of type boolean
 

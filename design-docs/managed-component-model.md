@@ -547,13 +547,18 @@ For all theses tests, assert that the reported constructible types list contains
 
 ### Open Issues
 
-`ModelSet` contrat does not allow to specify the type of element when adding one. The `elementType` is always used.
+`ModelSet` contract does not allow to specify the type of element when adding one. The `elementType` is always used.
 In other words, there's no way to add an element of a different type that the `ModelSet` parameterized one.
 
 So, this test has not been implemented:
 
 - Add `ModelSetIntegrationTest.reasonable error message when creating a non-constructible type`.
 
+## Backlog
+
+- `ModelMap` Does not fail when type not within bounds is created or added.
+- There are inconsistent error messages when a 'schema' vs 'node-initialization' problem is found with a `@Managed` type
+    - For example, adding a read-only property of type `boolean` and `Boolean` fail in completely different ways
 
 ## Story: Validate model types more eagerly
 
