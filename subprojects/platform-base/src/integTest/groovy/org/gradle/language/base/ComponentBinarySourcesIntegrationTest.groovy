@@ -15,10 +15,8 @@
  */
 
 package org.gradle.language.base
-
 import groovy.transform.NotYetImplemented
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.util.TextUtil
 
 class ComponentBinarySourcesIntegrationTest extends AbstractComponentModelIntegrationTest {
     def setup() {
@@ -298,12 +296,12 @@ model {
         """
         then:
         succeeds "verify"
-        output.contains TextUtil.toPlatformLineSeparators('''configured components.mylib.binaries.main.sources
+        output.contains '''configured components.mylib.binaries.main.sources
 before ss1
 created ss1
 configured ss1
 after ss1
-''')
+'''
     }
 
     def "reasonable error message when adding source set with unknown type"() {
