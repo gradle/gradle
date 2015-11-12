@@ -73,7 +73,7 @@
                 <listitem>A <firstterm>runtime jar</firstterm> consists of <firstterm>API classes</firstterm> and <firstterm>non-API classes</firstterm> used at execution time. There can be multiple runtime jars
                     depending on combinations of the variant dimensions: target platform, hardware infrastructure, target application server, ...</listitem>
                 <listitem><firstterm>API classes</firstterm> are classes of a <firstterm>variant</firstterm> which match the <firstterm>API specification</firstterm></listitem>
-                <listitem><firstterm>Non-API classes</firstterm> are classes of a <firstterm>variant</firstterm> which do not match the <firstterm>API specification</firstterm>. They can be refered to as <firstterm>internal classes</firstterm>.</listitem>
+                <listitem><firstterm>Non-API classes</firstterm> are classes of a <firstterm>variant</firstterm> which do not match the <firstterm>API specification</firstterm>.</listitem>
                 <listitem>A <firstterm>stubbed API class</firstterm> is an <firstterm>API class</firstterm> for which its implementation and non public members have been removed. It is meant to be used when
                     a consumer is going to be compiled against an <firstterm>API</firstterm>.</listitem>
                 <listitem>An <firstterm>API jar</firstterm> is a collection of <firstterm>API classes</firstterm>. There can be multiple API jars depending on the combinations of variant dimensions.</listitem>
@@ -351,15 +351,15 @@
         <sample id="apiSpecification" dir="javaLibraryPlugin/apispec" title="Specifying library api">
             <sourcefile file="build.gradle" snippet="specify-library-api"/>
         </sample>
-        <para>When <literal>gradle assemble</literal> is run, both an <emphasis>api jar</emphasis> and <emphasis>implementation jar</emphasis> will be generated.</para>
+        <para>When <literal>gradle assemble</literal> is run, both an <emphasis>API jar</emphasis> and <emphasis>runtime jar</emphasis> will be generated.</para>
     </section>
     <section>
         <title>Downstream dependencies compile avoidance</title>
         <para>If you define an API for your library, Gradle will automatically enforce usage of the API at compile-time. It comes with 3 direct consequences:</para>
         <para><itemizedlist>
-            <listitem>Trying to use a non exported class in a dependency will now result in a compilation error.</listitem>
+            <listitem>Trying to use a non-API class in a dependency will now result in a compilation error.</listitem>
             <listitem>Changing the implementation of an API class will not result in recompilation of consumers if the ABI doesn't change (that is to say, all public methods have the same signature but not necessarily the same body).</listitem>
-            <listitem>Changing the implementation of a non-API class will not result in recompilation of consumers. This means that changes to internal classes will not trigger recompilation of downstream dependencies, because the ABI of the component doesn't change.</listitem>
+            <listitem>Changing the implementation of a non-API class will not result in recompilation of consumers. This means that changes to non-API classes will not trigger recompilation of downstream dependencies, because the ABI of the component doesn't change.</listitem>
         </itemizedlist>
         </para>
         <para>Given a <emphasis>main</emphasis> component that exports <literal>org.gradle</literal>, <literal>org.gradle.utils</literal> and defines those classes:</para>
@@ -374,7 +374,7 @@
             <sourcefile file="src/client/java/org/gradle/Client.java"/>
             <output args=":clientJar" ignoreExtraLines="true" outputFile="buildingJavaLibraries-compile-first.out"/>
         </sample>
-        <para>But trying to compile a component <emphasis>brokenclient</emphasis> that declares a dependency onto <emphasis>main</emphasis> but uses an internal, non-API class of <emphasis>main</emphasis> will result in a compile-time error:</para>
+        <para>But trying to compile a component <emphasis>brokenclient</emphasis> that declares a dependency onto <emphasis>main</emphasis> but uses an non-API class of <emphasis>main</emphasis> will result in a compile-time error:</para>
         <sample id="apiSpecification-brokenclient" dir="javaLibraryPlugin/apispec" title="Broken client component">
             <sourcefile file="src/brokenclient/java/org/gradle/Client.java"/>
             <output args=":brokenclientJar" expectFailure="true" ignoreExtraLines="true" outputFile="buildingJavaLibraries-compile-brokenclient.out"/>
