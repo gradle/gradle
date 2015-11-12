@@ -36,10 +36,6 @@ may also be internal mechanisms to define such properties on other types.
 
 ## Feature: Support more types for managed properties
 
-#### Backlog
-
-- Values for properties with primitive and other scalar types do not show up in model report unless they have been set
-
 ### Support for managed properties with collection of scalar types
 
 Add support managed properties of `List<T>` and `Set<T>` where `T` is any non primitive scalar type (as defined above).
@@ -111,6 +107,16 @@ Support read-write collection properties defined using both a getter and a sette
     * `T` is not the same for getter and setter
     * Property type is `Collection<T>`, `ArrayList<T>`, `HashSet<T>`
     * Suggest to use interface type `List<T>` or `Set<T>` if a concrete implementation is used in the interface declaration
+
+### Backlog
+
+- Need reasonable `toString()` value for the collection implementations. Should match that of other managed types.
+- Documentation does not mention copy-on-write semantics.
+- Default value for property with type collection of scalars is not shown in model report
+- `null` value for mutable property is not shown in model report (but empty list is).
+- Support `Collection` as property type, at least for mutable property.
+- Support `Collection` (or `Iterable`) and arrays as parameter to setter.
+- Support conversion of scalar types when added elements to a collection of scalars.
 
 ### Convenient configuration of scalar typed properties from Groovy
 

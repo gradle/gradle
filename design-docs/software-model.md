@@ -36,7 +36,13 @@ Unordered and not all appropriately story sized.
 - When should validation of rule reference binding occur?
 - Error message when DSl rule or method rule fail should report the purpose (eg could not configure task thing) rather than
   the mechanics (eg SomeClass.method() threw an exception).
-- Error message on mutating input could be improved
+- Error message on mutating input:
+    - Should include some information about the identity of the input, or its display name, and probably how it was referenced in the code
+    - Should provide some information about what the mutation was.
+
+## Reporting
+
+- Values for properties with primitive and other scalar types do not show up in model report unless they have been set
 
 ## Cleanup
 
