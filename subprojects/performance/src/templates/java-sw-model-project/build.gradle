@@ -12,7 +12,7 @@ plugins {
 <% if (repository) { %>
 repositories {
     maven {
-        url new File(rootDir, "${repository.rootDir.name}").toURL()
+        url rootProject.file("${repository.rootDir.name}").toURI().toURL()
     }
     mavenCentral()
 }

@@ -7,7 +7,7 @@ apply plugin: 'idea'
 repositories {
 <% if (repository) { %>
     maven {
-        url "${repository.getUri()}"
+        url rootProject.file("${repository.rootDir.name}").toURI().toURL()
     }
 <% } %>
     mavenCentral()
