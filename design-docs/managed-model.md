@@ -73,6 +73,10 @@ may also be internal mechanisms to define such properties on other types.
 
 - Nice error message when input value is not a `CharSequence`
 - Nice error message when a `CharSequence` input value cannot be converted to a File or an error occurs
+- Relative and absolute paths resolve as expected
+- File URLs resolve as expected
+- `String`s and `GString`s with expressions resolve as expected
+- Correct project directory is used in multi-project build
 
 ### Convenient configuration of File typed properties from Java
 
