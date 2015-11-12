@@ -60,7 +60,7 @@ Implementation details can be planned further after spiking the changes in the a
 
 ### Open issues
 
-- Jar task needs this fix to prevent looping: https://github.com/gradle/gradle/commit/4bc280cff6745e78e0b764c604c19214c5b9c946
+- Jar task needs this fix to prevent looping: https://github.com/gradle/gradle/commit/d629a86afbc25c6d1814b1c4e66f9a39a343df0c
 
 ## Story: Print the path of the task to console whose input changed
 
@@ -68,14 +68,24 @@ This is an extension to the story "Continuous build will trigger a rebuild when 
 
 This helps the user find out the reason which triggered the build. It is possible that a continuous build keeps re-triggering new builds when the user isn't doing any changes. This happens when a task changes it's own inputs during execution or when a task changes the inputs of a task that has been executed in the build before it. The user should fix such builds since continuous build will not prevent such loops.
 
-## Story: Currently running build is canceled before triggering a new build
+## Story: Provide quick feedback to user in continuous build
 
-This is an extension to the story "Continuous build will trigger a rebuild when an input file is changed during build execution". When a change is detected, the currently executing build is canceled and a new build is triggered.
+This is an extension to the story "Continuous build will trigger a rebuild when an input file is changed during build execution". 
+
+There are several options for providing the feedback quickly to the user:
+
+1. A) When a change is detected, the currently executing build is canceled. After a quiet period a new build is triggered.
+2. B) When a change is detected and a build is currently executing, use an adaptive solution to complete the current build.
+  - skip tasks that are non-incremental such as test execution tasks
+  - complete incremental tasks such as compilation tasks
+
+The implementation strategy will be chose when this story is designed and reviewed.
 
 ### Test coverage
 
 - all current continuous build tests should pass
 
+Assuming A) implementation strategy is chosen:
 - additional test cases for test scenario with a build with tasks A, B, C, D each having it's own directory as input. Tasks have dependencies so that B depends on A, C on B and D on C. Request building task D.
   - change input files to tasks after each task has been executed, but before the build has completed
     - check that the currently running build gets canceled and a new build gets triggered
