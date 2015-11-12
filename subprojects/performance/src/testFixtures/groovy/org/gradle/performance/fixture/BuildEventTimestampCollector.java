@@ -44,8 +44,8 @@ public class BuildEventTimestampCollector implements DataCollector {
     }
 
     @Override
-    public void collect(File testProjectDir, MeasuredOperation operation) {
-        final File timestampFile = new File(testProjectDir, outputFile);
+    public void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
+        final File timestampFile = new File(invocationInfo.getProjectDir(), outputFile);
         final String absolutePath = timestampFile.getAbsolutePath();
         if (!timestampFile.exists()) {
             throw new IllegalStateException(String.format("Could not find %s. Cannot collect build event timestamps.", absolutePath));

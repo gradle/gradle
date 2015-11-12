@@ -53,7 +53,7 @@ public class GCLoggingCollector implements DataCollector {
         return Collections.emptyList();
     }
 
-    public void collect(File testProjectDir, MeasuredOperation operation) {
+    public void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
         collect(operation, Locale.getDefault());
     }
 

@@ -157,7 +157,7 @@ public class BuildExperimentRunner {
 
         if (!omitMeasurement.get()) {
             if (operation.getException() == null) {
-                dataCollector.collect(session.getInvocation().getWorkingDirectory(), operation);
+                dataCollector.collect(invocationInfo, operation);
             }
 
             results.add(operation);

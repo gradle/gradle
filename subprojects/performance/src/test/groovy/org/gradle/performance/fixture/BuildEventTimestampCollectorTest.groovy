@@ -33,7 +33,7 @@ class BuildEventTimestampCollectorTest extends Specification {
     BuildEventTimestampCollector collector = new BuildEventTimestampCollector(FILENAME)
 
     private void collect() {
-        collector.collect(directoryProvider.testDirectory, measuredOperation)
+        collector.collect([getProjectDir: { directoryProvider.testDirectory }] as BuildExperimentInvocationInfo, measuredOperation)
     }
 
     private void timestampFileContents(String contents) {
