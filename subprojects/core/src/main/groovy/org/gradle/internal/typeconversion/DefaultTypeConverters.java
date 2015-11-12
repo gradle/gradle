@@ -18,8 +18,10 @@ package org.gradle.internal.typeconversion;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collection;
@@ -41,14 +43,19 @@ public class DefaultTypeConverters implements TypeConverters {
         .put(Double.class, double.class)
         .put(Long.class, long.class)
         .build();
+    private final NotationParser<Object, File> fileParser;
+
+    private static <T> NotationParser<Object, T> build(CharSequenceConverter converter, Class<?> type) {
+        return NotationParserBuilder
+            .toType(type)
+            .noImplicitConverters()
+            .converter(converter)
+            .toComposite();
+    }
 
     private static void registerConverter(CharSequenceConverter converter, Class<?>... types) {
         for (Class<?> type : types) {
-            PARSERS.put(type, NotationParserBuilder
-                .toType(type)
-                .noImplicitConverters()
-                .converter(converter)
-                .toComposite());
+            PARSERS.put(type, build(converter, type));
         }
     }
 
@@ -265,6 +272,16 @@ public class DefaultTypeConverters implements TypeConverters {
         }
     }
 
+    public DefaultTypeConverters(final FileResolver fileResolver) {
+        fileParser = build(new CharSequenceConverter<File>() {
+            public void convert(Object notation, NotationConvertResult<? super File> result) throws TypeConversionException {
+                if (notation instanceof CharSequence) {
+                    result.converted(fileResolver.resolve(notation.toString().trim()));
+                }
+            }
+        }, File.class);
+    }
+
     public Object convert(Object notation, Class type, boolean primitive) throws UnsupportedNotationException, TypeConversionException {
 
         if (notation == null) {
@@ -284,9 +301,15 @@ public class DefaultTypeConverters implements TypeConverters {
                 .toComposite().parseNotation(notation);
         }
 
-        NotationParser<Object, ?> parser = PARSERS.get(primitive ? UNBOXED_TYPES.get(type) : type);
-        if (parser == null) {
-            throw new UnsupportedNotationException(notation, "Unsupported type", null, CANDIDATES);
+        NotationParser<Object, ?> parser;
+        if (File.class.equals(type)) {
+            parser = fileParser;
+        }
+        else {
+            parser = PARSERS.get(primitive ? UNBOXED_TYPES.get(type) : type);
+            if (parser == null) {
+                throw new UnsupportedNotationException(notation, "Unsupported type", null, CANDIDATES);
+            }
         }
 
         return parser.parseNotation(notation);

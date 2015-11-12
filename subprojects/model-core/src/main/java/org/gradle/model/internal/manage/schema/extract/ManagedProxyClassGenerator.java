@@ -35,6 +35,7 @@ import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.objectweb.asm.*;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
@@ -443,7 +444,8 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         finishVisitingMethod(methodVisitor);
 
         if (propertyTypeClass.isPrimitive() || BOXED_TYPES.values().contains(propertyTypeClass) || propertyTypeClass.isEnum()
-            || BigDecimal.class.equals(propertyTypeClass) || BigInteger.class.equals(propertyTypeClass) || String.class.equals(propertyTypeClass)) {
+            || BigDecimal.class.equals(propertyTypeClass) || BigInteger.class.equals(propertyTypeClass) || String.class.equals(propertyTypeClass)
+            || File.class.equals(propertyTypeClass)) {
             createScalarConvertingSetter(visitor, generatedType, propertyTypeClass, setter, methodDescriptor);
         }
     }
