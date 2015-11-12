@@ -41,7 +41,7 @@ public class BuildExperimentRunner {
         MemoryInfoCollector memoryInfoCollector = new MemoryInfoCollector();
         memoryInfoCollector.setOutputFileName("build/totalMemoryUsed.txt");
         BuildEventTimestampCollector buildEventTimestampCollector = new BuildEventTimestampCollector("build/buildEventTimestamps.txt");
-        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector);
+        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector, new CompilationLoggingCollector());
     }
 
     public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {

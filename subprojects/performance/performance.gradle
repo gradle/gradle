@@ -525,6 +525,12 @@ if (project.hasProperty('org.gradle.performance.heapdump')) {
     }
 }
 
+if (project.hasProperty('org.gradle.performance.hotspotlog')) {
+    configure([performanceTest, performanceExperiments]) {
+        systemProperties['org.gradle.performance.hotspotlog'] = '1'
+    }
+}
+
 if (project.hasProperty('performanceTest.verbose')) {
     configure([performanceTest, performanceExperiments]) {
         testLogging.showStandardStreams = true
