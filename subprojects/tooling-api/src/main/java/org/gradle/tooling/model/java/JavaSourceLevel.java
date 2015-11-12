@@ -24,14 +24,31 @@ import org.gradle.api.Incubating;
  * @since 2.10
  */
 @Incubating
-public interface JavaSourceLevel {
+public enum JavaSourceLevel {
+
+    VERSION_1_1("1.1"), VERSION_1_2("1.2"), VERSION_1_3("1.3"), VERSION_1_4("1.4"), VERSION_1_5("1.5"), VERSION_1_6("1.6"), VERSION_1_7("1.7"), VERSION_1_8("1.8"), VERSION_1_9("1.9");
+
+    private final String version;
+
+    private JavaSourceLevel(String version) {
+        this.version = version;
+    }
 
     /**
-     * Returns the java source level in a string-representation.
-     * <p>
-     * The result has the <major_version>.<minor_version> format. For Java 7 the result is "1.7".
+     * Returns the string representation of the source level in a [major_version].[minor_version] format.
      *
-     * @return The Java source level. Never returns {@code null}.
+     * @return The string representation of the Java source level.
      */
-    String getLevel();
+    public String getVersion() {
+        return version;
+    }
+
+    public static JavaSourceLevel from(String version) {
+        for (JavaSourceLevel javaSourceLevel : JavaSourceLevel.values()) {
+            if (javaSourceLevel.version.equals(version)) {
+                return javaSourceLevel;
+            }
+        }
+        throw new IllegalArgumentException(String.format("No JavaSourceLevel constant defined with version '%s'", version));
+    }
 }

@@ -39,15 +39,6 @@ class BaseBinarySpecTest extends Specification {
         e.message == "Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead."
     }
 
-    def "cannot create instance of base class"() {
-        when:
-        BaseBinarySpec.create(BinarySpec, BaseBinarySpec, "sampleBinary", null, instantiator, Mock(ITaskFactory))
-
-        then:
-        def e = thrown ModelInstantiationException
-        e.message == "Cannot create instance of abstract class BaseBinarySpec."
-    }
-
     def "binary has name and sensible display name"() {
         def binary = BaseBinarySpec.create(BinarySpec, MySampleBinary, "sampleBinary", null, instantiator, Mock(ITaskFactory))
 

@@ -327,7 +327,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         and:
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasLineNumber(15)
-        failure.assertHasCause("No such property: unknown for class: Person")
+        failure.assertHasCause("Could not find property 'unknown' on Person 'someone'.")
     }
 
 }

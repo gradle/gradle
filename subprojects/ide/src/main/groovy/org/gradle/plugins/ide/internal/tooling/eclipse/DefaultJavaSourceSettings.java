@@ -16,16 +16,18 @@
 
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
+import org.gradle.tooling.model.java.JavaSourceLevel;
+
 import java.io.Serializable;
 
 public class DefaultJavaSourceSettings implements Serializable {
-    private final DefaultJavaSourceLevel languageLevel;
+    private final JavaSourceLevel javaSourceLevel;
 
-    public DefaultJavaSourceSettings(DefaultJavaSourceLevel languageLevel) {
-        this.languageLevel = languageLevel;
+    public DefaultJavaSourceSettings(JavaSourceLevel javaSourceLevel) {
+        this.javaSourceLevel = javaSourceLevel;
     }
 
-    public DefaultJavaSourceLevel getLanguageLevel() {
-        return languageLevel;
+    public JavaSourceLevel getLanguageLevel() {
+        return javaSourceLevel;
     }
 }

@@ -104,7 +104,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         @ComponentBinaries
         public void createBinaries(ModelMap<JarBinarySpec> binaries, BinaryNamingSchemeBuilder namingSchemeBuilder,
-                                   PlatformResolvers platforms, final JvmLibrarySpec jvmLibrary) {
+                                   PlatformResolvers platforms, final JvmLibrarySpecInternal jvmLibrary) {
             List<JavaPlatform> selectedPlatforms = resolvePlatforms(platforms, jvmLibrary);
             final Set<String> exportedPackages = jvmLibrary.getExportedPackages();
             final Collection<DependencySpec> apiDependencies = jvmLibrary.getApiDependencies();
@@ -124,9 +124,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         private List<JavaPlatform> resolvePlatforms(final PlatformResolvers platformResolver,
-                                                    JvmLibrarySpec jvmLibrarySpec) {
-            List<PlatformRequirement> targetPlatforms =
-                ((JvmLibrarySpecInternal) jvmLibrarySpec).getTargetPlatforms();
+                                                    JvmLibrarySpecInternal jvmLibrarySpec) {
+            List<PlatformRequirement> targetPlatforms = jvmLibrarySpec.getTargetPlatforms();
             if (targetPlatforms.isEmpty()) {
                 targetPlatforms = Collections.singletonList(
                     DefaultPlatformRequirement.create(DefaultJavaPlatform.current().getName()));

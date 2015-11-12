@@ -98,7 +98,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         .put(long.class, Long.class)
         .build();
 
-
     /**
      * Generates an implementation of the given managed type.
      * <p>
@@ -443,13 +442,15 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
         finishVisitingMethod(methodVisitor);
 
-        if (!propertyTypeClass.isPrimitive() && !BOXED_TYPES.values().contains(propertyTypeClass) && !propertyTypeClass.isEnum()
-            && !BigDecimal.class.equals(propertyTypeClass) && !BigInteger.class.equals(propertyTypeClass) && !String.class.equals(propertyTypeClass)) {
-            return;
+        if (propertyTypeClass.isPrimitive() || BOXED_TYPES.values().contains(propertyTypeClass) || propertyTypeClass.isEnum()
+            || BigDecimal.class.equals(propertyTypeClass) || BigInteger.class.equals(propertyTypeClass) || String.class.equals(propertyTypeClass)) {
+            createScalarConvertingSetter(visitor, generatedType, propertyTypeClass, setter, methodDescriptor);
         }
+    }
 
-        // the overload of type Object for Groovy coercions:  public void setFoo(Object foo)
-        methodVisitor = declareMethod(visitor, setter.getName(), SET_OBJECT_PROPERTY_DESCRIPTOR, SET_OBJECT_PROPERTY_DESCRIPTOR);
+    // the overload of type Object for Groovy coercions:  public void setFoo(Object foo)
+    private void createScalarConvertingSetter(ClassVisitor visitor, Type generatedType, Class<?> propertyTypeClass, Method setter, String methodDescriptor) {
+        MethodVisitor methodVisitor = declareMethod(visitor, setter.getName(), SET_OBJECT_PROPERTY_DESCRIPTOR, SET_OBJECT_PROPERTY_DESCRIPTOR);
 
         Class<?> objectType = propertyTypeClass.isPrimitive() ? BOXED_TYPES.get(propertyTypeClass) : propertyTypeClass;
         String propertyType = Type.getInternalName(objectType);

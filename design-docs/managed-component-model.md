@@ -163,8 +163,6 @@ This default implementation is then used as the super class for all `@Managed` s
 
 - Generalise the work done to allow `@Managed` subtypes of `JarBinarySpec` to support this.
 - Allow for binaries and components.
-- Change core plugins to declare default implementations for `ComponentSpec` and `BinarySpec`. This will allow `@Managed` subtypes of each
-of these types.
 
 ### Test cases
 
@@ -268,6 +266,52 @@ The views defined for the general type should also be applied to the specialized
 - Add a rule to the base plugins, to declare internal view types for `ComponentSpec` and `BinarySpec`.
 - Change node creation so that implementation is no longer available as a view type.
 
+
+## Plugin author defines `@Managed` subtype of core type without providing implementation
+
+Change core plugins to declare default implementations for `ComponentSpec` and `BinarySpec`. This will allow `@Managed` subtypes of each
+of these types.
+
+```
+@Managed
+interface MyComponentSpec extends ComponentSpec {
+    String getValue()
+    void setValue(String value)
+}
+
+class Rules extends RuleSource {
+    @ComponentType
+    void registerMyComponent(ComponentTypeBuilder<MyComponentSpec> builder) {
+    }
+}
+
+model {
+    components {
+        myThing(MyComponentSpec) {
+            value = "alma"
+        }
+    }
+}
+```
+
+- Include in release notes
+
+### Implementation
+
+- Default implementations needs to be allowed for multiple levels. In case of multiple default implementations the most specific one should be used.
+  Example: `BinarySpec` has its own default implementation, yet `JarBinarySpec` can specify its own. `@Managed` types extending `JarBinarySpec` should delegate to the default implementation of `JarBinarySpec` as it is more specific than the default implementation declared for `BinarySpec`.
+
+### Test cases
+
+- A `@Managed` subtype of `ComponentSpec` can be used to declare a component
+    - it should be possible to attach binaries to the `@Managed` component
+- A `@Managed` subtype of `BinarySpec` can be used to declare a binary
+    - `isBuildable()` should return `true`
+- An unmanaged subtype of `BinarySpec` (with its more-specific default implementation) can be extended via a `@Managed` subtype
+  - this is already covered by `CustomJarBinarySpecSubtypeIntegrationTest`
+- Verify how instances of managed subtypes show up in component report
+
+
 ## Plugin author declares internal views for custom managed type
 
 Given a plugin defines a `@Managed` subtype of a general type, allow the plugin to define internal views for that type.
@@ -295,11 +339,17 @@ Investigate the `ComponentSpec` type hierarchy to find what types could benefit 
 ### Implementation notes
 
 - Introduce internal views all along the type hierarchy and remove as much casts as possible, mostly from rules.
-- Make types `@Manage`d starting from leafs of the `ComponentSpec` hierarchy.
+- Make types `@Managed` starting from leafs of the `ComponentSpec` hierarchy.
 
-### Identified candidates
+#### Identified candidates
 
-- `PlayApplicationSpecInternal` to be made an internal view
+- `PlayApplicationSpec`
+    - `PlayApplicationSpecInternal` can be made an internal view.
+    - `PlatformAwareComponentSpec` aspect of it can be extracted in a dedicated unmanaged super-type (eg. `PlayPlatformAwareComponentSpec`) registered with its own implementation
+      which would provide the implementation for the unmanaged `platform(String)` behavior method.
+    - Then, `PlayApplicationSpec` can be `@Managed` with a single property: `injectedRoutesGenerator`.
+- `NativeTestSuiteSpec`
+    - It can be `@Managed` and its `testedComponent` property can be made `@Unmanaged`
 
 ### Tests
 
@@ -497,13 +547,18 @@ For all theses tests, assert that the reported constructible types list contains
 
 ### Open Issues
 
-`ModelSet` contrat does not allow to specify the type of element when adding one. The `elementType` is always used.
+`ModelSet` contract does not allow to specify the type of element when adding one. The `elementType` is always used.
 In other words, there's no way to add an element of a different type that the `ModelSet` parameterized one.
 
 So, this test has not been implemented:
 
 - Add `ModelSetIntegrationTest.reasonable error message when creating a non-constructible type`.
 
+## Backlog
+
+- `ModelMap` Does not fail when type not within bounds is created or added.
+- There are inconsistent error messages when a 'schema' vs 'node-initialization' problem is found with a `@Managed` type
+    - For example, adding a read-only property of type `boolean` and `Boolean` fail in completely different ways
 
 ## Story: Validate model types more eagerly
 

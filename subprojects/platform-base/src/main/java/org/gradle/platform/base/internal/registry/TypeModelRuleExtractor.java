@@ -83,7 +83,7 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
             throw new InvalidModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
         }
 
-        if (!baseInterface.isAssignableFrom(subType) || baseInterface.equals(subType)) {
+        if (!baseInterface.isAssignableFrom(subType)) {
             throw new InvalidModelException(String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
         }
 

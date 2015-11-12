@@ -239,7 +239,7 @@ This diagram shows the intended ClassLoader hierarchy. The piece to be added is 
 
 # Milestone 2
 
-## Story: IDE user debugs test build
+## Story: IDE user debugs test build (DONE)
 
 By default functional tests are executed in a forked daemon process. Debugging test execution in a different JVM other than the "main" Gradle process would require additional setup from the end user.
 This story improves the end user experience by allowing for conveniently step through code for debugging purposes from the IDE without the need for any complicated configuration.
@@ -275,14 +275,14 @@ later story dealing with the plugin development plugin can deal with the automat
 - How do we reliably determine that the build is executed from an IDE?
 - Should the integration with `Test.debug` be moved to the story that addresses the plugin development plugin?
 
-## Story: Developer inspects build result of unexpected build failure
+## Story: Developer inspects build result of unexpected build failure (DONE)
 
 This story adds the ability to understand what happened with the test when it fails unexpectedly.
 
 - UnexpectedBuildFailure and Success should have-a BuildResult
 - Tooling API exceptions and infrastructure failures should be wrapped and provide build information (e.g. stdout)
 
-## Story: Test build code against different Gradle versions
+## Story: Test build code against different Gradle versions (DONE)
 
 Extend the capabilities of `GradleRunner` to allow for testing a build against more than one Gradle version. The typical use case is to check the runtime compatibility of build logic against a
 specific Gradle version. Example: Plugin X is built with 2.3, but check if it is also compatible with 2.2, 2.4 and 2.5.
@@ -368,21 +368,7 @@ A functional test using Spock could look as such:
 arguments.
 * Do we need to deal with TestKit runtime behavior backward compatibility e.g. no isolated daemon environment when executing test with a Gradle version that doesn't support it yet?
 
-## Story: Test kit does not require any of the Gradle runtime
-
-This story improves usability of the test kit by not imposing any dependencies beyond the `gradle-test-kit` and `gradle-tooling-api` jars (including no transitive dependencies).
-
-### Implementation
-
-- Push responsibility for finding a Gradle distribution based on a class (i.e. what GradleDistributionLocator) does into the tooling API
-- Remove the dependency on `gradle-core` in the test kit project
-
-### Test Coverage
-
-- User tests cannot access classes from `gradle-core` (or any other part of the Gradle runtime) in tests where `gradleTestKit()` was used
-- Configuration containing just `gradleTestKit()` contains no other files than `gradle-test-kit` and `gradle-tooling-api`
-
-## Story: Ability to provide Writers for capturing standard output and error
+## Story: Ability to provide Writers for capturing standard output and error (DONE)
 
 At the moment the standard output and error can only be resolved from the `BuildResult`. There's not direct output of these streams to the console. Users cannot provide their own OutputStreams
 for other debugging or processing purposes. This story allows for specifying a Writer to the `GradleRunner` API that output will be forwarded to (e.g. `System.out`).
@@ -412,17 +398,31 @@ The `GradleRunner` abstract class will be extended to provide additional methods
 
 * Using `System.out` and `System.err` as default? This might produce to much log output.
 
+## Story: Test kit does not require any of the Gradle runtime
+
+This story improves usability of the test kit by not imposing any dependencies beyond the `gradle-test-kit` and `gradle-tooling-api` jars (including no transitive dependencies).
+
+### Implementation
+
+- Push responsibility for finding a Gradle distribution based on a class (i.e. what GradleDistributionLocator) does into the tooling API
+- Remove the dependency on `gradle-core` in the test kit project
+
+### Test Coverage
+
+- User tests cannot access classes from `gradle-core` (or any other part of the Gradle runtime) in tests where `gradleTestKit()` was used
+- Configuration containing just `gradleTestKit()` contains no other files than `gradle-test-kit` and `gradle-tooling-api`
+
 ## Story: GradleRunner functionality is verified to work with all "supported" Gradle versions
 
 The TestKit allows for executing functional tests with a Gradle distribution specified by the user. `GradleRunner` passes the provided
 distribution to the Tooling API to execute Gradle. For the most part the internal implementation of the Tooling API build execution
-uses a conservative set of features though there's no there's no assurance that a Tooling API will work with older versions of Gradle
+uses a conservative set of features though there's no assurance that a Tooling API will work with older versions of Gradle
 in this context. This story aims for implementing appropriate test coverage to ensure backward compatibility or graceful handling of
 unsupported functionality for other versions of the Tooling API.
 
 ### Implementation
 
-* Execute all existing integration tests in Gradle core with a restricted set of Gradle versions:
+* Execute all existing TestKit integration tests in Gradle core with a restricted set of Gradle versions:
     * version-under-test
     * the most recent released version
     * the oldest version for which the feature is supported

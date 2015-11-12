@@ -41,6 +41,9 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.BinaryType;
+import org.gradle.platform.base.BinaryTypeBuilder;
+import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import javax.inject.Inject;
@@ -107,6 +110,12 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
         @Model
         void binaries(BinaryContainer binaries) {}
+
+        @BinaryType
+        void registerBaseBinarySpec(BinaryTypeBuilder<BinarySpec> builder) {
+            builder.defaultImplementation(BaseBinarySpec.class);
+            builder.internalView(BinarySpecInternal.class);
+        }
 
         @Mutate
         // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized

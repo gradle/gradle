@@ -82,16 +82,12 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
                 }
             }
         });
-        switch (implementationInfos.size()) {
-            case 1:
-                return implementationInfos.get(0);
-            case 0:
-                throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it doesn't extend an interface with a default implementation", managedType));
-            default:
-                throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it has multiple default implementations registered, super-types that registered an implementation are: %s",
-                    managedType,
-                    Joiner.on(", ").join(implementationInfos)));
+
+        if (implementationInfos.isEmpty()) {
+            throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it doesn't extend an interface with a default implementation", managedType));
         }
+
+        return implementationInfos.get(0);
     }
 
     @Override

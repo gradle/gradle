@@ -443,8 +443,9 @@ public class PomReader implements PomParent {
         return depMgmtElements;
     }
 
-    public PomDependencyMgt findDependencyDefaults(MavenDependencyKey dependencyKey) {
-        return getDependencyMgt().get(dependencyKey);
+    public PomDependencyMgt findDependencyDefaults(MavenDependencyKey dependency) {
+        MavenDependencyKey dependencyManagementId = new MavenDependencyKey(dependency.getGroupId(), dependency.getArtifactId(), dependency.getType(), null);
+        return getDependencyMgt().get(dependencyManagementId);
     }
 
     public void resolveGAV() {

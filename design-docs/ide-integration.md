@@ -81,12 +81,15 @@ we want to have a dedicated model for eclipse specific java information and grad
 
 #### The API
 
+    enum JavaVersion {
+    }
+
     interface JavaLanguageLevel {
-        String getLevel()
+        JavaVersion getVersion()
     }
 
     interface JavaSourceSettings {
-        JavaSourceLevel getLanguageLevel()
+        JavaLanguageLevel getLanguageLevel()
     }
 
     interface JavaSourceAware {
@@ -180,31 +183,35 @@ language levels for each module in a project.
 #### Estimate
 - 3 days
 
+
+#### The API
+
+    interface JavaRuntime {
+        JavaVersion getJavaVersion()
+        File getHomeDirectory()
+    }
+
+    interface JavaSourceSettings {
+        ...
+        JavaRuntimeEnvironment getTargetRuntime()
+    }
+
+
 #### Implementation
 
-- For `EclipseProject`, add details of the target JVM:
-    - JDK name
-    - JDK Java version
-    - JDK install directory
-- Improve the target SDK detection. Name and version should be based on the target compatibility of the project.
-    - consume this information from the eclipse plugin configuration if provided (`eclipse.jdt.targetCompatibility`)
+- Add `JavaRuntimeEnvironment getTargetRuntime()` to `JavaSourceSettings`.
+- `JavaRuntimeEnvironment` should expose
+    - `JavaVersion getJavaVersion()` - the version of the JRE
+    - `File getHomeDirectory()` - the directory of the JRE in use
 
-- For older Gradle versions:
-    - TBD - reasonable defaults for Java language version
-
-#### Implementation
-
-- Implement SDK detection (pointer: have a look at testfixture we already have for this: `AvailableJavaHomes`)
-- Extend EclipseProject to add TargetJvm Details (name, version, installdir)
+- Update `DefaultJavaSourceSettings` to expose JRE information based on current JVM in use
 
 #### Test coverage
 
-- EclipseProject#targetSdk points to matching SDK
-    - for java projects targetCompatibility matches specified project#targetCompatibility
-    - for projects with eclipse plugin targetCompatibility matches `eclipse.jdt.targetCompatibility`
-    point to exact match
-    - point to exact match if available (requested 1.6 -> installed jdk 1.6 found)
-    - points to complian sdk if exact match not available
+- `EclipseProject.getJavaSourceSettings().getTargetRuntime()` points to JVM in use
+    - `homeDirectory` pointing to the java home of the jvm in use
+    - `javaVersion` reflecting the java version of the jvm in use
+- throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetRuntime()
 
 ### Story - Expose target JDK for Java projects to IDEA
 
@@ -580,7 +587,7 @@ Projects might define a binary dependency on a library produced by another proje
  library version of project A changes, project B needs to depend on the new artifact version. For developers this workflow is cumbersome and time-consuming. This feature allows a developer to work
  on multiple projects in a single IDE session that would normally be independent.
 
-### Story - Introduce the concept of a "workspace" to the Tooling API
+### Story - Introduce the concept of a workspace to the Tooling API
 
 Introduce the concept of a "workspace" to the Tooling API. This is simply a collection of Gradle projects that the IDE user is working on. These projects may come from different Gradle builds.
 
@@ -597,18 +604,29 @@ library B.
 
 #### Implementation
 
+    package org.gradle.tooling
+
     public interface ProjectWorkspace {
-        void addProject(GradleProject gradleProject);
-        void removeProject(GradleProject gradleProject);
-        DomainObjectSet<GradleProject> getProjects();
+        void addProject(BasicGradleProject gradleProject);
+        void removeProject(BasicGradleProject gradleProject);
+        DomainObjectSet<BasicGradleProject> getProjects();
+    }
+
+    public abstract class GradleConnector {
+        public static ProjectWorkspace newWorkspace() {
+            return ConnectorServices.createProjectWorkspace();
+        }
     }
 
 - Introduce a `ProjectWorkspace` interface that describes the collection of independent projects as a whole.
 - Projects can be added or removed from the workspace. A workspace can return the list of projects that have been registered.
 - A workspace does not depend on the Eclipse or Idea models.
+- Expose a new method in `GradleConnector` for creating the workspace. The actual creation is done in `ConnectorServices`.
 
 #### Test cases
 
+- A new workspace can be created.
+- Two workspaces can be compared by the list of projects they contain.
 - If a project was added to the workspace, it can be retrieved from the list of projects.
 - If a project already exists in the workspace, adding it again doesn't add a duplicate.
 - If a project was removed from the workspace, the list of projects does not contain it anymore.
@@ -619,8 +637,9 @@ library B.
 
 - We could potentially merge this story with the next one and just make it Eclipse-specific? Maybe we should just deal with the concrete IDE-specific `GradleProject` implementations
  e.g. `EclipseProject`.
+- Should a workspace have a unique name that needs to be provided upcon creation?
 
-### Story - Expose "workspace" concept for Eclipse
+### Story - Expose workspace concept for Eclipse
 
 The generic workspace concept should be usable from the Eclipse Tooling model. Expose ways to match project coordinates to coordinates of a module
 dependency.
@@ -631,62 +650,85 @@ dependency.
 
 #### Implementation
 
-    public interface ComposableEclipseProject {
-        String getName();
-        DomainObjectSet<? extends EclipseProject> getProjects();
+- Introduce the interface `ModelAware` that allows a consumer to ask for the model.
+- `ProjectConnection` and `ProjectWorkspace` share the same interface. Remove the methods `model(Class)`, `getModel(Class)` and getModel(Class, ResultHandler)` from `ProjectConnection`
+ as they have been pulled up into the common interface.
+- Document which models can be retrieved for each of the implementations of `ModelAware`.
+
+<!-- -->
+
+    public interface ModelAware {
+        <T> T getModel(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
+        <T> void getModel(Class<T> modelType, ResultHandler<? super T> handler) throws IllegalStateException;
+        <T> ModelBuilder<T> model(Class<T> modelType);
     }
 
-    public class DefaultComposableEclipseProject {
-        private final ProjectWorkspace projectWorkspace = new ProjectWorkspace();
+    public interface ProjectConnection extends ModelAware {
+        ...
+    }
 
-        public void addProject(DefaultEclipseProject project) {
-            projectWorkspace.addProject(project.getGradleProject());
-        }
+    public interface ProjectWorkspace extends ModelAware {
+        ...
+    }
 
-        public void removeProject(DefaultEclipseProject project) {
-            projectWorkspace.addProject(project.getGradleProject());
-        }
+- To build a workspace a consumer would retrieve the model for at least two projects via the Tooling API.
+- The consumer matches based on the publication and classpath library GAVs for each project.
+- If at least one match is found, a workspace can be created via `GradleConnector.newWorkspace()`. The matching projects can be added to the workspace.
 
-        public List<DefaultEclipseProject> getProjects() {
-            // Turn the list of GradleProjects into a list of DefaultEclipseProjects
-            return projectWorkspace.getProjects();
+The following code snippet shows some of the moving pieces in practice:
+
+<!-- -->
+
+    // create project connections
+    ProjectConnection connection1 = GradleConnector.newConnector().forProjectDirectory(new File("project1")).connect();
+    ProjectConnection connection2 = GradleConnector.newConnector().forProjectDirectory(new File("project2")).connect();
+
+    // match based on publication and classpath library GAVs for each project
+    EclipseProject eclipseProject1 = connection1.getModel(EclipseProject.class);
+    GradlePublication publication2 = connection2.getModel(GradlePublication.class);
+
+    for (ExternalDependency externalDependency : eclipseProject1.getClasspath()) {
+        if(externalDependency.getGradleModuleVersion().equals(publication2.getId())) {
+            ...
         }
     }
 
-    public interface GradleProjectIdentity {
-        GradleModuleVersion getGradleModuleVersion();
-    }
-
-    public class PartialBasicGradleProject implements GradleProjectIdentity {
-        private GradleModuleVersion gradleModuleVersion;
-
-        public void setGradleModuleVersion(GradleModuleVersion gradleModuleVersion) {
-            this.gradleModuleVersion = gradleModuleVersion;
-        }
-
-        @Override
-        public GradleModuleVersion getGradleModuleVersion() {
-            return gradleModuleVersion;
-        }
-    }
-
-- Introduce a `ComposableEclipseProject` interface that describes the collection of independent projects as a whole for the Eclipse model.
-- Allow for providing a name to be able to better identify it.
-- The `ComposableEclipseProject` interface allows for returning all projects of a composable build (which effectively represents a workspace).
-- The current `GradleProject` API does not expose its identity through coordinates (`group`, `name`, `version`). Introduce a `GradleModuleVersion` to the model.
-- The `GradleModuleVersion` is used to compare a project coordinate with coordinates of its declared dependencies `DefaultEclipseExternalDependency.getGradleModuleVersion()`.
-If a match can be determined, the module dependency can be substituted for a project dependency. For later stories, the project coordinates can also be used to substitute
-a source dependency with a binary dependency (see follow-up story).
+    // add projects with a match
+    ProjectWorkspace projectWorkspace = GradleConnector.newWorkspace();
+    projectWorkspace.addProject(connection1.getModel(BasicGradleProject.class));
+    projectWorkspace.addProject(connection2.getModel(BasicGradleProject.class));
 
 #### Test cases
 
-- The `ComposableEclipseProject` can be named and populated with projects.
-- A `GradleProject` populates its module version properly. The module version can retrieved from `DefaultEclipseProject`.
+- The `ProjectConnection` can be queried and resolve the requested model as usual.
+- The `ProjectWorkspace` can be queried for the `EclipseProject`
 - A project and an external dependency can be matched based on the module version.
 
 #### Open issues
 
 - Support for IDEA is out-of-scope.
+
+### Story - Eclipse model for a workspace does not include duplicate project names
+
+Selected projects in a workspace might have the same project name. This story implements a du-duping mechanism for the Eclipse model.
+
+#### Estimate
+
+-
+
+#### Implementation
+
+- If a workspace encounters two projects with the same project name, an algorithm will de-dedupe the project names. De-duped project names are only logic references to the
+original projects. The actual project name stays unchanged.
+- Gradle core implements a similar algorithm for the IDE plugins. Reuse it if possible.
+
+#### Test cases
+
+- If the names of all imported projects are unique, de-duping doesn't have to kick in.
+- If at least two imported projects have the same name, de-dupe the names. De-duped project names still reference the original project. The original and de-duped project names
+should be rendered in Eclipse's project view section.
+- De-duping may be required for more that one duplicate project name.
+- Multi-project builds can contain duplicate project names in any leaf of the project hierarchy.
 
 ### Story - Define a "workspace" in Buildship
 
@@ -736,32 +778,6 @@ the command-line. This would be an additional feature.
 - The [concept of workspace exists in Eclipse](http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.user/concepts/cworkset.htm?cp=0_2_1_6)
  which could be used to define a [custom extension point](http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.isv/reference/extension-points/org_eclipse_ui_workingSets.html?cp=2_1_1_202).
  However, investigation is needed if and how can we use them.
-
-### Story - Ensure unique project names for a "workspace" in Buildship
-
-Selected projects in a workspace might have the same project name. At the moment Buildship does not allow more than one project with the same even though they might live
-in different locations of the project hierarchy (see [reported issue](https://bugs.eclipse.org/bugs/show_bug.cgi?id=479609)). The same situation might occur for imported
-projects for a workspace. This story implements a du-duping mechanism in Buildship.
-
-#### Estimate
-
--
-
-#### Implementation
-
-- De-duping should work from the regular import dialog as well as the "workspace" import dialog.
-- If Buildship encounters two projects with the same project name, an algorithm will de-dedupe the project names. De-duped project names are only logic references to the
-original projects. The actual project name stays unchanged. Buildship should be able to render actual and logic project names e.g. `myProject [my-project-1]`, `myProject [my-project-2]`.
-- The logic should be implemented in a way that makes it reusable from different contexts within Buildship.
-- Gradle core implements a similar algorithm for the IDE plugins. Reuse it if possible.
-
-#### Test cases
-
-- If the names of all imported projects are unique, de-duping doesn't have to kick in.
-- If at least two imported projects have the same name, de-dupe the names. De-duped project names still reference the original project. The original and de-duped project names
-should be rendered in Eclipse's project view section.
-- De-duping may be required for more that one duplicate project name.
-- Multi-project builds can contain duplicate project names in any leaf of the project hierarchy.
 
 ## Feature - Developer uses subset of projects for a Gradle build from IDE
 

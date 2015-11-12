@@ -109,6 +109,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         @ComponentType
         void register(ComponentTypeBuilder<PlayApplicationSpec> builder) {
             builder.defaultImplementation(DefaultPlayApplicationSpec.class);
+            builder.internalView(PlayApplicationSpecInternal.class);
         }
 
         @Mutate
@@ -148,10 +149,9 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         @Validate
         void failOnMultipleTargetPlatforms(ModelMap<PlayApplicationSpec> playApplications) {
-            playApplications.afterEach(new Action<PlayApplicationSpec>() {
-                public void execute(PlayApplicationSpec playApplication) {
-                    PlayApplicationSpecInternal playApplicationInternal = (PlayApplicationSpecInternal) playApplication;
-                    if (playApplicationInternal.getTargetPlatforms().size() > 1) {
+            playApplications.withType(PlayApplicationSpecInternal.class).afterEach(new Action<PlayApplicationSpecInternal>() {
+                public void execute(PlayApplicationSpecInternal playApplication) {
+                    if (playApplication.getTargetPlatforms().size() > 1) {
                         throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
                     }
                 }
@@ -176,12 +176,9 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @ComponentBinaries
-        void createBinaries(ModelMap<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
-                            final PlatformResolvers platforms, final PlayToolChainInternal playToolChainInternal, final PlayPluginConfigurations configurations, final ServiceRegistry serviceRegistry,
+        void createBinaries(ModelMap<PlayApplicationBinarySpec> binaries, final PlayApplicationSpecInternal componentSpec,
+                            final PlatformResolvers platforms, final PlayToolChainInternal playToolChainInternal, final PlayPluginConfigurations configurations,
                             @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
-
-            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
 
             binaries.create("binary", new Action<PlayApplicationBinarySpec>() {
                 public void execute(PlayApplicationBinarySpec playBinary) {
@@ -220,8 +217,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             });
         }
 
-        private PlayPlatform resolveTargetPlatform(PlayApplicationSpec componentSpec, final PlatformResolvers platforms) {
-            PlatformRequirement targetPlatform = getTargetPlatform((PlayApplicationSpecInternal) componentSpec);
+        private PlayPlatform resolveTargetPlatform(PlayApplicationSpecInternal componentSpec, final PlatformResolvers platforms) {
+            PlatformRequirement targetPlatform = getTargetPlatform(componentSpec);
             return platforms.resolve(PlayPlatform.class, targetPlatform);
         }
 

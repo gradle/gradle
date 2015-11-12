@@ -22,12 +22,10 @@ import com.google.common.cache.LoadingCache;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.manage.schema.extract.ManagedProxyClassGenerator;
 import org.gradle.model.internal.type.ModelType;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 
 public class ManagedProxyFactory {
 
@@ -40,6 +38,11 @@ public class ManagedProxyFactory {
                 return proxyClassGenerator.generate(key.schema, key.delegateSchema);
             }
         });
+    private final Instantiator instantiator;
+
+    public ManagedProxyFactory(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
 
     public <T> T createProxy(ModelElementState state, StructSchema<T> schema, StructSchema<? extends T> delegateSchema) {
         try {
@@ -48,16 +51,12 @@ public class ManagedProxyFactory {
                 throw new IllegalStateException("No managed implementation class available for: " + schema.getType());
             }
             if (delegateSchema == null) {
-                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class);
-                return constructor.newInstance(state);
+                return instantiator.newInstance(generatedClass, state);
             } else {
                 ModelType<? extends T> delegateType = delegateSchema.getType();
                 Object delegate = state.getBackingNode().getPrivateData(delegateType);
-                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class, delegateType.getConcreteClass());
-                return constructor.newInstance(state, delegate);
+                return instantiator.newInstance(generatedClass, state, delegate);
             }
-        } catch (InvocationTargetException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getTargetException());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

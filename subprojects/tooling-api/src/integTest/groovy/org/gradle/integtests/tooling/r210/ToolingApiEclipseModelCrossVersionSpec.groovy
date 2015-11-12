@@ -25,6 +25,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.java.JavaSourceLevel
 
 @ToolingApiVersion('>=2.10')
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
@@ -64,7 +65,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.languageLevel.level == JavaVersion.current().toString()
+        rootProject.javaSourceSettings.languageLevel.version == JavaVersion.current().toString()
     }
 
     @TargetGradleVersion(">=2.10")
@@ -80,7 +81,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.languageLevel.level == '1.6'
+        rootProject.javaSourceSettings.languageLevel == JavaSourceLevel.VERSION_1_6
     }
 
     @TargetGradleVersion(">=2.10")
@@ -101,7 +102,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.languageLevel.level == '1.5'
+        rootProject.javaSourceSettings.languageLevel == JavaSourceLevel.VERSION_1_5
     }
 
     @TargetGradleVersion(">=2.10")
@@ -126,7 +127,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
 
     @TargetGradleVersion(">=2.10")
-    def "Eclipse JDT setting has precedence over Java plugin convention when "() {
+    def "Eclipse JDT setting has precedence over Java plugin convention"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -144,7 +145,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.languageLevel.level == '1.3'
+        rootProject.javaSourceSettings.languageLevel == JavaSourceLevel.VERSION_1_3
     }
 
     @TargetGradleVersion(">=2.10")
@@ -182,17 +183,17 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         EclipseProject rootProject = loadEclipseProjectModel()
-        EclipseProject subprojectA = rootProject.children.find{ it.name == 'subproject-a' }
-        EclipseProject subprojectB = rootProject.children.find{ it.name == 'subproject-b' }
-        EclipseProject subprojectC = rootProject.children.find{ it.name == 'subproject-c' }
+        EclipseProject subprojectA = rootProject.children.find { it.name == 'subproject-a' }
+        EclipseProject subprojectB = rootProject.children.find { it.name == 'subproject-b' }
+        EclipseProject subprojectC = rootProject.children.find { it.name == 'subproject-c' }
 
         then:
-        subprojectA.javaSourceSettings.languageLevel.level == '1.1'
-        subprojectB.javaSourceSettings.languageLevel.level == '1.2'
-        subprojectC.javaSourceSettings.languageLevel.level == '1.3'
+        subprojectA.javaSourceSettings.languageLevel == JavaSourceLevel.VERSION_1_1
+        subprojectB.javaSourceSettings.languageLevel == JavaSourceLevel.VERSION_1_2
+        subprojectC.javaSourceSettings.languageLevel == JavaSourceLevel.VERSION_1_3
     }
 
-    private def loadEclipseProjectModel() {
+    private EclipseProject loadEclipseProjectModel() {
         withConnection { connection -> connection.getModel(EclipseProject) }
     }
 }

@@ -37,7 +37,6 @@ import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
@@ -70,8 +69,6 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     }
 
     private static class RegistrationAction<S extends ComponentSpec> extends AbstractModelActionWithView<ComponentSpecFactory> {
-        private static final ModelType<ComponentSpecInternal> COMPONENT_SPEC_INTERNAL_MODEL_TYPE = ModelType.of(ComponentSpecInternal.class);
-
         private final ModelType<S> publicType;
         private final ModelType<? extends BaseComponentSpec> implementationType;
         private final Set<Class<?>> internalViews;
@@ -105,9 +102,6 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
                         return Cast.uncheckedCast(BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode1, instantiator));
                     }
                 });
-                if (COMPONENT_SPEC_INTERNAL_MODEL_TYPE.isAssignableFrom(implementationType)) {
-                    registration.withInternalView(COMPONENT_SPEC_INTERNAL_MODEL_TYPE);
-                }
             }
             for (Class<?> internalView : internalViews) {
                 registration.withInternalView(ModelType.of(internalView));

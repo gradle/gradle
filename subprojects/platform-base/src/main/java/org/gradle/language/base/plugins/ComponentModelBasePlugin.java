@@ -43,16 +43,11 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecContainer;
-import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.binary.internal.BinarySpecFactory;
+import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.DefaultPlatformContainer;
-import org.gradle.platform.base.internal.DefaultPlatformResolvers;
-import org.gradle.platform.base.internal.PlatformResolvers;
+import org.gradle.platform.base.internal.*;
 
 import javax.inject.Inject;
 
@@ -86,6 +81,12 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Service
         ComponentSpecFactory componentSpecFactory() {
             return new ComponentSpecFactory("components");
+        }
+
+        @ComponentType
+        void registerBaseComponentSpec(ComponentTypeBuilder<ComponentSpec> builder) {
+            builder.defaultImplementation(BaseComponentSpec.class);
+            builder.internalView(ComponentSpecInternal.class);
         }
 
         @Service

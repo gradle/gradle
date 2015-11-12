@@ -34,6 +34,7 @@ import org.gradle.tooling.events.task.*;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.util.CollectionUtils;
+import org.gradle.wrapper.GradleUserHomeLookup;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

@@ -178,7 +178,7 @@ The method `DependencyHandler.gradleTestKit()` creates a dependency on the class
 of Gradle the TestKit dependency also declared transitive dependencies on other Gradle core classes and external libraries that ship with the Gradle distribution. This might lead to
 version conflicts between the runtime classpath of the TestKit and user-defined libraries required for functional testing. A typical example for this scenario would be Google Guava.
 With this version of Gradle, the Gradle TestKit dependency is represented by a fat and shaded JAR file containing Gradle core classes and classes of all required external dependencies
-to avoid convoluting the functional test runtime classpath.
+to avoid polluting the functional test runtime classpath.
 
 ### Visualising a project's build script dependencies
 
@@ -248,6 +248,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 -->
 
 ## Potential breaking changes
+
+### Changes to TestKit's runtime classpath
+
+- External dependencies e.g. Google Guava brought in by Gradle core libraries when using the TestKit runtime classpath are no longer usable in functional test code. Any external dependency
+required by the test code needs to be declared for the test classpath.
 
 ### Changes to model rules DSL
 

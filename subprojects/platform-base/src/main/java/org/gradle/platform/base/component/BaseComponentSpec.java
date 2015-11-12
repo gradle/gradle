@@ -45,7 +45,7 @@ import java.util.Set;
 @Incubating
 // Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
 @SuppressWarnings("deprecation")
-public abstract class BaseComponentSpec implements ComponentSpecInternal {
+public class BaseComponentSpec implements ComponentSpecInternal {
 
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final ComponentSpecIdentifier identifier;
@@ -56,9 +56,6 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
     private final MutableModelNode modelNode;
 
     public static <T extends BaseComponentSpec> T create(Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode, Instantiator instantiator) {
-        if (implementationType.equals(BaseComponentSpec.class)) {
-            throw new ModelInstantiationException("Cannot create instance of abstract class BaseComponentSpec.");
-        }
         nextComponentInfo.set(new ComponentInfo(identifier, modelNode, implementationType.getSimpleName(), instantiator));
         try {
             try {
@@ -71,7 +68,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         }
     }
 
-    protected BaseComponentSpec() {
+    public BaseComponentSpec() {
         this(nextComponentInfo.get());
     }
 
