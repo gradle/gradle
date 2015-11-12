@@ -24,27 +24,18 @@ import org.gradle.api.Nullable;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.model.ModelMap;
-import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
-import org.gradle.model.collection.internal.ModelMapModelProjection;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.registry.RuleContext;
-import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.type.ModelTypes;
+import org.gradle.model.internal.core.ModelMaps;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.*;
 import org.gradle.util.DeprecationLogger;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Base class for custom binary implementations.
@@ -101,26 +92,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         this.modelNode = info.modelNode;
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
 
-        final ModelType<LanguageSourceSet> elementType = ModelType.of(LanguageSourceSet.class);
-        modelNode.addLink(
-            ModelRegistrations.of(
-                modelNode.getPath().child("sources"), ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                    @Override
-                    public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
-                        NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
-                        ChildNodeInitializerStrategy<LanguageSourceSet> childFactory =
-                            NodeBackedModelMap.createUsingRegistry(elementType, nodeInitializerRegistry);
-                        node.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
-                    }
-                })
-                .descriptor(modelNode.getDescriptor(), ".sources")
-                .withProjection(
-                    ModelMapModelProjection.unmanaged(elementType, ChildNodeInitializerStrategyAccessors.fromPrivateData())
-                )
-                .build()
-        );
-        sources = modelNode.getLink("sources");
-        assert sources != null;
+        sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
     }
 
     @Override
@@ -185,12 +157,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
-        sources.ensureUsable();
-        return sources.asMutable(
-                ModelTypes.modelMap(LanguageSourceSetInternal.PUBLIC_MODEL_TYPE),
-                RuleContext.nest(modelNode.toString() + ".getSources()"),
-                Collections.<ModelView<?>>emptyList()
-        ).getInstance();
+        return ModelMaps.asMutableView(sources, LanguageSourceSet.class, modelNode.toString() + ".getSources()");
     }
 
     public BinaryTasksCollection getTasks() {

@@ -18,25 +18,17 @@ package org.gradle.platform.base.component;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.model.ModelMap;
-import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
-import org.gradle.model.collection.internal.ModelMapModelProjection;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.registry.RuleContext;
-import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.type.ModelTypes;
+import org.gradle.model.internal.core.ModelMaps;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -81,49 +73,8 @@ public class BaseComponentSpec implements ComponentSpecInternal {
         this.typeName = info.typeName;
 
         modelNode = info.modelNode;
-        modelNode.addLink(
-            ModelRegistrations.of(
-                modelNode.getPath().child("binaries"), ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                    @Override
-                    public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
-                        NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
-                        ChildNodeInitializerStrategy<BinarySpec> childFactory = NodeBackedModelMap.createUsingRegistry(ModelType.of(BinarySpec.class), nodeInitializerRegistry);
-                        node.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
-                    }
-                })
-                .descriptor(modelNode.getDescriptor(), ".binaries")
-                .withProjection(
-                    ModelMapModelProjection.unmanaged(
-                        BinarySpec.class,
-                        ChildNodeInitializerStrategyAccessors.fromPrivateData()
-                    )
-                )
-                .build()
-        );
-        binaries = modelNode.getLink("binaries");
-        assert binaries != null;
-
-        modelNode.addLink(
-            ModelRegistrations.of(
-                modelNode.getPath().child("sources"), ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                    @Override
-                    public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
-                        NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
-                        ChildNodeInitializerStrategy<LanguageSourceSet> childFactory = NodeBackedModelMap.createUsingRegistry(ModelType.of(LanguageSourceSet.class), nodeInitializerRegistry);
-                        node.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
-                    }
-                })
-                .descriptor(modelNode.getDescriptor(), ".sources")
-                .withProjection(
-                    ModelMapModelProjection.unmanaged(
-                        LanguageSourceSet.class,
-                        ChildNodeInitializerStrategyAccessors.fromPrivateData()
-                    )
-                )
-                .build()
-        );
-        sources = modelNode.getLink("sources");
-        assert sources != null;
+        binaries = ModelMaps.addModelMapNode(modelNode, BinarySpec.class, "binaries");
+        sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
     }
 
     public String getName() {
@@ -155,12 +106,7 @@ public class BaseComponentSpec implements ComponentSpecInternal {
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
-        sources.ensureUsable();
-        return sources.asMutable(
-            ModelTypes.modelMap(LanguageSourceSetInternal.PUBLIC_MODEL_TYPE),
-            RuleContext.nest(modelNode.toString() + ".getSources()"),
-            Collections.<ModelView<?>>emptyList()
-        ).getInstance();
+        return ModelMaps.asMutableView(sources, LanguageSourceSet.class, modelNode.toString() + ".getSources()");
     }
 
     @Override
@@ -170,12 +116,7 @@ public class BaseComponentSpec implements ComponentSpecInternal {
 
     @Override
     public ModelMap<BinarySpec> getBinaries() {
-        binaries.ensureUsable();
-        return binaries.asMutable(
-            ModelTypes.modelMap(BinarySpecInternal.PUBLIC_MODEL_TYPE),
-            RuleContext.nest(modelNode.toString() + ".getBinaries()"),
-            Collections.<ModelView<?>>emptyList()
-        ).getInstance();
+        return ModelMaps.asMutableView(binaries, BinarySpec.class, modelNode.toString() + ".getBinaries()");
     }
 
     @Override
