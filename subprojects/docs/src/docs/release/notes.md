@@ -294,6 +294,7 @@ required by the test code needs to be declared for the test classpath.
 - When building a JVM library with multiple variants, the task and output directory names have changed. The library name is now first.
 - The top-level `binaries` container is now a `ModelMap` instead of a `DomainObjectContainer`. It is still accessible as `BinaryContainer`.
 - `ComponentSpec.sources` and `BinarySpec.sources` now have true `ModelMap` semantics. Elements are created and configured on demand, and appear in the model report.
+- It is no longer possible to configure `BinarySpec.sources` from the top-level `binaries` container: this functionality will be re-added in a subsequent release.
 - `FunctionalSourceSet` is now a subtype of `ModelMap`, and no longer extends `Named`
 
 ### Changes to incubating native software model
