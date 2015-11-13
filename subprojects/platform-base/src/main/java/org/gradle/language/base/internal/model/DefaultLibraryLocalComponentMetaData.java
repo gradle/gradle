@@ -51,7 +51,7 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         return metadata;
     }
 
-    public static DefaultLibraryLocalComponentMetaData newDefaultLibraryLocalComponentMetadata(LibraryBinaryIdentifier componentId, TaskDependency buildDependencies) {
+    private static DefaultLibraryLocalComponentMetaData newDefaultLibraryLocalComponentMetadata(LibraryBinaryIdentifier componentId, TaskDependency buildDependencies) {
         DefaultLibraryLocalComponentMetaData metaData = new DefaultLibraryLocalComponentMetaData(localModuleVersionIdentifierFor(componentId), componentId);
         metaData.addConfiguration(
             CONFIGURATION_API,
