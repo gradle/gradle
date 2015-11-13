@@ -87,42 +87,64 @@ public interface NativeBinarySpec extends BinarySpec {
 
     // TODO It would be better if these were added via a separate managed view, rather than hard coded.
     /**
-     * The settings used for linking this binary.
+     * The configuration of the linker used when linking this binary.
+     *
+     * Valid for {@link SharedLibraryBinarySpec} and {@link NativeExecutableBinarySpec}.
      */
     Tool getLinker();
 
     /**
-     * The static archiver settings used for creating this binary.
+     * The configuration of the static library archiver used when creating this binary.
+     *
+     * Valid for {@link StaticLibraryBinarySpec}.
      */
     Tool getStaticLibArchiver();
 
     /**
-     * The static archiver settings used for creating this binary.
+     * The configuration of the assembler used when compiling assembly sources this binary.
+     *
+     * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
+     * {@link NativeExecutableBinarySpec} when the 'assembler' plugin is applied.
      */
     Tool getAssembler();
 
     /**
-     * The static archiver settings used for creating this binary.
+     * The configuration of the C compiler used when compiling C sources for this binary.
+     *
+     * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
+     * {@link NativeExecutableBinarySpec} when the 'c' plugin is applied.
      */
     PreprocessingTool getcCompiler();
 
     /**
-     * The static archiver settings used for creating this binary.
+     * The configuration of the C++ compiler used when compiling C++ sources for this binary.
+     *
+     * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
+     * {@link NativeExecutableBinarySpec} when the 'cpp' plugin is applied.
      */
     PreprocessingTool getCppCompiler();
 
     /**
-     * The static archiver settings used for creating this binary.
+     * The configuration of the Objective-C compiler used when compiling Objective-C sources for this binary.
+     *
+     * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
+     * {@link NativeExecutableBinarySpec} when the 'objective-c' plugin is applied.
      */
     PreprocessingTool getObjcCompiler();
 
     /**
-     * The static archiver settings used for creating this binary.
+     * The configuration of the Objective-C++ compiler used when compiling Objective-C++ sources for this binary.
+     *
+     * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
+     * {@link NativeExecutableBinarySpec} when the 'objective-cpp' plugin is applied.
      */
     PreprocessingTool getObjcppCompiler();
 
     /**
-     * The static archiver settings used for creating this binary.
+     * The configuration of the Resource compiler used when compiling resources for this binary.
+     *
+     * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
+     * {@link NativeExecutableBinarySpec} when the 'windows-resources' plugin is applied.
      */
     PreprocessingTool getRcCompiler();
 }

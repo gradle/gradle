@@ -60,7 +60,7 @@
                 <td>objcCompiler</td>
             </tr>
             <tr>
-                <td>objCppCompiler</td>
+                <td>objcppCompiler</td>
             </tr>
             <tr>
                 <td>rcCompiler</td>
