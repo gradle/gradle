@@ -16,17 +16,24 @@
 
 package org.gradle.language.base.internal;
 
+import org.gradle.api.internal.project.ProjectIdentifier;
+
 import java.io.File;
 
-//TODO - remove this and all it's subclasses once @Path based DI is improved
-public class DirectoryHolder {
-    private final File dir;
+public class ProjectLayout {
+    private final ProjectIdentifier projectIdentifier;
+    private final File buildDir;
 
-    public DirectoryHolder(File dir) {
-        this.dir = dir;
+    public ProjectLayout(ProjectIdentifier projectIdentifier, File buildDir) {
+        this.projectIdentifier = projectIdentifier;
+        this.buildDir = buildDir;
     }
 
-    public File getDir() {
-        return dir;
+    public ProjectIdentifier getProjectIdentifier() {
+        return projectIdentifier;
+    }
+
+    public File getBuildDir() {
+        return buildDir;
     }
 }

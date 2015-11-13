@@ -17,6 +17,7 @@
 package org.gradle.jvm.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.tasks.Copy;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
@@ -29,7 +30,7 @@ import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
-import org.gradle.language.base.internal.BuildDirHolder;
+import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.Service;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -93,8 +94,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Model
-        public BuildDirHolder buildDirHolder(@Path("buildDir") File buildDir) {
-            return new BuildDirHolder(buildDir);
+        public ProjectLayout projectLayout(ProjectIdentifier projectIdentifier, @Path("buildDir") File buildDir) {
+            return new ProjectLayout(projectIdentifier, buildDir);
         }
 
         @Mutate
