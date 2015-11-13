@@ -38,10 +38,8 @@ import org.gradle.language.base.internal.model.VariantAxisCompatibilityFactory;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.LibrarySpec;
@@ -118,9 +116,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
                                                                                    String libraryName) {
         try {
             ModelRegistry projectModel = projectModelResolver.resolveProjectModel(projectPath);
-            ComponentSpecContainer components = projectModel.find(
-                ModelPath.path("components"),
-                ModelType.of(ComponentSpecContainer.class));
+            ComponentSpecContainer components = projectModel.find("components", ComponentSpecContainer.class);
             if (components != null) {
                 ModelMap<? extends LibrarySpec> libraries = components.withType(LibrarySpec.class);
                 return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.of(libraries.values(), libraryName, binarySpecPredicate);

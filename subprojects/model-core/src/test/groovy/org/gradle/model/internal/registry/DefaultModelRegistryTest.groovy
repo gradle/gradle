@@ -46,7 +46,7 @@ class DefaultModelRegistryTest extends Specification {
         thrown IllegalStateException
 
         when:
-        def modelElement = registry.find(ModelPath.path("foo"), ModelType.untyped())
+        def modelElement = registry.find("foo", ModelType.untyped())
 
         then:
         noExceptionThrown()
@@ -376,7 +376,7 @@ class DefaultModelRegistryTest extends Specification {
         0 * action._
 
         when:
-        registry.realize(ModelPath.path("foo"), ModelType.of(Bean))
+        registry.realize("foo", Bean)
 
         then:
         0 * action._

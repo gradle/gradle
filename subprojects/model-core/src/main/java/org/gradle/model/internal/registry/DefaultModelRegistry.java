@@ -41,7 +41,7 @@ import java.util.*;
 import static org.gradle.model.internal.core.ModelNode.State.*;
 
 @NotThreadSafe
-public class DefaultModelRegistry implements ModelRegistry {
+public class DefaultModelRegistry extends AbstractModelRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModelRegistry.class);
 
     private final ModelGraph modelGraph;

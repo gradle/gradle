@@ -600,7 +600,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         }
 
         when:
-        registry.realize(ModelPath.path("values"), ModelType.UNTYPED)
+        registry.realize("values", ModelType.UNTYPED)
 
         then:
         ModelRuleExecutionException e = thrown()

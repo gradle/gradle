@@ -27,10 +27,8 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
@@ -39,6 +37,8 @@ import org.gradle.platform.base.test.TestSuiteContainer;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import static org.gradle.model.internal.type.ModelTypes.modelMap;
 
 /**
  * Displays some details about the software components produced by the project.
@@ -92,7 +92,7 @@ public class ComponentReport extends DefaultTask {
         if (sourceSets != null) {
             renderer.renderSourceSets(sourceSets);
         }
-        ModelMap<BinarySpec> binaries = find("binaries", ModelTypes.modelMap(BinarySpec.class));
+        ModelMap<BinarySpec> binaries = find("binaries", modelMap(BinarySpec.class));
         if (binaries != null) {
             renderer.renderBinaries(binaries);
         }
@@ -106,6 +106,6 @@ public class ComponentReport extends DefaultTask {
     }
 
     private <T> T find(String path, ModelType<T> modelType) {
-        return getModelRegistry().find(ModelPath.path(path), modelType);
+        return getModelRegistry().find(path, modelType);
     }
 }

@@ -34,6 +34,8 @@ public interface ModelRegistry {
      * @return the node as the given type
      */
     <T> T realize(ModelPath path, ModelType<T> type);
+    <T> T realize(String path, ModelType<T> type);
+    <T> T realize(String path, Class<T> type);
 
     /**
      * Get the fully defined model element at the given path.
@@ -57,6 +59,10 @@ public interface ModelRegistry {
      */
     @Nullable
     <T> T find(ModelPath path, ModelType<T> type);
+    @Nullable
+    <T> T find(String path, ModelType<T> type);
+    @Nullable
+    <T> T find(String path, Class<T> type);
 
     /**
      * Returns the node at the given path at the desired state, if it exists.

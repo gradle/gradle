@@ -15,10 +15,9 @@
  */
 
 package org.gradle.nativeplatform.plugins
+
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary
@@ -29,6 +28,8 @@ import org.gradle.platform.base.BinarySpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import static org.gradle.model.internal.type.ModelTypes.modelMap
+
 class NativeComponentPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
@@ -37,7 +38,7 @@ class NativeComponentPluginTest extends Specification {
     }
 
     ModelMap<BinarySpec> realizeBinaries() {
-        project.modelRegistry.find(ModelPath.path("binaries"), ModelTypes.modelMap(BinarySpec))
+        project.modelRegistry.find("binaries", modelMap(BinarySpec))
     }
 
     def "creates link and install task for executable"() {
