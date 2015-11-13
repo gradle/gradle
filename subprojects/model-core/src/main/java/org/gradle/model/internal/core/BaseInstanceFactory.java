@@ -131,9 +131,13 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
     private <S extends T> ImplementationRegistration<S> getImplementationRegistration(ModelType<S> type) {
         TypeRegistration<S> registration = getRegistration(type);
-        if (registration == null || registration.implementationRegistration == null) {
+        if (registration == null) {
             throw new IllegalArgumentException(
                 String.format("Cannot create a '%s' because this type is not known to %s. Known types are: %s", type, displayName, getSupportedTypeNames()));
+        }
+        if (registration.implementationRegistration == null) {
+            throw new IllegalArgumentException(
+                String.format("Cannot create a '%s' because this type does not have an implementation registered.", type));
         }
         return registration.implementationRegistration;
     }
