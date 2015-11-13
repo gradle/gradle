@@ -107,7 +107,7 @@ model {
         file('libs/compileDep-1.0.jar').assertIsCopyOf(compileDep.artifactFile)
     }
 
-    def "resolved classpath does not include transitive compile-scoped dependencies of local components"() {
+    def "resolved classpath does not include transitive compile-scoped maven dependencies of local components"() {
         given:
         mavenRepo.module("org.gradle", "compileDep").publish()
 
@@ -158,72 +158,6 @@ model {
         then:
         file('mainLibs').assertHasDescendants('other.jar')
         file('otherLibs').assertHasDescendants('compileDep-1.0.jar')
-    }
-
-    def "resolved classpath for jvm library includes transitive api-scoped dependencies of local library dependency"() {
-        given:
-        theModel """
-model {
-    components {
-        main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'other'
-                    }
-                }
-            }
-        }
-        other(JvmLibrarySpec) {
-            api {
-                dependencies {
-                    library 'apiLib'
-                }
-            }
-            sources {
-                java {
-                    dependencies {
-                        library 'compileLib'
-                    }
-                }
-            }
-        }
-        apiLib(JvmLibrarySpec) {
-            api {
-                dependencies {
-                    library 'transitiveApiLib'
-                }
-            }
-            sources {
-                java {
-                    dependencies {
-                        library 'transitiveCompileLib'
-                    }
-                }
-            }
-        }
-        compileLib(JvmLibrarySpec) {
-        }
-        transitiveApiLib(JvmLibrarySpec) {
-        }
-        transitiveCompileLib(JvmLibrarySpec) {
-        }
-    }
-    tasks {
-        create('copyDeps', Copy) {
-            into 'mainLibs'
-            from compileMainJarMainJava.classpath
-        }
-    }
-}
-"""
-        file('src/main/java/TestApp.java') << '''public class TestApp {}'''
-
-        when:
-        succeeds ':copyDeps'
-
-        then:
-        file('mainLibs').assertHasDescendants('other.jar', 'apiLib.jar', 'transitiveApiLib.jar')
     }
 
     def "resolved classpath includes transitive api-scoped dependencies of maven library dependency"() {

@@ -55,6 +55,59 @@ class JavaCompilationAgainstDependenciesIntegrationTest extends AbstractIntegrat
     }
 
     @Unroll
+    def "resolved classpath for jvm library includes transitive api-scoped dependencies and not #scope dependencies"() {
+        given:
+        applyJavaPlugin(buildFile)
+        buildFile << """
+model {
+    components {
+        main(JvmLibrarySpec) {
+            ${scope.declarationFor 'other'}
+        }
+        other(JvmLibrarySpec) {
+            api {
+                dependencies {
+                    library 'apiLib'
+                }
+            }
+            ${scope.declarationFor 'compileLib'}
+        }
+        apiLib(JvmLibrarySpec) {
+            api {
+                dependencies {
+                    library 'transitiveApiLib'
+                }
+            }
+            ${scope.declarationFor 'transitiveCompileLib'}
+        }
+        compileLib(JvmLibrarySpec) {
+        }
+        transitiveApiLib(JvmLibrarySpec) {
+        }
+        transitiveCompileLib(JvmLibrarySpec) {
+        }
+    }
+    tasks {
+        create('copyDeps', Copy) {
+            into 'mainLibs'
+            from compileMainJarMainJava.classpath
+        }
+    }
+}
+"""
+        file('src/main/java/TestApp.java') << '''public class TestApp {}'''
+
+        when:
+        succeeds ':copyDeps'
+
+        then:
+        file('mainLibs').assertHasDescendants('other.jar', 'apiLib.jar', 'transitiveApiLib.jar')
+
+        where:
+        scope << [DependencyScope.SOURCES, DependencyScope.COMPONENT]
+    }
+
+    @Unroll
     def "when a library dependency is declared at both #scope1 and #scope2 levels, its API is #exportedOrNot"() {
         given:
         applyJavaPlugin(buildFile)
