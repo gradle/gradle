@@ -33,7 +33,7 @@ import org.gradle.internal.component.local.model.LocalConfigurationMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.jvm.JarBinarySpec;
-import org.gradle.language.base.internal.DependentSourceSetInternal;
+import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
@@ -51,7 +51,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
     private final List<ResolutionAwareRepository> remoteRepositories;
     private final JarBinarySpecInternal binary;
-    private final DependentSourceSetInternal sourceSet;
+    private final DependentSourceSet sourceSet;
     private final ArtifactDependencyResolver dependencyResolver;
     private final DependentSourceSetResolveContext resolveContext;
 
@@ -59,7 +59,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     public DependencyResolvingClasspath(
             JarBinarySpecInternal binarySpec,
-            DependentSourceSetInternal sourceSet,
+            DependentSourceSet sourceSet,
             ArtifactDependencyResolver dependencyResolver,
             ModelSchemaStore schemaStore,
             List<ResolutionAwareRepository> remoteRepositories) {

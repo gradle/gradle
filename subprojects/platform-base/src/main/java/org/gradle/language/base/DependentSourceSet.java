@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal;
+
+package org.gradle.language.base;
 
 import org.gradle.api.Action;
 import org.gradle.platform.base.DependencySpecContainer;
 
-public interface DependentSourceSetInternal extends LanguageSourceSetInternal {
+/**
+ * A source set that can have dependencies on other Libraries.
+ */
+public interface DependentSourceSet extends LanguageSourceSet {
     DependencySpecContainer getDependencies();
 
     DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);

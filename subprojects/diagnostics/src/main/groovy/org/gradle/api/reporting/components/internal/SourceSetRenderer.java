@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.DependentSourceSetInternal;
+import org.gradle.language.base.DependentSourceSet;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.reporting.ReportRenderer;
@@ -73,8 +73,8 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
     }
 
     private void renderSourceSetDependencies(LanguageSourceSet sourceSet, TextReportBuilder builder) {
-        if (sourceSet instanceof DependentSourceSetInternal) {
-            DependencySpecContainer dependencies = ((DependentSourceSetInternal) sourceSet).getDependencies();
+        if (sourceSet instanceof DependentSourceSet) {
+            DependencySpecContainer dependencies = ((DependentSourceSet) sourceSet).getDependencies();
             if (!dependencies.isEmpty()) {
                 builder.collection("dependencies", dependencies.getDependencies(), new ReportRenderer<DependencySpec, TextReportBuilder>() {
                     @Override
