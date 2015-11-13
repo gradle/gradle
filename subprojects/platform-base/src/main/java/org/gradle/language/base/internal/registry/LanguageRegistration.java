@@ -18,6 +18,7 @@ package org.gradle.language.base.internal.registry;
 
 
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.model.internal.type.ModelType;
 
 /**
  * A registered language.
@@ -31,10 +32,10 @@ public interface LanguageRegistration<U extends LanguageSourceSet> {
     /**
      * The interface type of the language source set.
      */
-    Class<U> getSourceSetType();
+    ModelType<U> getSourceSetType();
 
     /**
      * The implementation type of the language source set.
      */
-    Class<? extends U> getSourceSetImplementationType();
+    ModelType<? extends U> getSourceSetImplementationType();
 }

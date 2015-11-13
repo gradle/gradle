@@ -17,17 +17,18 @@
 package org.gradle.language.base.internal.registry;
 
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.model.internal.type.ModelType;
 
 public class NamedLanguageRegistration<T extends LanguageSourceSet> implements LanguageRegistration<T> {
 
     private final String name;
-    private final Class<T> sourceSetType;
-    private final Class<? extends T> sourceSetImplementation;
+    private final ModelType<T> sourceSetType;
+    private final ModelType<? extends T> sourceSetImplementation;
 
     public NamedLanguageRegistration(String name, Class<T> sourceSetType, Class<? extends T> sourceSetImplementation) {
         this.name = name;
-        this.sourceSetType = sourceSetType;
-        this.sourceSetImplementation = sourceSetImplementation;
+        this.sourceSetType = ModelType.of(sourceSetType);
+        this.sourceSetImplementation = ModelType.of(sourceSetImplementation);
     }
 
     @Override
@@ -36,12 +37,12 @@ public class NamedLanguageRegistration<T extends LanguageSourceSet> implements L
     }
 
     @Override
-    public Class<T> getSourceSetType() {
+    public ModelType<T> getSourceSetType() {
         return sourceSetType;
     }
 
     @Override
-    public Class<? extends T> getSourceSetImplementationType() {
+    public ModelType<? extends T> getSourceSetImplementationType() {
         return sourceSetImplementation;
     }
 

@@ -45,15 +45,13 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
         register(languageRegistration.getName(), languageRegistration.getSourceSetType(), languageRegistration.getSourceSetImplementationType());
     }
 
-    private <T extends LanguageSourceSet> void register(String name, Class<T> type, final Class<? extends T> implementationType) {
-        ModelType<T> sourceSetType = ModelType.of(type);
-        InstanceFactory.TypeRegistrationBuilder<T> registration = register(sourceSetType, new SimpleModelRuleDescriptor(name));
+    private <T extends LanguageSourceSet> void register(String name, ModelType<T> type, final ModelType<? extends T> implementationType) {
+        InstanceFactory.TypeRegistrationBuilder<T> registration = register(type, new SimpleModelRuleDescriptor(name));
 
-        ModelType<? extends T> sourceSetImplementationType = ModelType.of(implementationType);
-        registration.withImplementation(sourceSetImplementationType, new BiFunction<T, String, MutableModelNode>() {
+        registration.withImplementation(implementationType, new BiFunction<T, String, MutableModelNode>() {
             @Override
             public T apply(String name1, final MutableModelNode modelNode) {
-                return BaseLanguageSourceSet.create(implementationType, name1, determineParentName(modelNode), fileResolver, instantiator);
+                return BaseLanguageSourceSet.create(implementationType.getConcreteClass(), name1, determineParentName(modelNode), fileResolver, instantiator);
             }
         });
     }
