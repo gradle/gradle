@@ -72,7 +72,7 @@ public class TestApp {
     }
 
     @Unroll
-    def "fails compilation if trying to compile a non-API class (#scope)"() {
+    def "fails compilation when referencing a non-API class from a #scope dependency"() {
         given:
         applyJavaPlugin(buildFile)
         mainLibraryDependingOnApi(scope)
@@ -108,7 +108,7 @@ public class TestApp {
     }
 
     @Unroll
-    def "consuming source is recompiled when API class changes (#scope)"() {
+    def "changing API class should trigger recompilation of a consuming library with #scope dependency"() {
         given:
         applyJavaPlugin(buildFile)
         mainLibraryDependingOnApi(scope)
@@ -151,7 +151,7 @@ public class Person {
     }
 
     @Unroll
-    def "consuming source is not recompiled when non-API class changes (#scope)"() {
+    def "changing non-API class should not trigger recompilation of a consuming library with #scope dependency"() {
         given:
         applyJavaPlugin(buildFile)
         mainLibraryDependingOnApi(scope)
@@ -194,7 +194,7 @@ public class PersonInternal extends Person {
         scope << scopes
     }
 
-    def "consuming source is not recompiled when comment is changed in API class"() {
+    def "changing comment in API class should not trigger recompilation of the consuming library"() {
         given:
         applyJavaPlugin(buildFile)
         mainLibraryDependingOnApi()
@@ -235,7 +235,7 @@ public class Person {
         skipped(':compileMainJarMainJava')
     }
 
-    def "consuming source is not recompiled when method body of API class changes"() {
+    def "changing method body of API class should not trigger recompilation of the consuming library"() {
         given:
         applyJavaPlugin(buildFile)
         mainLibraryDependingOnApi()
@@ -274,7 +274,7 @@ public class Person {
     }
 
     @Ignore("Requires a better definition of what ABI means")
-    def "consuming source is not recompiled when overriding a method from a superclass"() {
+    def "consuming source is not recompiled when overriding a method from a superclass in source dependency"() {
         given:
         applyJavaPlugin(buildFile)
         mainLibraryDependingOnApi()
@@ -310,7 +310,7 @@ public class Person {
         skipped(':compileMainJarMainJava')
     }
 
-    def "consuming source is recompiled when signature of API class changes"() {
+    def "changing signature of public method of API class should trigger recompilation of the consuming library"() {
         given:
         applyJavaPlugin(buildFile)
         mainLibraryDependingOnApi()
@@ -351,7 +351,7 @@ public class Person {
         executedAndNotSkipped(':compileMainJarMainJava')
     }
 
-    def "consuming source is not recompiled when signature of API class doesn't change"() {
+    def "extraction of private method in API class should not trigger recompilation of the consuming library"() {
         given:
         applyJavaPlugin(buildFile)
         mainLibraryDependingOnApi()
@@ -396,7 +396,7 @@ public class Person {
         skipped(':compileMainJarMainJava')
     }
 
-    def "consuming source is not recompiled when order of public methods of API class changes"() {
+    def "changing the order of public methods of API class should not trigger recompilation of the consuming library"() {
         given:
         applyJavaPlugin(buildFile)
         mainLibraryDependingOnApi()
