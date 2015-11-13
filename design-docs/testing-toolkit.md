@@ -422,85 +422,28 @@ unsupported functionality for other versions of the Tooling API.
 
 ### Implementation
 
-* Execute all existing TestKit integration tests in Gradle core with a restricted set of Gradle versions:
-    * version-under-test
-    * the most recent released version
-    * the oldest version for which the feature is supported
-* Reuse the annotations `org.gradle.integtests.fixtures.TargetVersions` and `org.gradle.integtests.fixtures.IgnoreVersions`.
-`TargetVersions` declares the restricted set of Gradle versions used for the cross-version tests, `IgnoreVersions` can be used
-if one of the specified versions should be ignored for a specific test class or method.
-
-<!-- -->
-
-    @TargetVersions(['2.6', GradleVersions.CURRENT.version.version])
-    class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerIntegrationTest {
-
-        @IgnoreVersions('2.6')
-        def "test something"() {
-            ...
-        }
-
-        def "test a condition"() {
-            ...
-        }
-    }
-
-* The JUnit rule `GradleRunnerIntegTestRunner` applied to AbstractGradleRunnerIntegrationTest needs to be extended to evaluate the annotations
-`TargetVersions` and `IgnoreVersions`. The implementation will need to build a matrix combination of targeted versions and debug mode on/off. For
-each target version, a `org.gradle.integtests.fixtures.executer.GradleDistribution` is created. The version-under-test could be mixed into automatically
-by creating an instance of `UnderDevelopmentGradleDistribution`. This `GradleDistribution` is used by the `GradleExecuter` to execute the build with the
-target distribution.
-* Each cross-version test needs to be executed with and without debug mode. There are some exceptions where using debug mode doesn't make sense e.g. tests
- around the isolated daemon. For example:
-
-<!-- -->
-
-<table>
-    <tr>
-        <th>Gradle Version</th>
-        <th>Debug</th>
-    </tr>
-    <tr>
-        <td>2.7</td>
-        <td>off</td>
-    </tr>
-    <tr>
-        <td>2.7</td>
-        <td>on</td>
-    </tr>
-    <tr>
-        <td>2.9</td>
-        <td>off</td>
-    </tr>
-    <tr>
-        <td>2.9</td>
-        <td>on</td>
-    </tr>
-    <tr>
-        <td>2.10-20151106150702+0000</td>
-        <td>off</td>
-    </tr>
-    <tr>
-        <td>2.10-20151106150702+0000</td>
-        <td>on</td>
-    </tr>
-</table>
-
-* At the moment all tests extending `AbstractGradleRunnerIntegrationTest` do not use a `GradleExecuter` to execute the build. Instead they create the
-`GradleRunner` instance in the test class and not in an external build script. To be able to run these tests against different Gradle distributions,
-the code will need to be changed to use a `GradleExecuter`.
+* The goal is to discover which version of the Gradle runtime can be used to execute a test. For each test verify the range from version 1.0 up
+to the latest version.
+* Based on the findings, introduce annotation(s) that indicate if a specific feature is supported for a test or not. The following scenarios are known
+potential issues for some versions of Gradle:
+    * Does it use the `GradleRunner.withPluginClasspath()` method? (introduced in 2.8)
+    * Does it require inspecting the build text output? (doesn’t work in debug mode prior to Gradle 2.9)
+    * Does it not work / not make sense in debug mode? (i.e. what we currently use `@NoDebug` to indicate).
+* The annotation(s) controlling the scenario automatically determine the Gradle version(s) used for executing the test. The Gradle version used for testing
+is injected via `GradleRunner.withGradleVersion(String)`. This logic should be implemented in the JUnit rule `GradleRunnerIntegTestRunner`.
+* The annotation(s) controlling the scenario need to be able to indicate if a scenario is supported or not e.g. `@PluginClasspathInjection(supported = false)`.
 * A TestKit feature that is not supported by the Gradle version used to execute the test should behave in a reasonable manner e.g. provide
 a human-readable error message that explains why this feature cannot be used.
 
 ### Test Coverage
 
+* All TestKit integration tests in Gradle core are exercised.
 * Test passes for feature with Gradle versions supporting it.
-* Test fails with an appropriate error message if Gradle version does not support it.
+* Test is skipped for Gradle versions that do not support feature based on assigned annotation.
 * Assigned Gradle versions used for testing are properly evaluated and used for execution.
 
 ### Open issues
 
-* All test class extending from `AbstractGradleRunnerIntegrationTest` need to be changed to use a `GradleExecuter`? Maybe there's a way to avoud this.
 * Account for increased build time on CI (potentially requires re-sharding of jobs).
 
 # Milestone 3
