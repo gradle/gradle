@@ -50,7 +50,7 @@ import static org.gradle.util.CollectionUtils.collect;
 public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
     private final List<ResolutionAwareRepository> remoteRepositories;
-    private final JarBinarySpec binary;
+    private final JarBinarySpecInternal binary;
     private final DependentSourceSetInternal sourceSet;
     private final ArtifactDependencyResolver dependencyResolver;
     private final DependentSourceSetResolveContext resolveContext;
@@ -58,7 +58,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     private ResolveResult resolveResult;
 
     public DependencyResolvingClasspath(
-            JarBinarySpec binarySpec,
+            JarBinarySpecInternal binarySpec,
             DependentSourceSetInternal sourceSet,
             ArtifactDependencyResolver dependencyResolver,
             ModelSchemaStore schemaStore,

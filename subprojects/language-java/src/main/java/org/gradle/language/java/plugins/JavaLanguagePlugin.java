@@ -25,10 +25,10 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.internal.DependencyResolvingClasspath;
+import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
@@ -111,7 +111,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlatformJavaCompile compile = (PlatformJavaCompile) task;
                     JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
-                    JarBinarySpec binary = (JarBinarySpec) binarySpec;
+                    JarBinarySpecInternal binary = (JarBinarySpecInternal) binarySpec;
 
                     ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
                     RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);

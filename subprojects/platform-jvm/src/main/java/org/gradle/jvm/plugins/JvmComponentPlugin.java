@@ -113,7 +113,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 String binaryName = buildBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
                 binaries.create(binaryName, new Action<JarBinarySpec>() {
                     @Override
-                    public void execute(JarBinarySpec jarBinary) {
+                    public void execute(JarBinarySpec jarBinarySpec) {
+                        JarBinarySpecInternal jarBinary = (JarBinarySpecInternal) jarBinarySpec;
                         jarBinary.setTargetPlatform(platform);
                         jarBinary.setExportedPackages(exportedPackages);
                         jarBinary.setApiDependencies(apiDependencies);
