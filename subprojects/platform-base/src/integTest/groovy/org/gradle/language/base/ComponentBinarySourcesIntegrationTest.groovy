@@ -325,16 +325,7 @@ model {
         fails "model"
 
         then:
-        failureCauseContains("""A model element of type: 'UnregisteredSourceSetType' can not be constructed.
-It must be one of:
-    - A managed type (annotated with @Managed)
-    - or a type which Gradle is capable of constructing:
-        - org.gradle.platform.base.BinarySpec
-        - org.gradle.platform.base.ComponentSpec
-        - CustomBinary
-        - CustomComponent
-        - CustomLanguageSourceSet""")
-
+        failure.assertHasCause("Cannot create a 'UnregisteredSourceSetType' because this type is not known to sourceSets. Known types are: CustomLanguageSourceSet")
     }
 
 }

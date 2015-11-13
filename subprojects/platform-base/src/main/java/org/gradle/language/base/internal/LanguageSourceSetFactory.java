@@ -1,0 +1,79 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.language.base.internal;
+
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.util.BiFunction;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.registry.LanguageRegistration;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
+import org.gradle.model.internal.core.BaseInstanceFactory;
+import org.gradle.model.internal.core.InstanceFactory;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
+import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
+
+public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet> {
+
+    private final FileResolver fileResolver;
+    private final Instantiator instantiator;
+
+    public LanguageSourceSetFactory(String displayName, FileResolver fileResolver, Instantiator instantiator) {
+        super(displayName, LanguageSourceSet.class, BaseLanguageSourceSet.class);
+        this.fileResolver = fileResolver;
+        this.instantiator = instantiator;
+    }
+
+    public <T extends LanguageSourceSet> void register(LanguageRegistration<T> languageRegistration) {
+        register(languageRegistration.getName(), languageRegistration.getSourceSetType(), languageRegistration.getSourceSetImplementationType());
+    }
+
+    private <T extends LanguageSourceSet> void register(String name, Class<T> type, final Class<? extends T> implementationType) {
+        ModelType<T> sourceSetType = ModelType.of(type);
+        InstanceFactory.TypeRegistrationBuilder<T> registration = register(sourceSetType, new SimpleModelRuleDescriptor(name));
+
+        ModelType<? extends T> sourceSetImplementationType = ModelType.of(implementationType);
+        registration.withImplementation(sourceSetImplementationType, new BiFunction<T, String, MutableModelNode>() {
+            @Override
+            public T apply(String name1, final MutableModelNode modelNode) {
+                return BaseLanguageSourceSet.create(implementationType, name1, determineParentName(modelNode), fileResolver, instantiator);
+            }
+        });
+    }
+
+    private String determineParentName(MutableModelNode modelNode) {
+        MutableModelNode grandparentNode = modelNode.getParent().getParent();
+        // Special case handling of a LanguageSourceSet that is part of `ComponentSpec.sources` or `BinarySpec.sources`
+        if (grandparentNode != null) {
+            if (grandparentNode.getPrivateData() instanceof BaseBinarySpec) {
+                // TODO:DAZ Should be using binary.projectScopedName for uniqueness
+                BaseBinarySpec binarySpecInternal = (BaseBinarySpec) grandparentNode.getPrivateData();
+                return binarySpecInternal.getComponent() == null ? binarySpecInternal.getName() : binarySpecInternal.getComponent().getName();
+            }
+            if (grandparentNode.getPrivateData() instanceof ComponentSpecInternal) {
+                return ((ComponentSpecInternal) grandparentNode.getPrivateData()).getName();
+            }
+        }
+
+        return modelNode.getParent().getPath().getName();
+    }
+
+
+}

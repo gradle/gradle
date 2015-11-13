@@ -59,13 +59,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         fails "model"
 
         then:
-        failureCauseContains("""A model element of type: '$type' can not be constructed.
-It must be one of:
-    - A managed type (annotated with @Managed)
-    - or a type which Gradle is capable of constructing:
-        - org.gradle.platform.base.BinarySpec
-        - org.gradle.platform.base.ComponentSpec
-        - org.gradle.language.java.JavaSourceSet""")
+        failure.assertHasCause("Cannot create a '$type' because this type is not known to sourceSets. Known types are: org.gradle.language.java.JavaSourceSet")
 
         where:
         type << ['org.gradle.api.internal.java.DefaultJavaSourceSet', 'org.gradle.language.base.LanguageSourceSet']

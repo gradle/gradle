@@ -28,7 +28,7 @@ import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.type.ModelType;
 
 public class FactoryBasedNodeInitializerExtractionStrategy<T> implements NodeInitializerExtractionStrategy {
-    private final InstanceFactory<T> instanceFactory;
+    protected final InstanceFactory<T> instanceFactory;
     private final BiAction<? super T, ? super ModelSchema<? extends T>> configAction;
 
     public FactoryBasedNodeInitializerExtractionStrategy(InstanceFactory<T> instanceFactory, BiAction<? super T, ? super ModelSchema<? extends T>> configAction) {

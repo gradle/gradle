@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.platform.base.ModelInstantiationException;
 
@@ -97,7 +98,7 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
 
     private static ThreadLocal<SourceSetInfo> nextSourceSetInfo = new ThreadLocal<SourceSetInfo>();
 
-    public static <T extends BaseLanguageSourceSet> T create(Class<T> type, String name, String parentName, FileResolver fileResolver, Instantiator instantiator) {
+    public static <T extends LanguageSourceSet> T create(Class<T> type, String name, String parentName, FileResolver fileResolver, Instantiator instantiator) {
         if (type.equals(BaseLanguageSourceSet.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseLanguageSourceSet.");
         }

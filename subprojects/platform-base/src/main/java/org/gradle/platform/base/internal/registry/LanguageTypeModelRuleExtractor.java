@@ -17,12 +17,10 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.Cast;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
-import org.gradle.language.base.internal.registry.RuleBasedLanguageRegistration;
+import org.gradle.language.base.internal.registry.NamedLanguageRegistration;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.*;
@@ -85,7 +83,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         private final String languageName;
 
         protected RegisterTypeRule(ModelType<? extends LanguageSourceSet> type, ModelType<? extends BaseLanguageSourceSet> implementation, String languageName, ModelRuleDescriptor descriptor) {
-            super(ModelReference.of(LanguageRegistry.class), descriptor, ModelReference.of("serviceRegistry", ServiceRegistry.class));
+            super(ModelReference.of(LanguageRegistry.class), descriptor);
             this.type = type;
             this.implementation = implementation;
             this.languageName = languageName;
@@ -93,13 +91,9 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
 
         @Override
         protected void execute(MutableModelNode modelNode, LanguageRegistry languageRegistry, List<ModelView<?>> inputs) {
-            ServiceRegistry serviceRegistry = ModelViews.assertType(inputs.get(0), ModelType.of(ServiceRegistry.class)).getInstance();
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            @SuppressWarnings("unchecked")
-            Class<BaseLanguageSourceSet> publicClass = (Class<BaseLanguageSourceSet>) type.getConcreteClass();
-            Class<? extends BaseLanguageSourceSet> implementationClass = implementation.getConcreteClass();
-            languageRegistry.add(new RuleBasedLanguageRegistration<BaseLanguageSourceSet>(languageName, publicClass, implementationClass, instantiator, fileResolver));
+            Class<LanguageSourceSet> publicClass = Cast.uncheckedCast(type.getConcreteClass());
+            Class<? extends LanguageSourceSet> implementationClass = implementation.getConcreteClass();
+            languageRegistry.add(new NamedLanguageRegistration<LanguageSourceSet>(languageName, publicClass, implementationClass));
         }
     }
 }
