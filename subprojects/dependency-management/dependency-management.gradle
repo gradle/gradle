@@ -21,6 +21,8 @@ dependencies {
     runtime libraries.bouncycastle_provider
 
     compile libraries.maven3
+    
+    compile libraries.woodstox
 
     testCompile libraries.groovy
 
