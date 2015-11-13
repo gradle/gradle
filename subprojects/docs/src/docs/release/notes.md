@@ -307,6 +307,7 @@ We would like to thank the following community members for making contributions 
 
 * [Ethan Hall](https://github.com/ethankhall) - Addition of new `buildEnvironment` task.
 * [Sebastian Schuberth](https://github.com/sschuberth) - Checkstyle HTML report.
+* [Jeffry Gaston](https://github.com/mathjeff) - Debug message improvement
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
