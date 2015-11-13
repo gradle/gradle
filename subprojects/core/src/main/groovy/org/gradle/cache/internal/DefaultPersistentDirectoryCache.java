@@ -78,7 +78,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                 String previousValue = cachedProperties.getProperty(entry.getKey().toString());
                 String currentValue = entry.getValue().toString();
                 if (!previousValue.equals(currentValue)) {
-                    LOGGER.debug("Invalidating {} as cache property {} has changed from {} to {} .", this, entry.getKey(), previousValue, currentValue);
+                    LOGGER.debug("Invalidating {} as cache property {} has changed from {} to {}.", this, entry.getKey(), previousValue, currentValue);
                     return true;
                 }
             }
