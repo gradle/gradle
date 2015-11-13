@@ -49,6 +49,6 @@ public enum JavaVersion {
                 return javaVersion;
             }
         }
-        throw new IllegalArgumentException(String.format("No JavaSourceLevel constant defined with name '%s'", name));
+        throw new IllegalArgumentException(String.format("No JavaVersion constant defined with name '%s'", name));
     }
 }
