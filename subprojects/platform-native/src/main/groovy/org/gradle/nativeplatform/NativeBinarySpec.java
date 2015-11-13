@@ -18,6 +18,7 @@ package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.language.PreprocessingTool;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.platform.base.BinarySpec;
@@ -84,6 +85,7 @@ public interface NativeBinarySpec extends BinarySpec {
      */
     NativeToolChain getToolChain();
 
+    // TODO It would be better if these were added via a separate managed view, rather than hard coded.
     /**
      * The settings used for linking this binary.
      */
@@ -93,4 +95,34 @@ public interface NativeBinarySpec extends BinarySpec {
      * The static archiver settings used for creating this binary.
      */
     Tool getStaticLibArchiver();
+
+    /**
+     * The static archiver settings used for creating this binary.
+     */
+    Tool getAssembler();
+
+    /**
+     * The static archiver settings used for creating this binary.
+     */
+    PreprocessingTool getcCompiler();
+
+    /**
+     * The static archiver settings used for creating this binary.
+     */
+    PreprocessingTool getCppCompiler();
+
+    /**
+     * The static archiver settings used for creating this binary.
+     */
+    PreprocessingTool getObjcCompiler();
+
+    /**
+     * The static archiver settings used for creating this binary.
+     */
+    PreprocessingTool getObjcppCompiler();
+
+    /**
+     * The static archiver settings used for creating this binary.
+     */
+    PreprocessingTool getRcCompiler();
 }

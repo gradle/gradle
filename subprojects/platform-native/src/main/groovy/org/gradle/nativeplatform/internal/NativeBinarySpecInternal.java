@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.language.PreprocessingTool;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -67,16 +66,4 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
 
     Map<File, PreCompiledHeader> getPrefixFileToPCH();
 
-    // TODO It would be better if these were added via a separate managed view, rather than hard coded.
-    Tool getAssembler();
-
-    PreprocessingTool getcCompiler();
-
-    PreprocessingTool getCppCompiler();
-
-    PreprocessingTool getObjcCompiler();
-
-    PreprocessingTool getObjcppCompiler();
-
-    PreprocessingTool getRcCompiler();
 }
