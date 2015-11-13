@@ -469,7 +469,7 @@
                <sourcefile file="build.gradle" snippet="source-library"/>
            </sample>
            <para>
-               Alternatively, a library dependency can be provided directly to the <literal>NativeExecutableBinary</literal> for the <literal>executable</literal>.
+               Alternatively, a library dependency can be provided directly to the <literal>NativeExecutableBinarySpec</literal> for the <literal>executable</literal>.
            </para>
            <sample id="cppBinaryLibrary" dir="native-binaries/custom-layout" title="Providing a library dependency to the binary">
                <sourcefile file="build.gradle" snippet="binary-library"/>

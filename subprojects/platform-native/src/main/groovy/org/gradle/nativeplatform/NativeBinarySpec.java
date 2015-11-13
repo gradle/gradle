@@ -36,7 +36,7 @@ public interface NativeBinarySpec extends BinarySpec {
     NativeComponentSpec getComponent();
 
     /**
-     * The flavor that this binary was built with.
+     * The {@link org.gradle.nativeplatform.Flavor} that this binary was built with.
      */
     @Variant
     Flavor getFlavor();
@@ -48,7 +48,7 @@ public interface NativeBinarySpec extends BinarySpec {
     NativePlatform getTargetPlatform();
 
     /**
-     * Returns the {@link BuildType} used to construct this binary.
+     * Returns the {@link org.gradle.nativeplatform.BuildType} used to construct this binary.
      */
     @Variant
     BuildType getBuildType();

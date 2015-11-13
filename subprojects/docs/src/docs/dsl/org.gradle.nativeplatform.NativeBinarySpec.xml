@@ -24,6 +24,15 @@
                 </tr>
             </thead>
             <tr>
+                <td>buildType</td>
+            </tr>
+            <tr>
+                <td>flavor</td>
+            </tr>
+            <tr>
+                <td>targetPlatform</td>
+            </tr>
+            <tr>
                 <td>component</td>
             </tr>
             <tr>
