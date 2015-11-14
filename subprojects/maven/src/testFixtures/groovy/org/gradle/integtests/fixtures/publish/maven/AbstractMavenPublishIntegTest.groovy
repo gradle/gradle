@@ -19,6 +19,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenFileModule
 
 class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
+    def setup() {
+        overrideMavenLocal()
+    }
 
     protected def resolveArtifact(MavenFileModule module, def extension, def classifier) {
         doResolveArtifacts("""
