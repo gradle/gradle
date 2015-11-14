@@ -76,23 +76,23 @@ public class ComponentReport extends DefaultTask {
         renderer.startProject(project);
 
         Collection<ComponentSpec> components = new ArrayList<ComponentSpec>();
-        ComponentSpecContainer componentSpecs = find("components", ComponentSpecContainer.class);
+        ComponentSpecContainer componentSpecs = modelElement("components", ComponentSpecContainer.class);
         if (componentSpecs != null) {
             components.addAll(componentSpecs.values());
         }
 
-        TestSuiteContainer testSuites = find("testSuites", TestSuiteContainer.class);
+        TestSuiteContainer testSuites = modelElement("testSuites", TestSuiteContainer.class);
         if (testSuites != null) {
             components.addAll(testSuites.values());
         }
 
         renderer.renderComponents(components);
 
-        ProjectSourceSet sourceSets = find("sources", ProjectSourceSet.class);
+        ProjectSourceSet sourceSets = modelElement("sources", ProjectSourceSet.class);
         if (sourceSets != null) {
             renderer.renderSourceSets(sourceSets);
         }
-        ModelMap<BinarySpec> binaries = find("binaries", modelMap(BinarySpec.class));
+        ModelMap<BinarySpec> binaries = modelElement("binaries", modelMap(BinarySpec.class));
         if (binaries != null) {
             renderer.renderBinaries(binaries);
         }
@@ -101,11 +101,11 @@ public class ComponentReport extends DefaultTask {
         renderer.complete();
     }
 
-    private <T> T find(String path, Class<T> clazz) {
-        return find(path, ModelType.of(clazz));
+    private <T> T modelElement(String path, Class<T> clazz) {
+        return getModelRegistry().find(path, clazz);
     }
 
-    private <T> T find(String path, ModelType<T> modelType) {
+    private <T> T modelElement(String path, ModelType<T> modelType) {
         return getModelRegistry().find(path, modelType);
     }
 }
