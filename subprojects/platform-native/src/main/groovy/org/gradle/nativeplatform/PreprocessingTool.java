@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.language;
+package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativeplatform.Tool;
 
 import java.util.Map;
 

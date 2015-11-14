@@ -446,7 +446,7 @@
         </sample>
         <para>
             The example above also demonstrates the mechanism of passing extra command-line arguments to the resource compiler.
-            The <literal>rcCompiler</literal> extension is of type <apilink class="org.gradle.language.PreprocessingTool"/>.
+            The <literal>rcCompiler</literal> extension is of type <apilink class="org.gradle.nativeplatform.PreprocessingTool"/>.
         </para>
     </section>
 

@@ -18,7 +18,6 @@ package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.language.PreprocessingTool;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.platform.base.BinarySpec;

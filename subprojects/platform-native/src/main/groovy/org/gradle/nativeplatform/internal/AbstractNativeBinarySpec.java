@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.internal;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
-import org.gradle.language.PreprocessingTool;
+import org.gradle.nativeplatform.PreprocessingTool;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;

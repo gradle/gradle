@@ -300,6 +300,7 @@ required by the test code needs to be declared for the test classpath.
 ### Changes to incubating native software model
 
 - Task names have changed for components with multiple variants. The library or executable name is now first.
+- `org.gradle.language.PreprocessingTool` has moved to `org.gradle.nativeplatform.PreprocessingTool`
 
 ## External contributions
 
