@@ -1240,7 +1240,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         then:
         def e = thrown(MetaDataParseException)
         e.message == "Could not parse POM ${pomFile.toURI()}"
-        e.cause.message.contains('Element type "modelVersion"')
+        e.cause.message.contains("Unexpected '<' character in element (missing closing '>'?)")
     }
 
 

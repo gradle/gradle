@@ -30,7 +30,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getLibJarsCount() {
-        158
+        161
     }
 
     def allZipContents() {

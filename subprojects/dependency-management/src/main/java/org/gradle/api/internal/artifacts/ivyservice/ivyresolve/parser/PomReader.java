@@ -19,7 +19,6 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.License;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
@@ -30,13 +29,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import javax.xml.parsers.DocumentBuilder;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -186,21 +181,6 @@ public class PomReader implements PomParent {
     @Override
     public String toString() {
         return projectElement.getOwnerDocument().getDocumentURI();
-    }
-
-    public static Document parseToDom(InputStream stream, String systemId) throws IOException, SAXException {
-        EntityResolver entityResolver = new EntityResolver() {
-            public InputSource resolveEntity(String publicId, String systemId)
-                    throws SAXException, IOException {
-                if ((systemId != null) && systemId.endsWith("m2-entities.ent")) {
-                    return new InputSource(org.apache.ivy.plugins.parser.m2.PomReader.class.getResourceAsStream("m2-entities.ent"));
-                }
-                return null;
-            }
-        };
-        InputStream dtdStream = new AddDTDFilterInputStream(stream);
-        DocumentBuilder docBuilder = XMLHelper.getDocBuilder(entityResolver);
-        return docBuilder.parse(dtdStream, systemId);
     }
 
     public boolean hasParent() {

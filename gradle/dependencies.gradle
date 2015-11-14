@@ -95,6 +95,12 @@ libraries += [
         jsoup:'org.jsoup:jsoup:1.6.3'
 ]
 
+libraries.woodstox = [
+    'com.fasterxml.woodstox:woodstox-core:5.0.1@jar',
+    'org.codehaus.woodstox:stax2-api:3.1.4@jar',
+    'com.fasterxml.staxmate:staxmate:2.3.0@jar'
+]
+
 libraries.maven3 = dependencies.module("org.apache.maven:maven-core:3.0.4") {
     dependency "org.apache.maven:maven-settings:3.0.4@jar"
     dependency "org.apache.maven:maven-settings-builder:3.0.4@jar"
