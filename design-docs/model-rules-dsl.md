@@ -13,11 +13,14 @@
 - Replace `$('path')` with `$.path`
 - Update user guide to mention syntax
 - Update samples to use this syntax
-- TBD: Handle case where path traverses an unmanaged element, eg `$.tasks.compileJava.destinationDir`
 
 ### Test cases
 
 - Cannot use `$` expressions in non-transformed closure.
+
+### Backlog
+
+- Handle case where path traverses an unmanaged element, eg `$.tasks.compileJava.destinationDir`
 
 ## Story: DSL rule configures elements of ModelMap
 
@@ -27,6 +30,7 @@
     - for each in collection, apply a rule
     - if some condition is true, apply a rule
     - TBD: handle `each { ... }`, `with { ... }` etc
+    - TBD: handle `{ binaries.all { ... } }` etc
 - Allow configuration of an element to take the configuration of a sibling as input.
 - Prevent unqualified access to owner closure
 - Out-of-scope: allow configuration of an element to take the configuration of siblings with type as input.
