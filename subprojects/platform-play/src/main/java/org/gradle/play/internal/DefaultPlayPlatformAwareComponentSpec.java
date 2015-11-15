@@ -17,17 +17,21 @@
 package org.gradle.play.internal;
 
 import com.google.common.collect.Lists;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
+import org.gradle.play.PlayPlatformAwareComponentSpec;
 
-import java.util.Collections;
-import java.util.List;
+/**
+ * Default implementation of a platform aware aspect of a Play Framework software component.
+ */
+public class DefaultPlayPlatformAwareComponentSpec extends BaseComponentSpec implements PlayPlatformAwareComponentSpec, PlayPlatformAwareComponentSpecInternal {
 
-public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpecInternal {
     private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
-    private boolean injectedRoutesGenerator;
 
+    @Override
     protected String getTypeName() {
         return "Play Application";
     }
@@ -40,19 +44,9 @@ public class DefaultPlayApplicationSpec extends BaseComponentSpec implements Pla
         this.targetPlatforms.add(DefaultPlatformRequirement.create(targetPlatform));
     }
 
-    @Override
     public void platform(Object platformRequirements) {
         PlatformRequirement requirement = PlayPlatformNotationParser.parser().parseNotation(platformRequirements);
         this.targetPlatforms.add(requirement);
     }
 
-    @Override
-    public void setInjectedRoutesGenerator(boolean injectedRoutesGenerator) {
-        this.injectedRoutesGenerator = injectedRoutesGenerator;
-    }
-
-    @Override
-    public boolean getInjectedRoutesGenerator() {
-        return injectedRoutesGenerator;
-    }
 }

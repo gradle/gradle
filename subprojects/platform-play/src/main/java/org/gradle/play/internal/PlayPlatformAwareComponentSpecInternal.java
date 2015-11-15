@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.gradle.play.internal;
 
-import org.gradle.model.Managed;
-import org.gradle.play.PlayApplicationSpec;
+import org.gradle.platform.base.internal.PlatformAwareComponentSpecInternal;
+import org.gradle.play.PlayPlatformAwareComponentSpec;
 
-@Managed
-public interface PlayApplicationSpecInternal extends PlayApplicationSpec, PlayPlatformAwareComponentSpecInternal {
+public interface PlayPlatformAwareComponentSpecInternal extends PlayPlatformAwareComponentSpec, PlatformAwareComponentSpecInternal {
+
 }

@@ -50,6 +50,7 @@ import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
+import org.gradle.play.PlayPlatformAwareComponentSpec;
 import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.*;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
@@ -105,10 +106,15 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         FileResolver fileResolver(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(FileResolver.class);
         }
+        
+        @ComponentType
+        void registerPlayPlatformAwareComponentSpecType(ComponentTypeBuilder<PlayPlatformAwareComponentSpec> builder) {
+            builder.defaultImplementation(DefaultPlayPlatformAwareComponentSpec.class);
+            builder.internalView(PlayPlatformAwareComponentSpecInternal.class);
+        }
 
         @ComponentType
-        void register(ComponentTypeBuilder<PlayApplicationSpec> builder) {
-            builder.defaultImplementation(DefaultPlayApplicationSpec.class);
+        void registerPlayApplicationSpecType(ComponentTypeBuilder<PlayApplicationSpec> builder) {
             builder.internalView(PlayApplicationSpecInternal.class);
         }
 
@@ -149,8 +155,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         @Validate
         void failOnMultipleTargetPlatforms(ModelMap<PlayApplicationSpec> playApplications) {
-            playApplications.withType(PlayApplicationSpecInternal.class).afterEach(new Action<PlayApplicationSpecInternal>() {
-                public void execute(PlayApplicationSpecInternal playApplication) {
+            playApplications.withType(PlayPlatformAwareComponentSpecInternal.class).afterEach(new Action<PlayPlatformAwareComponentSpecInternal>() {
+                public void execute(PlayPlatformAwareComponentSpecInternal playApplication) {
                     if (playApplication.getTargetPlatforms().size() > 1) {
                         throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
                     }
