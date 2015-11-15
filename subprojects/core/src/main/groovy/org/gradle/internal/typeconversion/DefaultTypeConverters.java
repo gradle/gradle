@@ -45,8 +45,7 @@ public class DefaultTypeConverters implements TypeConverters {
         .build();
     private final NotationParser<Object, File> fileParser;
 
-    @SuppressWarnings("unchecked")
-    private static <T> NotationParser<Object, T> build(CharSequenceConverter converter, Class<?> type) {
+    private static <T> NotationParser<Object, T> build(CharSequenceConverter<T> converter, Class<T> type) {
         return NotationParserBuilder
             .toType(type)
             .noImplicitConverters()
