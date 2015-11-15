@@ -56,6 +56,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
             ModelAction mutator = new RegisterTypeRule(type, implementation, ((LanguageTypeBuilderInternal) builder).getLanguageName(), ruleDefinition.getDescriptor());
             return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
         }
+        // TODO:DAZ Work out what this is for
         return new DependencyOnlyExtractedModelRule(dependencies);
     }
 
@@ -93,7 +94,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         protected void execute(MutableModelNode modelNode, LanguageRegistry languageRegistry, List<ModelView<?>> inputs) {
             Class<LanguageSourceSet> publicClass = Cast.uncheckedCast(type.getConcreteClass());
             Class<? extends LanguageSourceSet> implementationClass = implementation.getConcreteClass();
-            languageRegistry.add(new NamedLanguageRegistration<LanguageSourceSet>(languageName, publicClass, implementationClass));
+            languageRegistry.add(new NamedLanguageRegistration<LanguageSourceSet>(languageName, publicClass, implementationClass, descriptor));
         }
     }
 }

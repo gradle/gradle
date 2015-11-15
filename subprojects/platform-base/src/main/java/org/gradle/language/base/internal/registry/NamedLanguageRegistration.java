@@ -17,6 +17,7 @@
 package org.gradle.language.base.internal.registry;
 
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 public class NamedLanguageRegistration<T extends LanguageSourceSet> implements LanguageRegistration<T> {
@@ -24,11 +25,14 @@ public class NamedLanguageRegistration<T extends LanguageSourceSet> implements L
     private final String name;
     private final ModelType<T> sourceSetType;
     private final ModelType<? extends T> sourceSetImplementation;
+    private final ModelRuleDescriptor ruleDescriptor;
 
-    public NamedLanguageRegistration(String name, Class<T> sourceSetType, Class<? extends T> sourceSetImplementation) {
+    public NamedLanguageRegistration(String name, Class<T> sourceSetType, Class<? extends T> sourceSetImplementation,
+                                     ModelRuleDescriptor ruleDescriptor) {
         this.name = name;
         this.sourceSetType = ModelType.of(sourceSetType);
         this.sourceSetImplementation = ModelType.of(sourceSetImplementation);
+        this.ruleDescriptor = ruleDescriptor;
     }
 
     @Override
@@ -46,4 +50,8 @@ public class NamedLanguageRegistration<T extends LanguageSourceSet> implements L
         return sourceSetImplementation;
     }
 
+    @Override
+    public ModelRuleDescriptor getRuleDescriptor() {
+        return ruleDescriptor;
+    }
 }

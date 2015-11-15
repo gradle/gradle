@@ -24,7 +24,7 @@ import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.model.internal.core.InstanceFactory;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
@@ -40,8 +40,8 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
         this.instantiator = instantiator;
     }
 
-    public <T extends LanguageSourceSet, V extends T> void register(String name, ModelType<T> type, final ModelType<V> implementationType) {
-        InstanceFactory.TypeRegistrationBuilder<T> registration = register(type, new SimpleModelRuleDescriptor(name));
+    public <T extends LanguageSourceSet, V extends T> void register(ModelType<T> type, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
+        InstanceFactory.TypeRegistrationBuilder<T> registration = register(type, ruleDescriptor);
 
         registration.withImplementation(implementationType, new BiFunction<T, String, MutableModelNode>() {
             @Override
