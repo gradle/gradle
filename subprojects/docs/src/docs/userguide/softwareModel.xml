@@ -22,9 +22,9 @@
     </note>
     <para>
         This chapter describes and documents what is essentially the foundation for Gradle 3.0 and the next generation of Gradle builds.
-        It is being incrementally developed during the Gradle 2.x stream. Gradle's support for building <link linkend="nativeBinaries">native software</link> and
+        It is being incrementally developed during the Gradle 2.x stream. Gradle's support for building <link linkend="native_software">native software</link> and
         <link linkend="play_plugin">Play Framework applications</link> already uses this configuration model.
-        Gradle also includes some initial support for building <link linkend="building_java_libraries">Java libraries</link> using this configuration model.
+        Gradle also includes some initial support for building <link linkend="java_software">Java libraries</link> using this configuration model.
     </para>
     <para>
         All of the mechanisms, DSL, API, and techniques discussed here are <emphasis>incubating</emphasis> and are not considered stable and subject to change - see <xref linkend="feature_lifecycle"/>).
@@ -497,9 +497,9 @@
         </para>
     </section>
     <section id="model-dsl">
-        <title>The “model DSL”</title>
+        <title>The model DSL</title>
         <para>
-            It is also possible to declare rules directly in the build script using the “model DSL”.
+            It is also possible to declare a model and rules directly in the build script using the “model DSL”.
         </para>
         <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="the model dsl">
             <sourcefile file='build.gradle' snippet='dsl'/>
@@ -574,7 +574,7 @@
             <para>
                 In the above snippet, the <literal>$.person</literal> construct is an input reference.
                 The construct returns the value of the model element at the specified path, as its default type (i.e. the type advertised by the <link linkend="model-report">Model Report</link>).
-                It may appear anywhere in the rule that a value may normally appear.
+                It may appear anywhere in the rule that an expression may normally appear.
                 It is not limited to the right hand side of variable assignments.
             </para>
             <para>

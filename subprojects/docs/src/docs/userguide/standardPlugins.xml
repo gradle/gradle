@@ -92,7 +92,7 @@
             </thead>
             <tr>
                 <td>
-                    <link linkend='nativeBinaries'>
+                    <link linkend='native_software'>
                         <literal>assembler</literal>
                     </link>
                 </td>
@@ -104,7 +104,7 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='nativeBinaries'>
+                    <link linkend='native_software'>
                         <literal>c</literal>
                     </link>
                 </td>
@@ -116,7 +116,7 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='nativeBinaries'>
+                    <link linkend='native_software'>
                         <literal>cpp</literal>
                     </link>
                 </td>
@@ -128,7 +128,7 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='nativeBinaries'>
+                    <link linkend='native_software'>
                         <literal>objective-c</literal>
                     </link>
                 </td>
@@ -140,7 +140,7 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='nativeBinaries'>
+                    <link linkend='native_software'>
                         <literal>objective-cpp</literal>
                     </link>
                 </td>
@@ -152,7 +152,7 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='nativeBinaries'>
+                    <link linkend='native_software'>
                         <literal>windows-resources</literal>
                     </link>
                 </td>
@@ -592,7 +592,7 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend="nativeBinaries">
+                    <link linkend="native_software">
                         <literal>cunit</literal>
                     </link>
                 </td>
@@ -635,7 +635,7 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend="nativeBinaries">
+                    <link linkend="native_software">
                         <literal>visual-studio</literal>
                     </link>
                 </td>
