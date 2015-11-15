@@ -22,9 +22,9 @@
     </note>
     <para>
         This chapter describes and documents what is essentially the foundation for Gradle 3.0 and the next generation of Gradle builds.
-        It is being incrementally developed during the Gradle 2.x stream. Gradle's support for building <link linkend="nativeBinaries">native applications</link> and
+        It is being incrementally developed during the Gradle 2.x stream. Gradle's support for building <link linkend="nativeBinaries">native software</link> and
         <link linkend="play_plugin">Play Framework applications</link> already uses this configuration model.
-        Gradle also includes some initial support for building <link linkend="new_java_plugin">Java libraries</link> using this configuration model.
+        Gradle also includes some initial support for building <link linkend="building_java_libraries">Java libraries</link> using this configuration model.
     </para>
     <para>
         All of the mechanisms, DSL, API, and techniques discussed here are <emphasis>incubating</emphasis> and are not considered stable and subject to change - see <xref linkend="feature_lifecycle"/>).
