@@ -81,7 +81,7 @@
         <xi:include href='organizeBuildLogic.xml'/>
         <xi:include href='initscripts.xml'/>
         <xi:include href='testKit.xml' />
-        <xi:include href='newModel.xml'/>
+        <xi:include href='softwareModel.xml'/>
     </part>
     <part>
         <title>Building JVM projects</title>
