@@ -20,7 +20,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.model.internal.core.InstanceFactory;
@@ -41,11 +40,7 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
         this.instantiator = instantiator;
     }
 
-    public <T extends LanguageSourceSet> void register(LanguageRegistration<T> languageRegistration) {
-        register(languageRegistration.getName(), languageRegistration.getSourceSetType(), languageRegistration.getSourceSetImplementationType());
-    }
-
-    private <T extends LanguageSourceSet> void register(String name, ModelType<T> type, final ModelType<? extends T> implementationType) {
+    public <T extends LanguageSourceSet, V extends T> void register(String name, ModelType<T> type, final ModelType<V> implementationType) {
         InstanceFactory.TypeRegistrationBuilder<T> registration = register(type, new SimpleModelRuleDescriptor(name));
 
         registration.withImplementation(implementationType, new BiFunction<T, String, MutableModelNode>() {

@@ -121,8 +121,12 @@ public class LanguageBasePlugin implements Plugin<Project> {
         @Mutate
         void registerSourceSetTypes(LanguageSourceSetFactory languageSourceSetFactory, LanguageRegistry languageRegistry) {
             for (LanguageRegistration<?> languageRegistration : languageRegistry) {
-                languageSourceSetFactory.register(languageRegistration);
+                register(languageSourceSetFactory, languageRegistration);
             }
+        }
+
+        private <T extends LanguageSourceSet> void register(LanguageSourceSetFactory lssFactory, LanguageRegistration<T> languageRegistration) {
+            lssFactory.register(languageRegistration.getName(), languageRegistration.getSourceSetType(), languageRegistration.getSourceSetImplementationType());
         }
 
         @Mutate
