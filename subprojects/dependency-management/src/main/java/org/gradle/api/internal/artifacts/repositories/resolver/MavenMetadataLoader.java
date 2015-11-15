@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import com.ctc.wstx.sax.WstxSAXParserFactory;
-import com.ctc.wstx.stax.WstxInputFactory;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
+import org.gradle.internal.xml.XMLParsers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
@@ -30,9 +29,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.stream.XMLInputFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -76,7 +72,7 @@ class MavenMetadataLoader {
         LOGGER.debug("parsing maven-metadata: {}", metadataResource);
         metadataResource.withContent(new ErroringAction<InputStream>() {
             public void doExecute(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
-                createSaxParser().parse(inputStream, new OptimizedContextualSAXHandler() {
+                XMLParsers.createNonValidatingSaxParser().parse(inputStream, new OptimizedContextualSAXHandler() {
                     public void endElement(String uri, String localName, String qName)
                             throws SAXException {
                         if (isInContext("metadata", "versioning", "snapshot", "timestamp")) {
@@ -130,22 +126,5 @@ class MavenMetadataLoader {
         }
     }
 
-    private static final SAXParserFactory NON_VALIDATING_SAX_PARSER_FACTORY = createWoodstoxSaxParserFactory();
-
-    private static SAXParserFactory createWoodstoxSaxParserFactory() {
-        WstxInputFactory inputFactory = new WstxInputFactory();
-        inputFactory.setProperty(XMLInputFactory.IS_VALIDATING, false);
-        inputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
-        inputFactory.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false);
-        inputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
-
-        SAXParserFactory factory = new WstxSAXParserFactory(inputFactory);
-        factory.setValidating(false);
-        return factory;
-    }
-
-    private SAXParser createSaxParser() throws ParserConfigurationException, SAXException {
-        return NON_VALIDATING_SAX_PARSER_FACTORY.newSAXParser();
-    }
 }
 

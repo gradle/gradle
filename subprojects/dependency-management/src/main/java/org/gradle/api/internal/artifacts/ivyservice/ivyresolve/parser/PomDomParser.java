@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import com.ctc.wstx.stax.WstxInputFactory;
 import org.codehaus.staxmate.dom.DOMConverter;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.xml.XMLParsers;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -100,7 +100,8 @@ public final class PomDomParser {
         return r;
     }
 
-    private static final XMLInputFactory XML_INPUT_FACTORY = createWoodstoxXmlInputFactory();
+    // hard-code to use Woodstox StAX parser . IBM StAX parser doesn't support disabling IS_REPLACING_ENTITY_REFERENCES
+    private static final XMLInputFactory XML_INPUT_FACTORY = XMLParsers.createNonValidatingXMLInputFactory();
     private static final Map<String, String> M2_ENTITIES_MAP = new M2EntitiesMap();
 
     public static Document parseToDom(InputStream stream, String systemId) throws XMLStreamException, TransformerException, IOException, SAXException {
@@ -117,16 +118,6 @@ public final class PomDomParser {
     // This is an efficient way to resolve the entities without using the m2entities.ent DTD injection hack that Ivy uses
     private static XMLStreamReader decorateWithM2EntityReplacement(final XMLStreamReader xmlStreamReader) throws XMLStreamException {
         return new EntityReplacementDelegate(xmlStreamReader, M2_ENTITIES_MAP);
-    }
-
-    // hard-code to use Woodstox StAX parser . IBM StAX parser doesn't support disabling IS_REPLACING_ENTITY_REFERENCES
-    private static XMLInputFactory createWoodstoxXmlInputFactory() {
-        XMLInputFactory inputFactory = new WstxInputFactory();
-        inputFactory.setProperty(XMLInputFactory.IS_VALIDATING, false);
-        inputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
-        inputFactory.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false);
-        inputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
-        return inputFactory;
     }
 
     private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = createDocumentBuilderFactory();
