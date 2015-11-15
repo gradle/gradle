@@ -19,8 +19,10 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.internal.reflect.MethodDescription;
@@ -61,10 +63,26 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
         });
     }
 
+ @Override
+    protected void handleOverridenMethods(ModelSchemaExtractionContext<?> extractionContext, List<List<Method>> overridenMethods) {
+        ImmutableSet.Builder<Method> accepted = ImmutableSet.builder();
+        for (List<Method> methods : overridenMethods) {
+            if (methods.size() > 1 && !isMethodDeclaredInManagedType(methods.get(methods.size() - 1))) {
+                accepted.addAll(methods);
+            }
+        }
+        Set<Method> allOverrides = Sets.newLinkedHashSet(Iterables.concat(overridenMethods));
+        Set<Method> acceptedOverrides = accepted.build();
+        Sets.SetView<Method> rejectedOverrides = Sets.difference(allOverrides, acceptedOverrides);
+        if (!rejectedOverrides.isEmpty() && isMethodDeclaredInManagedType(rejectedOverrides)) {
+            throw invalidMethods(extractionContext, "overriden methods supported", rejectedOverrides);
+        }
+    }
+    
     @Override
     protected void handleOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> overloadedMethods) {
         if (isMethodDeclaredInManagedType(overloadedMethods)) {
-            throw invalidMethods(extractionContext, "overloaded methods are not supported", overloadedMethods);
+            throw invalidMethods(extractionContext, "overloaded methods not supported", overloadedMethods);
         }
     }
 

@@ -27,6 +27,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategySupport {
@@ -53,6 +54,10 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
 
     @Override
     protected <R> void validateTypeHierarchy(ModelSchemaExtractionContext<R> extractionContext, ModelType<R> type) {
+    }
+
+    @Override
+    protected void handleOverridenMethods(ModelSchemaExtractionContext<?> extractionContext, List<List<Method>> overridenMethods) {
     }
 
     @Override

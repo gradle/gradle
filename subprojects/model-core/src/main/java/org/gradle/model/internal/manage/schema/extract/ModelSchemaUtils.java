@@ -162,6 +162,28 @@ public class ModelSchemaUtils {
     }
 
     /**
+     * Returns the declarations of overriden methods, or null if there are no override.
+     */
+    @Nullable
+    public static List<List<Method>> getOverridenMethods(Collection<Method> methods) {
+        ImmutableList.Builder<List<Method>> builder = ImmutableList.builder();
+        if (methods.size() > 1) {
+            ListMultimap<Integer, Method> equivalenceIndex = Multimaps.index(methods, new Function<Method, Integer>() {
+                public Integer apply(Method method) {
+                    return METHOD_EQUIVALENCE.hash(method);
+                }
+            });
+            for (List<Method> overridenChain : Multimaps.asMap(equivalenceIndex).values()) {
+                if (overridenChain.size() > 1) {
+                    builder.add(overridenChain);
+                }
+            }
+        }
+        List<List<Method>> overriden = builder.build();
+        return overriden.isEmpty() ? null : overriden;
+    }
+
+    /**
      * Returns the different overloaded versions of a method, or null if there are no overloads.
      */
     @Nullable

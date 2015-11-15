@@ -414,7 +414,7 @@ class ModelSchemaExtractorTest extends Specification {
             MethodDescription.name("getValue").owner(SingleIntegerValueProperty).returns(Integer).takes(),
             MethodDescription.name("getValue").owner(SingleStringValueProperty).returns(String).takes(),
         ]
-        def message = Pattern.quote("overloaded methods are not supported (invalid methods: ${invalidMethods.join(", ")})")
+        def message = Pattern.quote("overloaded methods not supported (invalid methods: ${invalidMethods.join(", ")})")
 
         expect:
         fail ConflictingPropertiesInParents, message
@@ -1324,6 +1324,46 @@ interface Managed${typeName} {
         then:
         schema.properties*.name == ["nice", "thing"]
         schema.properties*.type*.rawClass == [boolean, Integer]
+    }
+    
+    interface UnmanagedSuperTypeWithMethod {
+        InputStream doSomething(Object param)
+    }
+    
+    @Managed
+    interface ManagedTypeWithOverridenMethodExtendingUnmanagedTypeWithMethod extends UnmanagedSuperTypeWithMethod {
+        @Override InputStream doSomething(Object param)
+    }
+    
+    def "accept methods from unmanaged supertype overriden in managed type"() {
+        expect:
+        extract(ManagedTypeWithOverridenMethodExtendingUnmanagedTypeWithMethod) instanceof ManagedImplStructSchema
+    }
+
+    @Managed
+    interface ManagedTypeWithCovarianceOverridenMethodExtendingUnamangedTypeWithMethod extends UnmanagedSuperTypeWithMethod {
+        @Override ByteArrayInputStream doSomething(Object param)
+    }
+    
+    def "accept methods from unmanaged supertype with covariance overriden in managed type"() {
+        expect:
+        extract(ManagedTypeWithCovarianceOverridenMethodExtendingUnamangedTypeWithMethod) instanceof ManagedImplStructSchema
+    }
+
+    interface UnmanagedSuperTypeWithOverloadedMethod {
+        InputStream doSomething(Object param)
+        InputStream doSomething(Object param, Object other)
+    }
+    
+    @Managed
+    interface ManagedTypeExtendingUnmanagedTypeWithOverloadedMethod extends UnmanagedSuperTypeWithOverloadedMethod {
+        @Override ByteArrayInputStream doSomething(Object param)
+        @Override ByteArrayInputStream doSomething(Object param, Object other)
+    }
+    
+    def "accept overloaded overriden methods from unmanaged supertype overriden in managed type"() {
+        expect:
+        extract(ManagedTypeExtendingUnmanagedTypeWithOverloadedMethod) instanceof ManagedImplStructSchema
     }
 
     String getName(ModelType<?> modelType) {

@@ -36,7 +36,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Predicates.in;
+import static com.google.common.base.Predicates.not;
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.getOverloadedMethods;
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.getOverridenMethods;
 
 public abstract class StructSchemaExtractionStrategySupport implements ModelSchemaExtractionStrategy {
 
@@ -95,6 +98,18 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             }
 
             Collection<Method> methods = methodsByName.get(methodName);
+
+            List<List<Method>> overridenMethods = getOverridenMethods(methods);
+            if (!getterOrSetter(methodName) && overridenMethods != null) {
+                handleOverridenMethods(extractionContext, overridenMethods);
+                List<Method> flattenedOverriden = Lists.newArrayList(Iterables.concat(overridenMethods));
+                methods = Lists.newArrayList(Iterables.filter(methods, not(in(flattenedOverriden))));
+                // TODO:PM mark non get/setters overriden methods accepted by child strategies as handled because they should be by default implementations, not enough context to validate this here
+                handledMethods.addAll(flattenedOverriden);
+                if (methods.isEmpty()) {
+                    continue;
+                }
+            }
 
             List<Method> overloadedMethods = getOverloadedMethods(methods);
             if (overloadedMethods != null) {
@@ -163,6 +178,13 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
         validateAllNecessaryMethodsHandled(extractionContext, methodsByName.values(), handledMethods);
         return results;
+    }
+
+    private static boolean getterOrSetter(String methodName) {
+        if (getterPrefixLength(methodName) > 0) {
+            return true;
+        }
+        return methodName.startsWith("set") && !"set".equals(methodName);
     }
 
     private static Collection<Method> filterGetterMethods(Collection<Method> methods) {
@@ -236,6 +258,8 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
     protected abstract <R> void validateTypeHierarchy(ModelSchemaExtractionContext<R> extractionContext, ModelType<R> type);
 
     protected abstract void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, Method getter, String message);
+
+    protected abstract void handleOverridenMethods(ModelSchemaExtractionContext<?> extractionContext, List<List<Method>> overridenMethods);
 
     protected abstract void handleOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> overloadedMethods);
 

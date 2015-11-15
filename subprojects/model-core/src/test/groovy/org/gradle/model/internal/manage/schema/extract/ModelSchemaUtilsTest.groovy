@@ -89,4 +89,44 @@ class ModelSchemaUtilsTest extends Specification {
         expect:
         ModelSchemaUtils.isMethodDeclaredInManagedType(ModelSchemaUtils.getCandidateMethods(UnmanagedType).get("getValue")) == false
     }
+
+    interface TypeWithOverloadedMethods {
+        String anything()
+        String someOverloadedMethod(Object param)
+        String someOverloadedMethod(int param)
+        CharSequence someOverloadedCovariantMethod(Object param)
+    }
+    
+    def "gets overriden methods from single type"() {
+        expect:
+        def overriden = ModelSchemaUtils.getOverridenMethods(ModelSchemaUtils.getCandidateMethods(TypeWithOverloadedMethods).get("someOverloadedMethod"))
+        overriden == null
+    }
+
+    def "gets overloaded methods from a single type"() {
+        expect:
+        def overloaded = ModelSchemaUtils.getOverloadedMethods(ModelSchemaUtils.getCandidateMethods(TypeWithOverloadedMethods).get("someOverloadedMethod"))
+        overloaded.size() == 2
+    }
+    
+    interface SubTypeWithOverloadedMethods extends TypeWithOverloadedMethods {
+        @Override String someOverloadedMethod(Object param)
+        @Override String someOverloadedMethod(int param)
+        @Override String someOverloadedCovariantMethod(Object param)
+    }
+
+    def "gets overriden methods from type hierachy"() {
+        expect:
+        def overriden = ModelSchemaUtils.getOverridenMethods(ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).get("someOverloadedMethod"))
+        overriden.size() == 2
+        overriden[0].size() == 2
+        overriden[1].size() == 2
+    }
+
+    def "gets overloaded methods from type hierachy"() {
+        expect:
+        def overloaded = ModelSchemaUtils.getOverloadedMethods(ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).get("someOverloadedMethod"))
+        overloaded.size() == 2
+    }
+
 }
