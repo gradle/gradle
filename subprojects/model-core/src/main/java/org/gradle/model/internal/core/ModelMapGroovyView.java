@@ -30,7 +30,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
  */
 // TODO - mix in Groovy support using bytecode decoration instead
 // TODO - validate closure parameters to check they are within bounds
-public abstract class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements ModelMap<I> {
+public abstract class ModelMapGroovyView<I> extends GroovyObjectSupport implements ModelMap<I> {
     public void create(String name, Closure<? super I> configAction) {
         create(name, new ClosureBackedAction<I>(configAction));
     }

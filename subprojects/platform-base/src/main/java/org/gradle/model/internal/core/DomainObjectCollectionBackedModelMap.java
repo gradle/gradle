@@ -34,7 +34,7 @@ import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyDecorator<T> {
+public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<T> {
 
     private final Class<T> elementType;
     private final DomainObjectCollection<T> collection;
