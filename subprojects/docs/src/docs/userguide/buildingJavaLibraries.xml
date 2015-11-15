@@ -24,7 +24,7 @@
     </note>
 
     <para>The Java software plugins are intended to replace the <link linkend="java_plugin">Java plugin</link>, and
-        leverage the new <link linkend="new_model">rule based model configuration</link>
+        leverage the new <link linkend="software_model">rule based model configuration</link>
         to achieve the best performance, improved expressiveness
         and support for variant-aware dependency management.
     </para>

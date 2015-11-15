@@ -15,7 +15,7 @@
     </para>
 
     <para>
-        The native software plugins make use of the new <link linkend="new_model">rule based model configuration</link>.
+        The native software plugins make use of the new <link linkend="software_model">rule based model configuration</link>.
     </para>
 
     <section>
