@@ -26,6 +26,10 @@
         The Play plugin adds support for building, testing and running Play applications with Gradle.
     </para>
 
+    <para>
+        The Play plugin makes use of the new <link linkend="new_model">rule based model configuration</link>.
+    </para>
+
     <section>
         <title>Usage</title>
         <para>To use the Play plugin, include the following in your build script to apply the <literal>play</literal> plugin and add the Typesafe repositories:</para>
