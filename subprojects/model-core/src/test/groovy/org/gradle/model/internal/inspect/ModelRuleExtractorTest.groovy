@@ -50,6 +50,20 @@ class ModelRuleExtractorTest extends Specification {
         extractor.extract(EmptyClass).empty
     }
 
+    static class ClassWithNonRuleMethods extends RuleSource {
+        static List thing() {
+            []
+        }
+        static <T> List<T> genericThing() {
+            []
+        }
+    }
+
+    def "can have non-rule methods that would be invalid rules"() {
+        expect:
+        extractor.extract(ClassWithNonRuleMethods).empty
+    }
+
     static class SimpleModelCreationRuleInferredName extends RuleSource {
         @Model
         static ModelThing modelPath() {

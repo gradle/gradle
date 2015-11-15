@@ -118,10 +118,6 @@ public class ModelRuleExtractor {
         ImmutableList.Builder<ExtractedModelRule> registrations = ImmutableList.builder();
 
         for (Method method : methods) {
-            if (method.getTypeParameters().length > 0) {
-                throw invalidMethod(method, "cannot have type variables (i.e. cannot be a generic method)");
-            }
-
             MethodRuleDefinition<?, ?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
             MethodModelRuleExtractor handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
@@ -210,6 +206,10 @@ public class ModelRuleExtractor {
     }
 
     private void validateMethod(Method ruleMethod) {
+        if (ruleMethod.getTypeParameters().length > 0) {
+            throw invalidMethod(ruleMethod, "cannot have type variables (i.e. cannot be a generic method)");
+        }
+
         // TODO validations on method: synthetic, bridge methods, varargs, abstract, native
         ModelType<?> returnType = ModelType.returnType(ruleMethod);
         if (returnType.isRawClassOfParameterizedType()) {
