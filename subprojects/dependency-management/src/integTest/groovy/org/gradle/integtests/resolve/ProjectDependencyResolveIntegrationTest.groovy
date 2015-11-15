@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -573,17 +574,20 @@ project('c') {
         output.contains "Changed dependencies of configuration ':api:conf' after it has been included in dependency resolution"
     }
 
+    @NotYetImplemented
     @Issue("GRADLE-3330")
-    public void "single project configuration can refer to multiple configurations of target project"() {
+    @Issue("GRADLE-3362")
+    public void "project dependency can resolve multiple artifacts from target project that are differentiated by archiveName only"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
 
         and:
         buildFile << """
 project(':a') {
+    apply plugin: 'base'
     configurations {
-        configA1
-        configA2
+        configOne
+        configTwo
     }
     task A1jar(type: Jar) {
         archiveName = 'A1.jar'
@@ -591,9 +595,13 @@ project(':a') {
     task A2jar(type: Jar) {
         archiveName = 'A2.jar'
     }
+    task A3jar(type: Jar) {
+        archiveName = 'A3.jar'
+    }
     artifacts {
-        configA1 A1jar
-        configA2 A2jar
+        configOne A1jar
+        configTwo A2jar
+        configTwo A3jar
     }
 }
 
@@ -602,17 +610,17 @@ project(':b') {
         configB
     }
     dependencies {
-        configB project(path:':a', configuration:'configA1')
-        configB project(path:':a', configuration:'configA2')
+        configB project(path:':a', configuration:'configOne')
+        configB project(path:':a', configuration:'configTwo')
     }
     task check(dependsOn: configurations.configB) << {
-        assert configurations.configB.collect { it.name } == ['A1.jar', 'A2.jar']
+        assert configurations.configB.collect { it.name } == ['A1.jar', 'A2.jar', 'A3.jar']
     }
 }
 """
 
         expect:
         succeeds ":b:check"
-        executedAndNotSkipped ":a:A1jar", ":a:A2jar"
+        executedAndNotSkipped ":a:A1jar", ":a:A2jar", ":a:A3jar"
     }
 }
