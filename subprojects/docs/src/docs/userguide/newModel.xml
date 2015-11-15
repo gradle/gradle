@@ -542,6 +542,27 @@
             It is also only possible to refer to the subject by-path.
             These are all limitations that will be addressed in future Gradle versions.
         </para>
+        <section id="dsl-type-coercion">
+            <title>Automatic type coercion</title>
+            <para>
+                Scalar properties in managed types can be assigned <literal>CharSequence</literal> values (e.g. <literal>String</literal>,
+                <literal>GString</literal>, etc.) and they will be converted to the actual property type for you. This works for all scalar
+                types including <literal>File</literal>s, which will be resolved relative to the current project.
+            </para>
+            <sample id='modelDslConversions' dir='modelRules/modelDsl' includeLocation="true" title="a DSL example showing type conversions">
+                <sourcefile file='coercion.gradle'/>
+            </sample>
+            <para>
+                In the above example, an <literal>Item</literal> is created and is initialized in <literal>setDefaults()</literal> by providing
+                the path to the data file. In the <literal>item()</literal> method the resolved <literal>File</literal> is parsed to extract
+                and set the data. In the DSL block at the end, the price is adjusted based on the quantity; if there are fewer than 10 remaining
+                the price is doubled, otherwise it is reduced by 50%. The <literal>GString</literal> expression is a valid value since it
+                resolves to a <literal>float</literal> value in string form.
+            </para>
+            <para>
+                Finally, in <literal>createDataTask()</literal> we add the <literal>showData</literal> task to display all of the configured values.
+            </para>
+        </section>
         <section id="dsl-rule-input-dependencies">
             <title>Declaring input dependencies</title>
             <para>
