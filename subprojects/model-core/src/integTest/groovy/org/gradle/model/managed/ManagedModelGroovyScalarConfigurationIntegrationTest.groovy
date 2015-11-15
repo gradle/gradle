@@ -552,7 +552,7 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         succeeds ':p1:printResolvedValues', ':p2:printResolvedValues'
 
         and:
-        output.contains 'p1 file: /path/to/Thing.java true'
-        output.contains 'p2 file: /path/to/Thing.java true'
+        output.contains 'p1 file: /path/to/Thing.java true'.replace('/' as char, File.separatorChar)
+        output.contains 'p2 file: /path/to/Thing.java true'.replace('/' as char, File.separatorChar)
     }
 }
