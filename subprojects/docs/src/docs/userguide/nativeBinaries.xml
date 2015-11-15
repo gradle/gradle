@@ -8,15 +8,29 @@
     </note>
 
     <para>
-        The native software model plugins add support for building native software components, such as executables
+        The native software plugins add support for building native software components, such as executables
         or shared libraries, from code written in C++, C and other languages. While many excellent build tools exist
         for this space of software development, Gradle offers developers its trademark power and flexibility
         together with dependency management practices more traditionally found in the JVM development space.
     </para>
 
     <para>
-        The native software model plugins make use of the new <link linkend="new_model">rule based model configuration</link>.
+        The native software plugins make use of the new <link linkend="new_model">rule based model configuration</link>.
     </para>
+
+    <section>
+        <title>Features</title>
+        <para>The native software plugins provide:</para>
+        <itemizedlist>
+            <listitem><para>Support for building native libraries and applications on Windows, Linux, OS X and other platforms.</para></listitem>
+            <listitem><para>Support for several source languages.</para></listitem>
+            <listitem><para>Support for building different variants of the same software, for different architectures, operating systems, or for any purpose.</para></listitem>
+            <listitem><para>Incremental parallel compilation, precompiled headers.</para></listitem>
+            <listitem><para>Dependency management between native software components.</para></listitem>
+            <listitem><para>Unit test execution.</para></listitem>
+            <listitem><para>Deep integration with various tool chain, including discovery of installed tool chains.</para></listitem>
+        </itemizedlist>
+    </section>
 
     <section>
         <title>Supported languages</title>

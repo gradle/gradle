@@ -23,15 +23,28 @@
         </para>
     </note>
 
-    <para>The Java software model plugins are intended to replace the <link linkend="java_plugin">Java plugin</link>, and
+    <para>The Java software plugins are intended to replace the <link linkend="java_plugin">Java plugin</link>, and
         leverage the new <link linkend="new_model">rule based model configuration</link>
         to achieve the best performance, improved expressiveness
         and support for variant-aware dependency management.
     </para>
 
     <section>
-        <title>The Software Model</title>
-        <para>The Java software model plugins provide a software model which describes how an application is built and how components
+        <title>Features</title>
+        <para>The Java software plugins provide:</para>
+        <itemizedlist>
+            <listitem><para>Support for building Java libraries and other components that run on the JVM.</para></listitem>
+            <listitem><para>Support for several source languages.</para></listitem>
+            <listitem><para>Support for building different variants of the same software, for different Java versions, or for any purpose.</para></listitem>
+            <listitem><para>Build time definition and enforcement of Java library API.</para></listitem>
+            <listitem><para>Compile avoidance.</para></listitem>
+            <listitem><para>Dependency management between Java software components.</para></listitem>
+        </itemizedlist>
+    </section>
+
+    <section>
+        <title>Java Software Model</title>
+        <para>The Java software plugins provide a software model which describes how an application is built and how components
             of the model relate to each other. The software model is organized around key concepts:
         </para>
         <para>
@@ -91,8 +104,8 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the Java software model plugins, include the following in your build script:</para>
-        <sample id="newJavaQuickstart" dir="javaLibraryPlugin/quickstart" title="Using the Java software model plugins">
+        <para>To use the Java software plugins, include the following in your build script:</para>
+        <sample id="newJavaQuickstart" dir="javaLibraryPlugin/quickstart" title="Using the Java software plugins">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
     </section>
