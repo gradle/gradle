@@ -101,7 +101,9 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
                     @Override
                     public S apply(String name, MutableModelNode binaryNode) {
                         MutableModelNode parentNode = binaryNode.getParent().getParent();
-                        ComponentSpecInternal owner = parentNode.getPrivateData() instanceof ComponentSpecInternal ? (ComponentSpecInternal) parentNode.getPrivateData() : null;
+                        ComponentSpecInternal owner = parentNode.canBeViewedAs(ModelType.of(ComponentSpecInternal.class))
+                            ? parentNode.asImmutable(ModelType.of(ComponentSpecInternal.class), descriptor).getInstance()
+                            : null;
                         return Cast.uncheckedCast(BaseBinarySpec.create(publicType.getConcreteClass(),
                                 implementationType.getConcreteClass(),
                                 name,
