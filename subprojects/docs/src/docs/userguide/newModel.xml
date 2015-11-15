@@ -549,8 +549,8 @@
                 <literal>GString</literal>, etc.) and they will be converted to the actual property type for you. This works for all scalar
                 types including <literal>File</literal>s, which will be resolved relative to the current project.
             </para>
-            <sample id='modelDslConversions' dir='modelRules/modelDsl' includeLocation="true" title="a DSL example showing type conversions">
-                <sourcefile file='coercion.gradle'/>
+            <sample id='modelDslConversions' dir='modelRules/modelDslCoercion' includeLocation="true" title="a DSL example showing type conversions">
+                <sourcefile file='build.gradle'/>
             </sample>
             <para>
                 In the above example, an <literal>Item</literal> is created and is initialized in <literal>setDefaults()</literal> by providing
