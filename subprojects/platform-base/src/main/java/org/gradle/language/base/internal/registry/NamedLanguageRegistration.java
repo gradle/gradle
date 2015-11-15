@@ -27,11 +27,11 @@ public class NamedLanguageRegistration<T extends LanguageSourceSet> implements L
     private final ModelType<? extends T> sourceSetImplementation;
     private final ModelRuleDescriptor ruleDescriptor;
 
-    public NamedLanguageRegistration(String name, Class<T> sourceSetType, Class<? extends T> sourceSetImplementation,
+    public NamedLanguageRegistration(String name, ModelType<T> sourceSetType, ModelType<? extends T> sourceSetImplementation,
                                      ModelRuleDescriptor ruleDescriptor) {
         this.name = name;
-        this.sourceSetType = ModelType.of(sourceSetType);
-        this.sourceSetImplementation = ModelType.of(sourceSetImplementation);
+        this.sourceSetType = sourceSetType;
+        this.sourceSetImplementation = sourceSetImplementation;
         this.ruleDescriptor = ruleDescriptor;
     }
 
