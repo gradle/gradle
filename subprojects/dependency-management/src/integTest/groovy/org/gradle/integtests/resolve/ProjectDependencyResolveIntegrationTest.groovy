@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -574,7 +573,6 @@ project('c') {
         output.contains "Changed dependencies of configuration ':api:conf' after it has been included in dependency resolution"
     }
 
-    @NotYetImplemented
     @Issue("GRADLE-3330")
     @Issue("GRADLE-3362")
     public void "project dependency can resolve multiple artifacts from target project that are differentiated by archiveName only"() {
