@@ -145,6 +145,15 @@ be syntactic sugar for `clear` followed by `addAll`.
 - Can be top level element
 - Can be property of managed type
 
+#### Backlog
+
+- Allows `FunctionalSourceSet` even when plugin not applied.
+- Allows `ModelMap<String>`.
+- `ModelMap<T>` allows any kind of constructable object to be created
+- Model report for top-level element of type `ModelMap<List<String>>` reports `ModelMap<List>`
+    - Same for `ModelMap<ModelSet<T>>`
+- `ModelMap<T>` does not allow T = `ModelMap<?>`
+
 ### Support for polymorphic managed sets
 
 ```

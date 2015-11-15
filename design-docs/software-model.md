@@ -56,6 +56,8 @@ Unordered and not all appropriately story sized.
 
 ## Managed types
 
+### Scalar collections
+
 - Need reasonable `toString()` value for scalar collection implementations. Should match that of other managed types.
 - Documentation does not mention copy-on-write semantics for mutable properties of type scalar collection.
 - Support `Collection` of scalar as property type, at least for mutable property.
