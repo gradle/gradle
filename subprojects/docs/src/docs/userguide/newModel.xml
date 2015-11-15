@@ -175,9 +175,10 @@
                 <sourcefile file='build.gradle' snippet='managed-type'/>
             </sample>
             <para>By defining a getter/setter pair, you are effectively declaring a managed property. A managed property is a property for which Gradle
-            will enforce semantics such as immutability when a node of the model is not the subject of a rule. Therefore, this example declares a property
-            named <emphasis>name</emphasis> on the managed type <emphasis>Person</emphasis>. This property will only be writable when the view is mutable,
-            that is to say when the <emphasis>Person</emphasis> is the subject of a <literal>Rule</literal> (see below the explanation for rules).</para>
+            will enforce semantics such as immutability when a node of the model is not the subject of a rule. Therefore, this example declares properties
+            named <emphasis>firstName</emphasis> and <emphasis>lastName</emphasis> on the managed type <emphasis>Person</emphasis>. These properties will
+            only be writable when the view is mutable, that is to say when the <emphasis>Person</emphasis> is the subject of a <literal>Rule</literal>
+            (see below the explanation for rules).</para>
 
             <para>Properties can be of any scalar type. A scalar type is either:
                 <itemizedlist>
@@ -378,7 +379,7 @@
         <section>
             <title>Language source sets</title>
             <para>
-                <apilink class="org.gradle.language.base.FunctionalSourceSet"/>'s and subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> (which have been
+                <apilink class="org.gradle.language.base.FunctionalSourceSet"/>s and subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> (which have been
                 registered via <apilink class="org.gradle.platform.base.LanguageType"/>) can be added to the model space via rules or via the model DSL.
             </para>
             <sample id='model-language-support-all' dir='modelRules/language-support' includeLocation="true" title='strongly modelling sources sets'>
