@@ -23,15 +23,15 @@
         </para>
     </note>
 
-    <para>The JVM component plugins for building Java libraries are intended to replace the <link linkend="java_plugin">Java plugin</link>, and
-        leverage the <link linkend="new_model">new rule based model configuration</link>
+    <para>The Java software model plugins are intended to replace the <link linkend="java_plugin">Java plugin</link>, and
+        leverage the new <link linkend="new_model">rule based model configuration</link>
         to achieve the best performance, improved expressiveness
         and support for variant-aware dependency management.
     </para>
 
     <section>
         <title>The Software Model</title>
-        <para>The JVM component plugins rely on a software model which describes how an application is built and how components
+        <para>The Java software model plugins provide a software model which describes how an application is built and how components
             of the model relate to each other. The software model is organized around key concepts:
         </para>
         <para>
@@ -63,7 +63,7 @@
                 </listitem>
             </itemizedlist>
         </para>
-        <para>Additionaly, the software model allows us to better identify concepts that are traditionally merged together:</para>
+        <para>Additionally, the software model allows us to better identify concepts that are traditionally merged together:</para>
         <para>
             <itemizedlist>
                 <listitem>An <firstterm>API</firstterm> is a set of classes, interfaces, methods that are exposed to a consumer.</listitem>
@@ -91,8 +91,8 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the JVM component plugins, include the following in your build script:</para>
-        <sample id="newJavaQuickstart" dir="javaLibraryPlugin/quickstart" title="Using the JVM component plugins">
+        <para>To use the Java software model plugins, include the following in your build script:</para>
+        <sample id="newJavaQuickstart" dir="javaLibraryPlugin/quickstart" title="Using the Java software model plugins">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
     </section>
@@ -239,7 +239,7 @@
 
     <section>
         <title>Dependencies between components</title>
-        <para>The JVM component plugins support dependencies between components. Having a dependency means that if
+        <para>The Java software model supports dependencies between components. Having a dependency means that if
             <literal>A</literal> depends on <literal>B</literal>, then the API of <literal>B</literal>
             is required to compile <literal>A</literal>. Gradle will then
             make sure that the dependency is built before the dependent component, and that the dependency
