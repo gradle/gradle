@@ -266,6 +266,51 @@ class ModelSchemaExtractorTest extends Specification {
     }
 
     @Managed
+    interface HasSingleCharGetter {
+        String getA()
+        void setA(String a)
+    }
+    
+    def "allow single char getters"() {
+        when:
+        def schema = store.getSchema(HasSingleCharGetter)
+        
+        then:
+        schema instanceof ManagedImplSchema
+        def a = schema.properties[0]
+        assert a instanceof ModelProperty
+        a.name == "a"
+    }
+    
+    @Managed
+    interface HasSingleCharFirstPartGetter {
+        String getcCompiler()
+        void setcCompiler(String cCompiler)
+    }
+
+    def "allows single char first camel-case part getters"() {
+        when:
+        def schema = store.getSchema(HasSingleCharFirstPartGetter)
+        
+        then:
+        schema instanceof ManagedImplSchema
+        def cCompiler = schema.properties[0]
+        assert cCompiler instanceof ModelProperty
+        cCompiler.name == "cCompiler"
+    }
+    
+    @Managed
+    interface HasTwoFirstsCharLowercaseGetter {
+        String getccCompiler()
+        void setccCompiler()
+    }
+    
+    def "reject two firsts char lowercase getters"() {
+        expect:
+        fail HasTwoFirstsCharLowercaseGetter, ""
+    }
+
+    @Managed
     interface A1 {
         A1 getA();
 

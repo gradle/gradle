@@ -124,14 +124,16 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             if (getterPrefixLen >= 0) {
                 Method mostSpecificGetter = ModelSchemaUtils.findMostSpecificMethod(methods);
 
+                String propertyNameCapitalized = methodName.substring(getterPrefixLen);
                 char getterPropertyNameFirstChar = methodName.charAt(getterPrefixLen);
                 if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
-                    handleInvalidGetter(extractionContext, mostSpecificGetter,
-                        String.format("the %s character of the getter method name must be an uppercase character", getterPrefixLen == 2 ? "3rd" : "4th"));
-                    continue;
+                    if (propertyNameCapitalized.length() == 1 || (!Character.isUpperCase(methodName.charAt(getterPrefixLen + 1)))) {
+                        handleInvalidGetter(extractionContext, mostSpecificGetter,
+                            String.format("the %s character of the getter method name must be an uppercase character", getterPrefixLen == 2 ? "3rd" : "4th"));
+                        continue;
+                    }
                 }
 
-                String propertyNameCapitalized = methodName.substring(getterPrefixLen);
                 String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
                 String setterName = "set" + propertyNameCapitalized;
                 Collection<Method> setterMethods = methodsByName.get(setterName);
