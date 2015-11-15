@@ -18,13 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
 
 public abstract class AbstractModuleDescriptorParser<T extends MutableModuleComponentResolveMetaData> implements MetaDataParser<T> {
+    private static final boolean DESCRIPTOR_PARSER_VALIDATE = Boolean.getBoolean("moduledescriptor.parser.validate");
+
     public T parseMetaData(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException {
         LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(descriptorFile);
         LocallyAvailableExternalResource resource = new DefaultLocallyAvailableExternalResource(descriptorFile.toURI(), localResource);
@@ -32,11 +34,11 @@ public abstract class AbstractModuleDescriptorParser<T extends MutableModuleComp
     }
 
     public T parseMetaData(DescriptorParseContext ivySettings, File descriptorFile) throws MetaDataParseException {
-        return parseMetaData(ivySettings, descriptorFile, true);
+        return parseMetaData(ivySettings, descriptorFile, DESCRIPTOR_PARSER_VALIDATE);
     }
 
     public T parseMetaData(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource) throws MetaDataParseException {
-        return parseDescriptor(ivySettings, resource, true);
+        return parseDescriptor(ivySettings, resource, DESCRIPTOR_PARSER_VALIDATE);
     }
 
     protected T parseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {

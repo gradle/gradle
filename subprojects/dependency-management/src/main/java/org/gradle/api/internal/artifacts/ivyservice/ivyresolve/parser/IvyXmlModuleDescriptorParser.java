@@ -46,6 +46,7 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.transfer.UrlExternalResource;
+import org.gradle.internal.xml.XMLParsers;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TextUtil;
 import org.slf4j.Logger;
@@ -1198,6 +1199,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
     }
 
+
     public static class ParserHelper {
         static final String JAXP_SCHEMA_LANGUAGE
                 = "http://java.sun.com/xml/jaxp/properties/schemaLanguage";
@@ -1213,10 +1215,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private static SAXParser newSAXParser(URL schema, InputStream schemaStream)
                 throws ParserConfigurationException, SAXException {
             if (schema == null) {
-                SAXParserFactory parserFactory = SAXParserFactory.newInstance();
-                parserFactory.setValidating(false);
-                parserFactory.setNamespaceAware(true);
-                SAXParser parser = parserFactory.newSAXParser();
+                SAXParser parser = XMLParsers.createNonValidatingSaxParser();
                 parser.getXMLReader().setFeature(XML_NAMESPACE_PREFIXES, true);
                 return parser;
             } else {
