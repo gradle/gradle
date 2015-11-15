@@ -45,6 +45,7 @@ public class DefaultTypeConverters implements TypeConverters {
         .build();
     private final NotationParser<Object, File> fileParser;
 
+    @SuppressWarnings("unchecked")
     private static <T> NotationParser<Object, T> build(CharSequenceConverter converter, Class<?> type) {
         return NotationParserBuilder
             .toType(type)
@@ -305,8 +306,7 @@ public class DefaultTypeConverters implements TypeConverters {
         NotationParser<Object, ?> parser;
         if (File.class.equals(type)) {
             parser = fileParser;
-        }
-        else {
+        } else {
             parser = PARSERS.get(primitive ? UNBOXED_TYPES.get(type) : type);
             if (parser == null) {
                 throw new UnsupportedNotationException(notation, "Unsupported type", null, CANDIDATES);
