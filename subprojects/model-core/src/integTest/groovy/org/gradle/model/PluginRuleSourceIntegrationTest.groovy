@@ -154,7 +154,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 tasks {
-                    $("string")
+                    $.string
                 }
             }
 
@@ -187,7 +187,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 tasks {
-                    $("string")
+                    $.string
                 }
             }
         '''
@@ -219,7 +219,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 tasks {
-                    $("string")
+                    $.string
                 }
             }
         '''
@@ -248,7 +248,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 tasks {
-                    $("string")
+                    $.string
                 }
             }
         '''

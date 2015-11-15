@@ -119,7 +119,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
             model {
                 tasks {
                     create("printSourceNames") {
-                        def sources = $("testSuites.main.sources")
+                        def sources = $.testSuites.main.sources
                         doLast {
                             println "names: ${sources.values()*.name}"
                         }
@@ -198,7 +198,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
             model {
                 tasks {
                     create("printSourceDisplayName") {
-                        def sources = $("testSuites.main.sources.main")
+                        def sources = $.testSuites.main.sources.main
                         doLast {
                             println "sources display name: ${sources.displayName}"
                         }
@@ -296,7 +296,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
                 }
                 tasks {
                     create("printBinaryNames") {
-                        def binaries = $("testSuites.main.binaries")
+                        def binaries = $.testSuites.main.binaries
                         doLast {
                             println "names: ${binaries.values().name}"
                         }

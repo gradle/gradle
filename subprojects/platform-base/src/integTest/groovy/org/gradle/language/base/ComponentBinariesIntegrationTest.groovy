@@ -149,7 +149,7 @@ model {
     tasks {
         verify(Task) {
             doLast {
-                def binaries = $('components.mylib.binaries')
+                def binaries = $.components.mylib.binaries
                 assert binaries.main.data == '([main])'
                 assert binaries.test.data == '([test])'
             }

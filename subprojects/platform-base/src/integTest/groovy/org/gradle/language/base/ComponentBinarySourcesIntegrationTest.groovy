@@ -57,7 +57,7 @@ model {
     tasks {
         verify(Task) {
             doLast {
-                def comp = $('components.mylib')
+                def comp = $.components.mylib
                 def binary = comp.binaries.main
                 assert comp.sources.size() == 1
                 assert binary.sources.size() == 1
@@ -92,7 +92,7 @@ model {
     tasks {
         verify(Task) {
             doLast {
-                def binaries = $('components.mylib.binaries')
+                def binaries = $.components.mylib.binaries
                 assert binaries.main.sources.size() == 1
                 assert binaries.main.sources.first() instanceof CustomLanguageSourceSet
                 assert binaries.main.inputs.size() == 1
@@ -125,7 +125,7 @@ model {
     tasks {
         verify(Task) {
             doLast {
-                def binaries = $('components.mylib.binaries')
+                def binaries = $.components.mylib.binaries
                 assert binaries.main.sources.size() == 1
                 assert binaries.main.sources.first() instanceof CustomLanguageSourceSet
                 assert binaries.main.inputs.size() == 1
@@ -155,7 +155,7 @@ model {
     }
     tasks {
         create("printSourceNames") {
-            def sources = $("components.mylib.binaries.main.sources")
+            def sources = $.components.mylib.binaries.main.sources
             doLast {
                 println "names: ${sources.values()*.name}"
             }
@@ -246,7 +246,7 @@ model {
                 }
                 tasks {
                     create("printSourceDisplayName") {
-                        def sources = $("components.mylib.binaries.main.sources.someLang")
+                        def sources = $.components.mylib.binaries.main.sources.someLang
                         doLast {
                             println "sources display name: ${sources.displayName}"
                         }

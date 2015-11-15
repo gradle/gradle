@@ -31,7 +31,7 @@ class ComponentTypeSampleIntegTest extends AbstractIntegrationSpec {
 model {
     tasks {
         create("checkModel") {
-            def components = $("components")
+            def components = $.components
             doLast {
                 assert components.size() == 2
                 def titleAImage = components.imageA

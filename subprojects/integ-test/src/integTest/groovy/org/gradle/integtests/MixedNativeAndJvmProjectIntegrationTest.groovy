@@ -25,7 +25,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
 
     def "can combine legacy java and cpp plugins in a single project"() {
         settingsFile << "rootProject.name = 'test'"
-        buildFile << """
+        buildFile << '''
 plugins {
     id 'java'
     id 'cpp'
@@ -38,7 +38,7 @@ model {
     }
     tasks {
         checkBinaries(Task) {
-            def binaries = \$("binaries")
+            def binaries = $.binaries
             doLast {
                 assert binaries.size() == 5
                 assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
@@ -50,7 +50,7 @@ model {
         }
     }
 }
-"""
+'''
         expect:
         succeeds "checkBinaries"
     }
@@ -70,8 +70,8 @@ model {
     }
     tasks {
         create("validate") {
-            def components = $("components")
-            def binaries = $("binaries")
+            def components = $.components
+            def binaries = $.binaries
             doLast {
                 assert components.size() == 3
                 assert components.nativeExe instanceof NativeExecutableSpec

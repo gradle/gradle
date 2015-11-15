@@ -36,11 +36,11 @@ class DefaultSampleComponent extends BaseComponentSpec implements SampleComponen
         buildWithCustomComponentPlugin()
 
         and:
-        buildFile << """
+        buildFile << '''
 model {
     tasks {
         create("checkModel") {
-            def components = \$("components")
+            def components = $.components
             doLast {
                 assert components.size() == 1
                 def sampleLib = components.sampleLib
@@ -52,7 +52,7 @@ model {
         }
     }
 }
-"""
+'''
         then:
         succeeds "checkModel"
     }
@@ -124,7 +124,7 @@ model {
 
     def "can register custom component model without creating"() {
         when:
-        buildFile << """
+        buildFile << '''
             class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
@@ -138,12 +138,12 @@ model {
                 tasks {
                     create("checkModel") {
                         doLast {
-                            assert \$("components").size() == 0
+                            assert $.components.size() == 0
                         }
                     }
                 }
             }
-"""
+'''
 
         then:
         succeeds "checkModel"
@@ -179,7 +179,7 @@ BUILD SUCCESSFUL"""
 
     def "can have component declaration and creation in separate plugins"() {
         when:
-        buildFile << """
+        buildFile << '''
             class MyComponentDeclarationModel extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
@@ -205,7 +205,7 @@ BUILD SUCCESSFUL"""
             model {
                 tasks {
                     create("checkModel") {
-                        def components = \$("components")
+                        def components = $.components
                         doLast {
                             assert components.size() == 1
                             def sampleLib = components.sampleLib
@@ -216,7 +216,7 @@ BUILD SUCCESSFUL"""
                     }
                 }
             }
-"""
+'''
 
         then:
         succeeds "checkModel"
@@ -224,7 +224,7 @@ BUILD SUCCESSFUL"""
 
     def "Can define and create multiple component types in the same plugin"(){
         when:
-        buildFile << """
+        buildFile << '''
             interface SampleLibrary extends LibrarySpec {}
             class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
@@ -255,7 +255,7 @@ BUILD SUCCESSFUL"""
             model {
                 tasks {
                     create("checkModel") {
-                        def components = \$("components")
+                        def components = $.components
                         doLast {
                             assert components.size() == 2
 
@@ -272,7 +272,7 @@ BUILD SUCCESSFUL"""
                     }
                 }
             }
-"""
+'''
 
         then:
         succeeds "checkModel"

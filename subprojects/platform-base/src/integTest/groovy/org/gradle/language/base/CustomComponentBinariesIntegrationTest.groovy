@@ -90,7 +90,7 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
             tasks {
                 checkModel(Task) {
                     doLast {
-                        def binaries = $('binaries')
+                        def binaries = $.binaries
                         assert binaries.size() == 2
                         def sampleBinary = binaries.sampleLibBinary
                         def othersSampleBinary = binaries.sampleLibOtherBinary
@@ -141,7 +141,7 @@ Binaries
                 tasks {
                     checkSourceSets(Task) {
                         doLast {
-                            def binaries = $('binaries')
+                            def binaries = $.binaries
                             def sampleBinarySourceSet = binaries.sampleLibBinary.inputs.toList()[0]
                             def othersSampleBinarySourceSet = binaries.sampleLibOtherBinary.inputs.toList()[0]
                             assert sampleBinarySourceSet instanceof DefaultLibrarySourceSet
@@ -179,7 +179,7 @@ Binaries
                 tasks {
                     tellTaskName(Task) {
                         doLast {
-                            def binaries = $('binaries')
+                            def binaries = $.binaries
                             assert binaries.sampleLibBinary.buildTask instanceof Task
                             assert binaries.sampleLibBinary.buildTask.name == "sampleLibBinary"
                         }

@@ -41,7 +41,7 @@ model {
     tasks {
         checkModel(Task) {
             doLast {
-                def binaries = $('binaries')
+                def binaries = $.binaries
                 assert binaries.size() == 1
                 def sampleBinary = binaries.sampleBinary
                 assert sampleBinary instanceof SampleBinary
@@ -60,12 +60,12 @@ model {
         buildWithCustomBinaryPlugin()
 
         and:
-        buildFile << """
+        buildFile << '''
 model {
     tasks {
         checkModel(Task) {
             doLast {
-                def binaries = \$('binaries')
+                def binaries = $.binaries
                 assert binaries.size() == 1
                 def sampleBinary = binaries.sampleBinary
                 assert sampleBinary instanceof SampleBinary
@@ -83,7 +83,7 @@ model {
         }
     }
 }
-"""
+'''
         then:
         succeeds "checkModel"
     }
@@ -97,7 +97,7 @@ model {
 
     def "can register custom binary model without creating"() {
         when:
-        buildFile << """
+        buildFile << '''
         class MySamplePlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
@@ -115,13 +115,13 @@ model {
             tasks {
                 checkModel(Task) {
                     doLast {
-                        def binaries = \$('binaries')
+                        def binaries = $.binaries
                         assert binaries.size() == 0
                     }
                 }
             }
         }
-"""
+'''
 
         then:
         succeeds "checkModel"
@@ -129,7 +129,7 @@ model {
 
     def "can have binary declaration and creation in separate plugins"() {
         when:
-        buildFile << """
+        buildFile << '''
         class MyBinaryDeclarationModel implements Plugin<Project> {
             void apply(final Project project) {}
 
@@ -161,7 +161,7 @@ model {
             tasks {
                 checkModel(Task) {
                     doLast {
-                        def binaries = \$('binaries')
+                        def binaries = $.binaries
                         assert binaries.size() == 1
                         def sampleBinary = binaries.sampleBinary
                         assert sampleBinary instanceof SampleBinary
@@ -170,14 +170,14 @@ model {
                 }
             }
         }
-"""
+'''
         then:
         succeeds "checkModel"
     }
 
     def "can define and create multiple binary types in the same plugin"() {
         when:
-        buildFile << """
+        buildFile << '''
         interface AnotherSampleBinary extends BinarySpec {}
         class DefaultAnotherSampleBinary extends BaseBinarySpec implements AnotherSampleBinary {}
 
@@ -213,7 +213,7 @@ model {
             tasks {
                 checkModel(Task) {
                     doLast {
-                        def binaries = \$('binaries')
+                        def binaries = $.binaries
                         assert binaries.size() == 2
                         def sampleBinary = binaries.sampleBinary
                         assert sampleBinary instanceof SampleBinary
@@ -226,7 +226,7 @@ model {
                 }
             }
         }
-"""
+'''
         then:
         succeeds "checkModel"
     }

@@ -178,7 +178,7 @@ model {
         main(NativeExecutableSpec)
     }
     tasks { t ->
-        $("components.main").binaries { binaries ->
+        $.components.main.binaries { binaries ->
             binaries.values().each { binary ->
                 def preLinkTask = binary.tasks.taskName("preLink")
                 t.create(preLinkTask) {

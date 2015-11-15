@@ -586,7 +586,7 @@ afterEach DefaultCustomComponent 'newComponent'"""
             model {
                 tasks {
                     create("printBinaryNames") {
-                        def binaries = $("components.main.binaries")
+                        def binaries = $.components.main.binaries
                         doLast {
                             println "names: ${binaries.keySet().toList()}"
                         }
@@ -635,7 +635,7 @@ afterEach DefaultCustomComponent 'newComponent'"""
             model {
                 tasks {
                     create("printBinaryTaskNames") {
-                        def tasks = $("components.main.binaries.b1.tasks")
+                        def tasks = $.components.main.binaries.b1.tasks
                         doLast {
                             println "names: ${tasks*.name}"
                         }

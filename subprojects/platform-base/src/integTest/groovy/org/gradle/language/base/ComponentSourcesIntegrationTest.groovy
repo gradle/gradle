@@ -53,7 +53,7 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
             model {
                 tasks {
                     create("printSourceNames") {
-                        def sources = $("components.main.sources")
+                        def sources = $.components.main.sources
                         doLast {
                             println "names: ${sources.values()*.name}"
                         }
@@ -129,7 +129,7 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
             model {
                 tasks {
                     create("printSourceDisplayName") {
-                        def sources = $("components.main.sources.someLang")
+                        def sources = $.components.main.sources.someLang
                         doLast {
                             println "sources display name: ${sources.displayName}"
                         }

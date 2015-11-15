@@ -126,7 +126,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
             tasks {
                 checkModel(Task) {
                     doLast {
-                        def binaries = $('binaries')
+                        def binaries = $.binaries
                         assert binaries.size() == 2
                         assert binaries.sampleLibBinaryOne != null
                         assert binaries.sampleLibBinaryOne.tasks*.name == ['sampleLibBinaryOneTask']

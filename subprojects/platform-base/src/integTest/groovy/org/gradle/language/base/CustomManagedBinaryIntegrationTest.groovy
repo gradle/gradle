@@ -39,7 +39,7 @@ model {
     tasks {
         checkModel(Task) {
             doLast {
-                def binaries = $('binaries')
+                def binaries = $.binaries
                 assert binaries.size() == 1
                 def sampleBinary = binaries.sampleBinary
                 assert sampleBinary instanceof SampleBinary
@@ -59,12 +59,12 @@ model {
         buildWithCustomBinaryPlugin()
 
         and:
-        buildFile << """
+        buildFile << '''
 model {
     tasks {
         checkModel(Task) {
             doLast {
-                def binaries = \$('binaries')
+                def binaries = $.binaries
                 assert binaries.size() == 1
                 def sampleBinary = binaries.sampleBinary
                 assert sampleBinary instanceof SampleBinary
@@ -82,7 +82,7 @@ model {
         }
     }
 }
-"""
+'''
         then:
         succeeds "checkModel"
     }

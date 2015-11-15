@@ -48,7 +48,7 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 second {
-                    $("third")
+                    $.third
                 }
             }
         '''
