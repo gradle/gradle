@@ -18,6 +18,9 @@ package org.gradle.model.internal.manage.schema;
 
 import org.gradle.model.internal.type.ModelType;
 
+/**
+ * A schema for an element that contains zero or more elements.
+ */
 public class CollectionSchema<T, E> extends AbstractModelSchema<T> implements ManagedImplSchema<T> {
     private final ModelType<E> elementType;
     private ModelSchema<E> elementTypeSchema;

@@ -21,6 +21,9 @@ import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import java.util.Collection;
 import java.util.SortedSet;
 
+/**
+ * The schema for an element with properties.
+ */
 public interface StructSchema<T> extends ModelSchema<T> {
     boolean hasProperty(String name);
 
