@@ -16,6 +16,7 @@
 
 package org.gradle.language.base
 
+import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.ModelMap
 import org.gradle.model.collection.CollectionBuilder
@@ -243,7 +244,78 @@ Binaries
         build using task: :sampleLib2ndBinary
 """)
         where:
-        ruleInputs << ["SampleLibrary library, CustomModel myModel"]//,  "CustomModel myModel, SampleLibrary library"]
+        ruleInputs << ["SampleLibrary library, CustomModel myModel",  "CustomModel myModel, SampleLibrary library"]
+    }
+
+    def "ComponentBinaries rule operates with fully configured component"() {
+        given:
+        buildFile << """
+@Managed
+trait BinaryWithValue implements BinarySpec {
+    String valueFromComponent
+}
+@Managed
+trait ComponentWithValue implements ComponentSpec {
+    String valueForBinary
+}
+
+class MyComponentBinariesPlugin implements Plugin<Project> {
+    void apply(final Project project) {}
+
+    static class Rules extends RuleSource {
+        @ComponentType
+        void register(ComponentTypeBuilder<ComponentWithValue> builder) {}
+
+        @BinaryType
+        void register(BinaryTypeBuilder<BinaryWithValue> builder) {}
+        
+        @ComponentBinaries
+        void createBinaries(ModelMap<BinaryWithValue> binaries, ComponentWithValue component) {
+            assert component.valueForBinary == "configured-value"
+            binaries.create("myBinary") {
+                assert component.valueForBinary == "configured-value"
+                valueFromComponent = component.valueForBinary
+            }
+        }
+    }
+}
+
+apply plugin: MyComponentBinariesPlugin
+
+model {
+    components {
+        custom(ComponentWithValue) {
+            valueForBinary = "create-value"
+        }
+    }
+    components {
+        custom {
+            valueForBinary = "configured-value"
+        }
+    }
+    tasks {
+        checkModel(Task) {
+            doLast {
+                def component = \$.components.custom
+                assert component.binaries.size() == 1
+                def binary = component.binaries.myBinary
+
+                assert component.valueForBinary == "configured-value"
+                assert binary.valueFromComponent == "configured-value"
+            }
+        }
+    }
+}
+
+"""
+
+        when:
+        succeeds "model"
+
+        then:
+        def modelReport = ModelReportOutput.from(output).modelNode
+        assert modelReport.components.custom.valueForBinary.@nodeValue[0] == 'configured-value'
+        assert modelReport.components.custom.binaries.myBinary.valueFromComponent.@nodeValue[0] == 'configured-value'
     }
 
     String withSimpleComponentBinaries(Class<? extends CollectionBuilder> binariesContainerType = ModelMap) {
