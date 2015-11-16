@@ -32,7 +32,9 @@ class ManagedImplStructStrategyTest extends Specification {
         def schema = store.getSchema(ModelType.of(SomeType))
         schema instanceof ManagedImplStructSchema
         schema.properties*.name == ['readOnlyString', 'strings']
+        schema.getProperty('readOnlyString').type == ModelType.of(String)
         schema.getProperty('readOnlyString').schema == store.getSchema(ModelType.of(String))
+        schema.getProperty('strings').type == ModelTypes.list(ModelType.of(String))
         schema.getProperty('strings').schema == store.getSchema(ModelTypes.list(ModelType.of(String)))
     }
 
@@ -41,6 +43,7 @@ class ManagedImplStructStrategyTest extends Specification {
         def schema = store.getSchema(ModelType.of(Person))
         schema instanceof ManagedImplStructSchema
         schema.properties*.name == ['parent']
+        schema.getProperty('parent').type == schema.type
         schema.getProperty('parent').schema == schema
     }
 

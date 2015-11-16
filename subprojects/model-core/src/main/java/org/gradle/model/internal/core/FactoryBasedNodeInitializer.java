@@ -106,7 +106,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
                         modelNode.setPrivateData(delegateType, instance);
 
                         StructSchema<T> delegateSchema = Cast.uncheckedCast(schemaStore.getSchema(delegateType));
-                        addPropertyLinks(modelNode, nodeInitializerRegistry, schemaStore, proxyFactory, serviceRegistry, getProperties(delegateSchema, schemaStore));
+                        addPropertyLinks(modelNode, nodeInitializerRegistry, proxyFactory, serviceRegistry, getProperties(delegateSchema, schemaStore));
                         hideNodesOfHiddenProperties(modelNode, getHiddenProperties(delegateSchema, schemaStore));
                     }
                 }
@@ -188,12 +188,12 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
             throw new IllegalStateException("View type must be a struct: " + type);
         }
         StructSchema<D> structSchema = Cast.uncheckedCast(schema);
-        modelNode.addProjection(modelProjectionFor(structSchema, delegateSchema, schemaStore, proxyFactory, services));
+        modelNode.addProjection(modelProjectionFor(structSchema, delegateSchema, proxyFactory, services));
     }
 
-    private <D> ModelProjection modelProjectionFor(StructSchema<D> structSchema, StructSchema<? extends D> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
+    private <D> ModelProjection modelProjectionFor(StructSchema<D> structSchema, StructSchema<? extends D> delegateSchema, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
         if (structSchema instanceof ManagedImplSchema) {
-            return new ManagedModelProjection<D>(structSchema, delegateSchema, schemaStore, proxyFactory, services);
+            return new ManagedModelProjection<D>(structSchema, delegateSchema, proxyFactory, services);
         } else {
             return UnmanagedModelProjection.of(structSchema.getType());
         }

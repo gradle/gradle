@@ -42,16 +42,14 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     };
     private final StructSchema<M> schema;
     private final StructSchema<? extends M> delegateSchema;
-    private final ModelSchemaStore schemaStore;
     private final ManagedProxyFactory proxyFactory;
     private final ServiceRegistry services;
 
-    public ManagedModelProjection(StructSchema<M> schema, StructSchema<? extends M> delegateSchema, ModelSchemaStore schemaStore,
+    public ManagedModelProjection(StructSchema<M> schema, StructSchema<? extends M> delegateSchema,
                                   ManagedProxyFactory proxyFactory, ServiceRegistry services) {
         super(schema.getType(), true, true);
         this.schema = schema;
         this.delegateSchema = delegateSchema;
-        this.schemaStore = schemaStore;
         this.proxyFactory = proxyFactory;
         this.services = services;
     }
@@ -117,7 +115,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     propertyNode.ensureUsable();
 
                     ModelView<? extends T> modelView;
-                    ModelSchema<T> propertySchema = schemaStore.getSchema(propertyType);
+                    ModelSchema<T> propertySchema = property.getSchema();
                     if (property.isWritable() && propertySchema instanceof ScalarCollectionSchema) {
                         Collection<?> instance = ScalarCollectionSchema.get(propertyNode);
                         if (instance == null) {
@@ -141,9 +139,8 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     }
 
                     ModelProperty<?> property = schema.getProperty(name);
-                    ModelType<?> propertyType = property.getType();
 
-                    value = doSet(name, value, propertyType);
+                    value = doSet(name, value, property);
                     propertyViews.put(name, value);
                 }
 
@@ -151,8 +148,8 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     return services;
                 }
 
-                private <T> Object doSet(String name, Object value, ModelType<T> propertyType) {
-                    ModelSchema<T> propertySchema = schemaStore.getSchema(propertyType);
+                private <T> Object doSet(String name, Object value, ModelProperty<T> property) {
+                    ModelSchema<T> propertySchema = property.getSchema();
 
                     // TODO we are relying on the registration having established these links, we should be checking
                     MutableModelNode propertyNode = modelNode.getLink(name);
@@ -181,7 +178,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         }
                     } else {
                         T castValue = Cast.uncheckedCast(value);
-                        propertyNode.setPrivateData(propertyType, castValue);
+                        propertyNode.setPrivateData(property.getType(), castValue);
                     }
                     return value;
                 }

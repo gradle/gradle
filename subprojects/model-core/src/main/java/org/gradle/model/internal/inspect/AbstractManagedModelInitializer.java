@@ -35,9 +35,9 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
         this.schema = schema;
     }
 
-    protected void addPropertyLinks(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services, Collection<ModelProperty<?>> properties) {
+    protected void addPropertyLinks(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry, ManagedProxyFactory proxyFactory, ServiceRegistry services, Collection<ModelProperty<?>> properties) {
         for (ModelProperty<?> property : properties) {
-            addPropertyLink(modelNode, property, nodeInitializerRegistry, schemaStore, proxyFactory, services);
+            addPropertyLink(modelNode, property, nodeInitializerRegistry, proxyFactory, services);
         }
         if (isANamedType()) {
             // Only initialize "name" child node if the schema has such a managed property.
@@ -54,13 +54,13 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
         }
     }
 
-    private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
+    private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
         // No need to create nodes for unmanaged properties
         if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
             return;
         }
         ModelType<P> propertyType = property.getType();
-        ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
+        ModelSchema<P> propertySchema = property.getSchema();
 
         validateProperty(propertySchema, property, nodeInitializerRegistry);
 
@@ -84,7 +84,7 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
                     // show the type of the node if we do this for now. It should use the schema instead to find
                     // the type of the property node instead.
                     ManagedImplStructSchema<P> structSchema = (ManagedImplStructSchema<P>) propertySchema;
-                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, null, schemaStore, proxyFactory, services);
+                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, null, proxyFactory, services);
                     ModelRegistration registration = ModelRegistrations.of(childPath)
                         .withProjection(projection)
                         .descriptor(descriptor).build();
