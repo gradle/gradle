@@ -196,7 +196,6 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
                     ));
                 }
 
-
                 if (!property.isWritable()) {
                     if (isDeclaredAsHavingUnmanagedType) {
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format(
