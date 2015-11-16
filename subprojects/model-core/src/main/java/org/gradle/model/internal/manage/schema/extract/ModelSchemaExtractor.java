@@ -62,21 +62,21 @@ public class ModelSchemaExtractor {
     }
 
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
-        ModelSchemaExtractionContext<T> context = ModelSchemaExtractionContext.root(type);
-        List<ModelSchemaExtractionContext<?>> validations = Lists.newLinkedList();
-        Queue<ModelSchemaExtractionContext<?>> unsatisfiedDependencies = Lists.newLinkedList();
-        ModelSchemaExtractionContext<?> extractionContext = context;
+        DefaultModelSchemaExtractionContext<T> context = DefaultModelSchemaExtractionContext.root(type);
+        List<DefaultModelSchemaExtractionContext<?>> validations = Lists.newLinkedList();
+        Queue<DefaultModelSchemaExtractionContext<?>> unsatisfiedDependencies = Lists.newLinkedList();
+        DefaultModelSchemaExtractionContext<?> extractionContext = context;
         validations.add(extractionContext);
 
         while (extractionContext != null) {
             extractSchema(extractionContext, cache);
-            Iterable<? extends ModelSchemaExtractionContext<?>> dependencies = extractionContext.getChildren();
+            Iterable<DefaultModelSchemaExtractionContext<?>> dependencies = extractionContext.getChildren();
             Iterables.addAll(validations, dependencies);
             pushUnsatisfiedDependencies(dependencies, unsatisfiedDependencies, cache);
             extractionContext = unsatisfiedDependencies.poll();
         }
 
-        for (ModelSchemaExtractionContext<?> validationContext : Lists.reverse(validations)) {
+        for (DefaultModelSchemaExtractionContext<?> validationContext : Lists.reverse(validations)) {
             // TODO - this will leave invalid types in the cache when it fails
             validate(validationContext, cache);
         }
@@ -84,7 +84,7 @@ public class ModelSchemaExtractor {
         return context.getResult();
     }
 
-    private void pushUnsatisfiedDependencies(Iterable<? extends ModelSchemaExtractionContext<?>> allDependencies, Queue<ModelSchemaExtractionContext<?>> dependencyQueue, final ModelSchemaCache cache) {
+    private void pushUnsatisfiedDependencies(Iterable<? extends DefaultModelSchemaExtractionContext<?>> allDependencies, Queue<DefaultModelSchemaExtractionContext<?>> dependencyQueue, final ModelSchemaCache cache) {
         Iterables.addAll(dependencyQueue, Iterables.filter(allDependencies, new Predicate<ModelSchemaExtractionContext<?>>() {
             public boolean apply(ModelSchemaExtractionContext<?> dependency) {
                 return cache.get(dependency.getType()) == null;
@@ -92,11 +92,11 @@ public class ModelSchemaExtractor {
         }));
     }
 
-    private <T> void validate(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
+    private <T> void validate(DefaultModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
         extractionContext.validate(cache.get(extractionContext.getType()));
     }
 
-    private <T> void extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
+    private <T> void extractSchema(DefaultModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
         final ModelType<T> type = extractionContext.getType();
         ModelSchema<T> cached = cache.get(type);
         if (cached != null) {
