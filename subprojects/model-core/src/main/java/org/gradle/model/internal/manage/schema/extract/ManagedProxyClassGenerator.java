@@ -586,33 +586,33 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitVarInsn(ALOAD, index);
     }
 
-    private void putBooleanMethodArgumentOnStack(MethodVisitor methodVisitor, int index) {
-        methodVisitor.visitVarInsn(ILOAD, index);
+    private void putMethodArgumentOnStack(MethodVisitor methodVisitor, Type type, int index) {
+        methodVisitor.visitVarInsn(type.getOpcode(ILOAD), index);
     }
 
     private void putStateFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType) {
-        putFieldValueOnStack(methodVisitor, generatedType, STATE_FIELD_NAME, ModelElementState.class);
+        putFieldValueOnStack(methodVisitor, generatedType, STATE_FIELD_NAME, MODEL_ELEMENT_STATE_TYPE);
     }
 
     private void putManagedTypeFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType) {
-        putStaticFieldValueOnStack(methodVisitor, generatedType, MANAGED_TYPE_FIELD_NAME, ModelType.class);
+        putStaticFieldValueOnStack(methodVisitor, generatedType, MANAGED_TYPE_FIELD_NAME, MODELTYPE_TYPE);
     }
 
-    private void putDelegateFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType, Class<?> delegateTypeClass) {
-        putFieldValueOnStack(methodVisitor, generatedType, DELEGATE_FIELD_NAME, delegateTypeClass);
+    private void putDelegateFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType, Type delegateType) {
+        putFieldValueOnStack(methodVisitor, generatedType, DELEGATE_FIELD_NAME, delegateType);
     }
 
     private void putCanCallSettersFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType) {
-        putFieldValueOnStack(methodVisitor, generatedType, CAN_CALL_SETTERS_FIELD_NAME, Boolean.TYPE);
+        putFieldValueOnStack(methodVisitor, generatedType, CAN_CALL_SETTERS_FIELD_NAME, Type.BOOLEAN_TYPE);
     }
 
-    private void putFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType, String name, Class<?> fieldClass) {
+    private void putFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType, String name, Type fieldType) {
         putThisOnStack(methodVisitor);
-        methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), name, Type.getDescriptor(fieldClass));
+        methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), name, fieldType.getDescriptor());
     }
 
-    private void putStaticFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType, String name, Class<?> fieldClass) {
-        methodVisitor.visitFieldInsn(GETSTATIC, generatedType.getInternalName(), name, Type.getDescriptor(fieldClass));
+    private void putStaticFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType, String name, Type fieldType) {
+        methodVisitor.visitFieldInsn(GETSTATIC, generatedType.getInternalName(), name, fieldType.getDescriptor());
     }
 
     private void writeGetters(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
@@ -720,7 +720,8 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeDelegateMethods(final ClassVisitor visitor, final Type generatedType, StructSchema<?> delegateSchema, Set<Class<?>> typesToDelegate) {
-        Class<?> delegateTypeClass = delegateSchema.getType().getConcreteClass();
+        Class<?> delegateClass = delegateSchema.getType().getConcreteClass();
+        Type delegateType = Type.getType(delegateClass);
         Map<Equivalence.Wrapper<Method>, Map<Class<?>, Method>> methodsToDelegate = Maps.newHashMap();
         for (Class<?> typeToDelegate : typesToDelegate) {
             for (Method methodToDelegate : typeToDelegate.getMethods()) {
@@ -736,7 +737,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                 methodsByReturnType.put(methodToDelegate.getReturnType(), methodToDelegate);
             }
         }
-        Set<Equivalence.Wrapper<Method>> delegateMethodKeys = ImmutableSet.copyOf(Iterables.transform(Arrays.asList(delegateTypeClass.getMethods()), new Function<Method, Equivalence.Wrapper<Method>>() {
+        Set<Equivalence.Wrapper<Method>> delegateMethodKeys = ImmutableSet.copyOf(Iterables.transform(Arrays.asList(delegateClass.getMethods()), new Function<Method, Equivalence.Wrapper<Method>>() {
             @Override
             public Equivalence.Wrapper<Method> apply(Method method) {
                 return METHOD_EQUIVALENCE.wrap(method);
@@ -750,33 +751,25 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
             Map<Class<?>, Method> methodsByReturnType = entry.getValue();
             for (Method methodToDelegate : methodsByReturnType.values()) {
-                writeDelegatedMethod(visitor, generatedType, delegateTypeClass, methodToDelegate);
+                writeDelegatedMethod(visitor, generatedType, delegateType, methodToDelegate);
             }
         }
     }
 
-    private void writeDelegatedMethod(ClassVisitor visitor, Type generatedType, Class<?> delegateTypeClass, Method method) {
+    private void writeDelegatedMethod(ClassVisitor visitor, Type generatedType, Type delegateType, Method method) {
         MethodVisitor methodVisitor = declareMethod(visitor, method.getName(), Type.getMethodDescriptor(method), AsmClassGeneratorUtils.signature(method));
-        invokeDelegateMethod(methodVisitor, generatedType, delegateTypeClass, method);
-        final Class<?> returnType = method.getReturnType();
-        if (returnType == Void.TYPE) {
-            finishVisitingMethod(methodVisitor);
-        } else {
-            finishVisitingMethod(methodVisitor, returnCode(Type.getType(returnType)));
-        }
+        invokeDelegateMethod(methodVisitor, generatedType, delegateType, method);
+        Class<?> returnType = method.getReturnType();
+        finishVisitingMethod(methodVisitor, returnCode(Type.getType(returnType)));
     }
 
-    private void invokeDelegateMethod(MethodVisitor methodVisitor, Type generatedType, Class<?> delegateTypeClass, Method method) {
-        putDelegateFieldValueOnStack(methodVisitor, generatedType, delegateTypeClass);
+    private void invokeDelegateMethod(MethodVisitor methodVisitor, Type generatedType, Type delegateType, Method method) {
+        putDelegateFieldValueOnStack(methodVisitor, generatedType, delegateType);
         Class<?>[] parameterTypes = method.getParameterTypes();
         for (int paramNo = 0; paramNo < parameterTypes.length; paramNo++) {
-            if (parameterTypes[paramNo] == Boolean.TYPE) {
-                putBooleanMethodArgumentOnStack(methodVisitor, paramNo + 1);
-            } else {
-                putMethodArgumentOnStack(methodVisitor, paramNo + 1);
-            }
+            putMethodArgumentOnStack(methodVisitor, Type.getType(parameterTypes[paramNo]), paramNo + 1);
         }
-        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(delegateTypeClass), method.getName(), Type.getMethodDescriptor(method), false);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, delegateType.getInternalName(), method.getName(), Type.getMethodDescriptor(method), false);
     }
 
     private void invokeSuperMethod(MethodVisitor methodVisitor, Class<?> superClass, Method method) {

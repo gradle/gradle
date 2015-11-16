@@ -26,6 +26,7 @@ import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.instance.ModelElementState
 import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
+import org.gradle.util.Matchers
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -147,7 +148,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         !impl.equals(1)
     }
 
-    def "equals() works as expected"() {
+    def "Two views are equal when they are backed by the same node"() {
         def node1 = Mock(MutableModelNode)
         def node2 = Mock(MutableModelNode)
         def state1 = Mock(ModelElementState) {
@@ -167,8 +168,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         SomeType impl2 = proxyClass.newInstance(state2)
 
         then:
-        impl1.equals(impl1)
-        impl1.equals(impl1alternative)
+        Matchers.strictlyEquals(impl1, impl1alternative)
         !impl1.equals(impl2)
     }
 
@@ -277,7 +277,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
     static interface CustomManagedOverloading extends OverloadingNumber {
     }
 
-    def "can call overloaded delegate method"() {
+    def "can call overridden delegate method"() {
         def node = Stub(MutableModelNode)
         def state = Mock(ModelElementState) {
             getBackingNode() >> node
@@ -290,6 +290,50 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         then:
         impl.value == 2
+    }
+
+    def "can call delegate method that accept and return primitive values"() {
+        def node = Stub(MutableModelNode)
+        def state = Mock(ModelElementState) {
+            getBackingNode() >> node
+        }
+
+        def proxyClass = generate(TypeWithPrimitiveMethods, ClassWithPrimitiveMethods)
+
+        when:
+        def impl = proxyClass.newInstance(state, new ClassWithPrimitiveMethods())
+
+        then:
+        impl.someLong(12L) == 13L
+        impl.someBoolean(true) == false
+        impl.someChar('a' as char) == 'b' as char
+        impl.someThing(1, 4) == 5
+        impl.dontReturn(1 as short, 4 as byte)
+    }
+
+    static interface TypeWithPrimitiveMethods {
+        long someLong(long l)
+        boolean someBoolean(boolean b)
+        char someChar(char ch)
+        int someThing(int a, int b)
+        void dontReturn(short s, byte b)
+    }
+
+    static class ClassWithPrimitiveMethods {
+        long someLong(long l) {
+            l + 1
+        }
+        boolean someBoolean(boolean b) {
+            !b
+        }
+        char someChar(char ch) {
+            ch + 1
+        }
+        int someThing(int a, int b) {
+            a + b
+        }
+        void dontReturn(short s, byte b) {
+        }
     }
 
     def "mixes in toString() implementation that delegates to element state"() {
