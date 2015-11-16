@@ -16,24 +16,21 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.apache.ivy.util.ContextualSAXHandler;
+import org.apache.ivy.util.XMLHelper;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
-import org.gradle.internal.xml.XMLParsers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 class MavenMetadataLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenMetadataLoader.class);
@@ -72,59 +69,22 @@ class MavenMetadataLoader {
         LOGGER.debug("parsing maven-metadata: {}", metadataResource);
         metadataResource.withContent(new ErroringAction<InputStream>() {
             public void doExecute(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
-                XMLParsers.createNonValidatingSaxParser().parse(inputStream, new OptimizedContextualSAXHandler() {
+                XMLHelper.parse(inputStream, null, new ContextualSAXHandler() {
                     public void endElement(String uri, String localName, String qName)
                             throws SAXException {
-                        if (isInContext("metadata", "versioning", "snapshot", "timestamp")) {
+                        if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
                             mavenMetadata.timestamp = getText();
-                        } else if (isInContext("metadata", "versioning", "snapshot", "buildNumber")) {
+                        }
+                        if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
                             mavenMetadata.buildNumber = getText();
-                        } else if (isInContext("metadata", "versioning", "versions", "version")) {
+                        }
+                        if ("metadata/versioning/versions/version".equals(getContext())) {
                             mavenMetadata.versions.add(getText().trim());
                         }
                         super.endElement(uri, localName, qName);
                     }
-                });
+                }, null);
             }
         });
     }
-
-    private static class OptimizedContextualSAXHandler extends DefaultHandler {
-        private Deque<String> contextStack = new ArrayDeque<String>();
-        private StringBuilder buffer = new StringBuilder();
-
-        public void characters(char[] ch, int start, int length) throws SAXException {
-            buffer.append(ch, start, length);
-        }
-
-        public void startElement(String uri, String localName, String qName, Attributes attributes)
-            throws SAXException {
-            contextStack.push(qName);
-            buffer.setLength(0);
-        }
-
-        public void endElement(String uri, String localName, String qName) throws SAXException {
-            contextStack.pop();
-            buffer.setLength(0);
-        }
-
-        protected boolean isInContext(String... parts) {
-            if (parts.length != contextStack.size()) {
-                return false;
-            }
-            int i = parts.length - 1;
-            for (String contextPart : contextStack) {
-                if (!parts[i--].equals(contextPart)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        protected String getText() {
-            return buffer.toString();
-        }
-    }
-
 }
-

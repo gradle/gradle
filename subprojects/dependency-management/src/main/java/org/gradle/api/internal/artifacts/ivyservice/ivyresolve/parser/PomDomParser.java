@@ -16,29 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.codehaus.staxmate.dom.DOMConverter;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.xml.XMLParsers;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.util.StreamReaderDelegate;
-import javax.xml.transform.TransformerException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public final class PomDomParser {
     private PomDomParser() {}
@@ -100,122 +84,82 @@ public final class PomDomParser {
         return r;
     }
 
-    // hard-code to use Woodstox StAX parser . IBM StAX parser doesn't support disabling IS_REPLACING_ENTITY_REFERENCES
-    private static final XMLInputFactory XML_INPUT_FACTORY = XMLParsers.createNonValidatingXMLInputFactory();
-    private static final Map<String, String> M2_ENTITIES_MAP = new M2EntitiesMap();
+    public static final class AddDTDFilterInputStream extends FilterInputStream {
+        private static final int MARK = 10000;
+        private static final String DOCTYPE = "<!DOCTYPE project SYSTEM \"m2-entities.ent\">\n";
 
-    public static Document parseToDom(InputStream stream, String systemId) throws XMLStreamException, TransformerException, IOException, SAXException {
-        final XMLStreamReader xmlStreamReader = XML_INPUT_FACTORY.createXMLStreamReader(systemId, stream);
-        return stax2dom(decorateWithM2EntityReplacement(xmlStreamReader));
-    }
+        private int count;
+        private byte[] prefix = DOCTYPE.getBytes();
 
-    private static Document stax2dom(XMLStreamReader xmlStreamReader) throws XMLStreamException {
-        final DocumentBuilder documentBuilder = createDocumentBuilder();
-        return new DOMConverter(documentBuilder).buildDocument(xmlStreamReader, documentBuilder);
-    }
+        public AddDTDFilterInputStream(InputStream in) throws IOException {
+            super(new BufferedInputStream(in));
 
-    // Ivy supports handcrafted pom xml files that use HTML4 entities like &copy;
-    // This is an efficient way to resolve the entities without using the m2entities.ent DTD injection hack that Ivy uses
-    private static XMLStreamReader decorateWithM2EntityReplacement(final XMLStreamReader xmlStreamReader) throws XMLStreamException {
-        return new EntityReplacementDelegate(xmlStreamReader, M2_ENTITIES_MAP);
-    }
+            this.in.mark(MARK);
 
-    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = createDocumentBuilderFactory();
+            // TODO: we should really find a better solution for this...
+            // maybe we could use a FilterReader instead of a FilterInputStream?
+            int byte1 = this.in.read();
+            int byte2 = this.in.read();
+            int byte3 = this.in.read();
 
-    private static DocumentBuilderFactory createDocumentBuilderFactory() {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setValidating(false);
-        return factory;
-    }
-
-    private static DocumentBuilder createDocumentBuilder() {
-        try {
-            return DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private static class EntityReplacementDelegate extends StreamReaderDelegate {
-        private final Map<String, String> entitiesMap;
-        private boolean replaceCurrentEvent;
-
-        public EntityReplacementDelegate(XMLStreamReader xmlStreamReader, Map<String, String> entitiesMap) {
-            super(xmlStreamReader);
-            this.entitiesMap = entitiesMap;
-        }
-
-        @Override
-        public int next() throws XMLStreamException {
-            int eventType = super.next();
-            if (eventType == XMLStreamConstants.ENTITY_REFERENCE) {
-                replaceCurrentEvent = true;
-                return XMLStreamConstants.CHARACTERS;
+            if (byte1 == 239 && byte2 == 187 && byte3 == 191) {
+                // skip the UTF-8 BOM
+                this.in.mark(MARK);
             } else {
-                replaceCurrentEvent = false;
-                return eventType;
+                this.in.reset();
+            }
+
+            int bytesToSkip = 0;
+            LineNumberReader reader = new LineNumberReader(new InputStreamReader(this.in, "UTF-8"), 100);
+            String firstLine = reader.readLine();
+            if (firstLine != null) {
+                String trimmed = firstLine.trim();
+                if (trimmed.startsWith("<?xml ")) {
+                    int endIndex = trimmed.indexOf("?>");
+                    String xmlDecl = trimmed.substring(0, endIndex + 2);
+                    prefix = (xmlDecl + "\n" + DOCTYPE).getBytes();
+                    bytesToSkip = xmlDecl.getBytes().length;
+                }
+            }
+
+            this.in.reset();
+            for (int i = 0; i < bytesToSkip; i++) {
+                this.in.read();
             }
         }
 
-        @Override
-        public int getEventType() {
-            return replaceCurrentEvent ? XMLStreamConstants.CHARACTERS : super.getEventType();
-        }
-
-        private boolean isReplaceCurrentEvent() {
-            return replaceCurrentEvent;
-        }
-
-        @Override
-        public boolean isCharacters() {
-            return super.isCharacters() || isReplaceCurrentEvent();
-        }
-
-        @Override
-        public boolean isWhiteSpace() {
-            if (isReplaceCurrentEvent()) {
-                return false;
-            } else {
-                return super.isWhiteSpace();
+        public int read() throws IOException {
+            if (count < prefix.length) {
+                return prefix[count++];
             }
+
+            return super.read();
         }
 
-        @Override
-        public String getText() {
-            if (isReplaceCurrentEvent()) {
-                String entityName = super.getLocalName();
-                String replacement = entityName != null ? entitiesMap.get(entityName) : "";
-                return replacement != null ? replacement : "";
-            } else {
-                return super.getText();
-            }
-        }
-
-        @Override
-        public char[] getTextCharacters() {
-            if (isReplaceCurrentEvent()) {
-                return getText().toCharArray();
-            } else {
-                return super.getTextCharacters();
-            }
-        }
-
-        @Override
-        public int getTextStart() {
-            if (isReplaceCurrentEvent()) {
+        public int read(byte[] b, int off, int len) throws IOException {
+            if (b == null) {
+                throw new NullPointerException();
+            } else if ((off < 0) || (off > b.length) || (len < 0)
+                    || ((off + len) > b.length) || ((off + len) < 0)) {
+                throw new IndexOutOfBoundsException();
+            } else if (len == 0) {
                 return 0;
-            } else {
-                return super.getTextStart();
             }
-        }
 
-        @Override
-        public int getTextLength() {
-            if (isReplaceCurrentEvent()) {
-                return getText().length();
-            } else {
-                return super.getTextLength();
+            int nbrBytesCopied = 0;
+
+            if (count < prefix.length) {
+                int nbrBytesFromPrefix = Math.min(prefix.length - count, len);
+                System.arraycopy(prefix, count, b, off, nbrBytesFromPrefix);
+                nbrBytesCopied = nbrBytesFromPrefix;
             }
+
+            if (nbrBytesCopied < len) {
+                nbrBytesCopied += in.read(b, off + nbrBytesCopied, len - nbrBytesCopied);
+            }
+
+            count += nbrBytesCopied;
+            return nbrBytesCopied;
         }
     }
 }
