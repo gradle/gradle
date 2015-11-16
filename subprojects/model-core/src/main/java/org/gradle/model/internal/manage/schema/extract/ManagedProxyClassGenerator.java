@@ -22,6 +22,7 @@ import com.google.common.collect.*;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Nullable;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.TypeConverters;
@@ -116,15 +117,15 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
      *     <li>methods that call through to the delegate instance</li>
      * </ul>
      */
-    public <T, M extends T, D extends T> Class<? extends M> generate(StructSchema<M> managedSchema, StructSchema<D> delegateSchema) {
+    public <T, M extends T, D extends T> Class<? extends M> generate(StructSchema<M> viewSchema, @Nullable StructSchema<D> delegateSchema) {
         if (delegateSchema != null && Modifier.isAbstract(delegateSchema.getType().getConcreteClass().getModifiers())) {
             throw new IllegalArgumentException("Delegate type must be null or a non-abstract type");
         }
         ClassWriter visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 
-        ModelType<M> managedType = managedSchema.getType();
+        ModelType<M> viewType = viewSchema.getType();
 
-        StringBuilder generatedTypeNameBuilder = new StringBuilder(managedType.getName());
+        StringBuilder generatedTypeNameBuilder = new StringBuilder(viewType.getName());
         if (delegateSchema != null) {
             generatedTypeNameBuilder.append("$BackedBy_").append(delegateSchema.getType().getName().replaceAll("\\.", "_"));
         } else {
@@ -134,17 +135,17 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         String generatedTypeName = generatedTypeNameBuilder.toString();
         Type generatedType = Type.getType("L" + generatedTypeName.replaceAll("\\.", "/") + ";");
 
-        Class<M> managedTypeClass = managedType.getConcreteClass();
+        Class<M> viewClass = viewType.getConcreteClass();
         Class<?> superclass;
         final ImmutableSet.Builder<String> interfacesToImplement = ImmutableSet.builder();
         final ImmutableSet.Builder<Class<?>> typesToDelegate = ImmutableSet.builder();
-        typesToDelegate.add(managedTypeClass);
+        typesToDelegate.add(viewClass);
         interfacesToImplement.add(MANAGED_INSTANCE_TYPE);
-        if (managedTypeClass.isInterface()) {
+        if (viewClass.isInterface()) {
             superclass = Object.class;
-            interfacesToImplement.add(Type.getInternalName(managedTypeClass));
+            interfacesToImplement.add(Type.getInternalName(viewClass));
         } else {
-            superclass = managedTypeClass;
+            superclass = viewClass;
         }
         // TODO:LPTR This should be removed once BinaryContainer is a ModelMap
         // We need to also implement all the interfaces of the delegate type because otherwise
@@ -161,13 +162,13 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             });
         }
 
-        generateProxyClass(visitor, managedSchema, delegateSchema, interfacesToImplement.build(), typesToDelegate.build(), generatedType, Type.getType(superclass));
+        generateProxyClass(visitor, viewSchema, delegateSchema, interfacesToImplement.build(), typesToDelegate.build(), generatedType, Type.getType(superclass));
 
-        ClassLoader targetClassLoader = managedTypeClass.getClassLoader();
+        ClassLoader targetClassLoader = viewClass.getClassLoader();
         if (delegateSchema != null) {
             // TODO - remove this once the above is removed
             try {
-                managedTypeClass.getClassLoader().loadClass(delegateSchema.getType().getConcreteClass().getName());
+                viewClass.getClassLoader().loadClass(delegateSchema.getType().getConcreteClass().getName());
             } catch (ClassNotFoundException e) {
                 // Delegate class is not visible to managed view type -> view type is more general than delegate type, so use the delegate classloader instead
                 targetClassLoader = delegateSchema.getType().getConcreteClass().getClassLoader();
@@ -177,24 +178,24 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         return defineClass(visitor, targetClassLoader, generatedTypeName);
     }
 
-    private void generateProxyClass(ClassWriter visitor, StructSchema<?> managedSchema, StructSchema<?> delegateSchema, Collection<String> interfacesToImplement,
+    private void generateProxyClass(ClassWriter visitor, StructSchema<?> viewSchema, StructSchema<?> delegateSchema, Collection<String> interfacesToImplement,
                                     Set<Class<?>> typesToDelegate, Type generatedType, Type superclassType) {
-        ModelType<?> managedType = managedSchema.getType();
-        Class<?> managedTypeClass = managedType.getConcreteClass();
+        ModelType<?> viewType = viewSchema.getType();
+        Class<?> viewClass = viewType.getConcreteClass();
         declareClass(visitor, interfacesToImplement, generatedType, superclassType);
         declareStateField(visitor);
         declareManagedTypeField(visitor);
         declareCanCallSettersField(visitor);
-        writeStaticConstructor(visitor, generatedType, managedTypeClass);
+        writeStaticConstructor(visitor, generatedType, viewClass);
         writeConstructor(visitor, generatedType, superclassType, delegateSchema);
-        writeToString(visitor, generatedType, managedTypeClass);
+        writeToString(visitor, generatedType, viewClass);
         writeManagedInstanceMethods(visitor, generatedType);
         if (delegateSchema != null) {
             declareDelegateField(visitor, delegateSchema);
             writeDelegateMethods(visitor, generatedType, delegateSchema, typesToDelegate);
         }
-        writeGroovyMethods(visitor, managedTypeClass);
-        writePropertyMethods(visitor, generatedType, managedSchema, delegateSchema);
+        writeGroovyMethods(visitor, viewClass);
+        writePropertyMethods(visitor, generatedType, viewSchema, delegateSchema);
         writeHashCodeMethod(visitor, generatedType);
         writeEqualsMethod(visitor, generatedType);
         visitor.visitEnd();

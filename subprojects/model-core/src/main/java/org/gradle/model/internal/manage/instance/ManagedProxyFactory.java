@@ -44,11 +44,11 @@ public class ManagedProxyFactory {
         this.instantiator = instantiator;
     }
 
-    public <T> T createProxy(ModelElementState state, StructSchema<T> schema, StructSchema<? extends T> delegateSchema) {
+    public <T> T createProxy(ModelElementState state, StructSchema<T> viewSchema, @Nullable StructSchema<? extends T> delegateSchema) {
         try {
-            Class<? extends T> generatedClass = getGeneratedImplementation(schema, delegateSchema);
+            Class<? extends T> generatedClass = getGeneratedImplementation(viewSchema, delegateSchema);
             if (generatedClass == null) {
-                throw new IllegalStateException("No managed implementation class available for: " + schema.getType());
+                throw new IllegalStateException("No managed implementation class available for: " + viewSchema.getType());
             }
             if (delegateSchema == null) {
                 return instantiator.newInstance(generatedClass, state);
@@ -68,7 +68,7 @@ public class ManagedProxyFactory {
 
     private static class CacheKey<T> {
         private final StructSchema<T> schema;
-        private final StructSchema<? extends T> delegateSchema;
+        private final @Nullable StructSchema<? extends T> delegateSchema;
 
         private CacheKey(StructSchema<T> schema, @Nullable StructSchema<? extends T> delegateSchema) {
             this.schema = schema;
