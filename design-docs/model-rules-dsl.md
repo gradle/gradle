@@ -70,6 +70,10 @@ For example:
         }
     }
 
+### Test cases
+
+- Works with `ModelMap<T>` and specialized subtypes such as `ComponentSpecContainer`.
+
 ## Story: DSL rule configures children of a `@Managed` type
 
 - Allow deferred configuration of any property of any non-scalar type of a `@Managed` type, by mixing in configuration methods that accept a Groovy closure. 
@@ -77,6 +81,8 @@ For example:
 - When used from the model DSL, these methods define a nested rule.
 - Allow configuration for a nested structure to take configuration for a sibling as input.
 - Allow arbitrary code to conditionally configure a nested target.
+- TBD: Apply to properties of non-managed software model types and views, and remove ad-hoc configure methods.
+- TBD: Apply only to mutable views.
 
 For example:
 
@@ -92,6 +98,15 @@ For example:
             }
         }
     }
+
+### Test cases
+
+- Configuration is deferred when applied to property.
+- Works for properties with `@Managed` type, software model type, `ModelMap`, `ModelSet`, `List`, `Set`, unmanaged type.
+- Works for subject that is a `@Managed` model elements.
+- Works for subject that is a `@Managed` subtype of software model type.
+- Works for subject that is a `@Managed` internal view of software model type.
+- Does not work for properties with scalar type. 
 
 ## Story: DSL rule configures children of a `ModelSet`
 
