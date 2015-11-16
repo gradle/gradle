@@ -194,7 +194,8 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         WeaklyTypeReferencingMethod<?, Void> setterRef;
         if (setterContext != null) {
             validateSetter(extractionContext, returnType, getterContext, setterContext);
-            setterRef = WeaklyTypeReferencingMethod.of(extractionContext.getType(), ModelType.of(void.class), setterContext.getMostSpecificDeclaration());
+            Method mostSpecificDeclaration = setterContext.getMostSpecificDeclaration();
+            setterRef = WeaklyTypeReferencingMethod.of(ModelType.of(mostSpecificDeclaration.getDeclaringClass()), ModelType.of(void.class), mostSpecificDeclaration);
         } else {
             setterRef = null;
         }
@@ -207,8 +208,8 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
         List<WeaklyTypeReferencingMethod<?, R>> getterRefs = Lists.newArrayList(Iterables.transform(getterContext.getGetters(), new Function<Method, WeaklyTypeReferencingMethod<?, R>>() {
             @Override
-            public WeaklyTypeReferencingMethod<?, R> apply(@Nullable Method getter) {
-                return WeaklyTypeReferencingMethod.of(extractionContext.getType(), returnType, getter);
+            public WeaklyTypeReferencingMethod<?, R> apply(Method getter) {
+                return WeaklyTypeReferencingMethod.of(ModelType.of(getter.getDeclaringClass()), returnType, getter);
             }
         }));
 
