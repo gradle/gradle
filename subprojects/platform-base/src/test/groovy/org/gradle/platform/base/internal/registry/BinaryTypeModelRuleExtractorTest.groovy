@@ -38,9 +38,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
     def aspectExtractor = new ModelSchemaAspectExtractor()
     BinaryTypeModelRuleExtractor ruleHandler = new BinaryTypeModelRuleExtractor(
         new DefaultModelSchemaStore(
-            new ModelSchemaExtractor([
-                new BinarySpecSpecializationSchemaExtractionStrategy(aspectExtractor)
-            ], aspectExtractor)
+            new ModelSchemaExtractor([], aspectExtractor)
         )
     )
 
