@@ -21,7 +21,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.*;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Nullable;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.internal.service.ServiceRegistry;
@@ -372,19 +371,15 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), CAN_CALL_SETTERS_FIELD_NAME, Type.BOOLEAN_TYPE.getDescriptor());
     }
 
-    private void writePropertyMethods(ClassVisitor visitor, Type generatedType, StructSchema<?> managedSchema, StructSchema<?> delegateSchema) {
+    private void writePropertyMethods(ClassVisitor visitor, Type generatedType, StructSchema<?> viewSchema, StructSchema<?> delegateSchema) {
         Collection<String> delegatePropertyNames;
         if (delegateSchema != null) {
-            ImmutableSet.Builder<String> builder = ImmutableSet.builder();
-            for (ModelProperty<?> delegateProperty : delegateSchema.getProperties()) {
-                builder.add(delegateProperty.getName());
-            }
-            delegatePropertyNames = builder.build();
+            delegatePropertyNames = delegateSchema.getPropertyNames();
         } else {
             delegatePropertyNames = Collections.emptySet();
         }
-        Class<?> managedTypeClass = managedSchema.getType().getConcreteClass();
-        for (ModelProperty<?> property : managedSchema.getProperties()) {
+        Class<?> viewClass = viewSchema.getType().getConcreteClass();
+        for (ModelProperty<?> property : viewSchema.getProperties()) {
             String propertyName = property.getName();
             // Delegated properties are handled in writeDelegateMethods()
             if (delegatePropertyNames.contains(propertyName)) {
@@ -397,15 +392,11 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                     break;
 
                 case UNMANAGED:
-                    String getterName = getGetterName(propertyName);
-                    Method getterMethod;
-                    try {
-                        getterMethod = managedTypeClass.getMethod(getterName);
-                    } catch (NoSuchMethodException e) {
-                        throw new IllegalStateException(String.format("Cannot find getter '%s' on type %s", getterName, managedTypeClass.getName()), e);
-                    }
-                    if (!Modifier.isFinal(getterMethod.getModifiers()) && !propertyName.equals("metaClass")) {
-                        writeNonAbstractMethodWrapper(visitor, generatedType, managedTypeClass, getterMethod);
+                    for (WeaklyTypeReferencingMethod<?, ?> getter : property.getGetters()) {
+                        Method getterMethod = getter.getMethod();
+                        if (!Modifier.isFinal(getterMethod.getModifiers()) && !propertyName.equals("metaClass")) {
+                            writeNonAbstractMethodWrapper(visitor, generatedType, viewClass, getterMethod);
+                        }
                     }
                     break;
             }
@@ -642,10 +633,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         return returnType.getOpcode(IRETURN);
     }
 
-    private static String getGetterName(String propertyName) {
-        return "get" + StringUtils.capitalize(propertyName);
-    }
-
     private void castFirstStackElement(MethodVisitor methodVisitor, Class<?> returnType) {
         if (returnType.isPrimitive()) {
             unboxType(methodVisitor, returnType);
@@ -659,20 +646,21 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(boxedType), "valueOf", "(" + Type.getDescriptor(primitiveType) + ")" + Type.getDescriptor(boxedType), false);
     }
 
-    private void unboxType(MethodVisitor methodVisitor, Class<?> primitiveType) {
+    private void unboxType(MethodVisitor methodVisitor, Class<?> primitiveClass) {
         // Float f = (Float) tmp
         // f==null?0:f.floatValue()
-        Class<?> boxedType = BOXED_TYPES.get(primitiveType);
+        Class<?> boxedType = BOXED_TYPES.get(primitiveClass);
+        Type primitiveType = Type.getType(primitiveClass);
         methodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(boxedType));
         methodVisitor.visitInsn(DUP);
         Label exit = new Label();
         Label elseValue = new Label();
         methodVisitor.visitJumpInsn(IFNONNULL, elseValue);
         methodVisitor.visitInsn(POP);
-        pushDefaultValue(methodVisitor, primitiveType);
+        pushDefaultValue(methodVisitor, primitiveClass);
         methodVisitor.visitJumpInsn(GOTO, exit);
         methodVisitor.visitLabel(elseValue);
-        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(boxedType), primitiveType.getSimpleName() + "Value", "()" + Type.getDescriptor(primitiveType), false);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(boxedType), primitiveClass.getSimpleName() + "Value", Type.getMethodDescriptor(primitiveType), false);
         methodVisitor.visitLabel(exit);
     }
 
