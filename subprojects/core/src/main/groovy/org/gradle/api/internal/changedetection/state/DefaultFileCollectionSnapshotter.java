@@ -17,7 +17,12 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.CachingFileVisitDetails;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.*;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.NoOpChangeListener;
@@ -27,42 +32,97 @@ import java.math.BigInteger;
 import java.util.*;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
-    private final FileSnapshotter snapshotter;
+    private final FileTreeElementSnapshotter snapshotter;
     private TaskArtifactStateCacheAccess cacheAccess;
+    private final StringInterner stringInterner;
 
-    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess) {
+    public DefaultFileCollectionSnapshotter(FileTreeElementSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner) {
         this.snapshotter = snapshotter;
         this.cacheAccess = cacheAccess;
+        this.stringInterner = stringInterner;
     }
 
     public void registerSerializers(SerializerRegistry<FileCollectionSnapshot> registry) {
-        registry.register(FileCollectionSnapshotImpl.class, new DefaultFileSnapshotterSerializer());
+        registry.register(FileCollectionSnapshotImpl.class, new DefaultFileSnapshotterSerializer(stringInterner));
     }
 
     public FileCollectionSnapshot emptySnapshot() {
         return new FileCollectionSnapshotImpl(new HashMap<String, IncrementalFileSnapshot>());
     }
 
-    public FileCollectionSnapshot snapshot(FileCollection input) {
-        final Set<File> files = input.getAsFileTree().getFiles();
-        if (files.isEmpty()) {
+    public FileCollectionSnapshot snapshot(final FileCollection input) {
+        final List<FileVisitDetails> allFileVisitDetails = visitFiles(input);
+
+        if (allFileVisitDetails.isEmpty()) {
             return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap());
         }
+
         final Map<String, IncrementalFileSnapshot> snapshots = new HashMap<String, IncrementalFileSnapshot>();
+
         cacheAccess.useCache("Create file snapshot", new Runnable() {
             public void run() {
-                for (File file : files) {
-                    if (file.isFile()) {
-                        snapshots.put(file.getAbsolutePath(), new FileHashSnapshot(snapshotter.snapshot(file).getHash()));
-                    } else if (file.isDirectory()) {
-                        snapshots.put(file.getAbsolutePath(), new DirSnapshot());
-                    } else {
-                        snapshots.put(file.getAbsolutePath(), new MissingFileSnapshot());
+                for (FileVisitDetails fileDetails : allFileVisitDetails) {
+                    final String absolutePath = stringInterner.intern(fileDetails.getFile().getAbsolutePath());
+                    if (!snapshots.containsKey(absolutePath)) {
+                        if (fileDetails.isDirectory()) {
+                            snapshots.put(absolutePath, DirSnapshot.getInstance());
+                        } else {
+                            snapshots.put(absolutePath, new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash()));
+                        }
                     }
                 }
             }
         });
+
         return new FileCollectionSnapshotImpl(snapshots);
+    }
+
+    private List<FileVisitDetails> visitFiles(FileCollection input) {
+        final List<FileVisitDetails> allFileVisitDetails = new LinkedList<FileVisitDetails>();
+
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
+        context.add(input);
+        List<FileTreeInternal> fileTrees = context.resolveAsFileTrees();
+
+        for (FileTreeInternal fileTree : fileTrees) {
+            Set<File> fileTreeBackingFiles = unwrapFileTreeBackingFilesIfAvailable(fileTree);
+            if (fileTreeBackingFiles != null) {
+                for (File fileTreeSourceFile : fileTreeBackingFiles) {
+                    allFileVisitDetails.add(new CachingFileVisitDetails(fileTreeSourceFile));
+                }
+            } else {
+                fileTree.visit(new FileVisitor() {
+                    @Override
+                    public void visitDir(FileVisitDetails dirDetails) {
+                        allFileVisitDetails.add(dirDetails);
+                    }
+
+                    @Override
+                    public void visitFile(FileVisitDetails fileDetails) {
+                        allFileVisitDetails.add(fileDetails);
+                    }
+                });
+            }
+        }
+        return allFileVisitDetails;
+    }
+
+    private static Set<File> unwrapFileTreeBackingFilesIfAvailable(Object fileTree) {
+        if (fileTree instanceof FileTreeWithBackingFile) {
+            File backingFile = ((FileTreeWithBackingFile) fileTree).getBackingFile();
+            if (backingFile != null) {
+                return Collections.singleton(backingFile);
+            }
+            if (fileTree instanceof FileSystemMirroringFileTree) {
+                // custom resource as source for TarFileTree, fallback to snapshotting files in archive
+                return new FileTreeAdapter((FileSystemMirroringFileTree) fileTree).getFiles();
+            }
+        } else if (fileTree instanceof FileTreeAdapter) {
+            return unwrapFileTreeBackingFilesIfAvailable(((FileTreeAdapter) fileTree).getTree());
+        } else if (fileTree instanceof FilteredFileTree) {
+            return unwrapFileTreeBackingFilesIfAvailable(((FilteredFileTree) fileTree).getOriginalFileTree());
+        }
+        return null;
     }
 
     static interface IncrementalFileSnapshot {
@@ -96,6 +156,15 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     static class DirSnapshot implements IncrementalFileSnapshot {
+        private static DirSnapshot instance = new DirSnapshot();
+
+        private DirSnapshot() {
+        }
+
+        static DirSnapshot getInstance() {
+            return instance;
+        }
+
         public boolean isUpToDate(IncrementalFileSnapshot snapshot) {
             return snapshot instanceof DirSnapshot;
         }

@@ -19,20 +19,25 @@ import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.collections.*;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.util.GUtil;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.DeprecationLogger;
+import org.gradle.util.GUtil;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.util.*;
 
-public abstract class AbstractFileCollection implements FileCollection, MinimalFileSet {
+public abstract class AbstractFileCollection implements FileCollectionInternal {
     /**
      * Returns the display name of this file collection. Used in log and error messages.
      *
@@ -72,6 +77,11 @@ public abstract class AbstractFileCollection implements FileCollection, MinimalF
         return new UnionFileCollection(this, collection);
     }
 
+    public FileCollection plus(Iterable<FileCollection> collections) {
+        DeprecationLogger.nagUserWith("The plus(Iterable<FileCollection>) method and using the '+' operator in conjunction with an Iterable<FileCollection> object have been deprecated and are scheduled to be removed in " + GradleVersion.current().getNextMajor().getVersion() + ".  Please use the plus(FileCollection) method or the '+' operator with a FileCollection object instead.");
+        return this.plus(new UnionFileCollection(collections));
+    }
+
     public FileCollection minus(final FileCollection collection) {
         return new AbstractFileCollection() {
             @Override
@@ -90,6 +100,11 @@ public abstract class AbstractFileCollection implements FileCollection, MinimalF
                 return files;
             }
         };
+    }
+
+    public FileCollection minus(final Iterable<FileCollection> collections) {
+        DeprecationLogger.nagUserWith("The minus(Iterable<FileCollection>) method and using the '-' operator in conjunction with an Iterable<FileCollection> object have been deprecated and are scheduled to be removed in " + GradleVersion.current().getNextMajor().getVersion() + ".  Please use the minus(FileCollection) method or the '-' operator with a FileCollection object instead.");
+        return this.minus(new UnionFileCollection(collections));
     }
 
     public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
@@ -125,9 +140,7 @@ public abstract class AbstractFileCollection implements FileCollection, MinimalF
         List<DirectoryFileTree> fileTrees = new ArrayList<DirectoryFileTree>();
         for (File file : getFiles()) {
             if (file.isFile()) {
-                PatternSet patternSet = new PatternSet();
-                patternSet.include(new String[]{file.getName()});
-                fileTrees.add(new DirectoryFileTree(file.getParentFile(), patternSet));
+                fileTrees.add(new FileBackedDirectoryFileTree(file));
             }
         }
         return fileTrees;
@@ -179,10 +192,15 @@ public abstract class AbstractFileCollection implements FileCollection, MinimalF
     public FileTree getAsFileTree() {
         return new CompositeFileTree() {
             @Override
-            public void resolve(FileCollectionResolveContext context) {
+            public void visitContents(FileCollectionResolveContext context) {
                 ResolvableFileCollectionResolveContext nested = context.newContext();
                 nested.add(AbstractFileCollection.this);
                 context.add(nested.resolveAsFileTrees());
+            }
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                context.add(AbstractFileCollection.this);
             }
 
             @Override
@@ -216,5 +234,12 @@ public abstract class AbstractFileCollection implements FileCollection, MinimalF
 
     protected String getCapDisplayName() {
         return StringUtils.capitalize(getDisplayName());
+    }
+
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        for (File file : getFiles()) {
+            builder.add(file);
+        }
     }
 }

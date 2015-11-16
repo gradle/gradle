@@ -19,27 +19,23 @@ package org.gradle.play.integtest
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder
-import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
+import org.gradle.play.integtest.fixtures.RunningPlayApp
+import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
-import org.gradle.util.AvailablePortFinder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TextUtil
-
-import static org.gradle.integtests.fixtures.UrlValidator.*
 
 class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec {
     PlayApp playApp = new PlayMultiProject()
-
-    int httpPort
-    def portFinder = AvailablePortFinder.createPrivate()
+    RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
 
     def setup() {
-        playApp.writeSources(file("."))
+        playApp.writeSources(testDirectory)
     }
 
     def "can build play app binary"() {
@@ -48,35 +44,35 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         executedAndNotSkipped(
-                ":javalibrary:jar",
-                ":submodule:playBinary",
-                ":primary:playBinary",
-                ":primary:assemble")
+            ":javalibrary:jar",
+            ":submodule:playBinary",
+            ":primary:playBinary",
+            ":primary:assemble")
 
         and:
         jar("primary/build/playBinary/lib/primary.jar").containsDescendants(
-                "Routes.class",
-                "controllers/Application.class")
+            "Routes.class",
+            "controllers/Application.class")
         jar("primary/build/playBinary/lib/primary-assets.jar").hasDescendants(
-                "public/primary.txt")
+            "public/primary.txt")
         jar("submodule/build/playBinary/lib/submodule.jar").containsDescendants(
-                "controllers/submodule/Application.class")
+            "controllers/submodule/Application.class")
         jar("submodule/build/playBinary/lib/submodule-assets.jar").hasDescendants(
-                "public/submodule.txt")
+            "public/submodule.txt")
 
         when:
         succeeds(":primary:dist")
 
         then:
         zip("primary/build/distributions/playBinary.zip").containsDescendants(
-                "playBinary/lib/primary.jar",
-                "playBinary/lib/primary-assets.jar",
-                "playBinary/lib/submodule.jar",
-                "playBinary/lib/submodule-assets.jar",
-                "playBinary/lib/javalibrary.jar",
-                "playBinary/bin/playBinary",
-                "playBinary/bin/playBinary.bat",
-                "playBinary/conf/application.conf"
+            "playBinary/lib/primary.jar",
+            "playBinary/lib/primary-assets.jar",
+            "playBinary/lib/submodule.jar",
+            "playBinary/lib/submodule-assets.jar",
+            "playBinary/lib/javalibrary.jar",
+            "playBinary/bin/playBinary",
+            "playBinary/bin/playBinary.bat",
+            "playBinary/conf/application.conf"
         )
 
         when:
@@ -84,89 +80,70 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         file("primary/build/stage/playBinary").assertIsDir().assertContainsDescendants(
-                "lib/primary.jar",
-                "lib/primary-assets.jar",
-                "lib/submodule.jar",
-                "lib/submodule-assets.jar",
-                "bin/playBinary",
-                "bin/playBinary.bat",
-                "conf/application.conf"
+            "lib/primary.jar",
+            "lib/primary-assets.jar",
+            "lib/submodule.jar",
+            "lib/submodule-assets.jar",
+            "bin/playBinary",
+            "bin/playBinary.bat",
+            "conf/application.conf"
         )
     }
 
-    
-    def "can run play app"(){
-        setup:
-        httpPort = portFinder.nextAvailable
 
+    def "can run play app"() {
+        setup:
         file("primary/build.gradle") << """
     model {
         tasks.runPlayBinary {
-            httpPort = $httpPort
+            httpPort = 0
         }
     }
 """
         run ":primary:assemble"
 
         when:
-        def userInput = new PipedOutputStream();
-        executer.withStdIn(new PipedInputStream(userInput))
-        GradleHandle gradleHandle = executer.withTasks(":primary:runPlayBinary").start()
+        GradleHandle build = executer.withTasks(":primary:runPlayBinary").withForceInteractive(true).withStdinPipe().start()
+        runningApp.initialize(build)
 
         then:
-        def url = playUrl().toString()
-        available(url, "Play app", 60000)
+        runningApp.verifyStarted()
 
         and:
-        validateRunningApp();
+        runningApp.verifyContent();
 
         when: "stopping gradle"
-        userInput.write(4) // ctrl+d
-        userInput.write(TextUtil.toPlatformLineSeparators("\n").bytes) // For some reason flush() doesn't get the keystroke to the DaemonExecuter
-
-        gradleHandle.waitForFinish()
+        build.cancelWithEOT().waitForFinish()
 
         then: "play server is stopped too"
-        notAvailable(url)
+        runningApp.verifyStopped()
     }
 
     @Requires(TestPrecondition.NOT_UNKNOWN_OS)
-    def "can run play distribution" () {
+    def "can run play distribution"() {
         println file(".")
 
         ExecHandle handle
         String distDirPath = file("primary/build/stage").path
 
         setup:
-        httpPort = portFinder.nextAvailable
         run ":primary:stage"
 
         when:
-        ExecHandleBuilder builder = new DistributionTestExecHandleBuilder(httpPort.toString(), distDirPath)
+        ExecHandleBuilder builder = new DistributionTestExecHandleBuilder('0', distDirPath)
         handle = builder.build()
         handle.start()
+        runningApp.initialize(handle)
 
         then:
-        available(playUrl().toString(), "Play app", 60000)
+        runningApp.verifyStarted()
 
         and:
-        validateRunningApp()
+        runningApp.verifyContent()
 
         cleanup:
-        ((DistributionTestExecHandleBuilder.DistributionTestExecHandle) handle).shutdown()
-        notAvailable(playUrl().toString())
-    }
-
-    def validateRunningApp() {
-        assertUrlContent playUrl(), "Your new application is ready."
-        assertUrlContent playUrl("assets/primary.txt"), "Primary asset"
-        assertUrlContent playUrl("submodule"), "Submodule page"
-        assertUrlContent playUrl("assets/submodule.txt"), "Submodule asset"
-        true
-    }
-
-    URL playUrl(String path='') {
-        return new URL("http://localhost:$httpPort/${path}")
+        ((DistributionTestExecHandleBuilder.DistributionTestExecHandle) handle).shutdown(runningApp.httpPort)
+        runningApp.verifyStopped()
     }
 
     JarTestFixture jar(String fileName) {

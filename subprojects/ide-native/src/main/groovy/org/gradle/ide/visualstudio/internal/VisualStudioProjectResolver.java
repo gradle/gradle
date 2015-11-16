@@ -16,31 +16,30 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.internal.resolve.ProjectLocator;
 
 public class VisualStudioProjectResolver {
-    private final ProjectLocator projectLocator;
+    private final ProjectModelResolver projectModelResolver;
 
-    public VisualStudioProjectResolver(ProjectLocator projectLocator) {
-        this.projectLocator = projectLocator;
+    public VisualStudioProjectResolver(ProjectModelResolver projectModelResolver) {
+        this.projectModelResolver = projectModelResolver;
     }
 
     public VisualStudioProjectConfiguration lookupProjectConfiguration(NativeBinarySpec nativeBinary) {
         // Looks in the correct project registry for this binary
-        ProjectInternal componentProject = getComponentProject(nativeBinary);
-        VisualStudioExtension visualStudioExtension = componentProject.getModelRegistry().realize(ModelPath.path("visualStudio"), ModelType.of(VisualStudioExtension.class));
+        VisualStudioExtension visualStudioExtension = getComponentModel(nativeBinary).realize(ModelPath.path("visualStudio"), ModelType.of(VisualStudioExtension.class));
         VisualStudioProjectRegistry projectRegistry = ((VisualStudioExtensionInternal) visualStudioExtension).getProjectRegistry();
         return projectRegistry.getProjectConfiguration(nativeBinary);
     }
 
-    private ProjectInternal getComponentProject(NativeBinarySpec nativeBinary) {
+    private ModelRegistry getComponentModel(NativeBinarySpec nativeBinary) {
         String projectPath = nativeBinary.getComponent().getProjectPath();
-        return projectLocator.locateProject(projectPath);
+        return projectModelResolver.resolveProjectModel(projectPath);
     }
 }
 

@@ -30,9 +30,6 @@ import java.lang.annotation.Target;
  * {@link org.gradle.platform.base.BinaryTasks} annotation.
  *
  * <pre autoTested='true'>
- * import org.gradle.model.*
- * import org.gradle.model.collection.*
- *
  * interface SampleComponent extends ComponentSpec {}
  * interface SampleBinary extends BinarySpec {}
  * class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
@@ -52,7 +49,7 @@ import java.lang.annotation.Target;
  *     }
  *
  *     {@literal @}BinaryTasks
- *     void createBinaryTasks(CollectionBuilder<Task> tasks, SampleBinary binary) {
+ *     void createBinaryTasks(ModelMap<Task> tasks, SampleBinary binary) {
  *         tasks.create("${binary.name}Task1", MyCustomBinaryCreationTask)
  *         tasks.create("${binary.name}Task2") {
  *             dependsOn "${binary.name}Task1"

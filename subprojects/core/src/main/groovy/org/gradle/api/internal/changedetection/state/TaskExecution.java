@@ -63,4 +63,8 @@ public abstract class TaskExecution {
     public abstract FileCollectionSnapshot getInputFilesSnapshot();
 
     public abstract void setInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
+
+    public abstract FileCollectionSnapshot getDiscoveredInputFilesSnapshot();
+
+    public abstract void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
 }

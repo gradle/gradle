@@ -105,6 +105,19 @@ class FindBugsExtension extends CodeQualityExtension {
     TextResource excludeBugsFilterConfig
 
     /**
+     * Any additional arguments (not covered here more explicitly like {@code effort}) to be passed along to FindBugs.
+     * <p>
+     * Extra arguments are passed to FindBugs after the arguments Gradle understands (like {@code effort} but before the list of classes to analyze.
+     * This should only be used for arguments that cannot be provided by Gradle directly. Gradle does not try to interpret or validate the arguments
+     * before passing them to FindBugs.
+     * <p>
+     * See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs TextUICommandLine source</a> for available options.
+     *
+     * @since 2.6
+     */
+    Collection<String> extraArgs
+
+    /**
      * The filename of a filter specifying which bugs are reported.
      */
     File getIncludeFilter() {

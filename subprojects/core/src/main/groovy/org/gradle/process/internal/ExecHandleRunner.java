@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.util.concurrent.locks.Lock;
@@ -31,13 +32,15 @@ public class ExecHandleRunner implements Runnable {
     private final DefaultExecHandle execHandle;
     private final Lock lock = new ReentrantLock();
     private final ProcessLauncher processLauncher;
+    private final ExecutorFactory executorFactory;
 
     private Process process;
     private boolean aborted;
     private final StreamsHandler streamsHandler;
 
-    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher) {
+    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher, ExecutorFactory executorFactory) {
         this.processLauncher = processLauncher;
+        this.executorFactory = executorFactory;
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
         }
@@ -63,7 +66,7 @@ public class ExecHandleRunner implements Runnable {
         try {
             ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
             Process process = processLauncher.start(processBuilder);
-            streamsHandler.connectStreams(process, execHandle.getDisplayName());
+            streamsHandler.connectStreams(process, execHandle.getDisplayName(), executorFactory);
             setProcess(process);
 
             execHandle.started();

@@ -23,7 +23,7 @@ import org.gradle.api.internal.cache.Store;
 public interface StoreSet {
     BinaryStore nextBinaryStore();
 
-    Store<ResolvedComponentResult> oldModelStore();
+    Store<ResolvedComponentResult> newModelCache();
 
-    Store<TransientConfigurationResults> newModelStore();
+    Store<TransientConfigurationResults> oldModelCache();
 }

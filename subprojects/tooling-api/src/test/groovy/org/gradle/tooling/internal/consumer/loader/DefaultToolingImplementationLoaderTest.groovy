@@ -91,7 +91,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def adaptedConnection = loader.create(distribution, loggerFactory, connectionParameters, cancellationToken)
 
         then:
-        adaptedConnection.class == ConnectionVersion4BackedConsumerConnection.class
+        adaptedConnection.class == UnsupportedOlderVersionConnection.class
     }
 
     private getToolingApiResourcesDir(Class implementation) {

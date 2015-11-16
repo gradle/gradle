@@ -21,6 +21,11 @@ import java.lang.annotation.*;
  * <p>Attached to a task property to indicate that the property specifies some input value for the task.</p>
  *
  * <p>This annotation should be attached to the getter method or the field for the property.</p>
+ *
+ * <p>This will cause the task to be considered out-of-date when the property has changed. When used on a
+ * {@link java.io.File} object that refers to a file or directory, the up-to-date check is only dependent on the
+ * path and not the contents of the file or directory. To make it depend on the contents, use
+ * {@link org.gradle.api.tasks.InputFile} or {@link org.gradle.api.tasks.InputDirectory} respectively.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

@@ -67,6 +67,7 @@ class DefaultBinaryStoreTest extends Specification {
 
         cleanup:
         store.close()
+
     }
 
     class SomeException extends RuntimeException {}
@@ -80,6 +81,9 @@ class DefaultBinaryStoreTest extends Specification {
         then:
         def e = thrown(Exception)
         e.cause.class == SomeException
+
+        cleanup:
+        store.close()
     }
 
     def "read action exception is propagated to the client"() {
@@ -93,6 +97,10 @@ class DefaultBinaryStoreTest extends Specification {
         then:
         def e = thrown(Exception)
         e.cause.class == SomeException
+
+        cleanup:
+        data.close()
+        store.close()
     }
 
     def "may be empty"() {

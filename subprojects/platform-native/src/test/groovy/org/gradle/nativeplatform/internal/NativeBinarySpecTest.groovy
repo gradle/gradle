@@ -18,36 +18,26 @@ package org.gradle.nativeplatform.internal
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.DependentSourceSet
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
-import static org.gradle.nativeplatform.internal.configure.DefaultNativeBinariesFactory.create
-
 class NativeBinarySpecTest extends Specification {
     def instantiator = DirectInstantiator.INSTANCE
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def sourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator, Stub(ProjectSourceSet))
-    def component = BaseComponentSpec.create(TestNativeComponentSpec, id, sourceSet, instantiator)
+    def component = BaseComponentFixtures.create(TestNativeComponentSpec, new ModelRegistryHelper(), id, instantiator)
 
-    def toolChain1 = Stub(NativeToolChainInternal) {
-        getName() >> "ToolChain1"
-    }
     def platform1 = Stub(NativePlatform) {
         getArchitecture() >> Architectures.forInput("i386")
     }
@@ -55,41 +45,6 @@ class NativeBinarySpecTest extends Specification {
         getName() >> "BuildType1"
     }
     def resolver = Mock(NativeDependencyResolver)
-
-    def "binary uses source from its owner component"() {
-        given:
-        def sourceSet = Stub(LanguageSourceSet)
-
-        when:
-        component.sources.add(sourceSet)
-        def binary = testBinary(component)
-
-        then:
-        binary.source.contains(sourceSet)
-    }
-
-    def "binary uses all source sets from a functional source set"() {
-        given:
-        def binary = testBinary(component)
-        def functionalSourceSet = new DefaultFunctionalSourceSet("func", instantiator, Stub(ProjectSourceSet))
-        def sourceSet1 = Stub(LanguageSourceSet) {
-            getName() >> "ss1"
-        }
-        def sourceSet2 = Stub(LanguageSourceSet) {
-            getName() >> "ss2"
-        }
-
-        when:
-        functionalSourceSet.add(sourceSet1)
-        functionalSourceSet.add(sourceSet2)
-
-        and:
-        binary.source functionalSourceSet
-
-        then:
-        binary.source.contains(sourceSet1)
-        binary.source.contains(sourceSet2)
-    }
 
     def "uses resolver to resolve lib to dependency"() {
         def binary = testBinary(component, flavor1)
@@ -119,7 +74,7 @@ class NativeBinarySpecTest extends Specification {
         def sourceSet = Stub(DependentSourceSet) {
             getLibs() >> [lib]
         }
-        binary.source sourceSet
+        binary.inputs.add sourceSet
 
         1 * resolver.resolve({ NativeBinaryResolveResult result ->
             result.allResolutions*.input == [lib]
@@ -170,7 +125,7 @@ class NativeBinarySpecTest extends Specification {
         def sourceSet = Stub(DependentSourceSet) {
             getLibs() >> [sourceLib]
         }
-        binary.source sourceSet
+        binary.inputs.add sourceSet
         binary.lib(lib2)
 
         and:
@@ -187,7 +142,8 @@ class NativeBinarySpecTest extends Specification {
     }
 
     def testBinary(NativeComponentSpec owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        return create(TestNativeBinarySpec, instantiator, owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver, toolChain1, Stub(PlatformToolProvider), platform1, buildType1, flavor, Mock(ITaskFactory))
+        TestNativeBinariesFactory.create(TestNativeBinarySpec, "test", Mock(ITaskFactory), owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver
+            , platform1, buildType1, flavor)
     }
 
     static class TestNativeComponentSpec extends AbstractNativeComponentSpec {

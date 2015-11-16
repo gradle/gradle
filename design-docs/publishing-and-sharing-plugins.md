@@ -651,6 +651,16 @@ Introduce a plugin and implicit task that allows a build author to search for pl
 
 ## Story: User specifies centrally that a plugin should be applied to multiple projects
 
+- Inject from settings or init script
+- Applied in the order defining scripts executed (ie init scripts in order, then settings)
+- API of injected plugins are visible to build scripts?
+- Classes of injected plugins are shared across projects
+
+### Test cases
+
+- Can inject same plugin multiple times
+- Error reporting for unknown injected plugin
+
 ## Story: New plugin mechanism can be used to apply plugins from `buildSrc`
 
 ## Story: New plugin mechanism can be used to apply `Gradle` plugin
@@ -712,10 +722,6 @@ Allow the plugin repositories to use to be declared.
 
 Multiple plugin and module repositories can be declared.
 
-## Story: Daemon reuses plugin implementation across builds
-
-Cache the implementation ClassLoader across builds. More details in the [performance spec](performance.md).
-
 ## Story: Resolve core plugins from public repository
 
 - Publish core plugins to a public repository (possibly bintray)
@@ -735,6 +741,8 @@ These are yet to be mixed into the above plan:
 - Resolve tooling model to provider plugin implementation using plugin repository
 - Plugin (script) declares public API
 - Resolve script plugins from plugin repository
+- Improve error reporting when `plugins { }` block is located inside a statement. Currently reports 'missing method', should give hint that plugins { } block can only be
+  used in certain constrained ways.
 
 # Open issues
 

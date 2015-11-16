@@ -17,8 +17,8 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.*;
@@ -27,47 +27,60 @@ import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+
+import static org.gradle.model.internal.core.ModelNode.State.Discovered;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelNodeInternal.class);
 
-    private CreatorRuleBinder creatorBinder;
-    private Map<ModelActionRole, List<MutatorRuleBinder<?>>> mutators;
+    private ModelRegistration registration;
     private final Set<ModelNodeInternal> dependencies = Sets.newHashSet();
     private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
-    private ModelNode.State state = ModelNode.State.Known;
+    private ModelNode.State state = ModelNode.State.Registered;
     private boolean hidden;
+    private final List<ModelRuleDescriptor> executedRules = Lists.newArrayList();
+    private final List<ModelActionBinder> initializerRuleBinders = Lists.newArrayList();
+    private final List<ModelProjection> projections = Lists.newArrayList();
+    private final ModelProjection projection;
 
-    public ModelNodeInternal(CreatorRuleBinder creatorBinder) {
-        this.creatorBinder = creatorBinder;
+    public ModelNodeInternal(ModelRegistration registration) {
+        this.registration = registration;
+        this.projection = new ChainingModelProjection(projections);
     }
 
-    public CreatorRuleBinder getCreatorBinder() {
-        return creatorBinder;
+    public ModelRegistration getRegistration() {
+        return registration;
     }
 
-    public void replaceCreatorRuleBinder(CreatorRuleBinder newCreatorBinder) {
-        if (getState() != State.Known) {
-            throw new IllegalStateException("Cannot replace creator rule binder when not in known state (node: " + this + ", state: " + getState() + ")");
+    public void replaceRegistration(ModelRegistration registration) {
+        if (isAtLeast(State.Created)) {
+            throw new IllegalStateException("Cannot replace registration rule binder when node is already created (node: " + this + ", state: " + getState() + ")");
         }
-
-        ModelCreator newCreator = newCreatorBinder.getCreator();
-        ModelCreator oldCreator = creatorBinder.getCreator();
 
         // Can't change type
-        if (!oldCreator.getPromise().equals(newCreator.getPromise())) {
-            throw new IllegalStateException("can not replace node " + getPath() + " with different promise (old: " + oldCreator.getPromise() + ", new: " + newCreator.getPromise() + ")");
-        }
+        // TODO:LPTR We can't ensure this with projections being determined later in the node lifecycle, should remove this or fix in some other way
+        // if (!oldRegistration.getPromise().equals(newRegistration.getPromise())) {
+        //     throw new IllegalStateException("can not replace node " + getPath() + " with different promise (old: " + oldRegistration.getPromise() + ", new: " + newRegistration.getPromise() + ")");
+        // }
 
         // Can't have different inputs
-        if (!newCreator.getInputs().equals(oldCreator.getInputs())) {
+        if (!registration.getInputs().equals(this.registration.getInputs())) {
             Joiner joiner = Joiner.on(", ");
-            throw new IllegalStateException("can not replace node " + getPath() + " with creator with different input bindings (old: [" + joiner.join(oldCreator.getInputs()) + "], new: [" + joiner.join(newCreator.getInputs()) + "])");
+            throw new IllegalStateException("can not replace node " + getPath() + " with registration with different input bindings (old: [" + joiner.join(this.registration.getInputs()) + "], new: [" + joiner.join(registration.getInputs()) + "])");
         }
 
-        this.creatorBinder = newCreatorBinder;
+        this.registration = registration;
+    }
+
+    public List<ModelActionBinder> getInitializerRuleBinders() {
+        return initializerRuleBinders;
+    }
+
+    public void addInitializerRuleBinder(ModelActionBinder binder) {
+        initializerRuleBinders.add(binder);
     }
 
     @Override
@@ -82,68 +95,17 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     @Override
     public boolean isEphemeral() {
-        return creatorBinder.getCreator().isEphemeral();
-    }
-
-    public void addMutatorBinder(ModelActionRole role, MutatorRuleBinder<?> mutator) {
-        if (mutators == null) {
-            mutators = Maps.newEnumMap(ModelActionRole.class);
-        }
-
-        List<MutatorRuleBinder<?>> mutatorsForRole = mutators.get(role);
-        if (mutatorsForRole == null) {
-            mutatorsForRole = Lists.newLinkedList();
-            mutators.put(role, mutatorsForRole);
-        }
-
-        mutatorsForRole.add(mutator);
-    }
-
-    public Iterable<MutatorRuleBinder<?>> getMutatorBinders(ModelActionRole role) {
-        if (mutators == null) {
-            return Collections.emptyList();
-        }
-        final List<MutatorRuleBinder<?>> ruleBinders = mutators.get(role);
-        if (ruleBinders == null) {
-            return Collections.emptyList();
-        } else {
-            return new Iterable<MutatorRuleBinder<?>>() {
-                @Override
-                public Iterator<MutatorRuleBinder<?>> iterator() {
-                    return new Iterator<MutatorRuleBinder<?>>() {
-                        int i;
-
-                        @Override
-                        public void remove() {
-                            throw new UnsupportedOperationException();
-                        }
-
-                        @Override
-                        public boolean hasNext() {
-                            return i < ruleBinders.size();
-                        }
-
-                        @Override
-                        public MutatorRuleBinder<?> next() {
-                            if (hasNext()) {
-                                return ruleBinders.get(i++);
-                            } else {
-                                throw new NoSuchElementException();
-                            }
-                        }
-                    };
-                }
-            };
-        }
+        return registration.isEphemeral();
     }
 
     public void notifyFired(RuleBinder binder) {
-        assert binder.isBound();
-        for (ModelBinding<?> inputBinding : binder.getInputBindings()) {
+        assert binder.isBound() : "RuleBinder must be in a bound state";
+        for (ModelBinding inputBinding : binder.getInputBindings()) {
             ModelNodeInternal node = inputBinding.getNode();
             dependencies.add(node);
             node.dependents.add(this);
         }
+        executedRules.add(binder.getDescriptor());
     }
 
     public Iterable<? extends ModelNode> getDependencies() {
@@ -155,11 +117,11 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     public ModelPath getPath() {
-        return creatorBinder.getCreator().getPath();
+        return registration.getPath();
     }
 
     public ModelRuleDescriptor getDescriptor() {
-        return creatorBinder.getDescriptor();
+        return registration.getDescriptor();
     }
 
     public ModelNode.State getState() {
@@ -174,16 +136,34 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return state.mutable;
     }
 
-    public boolean canApply(ModelActionRole type) {
-        return type.ordinal() >= state.ordinal() - ModelNode.State.Created.ordinal();
-    }
+    @Nullable
+    @Override
+    public abstract ModelNodeInternal getLink(String name);
 
     public ModelPromise getPromise() {
-        return creatorBinder.getCreator().getPromise();
+        if (!state.isAtLeast(State.Discovered)) {
+            throw new IllegalStateException(String.format("Cannot get promise for %s in state %s when not yet discovered", getPath(), state));
+        }
+        return projection;
     }
 
     public ModelAdapter getAdapter() {
-        return creatorBinder.getCreator().getAdapter();
+        if (!state.isAtLeast(State.Created)) {
+            throw new IllegalStateException(String.format("Cannot get adapter for %s in state %s when node is not created", getPath(), state));
+        }
+        return projection;
+    }
+
+    public ModelProjection getProjection() {
+        return projection;
+    }
+
+    @Override
+    public void addProjection(ModelProjection projection) {
+        if (isAtLeast(Discovered)) {
+            throw new IllegalStateException(String.format("Cannot add projections to node '%s' as it is already %s", getPath(), getState()));
+        }
+        projections.add(projection);
     }
 
     @Override
@@ -191,34 +171,17 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return getPath().toString();
     }
 
-    public abstract ModelNodeInternal getTarget();
-
     public abstract Iterable<? extends ModelNodeInternal> getLinks();
 
-    public abstract ModelNodeInternal addLink(ModelNodeInternal node);
-
     @Override
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
-        ModelView<? extends T> modelView = getAdapter().asReadOnly(type, this, ruleDescriptor);
-        if (modelView == null) {
-            throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a read-only view of type " + type);
-        }
-        return modelView;
-    }
-
-    @Override
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
-        ModelView<? extends T> modelView = getAdapter().asWritable(type, this, ruleDescriptor, inputs);
-        if (modelView == null) {
-            throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);
-        }
-        return modelView;
+    public boolean isAtLeast(State state) {
+        return this.getState().compareTo(state) >= 0;
     }
 
     public void reset() {
-        if (getState() != State.Known) {
-            setState(State.Known);
-            setPrivateData(ModelType.untyped(), null);
+        if (isAtLeast(State.Created)) {
+            setState(State.Discovered);
+            resetPrivateData();
 
             for (ModelNodeInternal dependent : dependents) {
                 if (LOGGER.isInfoEnabled()) {
@@ -235,5 +198,42 @@ abstract class ModelNodeInternal implements MutableModelNode {
                 child.reset();
             }
         }
+    }
+
+    protected abstract void resetPrivateData();
+
+    @Override
+    public Optional<String> getValueDescription() {
+        this.ensureUsable();
+        return getAdapter().getValueDescription(this);
+    }
+
+    @Override
+    public Optional<String> getTypeDescription() {
+        this.ensureUsable();
+        ModelView<?> modelView = getAdapter().asImmutable(ModelType.untyped(), this, null);
+        if (modelView != null) {
+            ModelType<?> type = modelView.getType();
+            if (type != null) {
+                return Optional.of(type.toString());
+            }
+            modelView.close();
+        }
+        return Optional.absent();
+    }
+
+    @Override
+    public List<ModelRuleDescriptor> getExecutedRules() {
+        return this.executedRules;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

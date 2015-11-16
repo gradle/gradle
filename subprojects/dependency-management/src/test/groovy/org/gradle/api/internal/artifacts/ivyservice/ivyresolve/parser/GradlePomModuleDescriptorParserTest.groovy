@@ -165,6 +165,11 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
             <groupId>group-two</groupId>
             <artifactId>artifact-two</artifactId>
         </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <classifier>other</classifier>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -189,13 +194,15 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def descriptor = parsePom()
 
         then:
-        descriptor.dependencies.length == 1
-        def dep = descriptor.dependencies.first()
-        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
-        dep.moduleConfigurations == ['test']
-        dep.allExcludeRules.length == 1
-        dep.allExcludeRules.first().id.moduleId == createModuleId('group-three', 'artifact-three')
-        hasDefaultDependencyArtifact(dep)
+        def deps = descriptor.dependencies as List
+        deps.size() == 2
+        deps.each { dep ->
+            assert dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+            assert dep.allExcludeRules.length == 1
+            assert dep.allExcludeRules.first().id.moduleId == createModuleId('group-three', 'artifact-three')
+        }
+        hasDefaultDependencyArtifact(deps[0])
+        hasDependencyArtifact(deps[1], 'artifact-two', 'jar', 'jar', 'other')
     }
 
     def "throws exception if parent pom dependency management section does not provide default values for dependency"() {
@@ -2246,5 +2253,55 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         'ejb-client'  | 'jar'         | 'client'
         'bundle'      | 'jar'         | null
         'custom-type' | 'custom-type' | null
+    }
+
+    @Issue("GRADLE-3299")
+    def "correctly resolve references to parent GAV properties"() {
+        given:
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>\${project.parent.groupId}</groupId>
+    <artifactId>\${project.parent.artifactId}-ext</artifactId>
+    <version>\${project.parent.version}</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>artifact-one</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>\${parent.groupId}</groupId>
+            <artifactId>\${parent.artifactId}-xxx</artifactId>
+            <version>\${parent.version}</version>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one-ext', 'version-one')
+
+        descriptor.dependencies.length == 1
+        def depGroupOne = descriptor.dependencies[0]
+        depGroupOne.dependencyRevisionId == moduleId('group-one', 'artifact-one-xxx', 'version-one')
+        depGroupOne.moduleConfigurations as List == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(depGroupOne)
     }
 }

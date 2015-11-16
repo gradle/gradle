@@ -16,8 +16,11 @@
 package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.JavaVersion;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GUtil;
@@ -25,12 +28,12 @@ import org.gradle.util.GUtil;
 import java.io.File;
 import java.util.*;
 
-import static org.gradle.util.GFileUtils.canonicalise;
-
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
+    public static final List<String> DEFAULT_JVM_9_ARGS = ImmutableList.of("-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError");
+    public static final String INTERACTIVE_TOGGLE = "org.gradle.interactive";
 
     private final String uid;
     private final File gradleUserHomeDir;
@@ -39,9 +42,11 @@ public class DaemonParameters {
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
     private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
     private DaemonUsage daemonUsage = DaemonUsage.IMPLICITLY_DISABLED;
-    private File javaHome;
+    private boolean hasJvmArgs;
     private boolean foreground;
     private boolean stop;
+    private boolean interactive = System.console() != null || Boolean.getBoolean(INTERACTIVE_TOGGLE);
+    private JavaInfo jvm = Jvm.current();
 
     public DaemonParameters(BuildLayoutParameters layout) {
         this(layout, Collections.<String, String>emptyMap());
@@ -49,10 +54,13 @@ public class DaemonParameters {
 
     public DaemonParameters(BuildLayoutParameters layout, Map<String, String> extraSystemProperties) {
         this.uid = UUID.randomUUID().toString();
-        jvmOptions.setAllJvmArgs(DEFAULT_JVM_ARGS);
         jvmOptions.systemProperties(extraSystemProperties);
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
+    }
+
+    public boolean isInteractive() {
+        return interactive;
     }
 
     public DaemonParameters setEnabled(boolean enabled) {
@@ -84,31 +92,25 @@ public class DaemonParameters {
         return jvmOptions.getAllImmutableJvmArgs();
     }
 
-    public List<String> getJvmArgs() {
-        return jvmOptions.getJvmArgs();
+    public JavaInfo getEffectiveJvm() {
+        return jvm;
     }
 
-    public List<String> getAllJvmArgs() {
-        return jvmOptions.getAllJvmArgs();
-    }
-
-    public File getEffectiveJavaHome() {
-        if (javaHome == null) {
-            return canonicalise(Jvm.current().getJavaHome());
-        }
-        return javaHome;
-    }
-
-    public String getEffectiveJavaExecutable() {
-        if (javaHome == null) {
-            return Jvm.current().getJavaExecutable().getAbsolutePath();
-        }
-        return Jvm.forHome(javaHome).getJavaExecutable().getAbsolutePath();
-    }
-
-    public DaemonParameters setJavaHome(File javaHome) {
-        this.javaHome = javaHome;
+    @Nullable
+    public DaemonParameters setJvm(JavaInfo jvm) {
+        this.jvm = jvm == null ? Jvm.current() : jvm;
         return this;
+    }
+
+    public void applyDefaultsFor(JavaVersion javaVersion) {
+        if (hasJvmArgs) {
+            return;
+        }
+        if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
+            jvmOptions.jvmArgs(DEFAULT_JVM_9_ARGS);
+        } else {
+            jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
+        }
     }
 
     public Map<String, String> getSystemProperties() {
@@ -125,6 +127,7 @@ public class DaemonParameters {
     }
 
     public void setJvmArgs(Iterable<String> jvmArgs) {
+        hasJvmArgs = true;
         jvmOptions.setAllJvmArgs(jvmArgs);
     }
 

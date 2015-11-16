@@ -19,10 +19,14 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaLanguageLevel;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaSourceSettings;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
+import org.gradle.tooling.model.java.JavaVersion;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.util.GUtil;
 
@@ -45,7 +49,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
 
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject")
-                || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
+            || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
     }
 
     public DefaultEclipseProject buildAll(String modelName, Project project) {
@@ -96,14 +100,15 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
                 final File file = library.getLibrary().getFile();
                 final File source = library.getSourcePath() == null ? null : library.getSourcePath().getFile();
                 final File javadoc = library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
-                externalDependencies.add(new DefaultEclipseExternalDependency(file, javadoc, source, library.getModuleVersion()));
+                externalDependencies.add(new DefaultEclipseExternalDependency(file, javadoc, source, library.getModuleVersion(), library.isExported()));
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
-                projectDependencies.add(new DefaultEclipseProjectDependency(path, projectMapping.get(projectDependency.getGradlePath())));
+                projectDependencies.add(new DefaultEclipseProjectDependency(path, projectMapping.get(projectDependency.getGradlePath()), projectDependency.isExported()));
             } else if (entry instanceof SourceFolder) {
-                String path = ((SourceFolder) entry).getPath();
-                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, project.file(path)));
+                final SourceFolder sourceFolder = (SourceFolder) entry;
+                String path = sourceFolder.getPath();
+                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir()));
             }
         }
 
@@ -124,6 +129,30 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         }
         eclipseProject.setTasks(tasks);
 
+        List<DefaultEclipseProjectNature> natures = new ArrayList<DefaultEclipseProjectNature>();
+        for(String n: eclipseModel.getProject().getNatures()) {
+            natures.add(new DefaultEclipseProjectNature(n));
+        }
+        eclipseProject.setProjectNatures(natures);
+
+        List<DefaultEclipseBuildCommand> buildCommands = new ArrayList<DefaultEclipseBuildCommand>();
+        for (BuildCommand b : eclipseModel.getProject().getBuildCommands()) {
+            buildCommands.add(new DefaultEclipseBuildCommand(b.getName(), b.getArguments()));
+        }
+        eclipseProject.setBuildCommands(buildCommands);
+
+        if (project.getPlugins().hasPlugin(JavaBasePlugin.class)) {
+            // the default value for eclipse.jdt.sourceCompatibility is project.sourceCompatibility
+            // hence we have to read the value only from there
+            org.gradle.api.JavaVersion sourceCompatibility = eclipseModel.getJdt().getSourceCompatibility();
+            if (sourceCompatibility != null) {
+                JavaVersion version = JavaVersion.from(sourceCompatibility.toString());
+                DefaultJavaLanguageLevel languageLevel = new DefaultJavaLanguageLevel(version);
+                DefaultJavaSourceSettings sourceSettings = new DefaultJavaSourceSettings(languageLevel);
+                eclipseProject.setJavaSourceSettings(sourceSettings);
+            }
+        }
+
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);
         }
@@ -140,7 +169,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         String name = internalProject.getName();
         String description = GUtil.elvis(internalProject.getComment(), null);
         DefaultEclipseProject eclipseProject =
-                new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children)
+            new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children)
                 .setGradleProject(rootGradleProject.findByPath(project.getPath()));
 
         for (DefaultEclipseProject child : children) {

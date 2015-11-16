@@ -15,17 +15,16 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.util.GUtil;
 
+import java.util.Collections;
 import java.util.Set;
 
-public abstract class AbstractNativeComponentSpec extends BaseComponentSpec implements NativeComponentSpec, ComponentSpecInternal {
+public abstract class AbstractNativeComponentSpec extends BaseComponentSpec implements NativeComponentSpec {
     private String baseName;
 
     public String getBaseName() {
@@ -36,9 +35,7 @@ public abstract class AbstractNativeComponentSpec extends BaseComponentSpec impl
         this.baseName = baseName;
     }
 
-    public Set<Class<? extends TransformationFileType>> getInputTypes() {
-        Set<Class<? extends TransformationFileType>> inputTypes = Sets.newHashSet();
-        inputTypes.add(ObjectFile.class);
-        return inputTypes;
+    public Set<? extends Class<? extends TransformationFileType>> getInputTypes() {
+        return Collections.singleton(ObjectFile.class);
     }
 }

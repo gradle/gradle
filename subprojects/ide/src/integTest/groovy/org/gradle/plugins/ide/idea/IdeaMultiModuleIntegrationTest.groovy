@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea
-
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
@@ -66,7 +65,7 @@ project(':shared:model') {
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
 
         //then
-        def dependencies = parseIml("master/api/api.iml").dependencies
+        def dependencies = parseIml("master/api/master-api.iml").dependencies
         assert dependencies.modules.size() == 2
         dependencies.assertHasModule("COMPILE", "shared-api")
         dependencies.assertHasModule("TEST", "model")
@@ -141,16 +140,16 @@ project(':services:utilities') {
         //then
         assertIprContainsCorrectModules()
 
-        def moduleDeps = parseIml("master/api/api.iml").dependencies
+        def moduleDeps = parseIml("master/api/master-api.iml").dependencies
         assert moduleDeps.modules.size() == 2
         moduleDeps.assertHasModule("COMPILE", "shared-api")
         moduleDeps.assertHasModule("COMPILE", "very-cool-model")
 
-        moduleDeps = parseIml("master/services/utilities/services-util.iml").dependencies
+        moduleDeps = parseIml("master/services/utilities/master-services-util.iml").dependencies
         assert moduleDeps.modules.size() == 4
         moduleDeps.assertHasModule("COMPILE", "shared-api")
         moduleDeps.assertHasModule("COMPILE", "very-cool-model")
-        moduleDeps.assertHasModule("COMPILE", "util")
+        moduleDeps.assertHasModule("COMPILE", "master-util")
         moduleDeps.assertHasModule("COMPILE", "contrib-services-util")
     }
 
@@ -159,11 +158,11 @@ project(':services:utilities') {
 
         ['master.iml',
          'shared-api.iml', 'shared.iml',
-         'services.iml', 'services-util.iml',
+         'master-services.iml', 'master-services-util.iml',
          'contrib-services-util.iml', 'contrib.iml', 'contrib-services.iml',
          'very-cool-model.iml',
-         'api.iml',
-         'util.iml'].each {
+         'master-api.iml',
+         'master-util.iml'].each {
             assert moduleFileNames.contains(it)
         }
     }
@@ -253,16 +252,79 @@ project(':three') {
 
         //then
         def dependencies = parseIml("master/one/one.iml").dependencies
-        assert dependencies.modules.size() == 1
+        assert dependencies.modules.size() == 2
         dependencies.assertHasModule("COMPILE", "two")
-
-        dependencies = parseIml("master/two/two.iml").dependencies
-        assert dependencies.modules.size() == 1
         dependencies.assertHasModule("COMPILE", "three")
 
-        dependencies = parseIml("master/three/three.iml").dependencies
-        assert dependencies.modules.size() == 1
+        dependencies = parseIml("master/two/two.iml").dependencies
+        assert dependencies.modules.size() == 2
+        dependencies.assertHasModule("COMPILE", "three")
         dependencies.assertHasModule("COMPILE", "one")
+
+        dependencies = parseIml("master/three/three.iml").dependencies
+        assert dependencies.modules.size() == 2
+        dependencies.assertHasModule("COMPILE", "one")
+        dependencies.assertHasModule("COMPILE", "two")
+    }
+
+    @Test
+    void classpathContainsConflictResolvedDependencies() {
+        def someLib1Jar = mavenRepo.module('someGroup', 'someLib', '1.0').publish().artifactFile
+        def someLib2Jar= mavenRepo.module('someGroup', 'someLib', '2.0').publish().artifactFile
+
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << """
+include 'one'
+include 'two'
+        """
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+}
+
+project(':one') {
+    dependencies {
+        compile ('someGroup:someLib:1.0') {
+            force = project.hasProperty("forceDeps")
+        }
+        compile project(':two')
+    }
+}
+
+project(':two') {
+    dependencies {
+        compile 'someGroup:someLib:2.0'
+    }
+}
+
+"""
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+
+        //then
+        def dependencies = parseIml("master/one/one.iml").dependencies
+        dependencies.assertHasModule("COMPILE", "two")
+        assert dependencies.libraries*.jarName == [someLib2Jar.name]
+
+        dependencies = parseIml("master/two/two.iml").dependencies
+        assert dependencies.libraries*.jarName == [someLib2Jar.name]
+
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withArgument("-PforceDeps=true").withTasks("idea").run()
+
+        //then
+        dependencies = parseIml("master/one/one.iml").dependencies
+        assert dependencies.modules.size() == 1
+        dependencies.assertHasModule("COMPILE", "two")
+        assert dependencies.libraries*.jarName == [someLib1Jar.name]
+
+        dependencies = parseIml("master/two/two.iml").dependencies
+        assert dependencies.libraries*.jarName == [someLib2Jar.name]
     }
 
     @Test

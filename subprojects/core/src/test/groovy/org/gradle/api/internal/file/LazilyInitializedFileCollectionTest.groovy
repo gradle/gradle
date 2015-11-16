@@ -15,17 +15,32 @@
  */
 package org.gradle.api.internal.file
 
-import org.gradle.api.file.FileCollection
+import org.gradle.api.Task
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class LazilyInitializedFileCollectionTest extends Specification {
     def createCount = 0
+    def taskDependenciesCount = 0
+    def task = Stub(Task)
     def fileCollection = new LazilyInitializedFileCollection() {
         @Override
-        FileCollection createDelegate() {
+        String getDisplayName() {
+            return "test collection"
+        }
+
+        @Override
+        void visitDependencies(TaskDependencyResolveContext context) {
+            taskDependenciesCount++
+            context.add(task)
+        }
+
+        @Override
+        FileCollectionInternal createDelegate() {
             createCount++
             new SimpleFileCollection([new File("foo")])
         }
@@ -48,5 +63,34 @@ class LazilyInitializedFileCollectionTest extends Specification {
         then:
         createCount == 1
         files == [new File("foo")] as Set
+    }
+
+    def "does not create delegate when task dependencies are queried"() {
+        expect:
+        createCount == 0
+        taskDependenciesCount == 0
+
+        when:
+        fileCollection.buildDependencies
+
+        then:
+        createCount == 0
+        taskDependenciesCount == 0
+
+        when:
+        def deps = fileCollection.buildDependencies.getDependencies(Stub(Task))
+
+        then:
+        deps as List == [task]
+        createCount == 0
+        taskDependenciesCount == 1
+
+        when:
+        deps = fileCollection.buildDependencies.getDependencies(Stub(Task))
+
+        then:
+        deps as List == [task]
+        createCount == 0
+        taskDependenciesCount == 2
     }
 }

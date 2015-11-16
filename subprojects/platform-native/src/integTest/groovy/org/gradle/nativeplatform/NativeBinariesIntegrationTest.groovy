@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform
+
+import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
-import org.gradle.nativeplatform.platform.internal.NativePlatforms
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
 
 import static org.gradle.util.Matchers.containsText
 
+@LeaksFileHandles
 class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppCallingCHelloWorldApp()
 
@@ -70,7 +74,7 @@ model {
     components {
         main(NativeExecutableSpec) {
             targetPlatform "unknown"
-            targetPlatform NativePlatforms.defaultPlatformName
+            targetPlatform "${NativePlatformsTestFixture.defaultPlatformName}"
         }
     }
 }
@@ -79,11 +83,11 @@ model {
         succeeds "assemble"
 
         then:
-        executedAndNotSkipped ":${NativePlatforms.defaultPlatformName}MainExecutable"
-        notExecuted ":unknownMainExecutable"
+        executedAndNotSkipped ":main${NativePlatformsTestFixture.defaultPlatformName.capitalize()}Executable"
+        notExecuted ":mainUnknownExecutable"
 
         and:
-        executable("build/binaries/mainExecutable/${NativePlatforms.defaultPlatformName}/main").assertExists()
+        executable("build/binaries/mainExecutable/${NativePlatformsTestFixture.defaultPlatformName}/main").assertExists()
         executable("build/binaries/mainExecutable/unknown/main").assertDoesNotExist()
     }
 
@@ -119,11 +123,11 @@ model {
         failureDescriptionContains("Execution failed for task ':assemble'.")
         failure.assertThatCause(Matchers.<String>allOf(
                 Matchers.startsWith("No buildable binaries found:"),
-                Matchers.containsString("helloSharedLibrary: No tool chain is available to build for platform 'unknown'"),
-                Matchers.containsString("helloStaticLibrary: No tool chain is available to build for platform 'unknown'"),
-                Matchers.containsString("mainExecutable: No tool chain is available to build for platform 'unknown'"),
-                Matchers.containsString("anotherStaticLibrary: Disabled by user"),
-                Matchers.containsString("anotherSharedLibrary: Disabled by user")
+                Matchers.containsString("shared library 'hello:sharedLibrary': No tool chain is available to build for platform 'unknown'"),
+                Matchers.containsString("static library 'hello:staticLibrary': No tool chain is available to build for platform 'unknown'"),
+                Matchers.containsString("executable 'main:executable': No tool chain is available to build for platform 'unknown'"),
+                Matchers.containsString("static library 'another:staticLibrary': Disabled by user"),
+                Matchers.containsString("shared library 'another:sharedLibrary': Disabled by user")
         ))
     }
 
@@ -174,18 +178,21 @@ apply plugin: "cpp"
 model {
     components {
         main(NativeExecutableSpec)
-    }
-}
-
-binaries.all {
-    sources {
-        testCpp(CppSourceSet) {
-            source.srcDir "src/test/cpp"
-            exportedHeaders.srcDir "src/test/headers"
-        }
-        testC(CSourceSet) {
-            source.srcDir "src/test/c"
-            exportedHeaders.srcDir "src/test/headers"
+        all {
+            binaries {
+                all {
+                    sources {
+                        testCpp(CppSourceSet) {
+                            source.srcDir "src/test/cpp"
+                            exportedHeaders.srcDir "src/test/headers"
+                        }
+                        testC(CSourceSet) {
+                            source.srcDir "src/test/c"
+                            exportedHeaders.srcDir "src/test/headers"
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -226,8 +233,9 @@ model {
 
         then:
         fails "mainExecutable"
-        failure.assertHasCause("Exception thrown while executing model rule: model.components > create(main)");
-        failure.assertHasCause("Cannot create a JavaSourceSet because this type is not known to this container. Known types are: CSourceSet, CppSourceSet")
+        failure.assertHasCause("Exception thrown while executing model rule: main(org.gradle.nativeplatform.NativeExecutableSpec) { ... } @ build.gradle line 8, column 9");
+        failure.assertHasCause("A model element of type: 'org.gradle.language.java.JavaSourceSet' can not be constructed.")
+        failure.assertThatCause(containsText("- org.gradle.language.c.CSourceSet"));
     }
 
     private def useMixedSources() {
@@ -299,11 +307,13 @@ model {
     components {
         main(NativeLibrarySpec)
     }
+    binaries {
+        withType(StaticLibraryBinarySpec) {
+            staticLibArchiver.args "not_a_file"
+        }
+    }
 }
 
-binaries.withType(StaticLibraryBinarySpec) {
-    staticLibArchiver.args "not_a_file"
-}
         """
 
         and:
@@ -356,5 +366,65 @@ int main (int argc, char *argv[]) {
         def installation = installation("build/install/echoExecutable")
         installation.exec().out == "\n"
         installation.exec("foo", "bar").out == "[foo] [bar] \n"
+    }
+
+    def "model report should display configured components"() {
+        given:
+        buildFile << """
+            apply plugin: "c"
+            apply plugin: "cpp"
+            model {
+                components {
+                    exe(NativeExecutableSpec) {
+                        binaries {
+                            all {
+                                sources {
+                                    other(CSourceSet)
+                                }
+                            }
+                        }
+                    }
+                    lib(NativeLibrarySpec)
+                }
+            }
+"""
+        when:
+        succeeds "model"
+
+        then:
+        ModelReportOutput.from(output).hasNodeStructure {
+            components {
+                exe {
+                    binaries {
+                        executable(type: "org.gradle.nativeplatform.NativeExecutableBinarySpec") {
+                            sources {
+                                other(type: "org.gradle.language.c.CSourceSet", nodeValue: "C source 'exe:other'")
+                            }
+                            tasks()
+                        }
+                    }
+                    sources {
+                        c(type: "org.gradle.language.c.CSourceSet", nodeValue: "C source 'exe:c'")
+                        cpp(type: "org.gradle.language.cpp.CppSourceSet", nodeValue: "C++ source 'exe:cpp'")
+                    }
+                }
+                lib {
+                    binaries {
+                        sharedLibrary(type: "org.gradle.nativeplatform.SharedLibraryBinarySpec") {
+                            sources()
+                            tasks()
+                        }
+                        staticLibrary(type: "org.gradle.nativeplatform.StaticLibraryBinarySpec") {
+                            sources()
+                            tasks()
+                        }
+                    }
+                    sources {
+                        c(type: "org.gradle.language.c.CSourceSet", nodeValue: "C source 'lib:c'")
+                        cpp(type: "org.gradle.language.cpp.CppSourceSet", nodeValue: "C++ source 'lib:cpp'")
+                    }
+                }
+            }
+        }
     }
 }

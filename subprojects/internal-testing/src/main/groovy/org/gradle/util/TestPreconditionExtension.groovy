@@ -22,11 +22,15 @@ import org.spockframework.runtime.model.FeatureInfo
 class TestPreconditionExtension extends AbstractAnnotationDrivenExtension<Requires> {
     @Override
     void visitSpecAnnotation(Requires annotation, SpecInfo spec) {
-        spec.skipped |= annotation.value().any() { !it.fulfilled }
+        spec.skipped |= unsatisfied(annotation)
     }
 
     @Override
     void visitFeatureAnnotation(Requires annotation, FeatureInfo feature) {
-        feature.skipped |= annotation.value().any() { !it.fulfilled }
+        feature.skipped |= unsatisfied(annotation)
+    }
+
+    private boolean unsatisfied(Requires annotation) {
+        annotation.value().any() { !it.fulfilled } || !annotation.adhoc().newInstance(null, null).call()
     }
 }

@@ -32,6 +32,9 @@ public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
         registration.add(PlayApplicationBinaryRenderer.class);
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
     }
 
@@ -41,6 +44,7 @@ public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeCompileServices());
     }
+
 
     private static class ProjectScopeCompileServices {
         PlayToolChainInternal createPlayToolChain(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {

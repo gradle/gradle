@@ -45,11 +45,11 @@ class PlayJavaScriptPluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         normalizedOutput.contains("""
-    JavaScript source 'play:javaScriptAssets'
-        app/assets
+    JavaScript source 'play:javaScript'
+        srcDir: app/assets
         includes: **/*.js
     JavaScript source 'play:otherJavaScript'
-        src/play/otherJavaScript
+        srcDir: src/play/otherJavaScript
 """)
     }
 
@@ -57,7 +57,7 @@ class PlayJavaScriptPluginIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task checkTasks {
                 doLast {
-                    tasks.withType(JavaScriptMinify)*.name as Set == ["minifyPlayBinaryJavaScriptAssets", "minifyPlayBinaryOtherJavaScript"] as Set
+                    tasks.withType(JavaScriptMinify)*.name as Set == ["minifyPlayBinaryJavaScript", "minifyPlayBinaryOtherJavaScript"] as Set
                 }
             }
         """
@@ -84,6 +84,6 @@ class PlayJavaScriptPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private String getNormalizedOutput() {
-        return TextUtil.normaliseLineSeparators(TextUtil.normaliseFileSeparators(output))
+        return TextUtil.normaliseFileSeparators(output)
     }
 }

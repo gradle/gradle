@@ -25,6 +25,9 @@ public class S3ResourcesPluginServiceRegistry implements PluginServiceRegistry {
         registration.addProvider(new GlobalScopeServices());
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
     }
 

@@ -20,4 +20,10 @@ allprojects {
             options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
         }
     }
+    ext.strictCompileIgnoreDeprecations = {
+        strictCompile()
+        tasks.withType(AbstractCompile) {
+            options.compilerArgs << "-Xlint:-deprecation"
+        }
+    }
 }

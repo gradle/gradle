@@ -16,6 +16,19 @@
 package org.gradle.api.internal.artifacts;
 
 public interface GlobalDependencyResolutionRules {
+
+    GlobalDependencyResolutionRules NO_OP = new GlobalDependencyResolutionRules() {
+        @Override
+        public ComponentMetadataProcessor getComponentMetadataProcessor() {
+            return ComponentMetadataProcessor.NO_OP;
+        }
+
+        @Override
+        public ComponentModuleMetadataProcessor getModuleMetadataProcessor() {
+            return ComponentModuleMetadataProcessor.NO_OP;
+        }
+    };
+
     ComponentMetadataProcessor getComponentMetadataProcessor();
     ComponentModuleMetadataProcessor getModuleMetadataProcessor();
 }

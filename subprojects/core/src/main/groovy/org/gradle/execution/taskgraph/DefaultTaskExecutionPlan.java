@@ -523,7 +523,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         if (overlap == null) {
             return true;
         } else {
-            LOGGER.info("Cannot execute task " + task.getPath() + " in parallel with task " + overlap.left.getPath() + " due to overlapping output: " + overlap.right);
+            LOGGER.info("Cannot execute task {} in parallel with task {} due to overlapping output: {}", task.getPath(), overlap.left.getPath(), overlap.right);
         }
 
         return false;
@@ -604,7 +604,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private boolean detectIsParallelizable(TaskInternal task) {
         if (task.getClass().isAnnotationPresent(ParallelizableTask.class)) {
             if (task.isHasCustomActions()) {
-                LOGGER.info("Unable to parallelize task " + task.getPath() + " due to presence of custom actions (e.g. doFirst()/doLast())");
+                LOGGER.info("Unable to parallelize task {} due to presence of custom actions (e.g. doFirst()/doLast())", task.getPath());
             } else {
                 return true;
             }

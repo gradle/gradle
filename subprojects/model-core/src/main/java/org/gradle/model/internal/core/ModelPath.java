@@ -82,7 +82,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
 
         ModelPath modelPath = (ModelPath) o;
 
-        return path.equals(modelPath.path);
+        return components.size() == modelPath.components.size() && path.equals(modelPath.path);
     }
 
     @Override
@@ -125,23 +125,11 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         return path(childComponents);
     }
 
-    public ModelPath sibling(String name) {
-        if (this == ROOT) {
-            throw new IllegalStateException("Cannot create sibling path of root path");
-        }
-        List<String> newComponents = new ArrayList<String>(components);
-        newComponents.set(newComponents.size() - 1, name);
-        return path(newComponents);
-    }
-
-    public boolean isTopLevel() {
-        return getDepth() == 1;
-    }
-
     public ModelPath getRootParent() {
         return components.size() <= 1 ? null : ModelPath.path(components.get(0));
     }
 
+    @Nullable
     public ModelPath getParent() {
         if (components.isEmpty()) {
             return null;
@@ -149,7 +137,10 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         if (components.size() == 1) {
             return ROOT;
         }
-        return path(components.subList(0, components.size() - 1));
+        // Somewhat optimized implementation
+        List<String> parentComponents = components.subList(0, components.size() - 1);
+        String parentPath = path.substring(0, path.length() - components.get(components.size() - 1).length() - 1);
+        return new ModelPath(parentPath, parentComponents);
     }
 
     public String getName() {
@@ -168,6 +159,16 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         }
         ModelPath otherParent = other.getParent();
         return otherParent != null && otherParent.equals(this);
+    }
+
+    public boolean isDescendant(@Nullable ModelPath other) {
+        if (other == null) {
+            return false;
+        }
+        if (other.getDepth() <= getDepth()) {
+            return false;
+        }
+        return getComponents().equals(other.getComponents().subList(0, getDepth()));
     }
 
     public ModelPath descendant(ModelPath path) {

@@ -23,31 +23,43 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
+import org.gradle.model.Managed;
+import org.gradle.model.ModelMap;
+import org.gradle.model.ModelSet;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 
 @ThreadSafe
-class ModelSchemaExtractor {
+public class ModelSchemaExtractor {
 
-    private final Factory<String> supportedTypeDescriptions = new Factory<String>() {
-        public String create() {
-            return getSupportedTypesDescription();
-        }
-    };
-    private final List<ModelSchemaExtractionStrategy> strategies = ImmutableList.of(
-            new PrimitiveStrategy(),
-            new EnumStrategy(),
-            new JdkValueTypeStrategy(),
-            new ManagedSetStrategy(supportedTypeDescriptions),
-            new StructStrategy(supportedTypeDescriptions),
-            new UnmanagedStrategy()
-    );
+    private final List<? extends ModelSchemaExtractionStrategy> strategies;
+
+    public ModelSchemaExtractor() {
+        this(Collections.<ModelSchemaExtractionStrategy>emptyList(), new ModelSchemaAspectExtractor());
+    }
+
+    public ModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies, ModelSchemaAspectExtractor aspectExtractor) {
+        this.strategies = ImmutableList.<ModelSchemaExtractionStrategy>builder()
+            .addAll(strategies)
+            .add(new PrimitiveStrategy())
+            .add(new EnumStrategy())
+            .add(new JdkValueTypeStrategy())
+            .add(new ModelSetStrategy())
+            .add(new ManagedSetStrategy())
+            .add(new SpecializedMapStrategy())
+            .add(new ModelMapStrategy())
+            .add(new ScalarCollectionStrategy())
+            .add(new UnmanagedCollectionStrategy(aspectExtractor))
+            .add(new ManagedImplStructStrategy(aspectExtractor))
+            .add(new UnmanagedImplStructStrategy(aspectExtractor))
+            .build();
+    }
 
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
         ModelSchemaExtractionContext<T> context = ModelSchemaExtractionContext.root(type);
@@ -57,18 +69,19 @@ class ModelSchemaExtractor {
         validations.add(extractionContext);
 
         while (extractionContext != null) {
-            ModelSchemaExtractionResult<?> nextSchema = extractSchema(extractionContext, cache);
-            Iterable<? extends ModelSchemaExtractionContext<?>> dependencies = nextSchema.getDependencies();
+            extractSchema(extractionContext, cache);
+            Iterable<? extends ModelSchemaExtractionContext<?>> dependencies = extractionContext.getChildren();
             Iterables.addAll(validations, dependencies);
             pushUnsatisfiedDependencies(dependencies, unsatisfiedDependencies, cache);
             extractionContext = unsatisfiedDependencies.poll();
         }
 
         for (ModelSchemaExtractionContext<?> validationContext : Lists.reverse(validations)) {
-            validationContext.validate();
+            // TODO - this will leave invalid types in the cache when it fails
+            validate(validationContext, cache);
         }
 
-        return cache.get(context.getType());
+        return context.getResult();
     }
 
     private void pushUnsatisfiedDependencies(Iterable<? extends ModelSchemaExtractionContext<?>> allDependencies, Queue<ModelSchemaExtractionContext<?>> dependencyQueue, final ModelSchemaCache cache) {
@@ -79,18 +92,23 @@ class ModelSchemaExtractor {
         }));
     }
 
-    private <T> ModelSchemaExtractionResult<T> extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
+    private <T> void validate(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
+        extractionContext.validate(cache.get(extractionContext.getType()));
+    }
+
+    private <T> void extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
         final ModelType<T> type = extractionContext.getType();
         ModelSchema<T> cached = cache.get(type);
         if (cached != null) {
-            return new ModelSchemaExtractionResult<T>(cached);
+            extractionContext.found(cached);
+            return;
         }
 
         for (ModelSchemaExtractionStrategy strategy : strategies) {
-            ModelSchemaExtractionResult<T> result = strategy.extract(extractionContext, cache);
-            if (result != null) {
-                cache.set(type, result.getSchema());
-                return result;
+            strategy.extract(extractionContext);
+            if (extractionContext.getResult() != null) {
+                cache.set(type, extractionContext.getResult());
+                return;
             }
         }
 
@@ -98,7 +116,7 @@ class ModelSchemaExtractor {
         throw new IllegalStateException("No extraction strategy found for type: " + type);
     }
 
-    private String getSupportedTypesDescription() {
+    public static String getManageablePropertyTypesDescription() {
         return Joiner.on(SystemProperties.getInstance().getLineSeparator()).join(Iterables.transform(getSupportedTypes(), new Function<String, String>() {
             public String apply(String input) {
                 return " - " + input;
@@ -106,12 +124,13 @@ class ModelSchemaExtractor {
         }));
     }
 
-    private Iterable<String> getSupportedTypes() {
-        return Iterables.concat(Iterables.transform(strategies, new Function<ModelSchemaExtractionStrategy, Iterable<String>>() {
-            public Iterable<String> apply(ModelSchemaExtractionStrategy input) {
-                return input.getSupportedManagedTypes();
-            }
-        }));
+    private static Iterable<String> getSupportedTypes() {
+        return ImmutableList.<String>builder()
+            .add(String.format("interfaces and abstract classes annotated with %s", Managed.class.getName()))
+            .addAll(ScalarTypes.getSupported())
+            .add(String.format("%s of a managed type", ModelMap.class.getName()))
+            .add(String.format("%s of a managed type", ModelSet.class.getName()))
+            .build();
     }
 
 }

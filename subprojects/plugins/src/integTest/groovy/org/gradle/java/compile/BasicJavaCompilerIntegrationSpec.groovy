@@ -20,6 +20,7 @@ package org.gradle.java.compile
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.ClassFile
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -148,13 +149,12 @@ public class FxApp extends Application {
     def buildScript() {
         '''
 apply plugin: "java"
-
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile "org.codehaus.groovy:groovy:2.3.10"
+    compile "org.codehaus.groovy:groovy:2.4.4"
 }
 '''
     }
@@ -233,6 +233,7 @@ class Main {
         return new ClassFile(file(path))
     }
 
+    @LeaksFileHandles("holds processor.jar open for in process compiler")
     def "can use annotation processor"() {
         when:
         buildFile << """

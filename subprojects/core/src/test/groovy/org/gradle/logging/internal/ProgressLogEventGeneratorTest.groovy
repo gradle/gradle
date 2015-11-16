@@ -441,4 +441,38 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
     def startWithHeader(String header) {
         return start(loggingHeader: header, shortDescription: header)
     }
+
+    def handlesMultipleOperationsInProgressAtOnce() {
+        ProgressLogEventGenerator generator = new ProgressLogEventGenerator(target, true)
+        given:
+        def firstStart = startWithHeader("task1")
+        def secondStart = startWithHeader("task2")
+        def secondProgress = progress("task2-progress")
+        def secondComplete = complete("task2-done")
+        def firstComplete = complete("task1-done")
+        when:
+        generator.onOutput(firstStart)
+        generator.onOutput(secondStart)
+        generator.onOutput(firstComplete)
+        generator.onOutput(secondProgress)
+        generator.onOutput(secondComplete)
+
+        then:
+        1 * target.onOutput({ StyledTextOutputEvent event ->
+            event.spans.size() == 1 && event.spans[0].text == toNative('task2\n')
+        })
+        1 * target.onOutput({ StyledTextOutputEvent event ->
+            event.spans.size() == 3 &&
+                event.spans[0].text == toNative('task1 ') &&
+                event.spans[1].text == toNative('task1-done') &&
+                event.spans[2].text == toNative('\n')
+        })
+        1 * target.onOutput({ StyledTextOutputEvent event ->
+            event.spans.size() == 3 &&
+                event.spans[0].text == toNative('task2 ') &&
+                event.spans[1].text == toNative('task2-done') &&
+                event.spans[2].text == toNative('\n')
+        })
+        0 * target._
+    }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.antlr.internal
 
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.plugins.antlr.AntlrTask
 import spock.lang.Specification
 
@@ -23,7 +24,11 @@ class AntlrSpecFactoryTest extends Specification {
 
     AntlrExecuter executer = new AntlrExecuter()
     private AntlrSpecFactory factory = new AntlrSpecFactory()
+    private SourceDirectorySet sourceDirectorySet = Mock()
 
+    def setup(){
+        1 * sourceDirectorySet.getSrcDirs() >> []
+    }
     def tracePropertiesAddedToArgumentList() {
         when:
         AntlrTask task = Mock()
@@ -35,7 +40,7 @@ class AntlrSpecFactoryTest extends Specification {
         _ * task.isTraceParser() >> true
         _ * task.isTraceTreeWalker() >> true
 
-        def spec = factory.create(task, [] as Set)
+        def spec = factory.create(task, [] as Set, sourceDirectorySet)
 
         then:
         spec.arguments.contains("-trace")
@@ -50,7 +55,7 @@ class AntlrSpecFactoryTest extends Specification {
         _ * task.outputDirectory >> destFile()
         _ * task.getArguments() >> ["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]
 
-        def spec = factory.create(task, [] as Set)
+        def spec = factory.create(task, [] as Set, sourceDirectorySet)
 
         then:
         spec.arguments.contains("-trace")
@@ -69,29 +74,13 @@ class AntlrSpecFactoryTest extends Specification {
         _ * task.isTraceParser() >> true
         _ * task.isTraceTreeWalker() >> true
 
-        def spec = factory.create(task, [] as Set)
+        def spec = factory.create(task, [] as Set, sourceDirectorySet)
 
         then:
         spec.arguments.count { it == "-trace" } == 1
         spec.arguments.count { it == "-traceLexer" } == 1
         spec.arguments.count { it == "-traceParser" } == 1
         spec.arguments.count { it == "-traceTreeWalker" } == 1
-    }
-
-    def buildCommonArgumentsAddsAllParameters() {
-        when:
-        AntlrTask task = Mock()
-        _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> ["-test"]
-        _ * task.isTrace() >> true
-        _ * task.isTraceLexer() >> true
-        _ * task.isTraceParser() >> true
-        _ * task.isTraceTreeWalker() >> true
-
-        def spec = factory.create(task, [] as Set)
-
-        then:
-        spec.asCommandLineWithoutFiles() == ["-test", "-trace", "-traceLexer", "-traceParser", "-traceTreeWalker", "-o", "/output"]
     }
 
     def destFile() {

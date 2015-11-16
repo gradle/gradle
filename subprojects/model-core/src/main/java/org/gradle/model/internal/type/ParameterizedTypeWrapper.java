@@ -16,6 +16,9 @@
 
 package org.gradle.model.internal.type;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.Nullable;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -23,11 +26,11 @@ import java.util.Arrays;
 class ParameterizedTypeWrapper implements ParameterizedType, TypeWrapper {
 
     private final TypeWrapper[] actualTypeArguments;
-    private final TypeWrapper rawType;
+    private final ClassTypeWrapper rawType;
     private final TypeWrapper ownerType;
     private final int hashCode;
 
-    public ParameterizedTypeWrapper(TypeWrapper[] actualTypeArguments, TypeWrapper rawType, TypeWrapper ownerType, int hashCode) {
+    public ParameterizedTypeWrapper(TypeWrapper[] actualTypeArguments, ClassTypeWrapper rawType, @Nullable TypeWrapper ownerType, int hashCode) {
         this.actualTypeArguments = actualTypeArguments;
         this.rawType = rawType;
         this.ownerType = ownerType;
@@ -46,12 +49,20 @@ class ParameterizedTypeWrapper implements ParameterizedType, TypeWrapper {
 
     @Override
     public Type getOwnerType() {
-        return ownerType.unwrap();
+        return ownerType == null ? null : ownerType.unwrap();
     }
 
     @Override
     public Type unwrap() {
         return this;
+    }
+
+    @Override
+    public void collectClasses(ImmutableList.Builder<Class<?>> builder) {
+        rawType.collectClasses(builder);
+        for (TypeWrapper actualTypeArgument : actualTypeArguments) {
+            actualTypeArgument.collectClasses(builder);
+        }
     }
 
     @Override
@@ -81,55 +92,32 @@ class ParameterizedTypeWrapper implements ParameterizedType, TypeWrapper {
 
     @Override
     public String toString() {
+        return getRepresentation(true);
+    }
+
+    @Override
+    public String getRepresentation(boolean full) {
         StringBuilder sb = new StringBuilder();
-
-        Type ownerType = getOwnerType();
-        Class<?> rawType = (Class<?>) getRawType();
         if (ownerType != null) {
-            if (ownerType instanceof Class) {
-                sb.append(((Class) ownerType).getName());
-            } else {
-                sb.append(ownerType.toString());
-            }
-
-            sb.append(".");
-
-            if (ownerType instanceof ParameterizedTypeWrapper) {
-                // Find simple name of nested type by removing the
-                // shared prefix with owner.
-                Class<?> ownerRaw = (Class<?>) ((ParameterizedTypeWrapper) ownerType).rawType.unwrap();
-                sb.append(rawType.getName().replace(ownerRaw.getName() + "$",
-                        ""));
-            } else {
-                sb.append(rawType.getName());
-            }
+            sb.append(ownerType.getRepresentation(full));
+            sb.append('.');
+            sb.append(rawType.unwrap().getSimpleName());
         } else {
-            sb.append(rawType.getName());
+            sb.append(rawType.getRepresentation(full));
         }
-
-        Type[] actualTypeArguments = getActualTypeArguments();
         if (actualTypeArguments != null && actualTypeArguments.length > 0) {
             sb.append("<");
             boolean first = true;
-            for (Type t : actualTypeArguments) {
+            for (TypeWrapper t : actualTypeArguments) {
                 if (!first) {
                     sb.append(", ");
                 }
-                if (t instanceof Class) {
-                    sb.append(((Class) t).getName());
-                } else {
-                    sb.append(t.toString());
-                }
+                sb.append(t.getRepresentation(full));
                 first = false;
             }
             sb.append(">");
         }
 
         return sb.toString();
-    }
-
-    @Override
-    public String getRepresentation() {
-        return toString();
     }
 }

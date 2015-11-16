@@ -16,7 +16,12 @@
 
 package org.gradle.internal.resource.connector;
 
+import org.gradle.authentication.Authentication;
+
+import java.util.Collection;
+
 public interface ResourceConnectorSpecification {
-    // TODO:DAZ <T extends Credentials>
     <T> T getCredentials(Class<T> type);
+
+    Collection<Authentication> getAuthentications();
 }

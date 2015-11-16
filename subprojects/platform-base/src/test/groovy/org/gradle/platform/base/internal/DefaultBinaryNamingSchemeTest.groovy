@@ -44,19 +44,32 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         namingScheme.getTaskName("theVerb", "theTarget") == "theVerbFirstDimensionSecondDimensionTheBinaryTheTypeTheTarget"
     }
 
-    def "generates base name and output directory"() {
-        def namingScheme = createNamingScheme(parentName, "", dimensions)
+    def "generates binary name"() {
+        def namingScheme = createNamingScheme("parent", "executable", dimensions)
 
         expect:
-        namingScheme.getLifecycleTaskName() == lifecycleName
-        namingScheme.getOutputDirectoryBase() == outputDir
+        namingScheme.binaryName == binaryName
 
         where:
-        parentName    | dimensions                                 | lifecycleName                               | outputDir
-        "test"        | []                                         | "test"                                      | "test"
-        "test"        | ["one", "two"]                             | "oneTwoTest"                                | "test/oneTwo"
-        "mainLibrary" | ["enterpriseEdition", "osx_x64", "static"] | "enterpriseEditionOsx_x64StaticMainLibrary" | "mainLibrary/enterpriseEditionOsx_x64Static"
-        "mainLibrary" | ["EnterpriseEdition", "Osx_x64", "Static"] | "enterpriseEditionOsx_x64StaticMainLibrary" | "mainLibrary/enterpriseEditionOsx_x64Static"
+        dimensions                                 | binaryName
+        []                                         | "executable"
+        ["one", "two"]                             | "oneTwoExecutable"
+        ["enterpriseEdition", "osx_x64", "static"] | "enterpriseEditionOsx_x64StaticExecutable"
+        ["EnterpriseEdition", "Osx_x64", "Static"] | "enterpriseEditionOsx_x64StaticExecutable"
+    }
+
+    def "generates output directory"() {
+        def namingScheme = createNamingScheme(parentName, "executable", dimensions)
+
+        expect:
+        namingScheme.outputDirectoryBase == outputDir
+
+        where:
+        parentName    | dimensions                                 | outputDir
+        "test"        | []                                         | "testExecutable"
+        "test"        | ["one", "two"]                             | "testExecutable/oneTwo"
+        "mainLibrary" | ["enterpriseEdition", "osx_x64", "static"] | "mainLibraryExecutable/enterpriseEditionOsx_x64Static"
+        "mainLibrary" | ["EnterpriseEdition", "Osx_x64", "Static"] | "mainLibraryExecutable/enterpriseEditionOsx_x64Static"
     }
 
     def "generates description"() {

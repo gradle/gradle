@@ -16,10 +16,12 @@
 package org.gradle.nativeplatform
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@LeaksFileHandles
 class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     final app = new CppHelloWorldApp()
 
@@ -318,8 +320,6 @@ model {
 
         then:
         failure.assertHasDescription("Could not locate library 'other'.")
-        failure.assertHasCause("NativeLibrarySpec with name 'other' not found.")
-        failure.assertHasCause("Prebuilt library with name 'other' not found in repositories '[libs, libs2]'.")
     }
 
     def "produces reasonable error message when prebuilt library does not exist in a different project"() {
@@ -364,7 +364,5 @@ model {
 
         then:
         failure.assertHasDescription("Could not locate library 'hello' for project ':projectB'.")
-        failure.assertHasCause("NativeLibrarySpec with name 'hello' not found.")
-        failure.assertHasCause("Prebuilt library with name 'hello' not found in repositories '[libs, libs2]'.")
     }
 }

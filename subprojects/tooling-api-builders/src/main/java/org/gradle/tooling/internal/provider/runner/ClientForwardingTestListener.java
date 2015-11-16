@@ -15,73 +15,107 @@
  */
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.Maps;
+import org.gradle.api.execution.internal.InternalTaskExecutionListener;
+import org.gradle.api.execution.internal.TaskOperationInternal;
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.tasks.testing.TestDescriptor;
-import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Test listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
  */
-class ClientForwardingTestListener implements TestListener {
+class ClientForwardingTestListener implements TestListenerInternal, InternalTaskExecutionListener {
 
     private final BuildEventConsumer eventConsumer;
+    private final BuildClientSubscriptions clientSubscriptions;
+    private Map<Object, String> runningTasks = Maps.newHashMap();
 
-    ClientForwardingTestListener(BuildEventConsumer eventConsumer) {
+    ClientForwardingTestListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions) {
         this.eventConsumer = eventConsumer;
+        this.clientSubscriptions = clientSubscriptions;
     }
 
     @Override
-    public void beforeSuite(TestDescriptor suite) {
-        eventConsumer.dispatch(new DefaultTestStartedProgressEvent(System.currentTimeMillis(), toTestDescriptorForSuite(suite)));
+    public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
+        eventConsumer.dispatch(new DefaultTestStartedProgressEvent(startEvent.getStartTime(), adapt(testDescriptor)));
     }
 
     @Override
-    public void afterSuite(TestDescriptor suite, TestResult result) {
-        eventConsumer.dispatch(new DefaultTestFinishedProgressEvent(System.currentTimeMillis(), toTestDescriptorForSuite(suite), toTestResult(result)));
+    public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
+        eventConsumer.dispatch(new DefaultTestFinishedProgressEvent(completeEvent.getEndTime(), adapt(testDescriptor), adapt(testResult)));
     }
 
     @Override
-    public void beforeTest(TestDescriptor test) {
-        eventConsumer.dispatch(new DefaultTestStartedProgressEvent(System.currentTimeMillis(), toTestDescriptorForTest(test)));
+    public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
+        // Don't forward
     }
 
-    @Override
-    public void afterTest(final TestDescriptor test, final TestResult result) {
-        eventConsumer.dispatch(new DefaultTestFinishedProgressEvent(System.currentTimeMillis(), toTestDescriptorForTest(test), toTestResult(result)));
+    private DefaultTestDescriptor adapt(TestDescriptorInternal testDescriptor) {
+        return testDescriptor.isComposite() ? toTestDescriptorForSuite(testDescriptor) : toTestDescriptorForTest(testDescriptor);
     }
 
-    private static DefaultTestDescriptor toTestDescriptorForSuite(TestDescriptor suite) {
-        Object id = ((TestDescriptorInternal) suite).getId();
+    private DefaultTestDescriptor toTestDescriptorForSuite(TestDescriptorInternal suite) {
+        Object id = suite.getId();
         String name = suite.getName();
         String displayName = suite.toString();
         String testKind = InternalJvmTestDescriptor.KIND_SUITE;
         String suiteName = suite.getName();
         String className = suite.getClassName();
         String methodName = null;
-        Object parentId = suite.getParent() != null ? ((TestDescriptorInternal) suite.getParent()).getId() : null;
-        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
+        Object parentId = getParentId(suite);
+        final String testTaskPath = getTaskPath(suite);
+        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId, testTaskPath);
     }
 
-    private static DefaultTestDescriptor toTestDescriptorForTest(TestDescriptor test) {
-        Object id = ((TestDescriptorInternal) test).getId();
+    private DefaultTestDescriptor toTestDescriptorForTest(TestDescriptorInternal test) {
+        Object id = test.getId();
         String name = test.getName();
         String displayName = test.toString();
         String testKind = InternalJvmTestDescriptor.KIND_ATOMIC;
         String suiteName = null;
         String className = test.getClassName();
         String methodName = test.getName();
-        Object parentId = test.getParent() != null ? ((TestDescriptorInternal) test.getParent()).getId() : null;
-        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
+        Object parentId = getParentId(test);
+        final String taskPath = getTaskPath(test);
+        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId, taskPath);
     }
 
-    private static AbstractTestResult toTestResult(TestResult result) {
+    private String getTaskPath(TestDescriptorInternal givenDescriptor) {
+        TestDescriptorInternal descriptor = givenDescriptor;
+        while(descriptor.getOwnerBuildOperationId() == null && descriptor.getParent()!=null){
+            descriptor = descriptor.getParent();
+        }
+        return runningTasks.get(descriptor.getOwnerBuildOperationId());
+    }
+
+    private Object getParentId(TestDescriptorInternal descriptor) {
+        TestDescriptorInternal parent = descriptor.getParent();
+        if (parent != null) {
+            return parent.getId();
+        }
+        // only set the TaskOperation as the parent if the Tooling API Consumer is listening to task progress events
+        if (clientSubscriptions.isSendTaskProgressEvents()) {
+            return descriptor.getOwnerBuildOperationId();
+        }
+        return null;
+    }
+
+    private static AbstractTestResult adapt(TestResult result) {
         TestResult.ResultType resultType = result.getResultType();
         switch (resultType) {
             case SUCCESS:
@@ -103,4 +137,15 @@ class ClientForwardingTestListener implements TestListener {
         return failures;
     }
 
+    @Override
+    public void beforeExecute(TaskOperationInternal taskOperation, OperationStartEvent startEvent) {
+        if(taskOperation.getTask() instanceof Test){
+            runningTasks.put(taskOperation.getId(), taskOperation.getTask().getPath());
+        }
+    }
+
+    @Override
+    public void afterExecute(TaskOperationInternal taskOperation, OperationResult result) {
+        runningTasks.remove(taskOperation.getId());
+    }
 }

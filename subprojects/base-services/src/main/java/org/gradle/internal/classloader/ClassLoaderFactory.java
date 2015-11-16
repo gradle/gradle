@@ -48,4 +48,6 @@ public interface ClassLoaderFactory {
      * Creates a ClassLoader from its spec.
      */
     ClassLoader createClassLoader(ClassLoaderSpec spec, List<? extends ClassLoader> parents);
+
+    FilteringClassLoader createSystemFilteringClassLoader();
 }

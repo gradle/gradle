@@ -41,7 +41,7 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
     }
 
     protected boolean hasSources() {
-        for (LanguageSourceSet sourceSet : getSource()) {
+        for (LanguageSourceSet sourceSet : getInputs()) {
             if (!sourceSet.getSource().isEmpty()) {
                 return true;
             }
@@ -60,7 +60,7 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
 
             public Set<File> getFiles() {
                 Set<File> headerDirs = new LinkedHashSet<File>();
-                for (HeaderExportingSourceSet sourceSet : getSource().withType(HeaderExportingSourceSet.class)) {
+                for (HeaderExportingSourceSet sourceSet : getInputs().withType(HeaderExportingSourceSet.class)) {
                     headerDirs.addAll(sourceSet.getExportedHeaders().getSrcDirs());
                 }
                 return headerDirs;
@@ -69,7 +69,7 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
             @Override
             public TaskDependency getBuildDependencies() {
                 DefaultTaskDependency dependency = new DefaultTaskDependency();
-                for (HeaderExportingSourceSet sourceSet : getSource().withType(HeaderExportingSourceSet.class)) {
+                for (HeaderExportingSourceSet sourceSet : getInputs().withType(HeaderExportingSourceSet.class)) {
                     dependency.add(sourceSet.getBuildDependencies());
                 }
                 return dependency;

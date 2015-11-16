@@ -16,10 +16,16 @@
 
 
 package org.gradle.performance
-
+import org.gradle.performance.fixture.BuildExperimentSpec
 import spock.lang.Unroll
-
+// @Category(Experiment)
 class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
+
+    @Override
+    protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+        builder.invocation.gradleOpts("-Xmx1024m", "-XX:MaxPermSize=256m")
+        super.defaultSpec(builder)
+    }
 
     @Unroll
     def "#size project using variants #scenario build"() {
@@ -28,22 +34,25 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testId = "$size project using variants $scenario build"
         runner.buildSpec {
             projectName("${size}VariantsNewModel").displayName("new model").invocation {
-                tasksToRun(task).useDaemon().enableTransformedModelDsl()
+                tasksToRun(task).useDaemon()
             }
         }
+        /*
+        TODO: enable after fixing model reuse
         runner.buildSpec {
             projectName("${size}VariantsNewModel").displayName("new model (reuse)").invocation {
-                tasksToRun(task).useDaemon().enableTransformedModelDsl().enableModelReuse()
+                tasksToRun(task).useDaemon().enableModelReuse()
             }
         }
         runner.buildSpec {
             projectName("${size}VariantsNewModel").displayName("new model (reuse + tooling api)").invocation {
-                tasksToRun(task).useToolingApi().enableTransformedModelDsl().enableModelReuse()
+                tasksToRun(task).useToolingApi().enableModelReuse()
             }
         }
+        */
         runner.buildSpec {
             projectName("${size}VariantsNewModel").displayName("new model (no client logging)").invocation {
-                tasksToRun(task).useDaemon().enableTransformedModelDsl().disableDaemonLogging()
+                tasksToRun(task).useDaemon().disableDaemonLogging()
             }
         }
         runner.baseline {
@@ -84,22 +93,25 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testId = "multiproject using variants $scenario build"
         runner.buildSpec {
             projectName("variantsNewModelMultiproject").displayName("new model").invocation {
-                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl()
+                tasksToRun(*tasks).useDaemon()
             }
         }
+        /*
+        TODO: enable after fixing model reuse
         runner.buildSpec {
             projectName("variantsNewModelMultiproject").displayName("new model (reuse)").invocation {
-                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl().enableModelReuse()
+                tasksToRun(*tasks).useDaemon().enableModelReuse()
             }
         }
         runner.buildSpec {
             projectName("variantsNewModelMultiproject").displayName("new model (reuse + tooling api)").invocation {
-                tasksToRun(*tasks).useToolingApi().enableTransformedModelDsl().enableModelReuse()
+                tasksToRun(*tasks).useToolingApi().enableModelReuse()
             }
         }
+        */
         runner.buildSpec {
             projectName("variantsNewModelMultiproject").displayName("new model (no client logging)").invocation {
-                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl().disableDaemonLogging()
+                tasksToRun(*tasks).useDaemon().disableDaemonLogging()
             }
         }
         runner.baseline {
@@ -125,6 +137,7 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         scenario                      | tasks
         "single variant"              | [":project1:flavour1type1_t1"]
         "all variants single project" | [":project1:allVariants"]
-        "all variants all projects"   | ["allVariants"]
+        // This is causing the performance test process to die and the build to hang: disabling for now.
+//        "all variants all projects"   | ["allVariants"]
     }
 }

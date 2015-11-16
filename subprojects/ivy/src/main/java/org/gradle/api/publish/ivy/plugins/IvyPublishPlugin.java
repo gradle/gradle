@@ -37,10 +37,10 @@ import org.gradle.api.publish.ivy.tasks.PublishToIvyRepository;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -84,7 +84,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @Mutate
         @SuppressWarnings("UnusedDeclaration")
-        public void createTasks(CollectionBuilder<Task> tasks, PublishingExtension publishingExtension, @Path("buildDir") final File buildDir) {
+        public void createTasks(ModelMap<Task> tasks, PublishingExtension publishingExtension, @Path("buildDir") final File buildDir) {
             PublicationContainer publications = publishingExtension.getPublications();
             RepositoryHandler repositories = publishingExtension.getRepositories();
 

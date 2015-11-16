@@ -37,7 +37,6 @@ import java.io.InputStream;
  * Some support wiring for daemon clients.
  * 
  * @see DaemonClientServices
- * @see EmbeddedDaemonClientServices
  */
 abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry {
     private final InputStream buildStandardInput;

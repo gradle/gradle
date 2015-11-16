@@ -34,7 +34,6 @@ import java.util.*;
 // todo - don't store null links to child blocks in leaf index blocks
 // todo - align block boundaries
 // todo - thread safety control
-// todo - remove the check-sum from each block
 // todo - merge small values into a single data block
 // todo - discard when file corrupt
 // todo - include data directly in index entry when serializer can guarantee small fixed sized data

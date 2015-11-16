@@ -42,7 +42,7 @@ public class Person {
         new JvmSourceFile("compile/test", "Person2.java", '''
 package compile.test;
 
-class Person2 {
+public class Person2 {
 }
 ''')
     ]
@@ -69,4 +69,9 @@ interface Extra {
             resources[0],
             resources[1]
     ]
+
+    @Override
+    TestFile createIgnoredFileInSources(TestFile sourceDir) {
+        sourceDir.createFile("java/SomeIgnoredFile.java~") << '// this file should be ignored'
+    }
 }

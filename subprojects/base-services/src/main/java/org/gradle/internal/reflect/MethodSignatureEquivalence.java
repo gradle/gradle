@@ -27,13 +27,13 @@ public class MethodSignatureEquivalence extends Equivalence<Method> {
     @Override
     protected boolean doEquivalent(Method a, Method b) {
         boolean equals = new EqualsBuilder()
-                .append(a.getName(), b.getName())
-                .append(a.getGenericParameterTypes(), b.getGenericParameterTypes())
-                .isEquals();
+            .append(a.getName(), b.getName())
+            .append(a.getGenericParameterTypes(), b.getGenericParameterTypes())
+            .isEquals();
         if (equals) {
             equals = a.getReturnType().equals(b.getReturnType())
-                    || a.getReturnType().isAssignableFrom(b.getReturnType())
-                    || b.getReturnType().isAssignableFrom(a.getReturnType());
+                || a.getReturnType().isAssignableFrom(b.getReturnType())
+                || b.getReturnType().isAssignableFrom(a.getReturnType());
         }
         return equals;
     }
@@ -41,8 +41,8 @@ public class MethodSignatureEquivalence extends Equivalence<Method> {
     @Override
     protected int doHash(Method method) {
         return new HashCodeBuilder()
-                .append(method.getName())
-                .append(method.getGenericParameterTypes())
-                .toHashCode();
+            .append(method.getName())
+            .append(method.getGenericParameterTypes())
+            .toHashCode();
     }
 }

@@ -79,6 +79,10 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, spans);
     }
 
+    public List<Span> getSpans() {
+        return spans;
+    }
+
     @Override
     public void render(StyledTextOutput output) {
         for (Span span : spans) {
@@ -99,6 +103,14 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         public Span(String text) {
             this.style = Normal;
             this.text = text;
+        }
+
+        public StyledTextOutput.Style getStyle() {
+            return style;
+        }
+
+        public String getText() {
+            return text;
         }
     }
 }

@@ -16,20 +16,17 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.PersistentBuildProcessIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
 
-//classloaders are cached in process so the test only makes sense if gradle invocations share the process
-@IgnoreIf({ !GradleContextualExecuter.longLivingProcess })
-class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
+@LeaksFileHandles
+class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
     def cacheSizePerRun = []
 
     def setup() {
-        executer.requireIsolatedDaemons()
         file("cacheCheck.gradle") << """
             def cache = gradle.services.get(org.gradle.api.internal.initialization.loadercache.ClassLoaderCache)
             gradle.buildFinished {
@@ -210,7 +207,7 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         assertCacheDidNotGrow()
     }
 
-    def "cache shrinks when buildscript disappears"() {
+    def "cache shrinks as buildscript disappears"() {
         addIsCachedCheck()
         file("foo.jar") << "foo"
         buildFile << """
@@ -237,6 +234,29 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         buildFile.delete()
         run()
         assertCacheSizeChange(-1)
+    }
+
+    def "cache shrinks when script with buildscript block is removed"() {
+        addIsCachedCheck()
+        file("foo.jar") << "foo"
+        buildFile << """
+            buildscript { dependencies { classpath files("foo.jar") } }
+
+            task foo
+        """
+
+        when:
+        run()
+        run()
+
+        then:
+        isCached()
+        assertCacheSizeChange(0)
+
+        then:
+        buildFile.delete()
+        run()
+        assertCacheSizeChange(-3)
     }
 
     def "refreshes when root project buildscript classpath changes"() {

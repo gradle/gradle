@@ -15,13 +15,11 @@
  */
 
 package org.gradle.jvm.internal
-
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.toolchain.JavaToolChain
-import org.gradle.platform.base.binary.BaseBinarySpec
+import org.gradle.platform.base.binary.BaseBinaryFixtures
 import spock.lang.Specification
 
 class DefaultJarBinarySpecTest extends Specification {
@@ -60,6 +58,6 @@ class DefaultJarBinarySpecTest extends Specification {
     }
 
     private DefaultJarBinarySpec binary() {
-        BaseBinarySpec.create(DefaultJarBinarySpec, "jvm-lib-jar", DirectInstantiator.INSTANCE, Mock(ITaskFactory))
+        BaseBinaryFixtures.create(DefaultJarBinarySpec, "jvm-lib-jar", null, Mock(ITaskFactory))
     }
 }

@@ -28,26 +28,24 @@ import org.gradle.language.coffeescript.CoffeeScriptSourceSet;
 import org.gradle.language.coffeescript.internal.DefaultCoffeeScriptSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
+import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
+import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.PlayCoffeeScriptCompile;
 
 import java.io.File;
 
-import static org.apache.commons.lang.StringUtils.capitalize;
-
 /**
  * Plugin for adding coffeescript compilation to a Play application.  Adds support for
  * defining {@link org.gradle.language.coffeescript.CoffeeScriptSourceSet} source sets.  A
- * "coffeeScriptAssets" source set is created by default.
+ * "coffeeScript" source set is created by default.
  */
 @SuppressWarnings("UnusedDeclaration")
 @Incubating
@@ -70,26 +68,29 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
     }
 
     @Mutate
-    void createCoffeeScriptSourceSets(CollectionBuilder<PlayApplicationSpec> components) {
-        components.beforeEach(new Action<PlayApplicationSpec>() {
+    void createCoffeeScriptSourceSets(ModelMap<PlayApplicationSpec> components) {
+        components.afterEach(new Action<PlayApplicationSpec>() {
             @Override
             public void execute(PlayApplicationSpec playComponent) {
-                // TODO - should have some way to lookup using internal type
-                CoffeeScriptSourceSet coffeeScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("coffeeScriptAssets", CoffeeScriptSourceSet.class);
-                coffeeScriptSourceSet.getSource().srcDir("app/assets");
-                coffeeScriptSourceSet.getSource().include("**/*.coffee");
+                playComponent.getSources().create("coffeeScript", CoffeeScriptSourceSet.class, new Action<CoffeeScriptSourceSet>() {
+                    @Override
+                    public void execute(CoffeeScriptSourceSet coffeeScriptSourceSet) {
+                        coffeeScriptSourceSet.getSource().srcDir("app/assets");
+                        coffeeScriptSourceSet.getSource().include("**/*.coffee");
+                    }
+                });
             }
         });
     }
 
     @Mutate
-    void createGeneratedJavaScriptSourceSets(CollectionBuilder<PlayApplicationBinarySpec> binaries, final ServiceRegistry serviceRegistry) {
+    void createGeneratedJavaScriptSourceSets(ModelMap<PlayApplicationBinarySpec> binaries, final ServiceRegistry serviceRegistry) {
         final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
         final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
         binaries.all(new Action<PlayApplicationBinarySpec>() {
             @Override
             public void execute(PlayApplicationBinarySpec playApplicationBinarySpec) {
-                for (CoffeeScriptSourceSet coffeeScriptSourceSet : playApplicationBinarySpec.getSource().withType(CoffeeScriptSourceSet.class)) {
+                for (CoffeeScriptSourceSet coffeeScriptSourceSet : playApplicationBinarySpec.getInputs().withType(CoffeeScriptSourceSet.class)) {
                     JavaScriptSourceSet javaScriptSourceSet = BaseLanguageSourceSet.create(DefaultJavaScriptSourceSet.class, String.format("%sJavaScript", coffeeScriptSourceSet.getName()), playApplicationBinarySpec.getName(), fileResolver, instantiator);
                     playApplicationBinarySpec.getGeneratedJavaScript().put(coffeeScriptSourceSet, javaScriptSourceSet);
                 }
@@ -98,7 +99,7 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
     }
 
     @BinaryTasks
-    void createCoffeeScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
+    void createCoffeeScriptTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary, @Path("buildDir") final File buildDir) {
         tasks.beforeEach(PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
             @Override
             public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
@@ -107,12 +108,14 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
             }
         });
 
-        for (final CoffeeScriptSourceSet coffeeScriptSourceSet : binary.getSource().withType(CoffeeScriptSourceSet.class)) {
+        for (final CoffeeScriptSourceSet coffeeScriptSourceSet : binary.getInputs().withType(CoffeeScriptSourceSet.class)) {
             if (((LanguageSourceSetInternal) coffeeScriptSourceSet).getMayHaveSources()) {
-                final String compileTaskName = "compile" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
+                final String compileTaskName = binary.getTasks().taskName("compile", coffeeScriptSourceSet.getName());
                 tasks.create(compileTaskName, PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
                     @Override
                     public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
+                        coffeeScriptCompile.setDescription("Compiles coffeescript for the " + coffeeScriptSourceSet.getDisplayName() + ".");
+
                         File outputDirectory = outputDirectory(buildDir, binary, compileTaskName);
                         coffeeScriptCompile.setDestinationDir(outputDirectory);
                         coffeeScriptCompile.setSource(coffeeScriptSourceSet.getSource());
@@ -126,7 +129,7 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
         }
     }
 
-    private File outputDirectory(File buildDir, PlayApplicationBinarySpec binary, String taskName) {
-        return new File(buildDir, String.format("%s/src/%s", binary.getName(), taskName));
+    private File outputDirectory(File buildDir, PlayApplicationBinarySpecInternal binary, String taskName) {
+        return new File(buildDir, String.format("%s/src/%s", binary.getProjectScopedName(), taskName));
     }
 }

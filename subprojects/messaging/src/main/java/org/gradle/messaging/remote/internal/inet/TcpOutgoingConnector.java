@@ -16,6 +16,7 @@
 
 package org.gradle.messaging.remote.internal.inet;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.ConnectCompletion;
 import org.gradle.messaging.remote.internal.ConnectException;
@@ -23,14 +24,15 @@ import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketException;
+import java.io.IOException;
+import java.net.*;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 
 public class TcpOutgoingConnector implements OutgoingConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpOutgoingConnector.class);
+    private static final int CONNECT_TIMEOUT = 10000;
+    private static final int MAXIMUM_RETRIES = 3;
 
     public ConnectCompletion connect(Address destinationAddress) throws ConnectException {
         if (!(destinationAddress instanceof InetEndpoint)) {
@@ -50,9 +52,13 @@ public class TcpOutgoingConnector implements OutgoingConnector {
                 LOGGER.debug("Trying to connect to address {}.", candidate);
                 SocketChannel socketChannel;
                 try {
-                    socketChannel = SocketChannel.open(new InetSocketAddress(candidate, address.getPort()));
+                    socketChannel = tryConnect(address, candidate);
                 } catch (SocketException e) {
                     LOGGER.debug("Cannot connect to address {}, skipping.", candidate);
+                    lastFailure = e;
+                    continue;
+                } catch (SocketTimeoutException e) {
+                    LOGGER.debug("Timeout connecting to address {}, skipping.", candidate);
                     lastFailure = e;
                     continue;
                 }
@@ -67,5 +73,38 @@ public class TcpOutgoingConnector implements OutgoingConnector {
             throw new RuntimeException(String.format("Could not connect to server %s. Tried addresses: %s.",
                     destinationAddress, candidateAddresses), e);
         }
+    }
+
+    private SocketChannel tryConnect(InetEndpoint address, InetAddress candidate) throws IOException {
+        SocketChannel socketChannel = SocketChannel.open();
+
+        try {
+            socketChannel.socket().connect(new InetSocketAddress(candidate, address.getPort()), CONNECT_TIMEOUT);
+
+            if (!detectSelfConnect(socketChannel)) {
+                return socketChannel;
+            }
+            socketChannel.close();
+        } catch (IOException e) {
+            socketChannel.close();
+            throw e;
+        } catch (Throwable e) {
+            socketChannel.close();
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+
+        throw new java.net.ConnectException(String.format("Socket connected to itself on %s port %s.", candidate, address.getPort()));
+    }
+
+    boolean detectSelfConnect(SocketChannel socketChannel) {
+        Socket socket = socketChannel.socket();
+        SocketAddress localAddress = socket.getLocalSocketAddress();
+        SocketAddress remoteAddress = socket.getRemoteSocketAddress();
+        if (localAddress.equals(remoteAddress)) {
+            LOGGER.debug("Detected that socket was bound to {} while connecting to {}. This looks like the socket connected to itself.",
+                localAddress, remoteAddress);
+            return true;
+        }
+        return false;
     }
 }

@@ -23,9 +23,9 @@ import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.List;
 
 class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
+    private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
 
     private static final String DEFAULT_JAVA_IMPORTS =
               "import models._;"
@@ -95,11 +95,11 @@ class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
         return false;
     }
 
-    public List<String> getClassLoaderPackages() {
-        return Arrays.asList("play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
+    public Iterable<String> getClassLoaderPackages() {
+        return SHARED_PACKAGES;
     }
 
-    public Object getDependencyNotation() {
+    public String getDependencyNotation() {
         return String.format("com.typesafe.play:twirl-compiler_%s:%s", scalaVersion, twirlVersion);
     }
 }

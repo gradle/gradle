@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.language
+
 import com.sun.xml.internal.ws.util.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
@@ -151,7 +152,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
                     }
                     resources.source {
                         srcDir "src/myLib"
-                        ${exluceStatementFor(app.sourceFileExtensions)}
+                        ${excludeStatementFor(app.sourceFileExtensions)}
                     }
                 }
             }
@@ -166,7 +167,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
     }
 
-    def exluceStatementFor(List<String> fileExtensions) {
+    def excludeStatementFor(List<String> fileExtensions) {
         fileExtensions.collect{"exclude '**/*.${it}'"}.join(SystemProperties.instance.lineSeparator)
     }
 
@@ -177,19 +178,20 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         def expectedOutputs = app.expectedOutputs*.fullPath as String[]
 
         and:
-        buildFile << """
+        buildFile << '''
     model {
         components {
-            myLib(JvmLibrarySpec)
-        }
-        jvm {
-            allBinaries {
-                classesDir = file("\${project.buildDir}/custom-classes")
-                resourcesDir = file("\${project.buildDir}/custom-resources")
+            myLib(JvmLibrarySpec) {
+                binaries {
+                    all {
+                        classesDir = new File($("buildDir"), "custom-classes")
+                        resourcesDir = new File($("buildDir"), "custom-resources")
+                    }
+                }
             }
         }
     }
-"""
+'''
         and:
         succeeds "assemble"
 

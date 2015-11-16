@@ -1,0 +1,96 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.testkit.runner.internal;
+
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.testkit.runner.internal.dist.GradleDistribution;
+
+import java.io.File;
+import java.io.OutputStream;
+import java.util.List;
+
+public class GradleExecutionParameters {
+
+    private final GradleDistribution gradleDistribution;
+    private final File gradleUserHome;
+    private final File projectDir;
+    private final List<String> buildArgs;
+    private final List<String> jvmArgs;
+    private final ClassPath injectedClassPath;
+    private final boolean embedded;
+    private final OutputStream standardOutput;
+    private final OutputStream standardError;
+
+    public GradleExecutionParameters(
+        GradleDistribution gradleDistribution,
+        File gradleUserHome,
+        File projectDir,
+        List<String> buildArgs,
+        List<String> jvmArgs,
+        ClassPath injectedClassPath,
+        boolean embedded,
+        OutputStream standardOutput,
+        OutputStream standardError
+    ) {
+        this.gradleDistribution = gradleDistribution;
+        this.gradleUserHome = gradleUserHome;
+        this.projectDir = projectDir;
+        this.buildArgs = buildArgs;
+        this.jvmArgs = jvmArgs;
+        this.injectedClassPath = injectedClassPath;
+        this.embedded = embedded;
+        this.standardOutput = standardOutput;
+        this.standardError = standardError;
+    }
+
+    public GradleDistribution getGradleDistribution() {
+        return gradleDistribution;
+    }
+
+    public File getGradleUserHome() {
+        return gradleUserHome;
+    }
+
+    public File getProjectDir() {
+        return projectDir;
+    }
+
+    public List<String> getBuildArgs() {
+        return buildArgs;
+    }
+
+    public List<String> getJvmArgs() {
+        return jvmArgs;
+    }
+
+    public ClassPath getInjectedClassPath() {
+        return injectedClassPath;
+    }
+
+    public boolean isEmbedded() {
+        return embedded;
+    }
+
+    public OutputStream getStandardOutput() {
+        return standardOutput;
+    }
+
+    public OutputStream getStandardError() {
+        return standardError;
+    }
+
+}

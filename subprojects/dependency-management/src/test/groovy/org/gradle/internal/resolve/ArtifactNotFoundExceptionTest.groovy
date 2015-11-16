@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resolve
 
-import org.gradle.internal.component.model.ComponentArtifactIdentifier
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 

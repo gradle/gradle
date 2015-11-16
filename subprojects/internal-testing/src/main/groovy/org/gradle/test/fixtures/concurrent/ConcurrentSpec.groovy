@@ -36,7 +36,7 @@ import java.util.concurrent.Executor
  */
 @Timeout(60)
 class ConcurrentSpec extends Specification {
-    private final TestLogger logger = new TestLogger()
+    final TestLogger logger = new TestLogger()
 
     /**
      * An object that allows instants to be defined and queried.
@@ -56,6 +56,8 @@ class ConcurrentSpec extends Specification {
      * An object that allows control over the current thread.
      */
     final TestThread thread = new TestThread(instant)
+
+    final BlockTarget waitFor = new BlockTarget(instant)
 
     private final TestExecutor executor = new TestExecutor(logger)
     private final TestExecutorFactory executorFactory = new TestExecutorFactory(executor)

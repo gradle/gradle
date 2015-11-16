@@ -21,10 +21,54 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.PlatformAwareComponentSpec;
 
 /**
- * Definition of a play framework software component that is built by Gradle.
+ * Definition of a Play Framework software component that is built by Gradle.
  */
 @Incubating @HasInternalProtocol
 public interface PlayApplicationSpec extends PlatformAwareComponentSpec {
 
+    /**
+     * Specifies a {@link org.gradle.play.platform.PlayPlatform} with a given set of requirements that this
+     * component should be built be for.  Can accept a map of play, scala and/or java requirements or a string
+     * representation of the desired play platform.
+     * <pre>
+     *     model {
+     *          components {
+     *              play {
+     *                  platform 'play-2.3.9'
+     *                  platform play: '2.3.2'
+     *                  platform play: '2.3.6', scala: '2.10'
+     *                  platform play: '2.3.7', scala: '2.11', java: '1.8'
+     *              }
+     *          }
+     *      }
+     * </pre>
+     * @param platformRequirements Map of Play requirements or the name of an Play platform.
+     */
     void platform(Object platformRequirements);
+
+    /**
+     * Configures the style of router to use with this application.
+     *
+     * <p>
+     * By default, a static routes generator is used to generate a singleton router.  This requires that all the actions
+     * that the router invokes on the application's controllers are either Scala singleton objects, or Java static methods.
+     * </p>
+     *
+     * <p>
+     * In Play 2.4+, a injected routes generator is recommended.  This requires that the router declares its
+     * dependencies to the application's controllers in its constructor.  The controllers methods need to be instance methods.
+     * </p>
+     *
+     * @param injectedRoutesGenerator false if a static router should be generated (default).
+     * true if an injected router should be generated.
+     */
+    void setInjectedRoutesGenerator(boolean injectedRoutesGenerator);
+
+    /**
+     * Will an injected router be generated for this application?
+     *
+     * @return false if a static router will be generated for the application,
+     * true if an injected router will be generated.
+     */
+    boolean getInjectedRoutesGenerator();
 }

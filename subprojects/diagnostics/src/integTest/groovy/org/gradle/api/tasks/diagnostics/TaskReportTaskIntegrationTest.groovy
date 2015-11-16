@@ -19,8 +19,6 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "task selector description is taken from task that TaskNameComparator considers to be of lowest ordering"() {
@@ -40,11 +38,11 @@ task alpha { description = 'ALPHA_in_sub2' }
         run "tasks"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 Other tasks
 -----------
 alpha - ALPHA_in_sub1
-"""))
+"""
     }
 
     def "task report includes tasks defined via model rules"() {

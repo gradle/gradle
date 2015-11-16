@@ -77,16 +77,6 @@ Add the following types:
 
 - For each build type, generate and execute the build.
 
-# Story: User specifies target gradle version when generating the wrapper
-
-This story adds a commandline property `--gradle-version` to the `wrapper` task to specify the desired Gradle version:
-
-* Add `--gradle-version` command-line option to `wrapper`.
-
-## Test coverage
-
-* Running `gradle wrapper --gradle-version 1.6` generates valid `wrapper.properties` with correct URL.
-
 # Story: Update the user guide Java tutorial to use the `init` task
 
 # Story: Gradle help message informs user how to init a build

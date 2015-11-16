@@ -20,10 +20,11 @@ import spock.lang.Specification
 
 class DefaultJavaSourceSetTest extends Specification {
     def "has useful String representation"() {
-        def resourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
+        def sourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
 
         expect:
-        resourceSet.displayName == "Java source 'mainX:javaX'"
-        resourceSet.toString() == "Java source 'mainX:javaX'"
+        sourceSet.displayName == "Java source 'mainX:javaX'"
+        sourceSet.toString() == "Java source 'mainX:javaX'"
     }
+
 }

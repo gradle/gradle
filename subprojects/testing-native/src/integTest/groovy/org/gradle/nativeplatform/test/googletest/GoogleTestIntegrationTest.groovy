@@ -22,13 +22,16 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
+import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@LeaksFileHandles
 class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def prebuiltPath = TextUtil.normaliseFileSeparators(new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/google-test/libs").path)
@@ -68,12 +71,25 @@ model {
         }
     }
 }
-binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    lib library: "googleTest", linkage: "static"
-}
-
 tasks.withType(RunTestExecutable) {
     args "--gtest_output=xml:test_detail.xml"
+}
+"""
+        addGoogleTestDep()
+    }
+
+    private void addGoogleTestDep() {
+        buildFile << """
+model {
+    binaries {
+        withType(GoogleTestTestSuiteBinarySpec) {
+            lib library: "googleTest", linkage: "static"
+            if (targetPlatform.operatingSystem.linux) {
+                cppCompiler.args '-pthread'
+                linker.args '-pthread'
+            }
+        }
+    }
 }
 """
     }
@@ -126,6 +142,23 @@ tasks.withType(RunTestExecutable) {
         testResults.checkTestCases(1, 1, 0)
     }
 
+    @Issue("GRADLE-3225")
+    def "can build and run googleTest test suite with C and C++ plugins"() {
+        given:
+        useConventionalSourceLocations()
+        useStandardConfig()
+        buildFile << "apply plugin: 'c'"
+        file("src/hello/c").createDir().file("foo.c").text = "int foobar() { return 0; }"
+
+        when:
+        run "runHelloTestGoogleTestExe"
+
+        then:
+        executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloC",
+            ":compileHelloTestGoogleTestExeHelloTestCpp",
+            ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
+    }
+
     def "can configure via testSuite component"() {
         given:
         useConventionalSourceLocations()
@@ -150,6 +183,7 @@ tasks.withType(RunTestExecutable) {
     args "--gtest_output=xml:test_detail.xml"
 }
 """
+        addGoogleTestDep()
 
         when:
         run "runHelloTestGoogleTestExe"
@@ -172,8 +206,12 @@ tasks.withType(RunTestExecutable) {
 
         when:
         buildFile << """
-binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    cppCompiler.define "ONE_TEST"
+model {
+    binaries {
+        withType(GoogleTestTestSuiteBinarySpec) {
+            cppCompiler.define "ONE_TEST"
+        }
+    }
 }
 """
         and:
@@ -196,8 +234,7 @@ model {
     testSuites {
         helloTest {
             sources {
-                // TODO:DAZ Should not need type here (source set should already be created)
-                cpp(CppSourceSet) {
+                cpp {
                     source.srcDir "src/alternateHelloTest/cpp"
                 }
             }
@@ -221,8 +258,7 @@ model {
     testSuites {
         helloTest {
             sources {
-                // TODO:DAZ Should not need type here (source set should already be created)
-                cpp(CppSourceSet) {
+                cpp {
                     source.srcDir "src/alternateHelloTest/cpp"
                 }
             }
@@ -246,22 +282,21 @@ model {
         buildFile << """
 model {
     components {
-        hello(NativeLibrarySpec) {
+        hello(NativeLibrarySpec) { l ->
             targetPlatform "x86"
             binaries.all {
                 sources {
                     variant(CppSourceSet) {
                         source.srcDir "src/variant/cpp"
+                        lib l.sources.cpp
                     }
                 }
             }
         }
     }
 }
-binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    lib library: "googleTest", linkage: "static"
-}
 """
+        addGoogleTestDep()
 
         then:
         succeeds "runHelloTestGoogleTestExe"
@@ -277,12 +312,12 @@ binaries.withType(GoogleTestTestSuiteBinarySpec) {
         buildFile << """
 model {
     testSuites {
-        helloTest {
+        helloTest { t ->
             binaries.all {
                 sources {
                     variant(CppSourceSet) {
                         source.srcDir "src/variantTest/cpp"
-                        lib sources.cpp
+                        lib t.sources.cpp
                     }
                 }
             }

@@ -19,6 +19,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 
@@ -45,8 +46,14 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         return tree.getDisplayName();
     }
 
-    public void resolve(FileCollectionResolveContext context) {
+    @Override
+    public void visitContents(FileCollectionResolveContext context) {
         context.add(tree);
+    }
+
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        tree.registerWatchPoints(builder);
     }
 
     @Override
@@ -79,6 +86,12 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         if (tree instanceof RandomAccessFileCollection) {
             RandomAccessFileCollection randomAccess = (RandomAccessFileCollection) tree;
             return randomAccess.contains(file);
+        }
+        if (tree instanceof MapFileTree) {
+            return ((MapFileTree) tree).getFilesWithoutCreating().contains(file);
+        }
+        if (tree instanceof FileSystemMirroringFileTree) {
+            return ((FileSystemMirroringFileTree) tree).getMirror().contains(file);
         }
         return super.contains(file);
     }

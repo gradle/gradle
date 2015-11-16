@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileTreeInternal;
 
 import java.util.List;
 
@@ -24,10 +24,10 @@ public interface ResolvableFileCollectionResolveContext extends FileCollectionRe
     /**
      * Resolves the contents of this context as a sequence of atomic file collections.
      */
-    List<FileCollection> resolveAsFileCollections();
+    List<FileCollectionInternal> resolveAsFileCollections();
 
     /**
      * Resolves the contents of this context as a sequence of atomic file trees.
      */
-    List<FileTree> resolveAsFileTrees();
+    List<FileTreeInternal> resolveAsFileTrees();
 }

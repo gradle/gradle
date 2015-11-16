@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.Nullable;
 
 public class DecoratingTestDescriptor implements TestDescriptorInternal {
     private final TestDescriptorInternal descriptor;
@@ -32,12 +32,22 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
         return descriptor.toString();
     }
 
-    public TestDescriptor getParent() {
+    public TestDescriptorInternal getDescriptor() {
+        return descriptor;
+    }
+
+    public TestDescriptorInternal getParent() {
         return parent;
     }
 
     public Object getId() {
         return descriptor.getId();
+    }
+
+    @Nullable
+    @Override
+    public Object getOwnerBuildOperationId() {
+        return descriptor.getOwnerBuildOperationId();
     }
 
     public String getClassName() {

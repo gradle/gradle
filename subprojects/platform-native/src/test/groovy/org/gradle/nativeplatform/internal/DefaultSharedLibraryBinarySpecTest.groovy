@@ -20,25 +20,21 @@ import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.language.nativeplatform.NativeResourceSet
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-
-import static org.gradle.nativeplatform.internal.configure.DefaultNativeBinariesFactory.create
 
 class DefaultSharedLibraryBinarySpecTest extends Specification {
     @Rule
@@ -88,10 +84,10 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
             getFiles() >> [tmpDir.createFile("input.src")]
         }
         def sourceSet = Stub(HeaderExportingSourceSet) {
-            getSource() >> sourceDirSet
+            getSources() >> sourceDirSet
             getExportedHeaders() >> headerDirSet
         }
-        binary.source sourceSet
+        binary.inputs.add sourceSet
 
         expect:
         binary.sharedLibraryFile == sharedLibraryFile
@@ -117,9 +113,9 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
             getFiles() >> [tmpDir.createFile("input.rc")]
         }
         def resourceSet = Stub(NativeResourceSet) {
-            getSource() >> sourceDirSet
+            getSources() >> sourceDirSet
         }
-        binary.source resourceSet
+        binary.inputs.add resourceSet
 
         def binaryFile = tmpDir.createFile("binary.run")
         def linkFile = tmpDir.createFile("binary.link")
@@ -151,7 +147,8 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
     }
 
     private DefaultSharedLibraryBinarySpec getSharedLibrary() {
-        final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"), new DefaultFunctionalSourceSet("name", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet)), instantiator);
-        return create(DefaultSharedLibraryBinarySpec, instantiator, library, namingScheme, resolver, toolChain, Stub(PlatformToolProvider), platform, buildType, new DefaultFlavor("flavorOne"), Mock(ITaskFactory))
+        final library = BaseComponentFixtures.create(DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "libName"), instantiator);
+        TestNativeBinariesFactory.create(DefaultSharedLibraryBinarySpec, "test", Mock(ITaskFactory), library, namingScheme, resolver,
+                                         platform, buildType, new DefaultFlavor("flavorOne"))
     }
 }

@@ -9,7 +9,7 @@
 if "%OS%"=="Windows_NT" setlocal
 
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-set DEFAULT_JVM_OPTS=-Xmx1024m -XX:MaxPermSize=256m -Dfile.encoding=UTF-8
+set DEFAULT_JVM_OPTS=-Xmx1024m -Dfile.encoding=UTF-8
 
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.

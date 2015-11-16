@@ -43,6 +43,9 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> targetVersions = []
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
+    int maxLimitIncreasePercentage = 10
+
+    BuildExperimentListener buildExperimentListener
 
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter) {
         this.reporter = reporter
@@ -50,7 +53,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     CrossVersionPerformanceResults run() {
-        assert !targetVersions.empty
         assert testId
 
         def results = new CrossVersionPerformanceResults(
@@ -75,8 +77,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         // A target version may be something that is yet unreleased, so filter that out
         allVersions.removeAll { !releasedVersions.contains(it) }
 
-        assert !allVersions.isEmpty()
-
         File projectDir = testProjectLocator.findProjectDir(testProject)
 
         println "Running performance tests for test project '$testProject', no. of runs: $runs"
@@ -85,6 +85,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             def baselineVersion = results.baseline(it)
             baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
             baselineVersion.maxMemoryRegression = maxMemoryRegression
+            baselineVersion.maxLimitIncreasePercentage = maxLimitIncreasePercentage
 
             runVersion(buildContext.distribution(baselineVersion.version), projectDir, baselineVersion.results)
         }
@@ -98,11 +99,12 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
-        def spec = BuildExperimentSpec.builder()
+        def builder = BuildExperimentSpec.builder()
                 .projectName(testId)
                 .displayName(dist.version.version)
                 .warmUpCount(warmUpRuns)
                 .invocationCount(runs)
+                .listener(buildExperimentListener)
                 .invocation {
             workingDirectory(projectDir)
             distribution(dist)
@@ -110,7 +112,9 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             args(this.args as String[])
             gradleOpts(this.gradleOpts as String[])
             useDaemon(this.useDaemon)
-        }.build()
+        }
+
+        def spec = builder.build()
 
         experimentRunner.run(spec, results)
     }

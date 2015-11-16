@@ -16,23 +16,14 @@
 
 package org.gradle.api.publication.maven.internal.action;
 
-import org.codehaus.plexus.PlexusContainerException;
-
 import java.io.File;
+import java.util.List;
 
 /**
  * A deploy action that uses the baked in Maven wagon implementations, or a custom user-provided wagon implemented.
  */
 public class MavenWagonDeployAction extends MavenDeployAction {
-    public MavenWagonDeployAction(File pomFile) {
-        super(pomFile);
-    }
-
-    public void addWagonJar(File jar) {
-        try {
-            getContainer().addJarResource(jar);
-        } catch (PlexusContainerException e) {
-            throw new RuntimeException(e);
-        }
+    public MavenWagonDeployAction(File pomFile, List<File> jars) {
+        super(pomFile, jars);
     }
 }

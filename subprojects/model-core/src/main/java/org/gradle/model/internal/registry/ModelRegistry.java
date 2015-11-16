@@ -21,7 +21,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
 
-public interface ModelRegistry extends ModelRegistrar {
+public interface ModelRegistry {
 
     /**
      * Get the fully defined model element at the given path as the given type.
@@ -33,7 +33,7 @@ public interface ModelRegistry extends ModelRegistrar {
      * @param <T> the type to project the node as
      * @return the node as the given type
      */
-    public <T> T realize(ModelPath path, ModelType<T> type);
+    <T> T realize(ModelPath path, ModelType<T> type);
 
     /**
      * Get the fully defined model element at the given path.
@@ -41,9 +41,8 @@ public interface ModelRegistry extends ModelRegistrar {
      * No attempt to mutate the returned object should be made.
      *
      * @param path the path for the node
-     * @return the node, or null if no such element.
+     * @return the node.
      */
-    @Nullable
     ModelNode realizeNode(ModelPath path);
 
     /**
@@ -73,7 +72,7 @@ public interface ModelRegistry extends ModelRegistrar {
      * @return the node at the desired state, or null if node is unknown
      */
     @Nullable
-    public ModelNode atState(ModelPath path, ModelNode.State state);
+    ModelNode atState(ModelPath path, ModelNode.State state);
 
     /**
      * Returns the node at the given path at the desired state or later, if it exists.
@@ -88,17 +87,15 @@ public interface ModelRegistry extends ModelRegistrar {
      * @return the node at the desired state, or null if node is unknown
      */
     @Nullable
-    public ModelNode atStateOrLater(ModelPath path, ModelNode.State state);
+    ModelNode atStateOrLater(ModelPath path, ModelNode.State state);
 
-    public ModelNode.State state(ModelPath path);
+    ModelNode.State state(ModelPath path);
 
     void remove(ModelPath path);
 
-    @Override
-    ModelRegistry replace(ModelCreator newCreator);
+    ModelRegistry replace(ModelRegistration newRegistration);
 
-    @Override
-    ModelRegistry createOrReplace(ModelCreator newCreator);
+    ModelRegistry registerOrReplace(ModelRegistration newRegistration);
 
     /**
      * Attempts to bind the references of all model rules known at this point in time.
@@ -118,16 +115,18 @@ public interface ModelRegistry extends ModelRegistrar {
      */
     void bindAllReferences() throws UnboundModelRulesException;
 
-    @Override
-    ModelRegistry create(ModelCreator creator);
+    ModelRegistry register(ModelRegistration registration);
 
-    @Override
-    <T> ModelRegistry configure(ModelActionRole role, ModelAction<T> action);
+    ModelRegistry configure(ModelActionRole role, ModelAction action);
+
+    ModelRegistry configure(ModelActionRole role, ModelAction action, ModelPath scope);
 
     ModelRegistry apply(Class<? extends RuleSource> rules);
 
+    MutableModelNode getRoot();
+
     @Nullable
-    ModelNode node(ModelPath path);
+    MutableModelNode node(ModelPath path);
 
     /**
      * Resets the state of the model registry, discarding all ephemeral state.

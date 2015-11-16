@@ -26,12 +26,14 @@ import java.util.Set;
 public class AntlrSpec implements Serializable {
 
     private List<String> arguments;
+    private Set<File> inputDirectories;
     private Set<File> grammarFiles;
     private String maxHeapSize;
     private File outputDirectory;
 
-    public AntlrSpec(List<String> arguments, Set<File> grammarFiles, File outputDirectory, String maxHeapSize) {
+    public AntlrSpec(List<String> arguments, Set<File> grammarFiles, Set<File> inputDirectories, File outputDirectory, String maxHeapSize) {
         this.arguments = arguments;
+        this.inputDirectories = inputDirectories;
         this.grammarFiles = grammarFiles;
         this.outputDirectory = outputDirectory;
         this.maxHeapSize = maxHeapSize;
@@ -53,18 +55,10 @@ public class AntlrSpec implements Serializable {
         return outputDirectory;
     }
 
-    public List<String> asCommandLineWithoutFiles() {
+    public List<String> asArgumentsWithFiles() {
         List<String> commandLine = Lists.newLinkedList(arguments);
-
         commandLine.add("-o");
         commandLine.add(getOutputDirectory().getAbsolutePath());
-
-        return commandLine;
-    }
-
-    public List<String> asCommandLineWithFiles() {
-        List<String> commandLine = Lists.newLinkedList(asCommandLineWithoutFiles());
-
         for (File file : getGrammarFiles()) {
             commandLine.add(file.getAbsolutePath());
         }
@@ -72,4 +66,7 @@ public class AntlrSpec implements Serializable {
         return commandLine;
     }
 
+    public Set<File> getInputDirectories() {
+        return inputDirectories;
+    }
 }

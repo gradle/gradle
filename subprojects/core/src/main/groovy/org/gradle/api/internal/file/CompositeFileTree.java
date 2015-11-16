@@ -20,18 +20,22 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.internal.Cast;
 
-import java.util.List;
+import java.util.Collection;
 
-public abstract class CompositeFileTree extends CompositeFileCollection implements FileTree {
-    protected List<FileTree> getSourceCollections() {
-        return (List) super.getSourceCollections();
+/**
+ * A {@link FileTree} that contains the union of zero or more file trees.
+ */
+public abstract class CompositeFileTree extends CompositeFileCollection implements FileTreeInternal {
+    protected Collection<? extends FileTreeInternal> getSourceCollections() {
+        return Cast.uncheckedCast(super.getSourceCollections());
     }
 
     public FileTree plus(FileTree fileTree) {
-        return new UnionFileTree(this, fileTree);
+        return new UnionFileTree(this, Cast.cast(FileTreeInternal.class, fileTree));
     }
 
     public FileTree matching(Closure filterConfigClosure) {
@@ -81,14 +85,9 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         }
 
         @Override
-        public TaskDependency getBuildDependencies() {
-            return CompositeFileTree.this.getBuildDependencies();
-        }
-
-        @Override
-        public void resolve(FileCollectionResolveContext context) {
+        public void visitContents(FileCollectionResolveContext context) {
             ResolvableFileCollectionResolveContext nestedContext = context.newContext();
-            CompositeFileTree.this.resolve(nestedContext);
+            CompositeFileTree.this.visitContents(nestedContext);
             for (FileTree set : nestedContext.resolveAsFileTrees()) {
                 if (closure != null) {
                     context.add(set.matching(closure));
@@ -96,6 +95,11 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
                     context.add(set.matching(patterns));
                 }
             }
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            CompositeFileTree.this.visitDependencies(context);
         }
     }
 }

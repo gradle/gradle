@@ -14,14 +14,17 @@ dependencies {
 
     testCompile libraries.groovy
 
+    integTestCompile project(':internalIntegTesting')
     integTestRuntime project(':plugins')
 
-    startScriptGenerator project(':plugins')
+    testFixturesCompile project(':internalIntegTesting')
 
-    testFixturesCompile project(':internalTesting')
+    startScriptGenerator project(':plugins')
 }
 
 useTestFixtures()
+useTestFixtures(project: ':languageJava')
+useTestFixtures(project: ':messaging')
 
 integTestTasks.all {
     if (isCiServer) {

@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import com.google.common.collect.Lists
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
@@ -76,7 +75,7 @@ class ResolveIvyFactoryTest extends Specification {
 
     def "returns an empty resolver when no repositories are configured" () {
         when:
-        def resolver = resolveIvyFactory.create(Stub(ConfigurationInternal), Collections.emptyList(), Stub(ComponentMetadataProcessor))
+        def resolver = resolveIvyFactory.create(Stub(ResolutionStrategyInternal), Collections.emptyList(), Stub(ComponentMetadataProcessor))
 
         then:
         resolver instanceof NoRepositoriesResolver
@@ -85,10 +84,8 @@ class ResolveIvyFactoryTest extends Specification {
     def "sets parent resolver with different selection rules when repository is external" () {
         def componentSelectionRules = Stub(ComponentSelectionRulesInternal)
 
-        def configuration = Stub(ConfigurationInternal) {
-            getResolutionStrategy() >> Stub(ResolutionStrategyInternal) {
-                getComponentSelection() >> componentSelectionRules
-            }
+        def resolutionStrategy = Stub(ResolutionStrategyInternal) {
+            getComponentSelection() >> componentSelectionRules
         }
 
         def spyResolver = externalResourceResolverSpy()
@@ -97,13 +94,13 @@ class ResolveIvyFactoryTest extends Specification {
         })
 
         when:
-        def resolver = resolveIvyFactory.create(configuration, repositories, Stub(ComponentMetadataProcessor))
+        def resolver = resolveIvyFactory.create(resolutionStrategy, repositories, Stub(ComponentMetadataProcessor))
 
         then:
         assert resolver instanceof UserResolverChain
         resolver.componentSelectionRules == componentSelectionRules
 
-        1 * spyResolver.setRepositoryChain(_) >> { RepositoryChain parentResolver ->
+        1 * spyResolver.setComponentResolvers(_) >> { ComponentResolvers parentResolver ->
             assert parentResolver instanceof ResolveIvyFactory.ParentModuleLookupResolver
             // Validate that the parent repository chain selection rules are different and empty
             def parentComponentSelectionRules = parentResolver.delegate.componentSelectionRules

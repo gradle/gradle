@@ -19,53 +19,55 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
+import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.logging.LoggingManagerInternal;
 
-import java.io.Closeable;
-
 public class DefaultGradleLauncher extends GradleLauncher {
+
     private enum Stage {
         Configure, Build
     }
 
     private final GradleInternal gradle;
-    private final SettingsHandler settingsHandler;
-    private final BuildLoader buildLoader;
+    private final InitScriptHandler initScriptHandler;
+    private final SettingsLoader settingsLoader;
     private final BuildConfigurer buildConfigurer;
     private final ExceptionAnalyser exceptionAnalyser;
-    private final BuildListener buildListener;
-    private final InitScriptHandler initScriptHandler;
     private final LoggingManagerInternal loggingManager;
+    private final BuildListener buildListener;
     private final ModelConfigurationListener modelConfigurationListener;
-    private final TasksCompletionListener tasksCompletionListener;
     private final BuildCompletionListener buildCompletionListener;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
-    private final Closeable buildServices;
+    private final BuildScopeServices buildServices;
 
     /**
      * Creates a new instance.
      */
-    public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
-                                 BuildLoader buildLoader, BuildConfigurer buildConfigurer, BuildListener buildListener,
-                                 ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager,
-                                 ModelConfigurationListener modelConfigurationListener, TasksCompletionListener tasksCompletionListener,
-                                 BuildExecuter buildExecuter, BuildCompletionListener buildCompletionListener,
-                                 Closeable buildServices) {
+    public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsLoader settingsLoader,
+                                 BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
+                                 LoggingManagerInternal loggingManager, BuildListener buildListener,
+                                 ModelConfigurationListener modelConfigurationListener,
+                                 BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
+                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter, BuildScopeServices buildServices) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
-        this.settingsHandler = settingsHandler;
-        this.buildLoader = buildLoader;
+        this.settingsLoader = settingsLoader;
         this.buildConfigurer = buildConfigurer;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
         this.loggingManager = loggingManager;
         this.modelConfigurationListener = modelConfigurationListener;
-        this.tasksCompletionListener = tasksCompletionListener;
+        this.buildOperationExecutor = operationExecutor;
+        this.buildConfigurationActionExecuter = buildConfigurationActionExecuter;
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
@@ -75,87 +77,90 @@ public class DefaultGradleLauncher extends GradleLauncher {
         return gradle;
     }
 
-    /**
-     * <p>Executes the build for this GradleLauncher instance and returns the result. Note that when the build fails,
-     * the exception is available using {@link org.gradle.BuildResult#getFailure()}.</p>
-     *
-     * @return The result. Never returns null.
-     */
     @Override
     public BuildResult run() {
         return doBuild(Stage.Build);
     }
 
-    /**
-     * Evaluates the settings and all the projects. The information about available tasks and projects is accessible via
-     * the {@link org.gradle.api.invocation.Gradle#getRootProject()} object.
-     *
-     * @return A BuildResult object. Never returns null.
-     */
     @Override
     public BuildResult getBuildAnalysis() {
         return doBuild(Stage.Configure);
     }
 
-    private BuildResult doBuild(Stage upTo) {
+    private BuildResult doBuild(final Stage upTo) {
         loggingManager.start();
-        buildListener.buildStarted(gradle);
 
-        Throwable failure = null;
-        try {
-            doBuildStages(upTo);
-        } catch (Throwable t) {
-            failure = exceptionAnalyser.transform(t);
-        }
-        BuildResult buildResult = new BuildResult(gradle, failure);
-        buildListener.buildFinished(buildResult);
+        return buildOperationExecutor.run("Run build", new Factory<BuildResult>() {
+            @Override
+            public BuildResult create() {
+                Throwable failure = null;
+                try {
+                    buildListener.buildStarted(gradle);
+                    doBuildStages(upTo);
+                } catch (Throwable t) {
+                    failure = exceptionAnalyser.transform(t);
+                }
+                BuildResult buildResult = new BuildResult(gradle, failure);
+                buildListener.buildFinished(buildResult);
+                if (failure != null) {
+                    throw new ReportedException(failure);
+                }
 
-        return buildResult;
+                return buildResult;
+            }
+        });
     }
 
     private void doBuildStages(Stage upTo) {
         // Evaluate init scripts
         initScriptHandler.executeScripts(gradle);
 
-        // Evaluate settings script
-        SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle);
-        buildListener.settingsEvaluated(settings);
-
-        // Load build
-        buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
-        buildListener.projectsLoaded(gradle);
+        // Calculate projects
+        settingsLoader.findAndLoadSettings(gradle);
 
         // Configure build
-        buildConfigurer.configure(gradle);
+        buildOperationExecutor.run("Configure build", new Runnable() {
+            @Override
+            public void run() {
+                buildConfigurer.configure(gradle);
 
-        if (!gradle.getStartParameter().isConfigureOnDemand()) {
-            buildListener.projectsEvaluated(gradle);
-        }
+                if (!gradle.getStartParameter().isConfigureOnDemand()) {
+                    buildListener.projectsEvaluated(gradle);
+                }
 
-        modelConfigurationListener.onConfigure(gradle);
+                modelConfigurationListener.onConfigure(gradle);
+            }
+        });
 
         if (upTo == Stage.Configure) {
             return;
         }
 
         // Populate task graph
-        buildExecuter.select(gradle);
-
-        if (gradle.getStartParameter().isConfigureOnDemand()) {
-            buildListener.projectsEvaluated(gradle);
-        }
+        buildOperationExecutor.run("Calculate task graph", new Runnable() {
+            @Override
+            public void run() {
+                buildConfigurationActionExecuter.select(gradle);
+                if (gradle.getStartParameter().isConfigureOnDemand()) {
+                    buildListener.projectsEvaluated(gradle);
+                }
+            }
+        });
 
         // Execute build
-        buildExecuter.execute();
-        tasksCompletionListener.onTasksFinished(gradle);
+        buildOperationExecutor.run("Run tasks", new Runnable() {
+            @Override
+            public void run() {
+                buildExecuter.execute(gradle);
+            }
+        });
 
         assert upTo == Stage.Build;
     }
 
     /**
-     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the
-     * execution of the build. See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for supported listener
-     * types.</p>
+     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the execution of the build. See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for
+     * supported listener types.</p>
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
@@ -165,8 +170,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     /**
-     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to
-     * standard output by Gradle's logging system
+     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard output by Gradle's logging system
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
@@ -176,8 +180,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     /**
-     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to
-     * standard error by Gradle's logging system
+     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard error by Gradle's logging system
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */

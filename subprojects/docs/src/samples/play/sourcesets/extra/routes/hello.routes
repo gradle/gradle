@@ -1,0 +1,3 @@
+# Hello page
+GET     /:name                controllers.hello.HelloController.index(name)
+

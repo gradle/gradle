@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.launcher.daemon.context.DaemonInstanceDetails
+import org.gradle.launcher.daemon.protocol.Message
 import org.gradle.messaging.remote.internal.MessageIOException
 import org.gradle.messaging.remote.internal.RemoteConnection
 import spock.lang.Specification
@@ -44,34 +45,39 @@ class DaemonClientConnectionTest extends Specification {
     }
 
     def "dispatches messages"() {
+        def message = Stub(Message)
+
         when:
-        connection.dispatch("foo")
+        connection.dispatch(message)
 
         then:
-        1 * delegate.dispatch("foo")
+        1 * delegate.dispatch(message)
         0 * staleAddressDetector._
     }
 
     def "receives messages"() {
+        def message = Stub(Message)
+
         given:
-        delegate.receive() >> "bar"
+        delegate.receive() >> message
 
         when:
         def out = connection.receive()
 
         then:
-        "bar" == out
+        out == message
         0 * staleAddressDetector._
     }
 
     def "treats failure to dispatch before receiving as a stale address"() {
+        def message = Stub(Message)
         def failure = new FooException()
 
         given:
-        delegate.dispatch("foo") >> { throw failure }
+        delegate.dispatch(message) >> { throw failure }
 
         when:
-        connection.dispatch("foo")
+        connection.dispatch(message)
 
         then:
         def ex = thrown(StaleDaemonAddressException)
@@ -82,14 +88,15 @@ class DaemonClientConnectionTest extends Specification {
 
     def "handles failed dispatch"() {
         def failure = new FooException()
+        def message = Stub(Message)
 
         given:
-        delegate.receive() >> "result"
-        delegate.dispatch("broken") >> { throw failure }
+        delegate.receive() >> Stub(Message)
+        delegate.dispatch(message) >> { throw failure }
 
         when:
         connection.receive()
-        connection.dispatch("broken")
+        connection.dispatch(message)
 
         then:
         def ex = thrown(DaemonConnectionException)
@@ -118,7 +125,7 @@ class DaemonClientConnectionTest extends Specification {
         def failure = new FooException()
 
         given:
-        1 * delegate.receive() >> "first"
+        1 * delegate.receive() >> Stub(Message)
         delegate.receive() >> { throw failure }
 
         when:

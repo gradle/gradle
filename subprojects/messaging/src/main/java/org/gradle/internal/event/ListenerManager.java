@@ -20,14 +20,20 @@ package org.gradle.internal.event;
  * Unified manager for all listeners for Gradle.  Provides a simple way to find all listeners of a given type in the
  * system.
  *
- * While the methods work with any Object, in general only interfaces should be used as listener types.  Also, due to
- * implementation details, any listener method with a non-void return type will return a null.
+ * <p>While the methods work with any Object, in general only interfaces should be used as listener types.
+ *
+ * <p>Implementations are thread-safe: A listener is notified by at most 1 thread at a time, and so do not need to be thread-safe. All listeners
+ * of a given type received events in the same order. Listeners can be added and removed at any time.
  */
 public interface ListenerManager {
     /**
      * Added a listener.  A single object can implement multiple interfaces, and all interfaces are registered by a
      * single invocation of this method.  There is no order dependency: if a broadcaster has already been made for type
      * T, the listener will be registered with it if <code>(listener instanceof T)</code> returns true.
+     *
+     * <p>A listener will be used by a single thread at a time, so the listener implementation does not need to be thread-safe.
+     *
+     * <p>The listener will not receive events that are currently being broadcast from some other thread.
      *
      * @param listener the listener to add.
      */
@@ -38,14 +44,21 @@ public interface ListenerManager {
      * single invocation of this method.  There is no order dependency: if a broadcaster has already been made for type
      * T, the listener will be unregistered with it if <code>(listener instanceof T)</code> returns true.
      *
+     * <p>When this method returns, the listener will not be in use and will not receive any further events.
+     *
      * @param listener the listener to remove.
      */
     void removeListener(Object listener);
 
     /**
-     * Returns a broadcaster for the given listenerClass.  If there are no registered listeners for that type, a
-     * broadcaster is returned which does not forward method calls to any listeners.  The returned broadcasters are
-     * live, that is their list of listeners can be updated by calls to {@link #addListener(Object)} and {@link
+     * Returns a broadcaster for the given listenerClass. Any method invoked on the broadcaster is forwarded to all registered
+     * listeners of the given type. This is done synchronously. Any listener method with a non-void return type will return a null.
+     * Exceptions are propagated, and multiple failures are packaged up in a {@link ListenerNotificationException}.
+     *
+     * <p>A listener is used by a single thread at a time.
+     *
+     * <p>If there are no registered listeners for the requested type, a broadcaster is returned which does not forward method calls to any listeners.
+     * The returned broadcasters are live, that is their list of listeners can be updated by calls to {@link #addListener(Object)} and {@link
      * #removeListener(Object)} after they have been returned.  Broadcasters are also cached, so that repeatedly calling
      * this method with the same listenerClass returns the same broadcaster object.
      *
@@ -63,6 +76,8 @@ public interface ListenerManager {
      * of the listener as they need.  The client code must provide some way for its users to register listeners on the
      * specialized broadcasters.
      *
+     * <p>The returned value is not thread-safe.</p>
+     *
      * @param listenerClass The type of listener for which to create a broadcaster.
      * @return A broadcaster that forwards method calls to all listeners assigned to it, or of the same type that have
      *         been (or will be) registered with this manager.
@@ -71,7 +86,7 @@ public interface ListenerManager {
 
     /**
      * Uses the given object as a logger. Each listener class has exactly one logger associated with it. Any existing
-     * logger for the listener class is discarded.
+     * logger for the listener class is discarded. Loggers are otherwise treated the same way as listeners.
      *
      * @param logger The new logger to use.
      */

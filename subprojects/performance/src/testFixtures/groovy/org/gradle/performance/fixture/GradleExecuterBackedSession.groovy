@@ -30,7 +30,6 @@ class GradleExecuterBackedSession implements GradleSession {
     GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider
         this.invocation = invocation
-
     }
 
     @Override
@@ -39,17 +38,19 @@ class GradleExecuterBackedSession implements GradleSession {
     }
 
     @Override
-    Runnable runner() {
-        def runner = createExecuter(true)
+    Runnable runner(GradleInvocationCustomizer invocationCustomizer) {
+        def runner = createExecuter(invocationCustomizer, true)
         return { runner.run() }
     }
 
     @Override
     void cleanup() {
-        createExecuter(false).withTasks().withArgument("--stop").run()
+        createExecuter(null, false).withTasks().withArgument("--stop").run()
     }
 
-    private GradleExecuter createExecuter(boolean withGradleOpts) {
+    private GradleExecuter createExecuter(GradleInvocationCustomizer invocationCustomizer, boolean withGradleOpts) {
+        def invocation = invocationCustomizer ? invocationCustomizer.customize(this.invocation) : this.invocation
+
         def executer = invocation.gradleDistribution.executer(testDirectoryProvider).
                 requireGradleHome().
                 requireIsolatedDaemons().
@@ -60,17 +61,13 @@ class GradleExecuterBackedSession implements GradleSession {
                 withTasks(invocation.tasksToRun)
 
         if (withGradleOpts) {
-            if (invocation.useDaemon) {
-                executer.withGradleOpts("-Dorg.gradle.jvmargs=" + invocation.gradleOpts.join(" "))
-            } else {
-                executer.withGradleOpts(invocation.gradleOpts as String[])
-            }
+            executer.withBuildJvmOpts(invocation.jvmOpts)
         }
 
         invocation.args.each { executer.withArgument(it) }
 
         if (invocation.useDaemon) {
-            executer.withArgument('--daemon')
+            executer.requireDaemon()
         }
 
         executer

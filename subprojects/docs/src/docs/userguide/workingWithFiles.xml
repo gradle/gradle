@@ -219,7 +219,7 @@
         <sample id="copy" dir="userguide/files/copy" title="Selecting the files to copy">
             <sourcefile file="build.gradle" snippet="copy-task-with-patterns"/>
         </sample>
-        <para>You can also use the <apilink class="org.gradle.api.Project" method="copy"/> method to copy files. It works the
+        <para>You can also use the <apilink class="org.gradle.api.Project" method="copy(org.gradle.api.Action)"/> method to copy files. It works the
             same way as the task with some major limitations though. First, the <literal>copy()</literal> is not incremental
             (see <xref linkend="sec:up_to_date_checks" />).
         </para>
@@ -251,8 +251,10 @@
             <sample id="filterOnCopy" dir="userguide/files/copy" title="Filtering files as they are copied">
                 <sourcefile file="build.gradle" snippet="filter-files"/>
             </sample>
-            <para>A “token” in a source file that both the “expand” and “filter” operations look for, is formatted
-            like “@tokenName@” for a token named “tokenName”.</para>
+            <para>When you use the <literal>ReplaceTokens</literal> class with the “filter” operation, the result is a template engine that replaces tokens of the form “@tokenName@” (the Apache Ant-style token) with a set of given values. The “expand” operation does the same thing except it treats the source files as
+            <ulink url="http://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html">Groovy templates</ulink>
+            in which tokens take the form “${tokenName}”. Be aware that you may need to escape parts of your source files when
+            using this option, for example if it contains literal “$” or “&lt;%” strings.</para>
         </section>
         <section>
             <title>Using the <classname>CopySpec</classname> class</title>
@@ -410,7 +412,7 @@
 
         <section>
             <title>Sharing content between multiple archives</title>
-            <para>You can use the <apilink class="org.gradle.api.Project" method="copySpec"/> method to share content between archives.</para>
+            <para>You can use the <apilink class="org.gradle.api.Project" method="copySpec(org.gradle.api.Action)"/> method to share content between archives.</para>
         </section>
 
         <para>Often you will want to publish an archive, so that it is usable from another project. This process is

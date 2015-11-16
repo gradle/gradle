@@ -18,11 +18,9 @@ package org.gradle.platform.base.internal.registry
 
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.core.DefaultCollectionBuilder
-import org.gradle.model.internal.core.ExtractedModelRule
-import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.ModelMap
+import org.gradle.model.internal.core.*
+import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.*
 import spock.lang.Unroll
 
@@ -41,14 +39,25 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
 
     @Unroll
     def "applies ComponentModelBasePlugin and creates componentBinary rule #descr"() {
+        def mockRegistry = Mock(ModelRegistry)
+
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod(ruleName))
 
         then:
+        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
-        registration.type == ExtractedModelRule.Type.ACTION
-        registration.actionRole == ModelActionRole.Mutate
-        registration.action.subject == ModelReference.of("binaries", DefaultCollectionBuilder.typeOf(BinarySpec))
+
+
+        when:
+        registration.apply(mockRegistry, ModelPath.ROOT)
+
+        then:
+        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction action, ModelPath scope ->
+            assert role == ModelActionRole.Finalize
+            assert action.subject == ModelReference.of("components", ComponentSpecContainer)
+        }
+        0 * _
 
         where:
         ruleName         | descr
@@ -73,21 +82,21 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
 
         where:
         methodName                | expectedMessage                                                                                                                               | descr
-        "noParams"                | "Method annotated with @ComponentBinaries must have a parameter of type '${CollectionBuilder.name}'."                                         | "no CollectionBuilder parameter"
-        "wrongSubject"            | "Method annotated with @ComponentBinaries first parameter must be of type '${CollectionBuilder.name}'."                                       | "wrong rule subject type"
+        "noParams"                | "Method annotated with @ComponentBinaries must have a parameter of type '${ModelMap.name}'."                                                  | "no ModelMap parameter"
+        "wrongSubject"            | "Method annotated with @ComponentBinaries first parameter must be of type '${ModelMap.name}'."                                                | "wrong rule subject type"
         "multipileComponentSpecs" | "Method annotated with @ComponentBinaries must have one parameter extending ComponentSpec. Found multiple parameter extending ComponentSpec." | "additional component spec parameter"
         "noComponentSpec"         | "Method annotated with @ComponentBinaries must have one parameter extending ComponentSpec. Found no parameter extending ComponentSpec."       | "no component spec parameter"
         "returnValue"             | "Method annotated with @ComponentBinaries must not have a return value."                                                                      | "non void method"
-        "rawCollectionBuilder"    | "Parameter of type 'CollectionBuilder' must declare a type parameter extending 'BinarySpec'."                                                 | "non typed CollectionBuilder parameter"
+        "rawModelMap"             | "Parameter of type '${ModelMap.simpleName}' must declare a type parameter extending 'BinarySpec'."                                            | "non typed ModelMap parameter"
     }
 
-    interface SomeBinarySpec extends BinarySpec {}
+    static interface SomeBinarySpec extends BinarySpec {}
 
-    interface SomeLibrary extends ComponentSpec {}
+    static interface SomeLibrary extends ComponentSpec {}
 
-    interface RawLibrary extends ComponentSpec {}
+    static interface RawLibrary extends ComponentSpec {}
 
-    interface SomeBinarySubType extends SomeBinarySpec {}
+    static interface SomeBinarySubType extends SomeBinarySpec {}
 
     static class Rules {
         @ComponentBinaries
@@ -95,22 +104,22 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         }
 
         @ComponentBinaries
-        static void validTypeRule(CollectionBuilder<SomeBinarySpec> binaries, SomeLibrary library) {
+        static void validTypeRule(ModelMap<SomeBinarySpec> binaries, SomeLibrary library) {
             binaries.create("${library.name}Binary", library)
         }
 
         @ComponentBinaries
-        static void rawBinarySpec(CollectionBuilder<BinarySpec> binaries, RawLibrary library) {
+        static void rawBinarySpec(ModelMap<BinarySpec> binaries, RawLibrary library) {
             binaries.create("${library.name}Binary", library)
         }
 
         @ComponentBinaries
-        static void rawCollectionBuilder(CollectionBuilder binaries, RawLibrary library) {
+        static void rawModelMap(ModelMap binaries, RawLibrary library) {
             binaries.create("${library.name}Binary", library)
         }
 
         @ComponentBinaries
-        static void librarySubType(CollectionBuilder<SomeBinarySubType> binaries, SomeLibrary library) {
+        static void librarySubType(ModelMap<SomeBinarySubType> binaries, SomeLibrary library) {
             binaries.create("${library.name}Binary", library)
         }
 
@@ -119,12 +128,12 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         }
 
         @ComponentBinaries
-        static void multipileComponentSpecs(CollectionBuilder<SomeBinarySpec> binaries, SomeLibrary library, SomeLibrary otherLibrary) {
+        static void multipileComponentSpecs(ModelMap<SomeBinarySpec> binaries, SomeLibrary library, SomeLibrary otherLibrary) {
             binaries.create("${library.name}Binary", library)
         }
 
         @ComponentBinaries
-        static void noComponentSpec(CollectionBuilder<SomeBinarySpec> binaries) {
+        static void noComponentSpec(ModelMap<SomeBinarySpec> binaries) {
         }
 
         @ComponentBinaries

@@ -16,50 +16,36 @@
 
 package org.gradle.api.publication.maven.internal.action;
 
-import org.apache.maven.wagon.events.TransferEvent;
-import org.apache.maven.wagon.events.TransferListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonatype.aether.transfer.AbstractTransferListener;
+import org.sonatype.aether.transfer.TransferEvent;
+import org.sonatype.aether.transfer.TransferEvent.RequestType;
 
-class LoggingMavenTransferListener implements TransferListener {
+class LoggingMavenTransferListener extends AbstractTransferListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingMavenTransferListener.class);
     private static final int KILO = 1024;
 
-    protected void log(String message) {
-        LOGGER.info(message);
-    }
-
-    public void debug(String s) {
-        LOGGER.debug(s);
-    }
-
-    public void transferError(TransferEvent event) {
+    public void transferFailed(TransferEvent event) {
         LOGGER.error(event.getException().getMessage());
     }
 
     public void transferInitiated(TransferEvent event) {
-        String message = event.getRequestType() == TransferEvent.REQUEST_PUT ? "Uploading" : "Downloading";
-        String dest = event.getRequestType() == TransferEvent.REQUEST_PUT ? " to " : " from ";
-
-        LOGGER.info(message + ": " + event.getResource().getName() + dest + "repository "
-                + event.getWagon().getRepository().getId() + " at " + event.getWagon().getRepository().getUrl());
+        String message = event.getRequestType() == RequestType.PUT ? "Uploading: {} to repository {} at {}" : "Downloading: {} from repository {} at {}";
+        LOGGER.info(message, event.getResource().getResourceName(), "remote", event.getResource().getRepositoryUrl());
     }
 
     public void transferStarted(TransferEvent event) {
         long contentLength = event.getResource().getContentLength();
         if (contentLength > 0) {
-            LOGGER.info("Transferring " + ((contentLength + KILO / 2) / KILO) + "K from "
-                    + event.getWagon().getRepository().getId());
+            LOGGER.info("Transferring {}K from remote", (contentLength + KILO / 2) / KILO);
         }
     }
 
-    public void transferProgress(TransferEvent event, byte[] bytes, int i) {
-    }
-
-    public void transferCompleted(TransferEvent event) {
+    public void transferSucceeded(TransferEvent event) {
         long contentLength = event.getResource().getContentLength();
-        if ((contentLength > 0) && (event.getRequestType() == TransferEvent.REQUEST_PUT)) {
-            LOGGER.info("Uploaded " + ((contentLength + KILO / 2) / KILO) + "K");
+        if (contentLength > 0 && event.getRequestType() == RequestType.PUT) {
+            LOGGER.info("Uploaded {}K", (contentLength + KILO / 2) / KILO);
         }
     }
 }

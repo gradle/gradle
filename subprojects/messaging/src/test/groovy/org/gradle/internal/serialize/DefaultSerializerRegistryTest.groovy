@@ -81,12 +81,59 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
         def registry = new DefaultSerializerRegistry()
         registry.register(Long, longSerializer)
         registry.register(Integer, intSerializer)
+        registry.useJavaSerialization(String)
         def serializer = registry.build()
 
         when:
         toBytes(123.4, serializer)
 
         then:
-        thrown(IllegalArgumentException)
+        IllegalArgumentException e = thrown()
+        e.message == "Don't know how to serialize an object of type java.math.BigDecimal."
+    }
+
+    def "can use Java serialization for registered type"() {
+        given:
+        def registry = new DefaultSerializerRegistry()
+        registry.useJavaSerialization(Long)
+        registry.useJavaSerialization(Integer)
+        def serializer = registry.build()
+
+        expect:
+        serialize(123L, serializer) == 123L
+        serialize(123, serializer) == 123
+    }
+
+    def "can use Java serialization for subtypes of registered type"() {
+        given:
+        def registry = new DefaultSerializerRegistry()
+        registry.useJavaSerialization(Number)
+        def serializer = registry.build()
+
+        expect:
+        serialize(123L, serializer) == 123L
+        serialize(123, serializer) == 123
+        serialize(123.4, serializer) == 123.4
+    }
+
+    def "custom serialization takes precedence over Java serialization"() {
+        given:
+        def customSerializer = Stub(Serializer) {
+            read(_) >> { Decoder decoder ->
+                return decoder.readSmallLong() + 1
+            }
+            write(_, _) >> { Encoder encoder, Long value ->
+                encoder.writeSmallLong(value + 1)
+            }
+        }
+        def registry = new DefaultSerializerRegistry()
+        registry.useJavaSerialization(Number)
+        registry.register(Long, customSerializer)
+        def serializer = registry.build()
+
+        expect:
+        serialize(123L, serializer) == 125L
+        serialize(123, serializer) == 123
+        serialize(123.4, serializer) == 123.4
     }
 }

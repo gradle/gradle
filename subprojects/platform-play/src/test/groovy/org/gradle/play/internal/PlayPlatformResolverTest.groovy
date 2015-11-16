@@ -44,7 +44,7 @@ class PlayPlatformResolverTest extends Specification {
 
         then:
         def e = thrown(InvalidUserDataException)
-        e.message == "Not a supported Play version: 2.1.0. This plugin is compatible with: [2.3.x, 2.2.x]."
+        e.message == "Not a supported Play version: 2.1.0. This plugin is compatible with: [2.4.x, 2.3.x, 2.2.x]."
 
         where:
         requirement << ["play-2.1.0", [play: '2.1.0']]

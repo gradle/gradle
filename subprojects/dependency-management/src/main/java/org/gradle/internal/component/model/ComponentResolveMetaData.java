@@ -16,11 +16,11 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -28,6 +28,8 @@ import java.util.Set;
  * The meta-data for a component instance that is required during dependency resolution.
  */
 public interface ComponentResolveMetaData {
+    List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
+
     /**
      * Returns the identifier for this component.
      */
@@ -52,33 +54,18 @@ public interface ComponentResolveMetaData {
      */
     ComponentResolveMetaData withSource(ModuleSource source);
 
-    /**
-     * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
-     * and will be removed.
-     *
-     * <p>You should avoid using this method.
-     */
-    ModuleDescriptor getDescriptor();
-
     List<DependencyMetaData> getDependencies();
+
+    /**
+     * Returns the names of all of the configurations for this component.
+     */
+    Set<String> getConfigurationNames();
 
     /**
      * Locates the configuration with the given name, if any.
      */
     @Nullable
     ConfigurationMetaData getConfiguration(String name);
-
-    /**
-     * Converts the given Ivy artifact to the corresponding artifact meta-data. This method is here to allow us to migrate away from the Ivy types and
-     * will be removed.
-     */
-    ComponentArtifactMetaData artifact(IvyArtifactName artifact);
-
-    /**
-     * Returns the known artifacts for this component. There may be additional component available that are not included in this set.
-     */
-    // TODO:DAZ This is only used in unit tests
-    Set<? extends ComponentArtifactMetaData> getArtifacts();
 
     boolean isGenerated();
 

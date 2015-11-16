@@ -30,4 +30,6 @@ public interface TestDirectoryProvider {
      */
     TestFile getTestDirectory();
 
+    void suppressCleanup();
+
 }

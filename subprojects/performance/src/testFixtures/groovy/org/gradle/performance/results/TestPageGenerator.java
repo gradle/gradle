@@ -51,7 +51,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                         text("      if (!item) {\n");
                         text("        $('#tooltip').hide();\n");
                         text("      } else {\n");
-                        text("        var text = 'Version: ' + item.series.label + ', date: ' + labels[item.dataIndex] + ', execution time: ' + item.datapoint[1] + 's';\n");
+                        text("        var text = 'Version: ' + item.series.label + ', date: ' + labels[item.datapoint[0]] + ', execution time: ' + item.datapoint[1] + 's';\n");
                         text("        $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();\n");
                         text("      }\n");
                         text("    });\n");
@@ -59,7 +59,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                         text("      if (!item) {\n");
                         text("        $('#tooltip').hide();\n");
                         text("      } else {\n");
-                        text("        var text = 'Version: ' + item.series.label + ', date: ' + labels[item.dataIndex] + ', heap usage: ' + item.datapoint[1] + 'mb';\n");
+                        text("        var text = 'Version: ' + item.series.label + ', date: ' + labels[item.datapoint[0]] + ', heap usage: ' + item.datapoint[1] + 'mb';\n");
                         text("        $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();\n");
                         text("      }\n");
                         text("    });\n");
@@ -113,11 +113,12 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                                 td().text(format.timestamp(new Date(results.getTestTime()))).end();
                                 td().text(results.getVersionUnderTest()).end();
                                 td().text(results.getVcsBranch()).end();
-                                td().text(results.getVcsCommit()).end();
+                                String commit = results.getVcsCommit();
+                                td().a().href(String.format("https://github.com/gradle/gradle/commit/%s", commit)).text(commit).end().end();
                                 renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
-                                    public DataSeries<Duration> transform(MeasuredOperationList original) {
-                                        return original.getTotalTime();
-                                    }
+                                public DataSeries<Duration> transform(MeasuredOperationList original) {
+                                    return original.getTotalTime();
+                                }
                                 });
                                 renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                                     public DataSeries<Duration> transform(MeasuredOperationList original) {

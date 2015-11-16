@@ -17,20 +17,13 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.BiAction;
-import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.internal.TriAction;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentBinaries;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.InvalidModelException;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.platform.base.*;
 
 import java.util.List;
 
@@ -48,10 +41,10 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
 
             Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
             Class<C> componentType = dataCollector.getParameterType(ComponentSpec.class);
-            ModelReference<CollectionBuilder<BinarySpec>> subject = ModelReference.of(ModelPath.path("binaries"), DefaultCollectionBuilder.typeOf(ModelType.of(BinarySpec.class)));
+            ModelReference<ComponentSpecContainer> subject = ModelReference.of(ModelPath.path("components"), ModelType.of(ComponentSpecContainer.class));
             ComponentBinariesRule<R, S, C> componentBinariesRule = new ComponentBinariesRule<R, S, C>(subject, componentType, binaryType, ruleDefinition);
 
-            return new ExtractedModelAction(ModelActionRole.Mutate, ImmutableList.of(ComponentModelBasePlugin.class), componentBinariesRule);
+            return new ExtractedModelAction(ModelActionRole.Finalize, ImmutableList.of(ComponentModelBasePlugin.class), componentBinariesRule);
         } catch (InvalidModelException e) {
             throw invalidModelRule(ruleDefinition, e);
         }
@@ -59,43 +52,35 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
 
     private void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
-        visitCollectionBuilderSubject(dataCollector, ruleDefinition, BinarySpec.class);
+        visitSubject(dataCollector, ruleDefinition, BinarySpec.class);
         visitDependency(dataCollector, ruleDefinition, ModelType.of(ComponentSpec.class));
     }
 
-    private class ComponentBinariesRule<R, S extends BinarySpec, C extends ComponentSpec> extends CollectionBuilderBasedRule<R, S, ComponentSpec, CollectionBuilder<BinarySpec>> {
+    private class ComponentBinariesRule<R, S extends BinarySpec, C extends ComponentSpec> extends ModelMapBasedRule<R, S, ComponentSpec, ComponentSpecContainer> {
 
         private final Class<C> componentType;
         private final Class<S> binaryType;
 
-        public ComponentBinariesRule(ModelReference<CollectionBuilder<BinarySpec>> subject, final Class<C> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
-            super(subject, componentType, ruleDefinition, ModelReference.of(DefaultCollectionBuilder.typeOf(componentType)));
+        public ComponentBinariesRule(ModelReference<ComponentSpecContainer> subject, final Class<C> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
+            super(subject, componentType, ruleDefinition);
             this.componentType = componentType;
             this.binaryType = binaryType;
         }
 
-        public void execute(MutableModelNode modelNode, final CollectionBuilder<BinarySpec> binaries, List<ModelView<?>> inputs) {
-            CollectionBuilder<C> componentSpecs = ModelViews.assertType(inputs.get(0), DefaultCollectionBuilder.typeOf(componentType)).getInstance();
-
-            for (final ComponentSpec componentSpec : componentSpecs) {
-                CollectionBuilder<S> typed = binaries.withType(binaryType);
-                CollectionBuilder<S> wrapped = new DelegatingCollectionBuilder<S>(typed, ModelType.of(binaryType), new BiAction<String, ModelType<? extends S>>() {
+        protected  void execute(final MutableModelNode modelNode, final ComponentSpecContainer componentSpecs, final List<ModelView<?>> modelMapRuleInputs) {
+            modelNode.applyToAllLinks(ModelActionRole.Mutate, DirectNodeInputUsingModelAction.of(
+                ModelReference.of(ModelType.of(componentType)),
+                getDescriptor(),
+                getInputs(),
+                new TriAction<MutableModelNode, C, List<ModelView<?>>>() {
                     @Override
-                    public void execute(String s, ModelType<? extends S> modelType) {
-                        BinarySpec binary = binaries.get(s);
-                        assert binary != null : "binary should not be null";
-                        componentSpec.getBinaries().add(binary);
-                        BinarySpecInternal binaryInternal = (BinarySpecInternal) binary;
-                        FunctionalSourceSet binarySourceSet = ((ComponentSpecInternal) componentSpec).getSources().copy(s);
-                        binaryInternal.setBinarySources(binarySourceSet);
+                    public void execute(MutableModelNode componentModelNode, C component, final List<ModelView<?>> componentRuleInputs) {
+                        invoke(componentRuleInputs, component.getBinaries().withType(binaryType), component);
                     }
-                });
-
-                invoke(inputs, wrapped, componentSpec, componentSpecs);
-            }
+                }
+            ));
         }
     }
-
 
     protected InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<?, ?> ruleDefinition, InvalidModelException e) {
         StringBuilder sb = new StringBuilder();

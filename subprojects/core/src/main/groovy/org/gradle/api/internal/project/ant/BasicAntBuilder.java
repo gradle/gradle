@@ -16,6 +16,7 @@
 package org.gradle.api.internal.project.ant;
 
 import groovy.util.AntBuilder;
+import org.apache.tools.ant.ComponentHelper;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
 import org.gradle.api.Transformer;
@@ -102,7 +103,12 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
     }
 
     public void close() {
-        getProject().fireBuildFinished(null);
+        Project project = getProject();
+        project.fireBuildFinished(null);
+        ComponentHelper helper = ComponentHelper.getComponentHelper(project);
+        helper.getAntTypeTable().clear();
+        helper.getDataTypeDefinitions().clear();
+        project.getReferences().clear();
     }
 
 }

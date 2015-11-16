@@ -63,7 +63,7 @@
             <para><link linkend="custom_plugins">Custom plugins</link>. Put your build logic into a custom plugin,
                 and apply that plugin to multiple projects. The plugin must be in the classpath of your build script.
                 You can achieve this either by using <link linkend="sec:build_sources"><filename>build sources</filename></link> or
-                by adding an <link linkend="sec:external_dependencies">external library</link> that contains the plugin. 
+                by adding an <link linkend="sec:external_dependencies">external library</link> that contains the plugin.
             </para>
         </listitem>
         <listitem>
@@ -120,8 +120,8 @@
 
     <section id='sec:build_sources'>
         <title>Build sources in the <filename>buildSrc</filename> project</title>
-        <para>When you run Gradle, it checks for the existence of a directory called <filename>buildSrc</filename>. 
-            Gradle then automatically compiles and tests this code and puts it in the classpath of your build script. 
+        <para>When you run Gradle, it checks for the existence of a directory called <filename>buildSrc</filename>.
+            Gradle then automatically compiles and tests this code and puts it in the classpath of your build script.
             You don't need to provide any further instruction. This can be a good place to add your custom tasks and plugins.
         </para>
         <para>For multi-project builds there can be only one <filename>buildSrc</filename> directory, which has to be
@@ -133,7 +133,7 @@
             <programlisting><xi:include href='../../../../../subprojects/core/src/main/resources/org/gradle/initialization/buildsrc/defaultBuildSourceScript.txt' parse='text'/></programlisting>
         </figure>
         <para>
-            This means that you can just put your build source code in this directory and stick to the layout convention for a 
+            This means that you can just put your build source code in this directory and stick to the layout convention for a
             Java/Groovy project (see <xref linkend='javalayout'/>).
         </para>
         <para>
@@ -189,8 +189,16 @@
             <output args="-q encode"/>
         </sample>
         <para>
-            For multi-project builds, the dependencies declared in the a project's build script, are available to the
-            build scripts of all sub-projects.
+            For multi-project builds, the dependencies declared with a project's <literal>buildscript()</literal> method
+            are available to the build scripts of all its sub-projects.
+        </para>
+        <para>
+            Build script dependencies may be Gradle plugins.
+            Please consult <xref linkend="plugins"/> for more information on Gradle plugins.
+        </para>
+        <para>
+            Every project automatically has a <literal>buildEnvironment</literal> task of type <apilink class="org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask" />
+            that can be invoked to report on the resolution of the build script dependencies.
         </para>
     </section>
 

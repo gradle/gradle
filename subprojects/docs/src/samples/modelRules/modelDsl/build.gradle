@@ -5,7 +5,7 @@ interface Person {
 }
 
 class PersonRules extends RuleSource {
- @Mutate void createHelloTask(CollectionBuilder<Task> tasks, Person p) {
+  @Mutate void createHelloTask(ModelMap<Task> tasks, Person p) {
     tasks.create("hello") {
       doLast {
         println "Hello $p.firstName $p.lastName!"
@@ -25,4 +25,14 @@ model {
     firstName = "John"
   }
 // END SNIPPET create-rule
+// START SNIPPET rule-inputs
+  tasks {
+    create("helloFromDsl") {
+      def p = $.person
+      doLast {
+        println "Hello $p.firstName $p.lastName!"
+      }
+    }
+  }
+// END SNIPPET rule-inputs
 }

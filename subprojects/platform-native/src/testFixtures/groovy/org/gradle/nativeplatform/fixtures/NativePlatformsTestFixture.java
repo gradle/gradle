@@ -16,22 +16,15 @@
 
 package org.gradle.nativeplatform.fixtures;
 
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
-
-import java.util.Set;
 
 public class NativePlatformsTestFixture {
     static {
         NativeServicesTestFixture.initialize();
     }
 
-    public static Set<DefaultNativePlatform> defaultPlatformDefinitions() {
-        return NativePlatforms.defaultPlatformDefinitions();
-    }
-
     public static String getDefaultPlatformName() {
-        return NativePlatforms.getDefaultPlatformName();
+        return new NativePlatforms().getDefaultPlatformName();
     }
 }

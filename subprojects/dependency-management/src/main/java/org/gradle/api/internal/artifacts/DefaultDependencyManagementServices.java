@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.Project;
+import org.gradle.StartParameter;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -31,6 +32,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
@@ -40,6 +43,7 @@ import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
@@ -75,7 +79,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,
                                                           RepositoryTransportFactory repositoryTransportFactory, LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
                                                           ResolverStrategy resolverStrategy, ArtifactIdentifierFileStore artifactIdentifierFileStore,
-                                                          VersionSelectorScheme versionSelectorScheme) {
+                                                          VersionSelectorScheme versionSelectorScheme,
+                                                          AuthenticationSchemeRegistry authenticationSchemeRegistry) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
                     fileResolver,
@@ -84,7 +89,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     locallyAvailableResourceFinder,
                     resolverStrategy,
                     artifactIdentifierFileStore,
-                    new GradlePomModuleDescriptorParser(versionSelectorScheme)
+                    new GradlePomModuleDescriptorParser(versionSelectorScheme),
+                    authenticationSchemeRegistry
             );
         }
 
@@ -93,7 +99,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator, ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
-                                                                    ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessListener projectAccessListener, ProjectFinder projectFinder) {
+                                                                    ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessListener projectAccessListener,
+                                                                    ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                     configurationResolver,
                     instantiator,
@@ -101,7 +108,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     listenerManager,
                     metaDataProvider,
                     projectAccessListener,
-                    projectFinder);
+                    projectFinder,
+                    metaDataBuilder);
         }
 
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
@@ -132,9 +140,25 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessor, moduleMetadataProcessor);
         }
 
-        ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver, RepositoryHandler repositories,
-                                                       GlobalDependencyResolutionRules metadataHandler) {
-            return new DefaultConfigurationResolver(artifactDependencyResolver, repositories, metadataHandler);
+        ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver,
+                                                       RepositoryHandler repositories,
+                                                       GlobalDependencyResolutionRules metadataHandler,
+                                                       ComponentIdentifierFactory componentIdentifierFactory,
+                                                       CacheLockingManager cacheLockingManager,
+                                                       ResolutionResultsStoreFactory resolutionResultsStoreFactory,
+                                                       StartParameter startParameter) {
+            return new ErrorHandlingConfigurationResolver(
+                    new ShortCircuitEmptyConfigurationResolver(
+                            new SelfResolvingDependencyConfigurationResolver(
+                                    new DefaultConfigurationResolver(
+                                            artifactDependencyResolver,
+                                            repositories,
+                                            metadataHandler,
+                                            cacheLockingManager,
+                                            resolutionResultsStoreFactory,
+                                            startParameter.isBuildProjectDependencies())),
+                            componentIdentifierFactory)
+            );
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {
@@ -150,12 +174,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                             CacheLockingManager cacheLockingManager, ComponentTypeRegistry componentTypeRegistry) {
             return new DefaultArtifactResolutionQueryFactory(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, cacheLockingManager, componentTypeRegistry);
 
-        }
-    }
-
-    private static class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        public ModuleInternal getModule() {
-            return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
     }
 
@@ -194,7 +212,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         public ArtifactPublisher createArtifactPublisher() {
             return new IvyBackedArtifactPublisher(
-                    services.get(LocalComponentFactory.class),
+                    services.get(ConfigurationComponentMetaDataBuilder.class),
                     services.get(IvyContextManager.class),
                     new DefaultIvyDependencyPublisher(),
                     new IvyXmlModuleDescriptorWriter()

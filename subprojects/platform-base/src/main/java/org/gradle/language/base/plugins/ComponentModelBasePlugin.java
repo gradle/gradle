@@ -15,32 +15,38 @@
  */
 package org.gradle.language.base.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.BiActions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.DefaultComponentSpecContainer;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.language.base.internal.model.CollectionBuilderCreators;
-import org.gradle.language.base.internal.model.ComponentSpecInitializationAction;
-import org.gradle.language.base.internal.registry.*;
+import org.gradle.language.base.internal.model.ComponentBinaryRules;
+import org.gradle.language.base.internal.model.ComponentRules;
+import org.gradle.language.base.internal.registry.DefaultLanguageTransformContainer;
+import org.gradle.language.base.internal.registry.LanguageTransform;
+import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
-import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
+import org.gradle.model.internal.core.Service;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecContainer;
-import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.*;
+import org.gradle.platform.base.binary.internal.BinarySpecFactory;
+import org.gradle.platform.base.component.BaseComponentSpec;
+import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.*;
 
 import javax.inject.Inject;
@@ -56,7 +62,6 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  */
 @Incubating
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
-
     private final ModelRegistry modelRegistry;
 
     @Inject
@@ -67,91 +72,78 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
 
-        String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
-
-        ModelCreator componentsCreator = CollectionBuilderCreators.specialized("components", ComponentSpec.class, ComponentSpecContainer.class, new SpecializedCollectionBuilderFactory<ComponentSpecContainer, ComponentSpec>() {
-            @Override
-            public ComponentSpecContainer create(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
-                DefaultComponentSpecContainer componentSpecs = new DefaultComponentSpecContainer(ModelType.of(ComponentSpec.class), ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(ModelType.of(ComponentSpec.class), BiActions.doNothing()));
-                return new ComponentSpecContainerGroovyDecorator(componentSpecs, ModelType.of(ComponentSpecContainer.class), ruleDescriptor);
-            }
-        }, descriptor, new ComponentSpecInitializationAction());
-        modelRegistry.createOrReplace(componentsCreator);
+        modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), ComponentRules.class);
+        modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), ComponentBinaryRules.class);
     }
-
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @Model
-        LanguageRegistry languages(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(Instantiator.class).newInstance(DefaultLanguageRegistry.class);
+        @Service
+        ComponentSpecFactory componentSpecFactory() {
+            return new ComponentSpecFactory("components");
+        }
+
+        @ComponentType
+        void registerBaseComponentSpec(ComponentTypeBuilder<ComponentSpec> builder) {
+            builder.defaultImplementation(BaseComponentSpec.class);
+            builder.internalView(ComponentSpecInternal.class);
+        }
+
+        @Service
+        BinarySpecFactory binarySpecFactory() {
+            return new BinarySpecFactory("binaries");
         }
 
         @Model
-        LanguageTransformContainer languageTransforms(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(Instantiator.class).newInstance(DefaultLanguageTransformContainer.class);
+        void components(ComponentSpecContainer componentSpecs) {}
+
+        @Mutate
+        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, BinarySpecFactory binarySpecFactory, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, BiActions.doNothing()));
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, new BiAction<BinarySpec, ModelSchema<? extends BinarySpec>>() {
+                @Override
+                public void execute(BinarySpec binarySpec, ModelSchema<? extends BinarySpec> schema) {
+                    BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binarySpec;
+                    if (!binarySpecInternal.isLegacyBinary()) {
+                        binarySpecInternal.setPublicType(schema.getType().getConcreteClass());
+                    }
+                }
+            }));
         }
 
-        @Defaults
-        void initializeSourceSetsForComponents(@Path("components") CollectionBuilder<ComponentSpec> components, LanguageRegistry languageRegistry, LanguageTransformContainer languageTransforms) {
-            for (LanguageRegistration<?> languageRegistration : languageRegistry) {
-                // TODO - allow beforeEach() to be applied to internal types
-                components.beforeEach(ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms));
-            }
+        @Service
+        LanguageTransformContainer languageTransforms() {
+            return new DefaultLanguageTransformContainer();
         }
 
         // Required because creation of Binaries from Components is not yet wired into the infrastructure
         @Mutate
-        void closeComponentsForBinaries(CollectionBuilder<Task> tasks, @Path("components") CollectionBuilder<ComponentSpec> components) {
+        void closeComponentsForBinaries(ModelMap<Task> tasks, ComponentSpecContainer components) {
         }
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
         @Finalize
-        void createSourceTransformTasks(final TaskContainer tasks, final BinaryContainer binaries, LanguageTransformContainer languageTransforms) {
+        void createSourceTransformTasks(final TaskContainer tasks, final ModelMap<BinarySpecInternal> binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
             for (LanguageTransform<?, ?> language : languageTransforms) {
-                for (final BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+                for (final BinarySpecInternal binary : binaries) {
                     if (binary.isLegacyBinary() || !language.applyToBinary(binary)) {
                         continue;
                     }
 
                     final SourceTransformTaskConfig taskConfig = language.getTransformTask();
-                    binary.getSource().withType(language.getSourceSetType(), new Action<LanguageSourceSet>() {
-                        public void execute(LanguageSourceSet languageSourceSet) {
-                            LanguageSourceSetInternal sourceSet = (LanguageSourceSetInternal) languageSourceSet;
-                            if (sourceSet.getMayHaveSources()) {
-                                String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getName()) + capitalize(sourceSet.getFullName());
-                                Task task = tasks.create(taskName, taskConfig.getTaskType());
+                    for (LanguageSourceSet languageSourceSet : binary.getInputs()) {
+                        LanguageSourceSetInternal sourceSet = (LanguageSourceSetInternal) languageSourceSet;
+                        if (language.getSourceSetType().isInstance(sourceSet) && sourceSet.getMayHaveSources()) {
+                            String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(sourceSet.getProjectScopedName());
+                            Task task = tasks.create(taskName, taskConfig.getTaskType());
+                            taskConfig.configureTask(task, binary, sourceSet, serviceRegistry);
 
-                                taskConfig.configureTask(task, binary, sourceSet);
-
-                                task.dependsOn(sourceSet);
-                                binary.getTasks().add(task);
-                            }
-                        }
-                    });
-                }
-            }
-        }
-
-        @Mutate
-        void applyDefaultSourceConventions(@Path("components") CollectionBuilder<ComponentSpec> componentSpecs) {
-            componentSpecs.afterEach(new Action<ComponentSpec>() {
-                @Override
-                public void execute(ComponentSpec componentSpec) {
-                    for (LanguageSourceSet languageSourceSet : componentSpec.getSource()) {
-                        // Only apply default locations when none explicitly configured
-                        if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
-                            languageSourceSet.getSource().srcDir(String.format("src/%s/%s", componentSpec.getName(), languageSourceSet.getName()));
+                            task.dependsOn(sourceSet);
+                            binary.getTasks().add(task);
                         }
                     }
                 }
-            });
-        }
-
-        // TODO:DAZ Work out why this is required
-        @Mutate
-        void closeSourcesForBinaries(BinaryContainer binaries, ProjectSourceSet sources) {
-            // Only required because sources aren't fully integrated into model
+            }
         }
 
         @Model
@@ -160,10 +152,9 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
         }
 
-        @Model
-        PlatformResolvers platformResolver(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultPlatformResolvers.class, platforms);
+        @Service
+        PlatformResolvers platformResolver(PlatformContainer platforms) {
+            return new DefaultPlatformResolvers(platforms);
         }
 
         @Mutate
@@ -171,50 +162,37 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             extensions.add("platforms", platforms);
         }
 
-    }
-
-    // TODO:DAZ Needs to be a separate action since can't have parameterized utility methods in a RuleSource
-    private static class ComponentSourcesRegistrationAction<U extends LanguageSourceSet> implements Action<ComponentSpec> {
-        private final LanguageRegistration<U> languageRegistration;
-        private final LanguageTransformContainer languageTransforms;
-
-        private ComponentSourcesRegistrationAction(LanguageRegistration<U> registration, LanguageTransformContainer languageTransforms) {
-            this.languageRegistration = registration;
-            this.languageTransforms = languageTransforms;
-        }
-
-        public static <U extends LanguageSourceSet> ComponentSourcesRegistrationAction<U> create(LanguageRegistration<U> registration, LanguageTransformContainer languageTransforms) {
-            return new ComponentSourcesRegistrationAction<U>(registration, languageTransforms);
-        }
-
-        public void execute(ComponentSpec componentSpec) {
-            ComponentSpecInternal componentSpecInternal = (ComponentSpecInternal) componentSpec;
-            registerLanguageSourceSetFactory(componentSpecInternal);
-            createDefaultSourceSetForComponents(componentSpecInternal);
-        }
-
-        void registerLanguageSourceSetFactory(final ComponentSpecInternal component) {
-            final FunctionalSourceSet functionalSourceSet = component.getSources();
-            NamedDomainObjectFactory<? extends U> sourceSetFactory = languageRegistration.getSourceSetFactory(functionalSourceSet.getName());
-            functionalSourceSet.registerFactory(languageRegistration.getSourceSetType(), sourceSetFactory);
-        }
-
-        // If there is a transform for the language into one of the component inputs, add a default source set
-        void createDefaultSourceSetForComponents(final ComponentSpecInternal component) {
-            final FunctionalSourceSet functionalSourceSet = component.getSources();
-            for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
-                if (languageTransform.getSourceSetType().equals(languageRegistration.getSourceSetType())
-                        && component.getInputTypes().contains(languageTransform.getOutputType())) {
-                    functionalSourceSet.maybeCreate(languageRegistration.getName(), languageRegistration.getSourceSetType());
-                    return;
+        @Defaults
+        void collectBinaries(ModelMap<BinarySpec> binaries, ComponentSpecContainer componentSpecs) {
+            for (ComponentSpec componentSpec : componentSpecs.values()) {
+                for (BinarySpec binary : componentSpec.getBinaries().values()) {
+                    binaries.put(((BinarySpecInternal) binary).getProjectScopedName(), binary);
                 }
             }
         }
-    }
 
-    private class ComponentSpecContainerGroovyDecorator extends SpecializedCollectionBuilderGroovyDecorator<ComponentSpec> implements ComponentSpecContainer {
-        public ComponentSpecContainerGroovyDecorator(CollectionBuilder<ComponentSpec> rawInstance, ModelType<ComponentSpecContainer> type, ModelRuleDescriptor ruleDescriptor) {
-            super(rawInstance, type, ruleDescriptor);
+        @Validate
+        void validateComponentSpecRegistrations(ComponentSpecFactory instanceFactory) {
+            instanceFactory.validateRegistrations();
+        }
+
+        @Validate
+        void validateBinarySpecRegistrations(BinarySpecFactory instanceFactory) {
+            instanceFactory.validateRegistrations();
+        }
+
+        // TODO:LPTR This should be done on the binary itself when transitive rules don't fire multiple times anymore
+        @Defaults
+        void addSourceSetsOwnedByBinariesToTheirInputs(ModelMap<BinarySpec> binarySpecs) {
+            binarySpecs.withType(BinarySpecInternal.class).afterEach(new Action<BinarySpecInternal>() {
+                @Override
+                public void execute(BinarySpecInternal binary) {
+                    if (binary.isLegacyBinary()) {
+                        return;
+                    }
+                    binary.getInputs().addAll(binary.getSources().values());
+                }
+            });
         }
     }
 }

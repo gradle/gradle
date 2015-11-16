@@ -18,13 +18,15 @@ package org.gradle.platform.base.internal.registry;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Nullable;
-import org.gradle.internal.Factory;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ExtractedModelRule;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.InvalidModelException;
+import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
 import java.lang.annotation.Annotation;
@@ -35,10 +37,12 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
     private final ModelType<T> baseInterface;
     private final ModelType<U> baseImplementation;
     private final ModelType<?> builderInterface;
-    private final Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory;
+    private final ModelSchemaStore schemaStore;
+    private final TypeBuilderFactory<T> typeBuilderFactory;
 
-    public TypeModelRuleExtractor(String modelName, Class<T> baseInterface, Class<U> baseImplementation, Class<?> builderInterface, Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory) {
+    public TypeModelRuleExtractor(String modelName, Class<T> baseInterface, Class<U> baseImplementation, Class<?> builderInterface, ModelSchemaStore schemaStore, TypeBuilderFactory<T> typeBuilderFactory) {
         this.modelName = modelName;
+        this.schemaStore = schemaStore;
         this.typeBuilderFactory = typeBuilderFactory;
         this.baseInterface = ModelType.of(baseInterface);
         this.baseImplementation = ModelType.of(baseImplementation);
@@ -48,7 +52,8 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
         try {
             ModelType<? extends T> type = readType(ruleDefinition);
-            TypeBuilderInternal<T> builder = typeBuilderFactory.create();
+            ModelSchema<? extends T> schema = schemaStore.getSchema(type);
+            TypeBuilderInternal<T> builder = typeBuilderFactory.create(schema);
             ruleDefinition.getRuleInvoker().invoke(builder);
             return createRegistration(ruleDefinition, type, builder);
         } catch (InvalidModelException e) {
@@ -78,12 +83,11 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
             throw new InvalidModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
         }
 
-        ModelType<? extends T> asSubclass = baseInterface.asSubclass(subType);
-        if (asSubclass == null) {
+        if (!baseInterface.isAssignableFrom(subType)) {
             throw new InvalidModelException(String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
         }
 
-        return asSubclass;
+        return subType.asSubtype(baseInterface);
     }
 
     protected InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<?, ?> ruleDefinition, InvalidModelException e) {
@@ -94,20 +98,32 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
     }
 
     protected ModelType<? extends U> determineImplementationType(ModelType<? extends T> type, TypeBuilderInternal<T> builder) {
+        for (Class<?> internalView : builder.getInternalViews()) {
+            if (!internalView.isInterface()) {
+                throw new InvalidModelException(String.format("Internal view '%s' must be an interface.", internalView.getName()));
+            }
+        }
+
         Class<? extends T> implementation = builder.getDefaultImplementation();
         if (implementation == null) {
             return null;
         }
 
         ModelType<? extends T> implementationType = ModelType.of(implementation);
-        ModelType<? extends U> asSubclass = baseImplementation.asSubclass(implementationType);
 
-        if (asSubclass == null) {
+        if (!baseImplementation.isAssignableFrom(implementationType)) {
             throw new InvalidModelException(String.format("%s implementation '%s' must extend '%s'.", StringUtils.capitalize(modelName), implementationType, baseImplementation));
         }
 
+        ModelType<? extends U> asSubclass = implementationType.asSubtype(baseImplementation);
         if (!type.isAssignableFrom(asSubclass)) {
             throw new InvalidModelException(String.format("%s implementation '%s' must implement '%s'.", StringUtils.capitalize(modelName), asSubclass, type));
+        }
+
+        for (Class<?> internalView : builder.getInternalViews()) {
+            if (!internalView.isAssignableFrom(implementation)) {
+                throw new InvalidModelException(String.format("%s implementation '%s' must implement internal view '%s'.", StringUtils.capitalize(modelName), asSubclass, internalView.getName()));
+            }
         }
 
         try {

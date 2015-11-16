@@ -16,13 +16,12 @@
 package org.gradle.api.internal.resources;
 
 import com.google.common.io.Files;
-
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.collections.LazilyInitializedFileTree;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
@@ -33,19 +32,26 @@ public class FileCollectionBackedArchiveTextResource extends FileCollectionBacke
                                                    final TemporaryFileProvider tempFileProvider,
                                                    final FileCollection fileCollection,
                                                    final String path, Charset charset) {
-        super(tempFileProvider, new LazilyInitializedFileTree() {
+        super(tempFileProvider, new LazilyInitializedFileCollection() {
             @Override
-            public FileTree createDelegate() {
+            public String getDisplayName() {
+                return String.format("entry '%s' in archive %s", path, fileCollection);
+            }
+
+            @Override
+            public FileCollection createDelegate() {
                 File archiveFile = fileCollection.getSingleFile();
                 String fileExtension = Files.getFileExtension(archiveFile.getName());
                 FileTree archiveContents = fileExtension.equals("jar") || fileExtension.equals("zip")
-                        ? fileOperations.zipTree(archiveFile) : fileOperations.tarTree(archiveFile);
+                    ? fileOperations.zipTree(archiveFile) : fileOperations.tarTree(archiveFile);
                 PatternSet patternSet = new PatternSet();
                 patternSet.include(path);
                 return archiveContents.matching(patternSet);
             }
-            public TaskDependency getBuildDependencies() {
-                return fileCollection.getBuildDependencies();
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                context.add(fileCollection);
             }
         }, charset);
     }

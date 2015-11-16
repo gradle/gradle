@@ -55,7 +55,7 @@ class ModuleLibrary implements Dependency {
         this.javadoc = javadoc as LinkedHashSet;
         this.sources = sources as LinkedHashSet;
         this.scope = scope
-        this.exported = !scope || scope == 'COMPILE' || scope == 'RUNTIME'
+        this.exported = false
     }
 
     void addToNode(Node parentNode) {

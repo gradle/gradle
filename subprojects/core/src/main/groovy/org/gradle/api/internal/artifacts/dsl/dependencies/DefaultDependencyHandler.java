@@ -101,6 +101,10 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
         return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_API);
     }
 
+    public Dependency gradleTestKit() {
+        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT);
+    }
+
     public Dependency localGroovy() {
         return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY);
     }

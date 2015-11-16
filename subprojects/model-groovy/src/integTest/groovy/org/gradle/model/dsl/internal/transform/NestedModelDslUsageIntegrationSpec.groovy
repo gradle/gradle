@@ -17,17 +17,12 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.containsString
 
 class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     @Unroll
     def "model block can be used in nested context in build script - #code"() {
@@ -139,7 +134,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasCause(NonTransformedModelDslBacking.ATTEMPTED_INPUT_SYNTAX_USED_MESSAGE)
     }
 
-    def "model block must received transformed closure"() {
+    def "model block must receive transformed closure"() {
         when:
         buildScript """
             ${testPluginImpl()}
@@ -148,7 +143,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
             def c = {
                 strings {
-                    add \$("foo")
+                    add foo
                 }
             }
 
@@ -166,9 +161,9 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         return """
             class TestPlugin {
                 static class Rules extends org.gradle.model.RuleSource {
-                    @org.gradle.model.Model String foo() { "foo" }
-                    @org.gradle.model.Model List<String> strings() { [] }
-                    @org.gradle.model.Mutate void addTask(org.gradle.model.collection.CollectionBuilder<Task> tasks, List<String> strings) {
+                    @Model String foo() { "foo" }
+                    @Model List<String> strings() { [] }
+                    @Mutate void addTask(ModelMap<Task> tasks, List<String> strings) {
                         tasks.create("printStrings") { it.doLast { println "strings: " + strings } }
                     }
                 }

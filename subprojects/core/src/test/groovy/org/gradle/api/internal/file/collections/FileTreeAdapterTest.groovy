@@ -54,7 +54,7 @@ class FileTreeAdapterTest extends Specification {
         FileCollectionResolveContext context = Mock()
 
         when:
-        adapter.resolve(context)
+        adapter.visitContents(context)
 
         then:
         1 * context.add(tree)
@@ -130,7 +130,7 @@ class FileTreeAdapterTest extends Specification {
         filteredAdapter.tree == filtered
         1 * tree.filter(filter) >> filtered
     }
-    
+
     def containsDelegatesToTargetTreeWhenItImplementsRandomAccessFileCollection() {
         TestFileTree tree = Mock()
         File f = new File('a')

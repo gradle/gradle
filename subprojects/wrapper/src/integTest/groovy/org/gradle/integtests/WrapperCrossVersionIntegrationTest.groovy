@@ -19,8 +19,10 @@ import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.internal.SystemProperties
+import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.junit.Assume
 
+@LeaksFileHandles
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     def setup() {
         requireOwnGradleUserHomeDir()
@@ -36,13 +38,10 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         checkWrapperWorksWith(current, previous)
     }
 
-    void checkWrapperWorksWith(GradleDistribution wrapperGenVersion, GradleDistribution executionVersion) {
-        if (!wrapperGenVersion.wrapperCanExecute(executionVersion.version)) {
-            println "skipping $wrapperGenVersion as its wrapper cannot execute version ${executionVersion.version.version}"
-            return
-        }
+    void checkWrapperWorksWith(GradleDistribution wrapperVersion, GradleDistribution executionVersion) {
+        Assume.assumeTrue("skipping $wrapperVersion as its wrapper cannot execute version ${executionVersion.version.version}", wrapperVersion.wrapperCanExecute(executionVersion.version))
 
-        println "use wrapper from $wrapperGenVersion to build using $executionVersion"
+        println "use wrapper from $wrapperVersion to build using $executionVersion"
 
         buildFile << """
 
@@ -61,40 +60,43 @@ if (wrapper.hasProperty('urlRoot')) {
 println "using Java version \${System.getProperty('java.version')}"
 
 task hello {
-    doLast { println "hello from \$gradle.gradleVersion" }
+    doLast {
+        println "hello from \$gradle.gradleVersion"
+        println "using distribution at \$gradle.gradleHomeDir"
+        println "using Gradle user home at \$gradle.gradleUserHomeDir"
+    }
 }
 """
-        version(wrapperGenVersion).withTasks('wrapper').run()
-        def result = version(executionVersion, wrapperGenVersion).usingExecutable('gradlew').withTasks('hello').run()
+        version(wrapperVersion).withTasks('wrapper').run()
+
+        def executer = version(executionVersion, wrapperVersion)
+        def result = executer.usingExecutable('gradlew').withTasks('hello').run()
+
         assert result.output.contains("hello from $executionVersion.version.version")
+        assert result.output.contains("using distribution at ${executer.gradleUserHomeDir.file("wrapper/dists")}")
+        assert result.output.contains("using Gradle user home at $executer.gradleUserHomeDir")
     }
 
     GradleExecuter version(GradleDistribution runtime, GradleDistribution wrapper) {
-        def executer = super.version(runtime)
+        def executer = super.version(wrapper)
+
+        if (!wrapper.supportsSpacesInGradleAndJavaOpts) {
+            // Don't use the test-specific location as this contains spaces
+            executer.withGradleUserHomeDir(new IntegrationTestBuildContext().gradleUserHomeDir)
+        }
+
         /**
          * We additionally pass the gradle user home as a system property.
-         * Early gradle wrapper (< 1.7 don't honor --gradle-user-home command line option correctly
+         * Early gradle wrapper versions (< 1.7) don't honor the --gradle-user-home command line option correctly
          * and leaking gradle dist under test into ~/.gradle/wrapper.
          */
         if (!wrapper.wrapperSupportsGradleUserHomeCommandLineOption) {
-            if (!wrapper.supportsSpacesInGradleAndJavaOpts) {
-                // Don't use the test-specific location as this contains spaces
-                executer.withGradleUserHomeDir(new IntegrationTestBuildContext().gradleUserHomeDir)
-
-                def buildDirTmp = file("build/tmp")
-                if (buildDirTmp.absolutePath.contains(" ")) {
-                    def jvmTmp = SystemProperties.instance.javaIoTmpDir
-                    if (jvmTmp.contains(" ")) {
-                        throw new IllegalStateException("Cannot run test as there is no tmp dir location available that does not contain a space in the path")
-                    } else {
-                        executer.withTmpDir(jvmTmp)
-                    }
-                } else {
-                    executer.withTmpDir(buildDirTmp.absolutePath)
-                }
-            }
-            executer.withGradleOpts("-Dgradle.user.home=${executer.gradleUserHomeDir}")
+            executer.withCommandLineGradleOpts("-Dgradle.user.home=${executer.gradleUserHomeDir}")
         }
+
+        // Use isolated daemons in order to verify that using the installed distro works, and so that the daemons aren't visible to other tests, because
+        // the installed distro is deleted at the end of this test
+        executer.requireIsolatedDaemons()
         return executer
     }
 }

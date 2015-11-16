@@ -196,6 +196,11 @@
                 <sourcefile file="build.gradle" snippet="incremental-task" />
             </sample>
             <para>
+                If for some reason the task is not run incremental, e.g. by running with --rerun-tasks, only the
+                outOfDate action is executed, even if there where deleted input files. You should consider handling this
+                case at the beginning, as is done in the example above.
+            </para>
+            <para>
                 For a simple transformer task like this, the task action simply needs to generate output files for any out-of-date inputs,
                 and delete output files for any removed inputs.
             </para>

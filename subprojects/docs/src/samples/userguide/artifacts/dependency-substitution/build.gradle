@@ -1,0 +1,16 @@
+
+//START SNIPPET module_to_project_substitution
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute module("org.utils:api") with project(":api")
+        substitute module("org.utils:util:2.5") with project(":util")
+    }
+}
+//END SNIPPET module_to_project_substitution
+//START SNIPPET project_to_module_substitution
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute project(":api") with module("org.utils:api:1.3")
+    }
+}
+//END SNIPPET project_to_module_substitution

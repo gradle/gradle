@@ -24,8 +24,8 @@ import org.gradle.language.base.internal.plugins.CleanRule;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -41,7 +41,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     public static final String VERIFICATION_GROUP = "verification";
 
     private static final String CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG = "Defining custom '%s' task when using the standard Gradle lifecycle plugins";
-    private static final List<String> PLACEHOLDER_TASKS = Arrays.asList(BUILD_TASK_NAME, CHECK_TASK_NAME, CLEAN_TASK_NAME, ASSEMBLE_TASK_NAME);
+    private final Set<String> placeholders = new HashSet<String>();
 
     public void apply(ProjectInternal project) {
         addClean(project);
@@ -53,11 +53,11 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void addClean(final ProjectInternal project) {
-        project.getTasks().addPlaceholderAction(CLEAN_TASK_NAME, Delete.class, new Action<Delete>() {
+        addPlaceholderAction(project, CLEAN_TASK_NAME, Delete.class, new Action<Delete>() {
             @Override
             public void execute(Delete clean) {
                 clean.setDescription("Deletes the build directory.");
-                clean.setGroup(VERIFICATION_GROUP);
+                clean.setGroup(BUILD_GROUP);
                 clean.delete(new Callable<File>() {
                     public File call() throws Exception {
                         return project.getBuildDir();
@@ -72,7 +72,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void addAssemble(ProjectInternal project) {
-        project.getTasks().addPlaceholderAction(ASSEMBLE_TASK_NAME, DefaultTask.class, new Action<TaskInternal>() {
+        addPlaceholderAction(project, ASSEMBLE_TASK_NAME, DefaultTask.class, new Action<TaskInternal>() {
             @Override
             public void execute(TaskInternal assembleTask) {
                 assembleTask.setDescription("Assembles the outputs of this project.");
@@ -81,8 +81,8 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void addCheck(final ProjectInternal project) {
-        project.getTasks().addPlaceholderAction(CHECK_TASK_NAME, DefaultTask.class, new Action<TaskInternal>() {
+    private void addCheck(ProjectInternal project) {
+        addPlaceholderAction(project, CHECK_TASK_NAME, DefaultTask.class, new Action<TaskInternal>() {
             @Override
             public void execute(TaskInternal checkTask) {
                 checkTask.setDescription("Runs all checks.");
@@ -92,7 +92,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void addBuild(final ProjectInternal project) {
-        project.getTasks().addPlaceholderAction(BUILD_TASK_NAME, DefaultTask.class, new Action<DefaultTask>() {
+        addPlaceholderAction(project, BUILD_TASK_NAME, DefaultTask.class, new Action<DefaultTask>() {
             @Override
             public void execute(DefaultTask buildTask) {
                 buildTask.setDescription("Assembles and tests this project.");
@@ -103,11 +103,22 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
+    <T extends TaskInternal> void addPlaceholderAction(ProjectInternal project, final String placeholderName, Class<T> type, final Action<? super T> configure) {
+        placeholders.add(placeholderName);
+        project.getTasks().addPlaceholderAction(placeholderName, type, new Action<T>() {
+            @Override
+            public void execute(T t) {
+                t.getExtensions().getExtraProperties().set("placeholder", true);
+                configure.execute(t);
+            }
+        });
+    }
+
     private void addDeprecationWarningsAboutCustomLifecycleTasks(ProjectInternal project) {
         project.getTasks().all(new Action<Task>() {
             @Override
             public void execute(Task task) {
-                if (PLACEHOLDER_TASKS.contains(task.getName())) {
+                if (placeholders.contains(task.getName()) && !task.getExtensions().getExtraProperties().has("placeholder")) {
                     DeprecationLogger.nagUserOfDeprecated(String.format(CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG, task.getName()));
                 }
             }

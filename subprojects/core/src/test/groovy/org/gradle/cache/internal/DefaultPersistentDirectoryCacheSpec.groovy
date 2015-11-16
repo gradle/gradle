@@ -29,7 +29,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 class DefaultPersistentDirectoryCacheSpec extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmp
-    
+
     def "will rebuild cache if not unlocked cleanly"() {
         given:
         def dir = tmp.createDir("cache")
@@ -39,11 +39,14 @@ class DefaultPersistentDirectoryCacheSpec extends Specification {
         def cache = new DefaultPersistentDirectoryCache(
                 dir, "test", { true } as CacheValidator, [:], mode(FileLockManager.LockMode.Exclusive), init, createDefaultFileLockManager()
         )
-        
+
         when:
         cache.open()
 
         then:
         initd
+
+        cleanup:
+        cache.close()
     }
 }

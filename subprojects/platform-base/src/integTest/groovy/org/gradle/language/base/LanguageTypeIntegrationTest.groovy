@@ -17,9 +17,6 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
-
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 
@@ -42,7 +39,6 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "registers language in languageRegistry"(){
         given:
-        EnableModelDsl.enable(executer)
         buildFile << """
 model {
     tasks {
@@ -64,9 +60,6 @@ model {
     def "can add custom language sourceSet to component"() {
         when:
         buildFile << """
-        import org.gradle.model.*
-        import org.gradle.model.collection.*
-
         interface SampleComponent extends ComponentSpec {}
         class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
 
@@ -78,7 +71,7 @@ model {
             }
 
             @Mutate
-            void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+            void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {
                 componentSpecs.create("main")
             }
         }
@@ -99,14 +92,14 @@ model {
         then:
         succeeds "components"
         and:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 DefaultSampleComponent 'main'
 -----------------------------
 
 Source sets
     DefaultCustomLanguageSourceSet 'main:custom'
-        src${File.separator}main${File.separator}custom
-"""))
+        srcDir: src${File.separator}main${File.separator}custom
+"""
     }
 
 }

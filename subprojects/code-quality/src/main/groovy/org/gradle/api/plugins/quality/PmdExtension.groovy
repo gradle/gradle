@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.quality
-
 import org.gradle.api.Incubating
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.resources.TextResource
-
 /**
  * Configuration options for the PMD plugin.
  *
@@ -44,6 +42,28 @@ class PmdExtension extends CodeQualityExtension {
      * The target jdk to use with pmd, 1.3, 1.4, 1.5, 1.6, 1.7 or jsp
      */
     TargetJdk targetJdk
+
+	/**
+     * The rule priority threshold; violations for rules with a lower priority will not be reported.
+     * Default value is 5, which means that all violations will be reported.
+     *
+     * This is equivalent to PMD's Ant task minimumPriority property.
+     * <p>
+     * See the official documentation for the <a href="http://pmd.sourceforge.net/rule-guidelines.html">list of priorities</a>.
+     * </p>
+     * Example: rulePriority = 3
+	 */
+    @Incubating
+	int rulePriority = 5
+
+    /**
+     * Sets the rule priority threshold.
+     */
+    @Incubating
+    void setRulePriority(int intValue) {
+        Pmd.validate(intValue)
+        rulePriority = intValue
+    }
 
     /**
      * Sets the target jdk used with pmd.
@@ -105,5 +125,4 @@ class PmdExtension extends CodeQualityExtension {
      */
     @Incubating
     boolean consoleOutput
-
 }

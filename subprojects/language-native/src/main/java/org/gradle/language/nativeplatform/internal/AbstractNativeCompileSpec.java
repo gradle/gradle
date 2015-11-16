@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal;
 
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.nativeplatform.internal.AbstractBinaryToolSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
@@ -168,5 +169,14 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     @Override
     public void setSourceFileIncludes(Map<File, SourceIncludes> map) {
         this.sourceFileIncludes = map;
+    }
+
+    // TODO:
+    private IncrementalTaskInputs incrementalTaskInputs;
+    public void setIncrementalInputs(IncrementalTaskInputs inputs) {
+        this.incrementalTaskInputs = inputs;
+    }
+    public IncrementalTaskInputs getIncrementalInputs() {
+        return incrementalTaskInputs;
     }
 }

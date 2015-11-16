@@ -192,6 +192,11 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             return true;
         }
+
+        @Override
+        public boolean acceptsAllArtifacts() {
+            return true;
+        }
     }
 
     private static abstract class CompositeSpec extends DefaultModuleResolutionFilter {
@@ -325,6 +330,16 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                     return false;
                 }
             }
+            return true;
+        }
+
+        public boolean acceptsAllArtifacts() {
+            for (DefaultModuleResolutionFilter spec : excludeSpecs) {
+                if (!spec.acceptsAllArtifacts()) {
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -480,6 +495,16 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
 
             return false;
         }
+
+        public boolean acceptsAllArtifacts() {
+            for (DefaultModuleResolutionFilter spec : specs) {
+                if (spec.acceptsAllArtifacts()) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     /**
@@ -526,6 +551,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         }
 
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+            return true;
+        }
+
+        public boolean acceptsAllArtifacts() {
             return true;
         }
     }
@@ -576,6 +605,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             return true;
         }
+
+        public boolean acceptsAllArtifacts() {
+            return true;
+        }
     }
 
     /**
@@ -624,6 +657,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             return true;
         }
+
+        public boolean acceptsAllArtifacts() {
+            return true;
+        }
     }
 
     private static class ExcludeAllModulesSpec extends DefaultModuleResolutionFilter {
@@ -652,6 +689,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         }
 
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+            return true;
+        }
+
+        public boolean acceptsAllArtifacts() {
             return true;
         }
     }
@@ -722,6 +763,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return true;
         }
 
+        public boolean acceptsAllArtifacts() {
+            return !isArtifactExclude;
+        }
+
         private boolean matches(String expression, String input) {
             return matcher.getMatcher(expression).matches(input);
         }
@@ -784,6 +829,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                     && matches(ivyArtifactName.getName(), artifact.getName())
                     && matches(ivyArtifactName.getExtension(), artifact.getExtension())
                     && matches(ivyArtifactName.getType(), artifact.getType()));
+        }
+
+        public boolean acceptsAllArtifacts() {
+            return false;
         }
 
         private boolean matches(String expression, String input) {

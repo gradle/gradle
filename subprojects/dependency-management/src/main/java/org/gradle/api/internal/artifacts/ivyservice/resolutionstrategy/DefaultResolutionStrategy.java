@@ -19,11 +19,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.cache.ResolutionRules;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.internal.Actions;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
@@ -46,6 +47,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final DependencySubstitutionsInternal dependencySubstitutions;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
+    private boolean assumeFluidDependencies;
+    private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
+
     public DefaultResolutionStrategy() {
         this(new DefaultCachePolicy(), new DefaultDependencySubstitutions());
     }
@@ -53,6 +57,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions) {
         this.cachePolicy = cachePolicy;
         this.dependencySubstitutions = dependencySubstitutions;
+
+        // This is only used for testing purposes so we can test handling of fluid dependencies without adding dependency substituion rule
+        assumeFluidDependencies = Boolean.getBoolean(ASSUME_FLUID_DEPENDENCIES);
     }
 
     @Override
@@ -94,10 +101,19 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
-    public Action<DependencySubstitution<ComponentSelector>> getDependencySubstitutionRule() {
-        Collection<Action<DependencySubstitution<ComponentSelector>>> allRules = flattenElements(new ModuleForcingResolveRule(forcedModules), dependencySubstitutions.getDependencySubstitutionRule());
+    public Action<DependencySubstitution> getDependencySubstitutionRule() {
+        Collection<Action<DependencySubstitution>> allRules = flattenElements(new ModuleForcingResolveRule(forcedModules), dependencySubstitutions.getDependencySubstitutionRule());
         return Actions.composite(allRules);
     }
+
+    public void assumeFluidDependencies() {
+        assumeFluidDependencies = true;
+    }
+
+    public boolean resolveGraphToDetermineTaskDependencies() {
+        return assumeFluidDependencies || dependencySubstitutions.hasDependencySubstitutionRules();
+    }
+
 
     public DefaultResolutionStrategy setForcedModules(Object ... moduleVersionSelectorNotations) {
         mutationValidator.validateMutation(STRATEGY);

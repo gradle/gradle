@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.messaging.remote.internal.Message;
 
 import java.io.File;
 import java.util.Map;
@@ -28,6 +29,7 @@ public class BaseSerializerFactory {
     public static final Serializer<File> FILE_SERIALIZER = new FileSerializer();
     public static final Serializer<byte[]> BYTE_ARRAY_SERIALIZER = new ByteArraySerializer();
     public static final Serializer<Map<String, String>> NO_NULL_STRING_MAP_SERIALIZER = new StringMapSerializer();
+    public static final Serializer<Throwable> THROWABLE_SERIALIZER = new ThrowableSerializer();
 
     public <T> Serializer<T> getSerializerFor(Class<T> type) {
         if (type.equals(String.class)) {
@@ -47,6 +49,9 @@ public class BaseSerializerFactory {
         }
         if (type.equals(Boolean.class)) {
             return (Serializer<T>) BOOLEAN_SERIALIZER;
+        }
+        if (Throwable.class.isAssignableFrom(type)) {
+            return (Serializer<T>) THROWABLE_SERIALIZER;
         }
         return new DefaultSerializer<T>(type.getClassLoader());
     }
@@ -135,6 +140,16 @@ public class BaseSerializerFactory {
         @Override
         public void write(Encoder encoder, Boolean value) throws Exception {
             encoder.writeBoolean(value);
+        }
+    }
+
+    private static class ThrowableSerializer implements Serializer<Throwable> {
+        public Throwable read(Decoder decoder) throws Exception {
+            return (Throwable) Message.receive(decoder.getInputStream(), getClass().getClassLoader());
+        }
+
+        public void write(Encoder encoder, Throwable value) throws Exception {
+            Message.send(value, encoder.getOutputStream());
         }
     }
 }

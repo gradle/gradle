@@ -15,14 +15,12 @@
  */
 
 package org.gradle.platform.base.internal.registry
-
 import org.gradle.api.Task
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.core.ExtractedModelRule
-import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.ModelMap
+import org.gradle.model.internal.core.*
+import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryTasks
 import org.gradle.platform.base.InvalidModelException
@@ -56,32 +54,42 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         ex.cause.message == expectedMessage
 
         where:
-        methodName             | expectedMessage                                                                                                             | descr
-        "returnValue"          | "Method annotated with @BinaryTasks must not have a return value."                                                          | "non void method"
-        "noParams"             | "Method annotated with @BinaryTasks must have a parameter of type '${CollectionBuilder.name}'."                             | "no CollectionBuilder subject"
-        "wrongSubject"         | "Method annotated with @BinaryTasks first parameter must be of type '${CollectionBuilder.name}'."                           | "wrong rule subject type"
-        "noBinaryParameter"    | "Method annotated with @BinaryTasks must have one parameter extending BinarySpec. Found no parameter extending BinarySpec." | "no component spec parameter"
-        "rawCollectionBuilder" | "Parameter of type 'CollectionBuilder' must declare a type parameter extending 'Task'."                                     | "non typed CollectionBuilder parameter"
+        methodName          | expectedMessage                                                                                                             | descr
+        "returnValue"       | "Method annotated with @BinaryTasks must not have a return value."                                                          | "non void method"
+        "noParams"          | "Method annotated with @BinaryTasks must have a parameter of type '${ModelMap.name}'."                                      | "no ModelMap subject"
+        "wrongSubject"      | "Method annotated with @BinaryTasks first parameter must be of type '${ModelMap.name}'."                                    | "wrong rule subject type"
+        "noBinaryParameter" | "Method annotated with @BinaryTasks must have one parameter extending BinarySpec. Found no parameter extending BinarySpec." | "no component spec parameter"
+        "rawModelMap"       | "Parameter of type '${ModelMap.simpleName}' must declare a type parameter extending 'Task'."                                | "non typed ModelMap parameter"
     }
 
     @Unroll
     def "applies ComponentModelBasePlugin and adds binary task creation rule for plain sample binary"() {
+        def mockRegistry = Mock(ModelRegistry)
+
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
 
         then:
+        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
-        registration.type == ExtractedModelRule.Type.ACTION
-        registration.actionRole == ModelActionRole.Defaults
-        registration.action.subject == ModelReference.of("binaries")
+
+        when:
+        registration.apply(mockRegistry, ModelPath.ROOT)
+
+        then:
+        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction action, ModelPath scope ->
+            assert role == ModelActionRole.Defaults
+            assert action.subject == ModelReference.of("binaries")
+        }
+        0 * _
     }
 
-    interface SomeBinary extends BinarySpec {}
+    static interface SomeBinarySpec extends BinarySpec {}
 
-    static class Rules {
+    class Rules {
 
         @BinaryTasks
-        static String returnValue(CollectionBuilder<Task> builder, SomeBinary binary) {
+        static String returnValue(ModelMap<Task> builder, SomeBinarySpec binary) {
         }
 
         @BinaryTasks
@@ -93,15 +101,15 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         }
 
         @BinaryTasks
-        static void rawCollectionBuilder(CollectionBuilder tasks, SomeBinary binary) {
+        static void rawModelMap(ModelMap tasks, SomeBinarySpec binary) {
         }
 
         @BinaryTasks
-        static void noBinaryParameter(CollectionBuilder<Task> builder) {
+        static void noBinaryParameter(ModelMap<Task> builder) {
         }
 
         @BinaryTasks
-        static void validTypeRule(CollectionBuilder<Task> tasks, SomeBinary binary) {
+        static void validTypeRule(ModelMap<Task> tasks, SomeBinarySpec binary) {
             tasks.create("create${binary.getName()}")
         }
     }

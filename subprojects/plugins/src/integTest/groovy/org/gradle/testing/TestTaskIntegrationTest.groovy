@@ -28,7 +28,7 @@ public class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
             configure([configurations.testRuntime, configurations.testCompile]) { configuration ->
                 incoming.afterResolve {
-                    assert configuration.internalState != org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.RESULTS_RESOLVED : "should not be resolved"
+                    assert configuration.resolvedState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED : "should not be resolved"
                 }
             }
         """

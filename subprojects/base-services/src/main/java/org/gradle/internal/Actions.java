@@ -22,6 +22,7 @@ import org.gradle.api.specs.Spec;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 
 public abstract class Actions {
 
@@ -201,6 +202,20 @@ public abstract class Actions {
                 action.execute(t);
             }
         }
+    }
+
+    public static <T> T with(T instance, Action<? super T> action) {
+        action.execute(instance);
+        return instance;
+    }
+
+    public static <T> Action<T> add(final Collection<? super T> collection) {
+        return new Action<T>() {
+            @Override
+            public void execute(T t) {
+                collection.add(t);
+            }
+        };
     }
 
 }

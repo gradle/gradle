@@ -33,5 +33,14 @@ class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds "hello"
         output.contains("Hello John Smith!")
+
+        when:
+        sample sample
+
+        then:
+        succeeds "helloFromDsl"
+        output.contains("Hello John Smith!")
     }
 }
+
+

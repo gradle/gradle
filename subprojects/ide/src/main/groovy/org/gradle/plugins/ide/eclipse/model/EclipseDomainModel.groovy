@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.eclipse.model
 /**
  * For now, we only need the Project. However this class will contain more domain objects soon.
  */
+@Deprecated
 class EclipseDomainModel {
     Project project
     Classpath classpath

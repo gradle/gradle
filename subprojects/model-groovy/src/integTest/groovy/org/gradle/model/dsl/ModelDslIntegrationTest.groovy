@@ -17,10 +17,6 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
-import org.gradle.model.dsl.internal.transform.RulesVisitor
-
-import static org.hamcrest.Matchers.containsString
 
 /**
  * Tests the fundamental usages of the model dsl.
@@ -29,17 +25,10 @@ import static org.hamcrest.Matchers.containsString
  */
 class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
-
-    def "rule inputs can be referenced in closures that are not executed during rule execution"() {
+    def "can reference rule inputs using dollar method syntax"() {
         when:
-        buildScript """
-            import org.gradle.model.*
-
-            class MyPlugin {
-              static class Rules extends RuleSource {
+        buildScript '''
+            class MyPlugin extends RuleSource {
                 @Model
                 String foo() {
                   "foo"
@@ -49,7 +38,43 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
                 List<String> strings() {
                   []
                 }
-              }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                tasks {
+                    def strings = $('strings')
+                    printStrings(Task) {
+                        doLast {
+                            println "strings: " + strings
+                        }
+                    }
+                }
+                strings {
+                    add($('foo'))
+                }
+            }
+'''
+
+        then:
+        succeeds "printStrings"
+        output.contains "strings: [foo]"
+    }
+
+    def "rule inputs can be referenced in closures that are not executed during rule execution"() {
+        when:
+        buildScript '''
+            class MyPlugin extends RuleSource {
+                @Model
+                String foo() {
+                  "foo"
+                }
+
+                @Model
+                List<String> strings() {
+                  []
+                }
             }
 
             apply type: MyPlugin
@@ -60,15 +85,15 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
                   doLast {
                     // Being in doLast is significant here.
                     // This is not going to execute until much later, so we are testing that we can still access the input
-                    println "strings: " + \$("strings")
+                    println "strings: " + $("strings")
                   }
                 }
               }
               strings {
-                add \$("foo")
+                add $("foo")
               }
             }
-        """
+        '''
 
         then:
         succeeds "printStrings"
@@ -77,16 +102,12 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "inputs are fully configured when used in rules"() {
         when:
-        buildScript """
-            import org.gradle.model.*
-
-            class MyPlugin {
-              static class Rules extends RuleSource {
+        buildScript '''
+            class MyPlugin extends RuleSource {
                 @Model
                 List<String> strings() {
                   []
                 }
-              }
             }
 
             apply type: MyPlugin
@@ -95,7 +116,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("printStrings") {
                   doLast {
-                    println "strings: " + \$("strings")
+                    println "strings: " + $("strings")
                   }
                 }
               }
@@ -106,7 +127,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
                 add "bar"
               }
             }
-        """
+        '''
 
         then:
         succeeds "printStrings"
@@ -115,16 +136,12 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "the same input can be referenced more than once, and refers to the same object"() {
         when:
-        buildScript """
-            import org.gradle.model.*
-
-            class MyPlugin {
-              static class Rules extends RuleSource {
+        buildScript '''
+            class MyPlugin extends RuleSource {
                 @Model
                 List<String> strings() {
                   []
                 }
-              }
             }
 
             apply type: MyPlugin
@@ -133,15 +150,62 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("assertDuplicateInputIsSameObject") {
                   doLast {
-                    assert \$("strings").is(\$("strings"))
+                    assert $("strings").is($("strings"))
+                    def s = $.strings
+                    assert $.strings.is($.strings)
+                    assert s == $.strings
+                    assert $.strings.is($("strings"))
+                    this.with {
+                        // Nested in a closure
+                        assert $.strings.is(s)
+                    }
                   }
                 }
               }
             }
-        """
+        '''
 
         then:
         succeeds "assertDuplicateInputIsSameObject"
+    }
+
+    def "reports on the first reference to unknown input"() {
+        when:
+        buildScript '''
+            model {
+              tasks {
+                $.unknown
+                $("unknown")
+              }
+            }
+        '''
+
+        then:
+        fails "tasks"
+        failure.assertHasCause('''The following model rules could not be applied due to unbound inputs and/or subjects:
+
+  tasks { ... } @ build.gradle line 3, column 15
+    subject:
+      - tasks Object
+    inputs:
+      - unknown Object (@ line 4) [*]
+
+''')
+    }
+
+    def "reports on configuration action failure"() {
+        when:
+        buildScript '''
+            model {
+              tasks {
+                unknown = 12
+              }
+            }
+        '''
+
+        then:
+        fails "tasks"
+        failure.assertHasCause('Exception thrown while executing model rule: tasks { ... } @ build.gradle line 3, column 15')
     }
 
     def "can use model block in script plugin"() {
@@ -149,11 +213,8 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'a'; include 'b'"
         when:
 
-        buildScript """
-            import org.gradle.model.*
-
-            class MyPlugin {
-              static class Rules extends RuleSource {
+        buildScript '''
+            class MyPlugin extends RuleSource {
                 @Model
                 String foo() {
                   "foo"
@@ -163,14 +224,13 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
                 List<String> strings() {
                   []
                 }
-              }
             }
 
             subprojects {
                 apply type: MyPlugin
-                apply from: "\$rootDir/script.gradle"
+                apply from: "$rootDir/script.gradle"
             }
-        """
+        '''
         file("a/build.gradle") << """
             model {
               strings { add "a" }
@@ -181,54 +241,24 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
               strings { add "b" }
             }
         """
-        file("script.gradle") << """
+        file("script.gradle") << '''
             model {
               tasks {
                 create("printStrings") {
                   doLast {
-                    println project.name + ": " + \$("strings")
+                    println it.project.name + ": " + $("strings")
                   }
                 }
               }
               strings {
-                add \$("foo")
+                add $("foo")
               }
             }
-        """
+        '''
 
         then:
         succeeds "printStrings"
         output.contains "a: " + ["foo", "a"]
         output.contains "b: " + ["foo", "b"]
     }
-
-    def "only closure literals can be used as rules"() {
-        when:
-        buildScript """
-            import org.gradle.model.*
-
-            class MyPlugin {
-              static class Rules extends RuleSource {
-                @Model
-                String foo() {
-                  "foo"
-                }
-              }
-            }
-
-            apply type: MyPlugin
-
-            def c = {};
-            model {
-                foo(c)
-            }
-        """
-
-        then:
-        fails "tasks"
-        failure.assertHasLineNumber 17
-        failure.assertHasFileName("Build file '${buildFile}'")
-        failure.assertThatCause(containsString(RulesVisitor.INVALID_RULE_SIGNATURE))
-    }
-
 }

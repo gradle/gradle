@@ -17,7 +17,9 @@ package org.gradle.launcher.daemon.configuration
 
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.UsesNativeServices
 
+@UsesNativeServices
 class DaemonParametersIntegrationTest extends AbstractIntegrationSpec {
 
     def honorsGradleUserHomeDir() {

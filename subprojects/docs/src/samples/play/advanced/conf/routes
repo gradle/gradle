@@ -16,4 +16,4 @@ POST    /questions                     controllers.QuestionsThreeController.subm
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 # Custom routes
-->     /hello                       hello.Routes
+->      /hello                       hello.Routes

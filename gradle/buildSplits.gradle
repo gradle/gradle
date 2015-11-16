@@ -1,0 +1,91 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+def buckets = [
+    "1": [":platformPlay", ":scala", ":languageScala", ":buildComparison",
+        ":ivy", ":platformBase", ":jacoco", ":announce", ":internalIntegTesting",
+        ":diagnostics", ":jetty", ":cli", ":reporting", ":toolingApiBuilders", ":openApi"],
+
+    "2": [":toolingApi", ":dependencyManagement", ":testKit", ":distributions",
+        ":pluginUse",  ":buildInit", ":languageGroovy", ":internalTesting",
+        ":languageJvm", ":performance", ":publish", ":resources", ":baseServicesGroovy", ":resourcesHttp",
+        ":pluginDevelopment", ":osgi"],
+
+    "3": [":launcher", ":plugins", ":codeQuality", ":languageJava",
+        ":ui", ":javascript", ":antlr", ":messaging", ":ear",
+        ":resourcesS3", ":wrapper", ":resourcesSftp", ":signing", ":modelGroovy", ":baseServices"],
+
+    "4": [":docs", ":integTest", ":core", ":languageNative", ":ide", ":platformJvm", ":platformNative",
+          ":modelCore", ":sonar", ":maven", ":testingNative", ":ideNative", ":native"]
+]
+
+//Make sure all projects are accounted for
+def coveredProjects = (buckets.collect { it.value }).flatten()
+def uncoveredProjects = subprojects.collect { ":${it.name}" } - coveredProjects
+assert uncoveredProjects == [] : "The following projects should be added to a bucket: ${uncoveredProjects}"
+
+ext.runtimeProjectPaths = runtimeProjects.collect { it.path }
+
+//Make sure there are no duplicates between buckets
+for (int bucket : buckets.keySet().collect{it as int}) {
+    for (int other=bucket+1; other<=buckets.size(); other++) {
+        def duplicates = buckets["${bucket}"].intersect(buckets["${other}"])
+        assert duplicates == [] : "Duplicates were found between bucket ${bucket} and ${other}: ${duplicates}"
+    }
+}
+
+//Create appropriate build types for each bucket
+buildTypes.toArray().each { buildType ->
+    buckets.each { String bucketName, List<String> projects ->
+        def projectTasks = tasksForProjects(buildType, projects)
+        buildTypes.create("${buildType.name + bucketName}") {
+            tasks projectTasks as String[]
+            projectProperties buildType.projectProperties
+        }
+    }
+}
+
+def tasksForProjects(buildType, List<String> projects) {
+    List tasks = []
+    projects.each { String p ->
+        buildType.tasks.each { String t ->
+            String task = resolveTask(p, t)
+            if (task) {
+                if (!task.contains(':')) {
+                    tasks << "$p:${task}"
+                } else {
+                    // Add the task if the project is in this bucket
+                    if (task.startsWith("${p}:") || ":${task}".startsWith("${p}:")) {
+                        tasks << task
+                    }
+                }
+            }
+        }
+    }
+    return tasks
+}
+
+def String resolveTask(String projectPath, String task) {
+    if (testGroupings.containsKey(task)) {
+        if (projectPath in runtimeProjectPaths) {
+            return testGroupings[task]
+        } else {
+            return null
+        }
+    } else {
+        return task
+    }
+}

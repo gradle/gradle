@@ -17,40 +17,32 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.model.InvalidModelRuleException;
 import org.gradle.model.ModelRuleBindingException;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelPromise;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 
-class PathBinderCreationListener extends BinderCreationListener {
-    private final Action<? super ModelNodeInternal> bindAction;
-    private final ModelPath path;
+class PathBinderCreationListener extends ModelBinding {
+    private final Action<ModelBinding> bindAction;
 
-    public PathBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelNodeInternal> bindAction) {
-        super(descriptor, reference, writable);
+    public PathBinderCreationListener(ModelRuleDescriptor descriptor, BindingPredicate predicate, boolean writable, Action<ModelBinding> bindAction) {
+        super(descriptor, predicate, writable);
         this.bindAction = bindAction;
-        this.path = scope.descendant(reference.getPath());
     }
 
-    @Nullable
     @Override
-    public ModelPath matchPath() {
-        return path;
+    public boolean canBindInState(ModelNode.State state) {
+        return predicate.isUntyped() || state.isAtLeast(ModelNode.State.Discovered);
     }
 
-    public boolean onCreate(ModelNodeInternal node) {
-        ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
-        ModelPromise promise = node.getPromise();
-        if (isTypeCompatible(promise)) {
-            bindAction.execute(node);
-            return true; // bound by type and path, stop listening
+    public void doOnBind(ModelNodeInternal node) {
+        if (predicate.isUntyped() || isTypeCompatible(node.getPromise())) {
+            boundTo = node;
+            bindAction.execute(this);
         } else {
-            throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
-                    IncompatibleTypeReferenceReporter.of(node, promise, reference, writable).asString()
+            throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
+                IncompatibleTypeReferenceReporter.of(node, node.getPromise(), predicate.getReference(), writable).asString()
             ));
         }
     }

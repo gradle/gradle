@@ -49,7 +49,12 @@ public class RepeatableInputStreamEntity extends AbstractHttpEntity {
     }
 
     public void writeTo(OutputStream outstream) throws IOException {
-        IOUtils.copyLarge(getContent(), outstream);
+        InputStream content = getContent();
+        try {
+            IOUtils.copyLarge(content, outstream);
+        } finally {
+            IOUtils.closeQuietly(content);
+        }
     }
 
     public boolean isStreaming() {

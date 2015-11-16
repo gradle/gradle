@@ -3,8 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <sys/socket.h>
-#include <unistd.h>
+#include <math.h>
+#include <stdarg.h>
 #include <signal.h>
-#include <getopt.h>
+#include <stddef.h>
+#include <errno.h>
+#include <time.h>
 #endif

@@ -1,12 +1,19 @@
 language: java
 jdk:
   - oraclejdk7
-install:
-  - true
-script:
-  - ./gradlew pullRequestValidation
 env:
+  global:
   - TERM=dumb
+  - GRADLE_OPTS="-Xmx1024m -Xms256m -XX:MaxPermSize=256m -XX:+CMSClassUnloadingEnabled"
+  matrix:
+  - CI_TEST_SPLIT=1
+  - CI_TEST_SPLIT=2
+  - CI_TEST_SPLIT=3
+  - CI_TEST_SPLIT=4
 branches:
   only:
     - master
+install:
+  - true
+script:
+  - ./travisci_build.sh

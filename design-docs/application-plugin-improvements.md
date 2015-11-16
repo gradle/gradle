@@ -3,7 +3,7 @@
 This feature is a bucket for improvements to the Gradle `application` plugin.
 Most of these improvements are not strategic.
 
-## Allow custom templates for the start scripts
+## Allow custom templates for the start scripts (DONE)
 
 * [GRADLE-2299](https://issues.gradle.org/browse/GRADLE-2299) - Application plugin should allow custom templates for the start scripts
 * [GRADLE-2207](https://issues.gradle.org/browse/GRADLE-2207) - Allow application plugin start scripts to be more flexible for different environments
@@ -273,3 +273,6 @@ Users will mainly configure the application plugin through the extension. The fo
 ### Open issues
 
 * Should we deprecate the existing `ApplicationPluginConvention` and keep it around for a while to avoid a hard breaking change?
+* 
+
+

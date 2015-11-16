@@ -42,7 +42,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
 
         then:
         GradleConnectionException e = thrown()
-        e.message.startsWith("Could not execute build using Gradle installation")
+        e.message.startsWith("Could not execute build using Gradle ")
         e.cause.message == "Gradle ${targetDist.version.version} requires Java 6 or later to run. Your build is currently configured to use Java 5."
     }
 
@@ -54,7 +54,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
 
         then:
         GradleConnectionException e = thrown()
-        e.message.startsWith("Could not fetch model of type 'GradleProject' using Gradle installation")
+        e.message.startsWith("Could not fetch model of type 'GradleProject' using Gradle ")
         e.cause.message == "Gradle ${targetDist.version.version} requires Java 6 or later to run. Your build is currently configured to use Java 5."
     }
 
@@ -67,7 +67,20 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
 
         then:
         GradleConnectionException e = thrown()
-        e.message.startsWith("Could not run build action using Gradle installation")
+        e.message.startsWith("Could not run build action using Gradle ")
+        e.cause.message == "Gradle ${targetDist.version.version} requires Java 6 or later to run. Your build is currently configured to use Java 5."
+    }
+
+    @ToolingApiVersion(">=2.6")
+    def "cannot run tests when build is configured to use Java 5"() {
+        when:
+        toolingApi.withConnection { ProjectConnection connection ->
+            connection.newTestLauncher().withJvmTestClasses("SomeTest").run()
+        }
+
+        then:
+        GradleConnectionException e = thrown()
+        e.message.startsWith("Could not execute tests using Gradle ")
         e.cause.message == "Gradle ${targetDist.version.version} requires Java 6 or later to run. Your build is currently configured to use Java 5."
     }
 }

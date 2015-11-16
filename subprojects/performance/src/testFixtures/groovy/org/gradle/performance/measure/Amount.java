@@ -163,6 +163,14 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
         return normalised.divide(other.normalised, 6, RoundingMode.HALF_UP);
     }
 
+    public Amount<Q> multiply(long other) {
+        return new Amount<Q>(value.multiply(BigDecimal.valueOf(other)), units);
+    }
+
+    public Amount<Q> multiply(BigDecimal other) {
+        return new Amount<Q>(value.multiply(other), units);
+    }
+
     public Amount<Q> abs() {
         if (value.compareTo(BigDecimal.ZERO) >= 0) {
             return this;

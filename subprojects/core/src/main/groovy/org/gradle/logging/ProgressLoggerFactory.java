@@ -16,8 +16,9 @@
 
 package org.gradle.logging;
 
-import org.gradle.TaskExecutionLogger;
-
+/**
+ * Thread-safe, however the progress logger instances created are not.
+ */
 public interface ProgressLoggerFactory {
     /**
      * Creates a new long-running operation which has not been started.
@@ -33,7 +34,7 @@ public interface ProgressLoggerFactory {
      * @param loggerCategory The logger category.
      * @return The progress logger for the operation.
      */
-    ProgressLogger newOperation(Class loggerCategory);
+    ProgressLogger newOperation(Class<?> loggerCategory);
 
-    ProgressLogger newOperation(Class<TaskExecutionLogger> taskExecutionLoggerClass, ProgressLogger parent);
+    ProgressLogger newOperation(Class<?> loggerClass, ProgressLogger parent);
 }

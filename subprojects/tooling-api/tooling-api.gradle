@@ -12,20 +12,27 @@ dependencies {
     testCompile libraries.groovy
 
     // lots of integTest errors otherwise
+    integTestCompile project(':internalIntegTesting')
     integTestRuntime project(':ide')
     integTestRuntime project(':buildInit')
     integTestRuntime project(':buildComparison')
     integTestRuntime project(":ivy")
     integTestRuntime project(":maven")
+
     integTestRuntime project(":toolingApiBuilders")
 }
 
 useTestFixtures()
-useTestFixtures(project: ':launcher', sourceSet: "integTest")
 
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+}
 
+integTest {
+    jvmArgs "-XX:MaxPermSize=500m"
+}
+
+forkingIntegTest {
     if (isCiServer) {
         maxParallelForks = Math.min(2, rootProject.maxParallelForks)
     }

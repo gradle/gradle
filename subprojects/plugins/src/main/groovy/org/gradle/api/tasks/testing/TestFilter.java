@@ -47,6 +47,9 @@ import java.util.Set;
  *
  *          //only ui tests from integration tests, by some naming convention
  *          includeTestsMatching "*IntegTest*ui"
+ *
+ *          //specific test class and test method
+ *          includeTest "org.gradle.SomeTest", "someTestMethod"
  *       }
  *   }
  *
@@ -58,10 +61,8 @@ import java.util.Set;
 public interface TestFilter {
 
     /**
-     * Appends a test name pattern to the filter. Wildcard '*' is supported,
-     * either test method name or class name is supported.
-     * Examples of test names: "com.foo.FooTest.someMethod", "com.foo.FooTest", "*FooTest*", "com.foo*".
-     * See examples in the docs for {@link TestFilter}.
+     * Appends a test name pattern to the filter. Wildcard '*' is supported, either test method name or class name is supported. Examples of test names: "com.foo.FooTest.someMethod",
+     * "com.foo.FooTest", "*FooTest*", "com.foo*". See examples in the docs for {@link TestFilter}.
      *
      * @param testNamePattern test name pattern to include, can be class or method name, can contain wildcard '*'
      * @return this filter object
@@ -69,19 +70,40 @@ public interface TestFilter {
     TestFilter includeTestsMatching(String testNamePattern);
 
     /**
-     * Returns the included test name patterns. They can be class or method names and may contain wildcard '*'.
-     * Test name patterns can be appended via {@link #includeTestsMatching(String)} or set via {@link #setIncludePatterns(String...)}.
+     * Returns the included test name patterns. They can be class or method names and may contain wildcard '*'. Test name patterns can be appended via {@link #includeTestsMatching(String)} or set via
+     * {@link #setIncludePatterns(String...)}.
      *
      * @return included test name patterns
      */
     Set<String> getIncludePatterns();
 
     /**
-     * Sets the test name patterns to be included in the filter. Wildcard '*' is supported.
-     * Replaces any existing test name patterns.
+     * Sets the test name patterns to be included in the filter. Wildcard '*' is supported. Replaces any existing test name patterns.
      *
      * @param testNamePatterns class or method name patterns to set, may contain wildcard '*'
      * @return this filter object
      */
     TestFilter setIncludePatterns(String... testNamePatterns);
+
+    /**
+     * Add a test method specified by test class name and method name.
+     *
+     * @param className the class name of the test to execute
+     * @param methodName the method name of the test to execute. Can be null.
+     * @return this filter object
+     */
+    TestFilter includeTest(String className, String methodName);
+
+    /**
+     * Let the test task fail if a filter configuration was provided but no test matched the given configuration.
+     * @param failOnNoMatchingTests whether a test task should fail if no test is matching the filter configuration.
+     * */
+    void setFailOnNoMatchingTests(boolean failOnNoMatchingTests);
+
+    /**
+     * Returns whether the task should fail if no matching tests where found.
+     * The default is true.
+     */
+    boolean isFailOnNoMatchingTests();
 }
+

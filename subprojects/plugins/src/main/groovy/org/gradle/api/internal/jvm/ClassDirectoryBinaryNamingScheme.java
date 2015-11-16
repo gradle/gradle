@@ -23,7 +23,7 @@ import org.gradle.util.GUtil;
 import java.util.Collections;
 import java.util.List;
 
-class ClassDirectoryBinaryNamingScheme implements BinaryNamingScheme {
+public class ClassDirectoryBinaryNamingScheme implements BinaryNamingScheme {
     private final String baseName;
     private final String collapsedName;
 
@@ -48,8 +48,8 @@ class ClassDirectoryBinaryNamingScheme implements BinaryNamingScheme {
         return baseName;
     }
 
-    public String getLifecycleTaskName() {
-        return getTaskName(null, "classes");
+    public String getBinaryName() {
+        return baseName;
     }
 
     public String getTaskName(@Nullable String verb) {

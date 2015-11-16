@@ -22,6 +22,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
 import org.gradle.nativeplatform.fixtures.app.*
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
@@ -76,6 +77,7 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @LeaksFileHandles("can't delete build/install/firstMainExecutable/lib")
     def "can produce multiple executables that use a library from a single project in parallel"() {
         given:
         Map<String, ExeWithLibraryUsingLibraryHelloWorldApp> apps = [
@@ -94,14 +96,16 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
             app.greetingsSources*.writeToDir(file("src/${name}Greetings"))
 
             buildFile << """
-                // Allow static libraries to be linked into shared
-                binaries.withType(StaticLibraryBinarySpec) {
-                    if (toolChain in Gcc || toolChain in Clang) {
-                        cppCompiler.args '-fPIC'
-                    }
-                }
-
                 model {
+                    // Allow static libraries to be linked into shared
+                    binaries {
+                        withType(StaticLibraryBinarySpec) {
+                            if (toolChain in Gcc || toolChain in Clang) {
+                                cppCompiler.args '-fPIC'
+                            }
+                        }
+                    }
+
                     components {
                         ${name}Main(NativeExecutableSpec) {
                             sources {

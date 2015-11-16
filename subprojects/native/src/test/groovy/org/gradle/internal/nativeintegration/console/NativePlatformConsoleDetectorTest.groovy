@@ -16,8 +16,10 @@
 
 package org.gradle.internal.nativeintegration.console
 
-import spock.lang.Specification
 import net.rubygrapefruit.platform.Terminals
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Specification
 
 class NativePlatformConsoleDetectorTest extends Specification {
     private Terminals terminals = Mock()
@@ -32,6 +34,7 @@ class NativePlatformConsoleDetectorTest extends Specification {
         detector.console == null
     }
 
+    @Requires(TestPrecondition.SMART_TERMINAL)
     def "returns metadata when stdout and stderr are attached to console"() {
         given:
         terminals.isTerminal(Terminals.Output.Stdout) >> true
@@ -43,6 +46,7 @@ class NativePlatformConsoleDetectorTest extends Specification {
         detector.console.stdErr
     }
 
+    @Requires(TestPrecondition.SMART_TERMINAL)
     def "returns metadata when only stdout is attached to console"() {
         given:
         terminals.isTerminal(Terminals.Output.Stdout) >> true
@@ -54,6 +58,7 @@ class NativePlatformConsoleDetectorTest extends Specification {
         !detector.console.stdErr
     }
 
+    @Requires(TestPrecondition.SMART_TERMINAL)
     def "returns metadata when only stderr is attached to console"() {
         given:
         terminals.isTerminal(Terminals.Output.Stdout) >> false

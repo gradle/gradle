@@ -21,7 +21,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 
 /**
- * Responsible for locating, constructing, and evaluating the {@link SettingsInternal} for a build.
+ * Responsible for locating, constructing, and configuring the {@link SettingsInternal} for a build.
  */
 public interface SettingsProcessor {
     SettingsInternal process(GradleInternal gradle,

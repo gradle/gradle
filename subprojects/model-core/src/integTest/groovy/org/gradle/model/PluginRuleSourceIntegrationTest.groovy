@@ -17,20 +17,12 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 
 class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     def "plugin class can expose model rules"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -39,7 +31,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, List<String> strings) {
+                    void addTasks(ModelMap<Task> tasks, List<String> strings) {
                         tasks.create("value") {
                             it.doLast {
                                 println "value: $strings"
@@ -69,8 +61,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "configuration in script is not executed if not needed"() {
         given:
         buildScript '''
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -98,8 +88,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "informative error message when rules are invalid"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
                 class Rules extends RuleSource {
                 }
@@ -119,8 +107,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "informative error message when two plugins declare model at the same path"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -144,14 +130,12 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyOtherPlugin']")
-        failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin\$Rules#string()' as the rule 'MyPlugin\$Rules#string()' is already registered to create this model element.")
+        failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin.Rules#string' as the rule 'MyPlugin.Rules#string' is already registered to create this model element.")
     }
 
     def "informative error message when two plugins declare model at the same path and model is already created"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -186,14 +170,12 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyOtherPlugin']")
-        failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin\$Rules#string()' as the rule 'MyPlugin\$Rules#string()' has already been used to create this model element.")
+        failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin.Rules#string' as the rule 'MyPlugin.Rules#string' has already been used to create this model element.")
     }
 
     def "informative error message when creation rule throws"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -214,28 +196,28 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#string()")
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin.Rules#string")
         failure.assertHasCause("oh no!")
     }
 
-    def "informative error message when dsl mutation rule throws"() {
+    def "informative error message when mutation rule throws"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
                     String string() { "foo" }
+
+                    @Mutate
+                    void broken(String s) {
+                        throw new RuntimeException("oh no!")
+                    }
                 }
             }
 
             apply type: MyPlugin
 
             model {
-                string {
-                    throw new RuntimeException("oh no!")
-                }
                 tasks {
                     $("string")
                 }
@@ -246,15 +228,13 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: model.string")
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin.Rules#broken")
         failure.assertHasCause("oh no!")
     }
 
-    def "model creator must provide instance"() {
+    def "model registration must provide instance"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -277,15 +257,12 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("error executing model rule: MyPlugin\$Rules#string() - rule returned null")
+        failure.assertHasCause("error executing model rule: MyPlugin.Rules#string - rule returned null")
     }
 
     def "plugin applied by plugin can contribute rules"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MyBasePlugin {
                 static class Rules extends RuleSource {
                     @Mutate
@@ -307,7 +284,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, List<String> strings) {
+                    void addTasks(ModelMap<Task> tasks, List<String> strings) {
                         tasks.create("value") {
                             it.doLast {
                                 println "value: $strings"
@@ -330,9 +307,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "configuration made to a project extension during afterEvaluate() is visible to rule sources"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MyExtension {
                 String value = "original"
             }
@@ -354,7 +328,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, String value) {
+                    void addTasks(ModelMap<Task> tasks, String value) {
                         tasks.create("value") {
                             it.doLast {
                                 println "value: $value"
@@ -381,13 +355,10 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "rule can depend on a concrete task type"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, @Path("tasks.injected") Exec execTask) {
+                    void addTasks(ModelMap<Task> tasks, @Path("tasks.injected") Exec execTask) {
                         tasks.create("name") {
                             it.doLast {
                                 println "name: ${execTask.name}"
@@ -412,8 +383,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "plugin application fails if rule source constructor throws exception"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-
             class Rules extends RuleSource {
                 Rules() {
                     throw new RuntimeException("failing constructor")

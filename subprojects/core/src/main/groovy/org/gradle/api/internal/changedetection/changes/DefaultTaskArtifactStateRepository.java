@@ -59,6 +59,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private final TaskHistoryRepository.History history;
         private boolean upToDate;
         private TaskUpToDateState states;
+        private IncrementalTaskInputsInternal taskInputs;
 
         public TaskArtifactStateImpl(TaskInternal task, TaskHistoryRepository.History history) {
             this.task = task;
@@ -87,9 +88,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             assert !upToDate : "Should not be here if the task is up-to-date";
 
             if (canPerformIncrementalBuild()) {
-                return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges(), getStates().getInputFilesSnapshot());
+                taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges(), getStates().getInputFilesSnapshot());
+            } else {
+                taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getStates().getInputFilesSnapshot());
             }
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getStates().getInputFilesSnapshot());
+            return taskInputs;
         }
 
         private boolean canPerformIncrementalBuild() {
@@ -114,6 +117,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 return;
             }
 
+            if (taskInputs!=null) {
+                getStates().getDiscoveredInputFilesChanges().newInputs(taskInputs.getDiscoveredInputs());
+            }
             getStates().getAllTaskChanges().snapshotAfterTask();
             history.update();
         }

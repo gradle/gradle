@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.classloader;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
@@ -47,6 +48,10 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
 
     public void addParent(ClassLoader parent) {
         parents.add(parent);
+    }
+
+    public List<ClassLoader> getParents() {
+        return ImmutableList.copyOf(parents);
     }
 
     public void visit(ClassLoaderVisitor visitor) {

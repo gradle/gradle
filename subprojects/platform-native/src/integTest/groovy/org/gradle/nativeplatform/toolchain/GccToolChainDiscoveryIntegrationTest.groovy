@@ -18,9 +18,10 @@ package org.gradle.nativeplatform.toolchain
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
-import org.gradle.nativeplatform.platform.internal.NativePlatforms
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
 
@@ -53,6 +54,7 @@ model {
         helloWorldApp.library.writeSources(file("src/hello"))
     }
 
+    @LeaksFileHandles
     def "can build when language tools that are not required are not available"() {
         when:
         buildFile << """
@@ -115,7 +117,7 @@ model {
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
-        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatforms.defaultPlatformName}'"))
+        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}'"))
         failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: Could not find C compiler 'does-not-exist'"))
     }
 

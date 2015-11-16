@@ -17,10 +17,11 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleDistributionLocator;
+import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.FixedBuildCancellationToken;
+import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
@@ -35,7 +36,7 @@ public class TestBuildScopeServices extends BuildScopeServices {
     }
 
     protected BuildCancellationToken createBuildCancellationToken() {
-        return new FixedBuildCancellationToken();
+        return new DefaultBuildCancellationToken();
     }
 
     protected BuildClientMetaData createClientMetaData() {
@@ -43,10 +44,6 @@ public class TestBuildScopeServices extends BuildScopeServices {
     }
 
     protected GradleDistributionLocator createGradleDistributionLocator() {
-        return new GradleDistributionLocator() {
-            public File getGradleHome() {
-                return homeDir;
-            }
-        };
+        return new DefaultGradleDistributionLocator(homeDir);
     }
 }

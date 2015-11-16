@@ -32,6 +32,6 @@ class UnsupportedOperationFeedbackCrossVersionSpec extends ToolingApiSpecificati
 
         then:
         UnsupportedOperationConfigurationException e = thrown()
-        e.message.contains('Unsupported configuration: modelBuilder.forTasks().')
+        e.message.contains("The version of Gradle you are using (${targetDist.version.version}) does not support the ModelBuilder API forTasks() configuration option. Support for this is available in Gradle 1.2 and all later versions.")
     }
 }

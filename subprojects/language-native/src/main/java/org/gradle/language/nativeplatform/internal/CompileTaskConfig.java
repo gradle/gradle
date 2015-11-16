@@ -19,7 +19,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.PreprocessingTool;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
@@ -60,7 +60,7 @@ abstract public class CompileTaskConfig implements SourceTransformTaskConfig {
         return taskType;
     }
 
-    public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
+    public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
         configureCompileTaskCommon((AbstractNativeCompileTask) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
         configureCompileTask((AbstractNativeCompileTask) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
     }
@@ -88,7 +88,7 @@ abstract public class CompileTaskConfig implements SourceTransformTaskConfig {
         });
 
         for (String toolName : languageTransform.getBinaryTools().keySet()) {
-            Tool tool = (Tool) ((ExtensionAware) binary).getExtensions().getByName(toolName);
+            Tool tool = binary.getToolByName(toolName);
             if (tool instanceof PreprocessingTool) {
                 task.setMacros(((PreprocessingTool) tool).getMacros());
             }

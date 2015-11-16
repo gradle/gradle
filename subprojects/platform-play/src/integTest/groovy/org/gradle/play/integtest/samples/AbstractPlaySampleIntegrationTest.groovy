@@ -18,18 +18,16 @@ package org.gradle.play.integtest.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.util.AvailablePortFinder
+import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TextUtil
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec {
-    def portFinder = AvailablePortFinder.createPrivate()
-    def initScript
-    int httpPort
+    File initScript
+    RunningPlayApp runningPlayApp = new RunningPlayApp(testDirectory)
 
     abstract Sample getPlaySample();
 
@@ -41,11 +39,10 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
     }
 
     def setup() {
-        httpPort = portFinder.nextAvailable
         initScript = file("initFile") << """
             gradle.allprojects {
                 tasks.withType(PlayRun) {
-                    httpPort = $httpPort
+                    httpPort = 0
                 }
             }
         """
@@ -62,32 +59,25 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
 
         when:
         sample playSample
-        def userInput = new PipedOutputStream();
-        executer.withStdIn(new PipedInputStream(userInput))
-        executer.usingInitScript(initScript)
+        executer.usingInitScript(initScript).withStdinPipe()
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
+        runningPlayApp.initialize(gradleHandle)
 
         then:
-        available("http://localhost:$httpPort", "Play app", 60000)
+        runningPlayApp.waitForStarted()
 
         and:
         checkContent()
 
         when:
-        stopWithCtrlD(userInput, gradleHandle)
+        gradleHandle.cancelWithEOT().waitForFinish()
 
         then: "play server is stopped too"
-        notAvailable("http://localhost:$httpPort")
-    }
-
-    static stopWithCtrlD(PipedOutputStream userInput, GradleHandle gradleHandle) {
-        userInput.write(4) // ctrl+d
-        userInput.write(TextUtil.toPlatformLineSeparators("\n").bytes) // For some reason flush() doesn't get the keystroke to the DaemonExecuter
-        gradleHandle.waitForFinish()
+        runningPlayApp.verifyStopped()
     }
 
     URL playUrl(String path='') {
-        return new URL("http://localhost:$httpPort/${path}")
+        runningPlayApp.playUrl(path)
     }
 
     File publicAsset(String asset) {

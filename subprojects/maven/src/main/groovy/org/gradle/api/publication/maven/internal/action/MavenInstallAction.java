@@ -15,26 +15,27 @@
  */
 package org.gradle.api.publication.maven.internal.action;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.installer.ArtifactInstallationException;
-import org.apache.maven.artifact.installer.ArtifactInstaller;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.gradle.api.GradleException;
+import org.sonatype.aether.RepositorySystem;
+import org.sonatype.aether.RepositorySystemSession;
+import org.sonatype.aether.artifact.Artifact;
+import org.sonatype.aether.installation.InstallRequest;
+import org.sonatype.aether.installation.InstallationException;
 
 import java.io.File;
+import java.util.Collection;
 
 public class MavenInstallAction extends AbstractMavenPublishAction {
+
     public MavenInstallAction(File pomFile) {
-        super(pomFile);
+        super(pomFile, null);
     }
 
     @Override
-    protected void publishArtifact(Artifact artifact, File artifactFile, ArtifactRepository localRepo) {
-        ArtifactInstaller installer = lookup(ArtifactInstaller.class);
-        try {
-            installer.install(artifactFile, artifact, localRepo);
-        } catch (ArtifactInstallationException e) {
-            throw new GradleException("Error installing artifact '" + artifact.getDependencyConflictId() + "': " + e.getMessage(), e);
+    protected void publishArtifacts(Collection<Artifact> artifacts, RepositorySystem repositorySystem, RepositorySystemSession session) throws InstallationException {
+        InstallRequest request = new InstallRequest();
+        for (Artifact artifact : artifacts) {
+            request.addArtifact(artifact);
         }
+        repositorySystem.install(session, request);
     }
 }

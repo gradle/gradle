@@ -108,7 +108,8 @@
                 <td>
                     <filename>src/main/antlr</filename>
                 </td>
-                <td>Production ANTLR grammar files.</td>
+                <td>Production ANTLR grammar files. If the ANTLR grammar is organized in packages, the structure in the antlr folder should reflect
+                the package structure. This ensures that the generated sources end up in the correct target subfolder.</td>
             </tr>
             <tr>
                 <td>
@@ -169,7 +170,7 @@
                     Not null
                 </td>
                 <td>
-                    The ANTLR grammar files of this source set. Contains all <filename>.g</filename> files found in the ANTLR
+                    The ANTLR grammar files of this source set. Contains all <filename>.g</filename> or <filename>.g4</filename> files found in the ANTLR
                     source directories, and excludes all other types of files.
                 </td>
             </tr>
@@ -196,9 +197,11 @@
             This allows fine grained control over memory settings for the ANTLR process.
             To set the heap size of a ANTLR process, the <literal>maxHeapSize</literal> property
             of <apilink class="org.gradle.api.plugins.antlr.AntlrTask"/> can be used.
+            To pass additional command-line arguments, append to the <literal>arguments</literal> property
+            of <apilink class="org.gradle.api.plugins.antlr.AntlrTask"/>.
         </para>
-        <sample id="advanced" dir="antlr" title="setting custom max heap size for ANTLR">
-            <sourcefile file="build.gradle" snippet="memory-settings"/>
+        <sample id="advanced" dir="antlr" title="setting custom max heap size and extra arguments for ANTLR">
+            <sourcefile file="build.gradle" snippet="generate-grammar-settings"/>
         </sample>
     </section>
 

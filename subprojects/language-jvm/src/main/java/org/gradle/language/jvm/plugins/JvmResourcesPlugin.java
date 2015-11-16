@@ -19,6 +19,7 @@ package org.gradle.language.jvm.plugins;
 import org.gradle.api.*;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
@@ -84,13 +85,15 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                     return ProcessResources.class;
                 }
 
-                public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
+                public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     ProcessResources resourcesTask = (ProcessResources) task;
                     JvmResourceSet resourceSet = (JvmResourceSet) sourceSet;
                     JvmBinarySpec jvmBinary = (JvmBinarySpec) binary;
                     resourcesTask.from(resourceSet.getSource());
                     resourcesTask.setDestinationDir(jvmBinary.getResourcesDir());
-                    jvmBinary.getTasks().getJar().dependsOn(resourcesTask);
+                    for (Task jarTask : binary.getTasks().withType(Jar.class)) {
+                        jarTask.dependsOn(resourcesTask);
+                    }
                 }
             };
         }

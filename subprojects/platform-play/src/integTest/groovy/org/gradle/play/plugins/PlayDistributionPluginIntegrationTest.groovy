@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
+import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -33,13 +34,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 id 'play'
             }
 
-            repositories {
-                jcenter()
-                maven{
-                    name = "typesafe-maven-release"
-                    url = "https://repo.typesafe.com/typesafe/maven-releases"
-                }
-            }
+            ${PLAY_REPOSITORES}
         """
     }
 
@@ -71,9 +66,9 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 ":createPlayBinaryStartScripts",
                 ":stagePlayBinaryDist")
         skipped(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
-                ":scalaCompilePlayBinary")
+                ":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates",
+                ":compilePlayBinaryScala")
 
         and:
         file("build/stage/playBinary").assertContainsDescendants(
@@ -92,9 +87,9 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":createPlayBinaryDist")
         skipped(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
-                ":scalaCompilePlayBinary",
+                ":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates",
+                ":compilePlayBinaryScala",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryDistributionJar",
                 ":createPlayBinaryAssetsJar",

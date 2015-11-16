@@ -17,7 +17,6 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 
 class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpec {
 
@@ -41,9 +40,6 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
     def "mutation rules from inner source classes applied via their common parent are executed in the order specified by class names of these rule sources"() {
         when:
         buildFile << '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MultipleRuleSources implements Plugin<Project> {
                 static class B extends RuleSource {
                     @Mutate
@@ -64,7 +60,7 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
                     }
 
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, MutationRecorder recorderInput) {
+                    void addTasks(ModelMap<Task> tasks, MutationRecorder recorderInput) {
                         tasks.create("echo", EchoTask) {
                             recorder = recorderInput
                         }
@@ -83,20 +79,15 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
         output.contains "mutations: a, b"
     }
 
-    def "mutation rules are executed in the order of application for rule sources and order of declaration for dsl defined rules"() {
+    def "mutation rules are executed in a fixed and arbitrary order"() {
         when:
-        EnableModelDsl.enable(executer)
         buildFile << '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class FirstSource extends RuleSource {
                 @Mutate
-                void first(MutationRecorder recorder, @Path("firstInput") String input) {
+                void first(MutationRecorder recorder) {
                     recorder.mutations << "first source"
                 }
             }
-
 
             class SecondSource extends RuleSource {
                 @Model
@@ -104,50 +95,83 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
                     new MutationRecorder()
                 }
 
-                @Model
-                String secondInput() {
-                    ""
-                }
-
                 @Mutate
-                void second(MutationRecorder recorder, @Path("secondInput") String input) {
+                void second(@Path("recorder") MutationRecorder recorder) {
                     recorder.mutations << "second source"
                 }
 
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks, MutationRecorder recorderInput) {
+                void third(MutationRecorder recorder) {
+                    recorder.mutations << "third source"
+                }
+
+                @Mutate
+                void addTasks(ModelMap<Task> tasks, MutationRecorder recorderInput) {
                     tasks.create("echo", EchoTask) {
                         recorder = recorderInput
                     }
                 }
             }
 
-            class FirstInputProvider extends RuleSource {
-                @Model
-                String firstInput() {
-                    ""
-                }
-            }
-
             apply type: FirstSource
             model {
                 recorder {
-                    $("firstInput")
                     mutations << "first dsl"
-                }
-                recorder {
-                    $("secondInput")
-                    mutations << "second dsl"
                 }
             }
             apply type: SecondSource
-            apply type: FirstInputProvider
+            model {
+                recorder {
+                    mutations << "second dsl"
+                }
+            }
         '''
 
         then:
         succeeds "echo"
 
         and:
-        output.contains "mutations: first source, first dsl, second dsl, second source"
+        output.contains "mutations: second source, first source, third source, first dsl, second dsl"
+    }
+
+    def "DSL rules are executed in order declared"() {
+        when:
+        buildFile << '''
+            class FirstSource extends RuleSource {
+                @Model
+                MutationRecorder recorder() {
+                    new MutationRecorder()
+                }
+            }
+
+            model {
+                tasks {
+                    echo(EchoTask) {
+                        recorder = $('recorder')
+                    }
+                }
+                recorder {
+                    mutations << "first dsl"
+                }
+                recorder {
+                    mutations << "second dsl"
+                }
+            }
+            apply type: FirstSource
+            model {
+                recorder {
+                    mutations << "third dsl"
+                }
+                recorder {
+                    mutations << "fourth dsl"
+                }
+            }
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains "mutations: first dsl, second dsl, third dsl, fourth dsl"
     }
 }

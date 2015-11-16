@@ -40,7 +40,7 @@ public class ExtensionContainerTest extends Specification {
         expect:
         container.getByName(ExtraPropertiesExtension.EXTENSION_NAME) == container.extraProperties
     }
-    
+
     def "extension can be accessed and configured"() {
         when:
         container.add("foo", extension)
@@ -159,7 +159,7 @@ public class ExtensionContainerTest extends Specification {
         container.findByType(Parent) == child
         container.getByType(Parent) == child
     }
-    
+
     def "can create ExtensionAware extensions"() {
         given:
         container.add("foo", Parent)
@@ -167,10 +167,10 @@ public class ExtensionContainerTest extends Specification {
 
         expect:
         extension instanceof ExtensionAware
-        
+
         when:
         extension.extensions.create("thing", Thing, "bar")
-        
+
         then:
         extension.thing.name == "bar"
     }

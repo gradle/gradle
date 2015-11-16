@@ -17,15 +17,19 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.*;
-import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class StateTrackingTestResultProcessor implements TestResultProcessor {
+public class StateTrackingTestResultProcessor implements TestResultProcessor {
     private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
-    private TestDescriptor currentParent;
+    private TestDescriptorInternal currentParent;
+    private final TestListenerInternal delegate;
+
+    public StateTrackingTestResultProcessor(TestListenerInternal delegate) {
+        this.delegate = delegate;
+    }
 
     public final void started(TestDescriptorInternal test, TestStartEvent event) {
         TestDescriptorInternal parent = null;
@@ -39,7 +43,7 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
                     test, test.getId()));
         }
 
-        started(state);
+        delegate.started(state.test, event);
     }
 
     public final void completed(Object testId, TestCompleteEvent event) {
@@ -62,7 +66,7 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
         currentParent = testState.test.getParent();
 
         testState.completed(event);
-        completed(testState);
+        delegate.completed(testState.test, new DefaultTestResult(testState), event);
     }
 
     public final void failure(Object testId, Throwable result) {
@@ -76,31 +80,20 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
     }
 
     public final void output(Object testId, TestOutputEvent event) {
-        output(findDescriptor(testId), event);
+        delegate.output(findDescriptor(testId), event);
     }
 
-    private TestDescriptor findDescriptor(Object testId) {
+    private TestDescriptorInternal findDescriptor(Object testId) {
         TestState state = executing.get(testId);
         if (state != null) {
             return state.test;
         }
 
-        TestDescriptor d = currentParent;
-        if (d != null) {
-            return d;
+        if (currentParent != null) {
+            return currentParent;
         }
 
         //in theory this should not happen
         return new UnknownTestDescriptor();
-    }
-
-    protected void output(TestDescriptor descriptor, TestOutputEvent event) {
-        // Don't care
-    }
-
-    protected void started(TestState state) {
-    }
-
-    protected void completed(TestState state) {
     }
 }

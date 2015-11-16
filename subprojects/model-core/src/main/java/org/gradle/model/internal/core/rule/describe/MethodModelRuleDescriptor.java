@@ -16,10 +16,10 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
+import com.google.common.base.Objects;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
@@ -54,13 +54,14 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private String getDescription() {
         if (description == null) {
-            description = MethodDescription.name(method.getName())
-                    .owner(method.getDeclaringClass())
-                    .takes(method.getGenericParameterTypes())
-                    .toString();
+            description = getClassName() + "#" + method.getName();
         }
 
         return description;
+    }
+
+    private String getClassName() {
+        return ModelType.of(method.getDeclaringClass()).getDisplayName();
     }
 
     @Override
@@ -71,15 +72,13 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         MethodModelRuleDescriptor that = (MethodModelRuleDescriptor) o;
-
-        return method.equals(that.method);
+        return Objects.equal(method, that.method);
     }
 
     @Override
     public int hashCode() {
-        return method.hashCode();
+        return Objects.hashCode(method);
     }
 
     public static ModelRuleDescriptor of(Class<?> clazz, final String methodName) {

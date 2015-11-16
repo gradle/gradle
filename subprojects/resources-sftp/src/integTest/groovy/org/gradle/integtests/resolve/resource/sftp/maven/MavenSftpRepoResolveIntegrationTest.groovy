@@ -56,4 +56,35 @@ class MavenSftpRepoResolveIntegrationTest extends AbstractSftpDependencyResoluti
         succeeds 'retrieve'
         file('libs').assertHasDescendants 'projectA-1.2.jar'
     }
+
+
+    def "cannot add invalid authentication types for sftp repo"() {
+        given:
+        def mavenSftpRepo = getMavenSftpRepo()
+        def module = mavenSftpRepo.module('org.group.name', 'projectA', '1.2')
+        module.publish()
+        and:
+        buildFile << """
+repositories {
+    maven {
+        url "${mavenSftpRepo.uri}"
+        authentication {
+            auth(BasicAuthentication)
+        }
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+        expect:
+        fails 'retrieve'
+        and:
+        failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 'sftp'")
+    }
 }

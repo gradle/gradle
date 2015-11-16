@@ -23,9 +23,6 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "rule source can be applied in scope of a collection builder element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MessageTask extends DefaultTask {
                 String message = "default"
 
@@ -49,7 +46,7 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.create("echo", MessageTask)
                     tasks.named("echo", EchoRules)
                 }
@@ -68,9 +65,6 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "scoped rule execution failure yields useful error message"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class ThrowingRule extends RuleSource {
                 @Mutate
                 void badRule(Task echo) {
@@ -80,7 +74,7 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             class Rules extends RuleSource {
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.named("taskWithThrowingRuleApplied", ThrowingRule)
                     tasks.create("taskWithThrowingRuleApplied")
                 }
@@ -93,16 +87,13 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: ThrowingRule#badRule(org.gradle.api.Task)")
+        failure.assertHasCause("Exception thrown while executing model rule: ThrowingRule#badRule")
         failure.assertHasCause("I'm broken")
     }
 
     def "invalid rule definitions of scoped rules are reported with a message helping to identify the faulty rule"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class InvalidRuleSource extends RuleSource {
                 @Mutate
                 String invalidRule(Task echo) {
@@ -111,7 +102,7 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             class Rules extends RuleSource {
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.named("taskWithInvalidRuleSourceApplied", InvalidRuleSource)
                     tasks.create("taskWithInvalidRuleSourceApplied")
                 }
@@ -124,16 +115,13 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: Rules#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>)")
-        failure.assertHasCause("InvalidRuleSource#invalidRule(org.gradle.api.Task) is not a valid model rule method")
+        failure.assertHasCause("Exception thrown while executing model rule: Rules#addTasks")
+        failure.assertHasCause("InvalidRuleSource#invalidRule is not a valid model rule method")
     }
 
     def "unbound inputs of scoped rules are reported and their scope is shown"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class UnboundRuleSource extends RuleSource {
                 @Mutate
                 void unboundRule(String string, Integer integer, @Path("some.inner.path") String withInnerPath) {
@@ -142,7 +130,7 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             class Rules extends RuleSource {
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.named("taskWithUnboundRuleSourceApplied", UnboundRuleSource)
                     tasks.create("taskWithUnboundRuleSourceApplied")
                 }
@@ -155,12 +143,15 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("""The following model rules are unbound:
-  UnboundRuleSource#unboundRule(java.lang.String, java.lang.Integer, java.lang.String)
-    Mutable:
-      - <unspecified> (java.lang.String) parameter 1 in scope of 'tasks.taskWithUnboundRuleSourceApplied'
-    Immutable:
-      - <unspecified> (java.lang.Integer) parameter 2
-      - tasks.taskWithUnboundRuleSourceApplied.some.inner.path (java.lang.String) parameter 3""")
+        failureCauseContains '''
+  UnboundRuleSource#unboundRule
+    subject:
+      - <no path> String (parameter 1) [*]
+          scope: tasks.taskWithUnboundRuleSourceApplied
+    inputs:
+      - <no path> Integer (parameter 2) [*]
+      - tasks.taskWithUnboundRuleSourceApplied.some.inner.path String (parameter 3) [*]
+'''
     }
+
 }

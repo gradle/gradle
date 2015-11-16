@@ -30,8 +30,8 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
 
         then:
         executedAndNotSkipped(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
+                ":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryDistributionJar",
                 ":createPlayBinaryAssetsJar",
@@ -48,8 +48,8 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         then:
         executedAndNotSkipped(":createPlayBinaryDist")
         skipped(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
+                ":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryDistributionJar",
                 ":createPlayBinaryAssetsJar",
@@ -67,23 +67,23 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         String distDirPath = new File(testDirectory, "build/stage").path
 
         setup:
-        httpPort = portFinder.nextAvailable
         run "stage"
 
         when:
-        builder = new DistributionTestExecHandleBuilder(httpPort.toString(), distDirPath)
+        builder = new DistributionTestExecHandleBuilder('0', distDirPath)
         handle = builder.build()
         handle.start()
+        runningApp.initialize(handle)
 
         then:
-        verifyStarted()
+        runningApp.verifyStarted()
 
         and:
-        verifyRunningApp()
+        runningApp.verifyContent()
 
         cleanup:
-        ((DistributionTestExecHandleBuilder.DistributionTestExecHandle) handle).shutdown()
-        verifyStopped()
+        ((DistributionTestExecHandleBuilder.DistributionTestExecHandle) handle).shutdown(runningApp.httpPort)
+        runningApp.verifyStopped()
     }
 
     void verifyZips() {

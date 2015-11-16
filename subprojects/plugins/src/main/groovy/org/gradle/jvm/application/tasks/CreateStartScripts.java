@@ -144,7 +144,6 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * Returns the full path to the Unix script. The target directory is represented by the output directory, the file name is the application name without a file extension.
      */
-    @OutputFile
     public File getUnixScript() {
         return new File(getOutputDir(), getApplicationName());
     }
@@ -152,7 +151,6 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * Returns the full path to the Windows script. The target directory is represented by the output directory, the file name is the application name plus the file extension .bat.
      */
-    @OutputFile
     public File getWindowsScript() {
         return new File(getOutputDir(), getApplicationName() + ".bat");
     }

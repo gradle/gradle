@@ -50,10 +50,12 @@ model {
 // END SNIPPET executables
 
 // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
-binaries.withType(SharedLibraryBinarySpec) {
-    if (toolChain in VisualCpp) {
-        cppCompiler.define "DLL_EXPORT"
+model {
+    binaries {
+        withType(SharedLibraryBinarySpec) {
+            if (toolChain in VisualCpp) {
+                cppCompiler.define "DLL_EXPORT"
+            }
+        }
     }
 }
-
-

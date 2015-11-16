@@ -68,7 +68,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     void includesLinkToUserguide() {
-        assert failure.assertThatCause(containsString("http://gradle.org/docs/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugins_block"))
+        failure.assertThatCause(containsString("https://docs.gradle.org/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugins_block"))
     }
 
     def "build logic cannot precede plugins block"() {

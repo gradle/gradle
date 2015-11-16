@@ -16,14 +16,14 @@
 
 package org.gradle.tooling.events.test.internal;
 
-import org.gradle.tooling.events.internal.BaseStartEvent;
+import org.gradle.tooling.events.internal.DefaultStartEvent;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.events.test.TestStartEvent;
 
 /**
  * Implementation of the {@code TestStartEvent} interface.
  */
-public final class DefaultTestStartEvent extends BaseStartEvent implements TestStartEvent {
+public final class DefaultTestStartEvent extends DefaultStartEvent implements TestStartEvent {
 
     public DefaultTestStartEvent(long eventTime, String displayName, TestOperationDescriptor descriptor) {
         super(eventTime, displayName, descriptor);

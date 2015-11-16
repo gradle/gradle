@@ -17,52 +17,50 @@
 package org.gradle.platform.base.component;
 
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.api.PolymorphicDomainObjectContainer;
-import org.gradle.api.internal.AddOnlyDomainObjectSet;
-import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.model.ModelMap;
+import org.gradle.model.internal.core.ModelMaps;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Collections;
 import java.util.Set;
 
 /**
- * Base class for custom component implementations.
- * A custom implementation of {@link ComponentSpec} must extend this type.
+ * Base class for custom component implementations. A custom implementation of {@link ComponentSpec} must extend this type.
  */
 @Incubating
-public abstract class BaseComponentSpec implements ComponentSpecInternal {
-    private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
-    private final FunctionalSourceSet mainSourceSet;
-    private final DefaultDomainObjectSet<LanguageSourceSet> source;
+// Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
+@SuppressWarnings("deprecation")
+public class BaseComponentSpec implements ComponentSpecInternal {
 
+    private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
-    private final DomainObjectSet<BinarySpec> binaries = new DefaultDomainObjectSet<BinarySpec>(BinarySpec.class);
 
-    public static <T extends BaseComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet, Instantiator instantiator) {
-        if (type.equals(BaseComponentSpec.class)) {
-            throw new ModelInstantiationException("Cannot create instance of abstract class BaseComponentSpec.");
-        }
-        nextComponentInfo.set(new ComponentInfo(identifier, type.getSimpleName(), mainSourceSet));
+    private final MutableModelNode binaries;
+    private final MutableModelNode sources;
+    private final MutableModelNode modelNode;
+
+    public static <T extends BaseComponentSpec> T create(Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode, Instantiator instantiator) {
+        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, implementationType.getSimpleName(), instantiator));
         try {
             try {
-                return instantiator.newInstance(type);
+                return instantiator.newInstance(implementationType);
             } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create component of type %s", type.getSimpleName()), e.getCause());
+                throw new ModelInstantiationException(String.format("Could not create component of type %s", implementationType.getSimpleName()), e.getCause());
             }
         } finally {
             nextComponentInfo.set(null);
         }
     }
 
-    protected BaseComponentSpec() {
+    public BaseComponentSpec() {
         this(nextComponentInfo.get());
     }
 
@@ -73,8 +71,10 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
 
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
-        this.mainSourceSet = info.sourceSets;
-        this.source = new AddOnlyDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, mainSourceSet);
+
+        modelNode = info.modelNode;
+        binaries = ModelMaps.addModelMapNode(modelNode, BinarySpec.class, "binaries");
+        sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
     }
 
     public String getName() {
@@ -98,42 +98,53 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         return getDisplayName();
     }
 
-    public DomainObjectSet<LanguageSourceSet> getSource() {
-        return source;
-    }
-
-    public DomainObjectSet<BinarySpec> getBinaries() {
-        return binaries;
+    @Override
+    public ModelMap<LanguageSourceSet> getSource() {
+        DeprecationLogger.nagUserOfReplacedProperty("source", "sources");
+        return getSources();
     }
 
     @Override
-    public void binaries(Action<? super DomainObjectSet<BinarySpec>> action) {
-        action.execute(binaries);
+    public ModelMap<LanguageSourceSet> getSources() {
+        return ModelMaps.asMutableView(sources, LanguageSourceSet.class, modelNode.toString() + ".getSources()");
     }
 
-    public FunctionalSourceSet getSources() {
-        return mainSourceSet;
+    @Override
+    public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
+        action.execute(getSources());
     }
 
-    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
-        action.execute(mainSourceSet);
+    @Override
+    public ModelMap<BinarySpec> getBinaries() {
+        return ModelMaps.asMutableView(binaries, BinarySpec.class, modelNode.toString() + ".getBinaries()");
     }
 
-    public Set<Class<? extends TransformationFileType>> getInputTypes() {
+    @Override
+    public void binaries(Action<? super ModelMap<BinarySpec>> action) {
+        action.execute(getBinaries());
+    }
+
+    public Set<? extends Class<? extends TransformationFileType>> getInputTypes() {
         return Collections.emptySet();
     }
 
     private static class ComponentInfo {
         final ComponentSpecIdentifier componentIdentifier;
+        final MutableModelNode modelNode;
         final String typeName;
-        final FunctionalSourceSet sourceSets;
+        final Instantiator instantiator;
 
-        private ComponentInfo(ComponentSpecIdentifier componentIdentifier,
-                              String typeName,
-                              FunctionalSourceSet sourceSets) {
+        private ComponentInfo(
+            ComponentSpecIdentifier componentIdentifier,
+            MutableModelNode modelNode,
+            String typeName,
+            Instantiator instantiator
+        ) {
             this.componentIdentifier = componentIdentifier;
+            this.modelNode = modelNode;
             this.typeName = typeName;
-            this.sourceSets = sourceSets;
+            this.instantiator = instantiator;
         }
     }
+
 }

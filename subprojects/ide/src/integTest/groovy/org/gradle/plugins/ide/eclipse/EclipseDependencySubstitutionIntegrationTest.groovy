@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -38,8 +37,8 @@ project(":project2") {
     }
 
     configurations.all {
-        resolutionStrategy.dependencySubstitution.withModule("junit:junit") {
-            it.useTarget project(":project1")
+        resolutionStrategy.dependencySubstitution {
+            substitute module("junit:junit:4.7") with project(":project1")
         }
     }
 }
@@ -51,7 +50,6 @@ project(":project2") {
     }
 
     @Test
-    @Ignore("not supported in 2.4 - LD - 14/4/15")
     void "transitive external dependency substituted with project dependency"() {
         mavenRepo.module("org.gradle", "module1").dependsOn("module2").publish()
         mavenRepo.module("org.gradle", "module2").publish()
@@ -72,8 +70,8 @@ project(":project2") {
     }
 
     configurations.all {
-        resolutionStrategy.dependencySubstitution.withModule("org.gradle:module2") {
-            it.useTarget project(":project1")
+        resolutionStrategy.dependencySubstitution {
+            substitute module("org.gradle:module2:1.0") with project(":project1")
         }
     }
 }
@@ -103,8 +101,8 @@ project(":project2") {
     }
 
     configurations.all {
-        resolutionStrategy.dependencySubstitution.withProject(":project1") {
-            it.useTarget "junit:junit:4.7"
+        resolutionStrategy.dependencySubstitution {
+            substitute project(":project1") with module("junit:junit:4.7")
         }
     }
 }

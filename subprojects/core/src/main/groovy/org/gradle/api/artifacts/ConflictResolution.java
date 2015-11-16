@@ -18,4 +18,5 @@ package org.gradle.api.artifacts;
 /**
  * The conflict resolution
  */
+@Deprecated
 public interface ConflictResolution {}

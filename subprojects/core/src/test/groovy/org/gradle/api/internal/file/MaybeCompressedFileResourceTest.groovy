@@ -20,16 +20,42 @@ package org.gradle.api.internal.file;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver
 import org.gradle.api.internal.file.archive.compression.GzipArchiver
 import spock.lang.Specification
+import spock.lang.Unroll
 
 public class MaybeCompressedFileResourceTest extends Specification {
 
     def "understands file extensions"() {
         expect:
-        new MaybeCompressedFileResource(new FileResource(new File("foo"))).resource instanceof FileResource
-        new MaybeCompressedFileResource(new FileResource(new File("foo.tgz"))).resource instanceof GzipArchiver
-        new MaybeCompressedFileResource(new FileResource(new File("foo.gz"))).resource instanceof GzipArchiver
-        new MaybeCompressedFileResource(new FileResource(new File("foo.bz2"))).resource instanceof Bzip2Archiver
-        new MaybeCompressedFileResource(new FileResource(new File("foo.tbz2"))).resource instanceof Bzip2Archiver
+        new MaybeCompressedFileResource(fileResource("foo")).resource instanceof FileResource
+        new MaybeCompressedFileResource(fileResource("foo.tgz")).resource instanceof GzipArchiver
+        new MaybeCompressedFileResource(fileResource("foo.gz")).resource instanceof GzipArchiver
+        new MaybeCompressedFileResource(fileResource("foo.bz2")).resource instanceof Bzip2Archiver
+        new MaybeCompressedFileResource(fileResource("foo.tbz2")).resource instanceof Bzip2Archiver
+    }
 
+    @Unroll
+    def "passes through GzipArchiver resources called #name"() {
+        given:
+        def maybeCompressed = new MaybeCompressedFileResource(new GzipArchiver(fileResource(name)))
+        expect:
+        maybeCompressed.resource instanceof GzipArchiver
+        ((GzipArchiver)maybeCompressed.resource).resource instanceof FileResource
+        where:
+        name << [ "foo", "foo.tgz", "foo.gz" ]
+    }
+
+    @Unroll
+    def "passes through Bzip2Archiver resources called #name"() {
+        given:
+        def maybeCompressed = new MaybeCompressedFileResource(new Bzip2Archiver(fileResource(name)))
+        expect:
+        maybeCompressed.resource instanceof Bzip2Archiver
+        ((Bzip2Archiver)maybeCompressed.resource).resource instanceof FileResource
+        where:
+        name << [ "foo", "foo.bz2", "foo.tbz2" ]
+    }
+
+    def fileResource(String fileName) {
+        new FileResource(new File(fileName))
     }
 }

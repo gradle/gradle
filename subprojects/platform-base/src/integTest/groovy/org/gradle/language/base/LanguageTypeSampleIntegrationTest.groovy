@@ -19,12 +19,11 @@ package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.archive.ZipTestFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Ignore
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
-@Ignore("Temp - LD - 5/2/15")
+@Requires(TestPrecondition.ONLINE)
 class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType")
@@ -35,19 +34,18 @@ class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds "components"
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 DefaultDocumentationComponent 'docs'
 ------------------------------------
 
 Source sets
     DefaultMarkdownSourceSet 'docs:userguide'
-        src${File.separator}docs${File.separator}userguide
+        srcDir: src${File.separator}docs${File.separator}userguide
 
 Binaries
-    DefaultDocumentationBinary 'docsBinary'
+    DefaultDocumentationBinary 'docs:binary'
         build using task: :docsBinary
-"""))
-
+"""
     }
 
     def "can build binary"() {
@@ -56,9 +54,9 @@ Binaries
         when:
         succeeds "assemble"
         then:
-        executedTasks == [":docsBinaryUserguideHtmlCompile", ":zipDocsBinary", ":docsBinary", ":assemble"]
+        executedTasks == [":compileDocsBinaryUserguide", ":zipDocsBinary", ":docsBinary", ":assemble"]
         and:
-        new ZipTestFixture(languageTypeSample.dir.file("build/docsBinary/docsBinary.zip")).containsDescendants(
+        new ZipTestFixture(languageTypeSample.dir.file("build/binary/binary.zip")).containsDescendants(
                 "userguide/chapter1.html",
                 "userguide/chapter2.html",
                 "userguide/index.html")

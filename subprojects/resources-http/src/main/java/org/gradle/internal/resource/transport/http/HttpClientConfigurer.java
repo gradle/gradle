@@ -31,14 +31,24 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
-import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.authentication.Authentication;
+import org.gradle.authentication.http.BasicAuthentication;
+import org.gradle.authentication.http.DigestAuthentication;
+import org.gradle.internal.authentication.AllSchemesAuthentication;
+import org.gradle.internal.authentication.AuthenticationInternal;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
+import org.gradle.internal.resource.UriResource;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory;
-import org.gradle.internal.resource.UriResource;
+import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
@@ -51,40 +61,69 @@ public class HttpClientConfigurer {
 
     public void configure(DefaultHttpClient httpClient) {
         NTLMSchemeFactory.register(httpClient);
-        configureCredentials(httpClient, httpSettings.getCredentials());
+        configureCredentials(httpClient, httpSettings.getAuthenticationSettings());
         configureProxyCredentials(httpClient, httpSettings.getProxySettings());
         configureRetryHandler(httpClient);
         configureUserAgent(httpClient);
     }
 
-    private void configureCredentials(DefaultHttpClient httpClient, PasswordCredentials credentials) {
-        if(credentials != null) {
-            String username = credentials.getUsername();
-            if (username != null && username.length() > 0) {
-                useCredentials(httpClient, credentials, AuthScope.ANY_HOST, AuthScope.ANY_PORT);
+    private void configureCredentials(DefaultHttpClient httpClient, Collection<Authentication> authentications) {
+        if(authentications.size() > 0) {
+            useCredentials(httpClient, AuthScope.ANY_HOST, AuthScope.ANY_PORT, authentications);
 
-                // Use preemptive authorisation if no other authorisation has been established
-                httpClient.addRequestInterceptor(new PreemptiveAuth(new BasicScheme()), 0);
-            }
+            // Use preemptive authorisation if no other authorisation has been established
+            httpClient.addRequestInterceptor(new PreemptiveAuth(new BasicScheme(), isPreemptiveEnabled(authentications)), 0);
         }
     }
 
     private void configureProxyCredentials(DefaultHttpClient httpClient, HttpProxySettings proxySettings) {
         HttpProxySettings.HttpProxy proxy = proxySettings.getProxy();
         if (proxy != null && proxy.credentials != null) {
-            useCredentials(httpClient, proxy.credentials, proxy.host, proxy.port);
+            useCredentials(httpClient, proxy.host, proxy.port, Collections.singleton(new AllSchemesAuthentication(proxy.credentials)));
         }
     }
 
-    private void useCredentials(DefaultHttpClient httpClient, PasswordCredentials credentials, String host, int port) {
-        Credentials basicCredentials = new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
-        httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port), basicCredentials);
+    private void useCredentials(DefaultHttpClient httpClient, String host, int port, Collection<? extends Authentication> authentications) {
+        Credentials httpCredentials;
 
-        NTLMCredentials ntlmCredentials = new NTLMCredentials(credentials);
-        Credentials ntCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
-        httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthPolicy.NTLM), ntCredentials);
+        for (Authentication authentication : authentications) {
+            String scheme = getAuthScheme(authentication);
+            PasswordCredentials credentials = getPasswordCredentials(authentication);
 
-        LOGGER.debug("Using {} and {} for authenticating against '{}:{}'", new Object[]{credentials, ntlmCredentials, host, port});
+            if (authentication instanceof AllSchemesAuthentication) {
+                NTLMCredentials ntlmCredentials = new NTLMCredentials(credentials);
+                httpCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
+                httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthPolicy.NTLM), httpCredentials);
+
+                LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", new Object[]{credentials, ntlmCredentials, host, port, AuthPolicy.NTLM});
+            }
+
+            httpCredentials = new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
+            httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
+            LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", new Object[]{credentials, host, port, scheme});
+        }
+    }
+
+    private boolean isPreemptiveEnabled(Collection<Authentication> authentications) {
+        return CollectionUtils.any(authentications, new Spec<Authentication>() {
+            @Override
+            public boolean isSatisfiedBy(Authentication element) {
+                return element instanceof BasicAuthentication;
+            }
+        });
+    }
+
+    public void configureUserAgent(DefaultHttpClient httpClient) {
+        HttpProtocolParams.setUserAgent(httpClient.getParams(), UriResource.getUserAgentString());
+    }
+
+    private PasswordCredentials getPasswordCredentials(Authentication authentication) {
+        org.gradle.api.credentials.Credentials credentials = ((AuthenticationInternal) authentication).getCredentials();
+        if (!(credentials instanceof PasswordCredentials)) {
+            throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s", PasswordCredentials.class.getCanonicalName()));
+        }
+
+        return Cast.uncheckedCast(credentials);
     }
 
     private void configureRetryHandler(DefaultHttpClient httpClient) {
@@ -95,15 +134,25 @@ public class HttpClientConfigurer {
         });
     }
 
-    public void configureUserAgent(DefaultHttpClient httpClient) {
-        HttpProtocolParams.setUserAgent(httpClient.getParams(), UriResource.getUserAgentString());
+    private String getAuthScheme(Authentication authentication) {
+        if (authentication instanceof BasicAuthentication) {
+            return AuthPolicy.BASIC;
+        } else if (authentication instanceof DigestAuthentication) {
+            return AuthPolicy.DIGEST;
+        } else if (authentication instanceof AllSchemesAuthentication) {
+            return AuthScope.ANY_SCHEME;
+        } else {
+            throw new IllegalArgumentException(String.format("Authentication scheme of '%s' is not supported.", authentication.getClass().getSimpleName()));
+        }
     }
 
     static class PreemptiveAuth implements HttpRequestInterceptor {
         private final AuthScheme authScheme;
+        private final boolean alwaysSendAuth;
 
-        PreemptiveAuth(AuthScheme authScheme) {
+        PreemptiveAuth(AuthScheme authScheme, boolean alwaysSendAuth) {
             this.authScheme = authScheme;
+            this.alwaysSendAuth = alwaysSendAuth;
         }
 
         public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException {
@@ -116,7 +165,7 @@ public class HttpClientConfigurer {
 
             // If no authState has been established and this is a PUT or POST request, add preemptive authorisation
             String requestMethod = request.getRequestLine().getMethod();
-            if (requestMethod.equals(HttpPut.METHOD_NAME) || requestMethod.equals(HttpPost.METHOD_NAME)) {
+            if (alwaysSendAuth || requestMethod.equals(HttpPut.METHOD_NAME) || requestMethod.equals(HttpPost.METHOD_NAME)) {
                 CredentialsProvider credentialsProvider = (CredentialsProvider) context.getAttribute(ClientContext.CREDS_PROVIDER);
                 HttpHost targetHost = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
                 Credentials credentials = credentialsProvider.getCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()));

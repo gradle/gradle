@@ -1,0 +1,76 @@
+digraph G {
+    fontname = "Bitstream Vera Sans"
+    fontsize = 8
+
+    node [
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+        shape = "record"
+    ]
+
+    edge [
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+    ]
+
+    BuildableModelElement [
+        label = "{BuildableModelElement|\l}"
+    ]
+
+    LanguageSourceSet [
+        label = "{LanguageSourceSet|\l}"
+    ]
+
+    BinarySpec [
+        label = "{BinarySpec|\l}"
+    ]
+
+    JvmBinarySpec [
+        label = "{JvmBinarySpec|+toolChain : JavaToolChain\l+classesDir : File\l+resourcesDir : File\l+targetPlatform: JavaPlatform}"
+    ]
+
+    JarBinarySpec [
+        label = "{JarBinarySpec|+id :  LibraryBinaryIdentifier\l+jarFile : File \l}"
+    ]
+
+    CustomJarBinarySpec [
+        label = "{CustomJarBinarySpec|+customVariantDimension :  VariantDimensionType\l}"
+    ]
+
+    JvmLibrarySpec [
+       label = "{JvmLibrarySpec|\l}"
+    ]
+
+    CustomLibrarySpec [
+       label = "{CustomLibrarySpec|\l}"
+    ]
+
+    edge [
+       arrowhead = "empty"
+    ]
+
+    BinarySpec -> BuildableModelElement
+    JvmBinarySpec -> BinarySpec
+    JarBinarySpec -> JvmBinarySpec
+    CustomJarBinarySpec -> JarBinarySpec
+
+    edge [
+        arrowhead = "none"
+
+        headlabel = "*"
+        label = "inputs"
+        taillabel = ""
+    ]
+
+    BinarySpec -> LanguageSourceSet
+
+    edge [
+        arrowhead = "open"
+        headlabel = "*"
+        label = "produces"
+        taillabel = ""
+    ]
+
+    JvmLibrarySpec -> JarBinarySpec
+    CustomLibrarySpec -> CustomJarBinarySpec
+}

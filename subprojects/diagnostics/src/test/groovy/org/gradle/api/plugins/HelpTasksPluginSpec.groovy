@@ -38,6 +38,7 @@ class HelpTasksPluginSpec extends Specification {
         hasHelpTask(ProjectInternal.TASKS_TASK, TaskReportTask)
         hasHelpTask(HelpTasksPlugin.PROPERTIES_TASK, PropertyReportTask)
         hasHelpTask(HelpTasksPlugin.COMPONENTS_TASK, ComponentReport)
+        hasHelpTask(BuildEnvironmentReportTask.TASK_NAME, BuildEnvironmentReportTask)
     }
 
     def "tasks description reflects whether project has sub-projects or not"() {

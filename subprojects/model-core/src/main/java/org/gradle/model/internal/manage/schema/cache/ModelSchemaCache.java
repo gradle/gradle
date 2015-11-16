@@ -38,7 +38,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * and for strong class references not to be held for the cache keys.
  * <p>
  * The use of {@link WeakClassSet} as the cache key, opposed to just {@link Class}, is because a type may be composed of types from different classloaders.
- * An example of this would be something like {@code ManagedSet<SomeCustomUserType>}.
+ * An example of this would be something like {@code ModelSet<SomeCustomUserType>}.
  * The class set abstraction effectively creates a key for all classes involved in a type.
  * The {@link WeakClassSet#isCollected()} method returns true when any of the classes involved have been collected.
  * All keys (and associated entries) are removed from the map by the {@link #cleanUp()} method, which should be invoked periodically to trim the cache of no longer needed data.

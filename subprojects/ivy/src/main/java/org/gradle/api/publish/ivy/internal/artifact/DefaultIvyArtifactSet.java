@@ -81,7 +81,8 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
     }
 
     private class ArtifactsTaskDependency extends AbstractTaskDependency {
-        public void resolve(TaskDependencyResolveContext context) {
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
             for (IvyArtifact ivyArtifact : DefaultIvyArtifactSet.this) {
                 context.add(ivyArtifact);
             }

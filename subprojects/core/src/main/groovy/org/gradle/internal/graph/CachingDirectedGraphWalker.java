@@ -132,8 +132,10 @@ public class CachingDirectedGraphWalker<N, T> {
                 for (N connectedNode : details.successors) {
                     NodeDetails<N, T> connectedNodeDetails = seenNodes.get(connectedNode);
                     if (!connectedNodeDetails.finished) {
-                        // part of a cycle
-                        details.minSeen = Math.min(details.minSeen, connectedNodeDetails.minSeen);
+                        // part of a cycle : use the 'minimum' component as the root of the cycle
+                        int minSeen = Math.min(details.minSeen, connectedNodeDetails.minSeen);
+                        details.minSeen = minSeen;
+                        connectedNodeDetails.minSeen = minSeen;
                         details.stronglyConnected = true;
                     }
                     details.values.addAll(connectedNodeDetails.values);

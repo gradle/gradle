@@ -20,10 +20,18 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.internal.Transformers;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
+import org.gradle.jvm.internal.DependencyResolvingClasspath;
+import org.gradle.jvm.internal.JarBinarySpecInternal;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
@@ -34,12 +42,15 @@ import org.gradle.language.java.tasks.PlatformJavaCompile;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -63,11 +74,18 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Java());
+            ModelSchemaStore schemaStore = serviceRegistry.get(ModelSchemaStore.class);
+            languages.add(new Java(schemaStore));
         }
     }
 
     private static class Java implements LanguageTransform<JavaSourceSet, JvmByteCode> {
+        private final ModelSchemaStore schemaStore;
+
+        public Java(ModelSchemaStore schemaStore) {
+            this.schemaStore = schemaStore;
+        }
+
         public Class<JavaSourceSet> getSourceSetType() {
             return JavaSourceSet.class;
         }
@@ -90,23 +108,31 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     return PlatformJavaCompile.class;
                 }
 
-                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
+                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlatformJavaCompile compile = (PlatformJavaCompile) task;
                     JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
-                    JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
+                    JarBinarySpecInternal binary = (JarBinarySpecInternal) binarySpec;
+
+                    ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
+                    RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
+                    List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
 
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
+                    compile.setToolChain(binary.getToolChain());
                     compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(javaSourceSet.getSource());
-                    compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
+                    DependencyResolvingClasspath classpath = new DependencyResolvingClasspath(binary, (DependentSourceSetInternal) javaSourceSet, dependencyResolver, schemaStore, resolutionAwareRepositories);
+                    compile.setClasspath(classpath);
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
 
                     compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
                     compile.dependsOn(javaSourceSet);
-                    binary.getTasks().getJar().dependsOn(compile);
+                    for (Task jarTask : binary.getTasks().withType(Jar.class)) {
+                        jarTask.dependsOn(compile);
+                    }
                 }
             };
         }
@@ -115,4 +141,5 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             return binary instanceof JvmBinarySpec;
         }
     }
+
 }

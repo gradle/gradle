@@ -48,10 +48,11 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.StringResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.model.internal.core.ModelCreatorFactory
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.JUnit4GroovyMockery
@@ -110,6 +111,7 @@ class DefaultProjectTest {
     ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
     PluginManagerInternal pluginManager = context.mock(PluginManagerInternal.class)
     PluginContainer pluginContainer = context.mock(PluginContainer.class)
+    ManagedProxyFactory managedProxyFactory = context.mock(ManagedProxyFactory.class)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
@@ -119,10 +121,12 @@ class DefaultProjectTest {
         rootDir = new File("/path/root").absoluteFile
 
         testAntBuilder = new DefaultAntBuilder()
+
         context.checking {
             allowing(antBuilderFactoryMock).create(); will(returnValue(testAntBuilder))
             allowing(script).getDisplayName(); will(returnValue('[build file]'))
             allowing(script).getClassName(); will(returnValue('scriptClass'))
+            allowing(script).getResource(); will(returnValue(new StringResource("", "")))
             allowing(scriptHandlerMock).getSourceFile(); will(returnValue(new File(rootDir, TEST_BUILD_FILE_NAME)))
         }
 
@@ -132,8 +136,8 @@ class DefaultProjectTest {
 
         projectRegistry = new DefaultProjectRegistry()
 
-        projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, 'parent')
-        serviceRegistryMock = context.mock(ServiceRegistry.class, 'project')
+        projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, 'serviceRegistryFactory')
+        serviceRegistryMock = context.mock(ServiceRegistry.class, 'serviceRegistry')
 
         context.checking {
             allowing(projectServiceRegistryFactoryMock).createFor(withParam(notNullValue())); will(returnValue(serviceRegistryMock))
@@ -161,6 +165,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) ScriptHandlerFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptHandlerFactory))
             allowing(serviceRegistryMock).get((Type) ProjectConfigurationActionContainer); will(returnValue(configureActions))
             allowing(serviceRegistryMock).get((Type) PluginManagerInternal); will(returnValue(pluginManager))
+            allowing(serviceRegistryMock).get(ManagedProxyFactory); will(returnValue(managedProxyFactory))
             allowing(pluginManager).getPluginContainer(); will(returnValue(pluginContainer))
 
             allowing(serviceRegistryMock).get((Type) DeferredProjectConfiguration); will(returnValue(context.mock(DeferredProjectConfiguration)))
@@ -178,11 +183,6 @@ class DefaultProjectTest {
             ignoring(modelSchemaStore)
             allowing(serviceRegistryMock).get((Type) ModelSchemaStore); will(returnValue(modelSchemaStore))
             allowing(serviceRegistryMock).get(ModelSchemaStore); will(returnValue(modelSchemaStore))
-
-            ModelCreatorFactory modelCreatorFactory = context.mock(ModelCreatorFactory)
-            ignoring(modelCreatorFactory)
-            allowing(serviceRegistryMock).get((Type) ModelCreatorFactory); will(returnValue(modelCreatorFactory))
-            allowing(serviceRegistryMock).get(ModelCreatorFactory); will(returnValue(modelCreatorFactory))
 
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
@@ -334,10 +334,10 @@ class DefaultProjectTest {
             testScript
         }] as ProjectEvaluator
         final ProjectEvaluator mockReader2 = [
-                evaluate: { DefaultProject project, state ->
-                    mockReader2Finished = true
-                    testScript
-                }] as ProjectEvaluator
+            evaluate: { DefaultProject project, state ->
+                mockReader2Finished = true
+                testScript
+            }] as ProjectEvaluator
         project.projectEvaluator = mockReader1
         child1.projectEvaluator = mockReader2
         project.evaluate()
@@ -358,15 +358,15 @@ class DefaultProjectTest {
             testScript
         }] as ProjectEvaluator
         final ProjectEvaluator mockReader2 = [
-                evaluate: { DefaultProject project, state ->
-                    child1MockReaderFinished = true
-                    testScript
-                }] as ProjectEvaluator
+            evaluate: { DefaultProject project, state ->
+                child1MockReaderFinished = true
+                testScript
+            }] as ProjectEvaluator
         final ProjectEvaluator mockReader3 = [
-                evaluate: { DefaultProject project, state ->
-                    child2MockReaderFinished = true
-                    testScript
-                }] as ProjectEvaluator
+            evaluate: { DefaultProject project, state ->
+                child2MockReaderFinished = true
+                testScript
+            }] as ProjectEvaluator
         project.projectEvaluator = mockReader1
         child1.projectEvaluator = mockReader2
         child2.projectEvaluator = mockReader3
@@ -443,7 +443,7 @@ class DefaultProjectTest {
         project.unknownTask
     }
 
-    @Test(expected = MissingMethodException)
+    @Test(expected = groovy.lang.MissingMethodException)
     void testMethodShortCutForTaskCallWithNonExistingTask() {
         project.unknownTask([dependsOn: '/task2'])
     }
@@ -759,14 +759,14 @@ def scriptMethod(Closure closure) {
         String propValue = 'someValue'
         if (configureMethod == 'configure') {
             project."$configureMethod" projectsToCheck as java.util.List,
-                    {
-                        ext.testSubProp = propValue
-                    }
+                {
+                    ext.testSubProp = propValue
+                }
         } else {
             project."$configureMethod"(
-                    {
-                        ext.testSubProp = propValue
-                    })
+                {
+                    ext.testSubProp = propValue
+                })
         }
 
         projectsToCheck.each {

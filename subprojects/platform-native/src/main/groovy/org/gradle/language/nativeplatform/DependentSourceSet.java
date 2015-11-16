@@ -38,6 +38,7 @@ public interface DependentSourceSet extends LanguageSourceSet {
      * <ul>
      *     <li>A {@link org.gradle.nativeplatform.NativeLibrarySpec}</li>
      *     <li>A {@link org.gradle.nativeplatform.NativeDependencySet}</li>
+     *     <li>A {@link LanguageSourceSet}</li>
      *     <li>A {@link java.util.Map} containing the library selector.</li>
      * </ul>
      *

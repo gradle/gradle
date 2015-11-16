@@ -21,7 +21,7 @@ import org.gradle.internal.HasInternalProtocol;
  * <p>A {@code Module} represents the meta-information about a project which should be used when publishing the
  * module.</p>
  */
-@HasInternalProtocol
+@HasInternalProtocol @Deprecated
 public interface Module {
     public static final String DEFAULT_STATUS = "integration";
 

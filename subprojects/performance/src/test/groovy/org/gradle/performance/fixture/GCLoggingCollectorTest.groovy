@@ -39,7 +39,7 @@ class GCLoggingCollectorTest extends Specification {
         resources.getResource(logName).copyTo(projectDir.file("gc.txt"))
 
         when:
-        collector.getAdditionalGradleOpts(projectDir)
+        collector.getAdditionalJvmOpts(projectDir)
         collector.collect(operation, locale)
 
         then:

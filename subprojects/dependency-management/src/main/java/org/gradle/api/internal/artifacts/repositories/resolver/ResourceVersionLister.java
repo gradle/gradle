@@ -86,7 +86,7 @@ public class ResourceVersionLister implements VersionLister {
                     LOGGER.debug("found {} urls", all.size());
                     Pattern regexPattern = createRegexPattern(pattern, parentFolderSlashIndex);
                     List<String> ret = filterMatchedValues(all, regexPattern);
-                    LOGGER.debug("{} matched {}" + pattern, ret.size(), pattern);
+                    LOGGER.debug("{} matched {}", ret.size(), pattern);
                     return ret;
                 }
             }

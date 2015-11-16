@@ -21,6 +21,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
@@ -99,7 +100,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     return PlatformScalaCompile.class;
                 }
 
-                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
+                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlatformScalaCompile compile = (PlatformScalaCompile) task;
                     ScalaLanguageSourceSet scalaSourceSet = (ScalaLanguageSourceSet) sourceSet;
                     JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
@@ -119,7 +120,9 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     compile.setSourceCompatibility(javaPlatform.getTargetCompatibility().toString());
 
                     compile.dependsOn(scalaSourceSet);
-                    binary.getTasks().getJar().dependsOn(compile);
+                    for (Task jarTask : binary.getTasks().withType(Jar.class)) {
+                        jarTask.dependsOn(compile);
+                    }
                 }
             };
         }

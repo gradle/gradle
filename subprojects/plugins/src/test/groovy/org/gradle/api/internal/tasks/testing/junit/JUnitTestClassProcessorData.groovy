@@ -192,8 +192,8 @@ public class CustomRunner extends Runner {
     @Override
     public Description getDescription() {
         Description description = Description.createSuiteDescription(type)
-        description.addChild(Description.createTestDescription(type, 'ok1'))
-        description.addChild(Description.createTestDescription(type, 'ok2'))
+        description.addChild(Description.createTestDescription(type, 'broken'))
+        description.addChild(Description.createTestDescription(type, 'ok'))
         return description
     }
 

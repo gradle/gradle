@@ -76,10 +76,10 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     @Override
     protected void configureTaskDefaults(Pmd task, String baseName) {
         def config = project.configurations['pmd']
-        config.whenEmpty { dependencies ->
-            VersionNumber version = VersionNumber.parse(extension.toolVersion)
+        config.defaultDependencies { dependencies ->
+            VersionNumber version = VersionNumber.parse(this.extension.toolVersion)
             String dependency = calculateDefaultDependencyNotation(version)
-            dependencies.add(project.dependencies.create(dependency))
+            dependencies.add(this.project.dependencies.create(dependency))
         }
         task.conventionMapping.with {
             pmdClasspath = { config }
@@ -87,6 +87,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             ruleSetConfig = { extension.ruleSetConfig }
             ruleSetFiles = { extension.ruleSetFiles }
             ignoreFailures = { extension.ignoreFailures }
+            rulePriority = { extension.rulePriority }
             consoleOutput = { extension.consoleOutput }
             targetJdk = { extension.targetJdk }
             task.reports.all { report ->
@@ -113,5 +114,8 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             description = "Run PMD analysis for ${sourceSet.name} classes"
         }
         task.setSource(sourceSet.allJava)
+        task.conventionMapping.with {
+            classpath = { sourceSet.compileClasspath }
+        }
     }
 }

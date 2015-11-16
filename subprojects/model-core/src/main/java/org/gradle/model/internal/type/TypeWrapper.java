@@ -16,10 +16,14 @@
 
 package org.gradle.model.internal.type;
 
+import com.google.common.collect.ImmutableList;
+
 import java.lang.reflect.Type;
 
 interface TypeWrapper {
     Type unwrap();
 
-    String getRepresentation();
+    void collectClasses(ImmutableList.Builder<Class<?>> builder);
+
+    String getRepresentation(boolean full);
 }

@@ -22,4 +22,5 @@ import org.gradle.api.DomainObjectSet;
  * A registry of languages.
  */
 public interface LanguageRegistry extends DomainObjectSet<LanguageRegistration<?>> {
+    String getSupportedTypeNames();
 }

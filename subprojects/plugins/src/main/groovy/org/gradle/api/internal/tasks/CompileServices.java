@@ -36,6 +36,9 @@ public class CompileServices implements PluginServiceRegistry {
         registration.add(ClassDirectoryBinaryRenderer.class);
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
     }
 

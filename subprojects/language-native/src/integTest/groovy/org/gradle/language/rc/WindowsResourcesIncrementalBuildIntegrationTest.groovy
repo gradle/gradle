@@ -22,6 +22,7 @@ import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.IgnoreIf
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
@@ -65,6 +66,7 @@ model {
         nonSkippedTasks.empty
     }
 
+    @LeaksFileHandles
     def "compiles and links when resource source changes"() {
         when:
         file("src/main/rc/resources.rc").text = """

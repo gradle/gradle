@@ -17,7 +17,6 @@
 package org.gradle.model.collection;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import java.util.Set;
 
@@ -31,8 +30,9 @@ import java.util.Set;
  * To add elements to the set, the {@link #create(Action)} method can be used.
  *
  * @param <T> the type of model object
+ * @deprecated use {@link org.gradle.model.ModelSet} instead
  */
-@Incubating
+@Deprecated
 public interface ManagedSet<T> extends Set<T> {
 
     /**

@@ -72,7 +72,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     public Map<String, String> getActualEnvironment() {
         Map<String, String> actual = new HashMap<String, String>();
         for (Map.Entry<String, Object> entry : environment.entrySet()) {
-            actual.put(entry.getKey(), String.valueOf(entry.getValue().toString()));
+            actual.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
         return actual;
     }

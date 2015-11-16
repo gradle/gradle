@@ -50,6 +50,9 @@ class TestOutputStoreSpec extends WorkspaceTest {
         collectAllOutput(reader, 1, StdOut) == "[out-1][out-2][out-5][out-6]"
         collectAllOutput(reader, 1, StdErr) == "[out-4]"
         collectAllOutput(reader, 2, StdErr) == "[out-3]"
+
+        cleanup:
+        reader.close()
     }
 
     def "output for test includes all events with the given class and method ids"() {
@@ -68,6 +71,9 @@ class TestOutputStoreSpec extends WorkspaceTest {
         collectOutput(reader, 1, 1, StdOut) == "[out-2][out-5]"
         collectOutput(reader, 1, 1, StdErr) == "[out-4]"
         collectOutput(reader, 1, 2, StdOut) == "[out-6]"
+
+        cleanup:
+        reader.close()
     }
 
     def "non-test output includes all events with the given class id and no method id"() {
@@ -87,6 +93,9 @@ class TestOutputStoreSpec extends WorkspaceTest {
         collectOutput(reader, 1, StdOut) == "[out-1][out-5]"
         collectOutput(reader, 1, StdErr) == "[out-3][out-4]"
         collectOutput(reader, 2, StdOut) == "[out-6]"
+
+        cleanup:
+        reader.close()
     }
 
     def DefaultTestOutputEvent output(TestOutputEvent.Destination destination, String msg) {
@@ -97,10 +106,13 @@ class TestOutputStoreSpec extends WorkspaceTest {
         when:
         def writer = output.writer()
         writer.close()
+        def reader = output.reader()
 
         then:
-        def reader = output.reader()
         collectAllOutput(reader, 20, StdErr) == ""
+
+        cleanup:
+        reader.close()
     }
 
     def "writes nothing for unknown test method"() {
@@ -108,10 +120,13 @@ class TestOutputStoreSpec extends WorkspaceTest {
         def writer = output.writer()
         writer.onOutput(1, 1, output(StdOut, "[out]"))
         writer.close()
+        def reader = output.reader()
 
         then:
-        def reader = output.reader()
         collectOutput(reader, 1, 10, StdOut) == ""
+
+        cleanup:
+        reader.close()
     }
 
     def "can query whether output is available for a test class"() {
@@ -139,25 +154,19 @@ class TestOutputStoreSpec extends WorkspaceTest {
     def "exception if no output file"() {
         when:
         output.indexFile.createNewFile()
-        def reader = output.reader()
+        output.reader()
 
         then:
         thrown(IllegalStateException)
-
-        cleanup:
-        reader?.close()
     }
 
     def "exception if no index file, but index"() {
         when:
         output.outputsFile.createNewFile()
-        def reader = output.reader()
+        output.reader()
 
         then:
         thrown(IllegalStateException)
-
-        cleanup:
-        reader?.close()
     }
 
     String collectAllOutput(TestOutputStore.Reader reader, long classId, TestOutputEvent.Destination destination) {

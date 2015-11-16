@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 /**
@@ -66,4 +67,14 @@ public interface TaskState {
      */
     @Nullable
     String getSkipMessage();
+
+    /**
+     * Returns true if the execution of this task was skipped because the task was up-to-date.
+     *
+     * @return true if this task has been considered up-to-date
+     *
+     * @since 2.5
+     */
+    @Incubating
+    boolean getUpToDate();
 }

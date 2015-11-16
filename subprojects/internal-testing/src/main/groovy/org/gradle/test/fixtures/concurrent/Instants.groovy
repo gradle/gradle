@@ -65,16 +65,21 @@ class Instants implements InstantFactory, OperationListener {
 
     void waitFor(String name) {
         synchronized (lock) {
-            long expiry = System.currentTimeMillis() + instantTimeout;
-            while (!timePoints.containsKey(name) && System.currentTimeMillis() < expiry) {
+            long expiry = monotonicClockMillis() + instantTimeout;
+            long waitMillis
+            while (!timePoints.containsKey(name) && (waitMillis = expiry - monotonicClockMillis()) > 0) {
                 logger.log "waiting for instant '$name' ..."
-                lock.wait(expiry - System.currentTimeMillis())
+                lock.wait(waitMillis)
             }
             if (timePoints.containsKey(name)) {
                 return
             }
             throw new IllegalStateException("Timeout waiting for instant '$name' to be defined by another thread.")
         }
+    }
+
+    private long monotonicClockMillis() {
+        System.nanoTime() / 1000000L
     }
 
     def getProperty(String name) {
@@ -109,6 +114,12 @@ class Instants implements InstantFactory, OperationListener {
             lock.notifyAll()
             logger.log "instant '$name' reached"
             return time
+        }
+    }
+
+    void assertNotReached(String name) {
+        synchronized (lock) {
+            assert timePoints[name] == null
         }
     }
 }

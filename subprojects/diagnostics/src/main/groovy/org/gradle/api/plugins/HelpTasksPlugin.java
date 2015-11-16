@@ -19,7 +19,6 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.Task;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.plugins.DslObject;
@@ -31,8 +30,8 @@ import org.gradle.api.tasks.diagnostics.*;
 import org.gradle.configuration.Help;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Defaults;
+import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 
 import java.util.concurrent.Callable;
 
@@ -60,26 +59,20 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         tasks.addPlaceholderAction(PROPERTIES_TASK, PropertyReportTask.class, new PropertyReportTaskAction(projectName));
         tasks.addPlaceholderAction(DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new DependencyInsightReportTaskAction(projectName));
         tasks.addPlaceholderAction(DEPENDENCIES_TASK, DependencyReportTask.class, new DependencyReportTaskAction(projectName));
+        tasks.addPlaceholderAction(BuildEnvironmentReportTask.TASK_NAME, BuildEnvironmentReportTask.class, new BuildEnvironmentReportTaskAction(projectName));
         tasks.addPlaceholderAction(COMPONENTS_TASK, ComponentReport.class, new ComponentReportAction(projectName));
         tasks.addPlaceholderAction(MODEL_TASK, ModelReport.class, new ModelReportAction(projectName));
     }
 
     static class Rules extends RuleSource {
-        static class Rule extends RuleSource {
-            @Defaults
-            void add(DependencyInsightReportTask task, final ServiceRegistry services) {
-                new DslObject(task).getConventionMapping().map("configuration", new Callable<Object>() {
-                    public Object call() {
-                        BuildableJavaComponent javaProject = services.get(ComponentRegistry.class).getMainComponent();
-                        return javaProject == null ? null : javaProject.getCompileDependencies();
-                    }
-                });
-            }
-        }
-
         @Defaults
-        void addDefaultDependenciesReportConfiguration(CollectionBuilder<Task> task, ServiceRegistry serviceRegistry) {
-            task.named(DEPENDENCY_INSIGHT_TASK, Rule.class);
+        void addDefaultDependenciesReportConfiguration(@Path("tasks.dependencyInsight") DependencyInsightReportTask task, final ServiceRegistry services) {
+            new DslObject(task).getConventionMapping().map("configuration", new Callable<Object>() {
+                public Object call() {
+                    BuildableJavaComponent javaProject = services.get(ComponentRegistry.class).getMainComponent();
+                    return javaProject == null ? null : javaProject.getCompileDependencies();
+                }
+            });
         }
     }
 
@@ -164,6 +157,20 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
 
         public void execute(DependencyReportTask task) {
             task.setDescription("Displays all dependencies declared in " + projectName + ".");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+        }
+    }
+
+    private static class BuildEnvironmentReportTaskAction implements Action<BuildEnvironmentReportTask> {
+        private final String projectName;
+
+        public BuildEnvironmentReportTaskAction(String projectName) {
+            this.projectName = projectName;
+        }
+
+        public void execute(BuildEnvironmentReportTask task) {
+            task.setDescription("Displays all buildscript dependencies declared in " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
         }

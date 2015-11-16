@@ -132,6 +132,7 @@ extensions.test = new ExtensionBean()
 
 assert test instanceof ExtensionBean
 test { it ->
+    assert it instanceof ExtensionBean
     assert it == project.test
 }
 class ExtensionBean {

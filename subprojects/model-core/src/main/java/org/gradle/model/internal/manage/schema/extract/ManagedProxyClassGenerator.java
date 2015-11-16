@@ -16,114 +16,204 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.base.Equivalence;
+import com.google.common.base.Function;
+import com.google.common.collect.*;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.*;
+import org.gradle.internal.reflect.MethodSignatureEquivalence;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.typeconversion.TypeConverters;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.StructSchema;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
+import org.gradle.model.internal.type.ModelType;
 import org.objectweb.asm.*;
 
-//CHECKSTYLE:OFF This import is needed to override wildcard import of of org.gradle.internal.reflect.NoSuchMethodException
-import java.lang.NoSuchMethodException;
-//CHECKSTYLE:ON
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.List;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
 
-public class ManagedProxyClassGenerator {
+import static org.objectweb.asm.Opcodes.*;
+
+public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     /*
         Note: there is deliberately no internal synchronizing or caching at this level.
-
-        Class generation should always be performed behind a ModelSchemaCache, by way of DefaultModelSchemaStore.
-        The generated class is then attached to the schema object.
-        This allows us to avoid yet another weak class based cache, and importantly having to acquire a lock to instantiate an implementation.
+        Class generation should be performed behind a ManagedProxyFactory.
      */
 
-    private static final JavaMethod<ClassLoader, ?> DEFINE_CLASS_METHOD = JavaReflectionUtil.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
-
     private static final String STATE_FIELD_NAME = "$state";
+    private static final String MANAGED_TYPE_FIELD_NAME = "$managedType";
+    private static final String DELEGATE_FIELD_NAME = "$delegate";
     private static final String CAN_CALL_SETTERS_FIELD_NAME = "$canCallSetters";
-    private static final String CONSTRUCTOR_NAME = "<init>";
-    private static final String CONCRETE_SIGNATURE = null;
-    private static final String[] NO_EXCEPTIONS = new String[0];
-    private static final String STATE_SET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Object.class));
+    private static final Type OBJECT_TYPE = Type.getType(Object.class);
+    private static final Type STRING_TYPE = Type.getType(String.class);
+    private static final Type CLASS_TYPE = Type.getType(Class.class);
+    private static final String STATE_SET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE);
     private static final String MANAGED_INSTANCE_TYPE = Type.getInternalName(ManagedInstance.class);
     private static final Type MODEL_ELEMENT_STATE_TYPE = Type.getType(ModelElementState.class);
-    private static final String CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, MODEL_ELEMENT_STATE_TYPE);
-    private static final String TO_STRING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(String.class));
+    private static final String NO_DELEGATE_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, MODEL_ELEMENT_STATE_TYPE);
+    private static final String TO_STRING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(STRING_TYPE);
+    private static final String MUTABLE_MODEL_NODE_TYPE = Type.getInternalName(MutableModelNode.class);
     private static final String GET_BACKING_NODE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(MutableModelNode.class));
-    private static final String GET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class));
+    private static final Type MODELTYPE_TYPE = Type.getType(ModelType.class);
+    private static final String MODELTYPE_INTERNAL_NAME = MODELTYPE_TYPE.getInternalName();
+    private static final String MODELTYPE_OF_METHOD_DESCRIPTOR = Type.getMethodDescriptor(MODELTYPE_TYPE, CLASS_TYPE);
+    private static final String GET_MANAGED_TYPE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(MODELTYPE_TYPE);
+    private static final String GET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
     private static final String MISSING_PROPERTY_EXCEPTION_TYPE = Type.getInternalName(MissingPropertyException.class);
-    private static final String CLASS_TYPE = Type.getInternalName(Class.class);
-    private static final String FOR_NAME_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Class.class), Type.getType(String.class));
+    private static final String CLASS_INTERNAL_NAME = Type.getInternalName(Class.class);
+    private static final String FOR_NAME_METHOD_DESCRIPTOR = Type.getMethodDescriptor(CLASS_TYPE, STRING_TYPE);
+    private static final String HASH_CODE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(int.class));
+    private static final String EQUALS_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(boolean.class), OBJECT_TYPE);
     private static final String OBJECT_ARRAY_TYPE = Type.getInternalName(Object[].class);
     private static final String MISSING_METHOD_EXCEPTION_TYPE = Type.getInternalName(MissingMethodException.class);
-    private static final String MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Class.class));
-    private static final String METHOD_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class), Type.getType(Object.class));
-    private static final String SET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class), Type.getType(Object.class));
-    private static final String MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Class.class), Type.getType(Object[].class));
+    private static final String MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, CLASS_TYPE);
+    private static final String METHOD_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
+    private static final String SET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
+    private static final String MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, CLASS_TYPE, Type.getType(Object[].class));
+    private static final Equivalence<Method> METHOD_EQUIVALENCE = new MethodSignatureEquivalence();
+    private static final String SET_OBJECT_PROPERTY_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
+    private static final String COERCE_TO_SCALAR_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, CLASS_TYPE, Type.getType(boolean.class));
+    private static final Type TYPE_CONVERTERS_TYPE = Type.getType(TypeConverters.class);
+    private static final String MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME = MODEL_ELEMENT_STATE_TYPE.getInternalName();
+    private static final Type SERVICE_REGISTRY_TYPE = Type.getType(ServiceRegistry.class);
+    private static final String GET_SERVICES_METHOD_DESCRIPTOR = Type.getMethodDescriptor(SERVICE_REGISTRY_TYPE);
+    private static final String SERVICES_GET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, CLASS_TYPE);
+    private static final Map<Class<?>, Class<?>> BOXED_TYPES = ImmutableMap.<Class<?>, Class<?>>builder()
+        .put(byte.class, Byte.class)
+        .put(short.class, Short.class)
+        .put(int.class, Integer.class)
+        .put(boolean.class, Boolean.class)
+        .put(float.class, Float.class)
+        .put(char.class, Character.class)
+        .put(double.class, Double.class)
+        .put(long.class, Long.class)
+        .build();
 
     /**
      * Generates an implementation of the given managed type.
      * <p>
      * The generated class will implement/extend the managed type and will:
      * <ul>
-     *     <li>provide implementations for abstract getters and setters</li>
+     *     <li>provide implementations for abstract getters and setters that delegate to model nodes</li>
      *     <li>provide a `toString()` implementation</li>
      *     <li>mix-in implementation of {@link ManagedInstance}</li>
      *     <li>provide a constructor that accepts a {@link ModelElementState}, which will be used to implement the above.</li>
      * </ul>
+     *
+     * In case a delegate schema is supplied, the generated class will also have:
+     * <ul>
+     *     <li>a constructor that also takes a delegate instance</li>
+     *     <li>methods that call through to the delegate instance</li>
+     * </ul>
      */
-    public <T> Class<? extends T> generate(Class<T> managedTypeClass) {
+    public <T, M extends T, D extends T> Class<? extends M> generate(StructSchema<M> managedSchema, StructSchema<D> delegateSchema) {
+        if (delegateSchema != null && Modifier.isAbstract(delegateSchema.getType().getConcreteClass().getModifiers())) {
+            throw new IllegalArgumentException("Delegate type must be null or a non-abstract type");
+        }
         ClassWriter visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 
-        String generatedTypeName = managedTypeClass.getName() + "_Impl";
-        Type generatedType = Type.getType("L" + generatedTypeName.replaceAll("\\.", "/") + ";");
+        ModelType<M> managedType = managedSchema.getType();
 
-        Class<?> superclass;
-        List<String> interfaceInternalNames;
-        if (managedTypeClass.isInterface()) {
-            superclass = Object.class;
-            interfaceInternalNames = ImmutableList.of(Type.getInternalName(managedTypeClass), MANAGED_INSTANCE_TYPE);
+        StringBuilder generatedTypeNameBuilder = new StringBuilder(managedType.getName());
+        if (delegateSchema != null) {
+            generatedTypeNameBuilder.append("$BackedBy_").append(delegateSchema.getType().getName().replaceAll("\\.", "_"));
         } else {
-            superclass = managedTypeClass;
-            interfaceInternalNames = ImmutableList.of(MANAGED_INSTANCE_TYPE);
+            generatedTypeNameBuilder.append("$Impl");
         }
 
-        generateProxyClass(visitor, managedTypeClass, interfaceInternalNames, generatedType, Type.getType(superclass));
+        String generatedTypeName = generatedTypeNameBuilder.toString();
+        Type generatedType = Type.getType("L" + generatedTypeName.replaceAll("\\.", "/") + ";");
 
-        return defineClass(visitor, managedTypeClass.getClassLoader(), generatedTypeName);
+        Class<M> managedTypeClass = managedType.getConcreteClass();
+        Class<?> superclass;
+        final ImmutableSet.Builder<String> interfacesToImplement = ImmutableSet.builder();
+        final ImmutableSet.Builder<Class<?>> typesToDelegate = ImmutableSet.builder();
+        typesToDelegate.add(managedTypeClass);
+        interfacesToImplement.add(MANAGED_INSTANCE_TYPE);
+        if (managedTypeClass.isInterface()) {
+            superclass = Object.class;
+            interfacesToImplement.add(Type.getInternalName(managedTypeClass));
+        } else {
+            superclass = managedTypeClass;
+        }
+        // TODO:LPTR This should be removed once BinaryContainer is a ModelMap
+        // We need to also implement all the interfaces of the delegate type because otherwise
+        // BinaryContainer won't recognize managed binaries as BinarySpecInternal
+        if (delegateSchema != null) {
+            ModelSchemaUtils.walkTypeHierarchy(delegateSchema.getType().getConcreteClass(), new ModelSchemaUtils.TypeVisitor<D>() {
+                @Override
+                public void visitType(Class<? super D> type) {
+                    if (type.isInterface()) {
+                        typesToDelegate.add(type);
+                        interfacesToImplement.add(Type.getInternalName(type));
+                    }
+                }
+            });
+        }
+
+        generateProxyClass(visitor, managedSchema, delegateSchema, interfacesToImplement.build(), typesToDelegate.build(), generatedType, Type.getType(superclass));
+
+        ClassLoader targetClassLoader = managedTypeClass.getClassLoader();
+        if (delegateSchema != null) {
+            // TODO - remove this once the above is removed
+            try {
+                managedTypeClass.getClassLoader().loadClass(delegateSchema.getType().getConcreteClass().getName());
+            } catch (ClassNotFoundException e) {
+                // Delegate class is not visible to managed view type -> view type is more general than delegate type, so use the delegate classloader instead
+                targetClassLoader = delegateSchema.getType().getConcreteClass().getClassLoader();
+            }
+        }
+
+        return defineClass(visitor, targetClassLoader, generatedTypeName);
     }
 
-    private <T> Class<? extends T> defineClass(ClassWriter visitor, ClassLoader classLoader, String generatedTypeName) {
-        byte[] bytecode = visitor.toByteArray();
-        return Cast.uncheckedCast(DEFINE_CLASS_METHOD.invoke(classLoader, generatedTypeName, bytecode, 0, bytecode.length));
-    }
-
-    private void generateProxyClass(ClassWriter visitor, Class<?> managedTypeClass, List<String> interfaceInternalNames, Type generatedType, Type superclassType) {
-        declareClass(visitor, interfaceInternalNames, generatedType, superclassType);
+    private void generateProxyClass(ClassWriter visitor, StructSchema<?> managedSchema, StructSchema<?> delegateSchema, Collection<String> interfacesToImplement,
+                                    Set<Class<?>> typesToDelegate, Type generatedType, Type superclassType) {
+        ModelType<?> managedType = managedSchema.getType();
+        Class<?> managedTypeClass = managedType.getConcreteClass();
+        declareClass(visitor, interfacesToImplement, generatedType, superclassType);
         declareStateField(visitor);
+        declareManagedTypeField(visitor);
         declareCanCallSettersField(visitor);
-        writeConstructor(visitor, generatedType, superclassType);
+        writeStaticConstructor(visitor, generatedType, managedTypeClass);
+        writeConstructor(visitor, generatedType, superclassType, delegateSchema);
         writeToString(visitor, generatedType, managedTypeClass);
         writeManagedInstanceMethods(visitor, generatedType);
+        if (delegateSchema != null) {
+            declareDelegateField(visitor, delegateSchema);
+            writeDelegateMethods(visitor, generatedType, delegateSchema, typesToDelegate);
+        }
         writeGroovyMethods(visitor, managedTypeClass);
-        writeMutationMethods(visitor, generatedType, managedTypeClass);
+        writePropertyMethods(visitor, generatedType, managedSchema, delegateSchema);
+        writeHashCodeMethod(visitor, generatedType);
+        writeEqualsMethod(visitor, generatedType);
         visitor.visitEnd();
     }
 
-    private void declareClass(ClassVisitor visitor, List<String> interfaceInternalNames, Type generatedType, Type superclassType) {
-        visitor.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, generatedType.getInternalName(), null,
-                superclassType.getInternalName(), Iterables.toArray(interfaceInternalNames, String.class));
+    private void declareClass(ClassVisitor visitor, Collection<String> interfaceInternalNames, Type generatedType, Type superclassType) {
+        visitor.visit(V1_6, ACC_PUBLIC, generatedType.getInternalName(), null,
+            superclassType.getInternalName(), Iterables.toArray(interfaceInternalNames, String.class));
     }
 
     private void declareStateField(ClassVisitor visitor) {
         declareField(visitor, STATE_FIELD_NAME, ModelElementState.class);
+    }
+
+    private void declareManagedTypeField(ClassVisitor visitor) {
+        declareStaticField(visitor, MANAGED_TYPE_FIELD_NAME, ModelType.class);
+    }
+
+    private void declareDelegateField(ClassVisitor visitor, StructSchema<?> delegateSchema) {
+        declareField(visitor, DELEGATE_FIELD_NAME, delegateSchema.getType().getConcreteClass());
     }
 
     private void declareCanCallSettersField(ClassVisitor visitor) {
@@ -131,22 +221,49 @@ public class ManagedProxyClassGenerator {
     }
 
     private void declareField(ClassVisitor visitor, String name, Class<?> fieldClass) {
-        visitor.visitField(Opcodes.ACC_PRIVATE, name, Type.getDescriptor(fieldClass), null, null);
+        visitor.visitField(ACC_PRIVATE, name, Type.getDescriptor(fieldClass), null, null);
     }
 
-    private void writeConstructor(ClassVisitor visitor, Type generatedType, Type superclassType) {
-        MethodVisitor constructorVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", CONSTRUCTOR_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        constructorVisitor.visitCode();
+    private FieldVisitor declareStaticField(ClassVisitor visitor, String name, Class<?> fieldClass) {
+        return visitor.visitField(ACC_PRIVATE | ACC_STATIC, name, Type.getDescriptor(fieldClass), null, null);
+    }
+
+    private void writeConstructor(ClassVisitor visitor, Type generatedType, Type superclassType, StructSchema<?> delegateSchema) {
+        String constructorDescriptor;
+        Type delegateType;
+        if (delegateSchema == null) {
+            delegateType = null;
+            constructorDescriptor = NO_DELEGATE_CONSTRUCTOR_DESCRIPTOR;
+        } else {
+            delegateType = Type.getType(delegateSchema.getType().getConcreteClass());
+            constructorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, MODEL_ELEMENT_STATE_TYPE, delegateType);
+        }
+        MethodVisitor constructorVisitor = declareMethod(visitor, CONSTRUCTOR_NAME, constructorDescriptor, CONCRETE_SIGNATURE);
 
         invokeSuperConstructor(constructorVisitor, superclassType);
         assignStateField(constructorVisitor, generatedType);
+        if (delegateType != null) {
+            assignDelegateField(constructorVisitor, generatedType, delegateType);
+        }
         setCanCallSettersField(constructorVisitor, generatedType, true);
         finishVisitingMethod(constructorVisitor);
     }
 
+    private void writeStaticConstructor(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass) {
+        MethodVisitor constructorVisitor = declareMethod(visitor, STATIC_CONSTRUCTOR_NAME, "()V", CONCRETE_SIGNATURE, ACC_STATIC);
+        writeManagedTypeStaticField(generatedType, managedTypeClass, constructorVisitor);
+        finishVisitingMethod(constructorVisitor);
+    }
+
+    private void writeManagedTypeStaticField(Type generatedType, Class<?> managedTypeClass, MethodVisitor constructorVisitor) {
+        constructorVisitor.visitLdcInsn(Type.getType(managedTypeClass));
+        constructorVisitor.visitMethodInsn(INVOKESTATIC, MODELTYPE_INTERNAL_NAME, "of", MODELTYPE_OF_METHOD_DESCRIPTOR, false);
+        constructorVisitor.visitFieldInsn(PUTSTATIC, generatedType.getInternalName(), MANAGED_TYPE_FIELD_NAME, Type.getDescriptor(ModelType.class));
+    }
+
     private void invokeSuperConstructor(MethodVisitor constructorVisitor, Type superclassType) {
         putThisOnStack(constructorVisitor);
-        constructorVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE), false);
+        constructorVisitor.visitMethodInsn(INVOKESPECIAL, superclassType.getInternalName(), CONSTRUCTOR_NAME, Type.getMethodDescriptor(Type.VOID_TYPE), false);
     }
 
     private void writeToString(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass) {
@@ -160,11 +277,10 @@ public class ManagedProxyClassGenerator {
     }
 
     private void writeDefaultToString(ClassVisitor visitor, Type generatedType) {
-        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "toString", TO_STRING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        methodVisitor.visitCode();
+        MethodVisitor methodVisitor = declareMethod(visitor, "toString", TO_STRING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
         putStateFieldValueOnStack(methodVisitor, generatedType);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, true);
-        finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, true);
+        finishVisitingMethod(methodVisitor, ARETURN);
     }
 
     private Method getToStringMethod(Class<?> managedTypeClass) {
@@ -177,141 +293,254 @@ public class ManagedProxyClassGenerator {
 
     private void writeGroovyMethods(ClassVisitor visitor, Class<?> managedTypeClass) {
         // Object propertyMissing(String name)
-        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "propertyMissing", GET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        methodVisitor.visitCode();
+        MethodVisitor methodVisitor = declareMethod(visitor, "propertyMissing", GET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
 
         // throw new MissingPropertyException(name, <managed-type>.class)
-        methodVisitor.visitTypeInsn(Opcodes.NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
-        methodVisitor.visitInsn(Opcodes.DUP);
+        methodVisitor.visitTypeInsn(NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
+        methodVisitor.visitInsn(DUP);
         putFirstMethodArgumentOnStack(methodVisitor);
         putClassOnStack(methodVisitor, managedTypeClass);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, MISSING_PROPERTY_EXCEPTION_TYPE, "<init>", MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR, false);
-        finishVisitingMethod(methodVisitor, Opcodes.ATHROW);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, MISSING_PROPERTY_EXCEPTION_TYPE, "<init>", MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR, false);
+        finishVisitingMethod(methodVisitor, ATHROW);
 
         // Object propertyMissing(String name, Object value)
 
-        methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "propertyMissing", SET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        methodVisitor.visitCode();
+        methodVisitor = declareMethod(visitor, "propertyMissing", SET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
 
         // throw new MissingPropertyException(name, <managed-type>.class)
-        methodVisitor.visitTypeInsn(Opcodes.NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
-        methodVisitor.visitInsn(Opcodes.DUP);
+        methodVisitor.visitTypeInsn(NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
+        methodVisitor.visitInsn(DUP);
         putFirstMethodArgumentOnStack(methodVisitor);
         putClassOnStack(methodVisitor, managedTypeClass);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, MISSING_PROPERTY_EXCEPTION_TYPE, "<init>", MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR, false);
-        finishVisitingMethod(methodVisitor, Opcodes.ATHROW);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, MISSING_PROPERTY_EXCEPTION_TYPE, "<init>", MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR, false);
+        finishVisitingMethod(methodVisitor, ATHROW);
 
         // Object methodMissing(String name, Object args)
-        methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "methodMissing", METHOD_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        methodVisitor.visitCode();
+        methodVisitor = declareMethod(visitor, "methodMissing", METHOD_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
 
         // throw new MissingMethodException(name, <managed-type>.class, args)
-        methodVisitor.visitTypeInsn(Opcodes.NEW, MISSING_METHOD_EXCEPTION_TYPE);
-        methodVisitor.visitInsn(Opcodes.DUP);
+        methodVisitor.visitTypeInsn(NEW, MISSING_METHOD_EXCEPTION_TYPE);
+        methodVisitor.visitInsn(DUP);
         putMethodArgumentOnStack(methodVisitor, 1);
         putClassOnStack(methodVisitor, managedTypeClass);
         putMethodArgumentOnStack(methodVisitor, 2);
-        methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, OBJECT_ARRAY_TYPE);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, MISSING_METHOD_EXCEPTION_TYPE, "<init>", MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR, false);
-        finishVisitingMethod(methodVisitor, Opcodes.ATHROW);
+        methodVisitor.visitTypeInsn(CHECKCAST, OBJECT_ARRAY_TYPE);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, MISSING_METHOD_EXCEPTION_TYPE, "<init>", MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR, false);
+        finishVisitingMethod(methodVisitor, ATHROW);
     }
 
     private void putClassOnStack(MethodVisitor methodVisitor, Class<?> managedTypeClass) {
         putConstantOnStack(methodVisitor, managedTypeClass.getName());
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, CLASS_TYPE, "forName", FOR_NAME_METHOD_DESCRIPTOR, false);
+        methodVisitor.visitMethodInsn(INVOKESTATIC, CLASS_INTERNAL_NAME, "forName", FOR_NAME_METHOD_DESCRIPTOR, false);
     }
 
     private void writeManagedInstanceMethods(ClassVisitor visitor, Type generatedType) {
-        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
-        methodVisitor.visitCode();
+        writeManagedInstanceGetBackingNodeMethod(visitor, generatedType);
+        writeManagedInstanceGetManagedTypeMethod(visitor, generatedType);
+    }
+
+    private void writeManagedInstanceGetBackingNodeMethod(ClassVisitor visitor, Type generatedType) {
+        MethodVisitor methodVisitor = declareMethod(visitor, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, ACC_PUBLIC | ACC_SYNTHETIC);
         putStateFieldValueOnStack(methodVisitor, generatedType);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
-        finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
+        finishVisitingMethod(methodVisitor, ARETURN);
+    }
+
+    private void writeManagedInstanceGetManagedTypeMethod(ClassVisitor visitor, Type generatedType) {
+        MethodVisitor managedTypeVisitor = declareMethod(visitor, "getManagedType", GET_MANAGED_TYPE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, ACC_PUBLIC | ACC_SYNTHETIC);
+        putManagedTypeFieldValueOnStack(managedTypeVisitor, generatedType);
+        finishVisitingMethod(managedTypeVisitor, ARETURN);
     }
 
     private void assignStateField(MethodVisitor constructorVisitor, Type generatedType) {
         putThisOnStack(constructorVisitor);
         putFirstMethodArgumentOnStack(constructorVisitor);
-        constructorVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), STATE_FIELD_NAME, MODEL_ELEMENT_STATE_TYPE.getDescriptor());
+        constructorVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), STATE_FIELD_NAME, MODEL_ELEMENT_STATE_TYPE.getDescriptor());
+    }
+
+    private void assignDelegateField(MethodVisitor constructorVisitor, Type generatedType, Type delegateType) {
+        putThisOnStack(constructorVisitor);
+        putSecondMethodArgumentOnStack(constructorVisitor);
+        constructorVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), DELEGATE_FIELD_NAME, delegateType.getDescriptor());
     }
 
     private void setCanCallSettersField(MethodVisitor methodVisitor, Type generatedType, boolean canCallSetters) {
         putThisOnStack(methodVisitor);
         methodVisitor.visitLdcInsn(canCallSetters);
-        methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), CAN_CALL_SETTERS_FIELD_NAME, Type.BOOLEAN_TYPE.getDescriptor());
+        methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), CAN_CALL_SETTERS_FIELD_NAME, Type.BOOLEAN_TYPE.getDescriptor());
     }
 
-    private void putThisOnStack(MethodVisitor constructorVisitor) {
-        constructorVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-    }
-
-    private void finishVisitingMethod(MethodVisitor methodVisitor) {
-        finishVisitingMethod(methodVisitor, Opcodes.RETURN);
-    }
-
-    private void finishVisitingMethod(MethodVisitor methodVisitor, int returnOpcode) {
-        methodVisitor.visitInsn(returnOpcode);
-        methodVisitor.visitMaxs(0, 0);
-        methodVisitor.visitEnd();
-    }
-
-    private void writeMutationMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass) {
-        ClassDetails classDetails = ClassInspector.inspect(managedTypeClass);
-        for (PropertyDetails property : classDetails.getProperties()) {
-            for (Method method : property.getGetters()) {
-                if (Modifier.isAbstract(method.getModifiers())) {
-                    writeGetter(visitor, generatedType, method);
-                } else if (!Modifier.isFinal(method.getModifiers()) && !property.getName().equals("metaClass")) {
-                    writeNonAbstractMethodWrapper(visitor, generatedType, managedTypeClass, method);
-                }
+    private void writePropertyMethods(ClassVisitor visitor, Type generatedType, StructSchema<?> managedSchema, StructSchema<?> delegateSchema) {
+        Collection<String> delegatePropertyNames;
+        if (delegateSchema != null) {
+            ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+            for (ModelProperty<?> delegateProperty : delegateSchema.getProperties()) {
+                builder.add(delegateProperty.getName());
             }
-            for (Method method : property.getSetters()) {
-                writeSetter(visitor, generatedType, method);
+            delegatePropertyNames = builder.build();
+        } else {
+            delegatePropertyNames = Collections.emptySet();
+        }
+        Class<?> managedTypeClass = managedSchema.getType().getConcreteClass();
+        for (ModelProperty<?> property : managedSchema.getProperties()) {
+            String propertyName = property.getName();
+            // Delegated properties are handled in writeDelegateMethods()
+            if (delegatePropertyNames.contains(propertyName)) {
+                continue;
+            }
+            switch (property.getStateManagementType()) {
+                case MANAGED:
+                    writeGetters(visitor, generatedType, property);
+                    writeSetter(visitor, generatedType, property);
+                    break;
+
+                case UNMANAGED:
+                    String getterName = getGetterName(propertyName);
+                    Method getterMethod;
+                    try {
+                        getterMethod = managedTypeClass.getMethod(getterName);
+                    } catch (NoSuchMethodException e) {
+                        throw new IllegalStateException(String.format("Cannot find getter '%s' on type %s", getterName, managedTypeClass.getName()), e);
+                    }
+                    if (!Modifier.isFinal(getterMethod.getModifiers()) && !propertyName.equals("metaClass")) {
+                        writeNonAbstractMethodWrapper(visitor, generatedType, managedTypeClass, getterMethod);
+                    }
+                    break;
             }
         }
     }
 
-    private void writeSetter(ClassVisitor visitor, Type generatedType, Method method) {
-        String propertyName = getPropertyName(method);
+    private void writeSetter(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
+        WeaklyTypeReferencingMethod<?, Void> weakSetter = property.getSetter();
+        // There is no setter for this property
+        if (weakSetter == null) {
+            return;
+        }
+
+        String propertyName = property.getName();
+        Class<?> propertyTypeClass = property.getType().getConcreteClass();
         Label calledOutsideOfConstructor = new Label();
 
-        MethodVisitor methodVisitor = declareMethod(visitor, method);
+        Method setter = weakSetter.getMethod();
+
+        // the regular typed setter
+        String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(propertyTypeClass));
+        MethodVisitor methodVisitor = declareMethod(visitor, setter.getName(), methodDescriptor, AsmClassGeneratorUtils.signature(setter));
 
         putCanCallSettersFieldValueOnStack(methodVisitor, generatedType);
         jumpToLabelIfStackEvaluatesToTrue(methodVisitor, calledOutsideOfConstructor);
         throwExceptionBecauseCalledOnItself(methodVisitor);
 
-        writeLabel(methodVisitor, calledOutsideOfConstructor);
+        methodVisitor.visitLabel(calledOutsideOfConstructor);
         putStateFieldValueOnStack(methodVisitor, generatedType);
         putConstantOnStack(methodVisitor, propertyName);
-        putFirstMethodArgumentOnStack(methodVisitor);
+        putFirstMethodArgumentOnStack(methodVisitor, propertyTypeClass);
+        if (propertyTypeClass.isPrimitive()) {
+            boxType(methodVisitor, propertyTypeClass);
+        }
         invokeStateSetMethod(methodVisitor);
 
         finishVisitingMethod(methodVisitor);
+
+        if (propertyTypeClass.isPrimitive() || BOXED_TYPES.values().contains(propertyTypeClass) || propertyTypeClass.isEnum()
+            || BigDecimal.class.equals(propertyTypeClass) || BigInteger.class.equals(propertyTypeClass) || String.class.equals(propertyTypeClass)) {
+            createScalarConvertingSetter(visitor, generatedType, propertyTypeClass, setter, methodDescriptor);
+        }
     }
 
-    private void writeLabel(MethodVisitor methodVisitor, Label label) {
-        methodVisitor.visitLabel(label);
-        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+    // the overload of type Object for Groovy coercions:  public void setFoo(Object foo)
+    private void createScalarConvertingSetter(ClassVisitor visitor, Type generatedType, Class<?> propertyTypeClass, Method setter, String methodDescriptor) {
+        MethodVisitor methodVisitor = declareMethod(visitor, setter.getName(), SET_OBJECT_PROPERTY_DESCRIPTOR, SET_OBJECT_PROPERTY_DESCRIPTOR);
+
+        Class<?> objectType = propertyTypeClass.isPrimitive() ? BOXED_TYPES.get(propertyTypeClass) : propertyTypeClass;
+        String propertyType = Type.getInternalName(objectType);
+
+        putStateFieldValueOnStack(methodVisitor, generatedType);
+
+        // ServiceRegistry services = $state.getServices();
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "getServices",  GET_SERVICES_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitVarInsn(ASTORE, 2); // pop the ServiceRegistry from the stack and store it in local variable 2 ('services') (var #0 is 'this')
+
+        // TypeConverters converter = (TypeConverters) services.get(TypeConverters.class);
+        methodVisitor.visitVarInsn(ALOAD, 2); // push 'services' onto the stack
+        methodVisitor.visitLdcInsn(TYPE_CONVERTERS_TYPE); // push the constant Class onto the stack
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, SERVICE_REGISTRY_TYPE.getInternalName(), "get", SERVICES_GET_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitTypeInsn(CHECKCAST, TYPE_CONVERTERS_TYPE.getInternalName());
+        methodVisitor.visitVarInsn(ASTORE, 3); // pop the TypeConverters from the stack and store it in local variable 3 ('converter')
+
+        // Object converted = converter.convert(foo, Float.class, false);
+        methodVisitor.visitVarInsn(ALOAD, 3); // put var #3 ('converter') on the stack
+        methodVisitor.visitVarInsn(ALOAD, 1); // put var #1 ('foo') on the stack
+        methodVisitor.visitLdcInsn(Type.getType(objectType)); // push the constant Class onto the stack
+        methodVisitor.visitInsn(propertyTypeClass.isPrimitive() ? ICONST_1 : ICONST_0); // push int 1 or 0 (interpreted as true or false) onto the stack
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, TYPE_CONVERTERS_TYPE.getInternalName(), "convert", COERCE_TO_SCALAR_DESCRIPTOR, true);
+        methodVisitor.visitVarInsn(ASTORE, 4); // pop a value from the stack and store it in local variable 4 ('converted')
+
+        methodVisitor.visitVarInsn(ALOAD, 0); // put 'this' on the stack
+        methodVisitor.visitVarInsn(ALOAD, 4); // put var #4 ('converted') on the stack
+        methodVisitor.visitTypeInsn(CHECKCAST, propertyType); // pop, cast to the expected type, push
+
+        if (propertyTypeClass.isPrimitive()) {
+            unboxType(methodVisitor, propertyTypeClass);
+        }
+
+        // invoke the typed setter, popping 'this' and 'converted' from the stack
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), setter.getName(), methodDescriptor, false);
+        finishVisitingMethod(methodVisitor);
+    }
+
+    private void writeHashCodeMethod(ClassVisitor visitor, Type generatedType) {
+        MethodVisitor methodVisitor = declareMethod(visitor, "hashCode", HASH_CODE_METHOD_DESCRIPTOR, null);
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, false);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MUTABLE_MODEL_NODE_TYPE, "hashCode", HASH_CODE_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitInsn(IRETURN);
+        finishVisitingMethod(methodVisitor, Opcodes.IRETURN);
+    }
+
+    private void writeEqualsMethod(ClassVisitor cw, Type generatedType) {
+        MethodVisitor methodVisitor = cw.visitMethod(Opcodes.ACC_PUBLIC, "equals", EQUALS_METHOD_DESCRIPTOR, null, null);
+        methodVisitor.visitCode();
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitVarInsn(ALOAD, 1);
+        Label notSameLabel = new Label();
+        methodVisitor.visitJumpInsn(IF_ACMPNE, notSameLabel);
+        methodVisitor.visitInsn(ICONST_1);
+        methodVisitor.visitInsn(IRETURN);
+        methodVisitor.visitLabel(notSameLabel);
+        methodVisitor.visitVarInsn(ALOAD, 1);
+        methodVisitor.visitTypeInsn(INSTANCEOF, MANAGED_INSTANCE_TYPE);
+        Label notManagedInstanceLabel = new Label();
+        methodVisitor.visitJumpInsn(IFNE, notManagedInstanceLabel);
+        methodVisitor.visitInsn(ICONST_0);
+        methodVisitor.visitInsn(IRETURN);
+        methodVisitor.visitLabel(notManagedInstanceLabel);
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, false);
+        methodVisitor.visitVarInsn(ALOAD, 1);
+        methodVisitor.visitTypeInsn(CHECKCAST, MANAGED_INSTANCE_TYPE);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MANAGED_INSTANCE_TYPE, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MUTABLE_MODEL_NODE_TYPE, "equals", EQUALS_METHOD_DESCRIPTOR, true);
+        finishVisitingMethod(methodVisitor, Opcodes.IRETURN);
     }
 
     private void throwExceptionBecauseCalledOnItself(MethodVisitor methodVisitor) {
         String exceptionInternalName = Type.getInternalName(UnsupportedOperationException.class);
-        methodVisitor.visitTypeInsn(Opcodes.NEW, exceptionInternalName);
-        methodVisitor.visitInsn(Opcodes.DUP);
+        methodVisitor.visitTypeInsn(NEW, exceptionInternalName);
+        methodVisitor.visitInsn(DUP);
         putConstantOnStack(methodVisitor, "Calling setters of a managed type on itself is not allowed");
 
-        String constructorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class));
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, exceptionInternalName, CONSTRUCTOR_NAME, constructorDescriptor, false);
-        methodVisitor.visitInsn(Opcodes.ATHROW);
+        String constructorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, exceptionInternalName, CONSTRUCTOR_NAME, constructorDescriptor, false);
+        methodVisitor.visitInsn(ATHROW);
     }
 
     private void jumpToLabelIfStackEvaluatesToTrue(MethodVisitor methodVisitor, Label label) {
-        methodVisitor.visitJumpInsn(Opcodes.IFNE, label);
+        methodVisitor.visitJumpInsn(IFNE, label);
     }
 
     private void invokeStateSetMethod(MethodVisitor methodVisitor) {
-        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "set", STATE_SET_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "set", STATE_SET_METHOD_DESCRIPTOR, true);
     }
 
     private void putConstantOnStack(MethodVisitor methodVisitor, Object value) {
@@ -319,21 +548,70 @@ public class ManagedProxyClassGenerator {
     }
 
     private MethodVisitor declareMethod(ClassVisitor visitor, Method method) {
-        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), Type.getMethodDescriptor(method), CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        return declareMethod(visitor, method.getName(), Type.getMethodDescriptor(method));
+    }
+
+    private MethodVisitor declareMethod(ClassVisitor visitor, String methodName, String methodDescriptor) {
+        return declareMethod(visitor, methodName, methodDescriptor, CONCRETE_SIGNATURE);
+    }
+
+    private MethodVisitor declareMethod(ClassVisitor visitor, String methodName, String methodDescriptor, String methodSignature) {
+        return declareMethod(visitor, methodName, methodDescriptor, methodSignature, ACC_PUBLIC);
+    }
+
+    private MethodVisitor declareMethod(ClassVisitor visitor, String methodName, String methodDescriptor, String methodSignature, int access) {
+        MethodVisitor methodVisitor = visitor.visitMethod(access, methodName, methodDescriptor, methodSignature, NO_EXCEPTIONS);
         methodVisitor.visitCode();
         return methodVisitor;
     }
 
+    private void putFirstMethodArgumentOnStack(MethodVisitor methodVisitor, Class<?> argType) {
+        int loadCode = selectOpcode(argType, ALOAD, ILOAD, LLOAD, FLOAD, DLOAD);
+        methodVisitor.visitVarInsn(loadCode, 1);
+    }
+
+    private int selectOpcode(Class<?> argType, int defaultValue, int intCategoryValue, int longValue, int floatValue, int doubleValue) {
+        int code = defaultValue;
+        if (argType.isPrimitive()) {
+            if (byte.class == argType || short.class == argType || int.class == argType || char.class == argType || boolean.class == argType) {
+                code = intCategoryValue;
+            } else if (long.class == argType) {
+                code = longValue;
+            } else if (float.class == argType) {
+                code = floatValue;
+            } else if (double.class == argType) {
+                code = doubleValue;
+            }
+        }
+        return code;
+    }
+
     private void putFirstMethodArgumentOnStack(MethodVisitor methodVisitor) {
-        methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+        putFirstMethodArgumentOnStack(methodVisitor, Object.class);
+    }
+
+    private void putSecondMethodArgumentOnStack(MethodVisitor methodVisitor) {
+        methodVisitor.visitVarInsn(ALOAD, 2);
     }
 
     private void putMethodArgumentOnStack(MethodVisitor methodVisitor, int index) {
-        methodVisitor.visitVarInsn(Opcodes.ALOAD, index);
+        methodVisitor.visitVarInsn(ALOAD, index);
+    }
+
+    private void putBooleanMethodArgumentOnStack(MethodVisitor methodVisitor, int index) {
+        methodVisitor.visitVarInsn(ILOAD, index);
     }
 
     private void putStateFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType) {
         putFieldValueOnStack(methodVisitor, generatedType, STATE_FIELD_NAME, ModelElementState.class);
+    }
+
+    private void putManagedTypeFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType) {
+        putStaticFieldValueOnStack(methodVisitor, generatedType, MANAGED_TYPE_FIELD_NAME, ModelType.class);
+    }
+
+    private void putDelegateFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType, Class<?> delegateTypeClass) {
+        putFieldValueOnStack(methodVisitor, generatedType, DELEGATE_FIELD_NAME, delegateTypeClass);
     }
 
     private void putCanCallSettersFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType) {
@@ -342,32 +620,89 @@ public class ManagedProxyClassGenerator {
 
     private void putFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType, String name, Class<?> fieldClass) {
         putThisOnStack(methodVisitor);
-        methodVisitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), name, Type.getDescriptor(fieldClass));
+        methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), name, Type.getDescriptor(fieldClass));
     }
 
-    private void writeGetter(ClassVisitor visitor, Type generatedType, Method method) {
-        String propertyName = getPropertyName(method);
+    private void putStaticFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType, String name, Class<?> fieldClass) {
+        methodVisitor.visitFieldInsn(GETSTATIC, generatedType.getInternalName(), name, Type.getDescriptor(fieldClass));
+    }
 
-        MethodVisitor methodVisitor = declareMethod(visitor, method);
+    private void writeGetters(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
+        Class<?> propertyTypeClass = property.getType().getConcreteClass();
+        Set<String> processedNames = Sets.newHashSet();
+        for (WeaklyTypeReferencingMethod<?, ?> weakGetter : property.getGetters()) {
+            Method getter = weakGetter.getMethod();
+            if (!processedNames.add(getter.getName())) {
+                continue;
+            }
+            MethodVisitor methodVisitor = declareMethod(
+                visitor,
+                getter.getName(),
+                Type.getMethodDescriptor(Type.getType(propertyTypeClass)),
+                AsmClassGeneratorUtils.signature(getter));
 
-        putStateFieldValueOnStack(methodVisitor, generatedType);
-        putConstantOnStack(methodVisitor, propertyName);
-        invokeStateGetMethod(methodVisitor);
-        castFirstStackElement(methodVisitor, method.getReturnType());
-        finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
+            putStateFieldValueOnStack(methodVisitor, generatedType);
+            putConstantOnStack(methodVisitor, property.getName());
+            invokeStateGetMethod(methodVisitor);
+            castFirstStackElement(methodVisitor, propertyTypeClass);
+            finishVisitingMethod(methodVisitor, returnCode(propertyTypeClass));
+        }
+
+    }
+
+    private int returnCode(Class<?> propertyTypeClass) {
+        return selectOpcode(propertyTypeClass, ARETURN, IRETURN, LRETURN, FRETURN, DRETURN);
+    }
+
+    private static String getGetterName(String propertyName) {
+        return "get" + StringUtils.capitalize(propertyName);
     }
 
     private void castFirstStackElement(MethodVisitor methodVisitor, Class<?> returnType) {
-        methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(returnType));
+        if (returnType.isPrimitive()) {
+            unboxType(methodVisitor, returnType);
+        } else {
+            methodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(returnType));
+        }
     }
 
-    private String getPropertyName(Method method) {
-        return StringUtils.uncapitalize(method.getName().substring(3));
+    private void boxType(MethodVisitor methodVisitor, Class<?> primitiveType) {
+        Class<?> boxedType = BOXED_TYPES.get(primitiveType);
+        methodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(boxedType), "valueOf", "(" + Type.getDescriptor(primitiveType) + ")" + Type.getDescriptor(boxedType), false);
+    }
+
+    private void unboxType(MethodVisitor methodVisitor, Class<?> primitiveType) {
+        // Float f = (Float) tmp
+        // f==null?0:f.floatValue()
+        Class<?> boxedType = BOXED_TYPES.get(primitiveType);
+        methodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(boxedType));
+        methodVisitor.visitInsn(DUP);
+        Label exit = new Label();
+        Label elseValue = new Label();
+        methodVisitor.visitJumpInsn(IFNONNULL, elseValue);
+        methodVisitor.visitInsn(POP);
+        pushDefaultValue(methodVisitor, primitiveType);
+        methodVisitor.visitJumpInsn(GOTO, exit);
+        methodVisitor.visitLabel(elseValue);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(boxedType), primitiveType.getSimpleName() + "Value", "()" + Type.getDescriptor(primitiveType), false);
+        methodVisitor.visitLabel(exit);
+    }
+
+    private void pushDefaultValue(MethodVisitor methodVisitor, Class<?> primitiveType) {
+        int ins = ICONST_0;
+        if (long.class == primitiveType) {
+            ins = LCONST_0;
+        } else if (double.class == primitiveType) {
+            ins = DCONST_0;
+        } else if (float.class == primitiveType) {
+            ins = FCONST_0;
+        }
+        methodVisitor.visitInsn(ins);
     }
 
     private void invokeStateGetMethod(MethodVisitor methodVisitor) {
-        String methodDescriptor = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class));
-        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "get", methodDescriptor, true);
+        String methodDescriptor = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "get", methodDescriptor, true);
     }
 
     private void writeNonAbstractMethodWrapper(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Method method) {
@@ -381,23 +716,83 @@ public class ManagedProxyClassGenerator {
 
         setCanCallSettersField(methodVisitor, generatedType, false);
 
-        writeLabel(methodVisitor, start);
+        methodVisitor.visitLabel(start);
         invokeSuperMethod(methodVisitor, managedTypeClass, method);
-        writeLabel(methodVisitor, end);
+        methodVisitor.visitLabel(end);
 
         setCanCallSettersField(methodVisitor, generatedType, true);
-        methodVisitor.visitInsn(Opcodes.ARETURN);
+        methodVisitor.visitInsn(ARETURN);
 
-        writeLabel(methodVisitor, handler);
+        methodVisitor.visitLabel(handler);
         setCanCallSettersField(methodVisitor, generatedType, true);
-        methodVisitor.visitInsn(Opcodes.ATHROW);
+        methodVisitor.visitInsn(ATHROW);
 
         methodVisitor.visitMaxs(0, 0);
         methodVisitor.visitEnd();
     }
 
+    private void writeDelegateMethods(final ClassVisitor visitor, final Type generatedType, StructSchema<?> delegateSchema, Set<Class<?>> typesToDelegate) {
+        Class<?> delegateTypeClass = delegateSchema.getType().getConcreteClass();
+        Map<Equivalence.Wrapper<Method>, Map<Class<?>, Method>> methodsToDelegate = Maps.newHashMap();
+        for (Class<?> typeToDelegate : typesToDelegate) {
+            for (Method methodToDelegate : typeToDelegate.getMethods()) {
+                if (ModelSchemaUtils.isIgnoredMethod(methodToDelegate)) {
+                    continue;
+                }
+                Equivalence.Wrapper<Method> methodKey = METHOD_EQUIVALENCE.wrap(methodToDelegate);
+                Map<Class<?>, Method> methodsByReturnType = methodsToDelegate.get(methodKey);
+                if (methodsByReturnType == null) {
+                    methodsByReturnType = Maps.newHashMap();
+                    methodsToDelegate.put(methodKey, methodsByReturnType);
+                }
+                methodsByReturnType.put(methodToDelegate.getReturnType(), methodToDelegate);
+            }
+        }
+        Set<Equivalence.Wrapper<Method>> delegateMethodKeys = ImmutableSet.copyOf(Iterables.transform(Arrays.asList(delegateTypeClass.getMethods()), new Function<Method, Equivalence.Wrapper<Method>>() {
+            @Override
+            public Equivalence.Wrapper<Method> apply(Method method) {
+                return METHOD_EQUIVALENCE.wrap(method);
+            }
+        }));
+        for (Map.Entry<Equivalence.Wrapper<Method>, Map<Class<?>, Method>> entry : methodsToDelegate.entrySet()) {
+            Equivalence.Wrapper<Method> methodKey = entry.getKey();
+            if (!delegateMethodKeys.contains(methodKey)) {
+                continue;
+            }
+
+            Map<Class<?>, Method> methodsByReturnType = entry.getValue();
+            for (Method methodToDelegate : methodsByReturnType.values()) {
+                writeDelegatedMethod(visitor, generatedType, delegateTypeClass, methodToDelegate);
+            }
+        }
+    }
+
+    private void writeDelegatedMethod(ClassVisitor visitor, Type generatedType, Class<?> delegateTypeClass, Method method) {
+        MethodVisitor methodVisitor = declareMethod(visitor, method.getName(), Type.getMethodDescriptor(method), AsmClassGeneratorUtils.signature(method));
+        invokeDelegateMethod(methodVisitor, generatedType, delegateTypeClass, method);
+        final Class<?> returnType = method.getReturnType();
+        if (returnType == Void.TYPE) {
+            finishVisitingMethod(methodVisitor);
+        } else {
+            finishVisitingMethod(methodVisitor, returnCode(returnType));
+        }
+    }
+
+    private void invokeDelegateMethod(MethodVisitor methodVisitor, Type generatedType, Class<?> delegateTypeClass, Method method) {
+        putDelegateFieldValueOnStack(methodVisitor, generatedType, delegateTypeClass);
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        for (int paramNo = 0; paramNo < parameterTypes.length; paramNo++) {
+            if (parameterTypes[paramNo] == Boolean.TYPE) {
+                putBooleanMethodArgumentOnStack(methodVisitor, paramNo + 1);
+            } else {
+                putMethodArgumentOnStack(methodVisitor, paramNo + 1);
+            }
+        }
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(delegateTypeClass), method.getName(), Type.getMethodDescriptor(method), false);
+    }
+
     private void invokeSuperMethod(MethodVisitor methodVisitor, Class<?> superClass, Method method) {
         putThisOnStack(methodVisitor);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(superClass), method.getName(), Type.getMethodDescriptor(method), false);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(superClass), method.getName(), Type.getMethodDescriptor(method), false);
     }
 }

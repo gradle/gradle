@@ -37,6 +37,7 @@ class ClassDoc implements DslElementDoc {
     private final Element methodsSection
     ClassDoc superClass
     List<ClassDoc> interfaces = []
+    List<ClassDoc> subClasses = []
     List<Element> comment = []
 
     ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ClassExtensionMetaData extensionMetaData) {
@@ -118,6 +119,12 @@ class ClassDoc implements DslElementDoc {
 
     def getBlockDetailsSection() { return getSection('Script block details') }
 
+    List<ClassDoc> getSubClasses() {
+        return subClasses
+    }
+    void addSubClass(ClassDoc subClass) {
+        subClasses.add(subClass)
+    }
     ClassDoc mergeContent() {
         classProperties.sort { it.name }
         classMethods.sort { it.metaData.overrideSignature }

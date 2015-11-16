@@ -18,7 +18,7 @@
 
 package org.gradle.buildinit.plugins.internal.maven
 
-import org.gradle.mvn3.org.apache.maven.project.MavenProject
+import org.apache.maven.project.MavenProject
 import org.gradle.util.GFileUtils
 
 /**

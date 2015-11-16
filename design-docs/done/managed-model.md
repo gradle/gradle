@@ -154,15 +154,15 @@ Use of `byte` and `Byte` is unsupported.
     }
 
     package org.gradle.model.collection
-    interface ManagedSet<T> extends Set<T> {
+    interface ModelSet<T> extends Set<T> {
       void create(Action<? super T> action)
     }
 
     class Rules {
       @Model
-      void people(ManagedSet<Person> people) {}
+      void people(ModelSet<Person> people) {}
 
-      @Mutate void addPeople(ManagedSet<Person> people) {
+      @Mutate void addPeople(ModelSet<Person> people) {
         people.create(p -> p.setName("p1"))
         people.create(p -> p.setName("p2"))
       }
@@ -191,3 +191,493 @@ Notes:
 
 - ~~Attempt to create collection of non managed type~~
 - ~~Attempt to create collection of invalid managed type~~
+
+### ~~Plugin creates model element of custom, reference having, type without supplying an implementation~~
+
+    @Managed
+    interface Platform {
+        String getDisplayName();
+        void setDisplayName(String name);
+
+        OperatingSystem getOperatingSystem();
+        void setOperatingSystem(OperatingSystem operatingSystem); // setter for @Managed type indicates it's a reference
+    }
+
+    @Managed
+    interface OperatingSystem {
+        String getName();
+        void setName(String name);
+    }
+
+    class RulePlugin {
+        @Model
+        void createOs(OperatingSystem os) {
+          os.setName("windows");
+        }
+
+        @Model
+        void createPlatform(Platform platform, OperatingSystem os) {
+          platform.setDisplayName("Microsoft Windows")
+          platform.setOperatingSystem(os)
+        }
+
+        @Mutate
+        void addPersonTask(CollectionBuilder<Task> tasks, Platform platform) {
+            tasks.create("echo", t ->
+              t.doLast(t2 -> System.out.println(platform.getOperatingSystem().getName())); // prints 'windows'
+            );
+        }
+    }
+
+#### Test Coverage
+
+- ~~Calling `setOperatingSystem()` with “non managed” impl of `OperatingSystem` is a runtime error (i.e. only managed objects can be used)~~
+
+#### Open issues
+
+- Should be able to path to and through the referenced element.
+- Implementation should link to the referenced node, rather than a view of the element.
+- When a rule receives a view of an object graph, a particular element that is linked into multiple locations in the graph should be represented using the same object instance
+  in every location:
+    - One link is an 'inherent' property, the rest are references
+    - All links are references
+    - The links occurs in multiple locations in the view graph
+    - Link occurs in a collection
+    - The same element appears in different inputs to a rule
+
+### ~~Managed model interface extends other interfaces~~
+
+    interface Named {
+        String getName(); void setName(String name);
+    }
+
+    @Managed
+    interface NamedThing extends Named {
+        String getValue(); void setValue(String value);
+    }
+
+#### Notes
+
+- Super types do not need to be annotated with `@Managed` - but are subject to the same constraints as `@Managed` types
+- Specialisation of a generic parent is not supported through this story (i.e. can't do `interface BookList extends List<Book>`)
+
+#### Test Coverage
+
+- ~~Can extend more than one interface~~
+- ~~Error message produced when super type is not a “manageable” type indicates the original (sub) type (and the rule that caused it to be extracted)~~
+- ~~Can get/set properties of super type(s)~~
+- ~~Can depend on super type as input and subject~~
+- ~~Two different types can extend same parent~~
+- ~~Property conflicts between super types are detected (different types for the same name)~~
+
+### ~~Managed model type has a property of collection of managed types~~
+
+    @Managed
+    interface Person {
+      String getName(); void setName(String string)
+    }
+
+    @Managed
+    interface Group {
+      String getName(); void setName(String string)
+      ModelSet<Person> getMembers();
+    }
+
+    class Rules {
+      @Model
+      void group(Group group) {
+        group.name = "Women in computing"
+        group.members.create(p -> p.setName("Ada Lovelace"))
+        group.members.create(p -> p.setName("Grace Hooper"))
+      }
+    }
+
+    model {
+      tasks {
+        create("printGroup") {
+          it.doLast {
+            def members = $("group").members*.name.sort().join(", ")
+            def name = $("group").name
+            println "$name: $members"
+          }
+        }
+      }
+    }
+
+#### Test Coverage
+
+- ~~Something like the snippet above~~
+- ~~Can set/get a reference to a collection of managed types~~
+
+### ~~Managed model type has enum property~~
+
+#### Notes
+
+- Support for enums of any type
+- Enum values are opaque to the model space (i.e. we do not treat enum values as structured objects, e.g. cannot depend on a property of an enum value)
+- Enum values are not strictly immutable/threadsafe in Java but almost always are, as such we will consider them to be at this stage
+- It doesn't have any impact at this stage, but only the enum value is strictly part of the model (all properties of an enum value are supplied by the runtime)
+
+### ~~Managed model element has unmanaged property~~
+
+    interface MyModel {
+        @org.gradle.model.Unmanaged
+        SomeWeirdThing getThing()
+        void setThing(SomeWeirdThing thing)
+    }
+
+Properties of an unmanaged type must be explicitly annotated with `@Unmanaged`.
+The rationale for this is that the use of unmanaged properties will have a significant impact on tooling and functionality in general, as such it should be very clear to model consumers which properties are unmanaged.
+
+Unmanaged properties must be accompanied by a setter.
+
+#### Test Coverage
+
+- ~~Can attach an an unmanaged property~~
+- ~~Error when unmanaged property does not have annotation~~
+- ~~Subtype may declare setter for unmanaged type~~
+- ~~Unmanaged property of managed type can be targeted for mutation~~
+- ~~Unmanaged property of managed type can be used as input~~
+
+### ~~Model rule accepts property of managed object as input~~
+
+    @Managed
+    interface Person {
+      String getName(); void setName(String string)
+    }
+
+    class Rules {
+      @Model
+      void p1(Person person) {
+        person.setName("foo");
+      }
+
+      @Mutate void addPeople(CollectionBuilder<Task> tasks, String personName) {
+        tasks.create("injectedByType", t -> t.doLast(() -> assert personName.equals("foo"))
+      }
+    }
+
+    model {
+      tasks {
+        create("injectedByName") {
+          it.doLast {
+            assert $("p1.name") == "foo"
+          }
+        }
+      }
+    }
+
+### Test Coverage
+
+- ~~Can inject leaf type property (e.g. String, Number)~~
+- ~~Can inject node type property (i.e. another managed type with properties)~~
+- ~~Can inject property of property of managed type (i.e. given type `A` has property of managed type `B`, can inject properties of `B`)~~
+- ~~Can inject by “path”~~
+
+### ~~Model rule mutates property of managed object~~
+
+    @Managed
+    interface Person {
+      String getName(); void setName(String string)
+      Person getMother();
+      Person getFather();
+    }
+
+    class Rules {
+      @Model
+      void p1(Person person) {
+        person.setName("foo");
+      }
+
+      @Mutate void setFather(@Path("p1.father") Person father) {
+        father.setName("father")
+      }
+    }
+
+    model {
+      p1.mother { name = "mother" }
+      tasks {
+        create("test") {
+          it.doLast {
+            def p1 = $("p1")
+            assert p1.mother.name == "mother"
+            assert p1.father.name == "father"
+          }
+        }
+      }
+    }
+
+#### Test Coverage
+
+(above)
+
+### User sees useful type name in stack trace for managed model type and while debugging (i.e. not JDK proxy class names)
+
+Use class generation tool that allows specifying the name of a generated class, e.g. cglib or asm.
+
+#### Test coverage
+
+- ~~When a runtime error is thrown from implementation of a managed element setter/getter the stack trace contains reference to the name of the managed type.~~
+
+### “read” methods of ModelSet throw exceptions when set is mutable
+
+It should not be possible to call any of these methods until the set is realised.
+
+### Managed type is implemented as abstract class
+
+- Types must obey all the same rules as interface based impls
+- No constructors are allowed (as best we can detect)
+- Can not declare any instance scoped fields
+- Subclass should be generated as soon as type is encountered to ensure it can be done
+- Should use same class generation techniques as existing decoration (but no necessarily share impl)
+- Instance should be created as soon as type is encountered to ensure it can be done
+
+#### Test Coverage
+
+- ~~Class based managed type can be used everywhere interface based type can~~
+- ~~Subclass impl is generated once for each type and reused~~
+- ~~Subclass cache does not prevent class from being garbage collected~~
+- ~~Class can implement interfaces (with methods conforming to managed type rules)~~
+- ~~Class can extend other classes (all classes up to `Object` must conform to the same rules)~~
+- ~~Constructor can not call any setter methods (at least a runtime error)~~
+- ~~Class that cannot be instantiated (e.g. default constructor throws)~~
+- ~~Class and its ancestors cannot have protected or private abstract and non-abstract methods~~
+
+#### Open issues
+
+- Abstract class should be able to provide a custom `toString()` implementation, should only be able to use inherent properties of the object.
+
+### Managed type implemented as abstract class can have generative getters
+
+    @Managed
+    abstract class Person {
+        abstract String getFirstName()
+        abstract void setFirstName(String firstName)
+        abstract String getLastName()
+        abstract void setLastName(String lastName)
+
+        String getName() {
+            return getFirstName() + " " + getLastName()
+        }
+    }
+
+- Only “getter” methods are allowed to be non `abstract`
+
+#### Test Coverage
+
+- ~~Runtime error if provided getter (i.e. non abstract one) calls a setter method~~
+
+### Java 8 interface default methods can be used to implement generative getters
+
+    @Managed
+    interface Person {
+        String getFirstName();
+        void setFirstName(String firstName);
+        String getLastName();
+        void setLastName(String lastName);
+
+        default String getName() {
+            return getFirstName() + " " + getLastName();
+        }
+    }
+
+    @RuleSource
+    class RulePlugin {
+        @Model
+        void createPerson(Person person) {
+            person.setFirstName("Alan");
+            person.setLastName("Turing");
+        }
+
+        @Mutate
+        void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+            tasks.create("echo", task -> {
+                task.doLast(unused -> {
+                    System.out.println(String.format("name: %s", person.getName()));
+                });
+            });
+        }
+    }
+
+- Same semantics as non abstract methods on class based types
+
+#### Test Coverage
+
+- ~~like snippet above~~
+
+### User receives runtime error trying to mutate managed object outside of mutation
+
+    @Managed
+    interface Person {
+      Person getPartner();
+      String getName();
+      void setName(String string)
+    }
+
+    class Holder {
+        static Person person
+    }
+
+    class Rules {
+      @Model
+      void p1(Person person) {
+        person.setName("foo");
+        Holder.person = person
+      }
+
+      @Mutate void setFather(CollectionBuilder<Task> tasks, Person person) {
+        Holder.person.setName("foo") // ← runtime error
+        Holder.person.partner.setName("foo") // ← runtime error
+        person.setName("foo") // ← runtime error
+        person.partner.setName("foo") // ← runtime error
+      }
+    }
+
+Runtime error received when trying to mutate an immutable object should include a reference to the rule that created the immutable object (i.e. not the model element, but that actual object).
+
+### User receives runtime error trying to mutate managed set when used as input and outside of mutation method
+
+    @Managed
+    interface Platform {
+      ModelSet<OperatingSystem> getOperatingSystems()
+    }
+
+    @Managed
+    interface OperatingSystem {
+        String getName()
+        void setName(String)
+    }
+
+    class Holder {
+      static Platform platform
+    }
+
+    class Rules {
+      @Model
+      void p(Platform platform) {
+        Holder.platform = platform
+        platform.operatingSystems.create { name = "foo" }
+      }
+
+      @Mutate void setFather(CollectionBuilder<Task> tasks, Platform platform) {
+        Holder.platform.create(…) // ← runtime error
+        platform.create(…) // ← runtime error
+      }
+    }
+
+Runtime error received when trying to mutate an immutable object should include a reference to the rule that created the immutable object (i.e. not the model element, but that actual object).
+
+### Support properties of type `File`
+
+    @Managed
+    interface Thing {
+      File getFile();
+      void setFile(File file)
+    }
+
+- Similar to `String` etc., getter must be accompanied by setter
+- Similar to `String` etc. `setFile()` cannot be called when the object is read only
+
+### Support managed properties with primitive type
+
+- Add support for all primitive types.
+- Add support for missing boxed types (Byte, Short, Float).
+- Update user guide and Javadocs
+
+##### Test cases
+
+- Can define RW properties of any scalar type
+- Cannot have read only properties of scalar types.
+- Fail type validation when getter uses primitive type and setter uses boxed type (and vice versa).
+- Cannot mutate properties of scalar types when view is immutable (eg used as input for rule, used as subject for validation rule).
+- Model report renders primitive values
+
+##### Implementation
+
+- Update `PrimitiveStrategy` to support an extraction result for primitive types
+- Add support for missing boxed types to `ManagedProxyClassGenerator`
+- Add support for primitive types to `ManagedProxyClassGenerator`. Handle case where state returns null by setting a default value.
+- Make sure `org.gradle.api.reporting.model.internal.ModelNodeRenderer.maybePrintValue` handles primitive types in a human readable form
+
+### Support `is` style getters for managed properties of type boolean
+
+- Should follow the JavaBeans specification: only type `boolean` should allow `is` getter style: `Boolean` shouldn't be supported.
+- Update user guide and Javadoc
+
+#### Test cases
+- Support `is` style accessor for properties with type `boolean`
+- Support type with both `is` and `get` accessors for property with type `boolean`
+- Prohibit `is` style accessors for properties of any type other than `boolean`(including Boolean)
+- Delegated boolean property declared with `is` getter in unmanaged super-type is supported
+
+### Support for managed properties with collection of scalar types
+
+Add support managed properties of `List<T>` and `Set<T>` where `T` is any non primitive scalar type (as defined above).
+- Any returned collection instance will be mutable when view is mutable (eg used as subject for rule).
+- Any returned collection instance will be immutable when view is immutable (eg used as input for rule, used as subject for validation rule).
+- Properties of type `Set` will retain insertion order
+
+Support read-only collection properties defined as:
+
+    @Managed
+    interface ReadOnlyProperty {
+        List<String> getItems()
+    }
+
+- Default value is an empty collection
+- Multiple calls to a getter may not return the same instance of a collection
+
+Support read-write collection properties defined using both a getter and a setter:
+
+    @Managed
+    interface ReadWriteProperty {
+        List<String> getItems()
+        void setItems(List<String> items)
+    }
+
+- Defaults to a null value
+- Can set to a null value
+- Multiple calls to a getter may not return the same instance of a collection
+- Collection returned by getter may not be the same instance as provided to the setter
+- When a setter is called, a new managed collection is created, ensuring immutability. Documentation should mention a similarity with the defensive copy pattern.
+- The collection property will only be writable when the view is mutable
+
+#### Implementation notes
+- Update user guide and Javadocs, add sample
+- Make sure `org.gradle.api.reporting.model.internal.ModelNodeRenderer.maybePrintValue` handles collection types in a human readable form (aka, not `toString()`)
+
+#### Test cases
+
+- calling the getter of a read-only property for a created node must return an empty collection
+- calling the getter of a read-write property for a created node must return `null`
+- cannot assign a collection to a read-only property
+- can assign `null` to a read-write property
+- Model report renders collection values
+    * Format should be similar to the one of `Arrays.toString`
+- For a managed type that defines a `Set<String>` read-only property
+```
+    foo.getItems().addAll(['b', 'c'])
+    foo.getItems().add('d')
+    foo.getItems().add('a')
+    foo.getItems() == ['b','c','d','a'] as Set
+```
+- For a managed type `foo` that defines a `Set<String>` read-write property
+```
+    SortedSet<String> sortedSet = Sets.newTreeSet('c', 'b')
+    foo.setItems(sortedSet)
+    sortedSet.add('d')
+    foo.getItems().add('a')
+    foo.getItems() == ['b','c','a'] as Set
+```
+- Copy on write semantics:
+```
+    List<String> list = ['a', 'b']
+    foo.setItems(list)
+    list.add 'c'
+    foo.getItems() == ['a', 'b']
+```
+- Useful error message presented when validating schema:
+    * `T` is not a scalar type
+    * `T` is not the same for getter and setter
+    * Property type is `Collection<T>`, `ArrayList<T>`, `HashSet<T>`
+    * Suggest to use interface type `List<T>` or `Set<T>` if a concrete implementation is used in the interface declaration

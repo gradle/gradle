@@ -16,7 +16,10 @@
 
 package org.gradle.internal.jvm;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
+import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.DirectInstantiator;
 
@@ -45,12 +48,20 @@ public class JdkTools {
     }
 
     JdkTools(JavaInfo javaInfo) {
-        File toolsJar = javaInfo.getToolsJar();
-        if (toolsJar == null) {
-            throw new IllegalStateException("Could not find tools.jar");
+        DefaultClassLoaderFactory defaultClassLoaderFactory = new DefaultClassLoaderFactory();
+        JavaVersion javaVersion = Jvm.current().getJavaVersion();
+        FilteringClassLoader filteringClassLoader = defaultClassLoaderFactory.createSystemFilteringClassLoader();
+        if (!javaVersion.isJava9Compatible()) {
+            File toolsJar = javaInfo.getToolsJar();
+            if (toolsJar == null) {
+                throw new IllegalStateException("Could not find tools.jar");
+            }
+            DefaultClassPath defaultClassPath = new DefaultClassPath(toolsJar);
+            isolatedToolsLoader = new MutableURLClassLoader(filteringClassLoader, defaultClassPath.getAsURLs());
+        } else {
+            filteringClassLoader.allowPackage("com.sun.tools");
+            isolatedToolsLoader = filteringClassLoader;
         }
-
-        isolatedToolsLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(toolsJar));
     }
 
     public JavaCompiler getSystemJavaCompiler() {
@@ -58,10 +69,8 @@ public class JdkTools {
         try {
             compilerImplClass = isolatedToolsLoader.loadClass(DEFAULT_COMPILER_IMPL_NAME);
         } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Could not load class '" + DEFAULT_COMPILER_IMPL_NAME + "' from " + Jvm.current().getToolsJar());
+            throw new IllegalStateException("Could not load class '" + DEFAULT_COMPILER_IMPL_NAME);
         }
-
         return DirectInstantiator.instantiate(compilerImplClass.asSubclass(JavaCompiler.class));
     }
-
 }

@@ -22,10 +22,12 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @RequiresInstalledToolChain
+@LeaksFileHandles
 class MultipleNativeToolChainIntegrationTest extends AbstractIntegrationSpec {
     def helloWorld = new CppCompilerDetectingTestApp()
 
@@ -73,7 +75,7 @@ model {
 """
 
         then:
-        succeeds 'i386MainExecutable', 'sparcMainExecutable'
+        succeeds 'mainI386Executable', 'mainSparcExecutable'
 
         and:
         def i386Exe = x86ToolChain.executable(file("build/binaries/mainExecutable/i386/main"))

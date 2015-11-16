@@ -29,18 +29,20 @@ import org.gradle.api.internal.initialization.BasicDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.authentication.Authentication;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.plugin.use.resolve.service.internal.*;
+
+import java.util.Collections;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -49,6 +51,9 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
     public static final String CACHE_NAME = "plugin-resolution";
 
     public void registerGlobalServices(ServiceRegistration registration) {
+    }
+
+    public void registerBuildSessionServices(ServiceRegistration registration) {
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
@@ -63,17 +68,17 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
 
     private static class BuildScopeServices {
         PluginResolutionServiceClient createPluginResolutionServiceClient(CacheRepository cacheRepository, StartParameter startParameter) {
-            HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(new PasswordCredentials()));
+            HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(Collections.<Authentication>emptySet()));
             HttpResourceAccessor accessor = new HttpResourceAccessor(http);
             PluginResolutionServiceClient httpClient = startParameter.isOffline()
-                    ? new OfflinePluginResolutionServiceClient()
-                    : new HttpPluginResolutionServiceClient(accessor);
+                ? new OfflinePluginResolutionServiceClient()
+                : new HttpPluginResolutionServiceClient(accessor);
 
             PersistentCache cache = cacheRepository
-                    .cache(CACHE_NAME)
-                    .withDisplayName("Plugin Resolution Cache")
-                    .withLockOptions(mode(FileLockManager.LockMode.None))
-                    .open();
+                .cache(CACHE_NAME)
+                .withDisplayName("Plugin Resolution Cache")
+                .withLockOptions(mode(FileLockManager.LockMode.None))
+                .open();
 
             PluginResolutionServiceClient persistentCachingClient = new PersistentCachingPluginResolutionServiceClient(httpClient, cache);
             PluginResolutionServiceClient inMemoryCachingClient = new InMemoryCachingPluginResolutionServiceClient(persistentCachingClient);
@@ -97,12 +102,17 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             }, pluginInspector);
         }
 
-        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver) {
-            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver);
+        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,
+                                                          InjectedClasspathPluginResolver injectedClasspathPluginResolver) {
+            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, injectedClasspathPluginResolver);
         }
 
         PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory) {
             return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory.create());
+        }
+
+        InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, InjectedPluginClasspath injectedPluginClasspath) {
+            return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClasspath.getClasspath());
         }
     }
 }

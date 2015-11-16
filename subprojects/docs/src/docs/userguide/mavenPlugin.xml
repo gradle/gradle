@@ -77,27 +77,13 @@
             </thead>
             <tr>
                 <td>
-                    <literal>pomDirName</literal>
+                    <literal>mavenPomDir</literal>
                 </td>
                 <td>
-                    <classname>String</classname>
+                    <classname>File</classname>
                 </td>
                 <td>
-                    <literal>poms</literal>
-                </td>
-                <td>
-                    The path of the directory to write the generated POMs, relative to the build directory.
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>pomDir</literal>
-                </td>
-                <td>
-                    <classname>File (read-only)</classname>
-                </td>
-                <td>
-                    <literal><replaceable>buildDir</replaceable>/<replaceable>pomDirName</replaceable></literal>
+                    <literal><replaceable>${project.buildDir}</replaceable>/poms</literal>
                 </td>
                 <td>
                     The directory where the generated POMs are written to.

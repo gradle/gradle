@@ -20,6 +20,27 @@ import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class ModelTypeTest extends Specification {
+    class Nested {}
+    interface NestedInterface {}
+
+    def "represents classes"() {
+        expect:
+        def type = ModelType.of(String)
+        type.toString() == String.name
+        type.displayName == String.simpleName
+
+        def nested = ModelType.of(Nested)
+        nested.toString() == Nested.name
+        nested.displayName == "ModelTypeTest.Nested"
+    }
+
+    def "represents nested interfaces"() {
+        def nestedInterface = ModelType.of(NestedInterface)
+
+        expect:
+        nestedInterface.toString() == NestedInterface.name
+        nestedInterface.displayName == "ModelTypeTest.NestedInterface"
+    }
 
     def "represents type variables"() {
         when:
@@ -30,6 +51,10 @@ class ModelTypeTest extends Specification {
         type.typeVariables[1] == new ModelType<Map<Integer, Float>>() {}
         type.typeVariables[1].typeVariables[0] == ModelType.of(Integer)
         type.typeVariables[1].typeVariables[1] == ModelType.of(Float)
+
+        and:
+        type.toString() == "java.util.Map<java.lang.String, java.util.Map<java.lang.Integer, java.lang.Float>>"
+        type.displayName == "Map<String, Map<Integer, Float>>"
     }
 
     def "generic type compatibility"() {
@@ -66,14 +91,18 @@ class ModelTypeTest extends Specification {
 
     def m3(List<?> anything) {}
 
+    def m4(List<? extends Object> objects) {}
+
     def "wildcards"() {
         def extendsString = ModelType.paramType(getClass().getDeclaredMethod("m1", List.class), 0).typeVariables[0]
         def superString = ModelType.paramType(getClass().getDeclaredMethod("m2", List.class), 0).typeVariables[0]
         def anything = ModelType.paramType(getClass().getDeclaredMethod("m3", List.class), 0).typeVariables[0]
+        def objects = ModelType.paramType(getClass().getDeclaredMethod("m4", List.class), 0).typeVariables[0]
 
         expect:
         extendsString.wildcard
         superString.wildcard
+        objects.wildcard
         anything.wildcard
 
         extendsString.upperBound == ModelType.of(String)
@@ -82,23 +111,57 @@ class ModelTypeTest extends Specification {
         superString.upperBound == null
         superString.lowerBound == ModelType.of(String)
 
+        objects.upperBound == null
+        objects.lowerBound == null
+
         anything.upperBound == null
         anything.lowerBound == null
+
+        extendsString.toString() == "? extends java.lang.String"
+        superString.toString() == "? super java.lang.String"
+        objects.toString() == "?"
+        anything.toString() == "?"
+
+        extendsString.displayName == "? extends String"
+        superString.displayName == "? super String"
+        objects.displayName == "?"
+        anything.displayName == "?"
     }
 
-    def "isSubclass"() {
+    def "asSubtype"() {
+        expect:
+        ModelType.of(String).asSubtype(ModelType.of(String)) == ModelType.of(String)
+        ModelType.of(String).asSubtype(ModelType.of(CharSequence)) == ModelType.of(String)
+    }
+
+    def "asSubtype failures"() {
         def extendsString = ModelType.paramType(getClass().getDeclaredMethod("m1", List.class), 0).typeVariables[0]
         def superString = ModelType.paramType(getClass().getDeclaredMethod("m2", List.class), 0).typeVariables[0]
         def anything = ModelType.paramType(getClass().getDeclaredMethod("m3", List.class), 0).typeVariables[0]
 
-        expect:
-        !ModelType.of(String).asSubclass(ModelType.of(String))
-        ModelType.of(CharSequence).asSubclass(ModelType.of(String))
-        !ModelType.of(String).asSubclass(ModelType.of(CharSequence))
-        !anything.asSubclass(superString)
-        !superString.asSubclass(anything)
-        !superString.asSubclass(extendsString)
-        !extendsString.asSubclass(superString)
+        when: ModelType.of(CharSequence).asSubtype(ModelType.of(String))
+        then: thrown ClassCastException
+
+        when: anything.asSubtype(superString)
+        then: thrown IllegalStateException
+
+        when: superString.asSubtype(anything)
+        then: thrown IllegalStateException
+
+        when: superString.asSubtype(extendsString)
+        then: thrown IllegalStateException
+
+        when: extendsString.asSubtype(superString)
+        then: thrown IllegalStateException
+
+        when: ModelType.of(String).asSubtype(anything)
+        then: thrown IllegalArgumentException
+
+        when: ModelType.of(String).asSubtype(extendsString)
+        then: thrown IllegalArgumentException
+
+        when: ModelType.of(String).asSubtype(superString)
+        then: thrown IllegalArgumentException
     }
 
     def "has wildcards"() {

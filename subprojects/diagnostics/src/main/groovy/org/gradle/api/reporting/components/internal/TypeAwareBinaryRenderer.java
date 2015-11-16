@@ -21,10 +21,16 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TypeAwareBinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
+    static final Comparator<BinarySpec> SORT_ORDER = new Comparator<BinarySpec>() {
+        public int compare(BinarySpec binary1, BinarySpec binary2) {
+            return binary1.getName().compareTo(binary2.getName());
+        }
+    };
     private final Map<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>> renderers = new HashMap<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>>();
 
     public void register(AbstractBinaryRenderer<?> renderer) {

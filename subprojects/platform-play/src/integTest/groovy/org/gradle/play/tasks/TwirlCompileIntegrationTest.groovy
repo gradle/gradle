@@ -18,10 +18,11 @@ package org.gradle.play.tasks
 
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.TextUtil
+
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORES
 
 class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
-    def destinationDirPath = "build/playBinary/src/twirlCompileTwirlTemplatesPlayBinary/views/html"
+    def destinationDirPath = "build/playBinary/src/compilePlayBinaryTwirlTemplates/views/html"
     def destinationDir = file(destinationDirPath)
 
     def setup() {
@@ -31,13 +32,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
                 id 'play-application'
             }
 
-            repositories{
-                jcenter()
-                maven{
-                    name = "typesafe-maven-release"
-                    url = "https://repo.typesafe.com/typesafe/maven-releases"
-                }
-            }
+            ${PLAY_REPOSITORES}
 
             model {
                 components {
@@ -53,21 +48,21 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         given:
         withTwirlTemplate()
         when:
-        succeeds("twirlCompileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
         then:
         destinationDir.assertHasDescendants("index.template.scala")
 
         when:
-        succeeds("twirlCompileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
         then:
-        skipped(":twirlCompileTwirlTemplatesPlayBinary");
+        skipped(":compilePlayBinaryTwirlTemplates");
     }
 
     def "runs compiler incrementally"() {
         when:
         withTwirlTemplate("input1.scala.html")
         then:
-        succeeds("twirlCompileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
         and:
         destinationDir.assertHasDescendants("input1.template.scala")
         def input1FirstCompileSnapshot = file("${destinationDirPath}/input1.template.scala").snapshot();
@@ -75,7 +70,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         when:
         withTwirlTemplate("input2.scala.html")
         and:
-        succeeds("twirlCompileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
         then:
         destinationDir.assertHasDescendants("input1.template.scala", "input2.template.scala")
         and:
@@ -84,7 +79,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         when:
         file("app/views/input2.scala.html").delete()
         then:
-        succeeds("twirlCompileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
         and:
         destinationDir.assertHasDescendants("input1.template.scala")
     }
@@ -93,7 +88,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         given:
         withTwirlTemplate("input1.scala.html")
         withTwirlTemplate("input2.scala.html")
-        succeeds("twirlCompileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
 
         and:
         destinationDir.assertHasDescendants("input1.template.scala", "input2.template.scala")
@@ -103,7 +98,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         file("app/views/input2.scala.html").delete()
 
         then:
-        succeeds("twirlCompileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
         and:
         destinationDir.assertHasDescendants("input1.template.scala")
         file("${destinationDirPath}/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot);
@@ -121,20 +116,19 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
 
         then:
         executedAndNotSkipped(
-                ":twirlCompileTwirlTemplatesPlayBinary",
-                ":twirlCompileExtraTwirlPlayBinary",
-                ":twirlCompileOtherTwirlPlayBinary"
+                ":compilePlayBinaryTwirlTemplates",
+                ":compilePlayBinaryExtraTwirl",
+                ":compilePlayBinaryOtherTwirl"
         )
 
         and:
         destinationDir.assertHasDescendants("index.template.scala")
-        file("build/playBinary/src/twirlCompileOtherTwirlPlayBinary/templates/html").assertHasDescendants("other.template.scala")
-        file("build/playBinary/src/twirlCompileExtraTwirlPlayBinary/html").assertHasDescendants("extra.template.scala")
+        file("build/playBinary/src/compilePlayBinaryOtherTwirl/templates/html").assertHasDescendants("other.template.scala")
+        file("build/playBinary/src/compilePlayBinaryExtraTwirl/html").assertHasDescendants("extra.template.scala")
 
         and:
-        jar("build/playBinary/lib/twirl-play-app.jar").assertContainsFile("views/html/index.class")
-        jar("build/playBinary/lib/twirl-play-app.jar").assertContainsFile("templates/html/other.class")
-        jar("build/playBinary/lib/twirl-play-app.jar").assertContainsFile("html/extra.class")
+        jar("build/playBinary/lib/twirl-play-app.jar")
+            .containsDescendants("views/html/index.class", "templates/html/other.class", "html/extra.class")
     }
 
     def "extra sources appear in the component report"() {
@@ -144,32 +138,32 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         succeeds "components"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
+        output.contains """
 Play Application 'play'
 -----------------------
 
 Source sets
-    Twirl template source 'play:extraTwirl'
-        extraSources
     Java source 'play:java'
-        app
+        srcDir: app
         includes: **/*.java
-    Twirl template source 'play:otherTwirl'
-        otherSources
     JVM resources 'play:resources'
-        conf
-    Routes source 'play:routesSources'
-        conf
+        srcDir: conf
+    Routes source 'play:routes'
+        srcDir: conf
         includes: routes, *.routes
     Scala source 'play:scala'
-        app
+        srcDir: app
         includes: **/*.scala
+    Twirl template source 'play:extraTwirl'
+        srcDir: extraSources
+    Twirl template source 'play:otherTwirl'
+        srcDir: otherSources
     Twirl template source 'play:twirlTemplates'
-        app
+        srcDir: app
         includes: **/*.html
 
 Binaries
-"""))
+"""
 
     }
 

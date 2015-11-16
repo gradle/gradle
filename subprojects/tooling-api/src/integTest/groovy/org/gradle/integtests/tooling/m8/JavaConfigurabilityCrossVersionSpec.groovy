@@ -16,9 +16,7 @@
 
 package org.gradle.integtests.tooling.m8
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import spock.lang.Issue
@@ -35,44 +33,31 @@ class JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
     def "configures the java settings"() {
         when:
         BuildEnvironment env = withConnection {
-            def model = it.model(BuildEnvironment)
+            def model = it.model(BuildEnvironment.class)
             model
-                    .setJvmArguments("-Xmx333m", "-Xms13m")
-                    .get()
+                .setJvmArguments("-Xmx333m", "-Xms13m")
+                .get()
         }
 
         then:
+        env.java.javaHome
         env.java.jvmArguments.contains "-Xms13m"
         env.java.jvmArguments.contains "-Xmx333m"
-    }
-
-    @TargetGradleVersion('>=2.5')
-    @ToolingApiVersion('>=2.5')
-    def "managed JVM arguments are filtered out of requested JVM arguments"() {
-        when:
-        BuildEnvironment env = withConnection {
-            def model = it.model(BuildEnvironment)
-            model
-                    .setJvmArguments("-Xmx333m", "-Xms13m")
-                    .get()
-        }
-
-        then:
-        env.java.requestedJvmArguments.isEmpty()
     }
 
     def "uses sensible java defaults if nulls configured"() {
         when:
         BuildEnvironment env = withConnection {
-            def model = it.model(BuildEnvironment)
+            def model = it.model(BuildEnvironment.class)
             model
-                    .setJvmArguments(null)
-                    .get()
+                .setJvmArguments(null)
+                .get()
         }
 
         then:
         env.java.javaHome
-        !env.java.jvmArguments.empty
+        env.java.jvmArguments.contains("-Xmx1024m")
+        env.java.jvmArguments.contains("-XX:+HeapDumpOnOutOfMemoryError")
     }
 
     def "tooling api provided jvm args take precedence over gradle.properties"() {
@@ -85,8 +70,8 @@ assert System.getProperty('some-prop') == 'BBB'
         when:
         def model = withConnection {
             it.model(GradleProject.class)
-                    .setJvmArguments('-Dsome-prop=BBB', '-Xmx23m')
-                    .get()
+                .setJvmArguments('-Dsome-prop=BBB', '-Xmx23m')
+                .get()
         }
 
         then:
@@ -102,8 +87,8 @@ assert System.getProperty('some-prop') == 'BBB'
         BuildEnvironment env
         GradleProject project
         withConnection {
-            env = it.model(BuildEnvironment).setJvmArguments('-Xmx200m', '-Xms100m').get()
-            project = it.model(GradleProject).setJvmArguments('-Xmx200m', '-Xms100m').get()
+            env = it.model(BuildEnvironment.class).setJvmArguments('-Xmx200m', '-Xms100m').get()
+            project = it.model(GradleProject.class).setJvmArguments('-Xmx200m', '-Xms100m').get()
         }
 
         then:

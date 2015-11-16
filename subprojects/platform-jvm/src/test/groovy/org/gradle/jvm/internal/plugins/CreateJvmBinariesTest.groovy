@@ -15,70 +15,53 @@
  */
 
 package org.gradle.jvm.internal.plugins
+
 import org.gradle.api.Action
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.jvm.JarBinarySpec
-import org.gradle.jvm.JvmComponentExtension
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.jvm.plugins.JvmComponentPlugin
-import org.gradle.jvm.toolchain.JavaToolChainRegistry
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.ModelMap
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.ComponentSpecIdentifier
-import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.platform.base.internal.PlatformResolvers
-import org.gradle.platform.base.internal.toolchain.ToolResolver
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
 class CreateJvmBinariesTest extends Specification {
-    def buildDir = new File("buildDir")
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
     def toolChain = Mock(JavaToolChainInternal)
-    def rule = new JvmComponentPlugin()
+    def rule = new JvmComponentPlugin.Rules()
     def platforms = Mock(PlatformResolvers)
-    CollectionBuilder<JarBinarySpec> binaries = Mock(CollectionBuilder)
+    ModelMap<JarBinarySpec> binaries = Mock(ModelMap)
     def instantiator = Mock(Instantiator)
-    def mainSourceSet = new DefaultFunctionalSourceSet("ss", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet))
-    def toolChainRegistry = Mock(JavaToolChainRegistry)
-    def toolResolver = Mock(ToolResolver)
-
-    def serviceRegistry = ServiceRegistryBuilder.builder().provider(new Object() {
-        Instantiator createInstantiator() {
-            instantiator
-        }
-        ToolResolver createToolResolver() {
-            toolResolver
-        }
-    }).build()
 
     def "adds a binary for each jvm library"() {
-        def library = BaseComponentSpec.create(DefaultJvmLibrarySpec, componentId("jvmLibOne", ":project-path"), mainSourceSet, DirectInstantiator.INSTANCE)
+        def library = BaseComponentFixtures.create(DefaultJvmLibrarySpec, new ModelRegistryHelper(), componentId("jvmLibOne", ":project-path"), DirectInstantiator.INSTANCE, new TestFile("."))
         def namingScheme = Mock(BinaryNamingScheme)
-        def jvmExtension = Mock(JvmComponentExtension)
-        def platform = new DefaultJavaPlatform("test")
+        def platform = DefaultJavaPlatform.current()
         def source1 = sourceSet("ss1")
         def source2 = sourceSet("ss2")
 
         when:
-        library.sources.addAll([source1, source2])
-        rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, jvmExtension, buildDir, serviceRegistry, toolChainRegistry)
+        library.sources.put("ss1", source1)
+        library.sources.put("ss2", source2)
+        rule.createBinaries(binaries, namingSchemeBuilder, platforms, library)
 
         then:
         1 * platforms.resolve(JavaPlatform, _) >> platform
-        1 * toolChainRegistry.getForPlatform(platform) >> toolChain
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        _ * namingScheme.lifecycleTaskName >> "jvmLibJar"
+        _ * namingScheme.binaryName >> "jvmLibJar"
         1 * binaries.create("jvmLibJar", _ as Action)
         0 * _
     }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
@@ -73,14 +72,13 @@ public class ResolveIvyFactory {
         this.versionComparator = versionComparator;
     }
 
-    public RepositoryChain create(ConfigurationInternal configuration,
+    public ComponentResolvers create(ResolutionStrategyInternal resolutionStrategy,
                                   Collection<? extends ResolutionAwareRepository> repositories,
                                   ComponentMetadataProcessor metadataProcessor) {
         if (repositories.isEmpty()) {
             return new NoRepositoriesResolver();
         }
 
-        ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
         ResolutionRules resolutionRules = resolutionStrategy.getResolutionRules();
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
 
@@ -93,12 +91,9 @@ public class ResolveIvyFactory {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
 
             if (baseRepository instanceof ExternalResourceResolver) {
-                ((ExternalResourceResolver) baseRepository).setRepositoryChain(parentModuleResolver);
+                ((ExternalResourceResolver) baseRepository).setComponentResolvers(parentModuleResolver);
             }
 
-            // TODO:DAZ In theory we could update this so that _all_ repositories are wrapped in a cache:
-            //     - would need to add local/remote pattern to artifact download
-            //     - This might help later when we integrate in-memory caching with file-backed caching.
             ModuleComponentRepository moduleComponentRepository = baseRepository;
             if (baseRepository.isLocal()) {
                 moduleComponentRepository = new LocalModuleComponentRepository(baseRepository, metadataProcessor);
@@ -125,7 +120,7 @@ public class ResolveIvyFactory {
     /**
      * Provides access to the top-level resolver chain for looking up parent modules when parsing module descriptor files.
      */
-    private static class ParentModuleLookupResolver implements RepositoryChain, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+    private static class ParentModuleLookupResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
         private final CacheLockingManager cacheLockingManager;
         private final UserResolverChain delegate;
 

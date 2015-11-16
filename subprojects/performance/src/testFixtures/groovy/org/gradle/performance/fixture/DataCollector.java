@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.List;
 
 public interface DataCollector {
-    List<String> getAdditionalGradleOpts(File workingDir);
+    List<String> getAdditionalJvmOpts(File workingDir);
     List<String> getAdditionalArgs(File workingDir);
-    void collect(File testProjectDir, MeasuredOperation operation);
+    void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation);
 }

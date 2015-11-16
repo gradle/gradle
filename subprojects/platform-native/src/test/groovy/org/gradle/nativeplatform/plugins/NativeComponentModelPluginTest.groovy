@@ -15,21 +15,22 @@
  */
 
 package org.gradle.nativeplatform.plugins
-
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.model.internal.core.DefaultCollectionBuilder
+import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
+import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.ComponentSpecContainer
 import org.gradle.platform.base.PlatformContainer
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -50,12 +51,36 @@ class NativeComponentModelPluginTest extends Specification {
         project.modelRegistry.realize(ModelPath.path(path), type)
     }
 
+    ModelMap<BinarySpec> getBinaries() {
+        realizeModelElement("binaries", ModelTypes.modelMap(BinarySpec))
+    }
+
+    NativeToolChainRegistry getToolChains() {
+        realizeModelElement("toolChains", NativeToolChainRegistry)
+    }
+
+    PlatformContainer getPlatforms() {
+        realizeModelElement("platforms", PlatformContainer)
+    }
+
+    BuildTypeContainer getBuildTypes() {
+        realizeModelElement("buildTypes", BuildTypeContainer)
+    }
+
+    FlavorContainer getFlavors() {
+        realizeModelElement("flavors", FlavorContainer)
+    }
+
+    ComponentSpecContainer getComponents() {
+        realizeModelElement("components", ComponentSpecContainer)
+    }
+
     def "adds model extensions"() {
         expect:
-        realizeModelElement("toolChains", NativeToolChainRegistry) != null
-        realizeModelElement("platforms", PlatformContainer) != null
-        realizeModelElement("buildTypes", BuildTypeContainer) != null
-        realizeModelElement("flavors", FlavorContainer) != null
+        toolChains != null
+        platforms != null
+        buildTypes != null
+        flavors != null
     }
 
     def "does not provide a default tool chain"() {
@@ -71,11 +96,10 @@ class NativeComponentModelPluginTest extends Specification {
                 lib(NativeLibrarySpec)
             }
         }
-        realize()
 
         then:
-        one(project.binaries.withType(NativeExecutableBinarySpec)).flavor.name == DefaultFlavor.DEFAULT
-        one(project.binaries.withType(SharedLibraryBinarySpec)).flavor.name == DefaultFlavor.DEFAULT
+        one(binaries.withType(NativeExecutableBinarySpec)).flavor.name == DefaultFlavor.DEFAULT
+        one(binaries.withType(SharedLibraryBinarySpec)).flavor.name == DefaultFlavor.DEFAULT
     }
 
     def "behaves correctly for defaults when domain is explicitly configured"() {
@@ -86,14 +110,11 @@ class NativeComponentModelPluginTest extends Specification {
                 .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
                 .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
-        and:
-        realize()
-
         then:
-        one(realizeModelElement("toolChains", NativeToolChainRegistry)).name == 'tc'
-        realizeModelElement("platforms", PlatformContainer).size() == 1
-        one(realizeModelElement("buildTypes", BuildTypeContainer)).name == 'bt'
-        one(realizeModelElement("flavors", FlavorContainer)).name == 'flavor1'
+        one(toolChains).name == 'tc'
+        platforms.size() == 1
+        one(buildTypes).name == 'bt'
+        one(flavors).name == 'flavor1'
     }
 
     def "creates binaries for executable"() {
@@ -112,13 +133,12 @@ class NativeComponentModelPluginTest extends Specification {
                 }
             }
         }
-        realize()
 
         then:
-        NativeExecutableSpec executable = one(realizeModelElement("components", DefaultCollectionBuilder.typeOf(ComponentSpec))) as NativeExecutableSpec
-        NativeExecutableBinarySpec executableBinary = one(project.binaries) as NativeExecutableBinarySpec
+        NativeExecutableSpec executable = one(components.values()) as NativeExecutableSpec
+        NativeExecutableBinarySpec executableBinary = one(binaries) as NativeExecutableBinarySpec
         with(executableBinary) {
-            name == 'testExecutable'
+            name == 'executable'
             component == executable
             toolChain.name == "tc"
             targetPlatform.name == "platform"
@@ -127,7 +147,7 @@ class NativeComponentModelPluginTest extends Specification {
         }
 
         and:
-        executable.binaries == [executableBinary] as Set
+        executable.binaries.values() == [executableBinary]
     }
 
     def "creates binaries for library"() {
@@ -146,13 +166,12 @@ class NativeComponentModelPluginTest extends Specification {
                 }
             }
         }
-        realize()
 
         then:
-        NativeLibrarySpec library = one(realizeModelElement("components", DefaultCollectionBuilder.typeOf(ComponentSpec))) as NativeLibrarySpec
-        SharedLibraryBinarySpec sharedLibraryBinary = project.binaries.testSharedLibrary as SharedLibraryBinarySpec
+        NativeLibrarySpec library = one(components.values()) as NativeLibrarySpec
+        SharedLibraryBinarySpec sharedLibraryBinary = binaries.testSharedLibrary as SharedLibraryBinarySpec
         with(sharedLibraryBinary) {
-            name == 'testSharedLibrary'
+            name == 'sharedLibrary'
             component == library
 
             toolChain.name == "tc"
@@ -162,9 +181,9 @@ class NativeComponentModelPluginTest extends Specification {
         }
 
         and:
-        StaticLibraryBinarySpec staticLibraryBinary = project.binaries.testStaticLibrary as StaticLibraryBinarySpec
+        StaticLibraryBinarySpec staticLibraryBinary = binaries.testStaticLibrary as StaticLibraryBinarySpec
         with(staticLibraryBinary) {
-            name == 'testStaticLibrary'
+            name == 'staticLibrary'
             component == library
 
             toolChain.name == "tc"
@@ -174,8 +193,8 @@ class NativeComponentModelPluginTest extends Specification {
         }
 
         and:
-        library.binaries.contains(sharedLibraryBinary)
-        library.binaries.contains(staticLibraryBinary)
+        library.binaries.values().contains(sharedLibraryBinary)
+        library.binaries.values().contains(staticLibraryBinary)
     }
 
     def "creates lifecycle task for each binary"() {
@@ -187,29 +206,23 @@ class NativeComponentModelPluginTest extends Specification {
                 lib(NativeLibrarySpec)
             }
         }
-        realize()
 
         then:
-        NativeExecutableBinarySpec executableBinary = project.binaries.exeExecutable as NativeExecutableBinarySpec
+        NativeExecutableBinarySpec executableBinary = binaries.exeExecutable as NativeExecutableBinarySpec
         with(oneTask(executableBinary.buildDependencies)) {
-            name == executableBinary.name
+            name == "exeExecutable"
             group == LifecycleBasePlugin.BUILD_GROUP
         }
-        SharedLibraryBinarySpec sharedLibraryBinary = project.binaries.libSharedLibrary as SharedLibraryBinarySpec
+        SharedLibraryBinarySpec sharedLibraryBinary = binaries.libSharedLibrary as SharedLibraryBinarySpec
         with(oneTask(sharedLibraryBinary.buildDependencies)) {
-            name == sharedLibraryBinary.name
+            name == "libSharedLibrary"
             group == LifecycleBasePlugin.BUILD_GROUP
         }
-        StaticLibraryBinarySpec staticLibraryBinary = project.binaries.libStaticLibrary as StaticLibraryBinarySpec
+        StaticLibraryBinarySpec staticLibraryBinary = binaries.libStaticLibrary as StaticLibraryBinarySpec
         with(oneTask(staticLibraryBinary.buildDependencies)) {
-            name == staticLibraryBinary.name
+            name == "libStaticLibrary"
             group == LifecycleBasePlugin.BUILD_GROUP
         }
-    }
-
-    private void realize() {
-        project.tasks.realize();
-        project.bindAllModelRules()
     }
 
     static <T> T one(Iterable<T> iterable) {

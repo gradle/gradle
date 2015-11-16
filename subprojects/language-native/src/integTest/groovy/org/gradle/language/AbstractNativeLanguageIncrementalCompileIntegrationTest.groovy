@@ -15,11 +15,12 @@
  */
 
 package org.gradle.language
-
 import groovy.io.FileType
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
 import spock.lang.Unroll
@@ -129,6 +130,8 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
 
     def "source is always recompiled if it includes header via macro"() {
         given:
+        def notIncluded = file("src/main/headers/notIncluded.h")
+        notIncluded.text = """#pragma message("should not be used")"""
         sourceFile << """
             #define MY_HEADER "${otherHeaderFile.name}"
             #include MY_HEADER
@@ -151,7 +154,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.recompiledFile sourceFile
 
         when: "Header that is NOT included is changed"
-        file("src/main/headers/notIncluded.h") << """
+        notIncluded << """
             // Dummy header file
 """
         and:
@@ -162,6 +165,81 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
 
         and:
         outputs.recompiledFile sourceFile
+    }
+
+    def "source is not recompiled when preprocessor removed header is changed"() {
+        given:
+        def notIncluded = file("src/main/headers/notIncluded.h")
+        notIncluded.text = """#pragma message("should not be used")"""
+        sourceFile << """
+            #if 0
+            #include "${notIncluded.name}"
+            #else
+            #include "${otherHeaderFile.name}"
+            #endif
+"""
+        and:
+        outputs.snapshot { run "mainExecutable" }
+
+        when:
+        otherHeaderFile << """
+            // Some extra content
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        outputs.recompiledFile sourceFile
+        and:
+        !output.contains("should not be used")
+
+        when:
+        // this header isn't included
+        notIncluded << """
+            // Dummy header file
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        // TODO: This is inefficient behavior, we should skip the compile task because 'notIncluded' is not used.
+        // skipped compileTask
+        executedAndNotSkipped compileTask
+    }
+
+    def "source is compiled when preprocessor removed header does not exist"() {
+        given:
+        sourceFile << """
+            #if 0
+            #include "doesNotExist.h"
+            #else
+            #include "${otherHeaderFile.name}"
+            #endif
+"""
+        and:
+        outputs.snapshot { run "mainExecutable" }
+
+        when:
+        otherHeaderFile << """
+            // Some extra content
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        outputs.recompiledFile sourceFile
+
+        when:
+        run "mainExecutable"
+
+        then:
+        skipped compileTask
     }
 
     def "recompiles source file when transitively included header file is changed"() {
@@ -226,6 +304,8 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.noneRecompiled()
     }
 
+    // We can't implement this because we rebuild everything when the include path changes
+    @NotYetImplemented
     @Unroll
     def "does not recompile when include path has #testCase"() {
         given:
@@ -301,6 +381,8 @@ model {
         outputs.recompiledFiles allSources
     }
 
+    // We can't implement this because we don't scan the input directories.
+    @NotYetImplemented
     def "recompiles when replacement header file is added before previous header to existing include path"() {
         given:
         buildFile << """
@@ -422,6 +504,7 @@ model {
         objectFileFor(sourceFile).assertDoesNotExist()
     }
 
+    @LeaksFileHandles
     def "removes output file when source file is removed"() {
         given:
         def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceExtension}")
@@ -443,6 +526,7 @@ model {
         outputs.noneRecompiled()
     }
 
+    @LeaksFileHandles
     def "removes output files when all source files are removed"() {
         given:
         run "mainExecutable"

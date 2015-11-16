@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -54,11 +55,6 @@ public interface GradleDistribution {
     boolean worksWith(OperatingSystem os);
 
     /**
-     * Returns true if the daemon is supported by this distribution.
-     */
-    boolean isDaemonSupported();
-
-    /**
      * Returns true if the configuring daemon idle timeout feature is supported by this distribution.
      */
     boolean isDaemonIdleTimeoutConfigurable();
@@ -69,14 +65,29 @@ public interface GradleDistribution {
     boolean isToolingApiSupported();
 
     /**
+     * Returns true if the tooling API of this distribution supports the given target JVM.
+     */
+    boolean isToolingApiTargetJvmSupported(JavaVersion javaVersion);
+
+    /**
      * Returns true if the tooling API of this distribution correctly handles non-ASCII characters in logging output.
      */
     boolean isToolingApiNonAsciiOutputSupported();
 
     /**
+     * Returns true if the tooling API of this distribution correctly handles logging in embedded mode.
+     */
+    boolean isToolingApiLoggingInEmbeddedModeSupported();
+
+    /**
      * Returns true if the tooling API of this distribution supports specifying the daemon base dir.
      */
     boolean isToolingApiDaemonBaseDirSupported();
+
+    /**
+     * Returns true if the tooling API of this distribution correctly implements progress events when in embedded mode.
+     */
+    boolean isToolingApiEventsInEmbeddedModeSupported();
 
     /**
      * Returns the version of the artifact cache layout

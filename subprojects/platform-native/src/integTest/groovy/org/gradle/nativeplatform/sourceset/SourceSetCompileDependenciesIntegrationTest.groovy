@@ -16,7 +16,9 @@
 package org.gradle.nativeplatform.sourceset
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
+@LeaksFileHandles
 class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"

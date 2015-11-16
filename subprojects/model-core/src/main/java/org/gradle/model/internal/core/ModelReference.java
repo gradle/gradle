@@ -16,6 +16,8 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.type.ModelType;
@@ -33,15 +35,21 @@ import org.gradle.model.internal.type.ModelType;
  */
 @ThreadSafe
 public class ModelReference<T> {
-
+    @Nullable
     private final ModelPath path;
     private final ModelType<T> type;
+    @Nullable
+    private final ModelPath scope;
+    private final ModelNode.State state;
+    @Nullable
     private final String description;
 
-    private ModelReference(@Nullable ModelPath path, ModelType<T> type, String description) {
+    private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, @Nullable ModelNode.State state, @Nullable String description) {
         this.path = path;
-        this.type = type;
+        this.type = Preconditions.checkNotNull(type, "type");
+        this.scope = scope;
         this.description = description;
+        this.state = state != null ? state : ModelNode.State.GraphClosed;
     }
 
     public static ModelReference<Object> any() {
@@ -49,7 +57,7 @@ public class ModelReference<T> {
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type, String description) {
-        return new ModelReference<T>(path, type, description);
+        return new ModelReference<T>(path, type, null, null, description);
     }
 
     public static <T> ModelReference<T> of(String path, ModelType<T> type, String description) {
@@ -57,7 +65,11 @@ public class ModelReference<T> {
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type) {
-        return new ModelReference<T>(path, type, null);
+        return new ModelReference<T>(path, type, null, null, null);
+    }
+
+    public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type, ModelNode.State state) {
+        return new ModelReference<T>(path, type, null, state, null);
     }
 
     public static <T> ModelReference<T> of(ModelPath path, Class<T> type) {
@@ -101,6 +113,16 @@ public class ModelReference<T> {
         return path;
     }
 
+    /**
+     * Return the path of the scope of the node to select, or null if scope is not relevant.
+     *
+     * <p>A node will be selected if its path or its parent's path equals the specified path.</p>
+     */
+    @Nullable
+    public ModelPath getScope() {
+        return scope;
+    }
+
     @Nullable
     public String getDescription() {
         return description;
@@ -110,8 +132,30 @@ public class ModelReference<T> {
         return type;
     }
 
+    public ModelNode.State getState() {
+        return state;
+    }
+
     public boolean isUntyped() {
         return type.equals(ModelType.UNTYPED);
+    }
+
+    public ModelReference<T> inScope(ModelPath scope) {
+        if (scope.equals(this.scope)) {
+            return this;
+        }
+        return new ModelReference<T>(path, type, scope, state, description);
+    }
+
+    public ModelReference<T> withPath(ModelPath path) {
+        return new ModelReference<T>(path, type, scope, state, description);
+    }
+
+    public ModelReference<T> atState(ModelNode.State state) {
+        if (state.equals(this.state)) {
+            return this;
+        }
+        return new ModelReference<T>(path, type, scope, state, description);
     }
 
     @Override
@@ -124,25 +168,20 @@ public class ModelReference<T> {
         }
 
         ModelReference<?> that = (ModelReference<?>) o;
-
-        if (path == null) {
-            if (that.path == null) {
-                return type.equals(that.type);
-            }
-            return false;
-        }
-        return path.equals(that.path) && type.equals(that.type);
+        return Objects.equal(path, that.path) && Objects.equal(scope, that.scope) && type.equals(that.type) && state.equals(that.state);
     }
 
     @Override
     public int hashCode() {
-        int result = path.hashCode();
+        int result = path == null ? 0 : path.hashCode();
+        result = 31 * result + (scope == null ? 0 : scope.hashCode());
         result = 31 * result + type.hashCode();
+        result = 31 * result + state.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return "ModelReference{path=" + path + ", type=" + type + '}';
+        return "ModelReference{path=" + path + ", scope=" + scope + ", type=" + type + ", state=" + state + '}';
     }
 }

@@ -15,16 +15,18 @@
  */
 
 package org.gradle.language.java
+
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.fixtures.BadJavaComponent
 import org.gradle.language.fixtures.TestJavaComponent
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.hamcrest.Matchers
 
+@LeaksFileHandles
 class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     TestJvmComponent app = new TestJavaComponent()
 
@@ -35,12 +37,12 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
         and:
         buildFile << """
-    model {
-        components {
-            myLib(JvmLibrarySpec)
-        }
-    }
-"""
+            model {
+                components {
+                    myLib(JvmLibrarySpec)
+                }
+            }
+        """
         then:
         fails "assemble"
 
@@ -57,20 +59,19 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
         and:
         buildFile << """
-    model {
-        components {
-            myLib(JvmLibrarySpec) {
-                targetPlatform "java6"
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        targetPlatform "java6"
+                    }
+                }
             }
-        }
-    }
-"""
+        """
         then:
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLibJar/myLib.jar").getJavaVersion() == JavaVersion.VERSION_1_6
-        and:
+        jarFile("build/jars/myLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(app.sources*.classFile.fullPath as String[])
     }
 
@@ -81,77 +82,74 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
         and:
         buildFile << """
-    model {
-        components {
-            myLib(JvmLibrarySpec) {
-                targetPlatform "java5"
-                targetPlatform "java6"
-                targetPlatform "java7"
-                targetPlatform "java8"
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        targetPlatform "java5"
+                        targetPlatform "java6"
+                        targetPlatform "java7"
+                        targetPlatform "java8"
+                    }
+                }
             }
-        }
-    }
-"""
+        """
         then:
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/java5MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_5
-        and:
-        jarFile("build/jars/java6MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
-        and:
-        jarFile("build/jars/java7MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_7
-        and:
-        jarFile("build/jars/java8MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_8
+        jarFile("build/jars/myLibJava5Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_5
+        jarFile("build/jars/myLibJava6Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
+        jarFile("build/jars/myLibJava7Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_7
+        jarFile("build/jars/myLibJava8Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_8
     }
 
     def "erroneous target should produce reasonable error message"() {
-        String badName = "bornYesterday";
+        def badName = "bornYesterday"
+
         when:
         def badApp = new BadJavaComponent()
         badApp.sources*.writeToDir(file("src/myLib/java"))
 
         and:
         buildFile << """
-    model {
-        components {
-            myLib(JvmLibrarySpec) {
-                targetPlatform "$badName"
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        targetPlatform "$badName"
+                    }
+                }
             }
-        }
-    }
-"""
+        """
         then:
         fails "assemble"
 
         and:
-        assert failure.assertHasCause("Invalid JavaPlatform: $badName")
+        failure.assertHasCause("Invalid JavaPlatform: $badName")
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "builds all buildable and skips non-buildable platforms when assembling"() {
-        def current = new DefaultJavaPlatform(JavaVersion.current())
+        def current = DefaultJavaPlatform.current()
         when:
         app.sources*.writeToDir(file("src/myLib/java"))
 
         and:
         buildFile << """
-    model {
-        components {
-            myLib(JvmLibrarySpec) {
-                targetPlatform "${current.name}"
-                targetPlatform "java9"
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        targetPlatform "${current.name}"
+                        targetPlatform "java9"
+                    }
+                }
             }
-        }
-    }
-"""
+        """
         then:
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/${current.name}MyLibJar/myLib.jar").javaVersion == current.targetCompatibility
+        jarFile("build/jars/myLib${current.name.capitalize()}Jar/myLib.jar").javaVersion == current.targetCompatibility
     }
-
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "too high JDK target should produce reasonable error message"() {
@@ -160,20 +158,19 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
         and:
         buildFile << """
-    model {
-        components {
-            myLib(JvmLibrarySpec) {
-                targetPlatform "java9"
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        targetPlatform "java9"
+                    }
+                }
             }
-        }
-    }
-"""
+        """
         then:
-        // TODO:DAZ Would like to use 'assemble' here, but it currently ignores non-buildable binaries
         fails "myLibJar"
 
         and:
-        failure.assertHasCause("No tool chains can provide a compiler for type DefaultJavaCompileSpec:")
-        failure.assertThatCause(Matchers.containsString("Could not target platform: 'Java SE 9' using tool chain: 'JDK ${JavaVersion.current().majorVersion} (${JavaVersion.current()})'"))
+        failure.assertHasCause("Could not target platform: 'Java SE 9' using tool chain: " +
+            "'JDK ${JavaVersion.current().majorVersion} (${JavaVersion.current()})'")
     }
 }

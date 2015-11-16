@@ -22,9 +22,11 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
@@ -37,12 +39,13 @@ public class DefaultSourceSet implements SourceSet {
     private final SourceDirectorySet resources;
     private final String displayName;
     private final SourceDirectorySet allSource;
-
+    private final BinaryNamingScheme namingScheme;
     private DefaultSourceSetOutput output;
 
     public DefaultSourceSet(String name, FileResolver fileResolver) {
         this.name = name;
         displayName = GUtil.toWords(this.name);
+        namingScheme = new ClassDirectoryBinaryNamingScheme(name);
 
         String javaSrcDisplayName = String.format("%s Java source", displayName);
 
@@ -101,13 +104,7 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public String getTaskName(String verb, String target) {
-        if (verb == null) {
-            return StringUtils.uncapitalize(String.format("%s%s", getTaskBaseName(), StringUtils.capitalize(target)));
-        }
-        if (target == null) {
-            return StringUtils.uncapitalize(String.format("%s%s", verb, GUtil.toCamelCase(name)));
-        }
-        return StringUtils.uncapitalize(String.format("%s%s%s", verb, getTaskBaseName(), StringUtils.capitalize(target)));
+        return namingScheme.getTaskName(verb, target);
     }
 
     private String getTaskBaseName() {

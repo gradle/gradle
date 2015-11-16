@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -25,16 +26,18 @@ import java.util.Map;
 
 class OutputFilesSnapshotSerializer implements Serializer<OutputFilesCollectionSnapshotter.OutputFilesSnapshot> {
     private final Serializer<FileCollectionSnapshot> serializer;
+    private final StringInterner stringInterner;
 
-    public OutputFilesSnapshotSerializer(Serializer<FileCollectionSnapshot> serializer) {
+    public OutputFilesSnapshotSerializer(Serializer<FileCollectionSnapshot> serializer, StringInterner stringInterner) {
         this.serializer = serializer;
+        this.stringInterner = stringInterner;
     }
 
     public OutputFilesCollectionSnapshotter.OutputFilesSnapshot read(Decoder decoder) throws Exception {
         Map<String, Long> rootFileIds = new HashMap<String, Long>();
         int rootFileIdsCount = decoder.readSmallInt();
         for (int i = 0; i < rootFileIdsCount; i++) {
-            String key = decoder.readString();
+            String key = stringInterner.intern(decoder.readString());
             boolean notNull = decoder.readBoolean();
             Long value = notNull? decoder.readLong() : null;
             rootFileIds.put(key, value);

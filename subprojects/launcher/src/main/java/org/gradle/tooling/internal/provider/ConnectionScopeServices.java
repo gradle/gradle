@@ -19,11 +19,12 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
-import org.gradle.launcher.exec.BuildActionExecuter;
-import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.daemon.client.JvmVersionDetector;
+import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -50,9 +51,13 @@ public class ConnectionScopeServices {
         return shutdownCoordinator;
     }
 
-    ProviderConnection createProviderConnection(BuildActionExecuter<BuildActionParameters> buildActionExecuter, DaemonClientFactory daemonClientFactory,
-                                                ClassLoaderFactory classLoaderFactory, ClassLoaderCache classLoaderCache, ShutdownCoordinator shutdownCoordinator) {
+    ProviderConnection createProviderConnection(BuildExecuter buildActionExecuter, DaemonClientFactory daemonClientFactory,
+                                                ClassLoaderFactory classLoaderFactory, ServiceRegistry serviceRegistry,
+                                                JvmVersionDetector jvmVersionDetector,
+                                                // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
+                                                ShutdownCoordinator shutdownCoordinator) {
         return new ProviderConnection(
+                serviceRegistry,
                 loggingServices,
                 daemonClientFactory,
                 buildActionExecuter,
@@ -63,7 +68,8 @@ public class ConnectionScopeServices {
                                         new ClientSidePayloadClassLoaderFactory(
                                                 new ModelClassLoaderFactory(
                                                         classLoaderFactory))),
-                                new ClasspathInferer()))
+                                new ClasspathInferer())),
+                jvmVersionDetector
         );
     }
 

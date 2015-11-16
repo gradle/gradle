@@ -16,9 +16,9 @@
 
 package org.gradle.internal.resolve.result;
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
-import org.gradle.internal.component.model.ComponentArtifactIdentifier;
 
 import java.io.File;
 

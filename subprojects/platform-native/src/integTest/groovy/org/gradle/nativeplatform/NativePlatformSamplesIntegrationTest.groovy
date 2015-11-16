@@ -16,8 +16,10 @@
 package org.gradle.nativeplatform
 
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -27,6 +29,7 @@ import org.junit.Rule
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GccCompatible
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@LeaksFileHandles
 class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider()
     @Rule public final Sample cppLib = sample(testDirProvider, 'cpp-lib')
@@ -37,6 +40,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     @Rule public final Sample toolChains = sample(testDirProvider, 'tool-chains')
     @Rule public final Sample prebuilt = sample(testDirProvider, 'prebuilt')
     @Rule public final Sample targetPlatforms = sample(testDirProvider, 'target-platforms')
+    @Rule public final Sample sourcesetVariant = sample(testDirectoryProvider, "sourceset-variant")
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
         return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
@@ -89,13 +93,15 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     def flavors() {
-        when:
+        given:
         sample flavors
+
+        when:
         run "installEnglishMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileEnglishHelloSharedLibraryHelloCpp", ":linkEnglishHelloSharedLibrary", ":englishHelloSharedLibrary"
-        executedAndNotSkipped ":compileEnglishMainExecutableMainCpp", ":linkEnglishMainExecutable", ":englishMainExecutable"
+        executedAndNotSkipped ":compileHelloEnglishSharedLibraryHelloCpp", ":linkEnglishHelloSharedLibrary", ":helloEnglishSharedLibrary"
+        executedAndNotSkipped ":compileMainEnglishExecutableMainCpp", ":linkEnglishMainExecutable", ":mainEnglishExecutable"
 
         and:
         executable(flavors.dir.file("build/binaries/mainExecutable/english/main")).assertExists()
@@ -109,8 +115,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         run "installFrenchMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileFrenchHelloSharedLibraryHelloCpp", ":linkFrenchHelloSharedLibrary", ":frenchHelloSharedLibrary"
-        executedAndNotSkipped ":compileFrenchMainExecutableMainCpp", ":linkFrenchMainExecutable", ":frenchMainExecutable"
+        executedAndNotSkipped ":compileHelloFrenchSharedLibraryHelloCpp", ":linkFrenchHelloSharedLibrary", ":helloFrenchSharedLibrary"
+        executedAndNotSkipped ":compileMainFrenchExecutableMainCpp", ":linkFrenchMainExecutable", ":mainFrenchExecutable"
 
         and:
         executable(flavors.dir.file("build/binaries/mainExecutable/french/main")).assertExists()
@@ -121,8 +127,10 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     def variants() {
-        when:
+        given:
         sample variants
+
+        when:
         run "assemble"
 
         then:
@@ -186,6 +194,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     def "target platforms"() {
         given:
         sample targetPlatforms
+
         and:
         targetPlatforms.dir.file("build.gradle") << """
 model {
@@ -236,5 +245,31 @@ Util build type: DEBUG
 """Built with Boost version: 1_55
 Util build type: RELEASE
 """
+    }
+
+    def sourcesetvariant() {
+        given:
+        sample sourcesetVariant
+
+        final String platformName
+        if (OperatingSystem.current().isMacOsX()) {
+            platformName = "MacOSX"
+        } else if (OperatingSystem.current().isLinux()) {
+            platformName = "Linux"
+        } else if (OperatingSystem.current().isWindows()) {
+            platformName = "Windows"
+        } else {
+            platformName = "Unknown"
+        }
+
+        when:
+        run "installMainExecutable", "tasks"
+
+        then:
+        executedAndNotSkipped(":compileMainExecutableMainPlatform$platformName", ":installMainExecutable")
+
+        and:
+        executable(sourcesetVariant.dir.file("build/binaries/mainExecutable/main")).assertExists()
+        installation(sourcesetVariant.dir.file("build/install/mainExecutable")).exec().out.contains("Attributes of '$platformName' platform")
     }
 }

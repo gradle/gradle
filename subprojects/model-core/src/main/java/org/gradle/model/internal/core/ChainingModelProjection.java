@@ -16,8 +16,10 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Nullable;
-import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -32,46 +34,46 @@ public class ChainingModelProjection implements ModelProjection {
         this.projections = projections;
     }
 
-    public <B> boolean canBeViewedAsWritable(final ModelType<B> type) {
+    public <B> boolean canBeViewedAsMutable(final ModelType<B> type) {
         return CollectionUtils.any(projections, new Spec<ModelProjection>() {
             public boolean isSatisfiedBy(ModelProjection projection) {
-                return projection.canBeViewedAsWritable(type);
+                return projection.canBeViewedAsMutable(type);
             }
         });
     }
 
-    public <B> boolean canBeViewedAsReadOnly(final ModelType<B> type) {
+    public <B> boolean canBeViewedAsImmutable(final ModelType<B> type) {
         return CollectionUtils.any(projections, new Spec<ModelProjection>() {
             public boolean isSatisfiedBy(ModelProjection projection) {
-                return projection.canBeViewedAsReadOnly(type);
+                return projection.canBeViewedAsImmutable(type);
             }
         });
     }
 
-    private Iterable<String> collectDescriptions(Transformer<Iterable<String>, ModelProjection> transformer) {
-        return CollectionUtils.flattenCollections(String.class, CollectionUtils.collect(projections, transformer));
+    private Iterable<String> collectDescriptions(final Function<ModelProjection, Iterable<String>> transformer) {
+        return Iterables.concat(Iterables.transform(projections, transformer));
     }
 
     public Iterable<String> getWritableTypeDescriptions(final MutableModelNode node) {
-        return collectDescriptions(new Transformer<Iterable<String>, ModelProjection>() {
-            public Iterable<String> transform(ModelProjection projection) {
+        return collectDescriptions(new Function<ModelProjection, Iterable<String>>() {
+            public Iterable<String> apply(ModelProjection projection) {
                 return projection.getWritableTypeDescriptions(node);
             }
         });
     }
 
     public Iterable<String> getReadableTypeDescriptions(final MutableModelNode node) {
-        return collectDescriptions(new Transformer<Iterable<String>, ModelProjection>() {
-            public Iterable<String> transform(ModelProjection projection) {
+        return collectDescriptions(new Function<ModelProjection, Iterable<String>>() {
+            public Iterable<String> apply(ModelProjection projection) {
                 return projection.getReadableTypeDescriptions(node);
             }
         });
     }
 
     @Nullable
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
+    public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
         for (ModelProjection projection : projections) {
-            ModelView<? extends T> view = projection.asReadOnly(type, node, ruleDescriptor);
+            ModelView<? extends T> view = projection.asImmutable(type, node, ruleDescriptor);
             if (view != null) {
                 return view;
             }
@@ -81,9 +83,9 @@ public class ChainingModelProjection implements ModelProjection {
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
+    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
         for (ModelProjection projection : projections) {
-            ModelView<? extends T> view = projection.asWritable(type, node, ruleDescriptor, inputs);
+            ModelView<? extends T> view = projection.asMutable(type, node, ruleDescriptor, inputs);
             if (view != null) {
                 return view;
             }
@@ -103,6 +105,18 @@ public class ChainingModelProjection implements ModelProjection {
         ChainingModelProjection that = (ChainingModelProjection) o;
 
         return projections.equals(that.projections);
+    }
+
+    @Override
+    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        Optional<String> valueDescription = Optional.absent();
+        for (ModelProjection projection : projections) {
+            valueDescription = projection.getValueDescription(modelNodeInternal);
+            if (valueDescription.isPresent()) {
+                break;
+            }
+        }
+        return valueDescription;
     }
 
     @Override

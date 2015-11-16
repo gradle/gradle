@@ -30,7 +30,7 @@ import java.util.ListIterator;
  *
  * <p>{@code RelativePath} instances are immutable.</p>
  */
-public class RelativePath implements Serializable {
+public class RelativePath implements Serializable, Comparable<RelativePath> {
     private final boolean endsWithFile;
     private final String[] segments;
 
@@ -194,5 +194,26 @@ public class RelativePath implements Serializable {
      */
     public RelativePath prepend(String... segments) {
         return new RelativePath(false, segments).append(this);
+    }
+
+    @Override
+    public int compareTo(RelativePath o) {
+        int len1 = segments.length;
+        int len2 = o.segments.length;
+        int lim = Math.min(len1, len2);
+        String v1[] = segments;
+        String v2[] = o.segments;
+
+        int k = 0;
+        while (k < lim) {
+            String c1 = v1[k];
+            String c2 = v2[k];
+            int compareResult = c1.compareTo(c2);
+            if (compareResult != 0) {
+                return compareResult;
+            }
+            k++;
+        }
+        return len1 - len2;
     }
 }

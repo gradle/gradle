@@ -1,8 +1,11 @@
+// START SNIPPET play-coffeescript
 plugins {
     id 'play'
     id 'play-coffeescript'
 }
+// END SNIPPET play-coffeescript
 
+// START SNIPPET play-platform
 model {
     components {
         play {
@@ -10,19 +13,28 @@ model {
         }
     }
 }
+// END SNIPPET play-platform
 
+// START SNIPPET play-dependencies
 dependencies {
     play "commons-lang:commons-lang:2.6"
 }
+// END SNIPPET play-dependencies
 
-repositories{
+repositories {
     jcenter()
-    maven{
-        name = "typesafe-maven-release"
-        url = "https://repo.typesafe.com/typesafe/maven-releases"
-    }
     maven {
-        name = "gradle-js"
-        url = "https://repo.gradle.org/gradle/javascript-public"
+        name "typesafe-maven-release"
+        url "https://repo.typesafe.com/typesafe/maven-releases"
+    }
+    ivy {
+        name "typesafe-ivy-release"
+        url "https://repo.typesafe.com/typesafe/ivy-releases"
+        layout "ivy"
+    }
+  
+    maven {
+        name "gradle-js"
+        url "https://repo.gradle.org/gradle/javascript-public"
     }
 }

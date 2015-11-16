@@ -16,25 +16,39 @@
 
 package org.gradle.internal.progress;
 
-public class OperationIdentifier {
-    private final long id;
-    private final Long parentId;
+import java.io.Serializable;
 
-    public OperationIdentifier(long id, Long parentId) {
+public class OperationIdentifier implements Serializable {
+    private final long id;
+
+    public OperationIdentifier(long id) {
         this.id = id;
-        this.parentId = parentId;
     }
 
     public long getId() {
         return id;
     }
 
-    public Long getParentId() {
-        return parentId;
+    @Override
+    public String toString() {
+        return String.valueOf(id);
     }
 
     @Override
-    public String toString() {
-        return id + ":" + parentId;
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        OperationIdentifier that = (OperationIdentifier) o;
+        return id == that.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) id;
     }
 }

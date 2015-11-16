@@ -32,6 +32,9 @@ public class MavenPublishServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new ComponentRegistrationAction());
     }
@@ -45,7 +48,6 @@ public class MavenPublishServices implements PluginServiceRegistry {
     private static class ComponentRegistrationAction {
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             // TODO There should be a more explicit way to execute an action against existing services
-            // TODO:DAZ Dependency Management should be able to extract this from the plugin, without explicit registration
             componentTypeRegistry.maybeRegisterComponentType(MavenModule.class)
                     .registerArtifactType(MavenPomArtifact.class, ArtifactType.MAVEN_POM);
         }

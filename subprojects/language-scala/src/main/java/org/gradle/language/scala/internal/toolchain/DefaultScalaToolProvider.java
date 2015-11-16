@@ -31,7 +31,7 @@ import java.io.File;
 import java.util.Set;
 
 public class DefaultScalaToolProvider implements ToolProvider {
-    public static final String DEFAULT_ZINC_VERSION = "0.3.5.3";
+    public static final String DEFAULT_ZINC_VERSION = "0.3.7";
 
     private ProjectFinder projectFinder;
     private final CompilerDaemonManager compilerDaemonManager;

@@ -16,27 +16,33 @@
 
 package org.gradle.test.fixtures.file;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.junit.rules.MethodRule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
-import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.Random;
+import java.util.regex.Pattern;
 
 
 /**
  * A JUnit rule which provides a unique temporary folder for the test.
  */
-abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, TestDirectoryProvider {
+abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
+
+    protected static TestFile root;
+
+    private static final Random RANDOM = new Random();
+    private static final int ALL_DIGITS_AND_LETTERS_RADIX = 36;
+    private static final int MAX_RANDOM_PART_VALUE = Integer.valueOf("zzzzz", ALL_DIGITS_AND_LETTERS_RADIX);
+    private static final Pattern WINDOWS_RESERVED_NAMES = Pattern.compile("(con)|(prn)|(aux)|(nul)|(com\\d)|(lpt\\d)", Pattern.CASE_INSENSITIVE);
+
     private TestFile dir;
     private String prefix;
-    protected static TestFile root;
-    private static final Random RANDOM = new Random();
-    public static final int ALL_DIGITS_AND_LETTERS_RADIX = 36;
-    private static final int MAX_RANDOM_PART_VALUE = Integer.valueOf("zzzzz", ALL_DIGITS_AND_LETTERS_RADIX);
+    private boolean cleanup = true;
+    private boolean suppressCleanupErrors;
 
     private String determinePrefix() {
         StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
@@ -48,28 +54,57 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
         return "unknown-test-class";
     }
 
-    protected Statement doApply(final Statement base, FrameworkMethod method, Object target) {
-        init(method.getName(), target.getClass().getSimpleName());
-        return new Statement() {
-            @Override
-            public void evaluate() throws Throwable {
-                base.evaluate();
-                getTestDirectory().maybeDeleteDir();
-                // Don't delete on failure
-            }
-        };
+    @Override
+    public void suppressCleanup() {
+        cleanup = false;
     }
 
     public Statement apply(final Statement base, Description description) {
-        init(description.getMethodName(), description.getTestClass().getSimpleName());
-        return new Statement() {
-            @Override
-            public void evaluate() throws Throwable {
-                base.evaluate();
-                getTestDirectory().deleteDir();
-                // Don't delete on failure
+        Class<?> testClass = description.getTestClass();
+        init(description.getMethodName(), testClass.getSimpleName());
+
+        suppressCleanupErrors = testClass.getAnnotation(LeaksFileHandles.class) != null
+            || description.getAnnotation(LeaksFileHandles.class) != null
+            // For now, assume that all tests run with the daemon executer leak file handles
+            // This seems to be true for any test that uses `GradleExecuter.requireOwnGradleUserHomeDir`
+            || "daemon".equals(System.getProperty("org.gradle.integtest.executer"));
+
+        return new TestDirectoryCleaningStatement(base, description.getDisplayName());
+    }
+
+    private class TestDirectoryCleaningStatement extends Statement {
+        private final Statement base;
+        private final String displayName;
+
+        public TestDirectoryCleaningStatement(Statement base, String displayName) {
+            this.base = base;
+            this.displayName = displayName;
+        }
+
+        @Override
+        public void evaluate() throws Throwable {
+            // implicitly don't clean up if this throws
+            base.evaluate();
+
+            try {
+                if (cleanup && dir != null && dir.exists()) {
+                    try {
+                        FileUtils.forceDelete(dir);
+                    } catch (IOException e) {
+                        // Some releases are async, wait then try again
+                        Thread.sleep(1000);
+                        FileUtils.forceDelete(dir);
+                    }
+                }
+            } catch (Exception e) {
+                if (suppressCleanupErrors) {
+                    System.err.println("Couldn't delete test dir for " + displayName + " (test is holding files open)");
+                    e.printStackTrace(System.err);
+                } else {
+                    throw e;
+                }
             }
-        };
+        }
     }
 
     protected void init(String methodName, String className) {
@@ -78,9 +113,9 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
             methodName = getClass().getSimpleName();
         }
         if (prefix == null) {
-            String safeMethodName = methodName.replaceAll("\\s", "_").replace(File.pathSeparator, "_").replace(":", "_").replace('"', '_');
-            if (safeMethodName.length() > 60) {
-                safeMethodName = safeMethodName.substring(0, 29) + "..." + safeMethodName.substring(safeMethodName.length() - 29);
+            String safeMethodName = methodName.replaceAll("[^\\w]", "_");
+            if (safeMethodName.length() > 30) {
+                safeMethodName = safeMethodName.substring(0, 19) + "..." + safeMethodName.substring(safeMethodName.length() - 9);
             }
             prefix = String.format("%s/%s", className, safeMethodName);
         }
@@ -95,7 +130,11 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
             }
             while (true) {
                 // Use a random prefix to avoid reusing test directories
-                dir = root.file(prefix, Integer.toString(RANDOM.nextInt(MAX_RANDOM_PART_VALUE), ALL_DIGITS_AND_LETTERS_RADIX));
+                String prefix = Integer.toString(RANDOM.nextInt(MAX_RANDOM_PART_VALUE), ALL_DIGITS_AND_LETTERS_RADIX);
+                if (WINDOWS_RESERVED_NAMES.matcher(prefix).matches()) {
+                    continue;
+                }
+                dir = root.file(this.prefix, prefix);
                 if (dir.mkdirs()) {
                     break;
                 }

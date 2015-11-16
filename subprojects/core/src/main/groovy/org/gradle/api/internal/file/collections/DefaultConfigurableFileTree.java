@@ -25,9 +25,9 @@ import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
@@ -148,12 +148,14 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     @Override
-    public void resolve(FileCollectionResolveContext context) {
+    public void visitContents(FileCollectionResolveContext context) {
         File dir = getDir();
-        if (!buildDependency.getValues().isEmpty()) {
-            context.add(buildDependency);
-        }
         context.add(new DirectoryFileTree(dir, patternSet));
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.add(buildDependency);
     }
 
     public ConfigurableFileTree builtBy(Object... tasks) {
@@ -168,10 +170,5 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     public ConfigurableFileTree setBuiltBy(Iterable<?> tasks) {
         buildDependency.setValues(tasks);
         return this;
-    }
-
-    @Override
-    public TaskDependency getBuildDependencies() {
-        return buildDependency;
     }
 }

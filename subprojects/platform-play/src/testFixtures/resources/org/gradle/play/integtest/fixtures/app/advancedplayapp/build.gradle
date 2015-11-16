@@ -1,0 +1,6 @@
+plugins {
+    id 'play'
+    id 'play-coffeescript'
+}
+
+// repositories added in PlayApp class

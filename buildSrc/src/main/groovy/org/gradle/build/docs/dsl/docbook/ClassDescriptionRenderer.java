@@ -32,6 +32,24 @@ public class ClassDescriptionRenderer {
         parent.appendChild(title);
         title.appendChild(document.createTextNode(classDoc.getSimpleName()));
 
+        addApiDocumentationLink(classDoc, parent, document);
+        addSubtypeLinks(classDoc, parent, document);
+
+        warningsRenderer.renderTo(classDoc, "class", parent);
+
+        for (Element element : classDoc.getComment()) {
+            parent.appendChild(document.importNode(element, true));
+        }
+        NodeList otherContent = classDoc.getClassSection().getChildNodes();
+        for (int i = 0; i < otherContent.getLength(); i++) {
+            Node child = otherContent.item(i);
+            if (child instanceof Element && !((Element) child).getTagName().equals("section")) {
+                parent.appendChild(document.importNode(child, true));
+            }
+        }
+    }
+
+    private void addApiDocumentationLink(ClassDoc classDoc, Element parent, Document document) {
         Element list = document.createElement("segmentedlist");
         parent.appendChild(list);
         Element segtitle = document.createElement("segtitle");
@@ -45,18 +63,37 @@ public class ClassDescriptionRenderer {
         seg.appendChild(apilink);
         apilink.setAttribute("class", classDoc.getName());
         apilink.setAttribute("style", classDoc.getStyle());
+    }
 
-        warningsRenderer.renderTo(classDoc, "class", parent);
+    private void addSubtypeLinks(ClassDoc classDoc, Element parent, Document document) {
+        if (!classDoc.getSubClasses().isEmpty()) {
+            Element list = document.createElement("segmentedlist");
+            parent.appendChild(list);
+            Element segtitle = document.createElement("segtitle");
+            list.appendChild(segtitle);
+            segtitle.appendChild(document.createTextNode("Known Subtypes"));
+            Element listItem = document.createElement("seglistitem");
+            list.appendChild(listItem);
+            Element seg = document.createElement("seg");
+            listItem.appendChild(seg);
+            Element simplelist = document.createElement("simplelist");
 
-        for (Element element : classDoc.getComment()) {
-            parent.appendChild(document.importNode(element, true));
-        }
-        NodeList otherContent = classDoc.getClassSection().getChildNodes();
-        for (int i = 0; i < otherContent.getLength(); i++) {
-            Node child = otherContent.item(i);
-            if (child instanceof Element && !((Element) child).getTagName().equals("section")) {
-                parent.appendChild(document.importNode(child, true));
+            int columns = 3;
+            if (classDoc.getSubClasses().size() <= 3) {
+                // if there are only 3 or fewer known subtypes, render them
+                // in a single column
+                columns = 1;
             }
+            simplelist.setAttribute("columns", String.valueOf(columns));
+            simplelist.setAttribute("type", "vert");
+            for (ClassDoc subClass : classDoc.getSubClasses()) {
+                Element member = document.createElement("member");
+                Element apilink = document.createElement("apilink");
+                apilink.setAttribute("class", subClass.getName());
+                member.appendChild(apilink);
+                simplelist.appendChild(member);
+            }
+            seg.appendChild(simplelist);
         }
     }
 }

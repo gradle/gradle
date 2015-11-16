@@ -17,13 +17,17 @@ package org.gradle.language.base.internal;
 
 import org.gradle.api.Task;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.model.internal.type.ModelType;
 
 public interface LanguageSourceSetInternal extends LanguageSourceSet {
 
+    ModelType<LanguageSourceSet> PUBLIC_MODEL_TYPE = ModelType.of(LanguageSourceSet.class);
+
     /**
-     * A unique name for this source set across all functional source sets.
+     * Returns a name for this source set that is unique for all source sets in the current project.
      */
-    String getFullName();
+    String getProjectScopedName();
+
 
     /**
      * Return true if the source set contains sources, or if the source set is generated.
@@ -31,4 +35,5 @@ public interface LanguageSourceSetInternal extends LanguageSourceSet {
     boolean getMayHaveSources();
 
     Task getGeneratorTask();
+
 }

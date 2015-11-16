@@ -20,15 +20,15 @@ import org.gradle.api.Incubating;
 import org.gradle.tooling.events.ProgressEvent;
 
 /**
- * Root interface for all events that signal progress while executing a test operation.
+ * Root interface for all events that signal progress while executing a test or test suite.
  *
  * @since 2.4
  */
 @Incubating
 public interface TestProgressEvent extends ProgressEvent {
     /**
-     * Returns the description of the underlying test operation for which progress is reported. For JVM-based tests,
-     * the descriptor is of sub-type {@code org.gradle.tooling.events.test.JvmTestOperationDescriptor}.
+     * Returns the description of the test for which progress is reported. For JVM-based tests,
+     * the descriptor is of sub-type {@code JvmTestOperationDescriptor}.
      *
      * @return The description of the underlying test operation.
      */

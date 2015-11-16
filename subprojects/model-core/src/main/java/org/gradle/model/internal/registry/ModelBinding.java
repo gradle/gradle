@@ -16,56 +16,77 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.base.Function;
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
+import org.gradle.model.InvalidModelRuleException;
+import org.gradle.model.ModelRuleBindingException;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelPromise;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.report.AmbiguousBindingReporter;
 
 /**
  * A binding of a reference to an actual model element.
  * <p>
  * A binding represents the knowledge that the model element referenced by the reference is known and can project a view of the reference type.
- * Like the reference, whether the view is read or write is not inherent in the binding and is contextual.
  */
-@ThreadSafe
-class ModelBinding<T> {
+abstract class ModelBinding {
 
-    private final ModelNodeInternal node;
-    private final ModelReference<T> reference;
+    final BindingPredicate predicate;
+    final ModelRuleDescriptor referrer;
+    final boolean writable;
+    protected ModelNodeInternal boundTo;
 
-    private ModelBinding(ModelReference<T> reference, ModelNodeInternal node) {
-        this.node = node;
-        this.reference = reference;
+    protected ModelBinding(ModelRuleDescriptor referrer, BindingPredicate predicate, boolean writable) {
+        this.predicate = predicate;
+        this.referrer = referrer;
+        this.writable = writable;
     }
 
-    public static <T> ModelBinding<T> of(ModelReference<T> reference, ModelNodeInternal modelNode) {
-        return new ModelBinding<T>(reference, modelNode);
+    public BindingPredicate getPredicate() {
+        return predicate;
     }
 
-    public ModelReference<T> getReference() {
-        return reference;
+    public boolean isBound() {
+        return boundTo != null;
     }
 
     public ModelNodeInternal getNode() {
-        return node;
+        if (boundTo == null) {
+            throw new IllegalStateException("Target node has not been bound.");
+        }
+        return boundTo;
+    }
+
+    boolean isTypeCompatible(ModelPromise promise) {
+        return predicate.isUntyped() || promise.canBeViewedAsMutable(predicate.getType()) || promise.canBeViewedAsImmutable(predicate.getType());
     }
 
     @Override
     public String toString() {
-        return "ModelBinding{reference=" + reference + ", node=" + node + '}';
+        return "ModelBinding{predicate=" + predicate + ", node=" + boundTo + '}';
     }
 
-    public static class GetPath implements Function<ModelBinding<?>, ModelPath> {
+    public abstract boolean canBindInState(ModelNode.State state);
 
-        public static final Function<ModelBinding<?>, ModelPath> INSTANCE = new GetPath();
-
-        private GetPath() {
+    public final void onBind(ModelNodeInternal node) {
+        if (boundTo != null) {
+            ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
+            ModelPath path = node.getPath();
+            throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
+                new AmbiguousBindingReporter(predicate.getReference(), boundTo.getPath(), boundTo.getDescriptor(), path, creatorDescriptor).asString()
+            ));
         }
 
-        @Nullable
-        public ModelPath apply(ModelBinding<?> input) {
-            return input.getNode().getPath();
+        doOnBind(node);
+    }
+
+    protected void doOnBind(ModelNodeInternal node) {
+        // Do nothing by default
+    }
+
+    public void onUnbind(ModelNodeInternal node) {
+        if (node == boundTo) {
+            boundTo = null;
         }
     }
 }

@@ -15,34 +15,30 @@
  */
 
 package org.gradle.jvm.plugins
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.test.fixtures.archive.JarTestFixture
-import spock.lang.Ignore
 
 class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
-
     def "does not create library or binaries when not configured"() {
         when:
-        buildFile << """
-    plugins {
-        id 'jvm-component'
-    }
-    model {
-        tasks {
-            create("validate") {
-                doLast {
-                    assert \$("components").size() == 0
-                    assert project.binaries.empty
+        buildFile << '''
+            plugins {
+                id 'jvm-component'
+            }
+            model {
+                tasks {
+                    create("validate") {
+                        doLast {
+                            assert $("components").size() == 0
+                            assert $("binaries").size() == 0
+                            assert $("sources").size() == 0
+                        }
+                    }
                 }
             }
-        }
-    }
-"""
+        '''
         then:
         succeeds "validate"
 
@@ -52,49 +48,49 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "defines jvm library and binary model objects and lifecycle task"() {
         when:
-        buildFile << """
-    plugins {
-        id 'jvm-component'
-    }
+        buildFile << '''
+            plugins {
+                id 'jvm-component'
+            }
 
-    model {
-        components {
-            myLib(JvmLibrarySpec)
-        }
-        tasks {
-            create("validate") {
-            def components = \$("components")
-                doLast {
-                    assert components.size() == 1
-                    def myLib = components.myLib
-                    assert myLib.name == 'myLib'
-                    assert myLib instanceof JvmLibrarySpec
+            model {
+                components {
+                    myLib(JvmLibrarySpec)
+                }
+                tasks {
+                    create("validate") {
+                        doLast {
+                            def components = $("components")
+                            def binaries = $("binaries")
+                            assert components.size() == 1
+                            def myLib = components.myLib
+                            assert myLib.name == 'myLib'
+                            assert myLib instanceof JvmLibrarySpec
 
-                    assert myLib.sources.size() == 0
+                            assert myLib.sources.size() == 0
 
-                    assert project.binaries.size() == 1
-                    assert myLib.binaries as Set == project.binaries as Set
+                            assert binaries.size() == 1
+                            assert myLib.binaries.values() as Set == binaries as Set
 
-                    def myLibJar = (project.binaries as List)[0]
-                    assert myLibJar instanceof JarBinarySpec
-                    assert myLibJar.name == 'myLibJar'
-                    assert myLibJar.displayName == "Jar 'myLibJar'"
+                            def myLibJar = (binaries.values() as List)[0]
+                            assert myLibJar instanceof JarBinarySpec
+                            assert myLibJar.name == 'jar'
+                            assert myLibJar.displayName == "Jar 'myLib:jar'"
 
-                    def binaryTask = project.tasks['myLibJar']
-                    assert binaryTask.group == 'build'
-                    assert binaryTask.description == "Assembles Jar 'myLibJar'."
-                    assert myLibJar.buildTask == binaryTask
+                            def binaryTask = project.tasks['myLibJar']
+                            assert binaryTask.group == 'build'
+                            assert binaryTask.description == "Assembles Jar 'myLib:jar'."
+                            assert myLibJar.buildTask == binaryTask
 
-                    def jarTask = project.tasks['createMyLibJar']
-                    assert jarTask instanceof org.gradle.jvm.tasks.Jar
-                    assert jarTask.group == null
-                    assert jarTask.description == "Creates the binary file for Jar 'myLibJar'."
+                            def jarTask = project.tasks['createMyLibJar']
+                            assert jarTask instanceof org.gradle.jvm.tasks.Jar
+                            assert jarTask.group == null
+                            assert jarTask.description == "Creates the binary file for Jar 'myLib:jar'."
+                        }
+                    }
                 }
             }
-        }
-    }
-"""
-
+        '''
         then:
         succeeds "validate"
     }
@@ -102,16 +98,16 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "creates empty jar when no language sources available"() {
         given:
         buildFile << """
-    plugins {
-        id 'jvm-component'
-    }
+            plugins {
+                id 'jvm-component'
+            }
 
-    model {
-        components {
-            myJvmLib(JvmLibrarySpec)
-        }
-    }
-"""
+            model {
+                components {
+                    myJvmLib(JvmLibrarySpec)
+                }
+            }
+        """
         when:
         succeeds "myJvmLibJar"
 
@@ -126,21 +122,21 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "can configure jvm binary"() {
         given:
         buildFile << '''
-    plugins {
-        id 'jvm-component'
-    }
-
-    model {
-        components {
-            myJvmLib(JvmLibrarySpec)
-        }
-        jvm {
-            allBinaries { jar ->
-                jar.jarFile = new File($("buildDir"), "bin/${jar.name}.bin")
+            plugins {
+                id 'jvm-component'
             }
-        }
-    }
-'''
+
+            model {
+                components {
+                    myJvmLib(JvmLibrarySpec)
+                }
+                binaries {
+                    all { jar ->
+                        jar.jarFile = new File($("buildDir"), "bin/${jar.projectScopedName}.bin")
+                    }
+                }
+            }
+        '''
         when:
         succeeds "myJvmLibJar"
 
@@ -148,24 +144,25 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         file("build/bin/myJvmLibJar.bin").assertExists()
     }
 
-    @Ignore("Not yet implemented")
     def "can configure jvm binary for component"() {
         given:
-        buildFile << """
-    plugins {
-        id 'jvm-component'
-    }
+        buildFile << '''
+            plugins {
+                id 'jvm-component'
+            }
 
-    model {
-        components {
-            myJvmLib(JvmLibrarySpec) {
-                binaries.withType(JarBinarySpec) { jar ->
-                    jar.jarFile = file("\${project.buildDir}/bin/\${jar.name}.bin")
+            model {
+                components {
+                    myJvmLib(JvmLibrarySpec) {
+                        binaries {
+                            all { jar ->
+                                jar.jarFile = new File($("buildDir"), "bin/${jar.projectScopedName}.bin")
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-"""
+        '''
         when:
         succeeds "myJvmLibJar"
 
@@ -175,64 +172,67 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "can specify additional builder tasks for binary"() {
         given:
-        buildFile << """
-    plugins {
-        id 'jvm-component'
-    }
-
-    model {
-        components {
-            myJvmLib(JvmLibrarySpec)
-        }
-    }
-    binaries.all { binary ->
-        def logTask = project.tasks.create("log_\${binary.name}") {
-            doLast {
-                println "Constructing \${binary.displayName}"
+        buildFile << '''
+            plugins {
+                id 'jvm-component'
             }
-        }
-        binary.builtBy(logTask)
-    }
-"""
+
+            model {
+                components {
+                    myJvmLib(JvmLibrarySpec)
+                }
+                tasks {
+                    $("binaries").values().each { binary ->
+                        def taskName = binary.tasks.taskName('log')
+                        create(taskName) { task ->
+                            task.doLast {
+                                println "Constructing " + binary.displayName
+                            }
+                        }
+                        binary.buildTask.dependsOn(taskName)
+                    }
+                }
+            }
+        '''
         when:
         succeeds "myJvmLibJar"
 
         then:
-        executed ":createMyJvmLibJar", ":log_myJvmLibJar", ":myJvmLibJar"
+        executed ":createMyJvmLibJar", ":logMyJvmLibJar", ":myJvmLibJar"
 
         and:
-        output.contains("Constructing Jar 'myJvmLibJar'")
+        output.contains("Constructing Jar 'myJvmLib:jar'")
     }
 
     def "can define multiple jvm libraries in single project"() {
         when:
         buildFile << """
-    plugins {
-        id 'jvm-component'
-    }
+            plugins {
+                id 'jvm-component'
+            }
 
-    model {
-        components {
-            myLibOne(JvmLibrarySpec)
-            myLibTwo(JvmLibrarySpec)
-        }
-        tasks {
-            create("validate") {
-                def components = \$("components")
-                doLast {
-                    assert components.size() == 2
-                    assert components.myLibOne instanceof JvmLibrarySpec
-                    assert components.myLibTwo instanceof JvmLibrarySpec
+            model {
+                components {
+                    myLibOne(JvmLibrarySpec)
+                    myLibTwo(JvmLibrarySpec)
+                }
+                tasks {
+                    create("validate") {
+                        def components = \$("components")
+                        def binaries = \$("binaries")
+                        doLast {
+                            assert components.size() == 2
+                            assert components.myLibOne instanceof JvmLibrarySpec
+                            assert components.myLibTwo instanceof JvmLibrarySpec
 
-                    assert project.binaries.size() == 2
-                    assert project.binaries.myLibOneJar == components.myLibOne.binaries[0]
-                    assert project.binaries.myLibTwoJar == components.myLibTwo.binaries[0]
+                            assert binaries.size() == 2
+                            assert binaries.myLibOneJar == components.myLibOne.binaries.values()[0]
+                            assert binaries.myLibTwoJar == components.myLibTwo.binaries.values()[0]
+                        }
+                    }
                 }
             }
-        }
-    }
-"""
-
+        """
         then:
         succeeds "validate"
     }
@@ -240,17 +240,17 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "can build multiple jvm libraries in single project"() {
         given:
         buildFile << """
-    plugins {
-        id 'jvm-component'
-    }
+            plugins {
+                id 'jvm-component'
+            }
 
-    model {
-        components {
-            myLibOne(JvmLibrarySpec)
-            myLibTwo(JvmLibrarySpec)
-        }
-    }
-"""
+            model {
+                components {
+                    myLibOne(JvmLibrarySpec)
+                    myLibTwo(JvmLibrarySpec)
+                }
+            }
+        """
         when:
         succeeds "myLibOneJar"
 

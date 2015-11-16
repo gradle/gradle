@@ -18,12 +18,14 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.Matchers
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
 
+@LeaksFileHandles
 class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
     void setup() {
         assert distribution.binDistribution.exists(): "bin distribution must exist to run this test, you need to run the :distributions:binZip task"

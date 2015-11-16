@@ -18,7 +18,6 @@ package org.gradle.scala.internal.reflect;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -27,42 +26,20 @@ public class ScalaMethod {
     private final Method method;
     private final Object instance;
 
-    public ScalaMethod(ClassLoader classLoader, String className, String methodName, Class<?>... typeParameters) {
-        description = String.format("%s.%s()", className, methodName);
-        Class<?> baseClass = getClass(classLoader, className);
-        final Field scalaObject = getModule(baseClass);
-        instance = getInstance(scalaObject);
+    public ScalaMethod(ScalaObject scalaObject, String methodName, Class<?>... typeParameters) {
+        description = String.format("%s.%s()", scalaObject.getClassName(), methodName);
+        instance = scalaObject.getInstance();
         method = getMethod(scalaObject.getType(), methodName, typeParameters);
+    }
+
+    public ScalaMethod(ClassLoader classLoader, String className, String methodName, Class<?>... typeParameters) {
+        this(new ScalaObject(classLoader, className), methodName, typeParameters);
     }
 
     private Method getMethod(Class<?> type, String methodName, Class<?>[] typeParameters) {
         try {
             return type.getMethod(methodName, typeParameters);
         } catch (NoSuchMethodException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private Object getInstance(Field scalaObject) {
-        try {
-            return scalaObject.get(null);
-        } catch (IllegalAccessException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private Class<?> getClass(ClassLoader classLoader, String typeName) {
-        try {
-            return classLoader.loadClass(typeName + "$");
-        } catch (ClassNotFoundException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private Field getModule(Class<?> baseClass) {
-        try {
-            return baseClass.getField("MODULE$");
-        } catch (NoSuchFieldException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }

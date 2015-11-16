@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.junit.runner.RunWith
 import spock.lang.Issue
-// TODO - report on the configuration that was actually changed
-// TODO - warn about configurations resolved via a project dependency
-// TODO - verify line number is included in deprecation message
-// TODO - warn about changes to artifacts
-// TODO - warn about changes to resolution strategy and other mutations
+
+@RunWith(FluidDependenciesResolveRunner)
 class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
     def "does not allow adding dependencies to a configuration that has been resolved"() {
@@ -126,7 +126,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         then: output.contains("Changed strategy of configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
-    def "warns about changing a configuration that has been resolved for task dependencies"() {
+    def "warns about changing dependencies of a configuration that has been resolved for task dependencies"() {
         mavenRepo.module("org.utils", "extra", '1.5').publish()
 
         settingsFile << "include 'api', 'impl'"
@@ -135,6 +135,17 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                 apply plugin: "java"
                 repositories {
                     maven { url "${mavenRepo.uri}" }
+                }
+                configurations.all {
+                    resolutionStrategy.assumeFluidDependencies()
+                }
+            }
+
+            project(":api") {
+                task addDependency << {
+                   dependencies {
+                        compile "org.utils:extra:1.5"
+                    }
                 }
             }
 
@@ -149,15 +160,20 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                     }
                 }
 
-                task modifyConfigDuringTaskExecution(dependsOn: [addDependency, configurations.compile]) << {
+                task modifyConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.compile]) << {
                     def files = configurations.compile.files
                     assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
                     assert files*.exists() == [ true, true ]
                 }
-                task modifyParentConfigDuringTaskExecution(dependsOn: [addDependency, configurations.testCompile]) << {
+                task modifyParentConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.testCompile]) << {
                     def files = configurations.testCompile.files
                     assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
                     assert files*.exists() == [ true, true ]
+                }
+                task modifyDependentConfigDuringTaskExecution(dependsOn: [':api:addDependency', configurations.compile]) << {
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["api.jar"] // Late dependency is not honoured
+                    assert files*.exists() == [ true ]
                 }
             }
 """
@@ -178,9 +194,16 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         output.contains("Changed dependencies of configuration ':impl:compile' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
         output.contains("Changed dependencies of parent of configuration ':impl:testCompile' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
         output.contains("Resolving configuration ':impl:testCompile' again after modification.")
+
+        when:
+        executer.withDeprecationChecksDisabled()
+        succeeds("impl:modifyDependentConfigDuringTaskExecution")
+
+        then:
+        output.contains("Changed dependencies of configuration ':api:compile' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
-    def "allows adding artifacts to a configuration that has been resolved for task dependencies"() {
+    def "warns about changing artifacts of a configuration that has been resolved for task dependencies"() {
         mavenRepo.module("org.utils", "extra", '1.5').publish()
 
         settingsFile << "include 'api', 'impl'"
@@ -190,26 +213,51 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
+                configurations.all {
+                    resolutionStrategy.assumeFluidDependencies()
+                }
+            }
+
+            project(":api") {
+                task addArtifact << {
+                    artifacts { compile file("some.jar") }
+                }
             }
 
             project(":impl") {
                 dependencies {
                     compile project(":api")
                 }
-
                 task addArtifact << {
                     artifacts { compile file("some.jar") }
                 }
 
-                task modifyArtifactDuringTaskExecution(dependsOn: [addArtifact, configurations.compile])
-                task modifyParentArtifactDuringTaskExecution(dependsOn: [addArtifact, configurations.testCompile])
+                task addArtifactToConfigDuringTaskExecution(dependsOn: [':impl:addArtifact', configurations.compile])
+                task addArtifactToParentConfigDuringTaskExecution(dependsOn: [':impl:addArtifact', configurations.testCompile])
+                task addArtifactToDependentConfigDuringTaskExecution(dependsOn: [':api:addArtifact', configurations.compile])
             }
 """
 
-        // Will need to track observed state and modified state separately for content (dependencies) and artifacts
-        expect:
-        succeeds("impl:modifyArtifactDuringTaskExecution")
-        succeeds("impl:modifyParentArtifactDuringTaskExecution")
+        when:
+        executer.withDeprecationChecksDisabled()
+
+        then:
+        succeeds("impl:addArtifactToConfigDuringTaskExecution")
+        output.contains("Changed artifacts of configuration ':impl:compile' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+
+        when:
+        executer.withDeprecationChecksDisabled()
+
+        then:
+        succeeds("impl:addArtifactToParentConfigDuringTaskExecution")
+        output.contains("Changed artifacts of configuration ':impl:compile' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+
+        when:
+        executer.withDeprecationChecksDisabled()
+
+        then:
+        succeeds("impl:addArtifactToDependentConfigDuringTaskExecution")
+        output.contains("Changed artifacts of configuration ':api:compile' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     @Issue("GRADLE-3155")
@@ -368,5 +416,38 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
         when: succeeds()
         then: output.contains("Changed dependencies of configuration ':api:compile' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+    }
+
+    @Issue("GRADLE-3297")
+    def "using offline flag does not emit deprecation warning when child configuration is explicitly resolved"() {
+        def repo = new MavenFileRepository(file("repo"))
+        repo.module('org.test', 'moduleA', '1.0').publish()
+
+        buildFile << """
+configurations {
+    parentConfig
+    childConfig.extendsFrom parentConfig
+}
+dependencies {
+  // Parent must have at least 1 dependency to force resolution
+  parentConfig "org.test:moduleA:1.0"
+}
+repositories {
+    maven { url '$repo.uri' }
+}
+
+task resolveChildFirst {
+    doLast {
+        configurations.childConfig.resolve()
+        configurations.parentConfig.resolve()
+    }
+}
+        """
+
+        when:
+        executer.withArguments("--offline")
+
+        then:
+        succeeds("resolveChildFirst")
     }
 }

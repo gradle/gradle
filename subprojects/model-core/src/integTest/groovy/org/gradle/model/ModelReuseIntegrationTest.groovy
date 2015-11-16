@@ -15,27 +15,17 @@
  */
 
 package org.gradle.model
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
-import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
+
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.model.internal.persist.ReusingModelRegistryStore
 
-//@IgnoreIf({ GradleContextualExecuter.isDaemon() })
-//@Ignore("failing builds randomly on windows: http://builds.gradle.org/viewLog.html?buildId=276330&buildTypeId=Gradle_Master_Coverage_WindowsJava18_2")
-class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
+// Requires daemon because reuse right now doesn't handle the build actually changing
+class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {
-        executer = new DaemonGradleExecuter(distribution, testDirectoryProvider)
         executer.beforeExecute {
-            requireIsolatedDaemons()
             withArgument("-D$ReusingModelRegistryStore.TOGGLE=true")
-            withDaemonIdleTimeoutSecs(10)
         }
-        EnableModelDsl.enable(executer)
-    }
-
-    def cleanup() {
-        executer.withArgument("--stop").run()
     }
 
     String hashFor(String prefix) {
@@ -84,32 +74,9 @@ class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
         taskHash != hashFor("task")
     }
 
-    def "can enable reuse with the component model"() {
-        when:
-        buildScript """
-            plugins {
-              id "org.gradle.jvm-component"
-              id "org.gradle.java-lang"
-            }
-
-            model {
-                components {
-                    create("main", JvmLibrarySpec)
-                }
-            }
-        """
-
-        then:
-        succeeds "build"
-        succeeds "build"
-    }
-
     def "can enable reuse with the variants benchmark"() {
         when:
         buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Flavour {
                 String getName()
@@ -137,15 +104,15 @@ class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
 
             class VariantsRuleSource extends RuleSource {
                 @Model
-                void flavours(ManagedSet<Flavour> flavours) {
+                void flavours(ModelSet<Flavour> flavours) {
                 }
 
                 @Model
-                void types(ManagedSet<Type> types) {
+                void types(ModelSet<Type> types) {
                 }
 
                 @Model
-                void variants(ManagedSet<Variant> variants, ManagedSet<Flavour> flavours, ManagedSet<Type> types) {
+                void variants(ModelSet<Variant> variants, ModelSet<Flavour> flavours, ModelSet<Type> types) {
                     flavours.each { flavour ->
                         types.each { type ->
                             variants.create {
@@ -157,14 +124,14 @@ class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addVariantTasks(CollectionBuilder<Task> tasks, ManagedSet<Variant> variants) {
+                void addVariantTasks(ModelMap<Task> tasks, ModelSet<Variant> variants) {
                     variants.each {
                         tasks.create(it.name)
                     }
                 }
 
                 @Mutate
-                void addAllVariantsTasks(CollectionBuilder<Task> tasks, ManagedSet<Variant> variants) {
+                void addAllVariantsTasks(ModelMap<Task> tasks, ModelSet<Variant> variants) {
                     tasks.create("allVariants") { allVariants ->
                         variants.each {
                             allVariants.dependsOn it.name

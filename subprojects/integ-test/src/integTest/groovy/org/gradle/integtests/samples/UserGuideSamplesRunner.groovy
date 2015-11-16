@@ -19,7 +19,9 @@ import com.google.common.collect.ArrayListMultimap
 import groovy.io.PlatformLineWriter
 import org.apache.tools.ant.taskdefs.Delete
 import org.gradle.api.Transformer
-import org.gradle.api.reporting.components.ComponentReportOutputFormatter
+import org.gradle.api.reporting.components.JvmComponentReportOutputFormatter
+import org.gradle.api.reporting.components.NativeComponentReportOutputFormatter
+import org.gradle.api.reporting.components.PlayComponentReportOutputFormatter
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
@@ -111,7 +113,11 @@ class UserGuideSamplesRunner extends Runner {
             }
             notifier.fireTestFinished(childDescription)
         }
-        temporaryFolder.testDirectory.deleteDir()
+        try {
+            temporaryFolder.testDirectory.deleteDir()
+        } catch (IOException e) {
+            //ignore
+        }
     }
 
     private void cleanup(SampleRun run) {
@@ -130,13 +136,17 @@ class UserGuideSamplesRunner extends Runner {
             println("Test Id: $run.id, dir: $run.subDir, execution dir: $run.executionDir args: $run.args")
 
             executer.noExtraLogging()
-                    .inDirectory(run.executionDir)
-                    .withArguments(run.args as String[])
-                    .withEnvironmentVars(run.envs)
+                .inDirectory(run.executionDir)
+                .withArguments(run.args as String[])
+                .withEnvironmentVars(run.envs)
 
             if (!GradleContextualExecuter.longLivingProcess) {
                 //suppress daemon usage suggestions
                 executer.withArgument("--no-daemon")
+            }
+
+            if (run.allowDeprecation) {
+                executer.withDeprecationChecksDisabled()
             }
 
             def result = run.expectFailure ? executer.runWithFailure() : executer.run()
@@ -191,12 +201,12 @@ class UserGuideSamplesRunner extends Runner {
         def samplesXml = new File(userguideInfoDir, 'samples.xml')
         assertSamplesGenerated(samplesXml.exists())
         def samples = new XmlParser().parse(samplesXml)
-        def samplesByDir = ArrayListMultimap.create()
+        def samplesByDir = ArrayListMultimap.<String, GradleRun> create()
 
         def children = samples.children()
         assertSamplesGenerated(!children.isEmpty())
 
-        children.each {Node sample ->
+        children.each { Node sample ->
             def id = sample.'@id'
             def dir = sample.'@dir'
             def args = sample.'@args'
@@ -227,10 +237,14 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
 
+        def sonarSamples = samplesByDir.values().findAll { it.subDir.startsWith("sonar") }
+        assert sonarSamples
+        sonarSamples*.allowDeprecation = true
+
         Map<String, SampleRun> samplesById = new TreeMap<String, SampleRun>()
 
         // Remove duplicates for a given directory.
-        samplesByDir.asMap().values().collect {List<GradleRun> dirSamples ->
+        samplesByDir.asMap().values().collect { List<GradleRun> dirSamples ->
             def runs = dirSamples.findAll { it.mustRun }
             if (!runs) {
                 // No samples in this dir have any args, so just run gradle tasks in the dir
@@ -250,7 +264,9 @@ class UserGuideSamplesRunner extends Runner {
             sampleRun.runs << run
         }
 
-        samplesById.nativeComponentReport.runs.each { it.outputFormatter = new ComponentReportOutputFormatter() }
+        samplesById.nativeComponentReport.runs.each { it.outputFormatter = new NativeComponentReportOutputFormatter() }
+        samplesById.playComponentReport.runs.each { it.outputFormatter = new PlayComponentReportOutputFormatter() }
+        samplesById.newJavaComponentReport.runs.each { it.outputFormatter = new JvmComponentReportOutputFormatter() }
 
         if ("true".equals(System.getProperty("org.gradle.integtest.unknownos"))) {
             // Ignore for now
@@ -261,7 +277,7 @@ class UserGuideSamplesRunner extends Runner {
     }
 
     private void assertSamplesGenerated(boolean assertion) {
-        assert assertion : """Couldn't find any samples. Most likely, samples.xml was not generated.
+        assert assertion: """Couldn't find any samples. Most likely, samples.xml was not generated.
 Please run 'gradle docs:userguideDocbook' first"""
     }
 
@@ -276,6 +292,7 @@ Please run 'gradle docs:userguideDocbook' first"""
         boolean ignoreExtraLines
         boolean ignoreLineOrder
         boolean brokenForParallel
+        boolean allowDeprecation
         List files = []
         List dirs = []
 

@@ -17,10 +17,15 @@
 package org.gradle.play.integtest.advanced
 
 import org.gradle.play.integtest.PlayBinaryApplicationIntegrationTest
+import org.gradle.play.integtest.fixtures.AdvancedRunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
-import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.play.integtest.fixtures.PlayApp
 
 class PlayBinaryAdvancedAppIntegrationTest extends PlayBinaryApplicationIntegrationTest {
+    def setup() {
+        runningApp = new AdvancedRunningPlayApp(testDirectory)
+    }
+
     @Override
     PlayApp getPlayApp() {
         return new AdvancedPlayApp()
@@ -45,12 +50,5 @@ class PlayBinaryAdvancedAppIntegrationTest extends PlayBinaryApplicationIntegrat
                 "public/javascripts/test.js",
                 "public/javascripts/test.min.js"
         )
-    }
-
-    @Override
-    void verifyRunningApp() {
-        super.verifyRunningApp()
-
-        AdvancedAppContentVerifier.verifyRunningApp(this)
     }
 }

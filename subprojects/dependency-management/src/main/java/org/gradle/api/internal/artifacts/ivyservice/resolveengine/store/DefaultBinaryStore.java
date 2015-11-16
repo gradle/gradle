@@ -82,7 +82,9 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
                 encoder.close();
             }
         } finally {
-            file.delete();
+            if (file != null) {
+                file.delete();
+            }
             encoder = null;
             file = null;
         }

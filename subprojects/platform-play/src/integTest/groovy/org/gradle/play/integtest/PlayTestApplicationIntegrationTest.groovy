@@ -19,29 +19,16 @@ package org.gradle.play.integtest
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.play.integtest.fixtures.PlayMultiVersionApplicationIntegrationTest
-import org.gradle.util.AvailablePortFinder
 
 abstract class PlayTestApplicationIntegrationTest extends PlayMultiVersionApplicationIntegrationTest {
-    def portFinder = AvailablePortFinder.createPrivate()
-
     def "can run play app tests"() {
-        setup:
-        int testPort = portFinder.nextAvailable
-        buildFile << """
-        model {
-            tasks.testPlayBinary {
-                systemProperty 'testserver.port', $testPort
-            }
-        }
-        """
-
         when:
         succeeds("check")
         then:
         executed(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
-                ":scalaCompilePlayBinary",
+                ":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates",
+                ":compilePlayBinaryScala",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary",
@@ -55,9 +42,9 @@ abstract class PlayTestApplicationIntegrationTest extends PlayMultiVersionApplic
         succeeds("check")
         then:
         skipped(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
-                ":scalaCompilePlayBinary",
+                ":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates",
+                ":compilePlayBinaryScala",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary",

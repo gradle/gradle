@@ -19,8 +19,5 @@ package org.gradle.jvm.internal;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.platform.base.internal.PlatformAwareComponentSpecInternal;
 
-/**
- * Definition of a JVM library component that is to be built by Gradle.
- */
 public interface JvmLibrarySpecInternal extends JvmLibrarySpec, PlatformAwareComponentSpecInternal {
 }

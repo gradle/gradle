@@ -24,10 +24,9 @@ import org.gradle.logging.StyledTextOutput;
 import static org.gradle.logging.StyledTextOutput.Style.UserInput;
 
 /**
- * A {@code TaskSelectionException} is thrown when the tasks to execute cannot be selected due to some user input
- * problem.
+ * A {@code TaskSelectionException} is thrown when the tasks to execute cannot be selected due to some user input problem.
  */
-public class TaskSelectionException extends InvalidUserDataException implements FailureResolutionAware{
+public class TaskSelectionException extends InvalidUserDataException implements FailureResolutionAware {
     public TaskSelectionException(String message) {
         super(message);
     }

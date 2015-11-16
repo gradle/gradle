@@ -42,16 +42,13 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         return new DefaultIvyArtifactName(a.getName(), a.getType(), a.getExt(), a.getExtraAttributes());
     }
 
-    public static DefaultIvyArtifactName forPublishArtifact(PublishArtifact publishArtifact, String moduleName) {
-        Map<String, String> extraAttributes = new HashMap<String, String>();
-        if (GUtil.isTrue(publishArtifact.getClassifier())) {
-            extraAttributes.put(CLASSIFIER, publishArtifact.getClassifier());
-        }
+    public static DefaultIvyArtifactName forPublishArtifact(PublishArtifact publishArtifact) {
         String name = publishArtifact.getName();
-        if (!GUtil.isTrue(name)) {
-            name = moduleName;
+        if (name == null) {
+            name = publishArtifact.getFile().getName();
         }
-        return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), extraAttributes);
+        String classifier = GUtil.elvis(publishArtifact.getClassifier(), null);
+        return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
     }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension, Map<String, String> attributes) {

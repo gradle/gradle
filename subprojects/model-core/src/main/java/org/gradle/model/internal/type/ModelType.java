@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.type;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
@@ -126,21 +125,28 @@ public abstract class ModelType<T> {
         }
     }
 
-    @Nullable
-    public ModelType<? extends T> asSubclass(ModelType<?> modelType) {
-        if (isWildcard() || modelType.isWildcard()) {
-            return null;
+    /**
+     * Casts this {@code ModelType} object to represent a subclass of the class
+     * represented by the specified class object.  Checks that the cast
+     * is valid, and throws a {@code ClassCastException} if it is not.  If
+     * this method succeeds, it always returns a reference to this {@code ModelType} object.
+     *
+     * @throws ClassCastException if this cannot be cast as the subtype of the given type.
+     * @throws IllegalStateException if this is a wildcard.
+     * @throws IllegalArgumentException if the given type is a wildcard.
+     */
+    public <U> ModelType<? extends U> asSubtype(ModelType<U> modelType) {
+        if (isWildcard()) {
+            throw new IllegalStateException(this + " is a wildcard type");
+        }
+        if (modelType.isWildcard()) {
+            throw new IllegalArgumentException(modelType + " is a wildcard type");
         }
 
-        Class<? super T> thisClass = getRawClass();
-        Class<?> otherClass = modelType.getRawClass();
-        boolean isSubclass = thisClass.isAssignableFrom(otherClass) && !thisClass.equals(otherClass);
-
-        if (isSubclass) {
-            @SuppressWarnings("unchecked") ModelType<? extends T> cast = (ModelType<? extends T>) modelType;
-            return cast;
+        if (modelType.getRawClass().isAssignableFrom(getRawClass())) {
+            return Cast.uncheckedCast(this);
         } else {
-            return null;
+            throw new ClassCastException(String.format("'%s' cannot be cast as a subtype of '%s'", this, modelType));
         }
     }
 
@@ -205,33 +211,30 @@ public abstract class ModelType<T> {
 
     public List<Class<?>> getAllClasses() {
         ImmutableList.Builder<Class<?>> builder = ImmutableList.builder();
-        addAllClasses(builder);
+        wrapper.collectClasses(builder);
         return builder.build();
     }
 
-    private void addAllClasses(ImmutableCollection.Builder<Class<?>> builder) {
-        Type runtimeType = getType();
-        if (runtimeType instanceof Class) {
-            builder.add((Class<?>) runtimeType);
-        } else if (runtimeType instanceof ParameterizedType) {
-            builder.add((Class<?>) ((ParameterizedType) runtimeType).getRawType());
-            for (Type type : ((ParameterizedType) runtimeType).getActualTypeArguments()) {
-                ModelType.of(type).addAllClasses(builder);
-            }
-        } else if (runtimeType instanceof WildcardType) {
-            for (Type type : ((WildcardType) runtimeType).getLowerBounds()) {
-                ModelType.of(type).addAllClasses(builder);
-            }
-            for (Type type : ((WildcardType) runtimeType).getUpperBounds()) {
-                ModelType.of(type).addAllClasses(builder);
-            }
-        } else {
-            throw new IllegalArgumentException("Unable to deal with type " + runtimeType + " (" + runtimeType.getClass() + ")");
-        }
+    public String getName() {
+        return wrapper.getRepresentation(true);
+    }
+
+    /**
+     * Returns a human-readable name for the type.
+     */
+    public String getDisplayName() {
+        return wrapper.getRepresentation(false);
+    }
+
+    /**
+     * Returns a human-readable name for the given type.
+     */
+    public static String getDisplayName(ModelType<?> type) {
+        return type == null ? null : type.getDisplayName();
     }
 
     public String toString() {
-        return wrapper.getRepresentation();
+        return wrapper.getRepresentation(true);
     }
 
     @Override
@@ -317,16 +320,17 @@ public abstract class ModelType<T> {
     private static final Type[] EMPTY_TYPE_ARRAY = new Type[0];
     private static final TypeWrapper[] EMPTY_TYPE_WRAPPER_ARRAY = new TypeWrapper[0];
 
+    @Nullable
     private static TypeWrapper wrap(Type type) {
         if (type == null) {
-            return NullTypeWrapper.INSTANCE;
+            return null;
         } else if (type instanceof Class) {
             return new ClassTypeWrapper((Class<?>) type);
         } else if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
             return new ParameterizedTypeWrapper(
                     toWrappers(parameterizedType.getActualTypeArguments()),
-                    wrap(parameterizedType.getRawType()),
+                    (ClassTypeWrapper) wrap(parameterizedType.getRawType()),
                     wrap(parameterizedType.getOwnerType()),
                     type.hashCode()
             );
@@ -337,6 +341,16 @@ public abstract class ModelType<T> {
                     toWrappers(wildcardType.getLowerBounds()),
                     type.hashCode()
             );
+        } else if (type instanceof TypeVariable) {
+            TypeVariable<?> typeVariable = (TypeVariable<?>) type;
+            return new TypeVariableTypeWrapper<GenericDeclaration>(
+                typeVariable.getName(),
+                toWrappers(typeVariable.getBounds()),
+                type.hashCode()
+            );
+        } else if (type instanceof GenericArrayType) {
+            GenericArrayType genericArrayType = (GenericArrayType) type;
+            return new GenericArrayTypeWrapper(wrap(genericArrayType.getGenericComponentType()), type.hashCode());
         } else {
             throw new IllegalArgumentException("cannot wrap type of type " + type.getClass());
         }

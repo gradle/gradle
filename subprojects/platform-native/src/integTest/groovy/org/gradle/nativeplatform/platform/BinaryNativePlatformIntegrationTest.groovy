@@ -26,11 +26,13 @@ import org.gradle.nativeplatform.fixtures.binaryinfo.DumpbinBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
+@LeaksFileHandles
 class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def testApp = new PlatformDetectingTestApp()
     def os = OperatingSystem.current()
@@ -212,9 +214,6 @@ model {
         x86_64 {
             architecture "x86_64"
         }
-        itanium {
-            architecture "ia-64"
-        }
         arm {
             architecture "arm"
         }
@@ -223,7 +222,6 @@ model {
         main {
             targetPlatform "x86"
             targetPlatform "x86_64"
-            targetPlatform "itanium"
             targetPlatform "arm"
         }
     }
@@ -246,14 +244,6 @@ model {
             executable("build/binaries/mainExecutable/x86_64/main").binaryInfo.arch.name == "x86_64"
             executable("build/binaries/mainExecutable/x86_64/main").exec().out == "amd64 ${os.familyName}" * 2
             binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/mainExecutable/x86_64/mainCpp")).arch.name == "x86_64"
-        }
-
-        // Itanium only supported on visualCpp
-        if (toolChain.visualCpp) {
-            executable("build/binaries/mainExecutable/itanium/main").binaryInfo.arch.name == "ia-64"
-            binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/mainExecutable/itanium/mainCpp")).arch.name == "ia-64"
-        } else {
-            executable("build/binaries/mainExecutable/itanium/main").assertDoesNotExist()
         }
 
         // ARM only supported on visualCpp 2013
@@ -297,10 +287,13 @@ model {
     components {
         main.targetPlatform "$currentOs"
     }
-}
-
-binaries.matching({ it.targetPlatform.operatingSystem.windows }).all {
-    cppCompiler.define "FRENCH"
+    binaries {
+        all {
+            if (targetPlatform.operatingSystem.windows) {
+                cppCompiler.define "FRENCH"
+            }
+        }
+    }
 }
         """
         and:
@@ -368,7 +361,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: org.gradle.nativeplatform.plugins.NativeComponentModelPlugin\$Rules#createNativeBinaries")
+        failure.assertHasCause("Exception thrown while executing model rule: NativeComponentRules#createBinaries")
         failure.assertHasCause("Invalid NativePlatform: unknown")
     }
 

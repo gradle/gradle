@@ -23,9 +23,6 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "managed types can have cyclical managed type references"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Parent {
                 String getName()
@@ -42,13 +39,13 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
             class RulePlugin extends RuleSource {
                 @Model
-                void createParent(Parent parent) {
+                void parent(Parent parent) {
                     parent.name = "parent"
                     parent.child.parent = parent
                 }
 
                 @Mutate
-                void addEchoTask(CollectionBuilder<Task> tasks, Parent parent) {
+                void addEchoTask(ModelMap<Task> tasks, Parent parent) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $parent.child.parent.name"
@@ -70,9 +67,6 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "managed types can have cyclical managed type references where more than two types constitute the cycle"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface A {
                 String getName()
@@ -94,13 +88,13 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
             class RulePlugin extends RuleSource {
                 @Model
-                void createA(A a) {
+                void a(A a) {
                     a.name = "a"
                     a.b.c.a = a
                 }
 
                 @Mutate
-                void addEchoTask(CollectionBuilder<Task> tasks, A a) {
+                void addEchoTask(ModelMap<Task> tasks, A a) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $a.b.c.a.name"

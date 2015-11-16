@@ -31,6 +31,7 @@ import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -87,7 +88,7 @@ class JavaPluginTest {
 
     @Test public void addsJarAsPublication() {
         javaPlugin.apply(project)
-        
+
         def runtimeConfiguration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
         assertThat(runtimeConfiguration.artifacts.collect { it.archiveTask }, equalTo([project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)]))
 
@@ -145,11 +146,15 @@ class JavaPluginTest {
 
     @Test public void createsStandardTasksAndAppliesMappings() {
         javaPlugin.apply(project)
+        new TestFile(project.file("src/main/java/File.java")) << "foo"
+        new TestFile(project.file("src/main/resources/thing.txt")) << "foo"
+        new TestFile(project.file("src/test/java/File.java")) << "foo"
+        new TestFile(project.file("src/test/resources/thing.txt")) << "foo"
 
         def task = project.tasks[JavaPlugin.PROCESS_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
         assertThat(task, TaskDependencyMatchers.dependsOn())
-        assertThat(task.source, FileCollectionMatchers.sameCollection(project.sourceSets.main.resources))
+        assertEquals(task.source.files, project.sourceSets.main.resources.files)
         assertThat(task.destinationDir, equalTo(project.sourceSets.main.output.resourcesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_JAVA_TASK_NAME]
@@ -157,8 +162,8 @@ class JavaPluginTest {
         assertThat(task, TaskDependencyMatchers.dependsOn())
         assertThat(task.classpath, sameInstance(project.sourceSets.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.sourceSets.main.output.classesDir))
-        assertThat(task.source, FileCollectionMatchers.sameCollection(project.sourceSets.main.java))
-        
+        assertEquals(task.source.files, project.sourceSets.main.java.files)
+
         task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
         assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.PROCESS_RESOURCES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME))
@@ -166,7 +171,7 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
         assertThat(task, TaskDependencyMatchers.dependsOn())
-        assertThat(task.source, FileCollectionMatchers.sameCollection(project.sourceSets.test.resources))
+        assertEquals(task.source.files, project.sourceSets.test.resources.files)
         assertThat(task.destinationDir, equalTo(project.sourceSets.test.output.resourcesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME]
@@ -174,7 +179,7 @@ class JavaPluginTest {
         assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.classpath, sameInstance(project.sourceSets.test.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.sourceSets.test.output.classesDir))
-        assertThat(task.source, FileCollectionMatchers.sameCollection(project.sourceSets.test.java))
+        assertEquals(task.source.files, project.sourceSets.test.java.files)
 
         task = project.tasks[JavaPlugin.TEST_CLASSES_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))

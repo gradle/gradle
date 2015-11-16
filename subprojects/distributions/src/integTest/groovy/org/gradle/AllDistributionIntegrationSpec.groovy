@@ -30,7 +30,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getLibJarsCount() {
-        171
+        158
     }
 
     def allZipContents() {
@@ -56,7 +56,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
                 buildAndGradleDirs << it
             }
         }
-        buildAndGradleDirs.empty
+        buildAndGradleDirs == []
 
         // Javadoc
         contentsDir.file('docs/javadoc/index.html').assertIsFile()

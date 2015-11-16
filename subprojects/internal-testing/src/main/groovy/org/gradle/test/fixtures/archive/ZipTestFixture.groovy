@@ -16,13 +16,13 @@
 
 package org.gradle.test.fixtures.archive
 
-import java.util.zip.ZipFile
+import org.apache.tools.zip.ZipFile
 
 class ZipTestFixture extends ArchiveTestFixture {
-    ZipTestFixture(File file) {
-        def zipFile = new ZipFile(file)
+    ZipTestFixture(File file, String encoding=null) {
+        def zipFile = new ZipFile(file, encoding)
         try {
-            def entries = zipFile.entries()
+            def entries = zipFile.getEntries()
             while (entries.hasMoreElements()) {
                 def entry = entries.nextElement()
                 def content = zipFile.getInputStream(entry).text

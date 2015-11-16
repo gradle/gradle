@@ -22,6 +22,7 @@ import org.gradle.cache.internal.filelock.LockInfoSerializer
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.internal.Factory
+import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.id.IdGenerator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,7 +35,8 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 
 abstract class AbstractFileLockManagerTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def metaDataProvider = Mock(ProcessMetaDataProvider)
     def generator = Stub(IdGenerator)
     def contentionHandler = Stub(FileLockContentionHandler)
@@ -46,6 +48,8 @@ abstract class AbstractFileLockManagerTest extends Specification {
     TestFile testDir
     TestFile testDirLock
 
+    List<Closeable> openedLocks = []
+
     def setup() {
         testFile = tmpDir.createFile("state.bin")
         testFileLock = tmpDir.file(testFile.name + ".lock")
@@ -56,6 +60,10 @@ abstract class AbstractFileLockManagerTest extends Specification {
         metaDataProvider.processDisplayName >> 'process'
         contentionHandler.reservePort() >> 34
         generator.generateId() >> 678L
+    }
+
+    def cleanup() {
+        CompositeStoppable.stoppable(openedLocks.toArray()).stop()
     }
 
     def "readFile throws integrity exception when not cleanly unlocked file"() {
@@ -94,7 +102,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         unlockUncleanly()
 
         when:
-        createLock(Exclusive).writeFile { }
+        createLock(Exclusive).writeFile {}
 
         then:
         notThrown FileIntegrityViolationException
@@ -228,8 +236,8 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
         when:
         def lock = createLock(Exclusive)
-        lock.writeFile({ })
-        lock.updateFile({throw failure} as Runnable)
+        lock.writeFile({})
+        lock.updateFile({ throw failure } as Runnable)
 
         then:
         RuntimeException e = thrown()
@@ -489,7 +497,9 @@ abstract class AbstractFileLockManagerTest extends Specification {
     abstract void isVersionLockFileWithInfoRegion(TestFile lockFile, boolean dirty, String processIdentifier, String operationalName)
 
     FileLock createLock(LockMode lockMode, File file = testFile, FileLockManager lockManager = manager) {
-        lockManager.lock(file, options().withMode(lockMode), "foo", "operation")
+        def lock = lockManager.lock(file, options().withMode(lockMode), "foo", "operation")
+        openedLocks << lock
+        lock
     }
 
     protected abstract LockOptionsBuilder options();
@@ -497,7 +507,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
     protected void writeFile(FileLockManager lockManager = manager) {
         def lock = lockManager.lock(testFile, options().withMode(Exclusive), "foo", "operation")
         try {
-            lock.writeFile { }
+            lock.writeFile {}
         } finally {
             lock.close()
         }
@@ -510,7 +520,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
             lock.writeFile {
                 throw failure
             }
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             if (e != failure) {
                 throw e
             }

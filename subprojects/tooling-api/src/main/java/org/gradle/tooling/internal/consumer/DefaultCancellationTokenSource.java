@@ -29,7 +29,7 @@ public final class DefaultCancellationTokenSource implements CancellationTokenSo
     }
 
     public void cancel() {
-        tokenImpl.token.doCancel();
+        tokenImpl.token.cancel();
     }
 
     public CancellationToken token() {

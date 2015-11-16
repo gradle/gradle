@@ -15,30 +15,31 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileTree;
+import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.internal.Cast;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class UnionFileTree extends CompositeFileTree {
-    private final Set<FileTree> sourceTrees;
+    private final Set<FileTreeInternal> sourceTrees;
     private final String displayName;
 
-    public UnionFileTree(FileTree... sourceTrees) {
+    public UnionFileTree(FileTreeInternal... sourceTrees) {
         this("file tree", Arrays.asList(sourceTrees));
     }
 
-    public UnionFileTree(String displayName, FileTree... sourceTrees) {
+    public UnionFileTree(String displayName, FileTreeInternal... sourceTrees) {
         this(displayName, Arrays.asList(sourceTrees));
     }
 
-    public UnionFileTree(String displayName, Collection<? extends FileTree> sourceTrees) {
+    public UnionFileTree(String displayName, Collection<? extends FileTreeInternal> sourceTrees) {
         this.displayName = displayName;
-        this.sourceTrees = new LinkedHashSet<FileTree>(sourceTrees);
+        this.sourceTrees = Sets.newLinkedHashSet(sourceTrees);
     }
 
     @Override
@@ -47,7 +48,7 @@ public class UnionFileTree extends CompositeFileTree {
     }
 
     @Override
-    public void resolve(FileCollectionResolveContext context) {
+    public void visitContents(FileCollectionResolveContext context) {
         context.add(sourceTrees);
     }
 
@@ -56,8 +57,8 @@ public class UnionFileTree extends CompositeFileTree {
         if (!(source instanceof FileTree)) {
             throw new UnsupportedOperationException(String.format("Can only add FileTree instances to %s.", getDisplayName()));
         }
-        
-        sourceTrees.add((FileTree) source);
+
+        sourceTrees.add(Cast.cast(FileTreeInternal.class, source));
         return this;
     }
 }

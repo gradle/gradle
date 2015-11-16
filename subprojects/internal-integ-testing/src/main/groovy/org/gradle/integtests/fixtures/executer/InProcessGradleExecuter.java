@@ -23,20 +23,17 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestMetaData;
-import org.gradle.initialization.FixedBuildCancellationToken;
-import org.gradle.initialization.NoOpBuildEventConsumer;
+import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.invocation.BuildAction;
@@ -53,7 +50,7 @@ import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.launcher.exec.ReportedException;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -67,17 +64,8 @@ import org.hamcrest.Matchers;
 import java.io.File;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
@@ -88,14 +76,19 @@ import static org.junit.Assert.*;
 
 class InProcessGradleExecuter extends AbstractGradleExecuter {
     private static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
-            .displayName("Global services")
-            .parent(LoggingServiceRegistry.newCommandLineProcessLogging())
-            .parent(NativeServicesTestFixture.getInstance())
-            .provider(new GlobalScopeServices(true))
-            .build();
+        .displayName("Global services")
+        .parent(LoggingServiceRegistry.newCommandLineProcessLogging())
+        .parent(NativeServicesTestFixture.getInstance())
+        .provider(new GlobalScopeServices(true))
+        .build();
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
 
     public static final TestFile COMMON_TMP = new TestFile(new File("build/tmp"));
+
+    static {
+        LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
+        loggingManager.start();
+    }
 
     InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
@@ -109,6 +102,10 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected ExecutionResult doRun() {
+        if (isUseDaemon()) {
+            return doStart().waitForFinish();
+        }
+
         StandardOutputListener outputListener = new OutputListenerImpl();
         StandardOutputListener errorListener = new OutputListenerImpl();
         BuildListenerImpl buildListener = new BuildListenerImpl();
@@ -124,6 +121,10 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected ExecutionFailure doRunWithFailure() {
+        if (isUseDaemon()) {
+            return doStart().waitForFailure();
+        }
+
         StandardOutputListener outputListener = new OutputListenerImpl();
         StandardOutputListener errorListener = new OutputListenerImpl();
         BuildListenerImpl buildListener = new BuildListenerImpl();
@@ -143,18 +144,26 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected GradleHandle doStart() {
-        return new ForkingGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), new Factory<JavaExecHandleBuilder>() {
+        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder()).start();
+    }
+
+    private Factory<JavaExecHandleBuilder> getJavaExecBuilder() {
+        return new Factory<JavaExecHandleBuilder>() {
             public JavaExecHandleBuilder create() {
+                GradleInvocation invocation = buildInvocation();
                 JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver());
                 builder.workingDir(getWorkingDir());
-                Set<File> classpath = new DefaultModuleRegistry().getFullClasspath();
+                Collection<File> classpath = GLOBAL_SERVICES.get(ModuleRegistry.class).getAdditionalClassPath().getAsFiles();
                 builder.classpath(classpath);
+                builder.jvmArgs(invocation.launcherJvmArgs);
+
                 builder.setMain(Main.class.getName());
-                builder.args(getAllArgs());
-                builder.setStandardInput(getStdin());
+                builder.args(invocation.args);
+                builder.setStandardInput(connectStdIn());
+
                 return builder;
             }
-        }).start();
+        };
     }
 
     private BuildResult doRun(StandardOutputListener outputListener, StandardOutputListener errorListener, BuildListenerImpl listener) {
@@ -165,10 +174,12 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         File originalUserDir = new File(originalSysProperties.getProperty("user.dir"));
         Map<String, String> originalEnv = new HashMap<String, String>(System.getenv());
 
+        GradleInvocation invocation = buildInvocation();
+
         // Augment the environment for the execution
-        System.setIn(getStdin());
+        System.setIn(connectStdIn());
         processEnvironment.maybeSetProcessDir(getWorkingDir());
-        for (Map.Entry<String, String> entry : getEnvironmentVars().entrySet()) {
+        for (Map.Entry<String, String> entry : invocation.environmentVars.entrySet()) {
             processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), entry.getValue());
         }
         Map<String, String> implicitJvmSystemProperties = getImplicitJvmSystemProperties();
@@ -182,7 +193,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         CommandLineParser parser = new CommandLineParser();
         ParametersConverter parametersConverter = new ParametersConverter();
         parametersConverter.configure(parser);
-        Parameters parameters = parametersConverter.convert(parser.parse(getAllArgs()), new Parameters(startParameter));
+        parametersConverter.convert(parser.parse(getAllArgs()), new Parameters(startParameter));
 
         BuildActionExecuter<BuildActionParameters> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecuter.class);
 
@@ -193,19 +204,22 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             // TODO: Reuse more of BuildActionsFactory
             BuildAction action = new ExecuteBuildAction(startParameter);
             BuildActionParameters buildActionParameters = new DefaultBuildActionParameters(
-                    System.getProperties(),
-                    System.getenv(),
-                    SystemProperties.getInstance().getCurrentDir(),
-                    startParameter.getLogLevel(),
-                    DaemonUsage.EXPLICITLY_DISABLED,
-                    parameters.getContinuousModeParameters().isEnabled());
+                System.getProperties(),
+                System.getenv(),
+                SystemProperties.getInstance().getCurrentDir(),
+                startParameter.getLogLevel(),
+                DaemonUsage.EXPLICITLY_DISABLED,
+                startParameter.isContinuous(),
+                interactive,
+                ClassPath.EMPTY
+            );
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(
-                    new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),
-                            ManagementFactory.getRuntimeMXBean().getStartTime()),
-                    new FixedBuildCancellationToken(),
-                    new NoOpBuildEventConsumer(),
-                    outputListener, errorListener);
-            actionExecuter.execute(action, buildRequestContext, buildActionParameters);
+                new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),
+                    System.currentTimeMillis()),
+                new DefaultBuildCancellationToken(),
+                new NoOpBuildEventConsumer(),
+                outputListener, errorListener);
+            actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
             return new BuildResult(null, null);
         } catch (ReportedException e) {
             return new BuildResult(null, e.getCause());
@@ -213,7 +227,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             // Restore the environment
             System.setProperties(originalSysProperties);
             processEnvironment.maybeSetProcessDir(originalUserDir);
-            for (String envVar : getEnvironmentVars().keySet()) {
+            for (String envVar : invocation.environmentVars.keySet()) {
                 String oldValue = originalEnv.get(envVar);
                 if (oldValue != null) {
                     processEnvironment.maybeSetEnvironmentVariable(envVar, oldValue);
@@ -327,6 +341,12 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
             outputResult.assertOutputEquals(expectedOutput, ignoreExtraLines, ignoreLineOrder);
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertOutputContains(String expectedOutput) {
+            outputResult.assertOutputContains(expectedOutput);
             return this;
         }
 

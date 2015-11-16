@@ -16,36 +16,10 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.internal.protocol.InternalFailure;
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
-
-import java.util.List;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
-public interface InternalTestResult extends InternalProtocolInterface {
-    /**
-     * Returns the time the test execution started.
-     *
-     * @return The start time
-     */
-    long getStartTime();
-
-    /**
-     * Returns the time the test execution finished.
-     *
-     * @return The finish time
-     */
-    long getEndTime();
-
-    /**
-     * Returns the failures that occurred while running the test, if any.
-     *
-     * @return The failures that occurred
-     */
-    List<? extends InternalFailure> getFailures();
-
+public interface InternalTestResult extends InternalOperationResult {
 }

@@ -131,7 +131,7 @@ public class DefaultFileOperationsTest extends Specification {
 
     def createsTarFileTree() {
         TestFile file = tmpDir.file('path')
-        resolver.resolveResource('path') >> new FileResource(file)
+        resolver.resolve('path') >> file
 
         when:
         def tarTree = fileOperations.tarTree('path')
@@ -142,7 +142,7 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def copiesFiles() {
-        FileTree fileTree = Mock(FileTree)
+        def fileTree = Mock(FileTreeInternal)
         resolver.resolveFilesAsTree(_) >> fileTree
         // todo we should make this work so that we can be more specific
 //        resolver.resolveFilesAsTree(['file'] as Object[]) >> fileTree

@@ -16,14 +16,51 @@
 
 package org.gradle.jvm;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.LibrarySpec;
 import org.gradle.platform.base.PlatformAwareComponentSpec;
+
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Definition of a JVM library component that is to be built by Gradle.
  */
-@Incubating @HasInternalProtocol
+@Incubating
+@HasInternalProtocol
 public interface JvmLibrarySpec extends LibrarySpec, JvmComponentSpec, PlatformAwareComponentSpec {
+
+    /**
+     * Specify the public API of this library.
+     */
+    void api(Action<? super JvmApiSpec> configureAction);
+
+    /**
+     * The public API of this library.
+     */
+    JvmApiSpec getApi();
+
+    /**
+     * The set of packages that comprise this library's public API.
+     */
+    Set<String> getExportedPackages();
+
+    /**
+     * Specify the component-level dependencies of this library.
+     */
+    DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);
+
+    /**
+     * The API-level dependencies of this library.
+     */
+    Collection<DependencySpec> getApiDependencies();
+
+    /**
+     * The component-level dependencies of this library.
+     */
+    Collection<DependencySpec> getDependencies();
 }

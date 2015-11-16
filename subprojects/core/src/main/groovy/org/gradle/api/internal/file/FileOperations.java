@@ -49,7 +49,7 @@ public interface FileOperations {
 
     FileTree tarTree(Object tarPath);
 
-    CopySpec copySpec(Action<? super CopySpec> action);
+    CopySpec copySpec();
 
     WorkResult copy(Action<? super CopySpec> action);
 

@@ -19,11 +19,12 @@ package org.gradle.api.reporting.model;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.reporting.model.internal.ModelReportRenderer;
+import org.gradle.api.internal.tasks.options.Option;
+import org.gradle.api.reporting.model.internal.ModelNodeRenderer;
+import org.gradle.api.reporting.model.internal.TextModelReportRenderer;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 
@@ -31,9 +32,22 @@ import javax.inject.Inject;
 
 /**
  * Displays some details about the configuration model of the project.
+ * An instance of this type is used when you execute the {@code model} task from the command-line.
  */
 @Incubating
 public class ModelReport extends DefaultTask {
+
+    private boolean showHidden;
+
+    @Option(option = "showHidden", description = "Show hidden model elements.")
+    public void setShowHidden(boolean showHidden) {
+        this.showHidden = showHidden;
+    }
+
+    public boolean isShowHidden() {
+        return showHidden;
+    }
+
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {
         throw new UnsupportedOperationException();
@@ -47,18 +61,17 @@ public class ModelReport extends DefaultTask {
     @TaskAction
     public void report() {
         Project project = getProject();
-
         StyledTextOutput textOutput = getTextOutputFactory().create(ModelReport.class);
-        ModelReportRenderer renderer = new ModelReportRenderer();
-        renderer.setOutput(textOutput);
+        ModelNodeRenderer renderer = new ModelNodeRenderer(isShowHidden());
 
-        renderer.startProject(project);
+        TextModelReportRenderer textModelReportRenderer = new TextModelReportRenderer(renderer);
 
-        // Configure the world
-        ModelNode rootNode = getModelRegistry().realizeNode(ModelPath.ROOT);
-        renderer.render(rootNode);
+        textModelReportRenderer.setOutput(textOutput);
+        textModelReportRenderer.startProject(project);
 
-        renderer.completeProject(project);
-        renderer.complete();
+        textModelReportRenderer.render(getModelRegistry().realizeNode(ModelPath.ROOT));
+
+        textModelReportRenderer.completeProject(project);
+        textModelReportRenderer.complete();
     }
 }

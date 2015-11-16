@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model.internal
 import org.gradle.api.Project
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency
+import org.gradle.util.DeprecationLogger
 
 class ProjectDependencyBuilder {
     ProjectDependency build(Project project, String declaredConfigurationName) {
@@ -28,8 +29,13 @@ class ProjectDependencyBuilder {
             name = project.name
         }
         def out = new ProjectDependency('/' + name, project.path)
-        out.exported = true
-        out.declaredConfigurationName = declaredConfigurationName
+        out.exported = false
+        DeprecationLogger.whileDisabled(new Runnable() {
+            @Override
+            void run() {
+                out.declaredConfigurationName = declaredConfigurationName
+            }
+        })
         out
     }
 }

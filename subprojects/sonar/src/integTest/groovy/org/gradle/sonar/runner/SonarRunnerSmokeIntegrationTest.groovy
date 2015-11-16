@@ -20,12 +20,14 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
 @TargetVersions(['default', '2.4'])
+@LeaksFileHandles
 class SonarRunnerSmokeIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule

@@ -36,9 +36,17 @@ task echo << {
     }
 }
 '''
+        executer.withStdinPipe(new PipedOutputStream() {
+            @Override
+            void connect(PipedInputStream snk) throws IOException {
+                super.connect(snk)
+                write(TextUtil.toPlatformLineSeparators("abc\n123").bytes)
+                close()
+            }
+        })
 
         when:
-        executer.withStdIn("abc\n123").withArguments("-s", "--info")
+        executer.withArguments("-s", "--info")
         run "echo"
 
         then:
@@ -46,9 +54,6 @@ task echo << {
     }
 
     def "build can read stdin when stdin has unbounded length"() {
-        def writeEnd = new PipedOutputStream()
-        def readEnd = new PipedInputStream(writeEnd)
-
         given:
         requireOwnGradleUserHomeDir()
         buildFile << '''
@@ -63,11 +68,14 @@ task echo << {
     }
 }
 '''
-        and:
-        writeEnd.write(TextUtil.toPlatformLineSeparators("abc\n123\nclose\n").bytes)
-
         when:
-        executer.withStdIn(readEnd).withArguments("-s", "--info")
+        executer.withArguments("-s", "--info").withStdinPipe(new PipedOutputStream() {
+            @Override
+            void connect(PipedInputStream snk) throws IOException {
+                super.connect(snk)
+                write(TextUtil.toPlatformLineSeparators("abc\n123\nclose\n").bytes)
+            }
+        })
         run "echo"
 
         then:

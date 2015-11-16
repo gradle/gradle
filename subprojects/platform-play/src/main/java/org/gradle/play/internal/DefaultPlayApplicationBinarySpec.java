@@ -26,10 +26,10 @@ import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
-import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.PublicAssets;
+import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
@@ -42,11 +42,10 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     private Map<LanguageSourceSet, ScalaLanguageSourceSet> generatedScala = Maps.newHashMap();
     private Map<LanguageSourceSet, JavaScriptSourceSet> generatedJavaScript = Maps.newHashMap();
     private PlayPlatform platform;
+    private PlayToolChainInternal toolChain;
     private File jarFile;
     private File assetsJarFile;
     private FileCollection classpath;
-    private ToolResolver toolResolver;
-    private PlayApplicationSpec application;
 
     @Override
     protected String getTypeName() {
@@ -55,16 +54,15 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     @Override
     public PlayApplicationSpec getApplication() {
-        return application;
-    }
-
-    @Override
-    public void setApplication(PlayApplicationSpec application) {
-        this.application = application;
+        return (PlayApplicationSpec) getComponent();
     }
 
     public PlayPlatform getTargetPlatform() {
         return platform;
+    }
+
+    public PlayToolChainInternal getToolChain() {
+        return toolChain;
     }
 
     public File getJarFile() {
@@ -73,6 +71,10 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     public void setTargetPlatform(PlayPlatform platform) {
         this.platform = platform;
+    }
+
+    public void setToolChain(PlayToolChainInternal toolChain) {
+        this.toolChain = toolChain;
     }
 
     public void setJarFile(File file) {
@@ -117,17 +119,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     @Override
     public BinaryBuildAbility getBinaryBuildAbility() {
-        return new ToolSearchBuildAbility(toolResolver.checkToolAvailability(getTargetPlatform()));
-    }
-
-    @Override
-    public void setToolResolver(ToolResolver toolResolver) {
-        this.toolResolver = toolResolver;
-    }
-
-    @Override
-    public ToolResolver getToolResolver() {
-        return toolResolver;
+        return new ToolSearchBuildAbility(getToolChain().select(getTargetPlatform()));
     }
 
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {

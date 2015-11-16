@@ -20,8 +20,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.protocol.BuildStarted;
-import org.gradle.launcher.daemon.protocol.CommandFailure;
 import org.gradle.launcher.daemon.protocol.DaemonUnavailable;
+import org.gradle.launcher.daemon.protocol.Failure;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
@@ -56,7 +56,7 @@ public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
             LOGGER.info("Daemon will not handle the command {} because is unavailable: {}", build, e.getMessage());
             execution.getConnection().daemonUnavailable(new DaemonUnavailable(e.getMessage()));
         } catch (DaemonStoppedException e) {
-            execution.getConnection().completed(new CommandFailure(e));
+            execution.getConnection().completed(new Failure(e));
         }
     }
 }

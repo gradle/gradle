@@ -22,6 +22,8 @@ import org.gradle.test.fixtures.maven.M2Installation
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
+import static org.gradle.util.TextUtil.normaliseFileSeparators
+
 /**
  * Tests for bugfixes to maven publishing scenarios
  */
@@ -212,5 +214,46 @@ subprojects {
         dependency.exclusions[1].artifactId == "*"
         dependency.exclusions[2].groupId == "*"
         dependency.exclusions[2].artifactId == "dep2"
+    }
+
+    @Issue("GRADLE-3318")
+    def "can reference rule-source tasks from sub-projects"() {
+        given:
+        def repo = file("maven").createDir()
+        settingsFile << """
+        include 'sub1'
+        include 'sub2'
+        """
+
+        [file("sub1/build.gradle"), file("sub2/build.gradle")].each { File f ->
+            f << """
+            apply plugin: "java"
+            apply plugin: "maven-publish"
+
+            publishing {
+                repositories{ maven{ url '${normaliseFileSeparators(repo.getAbsolutePath())}'}}
+                publications {
+                    maven(MavenPublication) {
+                        groupId 'org.gradle.sample'
+                        version '1.1'
+                        from components.java
+                    }
+                }
+            }"""
+        }
+
+        buildFile << """
+        apply plugin: "maven-publish"
+
+        task customPublish(dependsOn: subprojects.collect { Project p -> p.tasks.withType(PublishToMavenLocal)})"""
+        when:
+        succeeds('customPublish')
+
+        then:
+        output.contains(":sub1:generatePomFileForMavenPublication")
+        output.contains(":sub1:publishMavenPublicationToMavenLocal")
+        output.contains(":sub2:generatePomFileForMavenPublication")
+        output.contains(":sub2:publishMavenPublicationToMavenLocal")
+        output.contains(":customPublish")
     }
 }

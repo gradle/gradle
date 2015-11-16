@@ -13,51 +13,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.launcher.daemon.bootstrap
 
-import spock.lang.Specification
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-class DaemonOutputConsumerTest extends Specification {
-
-    def consumer = new DaemonOutputConsumer()
+class DaemonOutputConsumerTest extends ConcurrentSpec {
+    def consumer = new DaemonOutputConsumer(new ByteArrayInputStream([] as byte[]))
 
     def "input process and name cannot be null"() {
         when:
-        consumer.connectStreams((Process) null, "foo")
+        consumer.connectStreams((Process) null, "foo", executorFactory)
         then:
         thrown(IllegalArgumentException)
 
         when:
-        consumer.connectStreams(Mock(Process), null)
+        consumer.connectStreams(Mock(Process), null, executorFactory)
         then:
         thrown(IllegalArgumentException)
     }
 
-    def "consumes input until EOF"() {
+    def "forwards process input"() {
+        def consumer = new DaemonOutputConsumer(new ByteArrayInputStream("send this to the process".bytes))
+        def receivedInput = new ByteArrayOutputStream()
+        def process = process("", receivedInput)
+
         when:
-        consumer.connectStreams(new ByteArrayInputStream('hey Joe!'.bytes) , "cool process")
+        consumer.connectStreams(process , "cool process", executorFactory)
+        consumer.start()
+        consumer.stop()
+
+        then:
+        receivedInput.toString() == "send this to the process"
+    }
+
+    def "consumes process output until EOF"() {
+        def process = process('hey Joe!')
+
+        when:
+        consumer.connectStreams(process , "cool process", executorFactory)
         consumer.start()
         consumer.stop()
         then:
         consumer.processOutput.trim() == 'hey Joe!'
     }
 
-    def "consumes input greeting noticed in output"() {
-        given:
-        consumer.startupCommunication = Mock(DaemonStartupCommunication)
-        consumer.startupCommunication.containsGreeting( {it.contains "Come visit Krakow"} ) >> true
-
-        when:
-        def ouptut = """
+    def "consumes process greeting noticed in output"() {
+        def output = """
            Hey!
            Come visit Krakow
            It's nice
            !!!
         """
-        consumer.connectStreams(new ByteArrayInputStream(ouptut.toString().bytes) , "cool process")
+        def process = process(output)
+
+        given:
+        consumer.startupCommunication = Mock(DaemonStartupCommunication)
+        consumer.startupCommunication.containsGreeting( {it.contains "Come visit Krakow"} ) >> true
+
+        when:
+        consumer.connectStreams(process , "cool process", executorFactory)
         consumer.start()
         consumer.stop()
 
@@ -74,7 +88,7 @@ class DaemonOutputConsumerTest extends Specification {
 
     def "starting is required"() {
         when:
-        consumer.connectStreams(new ByteArrayInputStream(new byte[0]) , "cool process")
+        consumer.connectStreams(process(""), "cool process", executorFactory)
 
         then:
         illegalStateReportedWhen {consumer.stop()}
@@ -83,7 +97,7 @@ class DaemonOutputConsumerTest extends Specification {
 
     def "stopping is required"() {
         when:
-        consumer.connectStreams(new ByteArrayInputStream(new byte[0]) , "cool process")
+        consumer.connectStreams(process("") , "cool process", executorFactory)
         consumer.start()
 
         then:
@@ -95,5 +109,12 @@ class DaemonOutputConsumerTest extends Specification {
             action()
             assert false
         } catch (IllegalStateException) {}
+    }
+
+    def process(String input = "", OutputStream processInput = new ByteArrayOutputStream()) {
+        return Stub(Process) {
+            getInputStream() >> new ByteArrayInputStream(input.bytes)
+            getOutputStream() >> processInput
+        }
     }
 }

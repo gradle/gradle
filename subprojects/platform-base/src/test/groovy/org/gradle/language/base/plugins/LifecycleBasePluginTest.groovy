@@ -38,6 +38,7 @@ class LifecycleBasePluginTest extends Specification {
         def clean = project.tasks[CLEAN_TASK_NAME]
         clean instanceOf(Delete)
         clean dependsOn()
+        clean.group == BUILD_GROUP
         clean.targetFiles.files == [project.buildDir] as Set
 
         and:
@@ -52,7 +53,7 @@ class LifecycleBasePluginTest extends Specification {
 
         and:
         def build = project.tasks[BUILD_TASK_NAME]
-        build.group == LifecycleBasePlugin.BUILD_GROUP
+        build.group == BUILD_GROUP
         build dependsOn(ASSEMBLE_TASK_NAME, CHECK_TASK_NAME)
         check instanceOf(DefaultTask)
     }

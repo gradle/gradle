@@ -39,5 +39,7 @@ dependencies {
 }
 
 useTestFixtures()
-useClassycle()
-strictCompile()
+useTestFixtures(project: ':diagnostics', sourceSet: 'testFixtures')
+//Re-enable classycle after removal of CollectionBuilder
+//useClassycle()
+strictCompileIgnoreDeprecations()

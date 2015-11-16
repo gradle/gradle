@@ -17,9 +17,9 @@
 package org.gradle.model.internal.inspect
 
 import org.gradle.model.RuleSource
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
-import spock.util.concurrent.PollingConditions
 
 class ModelRuleSourceDetectorTest extends Specification {
 
@@ -86,7 +86,7 @@ class ModelRuleSourceDetectorTest extends Specification {
         cl.clearCache()
 
         then:
-        new PollingConditions(timeout: 10).eventually {
+        ConcurrentTestUtil.poll(10) {
             System.gc()
             detector.cache.cleanUp()
             detector.cache.size() == 0

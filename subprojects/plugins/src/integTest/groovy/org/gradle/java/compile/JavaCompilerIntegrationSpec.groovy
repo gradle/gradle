@@ -15,6 +15,8 @@
  */
 package org.gradle.java.compile
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
+
 abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationSpec {
     def setup() {
         buildFile << """
@@ -24,6 +26,7 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
 """
     }
 
+    @LeaksFileHandles
     def compileWithLongClasspath() {
         given:
         goodCode()

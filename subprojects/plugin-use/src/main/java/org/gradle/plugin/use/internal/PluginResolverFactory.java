@@ -23,6 +23,7 @@ import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 import java.util.LinkedList;
@@ -33,15 +34,18 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     private final PluginRegistry pluginRegistry;
     private final DocumentationRegistry documentationRegistry;
     private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
+    private final InjectedClasspathPluginResolver injectedClasspathPluginResolver;
 
     public PluginResolverFactory(
             PluginRegistry pluginRegistry,
             DocumentationRegistry documentationRegistry,
-            PluginResolutionServiceResolver pluginResolutionServiceResolver
+            PluginResolutionServiceResolver pluginResolutionServiceResolver,
+            InjectedClasspathPluginResolver injectedClasspathPluginResolver
     ) {
         this.pluginRegistry = pluginRegistry;
         this.documentationRegistry = documentationRegistry;
         this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
+        this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
     }
 
     public PluginResolver create() {
@@ -53,6 +57,11 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
+
+        if (!injectedClasspathPluginResolver.isClasspathEmpty()) {
+            resolvers.add(injectedClasspathPluginResolver);
+        }
+
         resolvers.add(pluginResolutionServiceResolver);
     }
 

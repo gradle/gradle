@@ -24,4 +24,18 @@ class DefaultEclipseProjectTest extends Specification {
         expect:
         project.toString() == "project ':path'"
     }
+
+    def emptyDefaultNatureList() {
+        def project = new DefaultEclipseProject("name", ":path", null, null, [])
+
+        expect:
+        project.projectNatures.isEmpty()
+    }
+
+    def emptyDefaultBuilderList() {
+        def project = new DefaultEclipseProject("name", ":path", null, null, [])
+
+        expect:
+        project.buildCommands.isEmpty()
+    }
 }

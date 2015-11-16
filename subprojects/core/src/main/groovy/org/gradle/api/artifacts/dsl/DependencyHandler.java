@@ -144,7 +144,7 @@ import java.util.Map;
  *
  * <p>The other is a map notation:</p>
  *
- * <code><i>configurationName</i> group: <i>group</i>:, name: <i>name</i>, version: <i>version</i>, classifier:
+ * <code><i>configurationName</i> group: <i>group</i>, name: <i>name</i>, version: <i>version</i>, classifier:
  * <i>classifier</i>, ext: <i>extension</i></code>
  *
  * <p>In both notations, all properties, except name, are optional.</p>
@@ -200,9 +200,9 @@ import java.util.Map;
  * </pre>
  *
  * <p>File dependencies are represented using a {@link org.gradle.api.artifacts.SelfResolvingDependency}.</p>
- * 
+ *
  * <h3>Dependencies to other configurations</h3>
- * 
+ *
  * <p>You can add a dependency using a {@link org.gradle.api.artifacts.Configuration}.</p>
  *
  * <p>When the configuration is from the same project as the target configuration, the target configuration is changed
@@ -226,6 +226,9 @@ import java.util.Map;
  *
  *   //our plugin requires Gradle API interfaces and classes to compile:
  *   compile gradleApi()
+ *
+ *   //we will use the Gradle test-kit to test build logic:
+ *   testCompile gradleTestKit()
  * }
  * </pre>
  *
@@ -307,17 +310,26 @@ public interface DependencyHandler {
      * @return The dependency.
      */
     Dependency project(Map<String, ?> notation);
-    
+
     /**
      * Creates a dependency on the API of the current version of Gradle.
      *
      * @return The dependency.
      */
     Dependency gradleApi();
-    
+
+    /**
+     * Creates a dependency on the <a href="http://docs.gradle.org/current/userguide/test_kit.html">Gradle test-kit</a> API.
+     *
+     * @return The dependency.
+     * @since 2.6
+     */
+    @Incubating
+    Dependency gradleTestKit();
+
     /**
      * Creates a dependency on the Groovy that is distributed with the current version of Gradle.
-     * 
+     *
      * @return The dependency.
      */
     Dependency localGroovy();

@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultGradleLauncher;
@@ -24,6 +23,7 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.service.ServiceRegistry;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
@@ -34,12 +34,11 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         this.buildActionRunner = buildActionRunner;
     }
 
-    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters) {
-        DefaultGradleLauncher gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext);
-        gradleLauncher.addStandardOutputListener(buildRequestContext.getOutputListener());
-        gradleLauncher.addStandardErrorListener(buildRequestContext.getErrorListener());
-
+    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+        DefaultGradleLauncher gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext, contextServices);
         try {
+            gradleLauncher.addStandardOutputListener(buildRequestContext.getOutputListener());
+            gradleLauncher.addStandardErrorListener(buildRequestContext.getErrorListener());
             DefaultBuildController buildController = new DefaultBuildController(gradleLauncher);
             buildActionRunner.run(action, buildController);
             return buildController.result;
@@ -49,7 +48,8 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     }
 
     private static class DefaultBuildController implements BuildController {
-        private enum State { Created, Completed }
+        private enum State {Created, Completed}
+
         private State state = State.Created;
         private boolean hasResult;
         private Object result;
@@ -90,19 +90,19 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         }
 
         public GradleInternal run() {
-            return check(getLauncher().run());
+            try {
+                return (GradleInternal) getLauncher().run().getGradle();
+            } finally {
+                state = State.Completed;
+            }
         }
 
         public GradleInternal configure() {
-            return check(getLauncher().getBuildAnalysis());
-        }
-
-        private GradleInternal check(BuildResult buildResult) {
-            state = State.Completed;
-            if (buildResult.getFailure() != null) {
-                throw new ReportedException(buildResult.getFailure());
+            try {
+                return (GradleInternal) getLauncher().getBuildAnalysis().getGradle();
+            } finally {
+                state = State.Completed;
             }
-            return (GradleInternal) buildResult.getGradle();
         }
     }
 }

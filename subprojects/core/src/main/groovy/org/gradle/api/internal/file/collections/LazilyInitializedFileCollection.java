@@ -16,20 +16,21 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.CompositeFileCollection;
 
 /**
- * A {@link DelegatingFileCollection} whose delegate is created lazily.
+ * A {@link FileCollection} whose contents is created lazily.
  */
-public abstract class LazilyInitializedFileCollection extends DelegatingFileCollection {
+public abstract class LazilyInitializedFileCollection extends CompositeFileCollection {
     private FileCollection delegate;
 
-    public abstract FileCollection createDelegate();
-
     @Override
-    public final synchronized FileCollection getDelegate() {
+    public void visitContents(FileCollectionResolveContext context) {
         if (delegate == null) {
             delegate = createDelegate();
         }
-        return delegate;
+        context.add(delegate);
     }
+
+    public abstract FileCollection createDelegate();
 }

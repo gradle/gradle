@@ -17,7 +17,6 @@
 package org.gradle.sonar.runner;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.listener.ActionBroadcast;
 
 /**
@@ -48,8 +47,10 @@ import org.gradle.listener.ActionBroadcast;
  * Please see the “Sonar Runner Plugin” chapter of the Gradle User Guide for details on which properties are set and their values.
  * <p>
  * Please see the {@link SonarProperties} class for more information on the mechanics of setting Sonar properties, including laziness and property types.
+ *
+ * @deprecated The 'sonar-runner' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
-@Incubating
+@Deprecated
 public class SonarRunnerExtension {
 
     public static final String SONAR_RUNNER_CONFIGURATION_NAME = "sonarRunner";
@@ -64,9 +65,9 @@ public class SonarRunnerExtension {
     }
 
     /**
-     * Adds an action that configures Sonar properties for the associated Gradle project.
+     * Adds an action that configures SonarQube properties for the associated Gradle project.
      * <p>
-     * <em>Global</em> Sonar properties (e.g. database connection settings) have to be set on the "root" project of the Sonar run.
+     * <em>Global</em> SonarQube properties (e.g. database connection settings) have to be set on the "root" project of the Sonar run.
      * This is the project that has the {@code sonar-runner} plugin applied.
      * <p>
      * The action is passed an instance of {@code SonarProperties}.
@@ -74,8 +75,8 @@ public class SonarRunnerExtension {
      * Hence it is safe to reference other Gradle model properties from inside the action.
      * <p>
      * Sonar properties can also be set via system properties (and therefore from the command line).
-     * This is mainly useful for global Sonar properties like database credentials.
-     * Every system property starting with {@code "sonar."} is automatically set on the "root" project of the Sonar run (i.e. the project that has the {@code sonar-runner} plugin applied).
+     * This is mainly useful for global SonarQube properties like database credentials.
+     * Every system property starting with {@code "sonar."} is automatically set on the "root" project of the SonarQube run (i.e. the project that has the {@code sonar-runner} plugin applied).
      * System properties take precedence over properties declared in build scripts.
      *
      * @param action an action that configures Sonar properties for the associated Gradle project

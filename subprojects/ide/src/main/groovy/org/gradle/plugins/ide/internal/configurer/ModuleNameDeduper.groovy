@@ -15,6 +15,9 @@
  */
 package org.gradle.plugins.ide.internal.configurer
 
+import com.google.common.collect.Lists
+import org.gradle.api.Project
+
 /**
  * Able to deduplicate names. Useful for IDE plugins to make sure module names (IDEA) or project names (Eclipse) are unique.
  * <p>
@@ -22,13 +25,87 @@ package org.gradle.plugins.ide.internal.configurer
 class ModuleNameDeduper {
 
     void dedupe(Collection<DeduplicationTarget> targets) {
-        def allNames = []
+
+        //init project to prefixproject mapping
+        Map<Project, Project> projectToPrefixMap = [:]
         targets.each { target ->
-            def name = target.candidateNames.find { !allNames.contains(it) }
-            if (name) {
-                allNames << name
-                target.updateModuleName(name)
+            projectToPrefixMap[target.project] = target.project.parent
+        }
+        def originalProjectNames = targets.inject([:]) { acc, value ->
+            acc[value] = value.moduleName
+            acc
+        }
+
+        for (List<String> projectNames = targets.collect { it.moduleName }; hasDuplicates(projectNames); projectNames = targets.collect { it.moduleName }) {
+            doDedup(targets, projectToPrefixMap)
+        }
+
+        List<String> deduplicatedProjectNames = targets.collect { it.moduleName }
+        targets.each { target ->
+            def simplifiedProjectName = removeDuplicateWordsFromPrefix(target.moduleName, originalProjectNames[target])
+            if (!deduplicatedProjectNames.contains(simplifiedProjectName)) {
+                target.moduleName = simplifiedProjectName
+            }
+            target.updateModuleName(target.moduleName)
+        }
+    }
+
+    boolean hasDuplicates(List<String> projectNames) {
+        projectNames.size() != (projectNames as Set).size()
+    }
+
+    Set<String> duplicates(List<String> projectNames) {
+        return projectNames.groupBy { it }.findAll { key, value -> value.size() > 1 }.keySet()
+    }
+
+    def doDedup(Collection<DeduplicationTarget> targets, Map<Project, Project> prefixMap) {
+        def duplicateProjectNames = duplicates(targets.collect { it.moduleName })
+        duplicateProjectNames.each { duplicateProjectName ->
+
+            def targetsToDeduplicate = targets.findAll { it.moduleName == duplicateProjectName }
+            def notYetDedupped = targetsToDeduplicate.findAll { !it.deduplicated }
+
+            if (notYetDedupped.size() > 1) {
+                notYetDedupped.each { dedupTarget(it, prefixMap) }
+            } else {
+                targetsToDeduplicate.findAll { !notYetDedupped.contains(it) }.each { dedupTarget(it, prefixMap) }
+
+                if (targetsToDeduplicate.every { it.moduleName == duplicateProjectName }) {
+                    notYetDedupped.each { dedupTarget(it, prefixMap) }
+                }
             }
         }
+    }
+
+    def dedupTarget(DeduplicationTarget target, Map<Project, Project> prefixMap) {
+        Project prefixProject = prefixMap.get(target.project)
+        if (prefixProject != null) {
+            target.moduleName = prefixProject.name + "-" + target.moduleName
+            prefixMap.put(target.project, prefixProject.parent)
+            target.deduplicated = true
+        }
+    }
+
+    private String removeDuplicateWordsFromPrefix(String deduppedProjectName, String originalProjectName) {
+        if (deduppedProjectName.equals(originalProjectName)) {
+            return deduppedProjectName
+        }
+
+        def prefix = deduppedProjectName.substring(0, deduppedProjectName.lastIndexOf(originalProjectName))
+        def prefixWordList = Lists.newArrayList(prefix.split("-"))
+        def postfixWordList = Lists.newArrayList(originalProjectName.split("-"))
+        if (postfixWordList.size() > 1) {
+            prefixWordList.add(postfixWordList.head())
+            postfixWordList = postfixWordList.tail()
+        }
+
+        def words = prefixWordList.inject([]) { List words, newWord ->
+            if (words.isEmpty() || !words.last().equals(newWord)) {
+                words.add(newWord)
+            }
+            words
+        }
+        words.addAll(postfixWordList)
+        return words.join("-")
     }
 }

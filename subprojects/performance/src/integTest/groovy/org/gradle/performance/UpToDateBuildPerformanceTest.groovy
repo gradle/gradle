@@ -28,7 +28,7 @@ class UpToDateBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '2.0', '2.2.1', '2.4', 'last']
+        runner.targetVersions = ['1.0', '2.0', '2.2.1', '2.4', '2.8', 'last']
 
         when:
         def result = runner.run()

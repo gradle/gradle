@@ -16,27 +16,22 @@
 
 package org.gradle.model.dsl.internal.transform;
 
-import net.jcip.annotations.NotThreadSafe;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
+import org.gradle.api.Nullable;
 import org.gradle.groovy.scripts.internal.AbstractScriptTransformer;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
-@NotThreadSafe
 public class ModelBlockTransformer extends AbstractScriptTransformer {
-
-    public static boolean isEnabled() {
-        return Boolean.getBoolean("org.gradle.model.dsl");
-    }
-
     @Override
     protected int getPhase() {
         return Phases.CANONICALIZATION;
@@ -46,6 +41,14 @@ public class ModelBlockTransformer extends AbstractScriptTransformer {
     private static final List<String> SCRIPT_BLOCK_NAMES = Collections.singletonList(MODEL);
 
     public static final String NON_LITERAL_CLOSURE_TO_TOP_LEVEL_MODEL_MESSAGE = "The top level model() method can only be called with a literal closure argument";
+
+    private final String scriptSourceDescription;
+    private @Nullable final URI location;
+
+    public ModelBlockTransformer(String scriptSourceDescription, @Nullable URI location) {
+        this.scriptSourceDescription = scriptSourceDescription;
+        this.location = location;
+    }
 
     /*
         TODO change this so that we extract all the information at compile time.
@@ -65,10 +68,6 @@ public class ModelBlockTransformer extends AbstractScriptTransformer {
 
     @Override
     public void call(SourceUnit source) throws CompilationFailedException {
-        if (!isEnabled()) {
-            return;
-        }
-
         List<Statement> statements = source.getAST().getStatementBlock().getStatements();
         for (Statement statement : statements) {
             ScriptBlock scriptBlock = AstUtils.detectScriptBlock(statement, SCRIPT_BLOCK_NAMES);
@@ -91,7 +90,7 @@ public class ModelBlockTransformer extends AbstractScriptTransformer {
                     );
                 }
             } else {
-                RuleVisitor ruleVisitor = new RuleVisitor(source);
+                RuleVisitor ruleVisitor = new RuleVisitor(source, scriptSourceDescription, location);
                 RulesVisitor rulesVisitor = new RulesVisitor(source, ruleVisitor);
                 scriptBlock.getClosureExpression().getCode().visit(rulesVisitor);
             }

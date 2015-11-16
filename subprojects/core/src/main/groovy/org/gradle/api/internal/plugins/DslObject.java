@@ -23,7 +23,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 
 /**
  * Provides a unified, typed, interface to an enhanced DSL object.
- * 
+ *
  * This is intended to be used with objects that have been decorated by the class generator.
  * <p>
  * Accessing each “aspect” of a DSL object may fail (with an {@link IllegalStateException}) if the DSL
@@ -36,7 +36,7 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     private ExtensionContainer extensionContainer;
     private ConventionMapping conventionMapping;
     private Convention convention;
-    
+
     private final Object object;
 
     public DslObject(Object object) {
@@ -49,7 +49,7 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
         }
         return dynamicObject;
     }
-    
+
     public Convention getConvention() {
         if (convention == null) {
             this.convention = toType(object, HasConvention.class).getConvention();
@@ -71,8 +71,11 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
         return conventionMapping;
     }
 
-    public Class getDeclaredType(){
-        return object.getClass().getSuperclass();
+    public Class getDeclaredType() {
+        if (object instanceof DynamicObjectAware) {
+            return object.getClass().getSuperclass();
+        }
+        return object.getClass();
     }
 
     private static <T> T toType(Object delegate, Class<T> type) {

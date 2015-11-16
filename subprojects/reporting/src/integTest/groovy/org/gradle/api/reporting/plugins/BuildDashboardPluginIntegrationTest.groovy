@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.reporting.plugins
-
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile

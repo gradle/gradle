@@ -19,6 +19,7 @@ package org.gradle.platform.base;
 import org.gradle.api.*;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.model.ModelMap;
 
 /**
  * A software component that is built by a Gradle project.
@@ -38,21 +39,29 @@ public interface ComponentSpec extends Named {
 
     /**
      * The source sets that are used to build this component.
+     *
+     * @deprecated This method is replaced with {@link #getSources()}.
      */
-    DomainObjectSet<LanguageSourceSet> getSource();
+    @Deprecated
+    ModelMap<LanguageSourceSet> getSource();
+
+    /**
+     * The source sets that are used to build this component.
+     */
+    ModelMap<LanguageSourceSet> getSources();
 
     /**
      * Configures the source sets used to build this component.
      */
-    void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action);
+    void sources(Action<? super ModelMap<LanguageSourceSet>> action);
 
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */
-    DomainObjectSet<BinarySpec> getBinaries();
+    ModelMap<BinarySpec> getBinaries();
 
     /**
      * Configures the binaries that are produced for this component.
      */
-    void binaries(Action<? super DomainObjectSet<BinarySpec>> action);
+    void binaries(Action<? super ModelMap<BinarySpec>> action);
 }

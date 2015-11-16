@@ -30,6 +30,7 @@ public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
     private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
     private boolean allowZip64;
+    private String encoding;
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
@@ -50,7 +51,7 @@ public class Zip extends AbstractArchiveTask {
     @Override
     protected CopyAction createCopyAction() {
         DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
-        return new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry);
+        return new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry, encoding);
     }
 
     /**
@@ -97,6 +98,25 @@ public class Zip extends AbstractArchiveTask {
     @Incubating
     public boolean isZip64() {
         return allowZip64;
+    }
+
+    /**
+     * The encoding to use for filenames and the file comment of the archive.
+     *
+     * @return null if using the platform's default character encoding.
+     */
+    public String getEncoding() {
+        return this.encoding;
+    }
+
+    /**
+     * The encoding to use for filenames and the file comment of the archive.
+     * Defaults to the platform's default character encoding.
+     * 
+     * @param encoding the encoding value
+     */
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
     }
 
     /**

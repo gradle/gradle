@@ -17,14 +17,13 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 // can make assumptions about order in which test methods of TestNGTest get executed
 // because the methods are chained with 'methodDependsOn'
 class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        executer.noExtraLogging().withStackTraceChecksDisabled().withTasks("test")
+        executer.noExtraLogging().withStackTraceChecksDisabled()
 
         buildFile << """
             apply plugin: "groovy"
@@ -34,7 +33,7 @@ class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                compile "org.codehaus.groovy:groovy:2.3.10"
+                compile "org.codehaus.groovy:groovy:2.4.4"
                 testCompile "org.testng:testng:6.3.1"
             }
 
@@ -85,7 +84,7 @@ class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
 
     def "defaultLifecycleLogging"() {
         when:
-        result = executer.runWithFailure()
+        fails "test"
 
         then:
         outputContains("""
@@ -96,7 +95,8 @@ Gradle test > org.gradle.TestNGTest.badTest FAILED
 
     def customQuietLogging() {
         when:
-        result = executer.withArguments("-q").runWithFailure()
+        args "-q"
+        fails "test"
 
         then:
         outputContains("""
@@ -123,7 +123,7 @@ Gradle suite FAILED
             }
 
             dependencies {
-                compile "org.codehaus.groovy:groovy:2.3.10"
+                compile "org.codehaus.groovy:groovy:2.4.4"
                 testCompile "org.testng:testng:6.3.1"
             }
 
@@ -153,7 +153,8 @@ Gradle suite FAILED
         """
 
         when:
-        result = executer.withArguments("-q").runWithFailure()
+        args "-q"
+        fails "test"
 
         then:
         outputContains("""
@@ -163,10 +164,5 @@ Gradle test > org.gradle.TestNGStandardOutputTest.printTest STANDARD_OUT
     line 3
         """)
     }
-
-    private void outputContains(String text) {
-        assert result.output.contains(TextUtil.toPlatformLineSeparators(text.trim()))
-    }
-
 
 }

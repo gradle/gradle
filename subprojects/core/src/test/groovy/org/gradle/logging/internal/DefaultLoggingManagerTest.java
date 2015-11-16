@@ -34,15 +34,16 @@ public class DefaultLoggingManagerTest {
     public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private final LoggingSystem loggingSystem = context.mock(LoggingSystem.class);
+    private final LoggingSystem javaUtilLoggingSystem = context.mock(LoggingSystem.class);
     private final LoggingSystem stdOutLoggingSystem = context.mock(LoggingSystem.class);
     private final LoggingSystem stdErrLoggingSystem = context.mock(LoggingSystem.class);
     private final LoggingOutputInternal loggingOutput = context.mock(LoggingOutputInternal.class);
-    private final DefaultLoggingManager loggingManager = new DefaultLoggingManager(loggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingOutput);
+    private final DefaultLoggingManager loggingManager = new DefaultLoggingManager(loggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingOutput);
 
     @Test
     public void defaultValues() {
-        assertEquals(LogLevel.QUIET, loggingManager.getStandardOutputCaptureLevel());
-        assertEquals(LogLevel.ERROR, loggingManager.getStandardErrorCaptureLevel());
+        assertNull(loggingManager.getStandardOutputCaptureLevel());
+        assertNull(loggingManager.getStandardErrorCaptureLevel());
         assertNull(loggingManager.getLevel());
     }
 
@@ -73,9 +74,10 @@ public class DefaultLoggingManagerTest {
         final LoggingSystem.Snapshot stdErrSnapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
-            one(stdOutLoggingSystem).on(LogLevel.DEBUG);
+            ignoring(javaUtilLoggingSystem);
+            one(stdOutLoggingSystem).on(LogLevel.DEBUG, LogLevel.DEBUG);
             will(returnValue(stdOutSnapshot));
-            one(stdErrLoggingSystem).on(LogLevel.INFO);
+            one(stdErrLoggingSystem).on(LogLevel.INFO, LogLevel.INFO);
             will(returnValue(stdErrSnapshot));
         }});
 
@@ -90,14 +92,43 @@ public class DefaultLoggingManagerTest {
     }
 
     @Test
+    public void startStopWithSystemCaptureEnabled() {
+        loggingManager.captureSystemSources();
+
+        final LoggingSystem.Snapshot stdOutSnapshot = context.mock(LoggingSystem.Snapshot.class);
+        final LoggingSystem.Snapshot stdErrSnapshot = context.mock(LoggingSystem.Snapshot.class);
+        final LoggingSystem.Snapshot javaUtilSnapshot = context.mock(LoggingSystem.Snapshot.class);
+        context.checking(new Expectations() {{
+            ignoring(loggingSystem);
+            one(javaUtilLoggingSystem).on(LogLevel.DEBUG, LogLevel.DEBUG);
+            will(returnValue(javaUtilSnapshot));
+            one(stdOutLoggingSystem).on(LogLevel.QUIET, LogLevel.QUIET);
+            will(returnValue(stdOutSnapshot));
+            one(stdErrLoggingSystem).on(LogLevel.ERROR, LogLevel.ERROR);
+            will(returnValue(stdErrSnapshot));
+        }});
+
+        loggingManager.start();
+
+        context.checking(new Expectations() {{
+            one(javaUtilLoggingSystem).restore(javaUtilSnapshot);
+            one(stdOutLoggingSystem).restore(stdOutSnapshot);
+            one(stdErrLoggingSystem).restore(stdErrSnapshot);
+        }});
+
+        loggingManager.stop();
+    }
+
+    @Test
     public void startStopWithLogLevelSet() {
         loggingManager.setLevel(LogLevel.DEBUG);
 
         final LoggingSystem.Snapshot snapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
+            ignoring(javaUtilLoggingSystem);
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
-            one(loggingSystem).on(LogLevel.DEBUG);
+            one(loggingSystem).on(LogLevel.DEBUG, LogLevel.DEBUG);
             will(returnValue(snapshot));
         }});
 
@@ -114,6 +145,7 @@ public class DefaultLoggingManagerTest {
     public void startStopWithLogLevelNotSet() {
         final LoggingSystem.Snapshot snapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
+            ignoring(javaUtilLoggingSystem);
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
             one(loggingSystem).snapshot();
@@ -135,9 +167,10 @@ public class DefaultLoggingManagerTest {
         final LoggingSystem.Snapshot stdErrSnapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
-            one(stdOutLoggingSystem).on(LogLevel.DEBUG);
+            ignoring(javaUtilLoggingSystem);
+            one(stdOutLoggingSystem).on(LogLevel.DEBUG, LogLevel.DEBUG);
             will(returnValue(stdOutSnapshot));
-            one(stdErrLoggingSystem).on(LogLevel.DEBUG);
+            one(stdErrLoggingSystem).on(LogLevel.DEBUG, LogLevel.DEBUG);
             will(returnValue(stdErrSnapshot));
         }});
 
@@ -147,7 +180,7 @@ public class DefaultLoggingManagerTest {
         loggingManager.start();
 
         context.checking(new Expectations() {{
-            one(stdOutLoggingSystem).on(LogLevel.WARN);
+            one(stdOutLoggingSystem).on(LogLevel.WARN, LogLevel.WARN);
         }});
 
         loggingManager.captureStandardOutput(LogLevel.WARN);
@@ -166,6 +199,7 @@ public class DefaultLoggingManagerTest {
         context.checking(new Expectations() {{
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
+            ignoring(javaUtilLoggingSystem);
             one(loggingSystem).snapshot();
             will(returnValue(snapshot));
         }});
@@ -174,7 +208,7 @@ public class DefaultLoggingManagerTest {
 
         context.checking(new Expectations() {{
             ignoring(stdOutLoggingSystem);
-            one(loggingSystem).on(LogLevel.LIFECYCLE);
+            one(loggingSystem).on(LogLevel.LIFECYCLE, LogLevel.LIFECYCLE);
             will(returnValue(context.mock(LoggingSystem.Snapshot.class)));
         }});
 
@@ -195,6 +229,7 @@ public class DefaultLoggingManagerTest {
 
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
+            ignoring(javaUtilLoggingSystem);
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
             one(loggingOutput).addStandardOutputListener(stdoutListener);
@@ -217,6 +252,7 @@ public class DefaultLoggingManagerTest {
 
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
+            ignoring(javaUtilLoggingSystem);
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
             one(loggingOutput).addStandardErrorListener(stderrListener);
@@ -239,6 +275,7 @@ public class DefaultLoggingManagerTest {
 
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
+            ignoring(javaUtilLoggingSystem);
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
             one(loggingOutput).addOutputEventListener(listener);
@@ -259,6 +296,7 @@ public class DefaultLoggingManagerTest {
 
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
+            ignoring(javaUtilLoggingSystem);
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
         }});
@@ -284,6 +322,7 @@ public class DefaultLoggingManagerTest {
 
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
+            ignoring(javaUtilLoggingSystem);
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
         }});
@@ -309,6 +348,7 @@ public class DefaultLoggingManagerTest {
 
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
+            ignoring(javaUtilLoggingSystem);
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
         }});
@@ -336,6 +376,7 @@ public class DefaultLoggingManagerTest {
 
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
+            ignoring(javaUtilLoggingSystem);
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
             one(loggingOutput).addStandardOutputListener(stdoutListener);
@@ -360,6 +401,7 @@ public class DefaultLoggingManagerTest {
 
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
+            ignoring(javaUtilLoggingSystem);
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
             one(loggingOutput).addStandardErrorListener(stderrListener);
@@ -384,6 +426,7 @@ public class DefaultLoggingManagerTest {
 
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
+            ignoring(javaUtilLoggingSystem);
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
             one(loggingOutput).addOutputEventListener(listener);

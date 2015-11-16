@@ -21,19 +21,22 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.launcher.continuous.DefaultTriggerGeneratorFactory;
-import org.gradle.launcher.continuous.TriggerGeneratorFactory;
 import org.gradle.launcher.exec.*;
+import org.gradle.logging.StyledTextOutputFactory;
 
 import java.util.List;
 
 public class LauncherServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new ToolingGlobalScopeServices());
+    }
+
+    public void registerBuildSessionServices(ServiceRegistration registration) {
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
@@ -47,17 +50,10 @@ public class LauncherServices implements PluginServiceRegistry {
     }
 
     static class ToolingGlobalScopeServices {
-        BuildActionExecuter<BuildActionParameters> createBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, TriggerGeneratorFactory triggerGeneratorFactory, ServiceRegistry services) {
-            List<BuildActionRunner> buildActionRunners = services.getAll(BuildActionRunner.class);
-            ListenerManager listenerManager = services.get(ListenerManager.class);
-            ContinuousModeBuildActionExecuter continuousModeBuildActionExecuter =
-                    new ContinuousModeBuildActionExecuter(new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners)), triggerGeneratorFactory);
-            listenerManager.addListener(continuousModeBuildActionExecuter);
-            return continuousModeBuildActionExecuter;
-        }
-
-        TriggerGeneratorFactory createTriggerGeneratorFactory(ExecutorFactory executorFactory) {
-            return new DefaultTriggerGeneratorFactory(executorFactory);
+        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry globalServices, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory, StyledTextOutputFactory styledTextOutputFactory) {
+            List<BuildActionRunner> buildActionRunners = globalServices.getAll(BuildActionRunner.class);
+            BuildActionExecuter<BuildActionParameters> delegate = new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners));
+            return new ContinuousBuildActionExecuter(delegate, fileWatcherFactory, listenerManager, styledTextOutputFactory, executorFactory);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {
@@ -71,22 +67,23 @@ public class LauncherServices implements PluginServiceRegistry {
         JarCache createJarCache() {
             return new JarCache();
         }
+
     }
 
     static class ToolingBuildScopeServices {
         PayloadClassLoaderFactory createClassLoaderFactory(ClassLoaderFactory classLoaderFactory, JarCache jarCache, CacheRepository cacheRepository) {
             return new DaemonSidePayloadClassLoaderFactory(
-                    new ModelClassLoaderFactory(
-                            classLoaderFactory),
-                    jarCache,
-                    cacheRepository);
+                new ModelClassLoaderFactory(
+                    classLoaderFactory),
+                jarCache,
+                cacheRepository);
         }
 
         PayloadSerializer createPayloadSerializer(ClassLoaderCache classLoaderCache, PayloadClassLoaderFactory classLoaderFactory) {
             return new PayloadSerializer(
-                    new DefaultPayloadClassLoaderRegistry(
-                            classLoaderCache,
-                            classLoaderFactory)
+                new DefaultPayloadClassLoaderRegistry(
+                    classLoaderCache,
+                    classLoaderFactory)
             );
         }
     }

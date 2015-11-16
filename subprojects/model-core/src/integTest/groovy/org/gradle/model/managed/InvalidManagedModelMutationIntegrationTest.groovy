@@ -17,20 +17,12 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 
 class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     def "mutating managed inputs of a rule is not allowed"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
                 String getName()
@@ -48,7 +40,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 @Mutate
-                void addDependencyOnName(CollectionBuilder<Task> tasks, String name) {
+                void addDependencyOnName(ModelMap<Task> tasks, String name) {
                 }
             }
 
@@ -59,16 +51,13 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#name(Person)")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'RulePlugin#name(Person)")
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#name")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'RulePlugin#name")
     }
 
     def "mutating composite managed inputs of a rule is not allowed"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Pet {
                 String getName()
@@ -86,7 +75,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 @Mutate
-                void tryToModifyCompositeSubjectOfAnotherRule(CollectionBuilder<Task> tasks, Person person) {
+                void tryToModifyCompositeSubjectOfAnotherRule(ModelMap<Task> tasks, Person person) {
                     person.pet.name = "foo"
                 }
             }
@@ -99,15 +88,12 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyCompositeSubjectOfAnotherRule")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'Pet' given to rule 'RulePlugin#tryToModifyCompositeSubjectOfAnotherRule(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, Person)'")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Pet' given to rule 'RulePlugin#tryToModifyCompositeSubjectOfAnotherRule'")
     }
 
     def "mutating managed inputs of a dsl rule is not allowed"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
                 String getName()
@@ -133,16 +119,13 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'model.tasks @ build file")
+        failure.assertHasCause("Exception thrown while executing model rule: tasks { ... } @ build.gradle line 17, column 17")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'tasks { ... } @ build.gradle line 17, column 17")
     }
 
     def "mutating managed objects outside of a creation rule is not allowed"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
                 String getName()
@@ -160,7 +143,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 @Mutate
-                void tryToModifyManagedObject(CollectionBuilder<Task> tasks, Person person) {
+                void tryToModifyManagedObject(ModelMap<Task> tasks, Person person) {
                     Holder.person.name = "foo"
                 }
             }
@@ -173,15 +156,12 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'RulePlugin#person(Person)'")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'RulePlugin#person'")
     }
 
     def "mutating composite managed objects outside of a creation rule is not allowed"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Pet {
                 String getName()
@@ -204,7 +184,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 @Mutate
-                void tryToModifyManagedObject(CollectionBuilder<Task> tasks, Person person) {
+                void tryToModifyManagedObject(ModelMap<Task> tasks, Person person) {
                     Holder.person.pet.name = "foo"
                 }
             }
@@ -217,15 +197,12 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'Pet' given to rule 'RulePlugin#person(Person)'")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Pet' given to rule 'RulePlugin#person'")
     }
 
     def "mutating managed objects referenced by another managed object outside of a creation rule is not allowed"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Pet {
                 String getName()
@@ -254,7 +231,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 @Mutate
-                void tryToModifyManagedObject(CollectionBuilder<Task> tasks, Person person) {
+                void tryToModifyManagedObject(ModelMap<Task> tasks, Person person) {
                     Holder.person.pet.name = "foo"
                 }
             }
@@ -267,6 +244,6 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'Pet' given to rule 'RulePlugin#person(Person, Pet)'")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Pet' given to rule 'RulePlugin#person'")
     }
 }

@@ -46,7 +46,7 @@ class PlayApplicationBinariesIntegrationTest extends AbstractIntegrationSpec {
         failureDescriptionContains("Execution failed for task ':assemble'.")
         failure.assertThatCause(Matchers.<String>allOf(
                 Matchers.startsWith("No buildable binaries found:"),
-                Matchers.containsString("playBinary: Disabled by user")
+                Matchers.containsString("Play Application Jar 'play:binary': Disabled by user")
         ))
     }
 }

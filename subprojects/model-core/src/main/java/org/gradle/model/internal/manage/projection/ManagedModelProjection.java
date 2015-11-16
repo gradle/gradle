@@ -16,7 +16,9 @@
 
 package org.gradle.model.internal.manage.projection;
 
+import com.google.common.base.Optional;
 import org.gradle.internal.Cast;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelView;
@@ -26,26 +28,32 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelElementState;
-import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelStructSchema;
+import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
 
+    private static final ModelType<? extends Collection<?>> COLLECTION_MODEL_TYPE = new ModelType<Collection<?>>() {
+    };
+    private final StructSchema<M> schema;
+    private final StructSchema<? extends M> delegateSchema;
     private final ModelSchemaStore schemaStore;
     private final ManagedProxyFactory proxyFactory;
-    private final ModelStructSchema<M> schema;
+    private final ServiceRegistry services;
 
-    public ManagedModelProjection(ModelStructSchema<M> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+    public ManagedModelProjection(StructSchema<M> schema, StructSchema<? extends M> delegateSchema, ModelSchemaStore schemaStore,
+                                  ManagedProxyFactory proxyFactory, ServiceRegistry services) {
         super(schema.getType(), true, true);
         this.schema = schema;
+        this.delegateSchema = delegateSchema;
         this.schemaStore = schemaStore;
         this.proxyFactory = proxyFactory;
+        this.services = services;
     }
 
     @Override
@@ -65,7 +73,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
             }
 
             public M getInstance() {
-                return proxyFactory.createProxy(new State(), schema);
+                return proxyFactory.createProxy(new State(services), schema, delegateSchema);
             }
 
             public void close() {
@@ -73,6 +81,12 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
             }
 
             class State implements ModelElementState {
+                private final ServiceRegistry services;
+
+                State(ServiceRegistry services) {
+                    this.services = services;
+                }
+
                 @Override
                 public MutableModelNode getBackingNode() {
                     return modelNode;
@@ -88,7 +102,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         return propertyViews.get(name);
                     }
 
-                    ModelProperty<?> property = schema.getProperties().get(name);
+                    ModelProperty<?> property = schema.getProperty(name);
 
                     Object value = doGet(property, name);
                     propertyViews.put(name, value);
@@ -97,29 +111,28 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
                 private <T> T doGet(ModelProperty<T> property, String propertyName) {
                     ModelType<T> propertyType = property.getType();
-                    ModelSchema<T> schema = schemaStore.getSchema(propertyType);
 
-                    // TODO we are relying on the creator having established these links, we should be checking
+                    // TODO we are relying on the registration having established these links, we should be checking
                     MutableModelNode propertyNode = modelNode.getLink(propertyName);
                     propertyNode.ensureUsable();
 
-                    MutableModelNode targetNode = propertyNode;
-                    if (property.isWritable() && schema.getKind().isManaged()) {
-                        targetNode = propertyNode.getTarget();
-                        if (targetNode == null) {
+                    ModelView<? extends T> modelView;
+                    ModelSchema<T> propertySchema = schemaStore.getSchema(propertyType);
+                    if (property.isWritable() && propertySchema instanceof ScalarCollectionSchema) {
+                        Collection<?> instance = ScalarCollectionSchema.get(propertyNode);
+                        if (instance == null) {
                             return null;
                         }
                     }
-
                     if (writable) {
-                        ModelView<? extends T> modelView = targetNode.asWritable(propertyType, ruleDescriptor, null);
+                        modelView = propertyNode.asMutable(propertyType, ruleDescriptor, null);
                         if (closed) {
                             modelView.close();
                         }
-                        return modelView.getInstance();
                     } else {
-                        return targetNode.asReadOnly(propertyType, ruleDescriptor).getInstance();
+                        modelView = propertyNode.asImmutable(propertyType, ruleDescriptor);
                     }
+                    return modelView.getInstance();
                 }
 
                 public void set(String name, Object value) {
@@ -127,27 +140,42 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         throw new ModelViewClosedException(getType(), ruleDescriptor);
                     }
 
-                    ModelProperty<?> property = schema.getProperties().get(name);
+                    ModelProperty<?> property = schema.getProperty(name);
                     ModelType<?> propertyType = property.getType();
 
-                    doSet(name, value, propertyType);
+                    value = doSet(name, value, propertyType);
                     propertyViews.put(name, value);
                 }
 
-                private <T> void doSet(String name, Object value, ModelType<T> propertyType) {
-                    ModelSchema<T> schema = schemaStore.getSchema(propertyType);
+                public ServiceRegistry getServices() {
+                    return services;
+                }
 
-                    // TODO we are relying on the creator having established these links, we should be checking
+                private <T> Object doSet(String name, Object value, ModelType<T> propertyType) {
+                    ModelSchema<T> propertySchema = schemaStore.getSchema(propertyType);
+
+                    // TODO we are relying on the registration having established these links, we should be checking
                     MutableModelNode propertyNode = modelNode.getLink(name);
                     propertyNode.ensureUsable();
 
-                    if (schema.getKind().isManaged()) {
+                    if (propertySchema instanceof ManagedImplSchema) {
                         if (value == null) {
-                            propertyNode.setTarget(null);
+                            if (propertySchema instanceof ScalarCollectionSchema) {
+                                ScalarCollectionSchema.clear(propertyNode);
+                            } else {
+                                propertyNode.setTarget(null);
+                            }
                         } else if (ManagedInstance.class.isInstance(value)) {
                             ManagedInstance managedInstance = (ManagedInstance) value;
                             MutableModelNode targetNode = managedInstance.getBackingNode();
                             propertyNode.setTarget(targetNode);
+                        } else if (propertySchema instanceof ScalarCollectionSchema && value instanceof Collection) {
+                            ModelView<? extends Collection<?>> modelView = propertyNode.asMutable(COLLECTION_MODEL_TYPE, ruleDescriptor, Collections.<ModelView<?>>emptyList());
+                            Collection<Object> instance = Cast.uncheckedCast(modelView.getInstance());
+                            Collection<Object> values = Cast.uncheckedCast(value);
+                            instance.clear();
+                            instance.addAll(values);
+                            return instance;
                         } else {
                             throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", name, getType()));
                         }
@@ -155,6 +183,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         T castValue = Cast.uncheckedCast(value);
                         propertyNode.setPrivateData(propertyType, castValue);
                     }
+                    return value;
                 }
             }
         };
@@ -164,6 +193,12 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     public boolean equals(Object o) {
         return this == o || !(o == null || getClass() != o.getClass()) && super.equals(o);
     }
+
+    @Override
+    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        return Optional.absent();
+    }
+
 
     @Override
     public int hashCode() {

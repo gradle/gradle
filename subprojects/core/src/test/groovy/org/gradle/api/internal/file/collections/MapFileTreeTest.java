@@ -23,15 +23,18 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
 import static org.gradle.api.file.FileVisitorUtil.assertVisits;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.*;
 
 public class MapFileTreeTest {
     @Rule
@@ -45,7 +48,7 @@ public class MapFileTreeTest {
         assertVisits(tree, emptyList, emptyList);
         assertSetContainsForAllTypes(tree, emptyList);
     }
-    
+
     @Test
     public void canAddAnElementUsingAClosureToGeneratedContent() {
         Action<OutputStream> action = getAction();
@@ -75,6 +78,27 @@ public class MapFileTreeTest {
         tree.add("path/file.txt", closure);
         tree.add("file.txt", closure);
         assertCanStopVisiting(tree);
+    }
+
+    @Test
+    public void containsWontCreateFiles() {
+        final AtomicInteger callCounter = new AtomicInteger(0);
+        Action<OutputStream> fileAction = new Action<OutputStream>() {
+            @Override
+            public void execute(OutputStream outputStream) {
+                callCounter.incrementAndGet();
+            }
+        };
+        tree.add("file.txt", fileAction);
+
+        FileTreeAdapter fileTreeAdapter = new FileTreeAdapter(tree);
+        File file = rootDir.file("file.txt");
+
+        assertTrue(fileTreeAdapter.contains(file));
+        assertTrue(fileTreeAdapter.contains(file));
+        assertFalse(fileTreeAdapter.contains(rootDir.file("file2.txt")));
+
+        assertEquals(0, callCounter.get());
     }
 
     private Action<OutputStream> getAction() {

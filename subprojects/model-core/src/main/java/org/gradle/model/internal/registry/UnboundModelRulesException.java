@@ -26,6 +26,7 @@ import java.util.List;
 
 public class UnboundModelRulesException extends GradleException {
 
+    private static final String MESSAGE = "The following model rules could not be applied due to unbound inputs and/or subjects:";
     private final List<? extends UnboundRule> rules;
 
     public UnboundModelRulesException(List<? extends UnboundRule> rules) {
@@ -36,7 +37,8 @@ public class UnboundModelRulesException extends GradleException {
     private static String toMessage(Iterable<? extends UnboundRule> rules) {
         StringWriter string = new StringWriter();
         PrintWriter writer = new PrintWriter(string);
-        writer.println("The following model rules are unbound:");
+        writer.println(MESSAGE);
+        writer.println();
         new UnboundRulesReporter(writer, "  ").reportOn(rules);
         return string.toString();
     }

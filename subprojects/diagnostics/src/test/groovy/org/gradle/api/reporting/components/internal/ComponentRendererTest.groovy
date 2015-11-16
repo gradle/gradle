@@ -19,12 +19,11 @@
 package org.gradle.api.reporting.components.internal
 
 import org.gradle.api.Project
-import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder
-import org.gradle.language.base.LanguageSourceSet
 import org.gradle.logging.TestStyledTextOutput
+import org.gradle.model.ModelMap
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpec
 import spock.lang.Specification
@@ -43,20 +42,19 @@ class ComponentRendererTest extends Specification {
     def "renders component"() {
         def component = Stub(ComponentSpec)
         component.displayName >> "<component>"
-        component.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
 
         when:
         renderer.render(component, builder)
 
         then:
-        output.value.startsWith("""{header}<component>
------------{normal}
+        output.value.contains("""{header}------------------------------------------------------------
+<component>
+------------------------------------------------------------{normal}
 """)
     }
 
     def "renders component with no source sets"() {
         def component = Stub(ComponentSpec)
-        component.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
 
         when:
         renderer.render(component, builder)
@@ -67,7 +65,9 @@ class ComponentRendererTest extends Specification {
 
     def "renders component with no binaries"() {
         def component = Stub(ComponentSpec)
-        component.binaries >> new DefaultDomainObjectSet<BinarySpec>(BinarySpec)
+        component.binaries >> Mock(ModelMap) {
+            values() >> []
+        }
 
         when:
         renderer.render(component, builder)
@@ -78,23 +78,21 @@ class ComponentRendererTest extends Specification {
 
     def "renders component binaries ordered by name"() {
         def component = Stub(ComponentSpec)
-        def binaries = new DefaultDomainObjectSet<BinarySpec>(BinarySpec)
-        binaries.add(binary("cBinary"))
-        binaries.add(binary("aBinary"))
-        binaries.add(binary("bBinary"))
-        binaries.add(binary("dBinary"))
-        component.binaries >> binaries
+        component.binaries >> Mock(ModelMap) {
+            values() >> [binary("cBinary"), binary("aBinary"), binary("bBinary"), binary("dBinary")]
+        }
         binaryRenderer.render(_, _) >> { BinarySpec binary, TextReportBuilder output -> output.output.println("binary: $binary.name") }
 
         when:
         renderer.render(component, builder)
 
         then:
-        output.value.contains("""Binaries
-    binary: aBinary
-    binary: bBinary
-    binary: cBinary
-    binary: dBinary
+        output.value.contains("""{header}Binaries
+--------{normal}
+binary: aBinary
+binary: bBinary
+binary: cBinary
+binary: dBinary
 """)
     }
 

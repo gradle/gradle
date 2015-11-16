@@ -43,6 +43,11 @@ class DefaultProjectConnection implements ProjectConnection {
         return new DefaultBuildLauncher(connection, parameters);
     }
 
+    @Override
+    public TestLauncher newTestLauncher() {
+        return new DefaultTestLauncher(connection, parameters);
+    }
+
     public <T> ModelBuilder<T> model(Class<T> modelType) {
         if (!modelType.isInterface()) {
             throw new IllegalArgumentException(String.format("Cannot fetch a model of type '%s' as this type is not an interface.", modelType.getName()));

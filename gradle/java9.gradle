@@ -1,0 +1,107 @@
+/**
+ * Tests tasks to allow the gradual introduction of JDK 9 support
+ */
+String jdkVarName = 'JAVA_9'
+
+task java9IntegTest(type: Test) {
+    excludes = [
+            'SrcDistributionIntegrationSpec', // source compat 1.5 unsupported
+            'MavenConversionIntegrationTest', // source compat 1.5 unsupported
+            'ScalaLibraryInitIntegrationTest', // scala compile broken
+            'ApplicationIntegrationSpec', // test fixture problem
+            'ProjectLayoutIntegrationTest', //  scala compile broken
+            'SamplesApplicationIntegrationTest', // test fixture problem
+            'SamplesJavaBaseIntegrationTest', // source compat 1.5 unsupported
+            'UserGuideSamplesIntegrationTest', // source compat 1.5 unsupported
+            'IvyPublishHttpIntegTest', // uses tools.jar as large test file
+            'IvyHttpPublishIntegrationTest', // uses tools.jar as large test file
+            'JavadocIntegrationTest',
+            'JavaLanguageIntegrationTest', // source compat 1.5 unsupported
+            'SampleJavaLanguageIntegrationTest', // source compat 1.5 unsupported
+            'JointScalaLangIntegrationTest', // scala compile broken
+            'SampleScalaLanguageIntegrationTest', // scala compile broken
+            'ScalaCompilerContinuousIntegrationTest', // scala compile broken
+            'ScalaLanguageIncrementalBuildIntegrationTest', // scala compile broken
+            'ScalaLanguageIntegrationTest', // scala compile broken
+            'SystemClassLoaderTest', // system classpath changed, test expectation is wrong
+            'MultipleNativeToolChainIntegrationTest',
+            'Play', // scala runtime doesn't load, scala compile broken
+            'Twirl', // scala runtime doesn't load, scala compile broken
+            'InProcessGroovyCompilerIntegrationTest',
+            'InvokeDynamicGroovyCompilerSpec',
+            'InProcessJavaCompilerIntegrationTest',
+            'IncrementalJavaCompileIntegrationTest', // source compat 1.5 unsupported
+            'SamplesJavaQuickstartIntegrationTest', // source compat 1.5 unsupported
+            'JUnitIntegrationTest', // system classloader changed, test expectation is wrong
+            'SampleTestNGIntegrationTest', // source compat 1.4 and 1.5 unsupported
+            'TestNGIntegrationTest', // source compat 1.4 and 1.5 unsupported
+            'SamplesMixedJavaAndScalaIntegrationTest', // scala compile broken
+            'SamplesScalaCustomizedLayoutIntegrationTest', // scala compile broken
+            'SamplesScalaQuickstartIntegrationTest', // scala compile broken
+            'SamplesScalaZincIntegrationTest', // scala compile broken
+            'AntForkingScalaCompilerIntegrationTest', // scala compile broken
+            'AntInProcessScalaCompilerIntegrationTest', // scala compile broken
+            'IncrementalScalaCompileIntegrationTest', // scala compile broken
+            'ZincScalaCompilerIntegrationTest', // scala compile broken
+            'ZincScalaCompilerMultiVersionIntegrationTest', // scala compile broken
+            'ScalaTestIntegrationTest', // scala compile broken
+            'FunctionalReleaseNotesTest',
+            'StaticReleaseNotesTest',
+            'M9JavaConfigurabilityCrossVersionSpec',
+            'ClientShutdownCrossVersionSpec',
+            'ToolingApiUnsupportedClientJvmCrossVersionSpec' // source compat 1.5 unsupported
+    ].collect { "**/*${it}*" }
+}
+
+task java9Test(type: Test) {
+    excludes = [
+        "JdkToolsTest",
+        "JvmTest",
+        "DefaultIsolatedAntBuilderTest",
+        "DefaultModelSchemaStoreTest",
+        "DefaultJavaToolChainTest",
+        "ModelRuleExtractorTest",
+        "SonarPluginTest",
+        "FunctionalReleaseNotesTest",
+        "StaticReleaseNotesTest",
+        "AssemblerPluginTest",
+        "CPluginTest",
+        "CppPluginTest",
+        "ObjectiveCPluginTest",
+        "ObjectiveCppPluginTest",
+        "ABrokenJunit3TestClass",
+        "ABrokenTestClass",
+        "ATestClassWhichCannotBeLoaded",
+        "ATestClassWithBrokenBeforeAndAfterMethod",
+        "ATestClassWithBrokenBeforeClassMethod",
+        "ATestClassWithBrokenBeforeMethod",
+        "ATestClassWithBrokenConstructor",
+        "ATestClassWithBrokenRunner",
+        "ATestClassWithRunner",
+        "ATestClassWithRunnerThatBreaksAfterRuningSomeTests",
+        "ATestClassWithSeveralMethods",
+        "ATestClassWithUnconstructableRunner"
+    ].collect { "**/*${it}*" }
+}
+
+tasks.withType(Test).matching { it.name.startsWith("java9") }.all {
+    doFirst {
+        jvmArgs = []
+    }
+    executable = "${System.getenv('JAVA_9')}/bin/java"
+    reports.junitXml.destination = file("${project.testResultsDir}/$name")
+    reports.html.destination = file("${project.reporting.baseDir}/$name")
+}
+
+if (!gradle.hasProperty("haveInstalledJava9Guard")) {
+    gradle.taskGraph.whenReady { graph ->
+        if (gradle.taskGraph.allTasks.any { it.name.startsWith("java9") }) {
+            // Ideally, this would be a validate rule but it's not convenient to express this in the DSL yet
+            if (!System.getenv(jdkVarName)) {
+                throw new GradleException("A '$jdkVarName' environment variable, " +
+                    "pointing to a java 9 JDK image, is required to run java9 tests!")
+            }
+        }
+    }
+    gradle.ext.haveInstalledJava9Guard = true
+}

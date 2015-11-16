@@ -146,7 +146,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         def failure = new IOException("failed")
         RepositoryTransportWagonAdapter delegate = Mock()
         delegate.putRemoteFile(*_) >> { LocalResource resource, String resourceName ->
-            resource.open()
+            resource.open().close()
             throw failure
         }
 

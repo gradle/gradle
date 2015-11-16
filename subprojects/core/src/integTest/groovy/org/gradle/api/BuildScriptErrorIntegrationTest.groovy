@@ -95,4 +95,33 @@ include 'child'
                 .assertHasFileName("Build file '$childBuildFile'")
                 .assertHasLineNumber(3)
     }
+
+    def "produces reasonable error message from a method inherited from a script containing only methods"() {
+        settingsFile << """
+include 'child'
+"""
+        buildFile << """
+// Build script contains only methods
+def broken() {
+    throw new RuntimeException('failure')
+}
+
+def doSomething() {
+    broken()
+}
+"""
+        final childBuildFile = file("child/build.gradle")
+        childBuildFile << """
+    doSomething()
+"""
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+                .assertHasCause("failure")
+                .assertHasFileName("Build file '$buildFile'")
+                .assertHasLineNumber(4)
+    }
 }

@@ -17,21 +17,15 @@
 package org.gradle.model.collection.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
-import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
-import org.gradle.internal.BiAction;
-import org.gradle.internal.Transformers;
+import org.gradle.model.internal.DynamicObjectAwareTypeUtils;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
-import java.util.List;
 
 public abstract class BridgedCollections {
 
@@ -40,168 +34,76 @@ public abstract class BridgedCollections {
     private BridgedCollections() {
     }
 
-    public static <I> ModelReference<NamedEntityInstantiator<I>> instantiatorReference(ModelPath containerPath, ModelType<I> itemType) {
-        final String instantiatorNodeName = "__instantiator";
-        return ModelReference.of(
-                containerPath.child(instantiatorNodeName),
-                new ModelType.Builder<NamedEntityInstantiator<I>>() {
-                }.where(new ModelType.Parameter<I>() {
-                }, itemType).build()
-        );
-    }
-
-    private static class ContainerInfo<I> {
-        final ModelCreators.Builder creatorBuilder;
-        final ModelReference<NamedEntityInstantiator<I>> instantiatorReference;
-        final ModelReference<? extends Collection<I>> storeReference;
-
-        public ContainerInfo(ModelCreators.Builder creatorBuilder, ModelReference<NamedEntityInstantiator<I>> instantiatorReference, ModelReference<? extends Collection<I>> storeReference) {
-            this.creatorBuilder = creatorBuilder;
-            this.instantiatorReference = instantiatorReference;
-            this.storeReference = storeReference;
-        }
-    }
-
-    private static <I, C extends PolymorphicDomainObjectContainerInternal<I>> ContainerInfo<I> creator(
-            final ModelRegistry modelRegistry,
-            final ModelReference<C> containerReference,
-            final ModelType<I> itemType,
-            final Transformer<? extends C, ? super MutableModelNode> containerFactory,
-            final Namer<? super I> namer,
-            String descriptor,
-            final Transformer<String, String> itemDescriptorGenerator
+    public static <I, C extends NamedDomainObjectCollection<I>> ModelRegistrations.Builder registration(
+        final ModelReference<C> containerReference,
+        final Transformer<? extends C, ? super MutableModelNode> containerFactory,
+        final Namer<? super I> namer,
+        String descriptor,
+        final Transformer<String, String> itemDescriptorGenerator
     ) {
-        assert containerReference.getPath() != null : "container reference path cannot be null";
+        final ModelPath containerPath = containerReference.getPath();
+        final ModelType<C> containerType = containerReference.getType();
+        assert containerPath != null : "container reference path cannot be null";
 
-        final String storeNodeName = "__store";
+        return ModelRegistrations.of(
+            containerPath,
+            new Action<MutableModelNode>() {
+                public void execute(final MutableModelNode containerNode) {
+                    final C container = containerFactory.transform(containerNode);
+                    containerNode.setPrivateData(containerType, container);
+                    container.all(new Action<I>() {
+                        public void execute(final I item) {
+                            final String name = namer.determineName(item);
 
-        final ModelReference<NamedEntityInstantiator<I>> instantiatorReference = instantiatorReference(containerReference.getPath(), itemType);
-
-        final ModelReference<C> storeReference = ModelReference.of(
-                containerReference.getPath().child(storeNodeName),
-                containerReference.getType()
-        );
-
-        ModelCreators.Builder creatorBuilder = ModelCreators.of(
-                containerReference,
-                new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                    public void execute(final MutableModelNode containerNode, List<ModelView<?>> inputs) {
-
-                        C container = containerFactory.transform(containerNode);
-
-                        ModelCreator storeCreator = ModelCreators.bridgedInstance(storeReference, container)
-                                .ephemeral(true)
-                                .hidden(true)
-                                .descriptor(itemDescriptorGenerator.transform(storeNodeName))
-                                .build();
-
-                        modelRegistry.createOrReplace(storeCreator);
-
-                        @SuppressWarnings("ConstantConditions")
-                        String instantiatorNodeName = instantiatorReference.getPath().getName();
-
-                        ModelCreator instantiatorCreator = ModelCreators.bridgedInstance(instantiatorReference, container.getEntityInstantiator())
-                                .ephemeral(true)
-                                .hidden(true)
-                                .descriptor(itemDescriptorGenerator.transform(instantiatorNodeName))
-                                .build();
-
-                        modelRegistry.createOrReplace(instantiatorCreator);
-
-                        containerNode.setPrivateData(containerReference.getType(), container);
-                        container.all(new Action<I>() {
-                            public void execute(final I item) {
-                                final String name = namer.determineName(item);
-
-                                // For now, ignore elements added after the container has been closed
-                                if (!containerNode.isMutable()) {
-                                    LOGGER.debug("Ignoring element '{}' added to '{}' after it is closed.", containerReference.getPath(), name);
-                                    return;
-                                }
-
-                                if (!containerNode.hasLink(name)) {
-                                    ModelType<I> itemType = ModelType.typeOf(item);
-                                    ModelReference<I> itemReference = ModelReference.of(containerReference.getPath().child(name), itemType);
-                                    ModelCreator itemCreator = ModelCreators.of(itemReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                                        @Override
-                                        public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                                            C container = ModelViews.assertType(modelViews.get(0), storeReference.getType()).getInstance();
-                                            I item = container.getByName(name);
-                                            modelNode.setPrivateData(ModelType.typeOf(item), item);
-                                        }
-                                    })
-                                            .inputs(storeReference)
-                                            .withProjection(new UnmanagedModelProjection<I>(itemType, true, true))
-                                            .descriptor(itemDescriptorGenerator.transform(name)).build();
-
-                                    containerNode.addLink(itemCreator);
-                                }
+                            // For now, ignore elements added after the container has been closed
+                            if (!containerNode.isMutable()) {
+                                LOGGER.debug("Ignoring element '{}' added to '{}' after it is closed.", containerPath, name);
+                                return;
                             }
-                        });
-                        container.whenObjectRemoved(new Action<I>() {
-                            public void execute(I item) {
-                                String name = namer.determineName(item);
-                                containerNode.removeLink(name);
+
+                            if (!containerNode.hasLink(name)) {
+                                ModelRegistration itemRegistration = ModelRegistrations
+                                    .unmanagedInstanceOf(
+                                        ModelReference.of(containerPath.child(name), DynamicObjectAwareTypeUtils.extractModelTypeFromInstance(item)),
+                                        new ExtractFromParentContainer<I, C>(name, containerType)
+                                    )
+                                    .descriptor(itemDescriptorGenerator.transform(name))
+                                    .build();
+                                containerNode.addLink(itemRegistration);
                             }
-                        });
-                    }
+                        }
+                    });
+                    container.whenObjectRemoved(new Action<I>() {
+                        public void execute(I item) {
+                            String name = namer.determineName(item);
+                            containerNode.removeLink(name);
+                        }
+                    });
                 }
+            }
         )
-                .ephemeral(true)
-                .descriptor(descriptor);
-
-        return new ContainerInfo<I>(creatorBuilder, instantiatorReference, storeReference);
-    }
-
-    public static <I, C extends PolymorphicDomainObjectContainerInternal<I> & RuleAwareNamedDomainObjectFactoryRegistry<I>, P /* super C */> void dynamicTypes(
-            ModelRegistry modelRegistry,
-            ModelPath modelPath,
-            String descriptor,
-            ModelType<P> publicType,
-            ModelType<C> containerType,
-            ModelType<I> itemType,
-            C container,
-            Namer<? super I> namer,
-            Transformer<String, String> itemDescriptorGenerator
-    ) {
-        ModelReference<C> containerReference = ModelReference.of(modelPath, containerType);
-
-        ContainerInfo<I> containerInfo = creator(modelRegistry, containerReference, itemType, Transformers.constant(container), namer, descriptor, itemDescriptorGenerator);
-
-        ModelType<RuleAwareNamedDomainObjectFactoryRegistry<I>> factoryRegistryType = new ModelType.Builder<RuleAwareNamedDomainObjectFactoryRegistry<I>>() {
-        }.where(new ModelType.Parameter<I>() {
-        }, itemType).build();
-
-        modelRegistry.createOrReplace(containerInfo.creatorBuilder
-                .withProjection(new DynamicTypesDomainObjectContainerModelProjection<C, I>(container, itemType, containerInfo.instantiatorReference, containerInfo.storeReference))
-                .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
-                .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<I>>(factoryRegistryType, true, true))
-                .build());
-    }
-
-    public static <I, C extends PolymorphicDomainObjectContainerInternal<I>, P /* super C */> void staticTypes(
-            ModelRegistry modelRegistry,
-            ModelPath modelPath,
-            ModelType<C> containerType,
-            ModelType<I> itemType,
-            ModelType<P> publicType,
-            Transformer<? extends C, ? super MutableModelNode> containerFactory,
-            Namer<? super I> namer,
-            String descriptor,
-            Transformer<String, String> itemDescriptorGenerator
-    ) {
-        ModelReference<C> containerReference = ModelReference.of(modelPath, containerType);
-
-        ContainerInfo<I> containerInfo = creator(modelRegistry, containerReference, itemType, containerFactory, namer, descriptor, itemDescriptorGenerator);
-
-        modelRegistry.createOrReplace(containerInfo.creatorBuilder
-                .withProjection(new StaticTypeDomainObjectContainerModelProjection<C, I>(containerType, itemType, containerInfo.instantiatorReference, containerInfo.storeReference))
-                .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
-                .build());
+            .ephemeral(true)
+            .descriptor(descriptor);
     }
 
     public static Transformer<String, String> itemDescriptor(String parentDescriptor) {
         return new StandardDescriptorFactory(parentDescriptor);
+    }
+
+    private static class ExtractFromParentContainer<I, C extends NamedDomainObjectCollection<I>> implements Transformer<I, MutableModelNode> {
+
+        private final String name;
+        private final ModelType<C> containerType;
+
+        public ExtractFromParentContainer(String name, ModelType<C> containerType) {
+            this.name = name;
+            this.containerType = containerType;
+        }
+
+        @Override
+        public I transform(MutableModelNode modelNode) {
+            return modelNode.getParent().getPrivateData(containerType).getByName(name);
+        }
     }
 
 }

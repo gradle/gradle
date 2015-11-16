@@ -15,29 +15,23 @@
  */
 
 package org.gradle.model.dsl.internal
-
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
-import org.gradle.model.collection.ManagedSet
-import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.inspect.DefaultModelCreatorFactory
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.ModelSet
+import org.gradle.model.internal.core.*
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Specification
 
-class NonTransformedModelDslBackingTest extends Specification {
+class NonTransformedModelDslBackingTest extends ProjectRegistrySpec {
 
-    def modelRegistry = new ModelRegistryHelper()
-    def schemaStore = DefaultModelSchemaStore.instance
-    def creatorFactory = new DefaultModelCreatorFactory(schemaStore)
-    def modelDsl = new NonTransformedModelDslBacking(getModelRegistry(), schemaStore, creatorFactory)
+    def modelDsl
+
+    def setup() {
+        modelDsl = new NonTransformedModelDslBacking(getRegistry())
+    }
 
     void register(String pathString, Object element) {
-        modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).descriptor("register").build())
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(pathString, element.class), element).descriptor("register").build())
     }
 
     def "can add rules via dsl"() {
@@ -52,7 +46,7 @@ class NonTransformedModelDslBackingTest extends Specification {
         }
 
         then:
-        modelRegistry.realize(ModelPath.path("foo"), ModelType.of(List)) == [1]
+        registry.realize(ModelPath.path("foo"), ModelType.of(List)) == [1]
     }
 
     @Managed
@@ -64,7 +58,7 @@ class NonTransformedModelDslBackingTest extends Specification {
 
     @Managed
     interface Foo {
-        ManagedSet<Thing> getBar()
+        ModelSet<Thing> getBar()
     }
 
     interface Unmanaged {}
@@ -76,7 +70,7 @@ class NonTransformedModelDslBackingTest extends Specification {
         }
 
         then:
-        modelRegistry.get("foo", Foo).bar.empty
+        registry.get("foo", Foo).bar.empty
     }
 
     def "can only create top level"() {
@@ -100,7 +94,7 @@ class NonTransformedModelDslBackingTest extends Specification {
         }
 
         then:
-        modelRegistry.get("foo", Foo).bar.first().name == "one"
+        registry.get("foo", Foo).bar.first().name == "one"
     }
 
     def "cannot create unmanaged"() {
@@ -110,7 +104,7 @@ class NonTransformedModelDslBackingTest extends Specification {
         }
 
         then:
-        thrown InvalidModelRuleDeclarationException
+        thrown ModelTypeInitializationException
     }
 
     def "can use property accessors in DSL to build model object path"() {
@@ -125,7 +119,7 @@ class NonTransformedModelDslBackingTest extends Specification {
         }
 
         then:
-        modelRegistry.realize(ModelPath.path("foo"), ModelType.of(Foo)).bar*.name == ["foo"]
+        registry.realize(ModelPath.path("foo"), ModelType.of(Foo)).bar*.name == ["foo"]
     }
 
     def "does not add rules when not configuring"() {
@@ -141,7 +135,7 @@ class NonTransformedModelDslBackingTest extends Specification {
                 }
             }
         }
-        modelRegistry.realize(ModelPath.path("foo"), ModelType.UNTYPED)
+        registry.realize(ModelPath.path("foo"), ModelType.UNTYPED)
 
         then:
         def e = thrown(ModelRuleExecutionException)
@@ -157,7 +151,7 @@ class NonTransformedModelDslBackingTest extends Specification {
                 }
             }
         }
-        modelRegistry.realize(ModelPath.path("bah"), ModelType.UNTYPED)
+        registry.realize(ModelPath.path("bah"), ModelType.UNTYPED)
 
         then:
         e = thrown(ModelRuleExecutionException)

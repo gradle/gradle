@@ -16,9 +16,10 @@
 package org.gradle.api.tasks.scala;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -47,7 +48,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
 
     private Compiler<ScalaJavaJointCompileSpec> scalaCompiler;
     private JUnit4Mockery context = new JUnit4GroovyMockery();
-    private FileCollection scalaClasspath;
+    private FileTreeInternal scalaClasspath;
 
     @Override
     public AbstractCompile getCompile() {
@@ -100,15 +101,18 @@ public class ScalaCompileTest extends AbstractCompileTest {
         compile.setSourceCompatibility("1.5");
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(destDir);
-        scalaClasspath = context.mock(FileTree.class);
+        scalaClasspath = context.mock(FileTreeInternal.class);
         compile.setScalaClasspath(scalaClasspath);
-        final FileTree classpath = context.mock(FileTree.class);
-        final FileTree zincClasspath = context.mock(FileTree.class);
+        final FileTree classpath = context.mock(FileTreeInternal.class);
+        final FileTree zincClasspath = context.mock(FileTreeInternal.class);
 
         context.checking(new Expectations(){{
             allowing(scalaClasspath).getFiles(); will(returnValue(new HashSet<File>()));
+            allowing(scalaClasspath).visit((FileVisitor) with(anything()));
             allowing(classpath).getFiles(); will(returnValue(new HashSet<File>()));
+            allowing(classpath).visit((FileVisitor) with(anything()));
             allowing(zincClasspath).getFiles(); will(returnValue(new HashSet<File>()));
+            allowing(zincClasspath).visit((FileVisitor) with(anything()));
         }});
         compile.setClasspath(classpath);
         compile.setZincClasspath(zincClasspath);

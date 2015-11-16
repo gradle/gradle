@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.*;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -29,16 +29,29 @@ import java.io.File;
 import java.util.*;
 
 /**
- * A {@link org.gradle.api.file.FileCollection} which contains the union of the given source collections. Maintains file
- * ordering.
+ * A {@link org.gradle.api.file.FileCollection} that contains the union of zero or more file collections. Maintains file ordering.
+ *
+ * <p>The source file collections are calculated from the result of calling {@link #visitContents(FileCollectionResolveContext)}, and may be lazily created.
+ * This also means that the source collections can be created using any representation supported by {@link FileCollectionResolveContext}.
+ * </p>
+ *
+ * <p>The dependencies of this collection are calculated from the result of calling {@link #visitDependencies(TaskDependencyResolveContext)}.</p>
  */
-public abstract class CompositeFileCollection extends AbstractFileCollection implements FileCollectionContainer {
+public abstract class CompositeFileCollection extends AbstractFileCollection implements FileCollectionContainer, TaskDependencyContainer {
     public Set<File> getFiles() {
-        Set<File> files = new LinkedHashSet<File>();
+        // Gather each of the backing Sets first, so we can set the initial capacity of the LinkedHashSet
+        List<Set<File>> fileSets = new LinkedList<Set<File>>();
+        int fileCount = 0;
         for (FileCollection collection : getSourceCollections()) {
-            files.addAll(collection.getFiles());
+            Set<File> files = collection.getFiles();
+            fileCount += files.size();
+            fileSets.add(files);
         }
-        return files;
+        Set<File> allFiles = new LinkedHashSet<File>(fileCount);
+        for (Set<File> fileSet : fileSets) {
+            allFiles.addAll(fileSet);
+        }
+        return allFiles;
     }
 
     @Override
@@ -82,10 +95,15 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     public FileTree getAsFileTree() {
         return new CompositeFileTree() {
             @Override
-            public void resolve(FileCollectionResolveContext context) {
+            public void visitContents(FileCollectionResolveContext context) {
                 ResolvableFileCollectionResolveContext nested = context.newContext();
-                CompositeFileCollection.this.resolve(nested);
+                CompositeFileCollection.this.visitContents(nested);
                 context.add(nested.resolveAsFileTrees());
+            }
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                CompositeFileCollection.this.visitDependencies(context);
             }
 
             @Override
@@ -99,50 +117,56 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     public FileCollection filter(final Spec<? super File> filterSpec) {
         return new CompositeFileCollection() {
             @Override
-            public void resolve(FileCollectionResolveContext context) {
+            public void visitContents(FileCollectionResolveContext context) {
                 for (FileCollection collection : CompositeFileCollection.this.getSourceCollections()) {
                     context.add(collection.filter(filterSpec));
                 }
             }
 
             @Override
-            public String getDisplayName() {
-                return CompositeFileCollection.this.getDisplayName();
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                CompositeFileCollection.this.visitDependencies(context);
             }
 
             @Override
-            public TaskDependency getBuildDependencies() {
-                return CompositeFileCollection.this.getBuildDependencies();
+            public String getDisplayName() {
+                return CompositeFileCollection.this.getDisplayName();
+            }
+        };
+    }
+
+    // This is final - use {@link TaskDependencyContainer#resolve} to provide the dependencies instead.
+    @Override
+    public final TaskDependency getBuildDependencies() {
+        return new AbstractTaskDependency() {
+            @Override
+            public String toString() {
+                return CompositeFileCollection.this.toString() + " dependencies";
+            }
+
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                CompositeFileCollection.this.visitDependencies(context);
             }
         };
     }
 
     @Override
-    public TaskDependency getBuildDependencies() {
-        return new AbstractTaskDependency() {
-            public void resolve(TaskDependencyResolveContext context) {
-                addDependencies(context);
-            }
-        };
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        BuildDependenciesOnlyFileCollectionResolveContext fileContext = new BuildDependenciesOnlyFileCollectionResolveContext(context);
+        visitContents(fileContext);
     }
 
-    /**
-     * Allows subclasses to add additional dependencies
-     * @param context The context to add dependencies to.
-     */
-    protected void addDependencies(TaskDependencyResolveContext context) {
-        BuildDependenciesOnlyFileCollectionResolveContext fileContext = new BuildDependenciesOnlyFileCollectionResolveContext();
-        resolve(fileContext);
-        for (Buildable buildable : fileContext.resolveAsBuildables()) {
-            context.add(buildable);
-        }
-    }
-
-    protected List<? extends FileCollection> getSourceCollections() {
+    protected Collection<? extends FileCollectionInternal> getSourceCollections() {
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
-        resolve(context);
+        visitContents(context);
         return context.resolveAsFileCollections();
     }
 
-    public abstract void resolve(FileCollectionResolveContext context);
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        for (FileCollectionInternal files : getSourceCollections()) {
+            files.registerWatchPoints(builder);
+        }
+    }
+
 }

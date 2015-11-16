@@ -22,7 +22,7 @@
         replaces the manifest object of the default jar with an <literal>OsgiManifest</literal> object. The replaced manifest
         is merged into the new one.
     </para>
-    <para>The OSGi plugin makes heavy use of Peter Kriens <ulink url='http://www.aqute.biz/Code/Bnd'>BND tool</ulink>.
+    <para>The OSGi plugin makes heavy use of Peter Kriens <ulink url='http://www.aqute.biz/Bnd/Bnd'>BND tool</ulink>.
     </para>
 
     <section>
@@ -102,6 +102,6 @@
             <sourcefile file="build.gradle" snippet="configure-jar"/>
         </sample>
         <para>The first argument of the instruction call is the key of the property. The other arguments form the value.
-            To learn more about the available instructions have a look at the <ulink url='http://www.aqute.biz/Code/Bnd'>BND tool</ulink>.</para>
+            To learn more about the available instructions have a look at the <ulink url='http://www.aqute.biz/Bnd/Bnd'>BND tool</ulink>.</para>
     </section>
 </chapter>

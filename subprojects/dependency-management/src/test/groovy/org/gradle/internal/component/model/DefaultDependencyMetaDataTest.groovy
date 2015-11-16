@@ -140,8 +140,8 @@ class DefaultDependencyMetaDataTest extends Specification {
         descriptor.addDependencyArtifact("config", new DefaultDependencyArtifactDescriptor(descriptor, "art1", "type", "ext", null, [:]))
         descriptor.addDependencyArtifact("other", new DefaultDependencyArtifactDescriptor(descriptor, "art2", "type", "ext", null, [:]))
         descriptor.addDependencyArtifact("super", new DefaultDependencyArtifactDescriptor(descriptor, "art3", "type", "ext", null, [:]))
-        targetComponent.artifact({it.name == 'art1'}) >> artifact1
-        targetComponent.artifact({it.name == 'art3'}) >> artifact2
+        toConfiguration.artifact({it.name == 'art1'}) >> artifact1
+        toConfiguration.artifact({it.name == 'art3'}) >> artifact2
 
         expect:
         metaData.getArtifacts(fromConfiguration, toConfiguration) == [artifact1, artifact2] as Set

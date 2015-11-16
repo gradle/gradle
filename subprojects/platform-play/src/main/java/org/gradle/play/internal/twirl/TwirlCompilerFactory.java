@@ -29,9 +29,11 @@ public class TwirlCompilerFactory {
         String scalaCompatibilityVersion = playPlatform.getScalaPlatform().getScalaCompatibilityVersion();
         switch (PlayMajorVersion.forPlatform(playPlatform)) {
             case PLAY_2_2_X:
-                return new TwirlCompilerAdapterV22X("2.2.3", scalaCompatibilityVersion);
+                return new TwirlCompilerAdapterV22X("2.2.6", scalaCompatibilityVersion);
             case PLAY_2_3_X:
-                return new TwirlCompilerAdapterV10X("1.0.2", scalaCompatibilityVersion);
+                return new TwirlCompilerAdapterV10X("1.0.4", scalaCompatibilityVersion);
+            case PLAY_2_4_X:
+                return new TwirlCompilerAdapterV10X("1.1.1", scalaCompatibilityVersion);
             default:
                 throw new RuntimeException("Could not create Twirl compile spec for Play version: " + playVersion);
         }

@@ -28,7 +28,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
-import org.gradle.api.internal.notations.ModuleIdentiferNotationConverter;
+import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.rules.*;
@@ -69,7 +69,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     private static NotationParser<Object, ModuleIdentifier> createModuleIdentifierNotationParser() {
         return NotationParserBuilder
                 .toType(ModuleIdentifier.class)
-                .converter(new ModuleIdentiferNotationConverter())
+                .converter(new ModuleIdentifierNotationConverter())
                 .toComposite();
     }
 

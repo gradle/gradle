@@ -23,4 +23,6 @@ public interface PluginResolveContext {
     void addLegacy(PluginId pluginId, String m2RepoUrl, Object dependencyNotation);
 
     void add(PluginImplementation<?> plugin);
+
+    void addFromDifferentLoader(PluginImplementation<?> plugin);
 }

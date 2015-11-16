@@ -21,6 +21,7 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.Variant;
 
 import java.util.Collection;
 
@@ -37,16 +38,19 @@ public interface NativeBinarySpec extends BinarySpec {
     /**
      * The flavor that this binary was built with.
      */
+    @Variant
     Flavor getFlavor();
 
     /**
      * Returns the {@link org.gradle.nativeplatform.platform.NativePlatform} that this binary is targeted to run on.
      */
+    @Variant
     NativePlatform getTargetPlatform();
 
     /**
      * Returns the {@link BuildType} used to construct this binary.
      */
+    @Variant
     BuildType getBuildType();
 
     /**

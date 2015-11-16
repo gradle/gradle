@@ -17,10 +17,12 @@
 
 package org.gradle.nativeplatform.sourceset
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@LeaksFileHandles
 class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
@@ -68,7 +70,6 @@ model {
         lib1(NativeLibrarySpec)
         main(NativeExecutableSpec) {
             sources {
-                cpp(CppSourceSet)
                 cpp1(CppSourceSet)
             }
         }

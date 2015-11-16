@@ -18,7 +18,6 @@ package org.gradle.api.distribution.internal;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.internal.Actions;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -34,6 +33,6 @@ public class DefaultDistributionContainer extends AbstractNamedDomainObjectConta
     }
 
     protected Distribution doCreate(String name) {
-        return getInstantiator().newInstance(DefaultDistribution.class, name, fileOperations.copySpec(Actions.doNothing()));
+        return getInstantiator().newInstance(DefaultDistribution.class, name, fileOperations.copySpec());
     }
 }

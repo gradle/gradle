@@ -17,11 +17,12 @@
 package org.gradle.play.tasks
 
 import org.hamcrest.Matchers
+import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegrationTest {
     @Override
     String getDefaultSourceSet() {
-        return "JavaScriptAssets"
+        return "JavaScript"
     }
 
     def setup() {
@@ -31,13 +32,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
                 id 'play-javascript'
             }
 
-            repositories{
-                jcenter()
-                maven{
-                    name = "typesafe-maven-release"
-                    url = "https://repo.typesafe.com/typesafe/maven-releases"
-                }
-            }
+            ${PLAY_REPOSITORES}
         """
     }
 
@@ -50,7 +45,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
 
         then:
         executedAndNotSkipped(
-                ":minifyPlayBinaryJavaScriptAssets",
+                ":minifyPlayBinaryJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -74,7 +69,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         succeeds "assemble"
 
         then:
-        skipped(":minifyPlayBinaryJavaScriptAssets",
+        skipped(":minifyPlayBinaryJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -93,7 +88,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
 
         then:
         executedAndNotSkipped(
-                ":minifyPlayBinaryJavaScriptAssets",
+                ":minifyPlayBinaryJavaScript",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
         minified("test.min.js").exists()
@@ -111,7 +106,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
 
         then:
         executedAndNotSkipped(
-                ":minifyPlayBinaryJavaScriptAssets",
+                ":minifyPlayBinaryJavaScript",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
     }
@@ -173,7 +168,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
 
         then:
         executedAndNotSkipped(
-                ":minifyPlayBinaryJavaScriptAssets",
+                ":minifyPlayBinaryJavaScript",
                 ":minifyPlayBinaryExtraJavaScript",
                 ":minifyPlayBinaryAnotherJavaScript",
                 ":createPlayBinaryJar",
@@ -198,7 +193,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         succeeds "assemble"
 
         then:
-        skipped(":minifyPlayBinaryJavaScriptAssets",
+        skipped(":minifyPlayBinaryJavaScript",
                 ":minifyPlayBinaryExtraJavaScript",
                 ":minifyPlayBinaryAnotherJavaScript",
                 ":createPlayBinaryJar",
@@ -218,7 +213,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         then:
         minified("javascripts/hello.min.js").exists()
         copied("javascripts/hello.js").exists()
-        failure.assertHasDescription("Execution failed for task ':minifyPlayBinaryJavaScriptAssets'.")
+        failure.assertHasDescription("Execution failed for task ':minifyPlayBinaryJavaScript'.")
 
         String slash = File.separator
         failure.assertThatCause(Matchers.allOf([

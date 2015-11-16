@@ -16,13 +16,16 @@
 
 package org.gradle.scala.compile
 
-import org.gradle.integtests.fixtures.ScalaCoverage
-import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
-@TargetCoverage({ScalaCoverage.DEFAULT})
 abstract class AbstractAntInProcessScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     def setup() {
         executer.requireIsolatedDaemons()
+        if (GradleContextualExecuter.daemon) {
+            executer.beforeExecute {
+                executer.withBuildJvmOpts("-XX:MaxPermSize=320m")
+            }
+        }
     }
 
     String compilerConfiguration() {

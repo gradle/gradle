@@ -3,9 +3,9 @@ import org.gradle.model.collection.*
 
 @Managed
 interface Domain {
-    ManagedSet<Flavour> getFlavours()
-    ManagedSet<Type> getTypes()
-    ManagedSet<Variant> getVariants()
+    ModelSet<Flavour> getFlavours()
+    ModelSet<Type> getTypes()
+    ModelSet<Variant> getVariants()
 }
 
 @Managed

@@ -15,46 +15,80 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import groovy.lang.Closure;
 import org.gradle.api.Buildable;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.internal.UncheckedException;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
- * <p>A {@link FileCollectionResolveContext} which is used to determine the builder dependencies of a file collection hierarchy. Ignores the contents of file
- * collections when resolving, replacing each file collection with an empty tree with the appropriate build dependencies. This is generally more efficient than
- * resolving the file collections.
- *
- * <p>Nested contexts created by this context will similarly ignore the contents of file collections.
+ * <p>A {@link FileCollectionResolveContext} which is used to determine the builder dependencies of a file collection hierarchy.
  */
-public class BuildDependenciesOnlyFileCollectionResolveContext extends DefaultFileCollectionResolveContext {
-    public BuildDependenciesOnlyFileCollectionResolveContext() {
-        super(new IdentityFileResolver(), new BuildableFileTreeInternalConverter(), new BuildableFileTreeInternalConverter());
+public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCollectionResolveContext {
+    private final TaskDependencyResolveContext taskContext;
+
+    public BuildDependenciesOnlyFileCollectionResolveContext(TaskDependencyResolveContext taskContext) {
+        this.taskContext = taskContext;
     }
 
-    /**
-     * Resolves the contents of this context as a list of atomic {@link Buildable} instances.
-     */
-    public List<? extends Buildable> resolveAsBuildables() {
-        return resolveAsFileCollections();
+    @Override
+    public FileCollectionResolveContext push(FileResolver fileResolver) {
+        return this;
     }
 
-    private static class BuildableFileTreeInternalConverter implements Converter<FileTree> {
-        public void convertInto(Object element, Collection<? super FileTree> result, FileResolver resolver) {
-            if (element instanceof DefaultFileCollectionResolveContext) {
-                DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
-                result.addAll(nestedContext.resolveAsFileTrees());
-            } else if (element instanceof Buildable) {
-                Buildable buildable = (Buildable) element;
-                result.add(new FileTreeAdapter(new EmptyFileTree(buildable.getBuildDependencies())));
-            } else if (element instanceof TaskDependency) {
-                TaskDependency dependency = (TaskDependency) element;
-                result.add(new FileTreeAdapter(new EmptyFileTree(dependency)));
+    @Override
+    public ResolvableFileCollectionResolveContext newContext() {
+        // Currently not required
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public FileCollectionResolveContext add(Object element) {
+        // TODO - need to sync with DefaultFileCollectionResolveContext
+        if (element instanceof FileCollection) {
+            taskContext.add(element);
+        } else if (element instanceof MinimalFileCollection && element instanceof Buildable) {
+            taskContext.add(element);
+        } else if (element instanceof Task) {
+            Task task = (Task) element;
+            taskContext.add(task);
+        } else if (element instanceof TaskOutputs) {
+            TaskOutputs outputs = (TaskOutputs) element;
+            taskContext.add(outputs.getFiles());
+        } else if (element instanceof Closure) {
+            Closure closure = (Closure) element;
+            Object closureResult = closure.call();
+            if (closureResult != null) {
+                add(closureResult);
+            }
+        } else if (element instanceof Callable) {
+            Callable callable = (Callable) element;
+            Object callableResult;
+            try {
+                callableResult = callable.call();
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+            if (callableResult != null) {
+                add(callableResult);
+            }
+        } else if (element instanceof Iterable) {
+            Iterable<?> iterable = (Iterable) element;
+            for (Object value : iterable) {
+                add(value);
+            }
+        } else if (element instanceof Object[]) {
+            Object[] array = (Object[]) element;
+            for (Object value : array) {
+                add(value);
             }
         }
+        // Everything else assume has no dependencies
+        return this;
     }
 }

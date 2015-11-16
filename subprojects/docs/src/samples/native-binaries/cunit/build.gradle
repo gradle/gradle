@@ -31,11 +31,15 @@ model {
     }
 }
 // START SNIPPET configure-test-binary
-binaries.withType(CUnitTestSuiteBinarySpec) {
-    lib library: "cunit", linkage: "static"
+model {
+    binaries {
+        withType(CUnitTestSuiteBinarySpec) {
+            lib library: "cunit", linkage: "static"
 
-    if (flavor == flavors.failing) {
-        cCompiler.define "PLUS_BROKEN"
+            if (flavor == flavors.failing) {
+                cCompiler.define "PLUS_BROKEN"
+            }
+        }
     }
 }
 // END SNIPPET configure-test-binary
@@ -43,8 +47,8 @@ binaries.withType(CUnitTestSuiteBinarySpec) {
 
 def findCUnitLibForPlatform(Platform platform) {
     if (platform.operatingSystem.windows) {
-        return "vs2010/cunit.lib"
-//        return "vs2013/cunit.lib"
+//        return "vs2010/cunit.lib"
+        return "vs2013/cunit.lib"
 //        return "cygwin/cunit.lib"
 //        return "mingw/cunit.lib"
     } else if (platform.operatingSystem.macOsX) {

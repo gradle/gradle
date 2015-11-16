@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings;
 
-import org.gradle.mvn3.org.apache.maven.settings.Settings;
-import org.gradle.mvn3.org.apache.maven.settings.building.*;
+import org.apache.maven.settings.Settings;
+import org.apache.maven.settings.building.*;
 
 public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
 

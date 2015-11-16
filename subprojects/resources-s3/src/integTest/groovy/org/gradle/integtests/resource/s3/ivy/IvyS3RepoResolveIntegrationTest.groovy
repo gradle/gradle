@@ -24,7 +24,7 @@ import org.junit.Rule
 class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule
-    final S3Server server = new S3Server(this)
+    final S3Server server = new S3Server(temporaryFolder)
 
     @Override
     RepositoryServer getServer() {
@@ -35,5 +35,35 @@ class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegr
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
         executer.withArgument("-Dorg.gradle.s3.maxErrorRetry=0")
         result = executer.withTasks(*tasks).run()
+    }
+
+    def "cannot add invalid authentication types for s3 repo"() {
+        given:
+        def remoteIvyRepo = server.getRemoteIvyRepo()
+        def module = remoteIvyRepo.module('org.group.name', 'projectA', '1.2')
+        module.publish()
+
+        and:
+        buildFile << """
+            repositories {
+                ivy {
+                    url "${remoteIvyRepo.uri}"
+                    authentication {
+                        auth(BasicAuthentication)
+                    }
+                }
+            }
+            configurations { compile }
+            dependencies { compile 'org.group.name:projectA:1.2' }
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
+            }
+        """
+
+        expect:
+        fails 'retrieve'
+        and:
+        failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 's3'")
     }
 }

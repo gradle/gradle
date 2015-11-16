@@ -23,4 +23,6 @@ abstract class IncrementalTestJvmComponent extends TestJvmComponent {
     abstract void changeSources(List<TestFile> testFiles)
 
     abstract void writeAdditionalSources(TestFile testFile)
+
+    abstract TestFile createIgnoredFileInSources(TestFile sourceDir)
 }

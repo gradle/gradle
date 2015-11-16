@@ -26,13 +26,14 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.AvailablePortFinder
+import org.gradle.util.ports.ReleasingPortAllocator
+import org.junit.Rule
 import org.junit.rules.ExternalResource
 
 class SonarTestServer extends ExternalResource {
 
     private TestNameTestDirectoryProvider provider
-    private AvailablePortFinder portFinder
+    @Rule private ReleasingPortAllocator portFinder = new ReleasingPortAllocator()
 
     private int databasePort
     private int httpPort
@@ -41,7 +42,6 @@ class SonarTestServer extends ExternalResource {
 
     SonarTestServer(TestNameTestDirectoryProvider provider, GradleExecuter gradleExecuter) {
         this.provider = provider
-        this.portFinder = AvailablePortFinder.createPrivate()
 
         gradleExecuter.beforeExecute {
             withArgument("-Dsonar.host.url=http://localhost:${httpPort}")
@@ -82,8 +82,8 @@ class SonarTestServer extends ExternalResource {
     }
 
     private TestFile prepareSonarHomeFolder() {
-        databasePort = portFinder.nextAvailable
-        httpPort = portFinder.nextAvailable
+        databasePort = portFinder.assignPort()
+        httpPort = portFinder.assignPort()
         def classpath = ClasspathUtil.getClasspath(getClass().classLoader).collect() {
             new File(it.toURI())
         }

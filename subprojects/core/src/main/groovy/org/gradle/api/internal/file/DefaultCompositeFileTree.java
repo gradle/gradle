@@ -16,26 +16,20 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 
-import java.util.List;
+import java.util.Collection;
 
 public class DefaultCompositeFileTree extends CompositeFileTree {
-    private final List<FileTree> fileTrees;
+    private final Collection<? extends FileTreeInternal> fileTrees;
 
-    public DefaultCompositeFileTree(List<FileTree> fileTrees) {
+    public DefaultCompositeFileTree(Collection<? extends FileTreeInternal> fileTrees) {
         this.fileTrees = fileTrees;
     }
 
     @Override
-    public void resolve(FileCollectionResolveContext context) {
+    public void visitContents(FileCollectionResolveContext context) {
         context.add(fileTrees);
-    }
-
-    @Override
-    protected List<FileTree> getSourceCollections() {
-        return fileTrees;
     }
 
     @Override

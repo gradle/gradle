@@ -38,6 +38,7 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
 /**
  * A {@link BuildListener} which reports the build exception, if any.
  */
+@Deprecated
 public class BuildExceptionReporter extends BuildAdapter implements Action<Throwable> {
     private enum ExceptionStyle {
         NONE, FULL

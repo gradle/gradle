@@ -1,0 +1,161 @@
+<!--
+  ~ Copyright 2015 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id='continuous_build'>
+    <note>
+        <para>
+            Continuous build is an <link linkend="feature_lifecycle">incubating</link> feature.
+            This means that it is incomplete and not yet at regular Gradle production quality.
+            This also means that this Gradle User Guide chapter is a work in progress.
+        </para>
+    </note>
+    <title>Continuous build</title>
+    <para>
+        Typically, you ask Gradle to perform a single build by way of specifying tasks that Gradle should execute.
+        Gradle will determine the the actual set of tasks that need to be executed to satisfy the request, execute them all, and then stop doing work until the next request.
+        A continuous build differs in that Gradle will keep satisfying the initial build request (until instructed to stop)
+        by executing the build when it is detected that the result of the previous build is now out of date.
+        For example, if your build compiles Java source files to Java class files, a continuous build would automatically initiate a compile when the source files change.
+        Continuous build is useful for many scenarios.
+    </para>
+    <section id="continuous_build_start_stop">
+        <title>How do I start and stop a continuous build?</title>
+        <para>
+            A continuous build can be started by supplying either the <userinput>--continuous</userinput> or <userinput>-t</userinput> switches to Gradle,
+            along with the list of tasks, switches and arguments that define the work to do.
+            For example, <userinput>gradle build --continuous</userinput>.
+            This will have the same effect as running <userinput>gradle build</userinput>, but instead of Gradle exiting when done, it will wait for changes to the build inputs.
+            When a change occurs, <userinput>gradle build</userinput> will be automatically executed again and the process repeats.
+        </para>
+        <para>
+            If Gradle is attached to an interactive input source, such as a terminal, the continuous build can be exited by pressing <userinput>CTRL-D</userinput> (On Microsoft Windows, it is required to also press <userinput>ENTER</userinput> or <userinput>RETURN</userinput> after <userinput>CTRL-D</userinput>).
+            If Gradle is not attached to an interactive input source (e.g. is running as part of a script), the build process must be terminated (e.g. using the <userinput>kill</userinput> command or similar).
+            If the build is being executed via the Tooling API, the build can be cancelled using the Tooling API's cancellation mechanism.
+        </para>
+    </section>
+    <section id="continuous_build_causes">
+        <title>What will cause a subsequent build?</title>
+        <tip>
+            <title>Task file inputs</title>
+            <para>
+                Task implementations declare their file system inputs by annotating their properties with
+                <apilink class="org.gradle.api.tasks.InputFiles" /> and other similar annotations.
+                Please see <xref linkend="incrementalTask"/> for more information.
+            </para>
+        </tip>
+        <para>
+            At this time, only changes that occur after the build has completed (and Gradle has prompted that it is waiting for changes) are noticed.
+            No other changes will initiate a build.
+            For example, changes to build scripts and build logic will not initiate build.
+            Likewise, changes to files that are read during the configuration of the build, not the execution, will not initiate a build.
+            In order to incorporate such changes, the continuous build must be restarted manually.
+        </para>
+        <para>
+            Consider a typical build using the <link linkend="java_plugin">Java plugin</link>, using the conventional filesystem layout.
+            The following diagram visualizes the task graph for <userinput>gradle build</userinput>:
+        </para>
+        <figure>
+            <title>Java plugin task graph</title>
+            <imageobject>
+                <imagedata fileref="img/javaPluginTasks.png"/>
+            </imageobject>
+        </figure>
+        <para>
+            The following key tasks of the graph use files in the corresponding directories as inputs:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>compileJava</term>
+                <listitem><filename>src/main/java</filename></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>processResources</term>
+                <listitem><filename>src/main/resources</filename></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>compileTestJava</term>
+                <listitem><filename>src/test/java</filename></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>processTestResources</term>
+                <listitem><filename>src/test/resources</filename></listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            Assuming that the initial build is successful (i.e. the <literal>build</literal> task and its dependencies complete without error),
+            changes to files in, or the addition/remove of files from, the locations listed above will initiate a new build.
+            If a change is made to a Java source file in <filename>src/main/java</filename>, the build will fire and all tasks will be scheduled.
+            Gradle's incremental build support ensures that only the tasks that are actually affected by the change are executed.
+        </para>
+        <para>
+            If the change to the main Java source causes compilation to fail, subsequent changes to the test source in <filename>src/test/java</filename> will not initiate a new build.
+            As the test source depends on the main source, there is no point building until the main source has changed, potentially fixing the compilation error.
+            After each build, only the inputs of the tasks that actually executed will be monitored for changes.
+        </para>
+        <para>
+            Continuous build is in no way coupled to compilation.
+            It works for all types of tasks.
+            For example, the <literal>processResources</literal> task copies and processes the files from <filename>src/main/resources</filename> for inclusion in the built JAR.
+            As such, a change to any file in this directory will also initiate a build.
+        </para>
+    </section>
+    <section id="continuous_build_limitations">
+        <title>Limitations and quirks</title>
+        <para>
+            There are several issues to be aware with the current implementation of continuous build.
+            These are likely to be addressed in future Gradle releases.
+        </para>
+        <section id="continuous_build_limitations_jdk">
+            <title>Requires Java 7 or later</title>
+            <para>
+                Gradle uses the JDK's <ulink url="http://docs.oracle.com/javase/7/docs/api/java/nio/file/WatchService.html"><literal>WatchService</literal></ulink>
+                to receive notification of changes to files between builds.
+                This API was introduced in Java 7.
+                As such, Gradle's continuous build is not currently supported when building with Java 6.
+            </para>
+        </section>
+        <section>
+            <title>Performance and stability on Mac OS X</title>
+            <para>
+                The JDK file watching facility relies on inefficient file system polling on Mac OS X (see: <ulink url="https://bugs.openjdk.java.net/browse/JDK-7133447">JDK-7133447</ulink>).
+                This can significantly delay notification of changes on large projects with many source files.
+            </para>
+            <para>
+                Additionally, the watching mechanism may deadlock under <emphasis>heavy</emphasis> load on Mac OS X (see: <ulink url="https://bugs.openjdk.java.net/browse/JDK-8079620">JDK-8079620</ulink>).
+                This will manifest as Gradle appearing not to notice file changes.
+                If you suspect this is occurring, exit continuous build and start again.
+            </para>
+        </section>
+        <section>
+            <title>Changes to symbolic links</title>
+            <para>
+                <itemizedlist>
+                    <listitem><para>Creating or removing symbolic link to files will initiate a build.</para></listitem>
+                    <listitem><para>Modifying the target of a symbolic link will not cause a rebuild.</para></listitem>
+                    <listitem><para>Creating or removing symbolic links to directories will not cause rebuilds.</para></listitem>
+                    <listitem><para>Creating new files in the target directory of a symbolic link will not cause a rebuild.</para></listitem>
+                    <listitem><para>Deleting the target directory will not cause a rebuild.</para></listitem>
+                </itemizedlist>
+            </para>
+        </section>
+        <section>
+            <title>Changes to build logic are not considered</title>
+            <para>
+                The current implementation does not recalculate the build model on subsequent builds.
+                This means that changes to task configuration, or any other change to the build model, are effectively ignored.
+            </para>
+        </section>
+    </section>
+</chapter>

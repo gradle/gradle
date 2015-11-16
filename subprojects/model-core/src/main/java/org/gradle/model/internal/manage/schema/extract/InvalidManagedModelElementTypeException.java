@@ -17,12 +17,14 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.Lists;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.model.internal.type.ModelType;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Deque;
 
+@Contextual
 public class InvalidManagedModelElementTypeException extends RuntimeException {
 
     private static String createPathString(ModelSchemaExtractionContext<?> extractionContext) {

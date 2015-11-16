@@ -75,7 +75,7 @@
         <para>
             One thing to note is that a new instance of a given plugin is created for each project it is applied to. Also
             note that the <apilink class="org.gradle.api.Plugin"/> class is a generic type. This example has it receiving the
-            <apilink class="org.gradle.api.Plugin"/> type as a type parameter. It's possible to write unusual custom
+            <apilink class="org.gradle.api.Project"/> type as a type parameter. It's possible to write unusual custom
             plugins that take different type parameters, but this will be unlikely (until someone figures out more
             creative things to do here). 
         </para>

@@ -2,6 +2,91 @@
 
 ## Listening to test execution progress
 
+### Listening to tests executed from the tooling API
+
+It should be possible to listen to test execution progress from the Tooling API. This includes:
+
+- test events from tests in the Gradle build : implemented
+- test events from tests in the `buildSrc` directory. This is currently not possible because `buildSrc` doesn't appear in the model
+and is not seen as a project. It should however be easier to implement than the next items.
+- events should be received live, while the build is running, and not as a batch when the build is over
+
+Listening to test events in `buildSrc` requires a way to get access to the `GradleInternal` instance of
+the project generated to compile the build classpath. This `GradleInternal` instance uses its own `ListenerManager`,
+so when the test progress listener is added (in `BuildModelActionRunner`), the listener manager is not the one of
+`buildSrc`.
+
+### Listening to progress events from a nested build
+
+- `buildSrc`
+- Run using `GradleBuild` task
+- Run using `CompareGradleBuilds` task
+- Run using the tooling API
+
+### Listening to tests executed from the tooling API within a build
+
+It is possible for a user to create a task that will use the tooling API to execute a build/tests. This
+differs from executing a `GradleBuild` task because the latter will not use the tooling API, hence targets
+the same Gradle version as the version currently executed. The goal here is therefore to execute a
+sub-build which may target a different version of Gradle.
+
+It should be possible to listen to test events from a build executed in such a way. That is to say:
+
+Tooling API -> gradle build -> gradle task calling tooling API -> tests
+
+The events should be sent back from the tests to the original tooling API.
+
+### Build cancellation and event types
+
+It should be possible to cancel a build from the tooling API, including from a test listener. When a build is cancelled:
+
+- listeners should receive a "cancelled" event for the test task
+- listeners should receive a "cancelled" event for the build
+- listeners should be able to make a difference between a "cancelled" event and a "finished" event
+- listeners should be able to make a difference between a "skipped" event and a "cancelled" event
+- listeners should be able to make a difference between a "skipped" event and an "up-to-date" event
+
+### Test descriptors
+
+A test descriptor depends on the underlying test framework. It is not necessarily a JVM test, hence doesn't necessarily
+refer to a test class, a test suite or a test method. Descriptors should allow the client to build a hierarchy of
+events:
+
+- a descriptor provides a human readable, non localized, description of the event
+- a descriptor may have a parent descriptor
+- a descriptor may refer to a test descriptor, a task descriptor or implementation detail descriptors (like workers)
+
+
+### Error handling
+
+If the daemon disappears unexpectedly (crashed, killed) :
+
+- listeners should receive a "failure" event for the build
+- the failure outcome should include a "daemon disappeared unexpectedly" error
+
+If an error occurs in a test listener:
+
+- event listening should not be interrupted
+- build should not be interrupted
+- task should not be interrupted
+
+If the tooling API is shutdown from a test listener:
+
+- listeners should receive a "failure" event for the build
+- the failure outcome should include a "tooling API disappeared unexpectedly" error
+
+### User experience improvements
+
+It should be possible to build the list of tests to be executed before they are actually executed. When the underlying
+test framework allows it:
+
+- listeners should receive a "pending" event for tests that are going to be executed but are not started
+- "pending" events should be received before the first test is started. Note that this is not always possible, nor a requirement. If tests are executed in parallel or on different machines,
+it is acceptable that the list of "pending" tests grows as new clients are connected. Some frameworks may also dynamically generate tests from existing tests.
+
+The idea here is more to allow the UI to warn the user about upcoming tests and provide some idea about the overall progress.
+
+
 ### Test cases
 
 - Can receive test events when running a build : done
@@ -17,11 +102,6 @@
 - Receives 'finished' test events when build is cancelled or daemon crashes
 - Receives 'finished' progress events when build is cancelled or daemon crashes
 - Receives test events live, as the tests are executed
-
-
-### Open issues
-
-- It is currently not possible to listen for tests in `buildSrc`, probably because `buildSrc` is not seen as a project from the model.
 
 
 ## Listening to task execution progress
@@ -40,31 +120,6 @@
 
 ## Open issues
 
-- some test coverage to prove that the events are live, current tests prove only that they’re available at the end of the build
-
-- what’s the relationship between tasks and test progress events?
-
-Progress events have a descriptor, which references a parent descriptor. This parent descriptor may correspond to a task descriptor.
-
 - are we going to expose all build operations at this point, or just tasks?
 
 Tasks are going to be exposed first. Further operations may be added in the future based on feedback or specific needs.
-
-- what happens when the build is cancelled? do i receive an ‘operation cancelled’ event for each operation in progress? or do i stop receiving events?
-
-- we should distinguish between tests that were up-to-date vs tests that were disabled. in the former case, the output of the task is usable, where as in the later case it is undefined
-
-- do we expose tests and tasks from nested builds invoked using GradleBuild task or the tooling API?
-
-- what do we expose about the task in the operation descriptor?
-
-- better handling of a broken listener. currently the test proves that an exception (could be pretty much any exception) is thrown and says nothing about what information is conveyed to the user about what happened, or what happens to the build or the daemon hosting the build
-
-- cancelling a build from a listener
-
-It is possible to cancel a build from a listener. Cancellation is however limited to what is supported in Gradle core. In particular, if execution is cancelled during a test task, the whole task
-is executed. Only the next task will be cancelled.
-
-- stopping the tooling api from a listener
-
-- what happens when the daemon crashes? 

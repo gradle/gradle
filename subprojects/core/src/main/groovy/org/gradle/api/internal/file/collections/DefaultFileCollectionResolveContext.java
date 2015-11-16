@@ -19,10 +19,13 @@ import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
 
@@ -34,8 +37,8 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     private final FileResolver fileResolver;
     private final List<Object> queue = new LinkedList<Object>();
     private List<Object> addTo = queue;
-    private final Converter<? extends FileCollection> fileCollectionConverter;
-    private final Converter<? extends FileTree> fileTreeConverter;
+    private final Converter<? extends FileCollectionInternal> fileCollectionConverter;
+    private final Converter<? extends FileTreeInternal> fileTreeConverter;
 
     public DefaultFileCollectionResolveContext() {
         this(new IdentityFileResolver());
@@ -47,7 +50,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         fileTreeConverter = new FileTreeConverter();
     }
 
-    protected DefaultFileCollectionResolveContext(FileResolver fileResolver, Converter<? extends FileCollection> fileCollectionConverter, Converter<? extends FileTree> fileTreeConverter) {
+    protected DefaultFileCollectionResolveContext(FileResolver fileResolver, Converter<? extends FileCollectionInternal> fileCollectionConverter, Converter<? extends FileTreeInternal> fileTreeConverter) {
         this.fileResolver = fileResolver;
         this.fileCollectionConverter = fileCollectionConverter;
         this.fileTreeConverter = fileTreeConverter;
@@ -71,14 +74,14 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     /**
      * Resolves the contents of this context as a list of atomic {@link FileTree} instances.
      */
-    public List<FileTree> resolveAsFileTrees() {
+    public List<FileTreeInternal> resolveAsFileTrees() {
         return doResolve(fileTreeConverter);
     }
 
     /**
      * Resolves the contents of this context as a list of atomic {@link FileCollection} instances.
      */
-    public List<FileCollection> resolveAsFileCollections() {
+    public List<FileCollectionInternal> resolveAsFileCollections() {
         return doResolve(fileCollectionConverter);
     }
 
@@ -93,6 +96,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         List<T> result = new ArrayList<T>();
         while (!queue.isEmpty()) {
             Object element = queue.remove(0);
+            // TODO - need to sync with BuildDependenciesOnlyFileCollectionResolveContext
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
                 converter.convertInto(nestedContext, result, fileResolver);
@@ -140,7 +144,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     private void resolveNested(FileCollectionContainer fileCollection) {
         addTo = queue.subList(0, 0);
         try {
-            fileCollection.resolve(this);
+            fileCollection.visitContents(this);
         } finally {
             addTo = queue;
         }
@@ -150,14 +154,14 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         void convertInto(Object element, Collection<? super T> result, FileResolver resolver);
     }
 
-    private static class FileCollectionConverter implements Converter<FileCollection> {
-        public void convertInto(Object element, Collection<? super FileCollection> result, FileResolver fileResolver) {
+    private static class FileCollectionConverter implements Converter<FileCollectionInternal> {
+        public void convertInto(Object element, Collection<? super FileCollectionInternal> result, FileResolver fileResolver) {
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
                 result.addAll(nestedContext.resolveAsFileCollections());
             } else if (element instanceof FileCollection) {
                 FileCollection fileCollection = (FileCollection) element;
-                result.add(fileCollection);
+                result.add(Cast.cast(FileCollectionInternal.class, fileCollection));
             } else if (element instanceof MinimalFileTree) {
                 MinimalFileTree fileTree = (MinimalFileTree) element;
                 result.add(new FileTreeAdapter(fileTree));
@@ -175,14 +179,14 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         }
     }
 
-    private static class FileTreeConverter implements Converter<FileTree> {
-        public void convertInto(Object element, Collection<? super FileTree> result, FileResolver fileResolver) {
+    private static class FileTreeConverter implements Converter<FileTreeInternal> {
+        public void convertInto(Object element, Collection<? super FileTreeInternal> result, FileResolver fileResolver) {
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
                 result.addAll(nestedContext.resolveAsFileTrees());
             } else if (element instanceof FileTree) {
                 FileTree fileTree = (FileTree) element;
-                result.add(fileTree);
+                result.add(Cast.cast(FileTreeInternal.class, fileTree));
             } else if (element instanceof MinimalFileTree) {
                 MinimalFileTree fileTree = (MinimalFileTree) element;
                 result.add(new FileTreeAdapter(fileTree));
@@ -191,7 +195,12 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 for (File file : fileSet.getFiles()) {
                     convertFileToFileTree(file, result);
                 }
-            } else if (element instanceof FileCollection || element instanceof MinimalFileCollection) {
+            } else if (element instanceof FileCollection) {
+                FileCollection fileCollection = (FileCollection) element;
+                for (File file : fileCollection.getFiles()) {
+                    convertFileToFileTree(file, result);
+                }
+            } else if (element instanceof MinimalFileCollection) {
                 throw new UnsupportedOperationException(String.format("Cannot convert instance of %s to FileTree", element.getClass().getSimpleName()));
             } else if (element instanceof TaskDependency) {
                 // Ignore
@@ -201,7 +210,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
             }
         }
 
-        private void convertFileToFileTree(File file, Collection<? super FileTree> result) {
+        private void convertFileToFileTree(File file, Collection<? super FileTreeInternal> result) {
             if (file.isDirectory()) {
                 result.add(new FileTreeAdapter(new DirectoryFileTree(file)));
             } else if (file.isFile()) {

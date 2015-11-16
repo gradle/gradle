@@ -86,6 +86,9 @@
             <tr>
                 <td>getTaskDependencyFromProjectDependency</td>
             </tr>
+            <tr>
+                <td>defaultDependencies</td>
+            </tr>
         </table>
     </section>
 </section>

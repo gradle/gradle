@@ -36,7 +36,7 @@ public class DefaultDependencyDescriptorFactoryTest extends Specification {
         def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
                 ivyDependencyDescriptorFactory1, ivyDependencyDescriptorFactory2
         );
-        def created = dependencyDescriptorFactory.createDependencyDescriptor(configurationName, moduleDescriptor, projectDependency)
+        def created = dependencyDescriptorFactory.createDependencyDescriptor(configurationName, projectDependency)
 
         then:
         created == result
@@ -44,7 +44,7 @@ public class DefaultDependencyDescriptorFactoryTest extends Specification {
         and:
         1 * ivyDependencyDescriptorFactory1.canConvert(projectDependency) >> false
         1 * ivyDependencyDescriptorFactory2.canConvert(projectDependency) >> true
-        1 * ivyDependencyDescriptorFactory2.createDependencyDescriptor(configurationName, projectDependency, moduleDescriptor) >> result
+        1 * ivyDependencyDescriptorFactory2.createDependencyDescriptor(configurationName, projectDependency) >> result
     }
 
     def "fails where no internal factory can handle dependency type"() {
@@ -57,7 +57,7 @@ public class DefaultDependencyDescriptorFactoryTest extends Specification {
         def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
                 ivyDependencyDescriptorFactory1
         );
-        dependencyDescriptorFactory.createDependencyDescriptor(configurationName, moduleDescriptor, projectDependency)
+        dependencyDescriptorFactory.createDependencyDescriptor(configurationName, projectDependency)
 
         then:
         thrown InvalidUserDataException

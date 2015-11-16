@@ -106,9 +106,9 @@ public class CyclicBarrierHttpServer extends ExternalResource {
                     connected = true;
                     lock.notifyAll();
 
-                    long expiry = System.currentTimeMillis() + 30000;
+                    long expiry = monotonicClockMillis() + 30000;
                     while (!released && !stopped) {
-                        long delay = expiry - System.currentTimeMillis();
+                        long delay = expiry - monotonicClockMillis();
                         if (delay <= 0) {
                             System.out.println("Timeout waiting for client to be released.");
                             outputStream.write("HTTP/1.1 500 Timeout waiting for client to be released.\r\nConnection: close\r\nContent-length: 0\r\n\r\n".getBytes());
@@ -128,6 +128,7 @@ public class CyclicBarrierHttpServer extends ExternalResource {
 
                     connected = false;
                     released = false;
+                    lock.notifyAll();
                 }
 
                 System.out.println("Sending response to client");
@@ -168,10 +169,10 @@ public class CyclicBarrierHttpServer extends ExternalResource {
      * {@link #release()} is called.
      */
     public void waitFor() {
-        long expiry = System.currentTimeMillis() + 20000;
+        long expiry = monotonicClockMillis() + 20000;
         synchronized (lock) {
             while (!connected && !stopped) {
-                long delay = expiry - System.currentTimeMillis();
+                long delay = expiry - monotonicClockMillis();
                 if (delay <= 0) {
                     throw new AssertionFailedError(String.format("Timeout waiting for client to connect to %s.", getUri()));
                 }
@@ -187,6 +188,10 @@ public class CyclicBarrierHttpServer extends ExternalResource {
             }
             System.out.println("client connected - unblocking");
         }
+    }
+
+    private long monotonicClockMillis() {
+        return System.nanoTime() / 1000000L;
     }
 
     /**
@@ -217,6 +222,32 @@ public class CyclicBarrierHttpServer extends ExternalResource {
         synchronized (lock) {
             waitFor();
             release();
+        }
+    }
+
+    /**
+     * Blocks until the client has gone into a disconnected state
+     *
+     */
+    public void waitForDisconnect() {
+        long expiry = monotonicClockMillis() + 20000;
+        synchronized (lock) {
+            while (released && connected && !stopped) {
+                long delay = expiry - monotonicClockMillis();
+                if (delay <= 0) {
+                    throw new AssertionFailedError(String.format("Timeout waiting for client to disconnect from %s.", getUri()));
+                }
+                System.out.println("waiting for client to disconnect");
+                try {
+                    lock.wait(delay);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if (stopped) {
+                throw new AssertionFailedError(String.format("Server was stopped while waiting for client to disconnect from %s.", getUri()));
+            }
+            System.out.println("client disconnected - unblocking");
         }
     }
 }

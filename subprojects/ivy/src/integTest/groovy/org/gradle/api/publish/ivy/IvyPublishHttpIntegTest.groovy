@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.publish.ivy
+
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile

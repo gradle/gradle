@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.hash.Hasher
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -35,7 +36,7 @@ class CachingFileSnapshotterTest extends Specification {
     def setup() {
         file.write("some-content")
         1 * cacheAccess.createCache("fileHashes", _, _) >> cache
-        hasher = new CachingFileSnapshotter(target, cacheAccess);
+        hasher = new CachingFileSnapshotter(target, cacheAccess, new StringInterner());
     }
 
     def hashesFileWhenHashNotCached() {
@@ -46,9 +47,9 @@ class CachingFileSnapshotterTest extends Specification {
         result.hash == hash
 
         and:
-        1 * cache.get(file) >> null
+        1 * cache.get(file.getAbsolutePath()) >> null
         1 * target.hash(file) >> hash
-        1 * cache.put(file, _) >> { File key, CachingFileSnapshotter.FileInfo fileInfo ->
+        1 * cache.put(file.getAbsolutePath(), _) >> { String key, CachingFileSnapshotter.FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -64,9 +65,9 @@ class CachingFileSnapshotterTest extends Specification {
         result.hash == hash
 
         and:
-        1 * cache.get(file) >> new CachingFileSnapshotter.FileInfo(hash, 1024, file.lastModified())
+        1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, 1024, file.lastModified())
         1 * target.hash(file) >> hash
-        1 * cache.put(file, _) >> { File key, CachingFileSnapshotter.FileInfo fileInfo ->
+        1 * cache.put(file.getAbsolutePath(), _) >> { String key, CachingFileSnapshotter.FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -82,9 +83,9 @@ class CachingFileSnapshotterTest extends Specification {
         result.hash == hash
 
         and:
-        1 * cache.get(file) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), 124)
+        1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), 124)
         1 * target.hash(file) >> hash
-        1 * cache.put(file, _) >> { File key, CachingFileSnapshotter.FileInfo fileInfo ->
+        1 * cache.put(file.getAbsolutePath(), _) >> { String key, CachingFileSnapshotter.FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -100,7 +101,7 @@ class CachingFileSnapshotterTest extends Specification {
         result.hash == hash
 
         and:
-        1 * cache.get(file) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), file.lastModified())
+        1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), file.lastModified())
         0 * _._
     }
 }

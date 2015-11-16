@@ -16,15 +16,16 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+
 class DaemonHealthLoggingIntegrationTest extends DaemonIntegrationSpec {
 
-    def setup() {
-        executer.requireIsolatedDaemons()
-    }
-
     def "health information is present in build log"() {
-        file("gradle.properties") << "org.gradle.jvmargs=-Dorg.gradle.daemon.performance.logging=true"
-        when: def r = executer.noExtraLogging().run()
-        then: r.output.contains("Starting build in new daemon [memory: ")
+        when:
+        executer.withBuildJvmOpts("-Dorg.gradle.daemon.performance.logging=true")
+        def r = executer.noExtraLogging().run()
+
+        then:
+        r.output.contains("Starting build in new daemon [memory: ")
     }
 }

@@ -32,4 +32,12 @@ public interface EclipseProjectDependency extends ProjectDependency {
      * Returns the path to use for this project dependency.
      */
     String getPath();
+
+    /**
+     * Marks this dependency as exported.
+     *
+     * @return whether this dependency needs to be exported.
+     * @since 2.5
+     */
+    boolean isExported();
 }

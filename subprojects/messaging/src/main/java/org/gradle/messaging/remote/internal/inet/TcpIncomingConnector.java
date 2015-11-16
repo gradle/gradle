@@ -106,11 +106,16 @@ public class TcpIncomingConnector implements IncomingConnector {
                             continue;
                         }
                         LOGGER.debug("Accepted connection from {} to {}.", socket.socket().getRemoteSocketAddress(), socket.socket().getLocalSocketAddress());
-                        action.execute(new SocketConnectCompletion(socket));
+                        try {
+                            action.execute(new SocketConnectCompletion(socket));
+                        } catch (Throwable t) {
+                            socket.close();
+                            throw t;
+                        }
                     }
                 } catch (ClosedChannelException e) {
                     // Ignore
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     LOGGER.error("Could not accept remote connection.", e);
                 }
             } finally {

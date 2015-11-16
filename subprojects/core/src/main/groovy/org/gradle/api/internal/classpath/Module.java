@@ -24,17 +24,17 @@ import java.util.Set;
  */
 public interface Module {
     /**
-     * Returns the classpath for the module implementation. This is the classpath of the module itself.
+     * Returns the classpath for the module implementation. This is the classpath of the module itself. Does not include any dependencies.
      */
     ClassPath getImplementationClasspath();
 
     /**
-     * Returns the classpath containing the runtime dependencies of the module.
+     * Returns the classpath containing the runtime dependencies of the module. Does not include any other modules.
      */
     ClassPath getRuntimeClasspath();
 
     /**
-     * Returns implementation + runtime
+     * Returns implementation + runtime.
      */
     ClassPath getClasspath();
 

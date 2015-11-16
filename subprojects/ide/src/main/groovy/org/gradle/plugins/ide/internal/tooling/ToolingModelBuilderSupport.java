@@ -17,24 +17,16 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.PublicTaskSpecification;
-import org.gradle.tooling.internal.impl.LaunchableGradleTask;
+import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 
 abstract class ToolingModelBuilderSupport {
-
-    @SuppressWarnings("unchecked")
-    public static <T extends LaunchableGradleTask> T buildFromTask(Class<T> launchableClass, Task task) {
-        try {
-            return (T) launchableClass.newInstance().setPath(task.getPath())
-                    .setName(task.getName())
-                    .setGroup(task.getGroup())
-                    .setDisplayName(task.toString())
-                    .setDescription(task.getDescription())
-                    .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task));
-        } catch (InstantiationException e) {
-            throw new IllegalArgumentException("Unable to instantiate " + launchableClass, e);
-        } catch (IllegalAccessException e) {
-            throw new IllegalArgumentException("Class " + launchableClass + " should provide a public zero-arg constructor", e);
-        }
+    public static <T extends LaunchableGradleTask> T buildFromTask(T target, Task task) {
+        target.setPath(task.getPath())
+                .setName(task.getName())
+                .setGroup(task.getGroup())
+                .setDisplayName(task.toString())
+                .setDescription(task.getDescription())
+                .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task));
+        return target;
     }
-
 }

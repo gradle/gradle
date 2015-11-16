@@ -21,17 +21,25 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import java.io.File;
 import java.util.*;
 
 public class InstalledJvmLocator {
-    private final OperatingSystem operatingSystem = OperatingSystem.current();
-    private final WindowsRegistry windowsRegistry = NativeServicesTestFixture.getInstance().get(WindowsRegistry.class);
-    private final SystemInfo systemInfo = NativeServicesTestFixture.getInstance().get(SystemInfo.class);
-    private final FileCanonicalizer fileCanonicalizer = NativeServicesTestFixture.getInstance().get(FileCanonicalizer.class);
-    private final Jvm currentJvm = Jvm.current();
+
+    private final OperatingSystem operatingSystem;
+    private final Jvm currentJvm;
+    private final WindowsRegistry windowsRegistry;
+    private final SystemInfo systemInfo;
+    private final FileCanonicalizer fileCanonicalizer;
+
+    public InstalledJvmLocator(OperatingSystem currentOperatingSystem, Jvm currentJvm, WindowsRegistry windowsRegistry, SystemInfo systemInfo, FileCanonicalizer fileCanonicalizer) {
+        this.operatingSystem = currentOperatingSystem;
+        this.currentJvm = currentJvm;
+        this.windowsRegistry = windowsRegistry;
+        this.systemInfo = systemInfo;
+        this.fileCanonicalizer = fileCanonicalizer;
+    }
 
     /**
      * Discovers JVMs installed on the local machine. Returns the details of each JVM that can be determined efficiently, without running the JVM.
@@ -57,7 +65,7 @@ public class InstalledJvmLocator {
         }
         if (!installs.containsKey(currentJvm.getJavaHome())) {
             // TODO - this isn't quite right
-            boolean isJdk = !currentJvm.getJre().getHomeDir().equals(currentJvm.getJavaHome());
+            boolean isJdk = currentJvm.getJre() == null || !currentJvm.getJre().getHomeDir().equals(currentJvm.getJavaHome());
             installs.put(currentJvm.getJavaHome(), new JvmInstallation(currentJvm.getJavaVersion(), System.getProperty("java.version"), currentJvm.getJavaHome(), isJdk, toArch(System.getProperty("os.arch"))));
         }
 

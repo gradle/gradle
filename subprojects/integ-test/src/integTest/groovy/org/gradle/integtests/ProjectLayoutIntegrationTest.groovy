@@ -44,7 +44,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.3.10'
+    compile 'org.codehaus.groovy:groovy-all:2.4.4'
     compile 'org.scala-lang:scala-library:2.11.1'
 }
 
@@ -62,6 +62,14 @@ sourceSets.each {
         scala.srcDir 'src'
         scala.srcDir 'src/scala'
         scala.include "org/gradle/$name/**"
+    }
+}
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.fork = true
+    scalaCompileOptions.useAnt = false
+    if(!JavaVersion.current().isJava8Compatible()) {
+        scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
     }
 }
 '''

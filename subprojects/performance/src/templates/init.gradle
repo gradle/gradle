@@ -1,5 +1,5 @@
 gradle.settingsEvaluated {
     rootProject {
-        it.ext.settingsEvaluatedTimestamp = System.currentTimeMillis()
+        it.ext.settingsEvaluatedTimestamp = System.nanoTime()
     }
 }

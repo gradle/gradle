@@ -33,7 +33,7 @@ def wrapperUpdateTask = { name, label ->
 
     task "${wrapperTaskName}"(type: Wrapper, dependsOn: configureWrapperTaskName) {
         group = "wrapper"
-		def jvmOpts = "-Xmx1024m -XX:MaxPermSize=256m -Dfile.encoding=UTF-8"
+		def jvmOpts = "-Xmx1024m -Dfile.encoding=UTF-8"
         inputs.property("jvmOpts", jvmOpts)        
         doLast {
             def optsEnvVar = "DEFAULT_JVM_OPTS"

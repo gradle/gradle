@@ -20,8 +20,8 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.internal.impl.LaunchableGradleProjectTask;
-import org.gradle.tooling.internal.impl.LaunchableGradleTask;
+import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
+import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.ArrayList;
@@ -78,10 +78,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         for (String taskName : taskNames) {
             Task t = tasks.findByName(taskName);
             if (t != null) {
-                out.add(
-                        buildFromTask(LaunchableGradleProjectTask.class, t)
-                                .setProject(owner)
-                );
+                out.add(buildFromTask(new LaunchableGradleProjectTask(), t).setProject(owner));
             }
         }
 

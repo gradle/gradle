@@ -21,8 +21,6 @@ import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 public interface ExternalResourceArtifactResolver {
-    @Nullable
-    LocallyAvailableExternalResource resolveMetaDataArtifact(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result);
 
     @Nullable
     LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result);

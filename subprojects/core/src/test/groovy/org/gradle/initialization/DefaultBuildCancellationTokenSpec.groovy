@@ -28,7 +28,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         !token.cancellationRequested
 
         when:
-        token.doCancel()
+        token.cancel()
 
         then:
         token.cancellationRequested
@@ -43,7 +43,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         token.addCallback(callback2)
 
         when:
-        token.doCancel()
+        token.cancel()
 
         then:
         token.cancellationRequested
@@ -55,7 +55,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         def token = new DefaultBuildCancellationToken()
 
         def callback = Mock(Runnable)
-        token.doCancel()
+        token.cancel()
 
         when:
         token.addCallback(callback)
@@ -72,7 +72,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         token.addCallback(callback1)
 
         when:
-        token.doCancel()
+        token.cancel()
 
         then:
         token.cancellationRequested
@@ -90,7 +90,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         token.addCallback(callback2)
 
         when:
-        token.doCancel()
+        token.cancel()
 
         then:
         RuntimeException e = thrown()
@@ -115,7 +115,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         token.addCallback(callback3)
 
         when:
-        token.doCancel()
+        token.cancel()
 
         then:
         DefaultMultiCauseException e = thrown()
@@ -136,7 +136,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         token.removeCallback(callback)
 
         when:
-        token.doCancel()
+        token.cancel()
 
         then:
         token.cancellationRequested

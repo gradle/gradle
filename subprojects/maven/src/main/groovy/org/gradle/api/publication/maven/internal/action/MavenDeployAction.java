@@ -15,32 +15,31 @@
  */
 package org.gradle.api.publication.maven.internal.action;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.ant.Authentication;
-import org.apache.maven.artifact.ant.Proxy;
 import org.apache.maven.artifact.ant.RemoteRepository;
-import org.apache.maven.artifact.deployer.ArtifactDeployer;
-import org.apache.maven.artifact.deployer.ArtifactDeploymentException;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.repository.DefaultArtifactRepository;
-import org.apache.maven.artifact.repository.layout.DefaultRepositoryLayout;
 import org.gradle.api.GradleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonatype.aether.RepositorySystem;
+import org.sonatype.aether.RepositorySystemSession;
+import org.sonatype.aether.artifact.Artifact;
+import org.sonatype.aether.deployment.DeployRequest;
+import org.sonatype.aether.deployment.DeploymentException;
+import org.sonatype.aether.repository.Authentication;
+import org.sonatype.aether.repository.Proxy;
+import org.sonatype.aether.util.repository.DefaultProxySelector;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.List;
 
 public class MavenDeployAction extends AbstractMavenPublishAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenDeployAction.class);
 
     private RemoteRepository remoteRepository;
-
     private RemoteRepository remoteSnapshotRepository;
 
-    private boolean uniqueVersion = true;
-
-    public MavenDeployAction(File pomFile) {
-        super(pomFile);
+    public MavenDeployAction(File pomFile, List<File> wagonJars) {
+        super(pomFile, wagonJars);
     }
 
     public void setRepositories(RemoteRepository repository, RemoteRepository snapshotRepository) {
@@ -48,50 +47,44 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
         this.remoteSnapshotRepository = snapshotRepository;
     }
 
-    public void setUniqueVersion(boolean uniqueVersion) {
-        this.uniqueVersion = uniqueVersion;
-    }
-
-    protected void publishArtifact(Artifact artifact, File artifactFile, ArtifactRepository localRepo) {
-        ArtifactDeployer deployer = lookup(ArtifactDeployer.class);
-        ArtifactRepository deploymentRepository = getRemoteArtifactRepository(artifact);
-
-        LOGGER.info("Deploying to " + deploymentRepository.getUrl());
-
-        try {
-            deployer.deploy(artifactFile, artifact, deploymentRepository, localRepo);
-        } catch (ArtifactDeploymentException e) {
-            throw new GradleException("Error deploying artifact '" + artifact.getDependencyConflictId() + "': " + e.getMessage(), e);
+    @Override
+    protected void publishArtifacts(Collection<Artifact> artifacts, RepositorySystem repositorySystem, RepositorySystemSession session) throws DeploymentException {
+        RemoteRepository gradleRepo = remoteRepository;
+        if (artifacts.iterator().next().isSnapshot() && remoteSnapshotRepository != null) {
+            gradleRepo = remoteSnapshotRepository;
         }
-    }
-
-    private ArtifactRepository getRemoteArtifactRepository(Artifact artifact) {
-        RemoteRepository deploymentRepository = remoteRepository;
-        if (artifact.isSnapshot() && remoteSnapshotRepository != null) {
-            deploymentRepository = remoteSnapshotRepository;
-        }
-
-        if (deploymentRepository == null) {
+        if (gradleRepo == null) {
             throw new GradleException("Must specify a repository for deployment");
         }
 
-        // The repository id is used for `maven-metadata-${repository.id}.xml`, and to match credentials to repository.
-        initWagonManagerWithRepositorySettings("remote", deploymentRepository);
-        return new DefaultArtifactRepository("remote", deploymentRepository.getUrl(), new DefaultRepositoryLayout(), uniqueVersion);
+        org.sonatype.aether.repository.RemoteRepository aetherRepo = createRepository(gradleRepo);
+
+        DeployRequest request = new DeployRequest();
+        request.setRepository(aetherRepo);
+        for (Artifact artifact : artifacts) {
+            request.addArtifact(artifact);
+        }
+
+        LOGGER.info("Deploying to {}", gradleRepo.getUrl());
+        repositorySystem.deploy(session, request);
     }
 
-    private void initWagonManagerWithRepositorySettings(String repositoryId, RemoteRepository repository) {
-        Authentication authentication = repository.getAuthentication();
-        if (authentication != null) {
-            wagonManager.addAuthenticationInfo(repositoryId, authentication.getUserName(),
-                    authentication.getPassword(), authentication.getPrivateKey(),
-                    authentication.getPassphrase());
+    private org.sonatype.aether.repository.RemoteRepository createRepository(RemoteRepository gradleRepo) {
+        org.sonatype.aether.repository.RemoteRepository repo = new org.sonatype.aether.repository.RemoteRepository("remote", gradleRepo.getLayout(), gradleRepo.getUrl());
+
+        org.apache.maven.artifact.ant.Authentication auth = gradleRepo.getAuthentication();
+        if (auth != null) {
+            repo.setAuthentication(new Authentication(auth.getUserName(), auth.getPassword(), auth.getPrivateKey(), auth.getPassphrase()));
         }
 
-        Proxy proxy = repository.getProxy();
+        org.apache.maven.artifact.ant.Proxy proxy = gradleRepo.getProxy();
         if (proxy != null) {
-            wagonManager.addProxy(proxy.getType(), proxy.getHost(), proxy.getPort(), proxy.getUserName(),
-                    proxy.getPassword(), proxy.getNonProxyHosts());
+            DefaultProxySelector proxySelector = new DefaultProxySelector();
+            Authentication proxyAuth = new Authentication(proxy.getUserName(), proxy.getPassword());
+            proxySelector.add(new Proxy(proxy.getType(), proxy.getHost(), proxy.getPort(), proxyAuth), proxy.getNonProxyHosts());
+            repo.setProxy(proxySelector.getProxy(repo));
         }
+
+        return repo;
     }
 }

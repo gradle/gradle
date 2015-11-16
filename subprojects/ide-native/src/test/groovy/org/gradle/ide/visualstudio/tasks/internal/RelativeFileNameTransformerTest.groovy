@@ -16,12 +16,18 @@
 
 package org.gradle.ide.visualstudio.tasks.internal
 
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class RelativeFileNameTransformerTest extends Specification {
     static rootDir = new File("root")
+
+    @Rule
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
 
     def "returns canonical path where file outside of root"() {
         expect:
@@ -116,7 +122,45 @@ class RelativeFileNameTransformerTest extends Specification {
         "subdir/another" | "../.."
     }
 
+    def "finds relative path to descendant from and to both files and directories "() {
+        setup:
+        TestFile parentDir = testDir.createDir('parent')
+        parentDir.create {
+            file 'parent.txt'
+            dir1 {
+                file 'file1.txt'
+                dir2 {
+                    file 'file2.txt'
+                    dir3 {
+                        file 'file3.txt'
+                    }
+                }
+
+            }
+        }
+
+        when:
+        File startingDir = parentDir.getParentFile()
+
+        then:
+        pathToDescendant(new File("${startingDir}/$parent"), new File("${startingDir}/$child")) == expected
+
+        where:
+        parent              | child                             | expected
+        "parent/"           | "parent/dir1/file1.txt"           | 'dir1/file1.txt'
+        "parent/parent.txt" | "parent/dir1/file1.txt"           | 'dir1/file1.txt'
+        "parent/"           | "parent/dir1/"                    | 'dir1'
+        "parent/dir1/"      | "parent/dir1/dir2/file2.txt"      | 'dir2/file2.txt'
+        "parent/dir1/"      | "parent/dir1/dir2/dir3/file3.txt" | 'dir2/dir3/file3.txt'
+    }
+
     String transform(File from, File to) {
         return normaliseFileSeparators(RelativeFileNameTransformer.forDirectory(rootDir, from).transform(to))
+    }
+
+    String pathToDescendant(File parent, File to) {
+        assert parent.exists()
+        assert to.exists()
+        return normaliseFileSeparators(RelativeFileNameTransformer.from(parent).transform(to))
     }
 }

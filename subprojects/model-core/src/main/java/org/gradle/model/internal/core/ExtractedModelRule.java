@@ -16,27 +16,12 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.model.internal.registry.ModelRegistry;
+
 import java.util.List;
 
 public interface ExtractedModelRule {
+    void apply(ModelRegistry modelRegistry, ModelPath scope);
 
-    enum Type {
-        CREATOR,
-        ACTION,
-        DEPENDENCIES // this is pretty weird, but a 'dependencies' only type rule is a temporary thing
-    }
-
-    Type getType();
-
-    // null if not a creator
-    ModelCreator getCreator();
-
-    // null if not an action
-    ModelActionRole getActionRole();
-
-    // null if not an action
-    ModelAction<?> getAction();
-
-    // never null
     List<? extends Class<?>> getRuleDependencies();
 }

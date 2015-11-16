@@ -3,7 +3,7 @@
 
     <note>
         <para>
-            The Gradle support for building native binaries is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+            Support for building native binaries is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
         </para>
     </note>
 
@@ -53,7 +53,7 @@
                 <td>Mac OS X</td><td>XCode</td><td>Uses the Clang tool chain bundled with XCode.</td>
             </tr>
             <tr>
-                <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010 and later.</td>
+                <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010/2012/2013.</td>
             </tr>
             <tr>
                 <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://cygwin.com">Cywin 32</ulink></td><td>Windows XP and later.</td>
@@ -120,7 +120,7 @@
     </section>
 
     <section>
-        <title>Component model</title>
+        <title>Native software model</title>
         <para>
             To build native binaries using Gradle, your project should define one or more <firstterm>native components</firstterm>. Each component represents either an
             executable or a library that Gradle should build. A project can define any number of components. Gradle does not define any components by default.
@@ -774,7 +774,7 @@
             <title>CUnit sources</title>
             <para>
                 Gradle will create a <apilink class="org.gradle.language.c.CSourceSet"/> named 'cunit' for each <apilink class="org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec"/> component
-                in the project. This source set should contain the cunit test files for the component sources. Source files can be located in the conventional location
+                in the project. This source set should contain the cunit test files for the component under test. Source files can be located in the conventional location
                 (<literal>src/${component.name}Test/cunit</literal>) or can be configured like any other source set.
             </para>
             <para>
@@ -853,7 +853,7 @@
             <title>GoogleTest sources</title>
             <para>
                 Gradle will create a <apilink class="org.gradle.language.cpp.CppSourceSet"/> named 'cpp' for each <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec"/> component
-                in the project. This source set should contain the GoogleTest test files for the component sources. Source files can be located in the conventional location
+                in the project. This source set should contain the GoogleTest test files for the component under test. Source files can be located in the conventional location
                 (<literal>src/${component.name}Test/cpp</literal>) or can be configured like any other source set.
             </para>
         </section>
@@ -867,7 +867,7 @@
                 <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec"/> will be configured on the test suite component.
                 These test suite binaries can be configured in a similar way to any other binary instance:
             </para>
-            <sample id="googleTestSources" dir="native-binaries/google-test" title="Registering GoogleTest tests">
+            <sample id="googleTestSources" dir="native-binaries/google-test" title="Registering GoogleTest tests" includeLocation="true">
                 <sourcefile file="build.gradle" snippet="configure-test-binary"/>
             </sample>
             <note>
@@ -883,7 +883,7 @@
                 which will run all of the registered GoogleTest tests.
                 Test results will be found in the <literal><replaceable>${build.dir}</replaceable>/test-results</literal> directory.
             </para>
-            <!-- TODO:DAZ Add this back in when we have functional libs -->
+            <!-- Google test sample output is nondeterministic -->
             <!--<sample id="completeGoogleTestExample" dir="native-binaries/google-test" title="Running GoogleTest tests" includeLocation="true">-->
                 <!--<sourcefile file="build.gradle" snippet="complete-example"/>-->
                 <!--<output args='-q runFailingOperatorsTestGoogleTestExe' expectFailure="true"/>-->

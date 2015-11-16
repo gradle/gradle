@@ -252,7 +252,12 @@ class Main {
     }
 }
 '''
-
+        // ensure we no duplicate files in default setup (GRADLE-3289)
+        buildFile << """
+        [installDist, distZip, distTar]*.configure {
+            it.duplicatesStrategy = "fail"
+        }
+"""
         when:
         run 'installDist', 'distZip', 'distTar'
 
@@ -312,7 +317,7 @@ ${installTask}.destinationDir = buildDir
 
         File generatedLinuxStartScript = file("build/scripts/application")
         generatedLinuxStartScript.exists()
-        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 164);
+        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 160);
         assertLineSeparators(generatedLinuxStartScript, TextUtil.windowsLineSeparator, 1)
 
         file("build/scripts/application").exists()

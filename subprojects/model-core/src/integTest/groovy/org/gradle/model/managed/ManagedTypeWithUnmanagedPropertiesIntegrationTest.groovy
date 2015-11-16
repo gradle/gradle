@@ -17,20 +17,12 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 
 class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     def "can have unmanaged property"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class UnmanagedThing {
               String value
             }
@@ -49,7 +41,7 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
                 }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, ManagedThing thing) {
+                void addTask(ModelMap<Task> tasks, ManagedThing thing) {
                     tasks.create("echo") {
                         it.doLast {
                             println "value: $thing.unmanaged.value"
@@ -71,9 +63,6 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
     def "unmanaged property of managed type can be targeted by rules"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 @Unmanaged
@@ -100,7 +89,7 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
                 }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
+                void addTask(ModelMap<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
                   tasks.create("fromPlugin") {
                     doLast { println "fromPlugin: $os.name" }
                   }

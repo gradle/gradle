@@ -15,12 +15,10 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-
-import org.gradle.api.plugins.ExtensionAware
+import org.gradle.language.PreprocessingTool
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
-import org.gradle.language.PreprocessingTool
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter
 
 class VisualStudioProjectConfiguration {
@@ -87,14 +85,15 @@ class VisualStudioProjectConfiguration {
     }
 
     private PreprocessingTool findCompiler(String tool) {
-        ExtensionAware extendedBinary = binary as ExtensionAware;
-        return extendedBinary.extensions.findByName(tool) as PreprocessingTool
+        return binary.getToolByName(tool) as PreprocessingTool
     }
 
     List<File> getIncludePaths() {
         def includes = [] as Set
-        binary.source.withType(HeaderExportingSourceSet).each { HeaderExportingSourceSet sourceSet ->
-            includes.addAll sourceSet.exportedHeaders.srcDirs
+        binary.inputs.each { sourceSet ->
+            if (sourceSet instanceof HeaderExportingSourceSet) {
+                includes.addAll sourceSet.exportedHeaders.srcDirs
+            }
         }
         binary.libs*.includeRoots.each {
             includes.addAll it.files

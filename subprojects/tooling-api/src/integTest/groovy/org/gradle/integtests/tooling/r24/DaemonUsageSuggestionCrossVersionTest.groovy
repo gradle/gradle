@@ -16,22 +16,16 @@
 
 package org.gradle.integtests.tooling.r24
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
 import org.gradle.tooling.ProjectConnection
-import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ !GradleContextualExecuter.embedded || TestPrecondition.WINDOWS.fulfilled })
-@ToolingApiVersion(">=2.4")
 @TargetGradleVersion(">=2.4")
 class DaemonUsageSuggestionCrossVersionTest extends ToolingApiSpecification {
 
-    def "does not print suggestion to use the daemon when using tooling api in embedded mode"() {
+    def "does not print suggestion to use the daemon when using tooling api"() {
         when:
         def operation = withConnection { ProjectConnection connection ->
             def build = connection.newBuild()

@@ -17,16 +17,10 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
-import org.gradle.util.TextUtil
 
 class CustomComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
-        EnableModelDsl.enable(executer)
         buildFile << """
-import org.gradle.model.*
-import org.gradle.model.collection.*
-
 interface SampleComponent extends ComponentSpec {
     String getVersion()
     void setVersion(String version)
@@ -99,7 +93,7 @@ model {
                 }
 
                 @Mutate
-                void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+                void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {
                     componentSpecs.afterEach {
                         version += ".1"
                     }
@@ -163,7 +157,7 @@ model {
         succeeds "components"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators(""":components
+        output.contains """:components
 
 ------------------------------------------------------------
 Root project
@@ -180,7 +174,7 @@ Binaries
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
-BUILD SUCCESSFUL"""))
+BUILD SUCCESSFUL"""
     }
 
     def "can have component declaration and creation in separate plugins"() {
@@ -200,7 +194,7 @@ BUILD SUCCESSFUL"""))
 
                 static class Rules extends RuleSource {
                     @Mutate
-                    void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+                    void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {
                         componentSpecs.create("sampleLib")
                     }
                 }
@@ -246,12 +240,12 @@ BUILD SUCCESSFUL"""))
                 }
 
                 @Mutate
-                void createSampleComponentInstances(CollectionBuilder<SampleComponent> componentSpecs) {
+                void createSampleComponentInstances(ModelMap<SampleComponent> componentSpecs) {
                     componentSpecs.create("sampleComponent")
                 }
 
                 @Mutate
-                void createSampleLibraryInstances(CollectionBuilder<SampleLibrary> componentSpecs) {
+                void createSampleLibraryInstances(ModelMap<SampleLibrary> componentSpecs) {
                     componentSpecs.create("sampleLib")
                 }
             }
@@ -303,7 +297,7 @@ BUILD SUCCESSFUL"""))
         then:
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-component'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
-        failure.assertHasCause "MySamplePlugin#register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>, java.lang.String) is not a valid component model rule method."
+        failure.assertHasCause "MySamplePlugin#register is not a valid component model rule method."
         failure.assertHasCause "Method annotated with @ComponentType must have a single parameter of type 'org.gradle.platform.base.ComponentTypeBuilder'."
     }
 
@@ -328,8 +322,8 @@ BUILD SUCCESSFUL"""))
 
         then:
         failure.assertHasDescription "A problem occurred configuring root project 'custom-component'."
-        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin#register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>)"
-        failure.assertHasCause "Cannot register a factory for type SampleComponent because a factory for this type was already registered by MySamplePlugin#register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>)."
+        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin#register"
+        failure.assertHasCause "Cannot register implementation for type 'SampleComponent' because an implementation for this type was already registered by MySamplePlugin#register"
     }
 
     def buildWithCustomComponentPlugin() {
@@ -341,7 +335,7 @@ BUILD SUCCESSFUL"""))
                     builder.defaultImplementation(DefaultSampleComponent)
                 }
                 @Mutate
-                void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+                void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {
                     componentSpecs.create("sampleLib")
                 }
             }

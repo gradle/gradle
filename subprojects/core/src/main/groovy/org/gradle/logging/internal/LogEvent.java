@@ -15,6 +15,7 @@
  */
 package org.gradle.logging.internal;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
 
@@ -22,7 +23,7 @@ public class LogEvent extends RenderableOutputEvent {
     private final String message;
     private final Throwable throwable;
 
-    public LogEvent(long timestamp, String category, LogLevel logLevel, String message, Throwable throwable) {
+    public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable) {
         super(timestamp, category, logLevel);
         this.message = message;
         this.throwable = throwable;
@@ -32,6 +33,7 @@ public class LogEvent extends RenderableOutputEvent {
         return message;
     }
 
+    @Nullable
     public Throwable getThrowable() {
         return throwable;
     }

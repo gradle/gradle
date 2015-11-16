@@ -16,7 +16,6 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
@@ -93,7 +92,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "does not re-execute build with no change"() {
         given:
         run "installMainExecutable"
@@ -105,7 +103,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         nonSkippedTasks.empty
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel || !TestPrecondition.CAN_INSTALL_EXECUTABLE.fulfilled})
+    @IgnoreIf({!TestPrecondition.CAN_INSTALL_EXECUTABLE.fulfilled})
     def "rebuilds executable with source file change"() {
         given:
         run "installMainExecutable"
@@ -199,7 +197,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         headerFile << """
             int unused();
 """
-
         run "mainExecutable"
 
         then:
@@ -248,8 +245,8 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     // compiling Objective-C and Objective-Cpp with clang generates
-    // random different object files (related to ASLR settings) 
-    // We saw this behaviour only on linux so far. 
+    // random different object files (related to ASLR settings)
+    // We saw this behaviour only on linux so far.
     boolean objectiveCWithAslr() {
         return (sourceType == "Objc" || sourceType == "Objcpp") &&
                 OperatingSystem.current().isLinux() &&
@@ -449,10 +446,14 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     @RequiresInstalledToolChain(GccCompatible)
     def "recompiles binary when imported header file changes"() {
         sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
-        if(buildingCorCppWithGcc()){
+        if(buildingCorCppWithGcc()) {
             buildFile << """
-                //support for #import on c/cpp is deprecated in gcc
-                binaries.all { ${compilerTool}.args '-Wno-deprecated'; }
+                model {
+                    //support for #import on c/cpp is deprecated in gcc
+                    binaries {
+                        all { ${compilerTool}.args '-Wno-deprecated'; }
+                    }
+                }
             """
         }
 
@@ -484,7 +485,11 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         given:
         buildFile << """
-            binaries.all { ${compilerTool}.args '/Zi'; linker.args '/DEBUG'; }
+            model {
+                binaries {
+                    all { ${compilerTool}.args ${toolChain.meets(ToolChainRequirement.VisualCpp2013) ? "'/Zi', '/FS'" : "'/Zi'"}; linker.args '/DEBUG'; }
+                }
+            }
         """
         run "mainExecutable"
 
@@ -493,7 +498,11 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         when:
         buildFile << """
-            binaries.all { ${compilerTool}.args.clear(); linker.args.clear(); }
+            model {
+                binaries {
+                    all { ${compilerTool}.args.clear(); linker.args.clear(); }
+                }
+            }
         """
         run "mainExecutable"
 

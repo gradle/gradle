@@ -15,19 +15,26 @@
   -->
 <chapter id='new_model'>
     <title>Rule based model configuration</title>
+    <note>
+        <para>
+            Support for rule based configuration is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+        </para>
+    </note>
     <para>
-        This chapter describes and documents what is essentially the foundation for the Gradle 3.0 and the next generation of Gradle builds.
-        It is being incrementally developed during the Gradle 2.x stream and is in use for <link linkend="nativeBinaries">Gradle's support for building native binaries</link>.
+        This chapter describes and documents what is essentially the foundation for Gradle 3.0 and the next generation of Gradle builds.
+        It is being incrementally developed during the Gradle 2.x stream. Gradle's support for building <link linkend="nativeBinaries">native applications</link> and
+        <link linkend="play_plugin">Play Framework applications</link> already uses this configuration model.
+        Gradle also includes some initial support for building <link linkend="new_java_plugin">Java libraries</link> using this configuration model.
     </para>
     <para>
-        All of the mechanisms, DSL, API, and techniques discussed here are <emphasis>incubating</emphasis> (i.e. not considered stable and subject to change - see <xref linkend="feature_lifecycle"/>).
+        All of the mechanisms, DSL, API, and techniques discussed here are <emphasis>incubating</emphasis> and are not considered stable and subject to change - see <xref linkend="feature_lifecycle"/>).
         Exposing new features early, during incubation, allows early testing and the incorporation of real world feedback ultimately resulting in a better Gradle.
     </para>
     <para>
         The following build script is an example of a rule based build.
     </para>
     <sample id='basicRuleSourcePlugin-all' dir='modelRules/basicRuleSourcePlugin' includeLocation="true" title='an example of a simple rule based build'>
-        <sourcefile file='build.gradle' />
+        <sourcefile file='build.gradle' snippet="managed-type-plugin-and-dsl"/>
         <output args='hello'/>
     </sample>
     <para>
@@ -36,7 +43,7 @@
     <section>
         <title>Background</title>
         <para>
-            Gradle embraces domain modelling as core tenet.
+            Gradle embraces domain modelling as a core tenet.
             Focusing on the domain model as opposed to the execution model (like prior generation build tools such as Apache Ant) has many advantages.
             A strong domain model communicates the intent (i.e. the what) over the mechanics (i.e. the how).
             This allows humans to understand builds at a level that is meaningful to them.
@@ -56,7 +63,7 @@
         <para>
             Domain modelling in Gradle is not new.
             The Java plugin's <apilink class="org.gradle.api.tasks.SourceSet" /> concept is an example of domain modelling,
-            as is the modelling of <apilink class="org.gradle.nativeplatform.NativeBinary"/> in the Native plugin suite.
+            as is the modelling of <apilink class="org.gradle.nativeplatform.NativeBinary"/> in the native plugin suite.
         </para>
         <para>
             One distinguishing characteristic of Gradle compared to other build tools that also embrace modelling is that Gradle's model is open and collaborative.
@@ -69,7 +76,7 @@
             By defining build tasks as effectively a graph of dependent functions with explicit inputs and outputs,
             Gradle is able to order, cache, parallelize and apply other optimizations to the work.
             Using a “graph of tasks” for the production of software is a long established idea, and necessary given the complexity of software production.
-            The task graph effectively defines the <emphasis>rules</emphasis> of execution the Gradle must follow.
+            The task graph effectively defines the <emphasis>rules</emphasis> of execution that Gradle must follow.
             The term “Rule based model configuration” refers to applying the same concepts to building the model that builds the task graph.
         </para>
         <para>
@@ -135,7 +142,7 @@
                 The process of “realizing” a model element is effectively executing all the rules for which it is the subject, transitioning it to its final state.
                 There is a strong analogy here to Gradle's task graph and task execution model.
                 Just as tasks depend on each other and Gradle ensures that dependencies are satisfied before executing a task,
-                rules effectively depend on each other (i.e. a rule depends on all rules who's subject is one of the inputs) and Gradle ensures that all dependencies are satisfied
+                rules effectively depend on each other (i.e. a rule depends on all rules whose subject is one of the inputs) and Gradle ensures that all dependencies are satisfied
                 before executing the rule.
             </para>
             <para>
@@ -158,13 +165,228 @@
             <para>
                 A “managed” object is transparent and enforces immutability once realized.
                 Being transparent means that its structure is understood by the rule infrastructure and as such each of its properties are also individual elements in the model space.
-                Please see the <apilink class="org.gradle.model.Managed" /> annotation for more information on creating managed model objects.
             </para>
             <para>
                 An “unmanaged” object is opaque to the the model space and does not enforce immutability.
                 Over time, more mechanisms will be available for defining managed model elements culminating in all model elements being managed in some way.
             </para>
+            <para>Managed models can be defined by attaching the <literal>@Managed</literal> annotation to an interface:</para>
+            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed type">
+                <sourcefile file='build.gradle' snippet='managed-type'/>
+            </sample>
+            <para>By defining a getter/setter pair, you are effectively declaring a managed property. A managed property is a property for which Gradle
+            will enforce semantics such as immutability when a node of the model is not the subject of a rule. Therefore, this example declares a property
+            named <emphasis>name</emphasis> on the managed type <emphasis>Person</emphasis>. This property will only be writable when the view is mutable,
+            that is to say when the <emphasis>Person</emphasis> is the subject of a <literal>Rule</literal> (see below the explanation for rules).</para>
+
+            <para>Properties can be of any scalar type. A scalar type is either:
+                <itemizedlist>
+                    <listitem>a primitive type (e.g. <literal>int</literal>) or its boxed type (e.g <literal>Integer</literal>)</listitem>
+                    <listitem>a <literal>BigInteger</literal> or <literal>BigDecimal</literal></listitem>
+                    <listitem>a <literal>String</literal></listitem>
+                    <listitem>a <literal>File</literal></listitem>
+                    <listitem>an enumeration type</listitem>
+                </itemizedlist>
+                In addition, properties can also be of any type which is itself managed:</para>
+            <table>
+                <thead>
+                    <td>Property type</td><td>Nullable</td><td>Example</td>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <literal>String</literal>
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a String property" >
+                                <sourcefile file='build.gradle' snippet='property-type-string'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <literal>File</literal>
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a File property" >
+                                <sourcefile file='build.gradle' snippet='property-type-file'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <literal>Integer</literal>, <literal>Boolean</literal>, <literal>Byte</literal>, <literal>Short</literal>,
+                            <literal>Float</literal>, <literal>Long</literal>, <literal>Double</literal>
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a Long property" >
+                                <sourcefile file='build.gradle' snippet='property-type-long'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <literal>int</literal>, <literal>boolean</literal>, <literal>byte</literal>, <literal>short</literal>,
+                            <literal>float</literal>, <literal>long</literal>, <literal>double</literal>
+                        </td>
+                        <td>No</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a boolean property">
+                                <sourcefile file='build.gradle' snippet='property-type-boolean'/>
+                            </sample>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="an int property" >
+                                <sourcefile file='build.gradle' snippet='property-type-int'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Another <emphasis>managed</emphasis> type.
+                        </td>
+                        <td>Only if read/write</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed property">
+                                <sourcefile file='build.gradle' snippet='property-type-managed'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            An <emphasis>enumeration</emphasis> type.
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="an enumeration type property">
+                                <sourcefile file='build.gradle' snippet='property-type-enum'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            A <literal>ManagedSet</literal>. A managed set supports the creation of new named model elements, but not their removal.
+                        </td>
+                        <td>Only if read/write</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed set">
+                                <sourcefile file='build.gradle' snippet='property-type-managedset'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            A <literal>Set</literal> or <literal>List</literal> of scalar types. All classic operations on collections are supported: add, remove, clear...
+                        </td>
+                        <td>Only if read/write</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed set">
+                                <sourcefile file='build.gradle' snippet='property-type-collection-scalar'/>
+                            </sample>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <para>If the type of a property is itself a managed type, it is possible to declare only a getter, in which case you are declaring a
+            read-only property. A read-only property must not be mistaken with an immutable property. A read-only property will be instantiated by Gradle,
+            and cannot be replaced with another object of the same type (for example calling a setter). However, the properties of that property can potentially
+            be changed, if, and only if, the property is the subject of a rule. If it's not the case, the property is immutable, like any classic
+            read/write managed property.</para>
+            <para>Managed types can be defined out of interfaces or abstract classes and are usually defined in plugins, which are written either in Java or Groovy.
+                Please see the <apilink class="org.gradle.model.Managed" /> annotation
+                for more information on creating managed model objects.</para>
         </section>
+
+        <section>
+            <title>Model element types</title>
+            <para>
+                There are particular types (language types) supported by the model space and can be generalised as follows:
+            </para>
+            <table>
+                <title>Type definitions</title>
+                <thead>
+                    <th>Type</th>
+                    <th>Definition</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Scalar</td>
+                        <td>
+                            A scalar type is considered to be one of the following:
+                            <itemizedlist>
+                                <listitem>a primitive type (e.g. <literal>int</literal>) or its boxed type (e.g <literal>Integer</literal>)</listitem>
+                                <listitem>a <literal>BigInteger</literal> or <literal>BigDecimal</literal></listitem>
+                                <listitem>a <literal>String</literal></listitem>
+                                <listitem>a <literal>File</literal></listitem>
+                                <listitem>an enumeration type</listitem>
+                            </itemizedlist>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Scalar Collection</td>
+                        <td>A java.util.List or java.util.Set containing one of the scalar types</td>
+                    </tr>
+                    <tr>
+                        <td>Managed type</td>
+                        <td>Any class which is a valid managed model (i.e.annotated with @<apilink class="org.gradle.model.Managed" />)</td>
+                    </tr>
+                    <tr>
+                        <td>Managed collection</td>
+                        <td>A <apilink class="org.gradle.model.ModelMap" /> or <apilink class="org.gradle.model.ModelSet" /></td>
+                    </tr>
+                </tbody>
+            </table>
+            <para>
+                There are various contexts in which these types can be used:
+            </para>
+                <table>
+                    <title>Model type support</title>
+                    <thead>
+                        <th>Context</th>
+                        <th>Supported types</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Creating top level model elements</td>
+                            <td>
+                                <itemizedlist>
+                                    <listitem>Any managed type</listitem>
+                                    <listitem><apilink class="org.gradle.language.base.FunctionalSourceSet"/> (when the <apilink class="org.gradle.language.base.plugins.LanguageBasePlugin"/> plugin has been applied)</listitem>
+                                    <listitem>Subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> which have been registered via <apilink class="org.gradle.platform.base.LanguageType"/></listitem>
+                                </itemizedlist>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Properties of managed model elements</td>
+                            <td>
+                                The properties (attributes) of a managed model elements may be one or more of the following:
+                                <itemizedlist>
+                                    <listitem>A managed type</listitem>
+                                    <listitem>A type which is annotated with @<apilink class="org.gradle.model.Unmanaged" /></listitem>
+                                    <listitem>A Scalar Collection</listitem>
+                                    <listitem>A Managed collection containing managed types</listitem>
+                                    <listitem>A Managed collection containing <apilink class="org.gradle.language.base.FunctionalSourceSet"/>'s (when the <apilink class="org.gradle.language.base.plugins.LanguageBasePlugin"/> plugin has been applied)</listitem>
+                                    <listitem>Subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> which have been registered via <apilink class="org.gradle.platform.base.LanguageType"/></listitem>
+                                </itemizedlist>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+        </section>
+
+        <section>
+            <title>Language source sets</title>
+            <para>
+                <apilink class="org.gradle.language.base.FunctionalSourceSet"/>'s and subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> (which have been
+                registered via <apilink class="org.gradle.platform.base.LanguageType"/>) can be added to the model space via rules or via the model DSL.
+            </para>
+            <sample id='model-language-support-all' dir='modelRules/language-support' includeLocation="true" title='strongly modelling sources sets'>
+                <sourcefile file='build.gradle' snippet="model-language-support"/>
+                <output args='help' ignoreExtraLines="true" name="model-language-support-all.out"/>
+            </sample>
+        </section>
+
         <section>
             <title>References, binding and scopes</title>
             <para>
@@ -195,7 +417,7 @@
                     Rules are bound within a “scope”, which determines how references bind.
                     Most rules are bound at the project scope (i.e. the root of the model graph for the project).
                     However, rules can be scoped to a node within the graph.
-                    The <apilink class="org.gradle.model.collection.CollectionBuilder" method="named(java.lang.String, java.lang.Class)" /> method is an example,
+                    The <apilink class="org.gradle.model.ModelMap" method="named(java.lang.String, java.lang.Class)" /> method is an example,
                     of a mechanism for applying scoped rules.
                     Rules declared in the build script using the <literal>model {}</literal> block, or via a <literal>RuleSource</literal> applied as a plugin use the root of the model space as the scope.
                     This can be considered the default scope.
@@ -239,7 +461,7 @@
             <sourcefile file='build.gradle' snippet='create-rule'/>
         </sample>
         <para>
-            This rule declares the there is a model element at path <literal>"person"</literal> (defined by the method name), of type <literal>Person</literal>.
+            This rule declares that there is a model element at path <literal>"person"</literal> (defined by the method name), of type <literal>Person</literal>.
             This is the form of the <apilink class="org.gradle.model.Model" /> type rule for <apilink class="org.gradle.model.Managed" /> types.
             Here, the person object is the rule subject.
             The method could potentially have a body, that mutated the person instance.
@@ -259,11 +481,11 @@
         </sample>
         <para>
             This <apilink class="org.gradle.model.Mutate" /> rule effectively adds a task, by mutating the tasks collection.
-            The subject here is the <literal>"tasks"</literal> node, which is available as a <apilink class="org.gradle.model.collection.CollectionBuilder" /> of <apilink class="org.gradle.api.Task" />.
-            The lone input is our person element.
+            The subject here is the <literal>"tasks"</literal> node, which is available as a <apilink class="org.gradle.model.ModelMap" /> of <apilink class="org.gradle.api.Task" />.
+            The only input is our person element.
             As the person is being used as an input here, it will have been realised before executing this rule.
             That is, the task container effectively <emphasis>depends on</emphasis> the person element.
-            If there are other configuration rules for the person element, potentially specified in a build script or other plugin, the will also be guaranteed to have been executed.
+            If there are other configuration rules for the person element, potentially specified in a build script or other plugin, they will also be guaranteed to have been executed.
         </para>
         <para>
             As <literal>Person</literal> is a <apilink class="org.gradle.model.Managed" /> type in this example, any attempt to modify the person parameter in this method would result in an exception being thrown.
@@ -273,7 +495,7 @@
             Please see the documentation for <apilink class="org.gradle.model.RuleSource" /> for more information on constraints on how rule sources must be implemented and for more types of rules.
         </para>
     </section>
-    <section>
+    <section id="model-dsl">
         <title>The “model DSL”</title>
         <para>
             It is also possible to declare rules directly in the build script using the “model DSL”.
@@ -288,13 +510,11 @@
         <para>
             The general form of the model DSL is:
         </para>
-        <programlisting>
-model {
+        <programlisting>model {
   «model-path-to-subject» {
     «imperative code»
   }
-}
-        </programlisting>
+}</programlisting>
         <para>
             Where there may be multiple blocks.
         </para>
@@ -304,13 +524,11 @@ model {
         <para>
             The general form of a creation rule is:
         </para>
-        <programlisting>
-model {
+        <programlisting>model {
   «element-name»(«element-type») {
     «imperative code»
   }
-}
-        </programlisting>
+}</programlisting>
         <para>
             The following model rule is creating the person element:
         </para>
@@ -320,24 +538,87 @@ model {
         <para>
             The model DSL is currently quite limited.
             It is only possible to declare creation and general mutation rules.
-            It is also only possible to refer to the subject by-path and it is not possible for the rule to have inputs.
+            It is also only possible to refer to the subject by-path.
             These are all limitations that will be addressed in future Gradle versions.
         </para>
+        <section id="dsl-rule-input-dependencies">
+            <title>Declaring input dependencies</title>
+            <para>
+                Rules declared in the DSL may <emphasis>depend</emphasis> on other model elements through the use of a special syntax.
+            </para>
+            <sample id='modelDslRuleInputs' dir='modelRules/modelDsl' includeLocation="true" title="a DSL rule using inputs">
+                <sourcefile file='build.gradle' snippet="rule-inputs"/>
+            </sample>
+            <para>
+                In the above snippet, the <literal>$.person</literal> construct is an input reference.
+                The construct returns the value of the model element at the specified path, as its default type (i.e. the type advertised by the <link linkend="model-report">Model Report</link>).
+                It may appear anywhere in the rule that a value may normally appear.
+                It is not limited to the right hand side of variable assignments.
+            </para>
+            <para>
+                The general syntax is of the form:
+            </para>
+            <programlisting>
+                $.«path-to-model-element»
+            </programlisting>
+            <para>
+                Paths are a period separated list of identifiers.
+                To directly depend on the <literal>firstName</literal> of the person, the following could be used:
+            </para>
+            <programlisting>
+                $.person.firstName
+            </programlisting>
+            <para>
+                The input element is guaranteed to be fully configured before the rule executes.
+                That is, all of the rules that mutate the element are guaranteed to have been previously executed,
+                leaving the target element in its final, immutable, state.
+            </para>
+            <para>
+                Most model elements enforce immutability when being used as inputs.
+                Any attempt to mutate such an element will result in a runtime error.
+                However, some legacy type objects do not currently implement such checks.
+                Regardless, it is always invalid to attempt to mutate an input to a rule.
+            </para>
+        </section>
     </section>
-    <section>
-        <title>The model report</title>
+    <section id="model-report">
+        <title>The Model Report</title>
         <para>
-            The built-in <link>model</link> task displays the model space as a tree.
-            It can be used to see what the potential elements to bind to are.
+            The built-in <apilink class="org.gradle.api.reporting.model.ModelReport"/> task displays a hierarchical view of the elements in the model space.
+            Each item prefixed with a `+` on the model report is a model element and the visual nesting of these elements correlates to the model
+            path (e.g. `tasks.help`). The model report displays the following details about each model element:
         </para>
+
+        <table>
+            <title>Model report - model element details</title>
+            <thead>
+                <td>Detail</td>
+                <td>Description</td>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Type</td>
+                    <td>This is the underlying type of the model element and is typically a fully qualified class name.</td>
+                </tr>
+                <tr>
+                    <td>Value</td>
+                    <td>Is conditionally displayed on the report when a model element can be represented as a string.</td>
+                </tr>
+                <tr>
+                    <td>Creator</td>
+                    <td>Every model element has a creator. A creator signifies the origin of the model element (i.e. what created the model element).</td>
+                </tr>
+                <tr>
+                    <td>Rules</td>
+                    <td>Is a listing of the rules, excluding the creator rule, which are executed for a given model element. The order in which the rules are displayed reflects
+                        the order in which they are executed.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
         <sample id='basicRuleSourcePlugin-model-task' dir='modelRules/basicRuleSourcePlugin' title='model task output'>
             <output args='model' ignoreExtraLines="true"/>
         </sample>
-        <para>
-            Currently the report only shows the structure of the model space.
-            In future Gradle versions it will also display the types and values of the nodes.
-            Future versions will also provide richer and more interactive ways of exploring the model space.
-        </para>
     </section>
     <section>
         <title>Limitations and future direction</title>

@@ -175,8 +175,8 @@ class CollectionUtilsTest extends Specification {
 
     def "collect values as map"() {
         expect:
-        collectMapValues([1, 2, 3], transformer { it *10}) == [1: 10, 2: 20, 3: 30]
-        collectMapValues([], transformer { it * 10}) == [:]
+        collectMapValues([1, 2, 3], transformer { it * 10 }) == [1: 10, 2: 20, 3: 30]
+        collectMapValues([], transformer { it * 10 }) == [:]
     }
 
     def "every"() {
@@ -378,4 +378,5 @@ class CollectionUtilsTest extends Specification {
     Action action(Closure c) {
         new ClosureBackedAction(c)
     }
+
 }

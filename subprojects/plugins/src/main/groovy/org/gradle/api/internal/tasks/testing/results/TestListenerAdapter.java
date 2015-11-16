@@ -16,10 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.tasks.testing.*;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.api.tasks.testing.TestOutputListener;
+import org.gradle.api.tasks.testing.TestResult;
 
-public class TestListenerAdapter extends StateTrackingTestResultProcessor {
+public class TestListenerAdapter implements TestListenerInternal {
     private final TestListener testListener;
     private final TestOutputListener testOutputListener;
 
@@ -29,8 +34,7 @@ public class TestListenerAdapter extends StateTrackingTestResultProcessor {
     }
 
     @Override
-    protected void started(TestState state) {
-        TestDescriptorInternal test = state.test;
+    public void started(TestDescriptorInternal test, TestStartEvent startEvent) {
         if (test.isComposite()) {
             testListener.beforeSuite(test);
         } else {
@@ -39,9 +43,7 @@ public class TestListenerAdapter extends StateTrackingTestResultProcessor {
     }
 
     @Override
-    protected void completed(TestState state) {
-        TestResult result = new DefaultTestResult(state);
-        TestDescriptorInternal test = state.test;
+    public void completed(TestDescriptorInternal test, TestResult result, TestCompleteEvent completeEvent) {
         if (test.isComposite()) {
             testListener.afterSuite(test, result);
         } else {
@@ -50,7 +52,7 @@ public class TestListenerAdapter extends StateTrackingTestResultProcessor {
     }
 
     @Override
-    public void output(TestDescriptor test, TestOutputEvent event) {
+    public void output(TestDescriptorInternal test, TestOutputEvent event) {
         testOutputListener.onOutput(test, event);
     }
 }

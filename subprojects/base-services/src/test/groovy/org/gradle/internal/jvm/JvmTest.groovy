@@ -19,13 +19,16 @@ package org.gradle.internal.jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Matchers
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
 class JvmTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    SetSystemProperties sysProp = new SetSystemProperties()
     OperatingSystem os = Mock() {
         getExecutableName(_) >> { String name ->
             return "${name}.exe"
@@ -239,6 +242,27 @@ class JvmTest extends Specification {
         '1.5.0_22' | 'jre1.5.0_22' | 'jdk1.5.0_22'
     }
 
+    def "JVMs are equal when their Java home dirs are the same"() {
+        given:
+        TestFile installDir = tmpDir.createDir('software')
+        installDir.create {
+            lib {
+                file 'tools.jar'
+            }
+            bin {
+                file 'java'
+            }
+        }
+
+        expect:
+        def jvm = new Jvm(os, installDir)
+        def current = Jvm.current()
+
+        Matchers.strictlyEquals(jvm, new Jvm(os, installDir))
+        Matchers.strictlyEquals(current, Jvm.forHome(current.javaHome))
+        jvm != current
+    }
+
     def "uses system property to determine if Sun/Oracle JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'Sun'
@@ -378,5 +402,44 @@ class JvmTest extends Specification {
 
         then:
         jvm.toString().contains('dummyFolder')
+    }
+
+    def "locates MAC OS JDK9 install when java.home points to an EAP JDK 1.9 installation"() {
+        given:
+        OperatingSystem macOs = new OperatingSystem.MacOs()
+        TestFile software = tmpDir.createDir('software')
+        //http://openjdk.java.net/jeps/220
+        software.create {
+            Contents {
+                Home {
+                    bin {
+                        file 'java'
+                        file 'javac'
+                        file 'javadoc'
+                    }
+                    conf {
+                        'logging.properties'
+                    }
+                    lib {
+
+                    }
+                }
+            }
+        }
+
+        when:
+        System.properties['java.home'] = software.file('Contents/Home').absolutePath
+        System.properties['java.version'] = '1.9'
+        Jvm java9Vm = new Jvm(macOs)
+
+        then:
+        java9Vm.javaHome == software.file('Contents/Home')
+        java9Vm.javaExecutable == software.file('Contents/Home/bin/java')
+        java9Vm.javacExecutable == software.file('Contents/Home/bin/javac')
+        java9Vm.javadocExecutable == software.file('Contents/Home/bin/javadoc')
+        java9Vm.jre == null
+        java9Vm.runtimeJar == null
+        java9Vm.toolsJar == null
+        java9Vm.standaloneJre == null
     }
 }

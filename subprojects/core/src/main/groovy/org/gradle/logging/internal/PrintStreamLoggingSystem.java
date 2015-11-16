@@ -40,7 +40,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
         public void endOfStream(@Nullable Throwable failure) {
         }
     });
-    private StandardOutputListener original;
+    private PrintStreamDestination original;
     private LogLevel logLevel;
     private final StandardOutputListener listener;
     private final OutputEventListener outputEventListener;
@@ -66,36 +66,16 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
 
     public void restore(Snapshot state) {
         SnapshotImpl snapshot = (SnapshotImpl) state;
-        install();
         if (snapshot.logLevel == null) {
-            destination.set(original);
+            off();
         } else {
-            this.logLevel = snapshot.logLevel;
-            outputEventListener.onOutput(new LogLevelChangeEvent(snapshot.logLevel));
-            destination.set(listener);
+            on(snapshot.logLevel, snapshot.logLevel);
         }
     }
 
-    public Snapshot on(final LogLevel level) {
+    @Override
+    public Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel) {
         Snapshot snapshot = snapshot();
-        install();
-        this.logLevel = level;
-        outputEventListener.onOutput(new LogLevelChangeEvent(logLevel));
-        destination.set(listener);
-        return snapshot;
-    }
-
-    public Snapshot off() {
-        Snapshot snapshot = snapshot();
-        if (original != null) {
-            outstr.flush();
-            destination.set(original);
-            logLevel = null;
-        }
-        return snapshot;
-    }
-
-    private void install() {
         if (original == null) {
             PrintStream originalStream = get();
             original = new PrintStreamDestination(originalStream);
@@ -104,6 +84,21 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
         if (get() != outstr) {
             set(outstr);
         }
+        this.logLevel = defaultLevel;
+        outputEventListener.onOutput(new LogLevelChangeEvent(logLevel));
+        destination.set(listener);
+        return snapshot;
+    }
+
+    private Snapshot off() {
+        Snapshot snapshot = snapshot();
+        if (original != null && logLevel != null) {
+            outstr.flush();
+            destination.set(original);
+            set(original.originalStream);
+            logLevel = null;
+        }
+        return snapshot;
     }
 
     private static class PrintStreamDestination implements StandardOutputListener {

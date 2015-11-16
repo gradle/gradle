@@ -18,10 +18,12 @@ package org.gradle.api.artifacts.repositories;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * An artifact repository which supports username/password authentication.
  */
+@HasInternalProtocol
 public interface AuthenticationSupported {
 
     /**
@@ -46,7 +48,7 @@ public interface AuthenticationSupported {
      * @throws IllegalArgumentException when the credentials assigned to this repository are not assignable to the specified type
      */
     @Incubating
-    public <T extends Credentials> T getCredentials(Class<T> credentialsType);
+    <T extends Credentials> T getCredentials(Class<T> credentialsType);
 
     /**
      * Configures the username and password credentials for this repository using the supplied action.
@@ -96,4 +98,38 @@ public interface AuthenticationSupported {
      */
     @Incubating
     <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action);
+
+    /**
+     * <p>Configures the authentication schemes for this repository.
+     *
+     * <p>This method executes the given action against the {@link AuthenticationContainer} for this project. The {@link
+     * AuthenticationContainer} is passed to the closure as the closure's delegate.
+     * <p>
+     * If no authentication schemes have been assigned to this repository, a default set of authentication schemes are used based on the repository's transport scheme.
+     *
+     * <pre autoTested=''>
+     * repositories {
+     *     maven {
+     *         url "${url}"
+     *         authentication {
+     *             basic(BasicAuthentication)
+     *         }
+     *     }
+     * }
+     * </pre>
+     * <p>
+     * Supported authentication scheme types extend {@link org.gradle.authentication.Authentication}.
+     *
+     * @param action the action to use to configure the authentication schemes.
+     */
+    @Incubating
+    void authentication(Action<? super AuthenticationContainer> action);
+
+    /**
+     * Returns the authentication schemes for this repository.
+     *
+     * @return the authentication schemes for this repository
+     */
+    @Incubating
+    AuthenticationContainer getAuthentication();
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -47,7 +46,6 @@ class ClientModuleResolverTest extends Specification {
     def "replaces meta-data for a client module dependency"() {
         def clientModule = Mock(ClientModule)
         def dep = Mock(ModuleDependency)
-        def moduleDescriptor = Mock(ModuleDescriptor)
         def dependencyMetaData = Mock(DependencyMetaData)
         def artifact = Mock(ModuleComponentArtifactMetaData)
 
@@ -62,8 +60,7 @@ class ClientModuleResolverTest extends Specification {
         1 * metaData.copy() >> metaData
         1 * clientModule.getDependencies() >> ([dep] as Set)
         1 * dep.getConfiguration() >> "config"
-        1 * metaData.getDescriptor() >> moduleDescriptor
-        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", moduleDescriptor, dep) >> dependencyMetaData
+        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", dep) >> dependencyMetaData
         1 * metaData.setDependencies([dependencyMetaData])
         1 * metaData.artifact('jar', 'jar', null) >> artifact
         1 * metaData.setArtifacts({

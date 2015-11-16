@@ -41,7 +41,8 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
         IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();
         ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision());
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
-        DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(moduleVersionIdentifier);
+        // TODO:DAZ This indicates the IvyPublishMetaData should probably not be responsible for creating a ModuleDescriptor...
+        DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(moduleVersionIdentifier, "");
 
         try {
             for (IvyArtifact publishArtifact : publication.getArtifacts()) {

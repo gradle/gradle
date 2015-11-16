@@ -17,11 +17,11 @@
 package org.gradle.play.internal.distribution;
 
 import org.gradle.api.distribution.Distribution;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.platform.base.internal.rules.RuleAwarePolymorphicDomainObjectContainer;
 import org.gradle.play.distribution.PlayDistributionContainer;
 
-public class DefaultPlayDistributionContainer extends RuleAwarePolymorphicDomainObjectContainer<Distribution> implements PlayDistributionContainer {
+public class DefaultPlayDistributionContainer extends DefaultPolymorphicDomainObjectContainer<Distribution> implements PlayDistributionContainer {
     public DefaultPlayDistributionContainer(Instantiator instantiator) {
         super(Distribution.class, instantiator);
     }

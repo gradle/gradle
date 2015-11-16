@@ -16,7 +16,5 @@
 package org.gradle.groovy.scripts;
 
 public interface ScriptExecutionListener {
-    void beforeScript(Script script);
-
-    void afterScript(Script script, Throwable result);
+    void scriptClassLoaded(ScriptSource source, Class<? extends Script> scriptClass);
 }

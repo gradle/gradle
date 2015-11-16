@@ -35,11 +35,24 @@ class EclipseProjectFixture {
         return project
     }
 
+    String getProjectName() {
+        getProject().'name'.text()
+    }
+
+    String getComment() {
+        getProject().'comment'.text()
+    }
+
+    void assertHasReferencedProjects(String... referencedProjects) {
+        assert getProject().projects.project*.text() == referencedProjects as List
+    }
+
+
     void assertHasJavaFacetNatures() {
         assertHasNatures("org.eclipse.jdt.core.javanature",
-                        "org.eclipse.wst.common.project.facet.core.nature",
-                        "org.eclipse.wst.common.modulecore.ModuleCoreNature",
-                        "org.eclipse.jem.workbench.JavaEMFNature")
+            "org.eclipse.wst.common.project.facet.core.nature",
+            "org.eclipse.wst.common.modulecore.ModuleCoreNature",
+            "org.eclipse.jem.workbench.JavaEMFNature")
     }
 
     void assertHasNatures(String... natures) {
@@ -48,12 +61,29 @@ class EclipseProjectFixture {
 
     void assertHasJavaFacetBuilders() {
         assertHasBuilders("org.eclipse.jdt.core.javabuilder",
-                        "org.eclipse.wst.common.project.facet.core.builder",
-                        "org.eclipse.wst.validation.validationbuilder"
-                )
+            "org.eclipse.wst.common.project.facet.core.builder",
+            "org.eclipse.wst.validation.validationbuilder"
+        )
     }
 
     void assertHasBuilders(String... builders) {
         assert getProject().buildSpec.buildCommand.name*.text() == builders as List
+    }
+
+    void assertHasLinkedResources(String... names) {
+        assert getProject().linkedResources.link.name*.text() == names as List
+    }
+
+    void assertHasBuilder(String builderName, Map args) {
+        assert getProject().buildSpec.buildCommand.name*.text().contains(builderName)
+        args.each { key, value ->
+            def argument = getProject().buildSpec.buildCommand.find { it.name.text() == builderName }.arguments.dictionary.find { it.key.text() == key }
+            assert argument != null
+            assert argument.value.text() == value
+        }
+    }
+
+    void assertHasLinkedResource(String name, String type, String location) {
+        assert null != getProject().linkedResources.link.findAll { it.name.text() == name && it.type.text() == type && it.location.text() == location }
     }
 }

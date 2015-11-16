@@ -1,4 +1,4 @@
-<img src="http://gradle.org/img/gradle_logo.gif" />
+<img src="https://gradle.org/wp-content/uploads/2015/03/GradleLogoReg.png" alt="Gradle Logo" />
 
 Gradle is a build tool with a focus on build automation and support for multi-language development. If you are building, testing, publishing, and deploying software on any platform, Gradle offers a flexible model that can support the entire development lifecycle from compiling and packaging code to publishing web sites. Gradle has been designed to support build automation across multiple languages and platforms including Java, Scala, Android, C/C++, and Groovy, and is closely integrated with development tools and continuous integration servers including Eclipse, IntelliJ, and Jenkins.
 
@@ -18,7 +18,9 @@ To build the entire Gradle project, you should run the following in the root of 
 
     ./gradlew build
 
-This will compile all the code, generate all the documentation and run all the tests. It can take up to an hour on a fast machine because we have thousands of tests, including integration tests that exercise virtually every Gradle feature. Among the things we test are: compatibility across versions, validity of samples and Javadoc snippets, daemon process capabilities, etc.
+This will compile all the code, generate all the documentation and run all the tests. It can take several hours because we have thousands of tests, including integration tests that exercise virtually every Gradle feature. Among the things we test are: compatibility across versions, validity of samples and Javadoc snippets, daemon process capabilities, etc.
+
+In order to for this build to pass, you will need a supported native tool chain installed. See the [Gradle userguide](https://docs.gradle.org/current/userguide/nativeBinaries.html#native-binaries:tool-chain-support) for a list of supported tool chains.
 
 ### Installing from source
 
@@ -26,7 +28,7 @@ To create an install from the source tree you can run either of the following:
 
     ./gradlew install -Pgradle_installPath=/usr/local/gradle-source-build
 
-This will create a minimal installation; just what's needed to run Gradle (i.e. no docs). Note that the `-Pgradle_installPath` denotes where to install to. 
+This will create a minimal installation; just what's needed to run Gradle (i.e. no docs). Note that the `-Pgradle_installPath` denotes where to install to.
 
 You can then build a Gradle based project with this installation:
 
@@ -94,6 +96,7 @@ This command generates Eclipse metadata that allows importing the project into E
 
 #### Gradle for Eclipse (by Nodeclipse/Enide)
 
-With [Gradle(Enide) Eclipse plugin](http://marketplace.eclipse.org/content/gradle), you can import as general plugin or prepare before with `./gradlew eclipse`. 
+With [Gradle(Enide) Eclipse plugin](http://marketplace.eclipse.org/content/gradle), you can import as general plugin or prepare before with `./gradlew eclipse`.
 
 Build is run via right-click on `build.gradle` <kbd>Run As -> gradle build Gradle Build</kbd>
+

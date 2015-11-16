@@ -92,8 +92,6 @@ TBD
 
 * When the native-platform integration is stable:
   * Switch to using native-platform to generate the terminal output and remove jansi.
-  * Switch to using native-platform for handling unix file permissions and remove jna-posix.
-  * Switch to using native-platform for handling the native integrations used by the daemon and remove jna.
 * Improve formatting of status bar text on terminal with limited width.
 * Handle terminal size changes. This will require improvements to the native-platform library.
 * Handle runnng under Cygwin terminal. This will require improvements to the native-platform library.

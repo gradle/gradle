@@ -19,6 +19,7 @@ package org.gradle.internal.resource
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import org.junit.Before
@@ -114,7 +115,7 @@ class UriResourceTest {
             assertThat(e.message, equalTo("Could not read <display-name> '$dir' as it is a directory." as String))
         }
     }
-    
+
     @Test
     public void readsFileContentUsingFileUriWhenFileExists() {
         file.text = '<content>'
@@ -137,6 +138,7 @@ class UriResourceTest {
     }
 
     @Test
+    @LeaksFileHandles
     public void readsFileContentUsingJarUriWhenFileExists() {
         file.text = '<content>'
 
@@ -146,6 +148,7 @@ class UriResourceTest {
     }
 
     @Test
+    @LeaksFileHandles
     public void hasNoContentWhenUsingJarUriAndFileDoesNotExistInJar() {
         URI jarUri = createJar()
         UriResource resource = new UriResource('<display-name>', jarUri);

@@ -17,19 +17,12 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 
 class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
 
     def "configuration cycle error contains information useful for troubleshooting"() {
-        given:
-        EnableModelDsl.enable(executer)
-
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class Rules extends RuleSource {
                 @Model
                 String first(@Path("second") String second) {
@@ -47,7 +40,7 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void connectTasksToFirst(CollectionBuilder<Task> tasks, @Path("first") String first) {
+                void connectTasksToFirst(ModelMap<Task> tasks, @Path("first") String first) {
                 }
             }
 
@@ -65,9 +58,95 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("""A cycle has been detected in model rule dependencies. References forming the cycle:
-Rules#first(java.lang.String) parameter 1 (path: second)
-  \\--- model.second @ build file '${buildFile}' line 29, column 17 @ line 30 (path: third)
-    \\--- Rules#third(java.lang.String) parameter 1 (path: first)
-      \\--- Rules#first(java.lang.String)""")
+first
+\\- Rules#first
+   \\- second
+      \\- second { ... } @ build.gradle line 26, column 17
+         \\- third
+            \\- Rules#third
+               \\- first""")
+    }
+
+    def "cycles involving multiple rules of same phase are detected"() {
+        when:
+        buildScript '''
+            class Rules extends RuleSource {
+                @Model List<String> m1() { [] }
+                @Model List<String> m2() { [] }
+                @Model List<String> m3() { [] }
+
+                @Mutate void m2ToM1(@Path("m1") m1, @Path("m2") m2) {
+                    if (!m1.empty) {
+                        throw new IllegalStateException("m2ToM1 has executed twice")
+                    }
+                    m1 << "executed"
+                }
+
+                // in cycle…
+                @Mutate void m3ToM1(@Path("m1") m1, @Path("m3") m3) {}
+                @Mutate void m1ToM3(@Path("m3") m3, @Path("m1") m1) {}
+
+                @Mutate void addTask(ModelMap<Task> tasks, @Path("m1") m1) {}
+            }
+
+            apply type: Rules
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("""A cycle has been detected in model rule dependencies. References forming the cycle:
+m1
+\\- Rules#m3ToM1
+   \\- m3
+      \\- Rules#m1ToM3
+         \\- m1""")
+    }
+
+    def "cycles involving multiple rules of different phase are detected"() {
+        when:
+        buildScript '''
+            class Rules extends RuleSource {
+                @Model List<String> m1() { [] }
+                @Model List<String> m2() { [] }
+                @Model List<String> m3() { [] }
+
+                @Defaults void addM1Defaults(@Path("m1") m1) {
+                    if (!m1.empty) {
+                        throw new IllegalStateException("addM1Defaults has executed twice")
+                    }
+                    m1 << "addM3Defaults executed"
+                }
+
+                @Mutate void m2ToM1(@Path("m1") m1, @Path("m2") m2) {
+                    if (m1.size() > 1) {
+                        throw new IllegalStateException("m2ToM1 has executed twice")
+                    }
+                    m1 << "m2ToM1 executed"
+                }
+
+
+                // in cycle…
+                @Mutate void m3ToM1(@Path("m1") m1, @Path("m3") m3) {}
+                @Mutate void m1ToM3(@Path("m3") m3, @Path("m1") m1) {}
+
+                @Mutate void addTask(ModelMap<Task> tasks, @Path("m1") m1) {}
+            }
+
+            apply type: Rules
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("""A cycle has been detected in model rule dependencies. References forming the cycle:
+m1
+\\- Rules#m3ToM1
+   \\- m3
+      \\- Rules#m1ToM3
+         \\- m1""")
+
     }
 }

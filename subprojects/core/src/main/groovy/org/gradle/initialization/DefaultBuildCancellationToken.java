@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class DefaultBuildCancellationToken implements BuildCancellationToken {
+
     private final Object lock = new Object();
     private boolean cancelled;
     private List<Runnable> callbacks = new LinkedList<Runnable>();
@@ -53,7 +54,7 @@ public class DefaultBuildCancellationToken implements BuildCancellationToken {
         }
     }
 
-    public void doCancel() {
+    public void cancel() {
         List<Runnable> toCall = new ArrayList<Runnable>();
         synchronized (lock) {
             if (cancelled) {

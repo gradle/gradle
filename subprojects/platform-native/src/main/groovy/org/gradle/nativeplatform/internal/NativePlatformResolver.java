@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.specs.Spec;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
@@ -23,13 +22,11 @@ import org.gradle.platform.base.internal.PlatformRequirement;
 import org.gradle.platform.base.internal.PlatformResolver;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Set;
-
 public class NativePlatformResolver implements PlatformResolver<NativePlatform> {
-    private final Set<NativePlatform> nativePlatforms = Sets.newHashSet();
+    private final NativePlatforms nativePlatforms;
 
-    public NativePlatformResolver() {
-        nativePlatforms.addAll(NativePlatforms.defaultPlatformDefinitions());
+    public NativePlatformResolver(NativePlatforms nativePlatforms) {
+        this.nativePlatforms = nativePlatforms;
     }
 
     public Class<NativePlatform> getType() {
@@ -38,8 +35,7 @@ public class NativePlatformResolver implements PlatformResolver<NativePlatform> 
 
     @Override
     public NativePlatform resolve(final PlatformRequirement platformRequirement) {
-        NativePlatforms.defaultPlatformDefinitions();
-        return CollectionUtils.findFirst(nativePlatforms, new Spec<NativePlatform>() {
+        return CollectionUtils.findFirst(nativePlatforms.defaultPlatformDefinitions(), new Spec<NativePlatform>() {
             @Override
             public boolean isSatisfiedBy(NativePlatform element) {
                 return element.getName().equals(platformRequirement.getPlatformName());
