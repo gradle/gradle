@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.dsl.internal
+package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
