@@ -1,5 +1,8 @@
 package ${packageName};
 
+import java.util.List;
+import java.util.Arrays;
+
 public class ${productionClassName} ${extendsAndImplementsClause} {
 
     public static ${productionClassName} one() { return new ${productionClassName}(); }
@@ -7,6 +10,21 @@ public class ${productionClassName} ${extendsAndImplementsClause} {
     private final String property;
     <% extraFields.each { %>
     ${it.modifier} ${it.type} ${it.name} = ${it.type}.one();
+
+    public boolean check(${it.type} o) {
+        // dummy code to add arbitrary compile time
+        String p = o.getProperty();
+        p = p.toUpperCase();
+        List<String> strings = Arrays.asList(p, this.getProperty());
+        int len = 0;
+        for (String s: strings) {
+            len += s.length();
+            <% propertyCount.times { %>
+            len += o.getProp${it}().length();
+            <%}%>
+        }
+        return len>10;
+    }
     <% } %>
 
     public ${productionClassName}(){
