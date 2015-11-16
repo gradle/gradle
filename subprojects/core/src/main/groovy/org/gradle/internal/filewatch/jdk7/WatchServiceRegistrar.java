@@ -73,17 +73,23 @@ class WatchServiceRegistrar implements FileWatcherListener {
         Iterable<? extends File> startingWatchPoints = FileUtils.calculateRoots(enclosingDirsThatExist);
 
         for (File dir : startingWatchPoints) {
-            Files.walkFileTree(dir.toPath(), new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult preVisitDirectory(Path path, BasicFileAttributes attrs) throws IOException {
-                    if (inUnfilteredSubsetOrAncestorOfAnyRoot(path.toFile())) {
-                        watchDir(path);
-                        return FileVisitResult.CONTINUE;
-                    } else {
-                        return FileVisitResult.SKIP_SUBTREE;
-                    }
+            if (FILE_TREE_WATCHING_SUPPORTED) {
+                if (inUnfilteredSubsetOrAncestorOfAnyRoot(dir)) {
+                    watchDir(dir.toPath());
                 }
-            });
+            } else {
+                Files.walkFileTree(dir.toPath(), new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult preVisitDirectory(Path path, BasicFileAttributes attrs) throws IOException {
+                        if (inUnfilteredSubsetOrAncestorOfAnyRoot(path.toFile())) {
+                            watchDir(path);
+                            return FileVisitResult.CONTINUE;
+                        } else {
+                            return FileVisitResult.SKIP_SUBTREE;
+                        }
+                    }
+                });
+            }
         }
     }
 
