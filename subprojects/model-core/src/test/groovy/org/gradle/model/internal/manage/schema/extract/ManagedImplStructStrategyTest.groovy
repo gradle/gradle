@@ -31,6 +31,7 @@ class ManagedImplStructStrategyTest extends Specification {
         expect:
         def schema = store.getSchema(ModelType.of(SomeType))
         schema instanceof ManagedImplStructSchema
+        schema.propertyNames == ['readOnlyString', 'strings'] as SortedSet
         schema.properties*.name == ['readOnlyString', 'strings']
         schema.getProperty('readOnlyString').type == ModelType.of(String)
         schema.getProperty('readOnlyString').schema == store.getSchema(ModelType.of(String))
@@ -42,6 +43,7 @@ class ManagedImplStructStrategyTest extends Specification {
         expect:
         def schema = store.getSchema(ModelType.of(Person))
         schema instanceof ManagedImplStructSchema
+        schema.propertyNames == ['parent'] as SortedSet
         schema.properties*.name == ['parent']
         schema.getProperty('parent').type == schema.type
         schema.getProperty('parent').schema == schema
