@@ -39,7 +39,7 @@ class DefaultModelRuleInvoker<I, R> implements ModelRuleInvoker<R> {
 
     private I toInstance() {
         try {
-            Class<I> concreteClass = method.getTarget().getConcreteClass();
+            Class<I> concreteClass = method.getDeclaringType().getConcreteClass();
             Constructor<I> declaredConstructor = concreteClass.getDeclaredConstructor();
             declaredConstructor.setAccessible(true);
             return declaredConstructor.newInstance();

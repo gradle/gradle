@@ -34,17 +34,17 @@ import java.util.Arrays;
 
 public class WeaklyTypeReferencingMethod<T, R> {
 
-    private final ModelType<T> target;
+    private final ModelType<T> declaringType;
     private final ModelType<R> returnType;
     private final String name;
     private final ImmutableList<ModelType<?>> paramTypes;
     private final int modifiers;
 
-    private WeaklyTypeReferencingMethod(ModelType<T> target, ModelType<R> returnType, Method method) {
-        if (target.getRawClass() != method.getDeclaringClass()) {
+    private WeaklyTypeReferencingMethod(ModelType<T> declaringType, ModelType<R> returnType, Method method) {
+        if (declaringType.getRawClass() != method.getDeclaringClass()) {
             throw new IllegalArgumentException("Unexpected target class.");
         }
-        this.target = target;
+        this.declaringType = declaringType;
         this.returnType = returnType;
         this.name = method.getName();
         paramTypes = ImmutableList.copyOf(Iterables.transform(Arrays.asList(method.getGenericParameterTypes()), new Function<Type, ModelType<?>>() {
@@ -59,8 +59,8 @@ public class WeaklyTypeReferencingMethod<T, R> {
         return new WeaklyTypeReferencingMethod<T, R>(target, returnType, method);
     }
 
-    public ModelType<T> getTarget() {
-        return target;
+    public ModelType<T> getDeclaringType() {
+        return declaringType;
     }
 
     public ModelType<R> getReturnType() {
@@ -109,7 +109,7 @@ public class WeaklyTypeReferencingMethod<T, R> {
             }
         }), Class.class);
         try {
-            return target.getRawClass().getDeclaredMethod(name, paramTypesArray);
+            return declaringType.getRawClass().getDeclaredMethod(name, paramTypesArray);
         } catch (NoSuchMethodException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -118,7 +118,7 @@ public class WeaklyTypeReferencingMethod<T, R> {
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
-                .append(target)
+                .append(declaringType)
                 .append(returnType)
                 .append(name)
                 .append(paramTypes)
@@ -137,7 +137,7 @@ public class WeaklyTypeReferencingMethod<T, R> {
         WeaklyTypeReferencingMethod<?, ?> other = Cast.uncheckedCast(obj);
 
         return new EqualsBuilder()
-                .append(target, other.target)
+                .append(declaringType, other.declaringType)
                 .append(returnType, other.returnType)
                 .append(name, other.name)
                 .append(paramTypes, other.paramTypes)

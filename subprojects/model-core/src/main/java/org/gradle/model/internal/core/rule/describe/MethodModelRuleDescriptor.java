@@ -61,7 +61,7 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
     }
 
     private String getClassName() {
-        return method.getTarget().getDisplayName();
+        return method.getDeclaringType().getDisplayName();
     }
 
     @Override
