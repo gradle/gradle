@@ -56,7 +56,7 @@ model {
                 <%
                 apiExports.each {
                     %>
-                    exports 't${it}'
+                    exports '${it}'
                 <% } %>
             }
         }
