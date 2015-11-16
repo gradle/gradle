@@ -21,5 +21,4 @@ import org.gradle.api.internal.file.FileSystemSubset;
 public interface FileSystemChangeWaiter {
     void watch(FileSystemSubset fileSystemSubset);
     void wait(Runnable notifier);
-    boolean isWatching();
 }
