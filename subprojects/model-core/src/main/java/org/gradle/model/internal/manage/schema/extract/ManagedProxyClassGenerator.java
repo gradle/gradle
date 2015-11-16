@@ -268,13 +268,13 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         constructorVisitor.visitMethodInsn(INVOKESPECIAL, superclassType.getInternalName(), CONSTRUCTOR_NAME, Type.getMethodDescriptor(Type.VOID_TYPE), false);
     }
 
-    private void writeToString(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass) {
-        Method toStringMethod = getToStringMethod(managedTypeClass);
+    private void writeToString(ClassVisitor visitor, Type generatedType, Class<?> viewClass) {
+        Method toStringMethod = getToStringMethod(viewClass);
 
         if (toStringMethod == null || toStringMethod.getDeclaringClass().equals(Object.class)) {
             writeDefaultToString(visitor, generatedType);
         } else {
-            writeNonAbstractMethodWrapper(visitor, generatedType, managedTypeClass, toStringMethod);
+            writeNonAbstractMethodWrapper(visitor, generatedType, viewClass, toStringMethod);
         }
     }
 
@@ -420,13 +420,14 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         }
 
         String propertyName = property.getName();
-        Class<?> propertyTypeClass = property.getType().getConcreteClass();
+        Class<?> propertyClass = property.getType().getConcreteClass();
+        Type propertyType = Type.getType(propertyClass);
         Label calledOutsideOfConstructor = new Label();
 
         Method setter = weakSetter.getMethod();
 
         // the regular typed setter
-        String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(propertyTypeClass));
+        String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, propertyType);
         MethodVisitor methodVisitor = declareMethod(visitor, setter.getName(), methodDescriptor, AsmClassGeneratorUtils.signature(setter));
 
         putCanCallSettersFieldValueOnStack(methodVisitor, generatedType);
@@ -436,18 +437,18 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitLabel(calledOutsideOfConstructor);
         putStateFieldValueOnStack(methodVisitor, generatedType);
         putConstantOnStack(methodVisitor, propertyName);
-        putFirstMethodArgumentOnStack(methodVisitor, propertyTypeClass);
-        if (propertyTypeClass.isPrimitive()) {
-            boxType(methodVisitor, propertyTypeClass);
+        putFirstMethodArgumentOnStack(methodVisitor, propertyType);
+        if (propertyClass.isPrimitive()) {
+            boxType(methodVisitor, propertyClass);
         }
         invokeStateSetMethod(methodVisitor);
 
         finishVisitingMethod(methodVisitor);
 
-        if (propertyTypeClass.isPrimitive() || BOXED_TYPES.values().contains(propertyTypeClass) || propertyTypeClass.isEnum()
-            || BigDecimal.class.equals(propertyTypeClass) || BigInteger.class.equals(propertyTypeClass) || String.class.equals(propertyTypeClass)
-            || File.class.equals(propertyTypeClass)) {
-            createScalarConvertingSetter(visitor, generatedType, propertyTypeClass, setter, methodDescriptor);
+        if (propertyClass.isPrimitive() || BOXED_TYPES.values().contains(propertyClass) || propertyClass.isEnum()
+            || BigDecimal.class.equals(propertyClass) || BigInteger.class.equals(propertyClass) || String.class.equals(propertyClass)
+            || File.class.equals(propertyClass)) {
+            createScalarConvertingSetter(visitor, generatedType, propertyClass, setter, methodDescriptor);
         }
     }
 
@@ -568,29 +569,13 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         return methodVisitor;
     }
 
-    private void putFirstMethodArgumentOnStack(MethodVisitor methodVisitor, Class<?> argType) {
-        int loadCode = selectOpcode(argType, ALOAD, ILOAD, LLOAD, FLOAD, DLOAD);
+    private void putFirstMethodArgumentOnStack(MethodVisitor methodVisitor, Type argType) {
+        int loadCode = argType.getOpcode(ILOAD);
         methodVisitor.visitVarInsn(loadCode, 1);
     }
 
-    private int selectOpcode(Class<?> argType, int defaultValue, int intCategoryValue, int longValue, int floatValue, int doubleValue) {
-        int code = defaultValue;
-        if (argType.isPrimitive()) {
-            if (byte.class == argType || short.class == argType || int.class == argType || char.class == argType || boolean.class == argType) {
-                code = intCategoryValue;
-            } else if (long.class == argType) {
-                code = longValue;
-            } else if (float.class == argType) {
-                code = floatValue;
-            } else if (double.class == argType) {
-                code = doubleValue;
-            }
-        }
-        return code;
-    }
-
     private void putFirstMethodArgumentOnStack(MethodVisitor methodVisitor) {
-        putFirstMethodArgumentOnStack(methodVisitor, Object.class);
+        putFirstMethodArgumentOnStack(methodVisitor, OBJECT_TYPE);
     }
 
     private void putSecondMethodArgumentOnStack(MethodVisitor methodVisitor) {
@@ -631,7 +616,8 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeGetters(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
-        Class<?> propertyTypeClass = property.getType().getConcreteClass();
+        Class<?> propertyClass = property.getType().getConcreteClass();
+        Type propertyType = Type.getType(propertyClass);
         Set<String> processedNames = Sets.newHashSet();
         for (WeaklyTypeReferencingMethod<?, ?> weakGetter : property.getGetters()) {
             Method getter = weakGetter.getMethod();
@@ -641,20 +627,19 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             MethodVisitor methodVisitor = declareMethod(
                 visitor,
                 getter.getName(),
-                Type.getMethodDescriptor(Type.getType(propertyTypeClass)),
+                Type.getMethodDescriptor(propertyType),
                 AsmClassGeneratorUtils.signature(getter));
 
             putStateFieldValueOnStack(methodVisitor, generatedType);
             putConstantOnStack(methodVisitor, property.getName());
             invokeStateGetMethod(methodVisitor);
-            castFirstStackElement(methodVisitor, propertyTypeClass);
-            finishVisitingMethod(methodVisitor, returnCode(propertyTypeClass));
+            castFirstStackElement(methodVisitor, propertyClass);
+            finishVisitingMethod(methodVisitor, returnCode(propertyType));
         }
-
     }
 
-    private int returnCode(Class<?> propertyTypeClass) {
-        return selectOpcode(propertyTypeClass, ARETURN, IRETURN, LRETURN, FRETURN, DRETURN);
+    private int returnCode(Type returnType) {
+        return returnType.getOpcode(IRETURN);
     }
 
     private static String getGetterName(String propertyName) {
@@ -777,7 +762,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         if (returnType == Void.TYPE) {
             finishVisitingMethod(methodVisitor);
         } else {
-            finishVisitingMethod(methodVisitor, returnCode(returnType));
+            finishVisitingMethod(methodVisitor, returnCode(Type.getType(returnType)));
         }
     }
 
