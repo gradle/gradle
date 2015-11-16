@@ -26,9 +26,18 @@ public interface ModelSchemaExtractionContext<T> {
      */
     ModelType<T> getType();
 
+    /**
+     * Registers a type that should be inspected.
+     */
     <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description);
 
+    /**
+     * Registers a type that should be inspected. The given action is invoked after the type has been inspected.
+     */
     <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description, Action<? super ModelSchema<C>> validator);
 
+    /**
+     * Marks the type as recognized.
+     */
     void found(ModelSchema<T> result);
 }
