@@ -16,14 +16,11 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.SystemProperties;
 import org.gradle.model.Managed;
 import org.gradle.model.ModelMap;
 import org.gradle.model.ModelSet;
@@ -114,14 +111,6 @@ public class ModelSchemaExtractor {
 
         // Should never get here, the last strategy should be a catch all
         throw new IllegalStateException("No extraction strategy found for type: " + type);
-    }
-
-    public static String getManageablePropertyTypesDescription() {
-        return Joiner.on(SystemProperties.getInstance().getLineSeparator()).join(Iterables.transform(getSupportedTypes(), new Function<String, String>() {
-            public String apply(String input) {
-                return " - " + input;
-            }
-        }));
     }
 
     private static Iterable<String> getSupportedTypes() {

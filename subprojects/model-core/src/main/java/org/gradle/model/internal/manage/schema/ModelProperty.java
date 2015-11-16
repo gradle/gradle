@@ -50,6 +50,7 @@ public class ModelProperty<T> {
     private final List<WeaklyTypeReferencingMethod<?, T>> getters;
     private final WeaklyTypeReferencingMethod<?, Void> setter;
     private final boolean declaredAsHavingUnmanagedType;
+    private ModelSchema<T> schema;
 
     public ModelProperty(ModelType<T> type, String name, StateManagementType stateManagementType, Set<ModelType<?>> declaredBy,
                          List<WeaklyTypeReferencingMethod<?, T>> getters, @Nullable WeaklyTypeReferencingMethod<?, Void> setter, boolean declaredAsHavingUnmanagedType) {
@@ -68,6 +69,14 @@ public class ModelProperty<T> {
 
     public ModelType<T> getType() {
         return type;
+    }
+
+    public ModelSchema<T> getSchema() {
+        return schema;
+    }
+
+    public void setSchema(ModelSchema<T> schema) {
+        this.schema = schema;
     }
 
     public StateManagementType getStateManagementType() {

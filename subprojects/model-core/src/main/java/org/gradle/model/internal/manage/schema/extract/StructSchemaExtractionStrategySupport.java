@@ -69,7 +69,17 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     private <R, P> void toPropertyExtractionContext(ModelSchemaExtractionContext<R> parentContext, ModelPropertyExtractionResult<P> propertyResult) {
         ModelProperty<P> property = propertyResult.getProperty();
-        parentContext.child(property.getType(), propertyDescription(parentContext, property), createPropertyValidator(parentContext, propertyResult));
+        parentContext.child(property.getType(), propertyDescription(parentContext, property), attachSchema(property, createPropertyValidator(parentContext, propertyResult)));
+    }
+
+    private <P> Action<? super ModelSchema<P>> attachSchema(final ModelProperty<P> property, final Action<ModelSchema<P>> propertyValidator) {
+        return new Action<ModelSchema<P>>() {
+            @Override
+            public void execute(ModelSchema<P> propertySchema) {
+                property.setSchema(propertySchema);
+                propertyValidator.execute(propertySchema);
+            }
+        };
     }
 
     private <R> List<ModelPropertyExtractionResult<?>> extractPropertySchemas(ModelSchemaExtractionContext<R> extractionContext, Multimap<String, Method> methodsByName) {
