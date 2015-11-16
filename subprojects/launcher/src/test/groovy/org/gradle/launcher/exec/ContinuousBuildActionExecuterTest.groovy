@@ -71,6 +71,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
                 }
         ]
         waiterFactory.createChangeWaiter(_) >> waiter
+        waiter.isWatching() >> true
     }
 
     def "uses underlying executer when continuous build is not enabled"() {
@@ -116,6 +117,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
+        waiter.isWatching() >> false
         0 * waiter.wait(_)
     }
 
@@ -208,6 +210,9 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
+        waiter.wait(_) >> {
+            cancellationToken.cancel()
+        }
         noExceptionThrown()
 
         where:
@@ -229,6 +234,9 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
+        waiter.wait(_) >> {
+            cancellationToken.cancel()
+        }
         1 * sessionService.stop()
     }
 

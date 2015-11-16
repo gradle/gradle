@@ -60,6 +60,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         private final AtomicLong lastChangeAt = new AtomicLong(0);
         private final FileWatcher watcher;
         private final Action<Throwable> onError;
+        private boolean watching;
 
         private ChangeWaiter(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis, BuildCancellationToken cancellationToken) {
             this.quietPeriodMillis = quietPeriodMillis;
@@ -92,7 +93,10 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         @Override
         public void watch(FileSystemSubset fileSystemSubset) {
             try {
-                watcher.watch(fileSystemSubset);
+                if (!fileSystemSubset.isEmpty()) {
+                    watching = true;
+                    watcher.watch(fileSystemSubset);
+                }
             } catch (IOException e) {
                 onError.execute(e);
             }
@@ -132,6 +136,11 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 cancellationToken.removeCallback(cancellationHandler);
                 CompositeStoppable.stoppable(watcher).stop();
             }
+        }
+
+        @Override
+        public boolean isWatching() {
+            return watching;
         }
     }
 
