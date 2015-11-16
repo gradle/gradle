@@ -45,9 +45,11 @@ public abstract class SetStrategy extends CollectionStrategy {
             throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", modelType.getConcreteClass().getName()));
         }
 
-        CollectionSchema<T, E> schema = new CollectionSchema<T, E>(extractionContext.getType(), elementType);
+        final CollectionSchema<T, E> schema = new CollectionSchema<T, E>(extractionContext.getType(), elementType);
         extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
-            public void execute(ModelSchema<E> typeParamSchema) {
+            @Override
+            public void execute(ModelSchema<E> elementTypeSchema) {
+                schema.setElementTypeSchema(elementTypeSchema);
             }
         });
         return schema;

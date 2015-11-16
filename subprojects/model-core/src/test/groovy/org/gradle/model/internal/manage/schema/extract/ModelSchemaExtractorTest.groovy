@@ -39,7 +39,6 @@ import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagem
 
 @SuppressWarnings("GroovyPointlessBoolean")
 class ModelSchemaExtractorTest extends Specification {
-
     @Shared
     def store = DefaultModelSchemaStore.getInstance()
     def classLoader = new GroovyClassLoader(getClass().classLoader)

@@ -18,6 +18,8 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Action;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 
@@ -40,12 +42,19 @@ public class ScalarCollectionStrategy implements ModelSchemaExtractionStrategy {
         if (TYPES.contains(rawCollectionType) && typeVariables.size() > 0) {
             ModelType<?> firstVariableType = typeVariables.get(0);
             if (ScalarTypes.isScalarType(firstVariableType)) {
-                extractionContext.found(createSchema(type, firstVariableType));
+                extractionContext.found(createSchema(extractionContext, type, firstVariableType));
             }
         }
     }
 
-    private <T, E> ScalarCollectionSchema<T, E> createSchema(ModelType<T> type, ModelType<E> elementType) {
-        return new ScalarCollectionSchema<T, E>(type, elementType);
+    private <T, E> ScalarCollectionSchema<T, E> createSchema(ModelSchemaExtractionContext<T> extractionContext, ModelType<T> type, ModelType<E> elementType) {
+        final ScalarCollectionSchema<T, E> schema = new ScalarCollectionSchema<T, E>(type, elementType);
+        extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
+            @Override
+            public void execute(ModelSchema<E> elementTypeSchema) {
+                schema.setElementTypeSchema(elementTypeSchema);
+            }
+        });
+        return schema;
     }
 }

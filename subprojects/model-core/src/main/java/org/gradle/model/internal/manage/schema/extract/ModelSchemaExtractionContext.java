@@ -21,6 +21,9 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
 public interface ModelSchemaExtractionContext<T> {
+    /**
+     * Returns the type currently being inspected.
+     */
     ModelType<T> getType();
 
     <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description);

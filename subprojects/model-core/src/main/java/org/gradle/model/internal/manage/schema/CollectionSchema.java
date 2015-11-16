@@ -19,8 +19,8 @@ package org.gradle.model.internal.manage.schema;
 import org.gradle.model.internal.type.ModelType;
 
 public class CollectionSchema<T, E> extends AbstractModelSchema<T> implements ManagedImplSchema<T> {
-
     private final ModelType<E> elementType;
+    private ModelSchema<E> elementTypeSchema;
 
     public CollectionSchema(ModelType<T> type, ModelType<E> elementType) {
         super(type);
@@ -31,8 +31,16 @@ public class CollectionSchema<T, E> extends AbstractModelSchema<T> implements Ma
         return elementType;
     }
 
+    public ModelSchema<E> getElementTypeSchema() {
+        return elementTypeSchema;
+    }
+
     @Override
     public String toString() {
         return "collection " + getType();
+    }
+
+    public void setElementTypeSchema(ModelSchema<E> elementTypeSchema) {
+        this.elementTypeSchema = elementTypeSchema;
     }
 }
