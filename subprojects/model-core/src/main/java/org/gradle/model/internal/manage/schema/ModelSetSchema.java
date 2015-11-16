@@ -18,22 +18,11 @@ package org.gradle.model.internal.manage.schema;
 
 import org.gradle.model.internal.type.ModelType;
 
-import java.lang.ref.WeakReference;
-
-public class SpecializedMapSchema<T, E> extends ModelMapSchema<T, E> {
-    private final WeakReference<Class<?>> implementationType;
-
-    public SpecializedMapSchema(ModelType<T> type, ModelType<E> elementType, Class<?> implementationType) {
+/**
+ * The schema for a {@link org.gradle.model.ModelSet} element.
+ */
+public class ModelSetSchema<T, E> extends CollectionSchema<T, E> {
+    public ModelSetSchema(ModelType<T> type, ModelType<E> elementType) {
         super(type, elementType);
-        this.implementationType = new WeakReference<Class<?>>(implementationType);
-    }
-
-    public Class<?> getImplementationType() {
-        return implementationType.get();
-    }
-
-    @Override
-    public String toString() {
-        return "model map " + getType();
     }
 }

@@ -19,7 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.manage.schema.CollectionSchema;
+import org.gradle.model.internal.manage.schema.ModelMapSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
@@ -59,7 +59,7 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
     }
 
     private <T, E> ModelSchema<T> getModelSchema(ModelSchemaExtractionContext<T> extractionContext, ModelType<E> elementType) {
-        final CollectionSchema<T, E> schema = new CollectionSchema<T, E>(extractionContext.getType(), elementType);
+        final ModelMapSchema<T, E> schema = new ModelMapSchema<T, E>(extractionContext.getType(), elementType);
         extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
             @Override
             public void execute(ModelSchema<E> elementTypeSchema) {
@@ -68,5 +68,4 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
         });
         return schema;
     }
-
 }

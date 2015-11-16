@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
-import org.gradle.model.internal.manage.schema.CollectionSchema
+import org.gradle.model.internal.manage.schema.ModelSetSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import spock.lang.Shared
@@ -29,7 +29,7 @@ class ModelSetStrategyTest extends Specification {
     def "assembles schema for model set"() {
         expect:
         def schema = store.getSchema(ModelTypes.modelSet(ModelType.of(String)))
-        schema instanceof CollectionSchema
+        schema instanceof ModelSetSchema
         schema.elementType == ModelType.of(String)
         schema.elementTypeSchema == store.getSchema(ModelType.of(String))
     }
