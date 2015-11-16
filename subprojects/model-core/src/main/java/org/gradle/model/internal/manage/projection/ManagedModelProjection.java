@@ -17,6 +17,8 @@
 package org.gradle.model.internal.manage.projection;
 
 import com.google.common.base.Optional;
+import groovy.lang.Closure;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.ModelViewClosedException;
@@ -131,6 +133,11 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         modelView = propertyNode.asImmutable(propertyType, ruleDescriptor);
                     }
                     return modelView.getInstance();
+                }
+
+                @Override
+                public void apply(String name, Closure<?> action) {
+                    ClosureBackedAction.execute(get(name), action);
                 }
 
                 public void set(String name, Object value) {

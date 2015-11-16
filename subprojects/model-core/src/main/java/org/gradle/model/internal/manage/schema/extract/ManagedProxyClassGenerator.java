@@ -19,6 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
 import com.google.common.collect.*;
+import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Nullable;
@@ -31,6 +32,7 @@ import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.StructSchema;
+import org.gradle.model.internal.manage.schema.ValueSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.objectweb.asm.*;
@@ -57,7 +59,10 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private static final Type OBJECT_TYPE = Type.getType(Object.class);
     private static final Type STRING_TYPE = Type.getType(String.class);
     private static final Type CLASS_TYPE = Type.getType(Class.class);
+    private static final Type CLOSURE_TYPE = Type.getType(Closure.class);
     private static final String STATE_SET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE);
+    private static final String STATE_GET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
+    private static final String STATE_APPLY_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, CLOSURE_TYPE);
     private static final String MANAGED_INSTANCE_TYPE = Type.getInternalName(ManagedInstance.class);
     private static final Type MODEL_ELEMENT_STATE_TYPE = Type.getType(ModelElementState.class);
     private static final String NO_DELEGATE_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, MODEL_ELEMENT_STATE_TYPE);
@@ -389,6 +394,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                 case MANAGED:
                     writeGetters(visitor, generatedType, property);
                     writeSetter(visitor, generatedType, property);
+                    writeConfigureMethod(visitor, generatedType, property);
                     break;
 
                 case UNMANAGED:
@@ -401,6 +407,21 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                     break;
             }
         }
+    }
+
+    private void writeConfigureMethod(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
+        if (property.getSchema() instanceof ValueSchema) {
+            return;
+        }
+
+        // Adds a void $propName(Closure<?> cl) method
+
+        MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE), null);
+        putStateFieldValueOnStack(methodVisitor, generatedType);
+        putConstantOnStack(methodVisitor, property.getName());
+        putFirstMethodArgumentOnStack(methodVisitor);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "apply", STATE_APPLY_METHOD_DESCRIPTOR, true);
+        finishVisitingMethod(methodVisitor);
     }
 
     private void writeSetter(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
@@ -677,8 +698,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void invokeStateGetMethod(MethodVisitor methodVisitor) {
-        String methodDescriptor = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "get", methodDescriptor, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "get", STATE_GET_METHOD_DESCRIPTOR, true);
     }
 
     private void writeNonAbstractMethodWrapper(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Method method) {

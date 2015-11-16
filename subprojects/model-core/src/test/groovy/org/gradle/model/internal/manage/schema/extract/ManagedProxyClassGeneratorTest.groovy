@@ -292,7 +292,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         impl.value == 2
     }
 
-    def "can call delegate method that accept and return primitive values"() {
+    def "can call delegate methods that accept and return primitive values"() {
         def node = Stub(MutableModelNode)
         def state = Mock(ModelElementState) {
             getBackingNode() >> node
@@ -334,6 +334,21 @@ class ManagedProxyClassGeneratorTest extends Specification {
         }
         void dontReturn(short s, byte b) {
         }
+    }
+
+    def "mixes in configure method for managed property that delegates to element state"() {
+        def state = Mock(ModelElementState)
+
+        given:
+        def proxyClass = generate(SomeTypeWithReadOnlyProperty)
+        def impl = proxyClass.newInstance(state)
+        def cl = { }
+
+        when:
+        impl.value(cl)
+
+        then:
+        1 * state.apply("value", cl)
     }
 
     def "mixes in toString() implementation that delegates to element state"() {
@@ -528,6 +543,11 @@ class ManagedProxyClassGeneratorTest extends Specification {
         Integer getValue()
 
         void setValue(Integer value)
+    }
+
+    @Managed
+    static interface SomeTypeWithReadOnlyProperty {
+        SomeType getValue()
     }
 
     @Managed
