@@ -18,8 +18,11 @@ package org.gradle.model.internal.manage.schema;
 
 import org.gradle.model.internal.type.ModelType;
 
-public class ValueSchema<T> extends AbstractModelSchema<T> {
-    public ValueSchema(ModelType<T> type) {
+/**
+ * The schema for an element that has a single value of some immutable type.
+ */
+public class ScalarValueSchema<T> extends AbstractModelSchema<T> {
+    public ScalarValueSchema(ModelType<T> type) {
         super(type);
     }
 

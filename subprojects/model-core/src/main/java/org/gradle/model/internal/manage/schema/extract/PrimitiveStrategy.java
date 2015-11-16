@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.internal.manage.schema.ValueSchema;
+import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.type.ModelType;
 
 public class PrimitiveStrategy implements ModelSchemaExtractionStrategy {
@@ -24,7 +24,7 @@ public class PrimitiveStrategy implements ModelSchemaExtractionStrategy {
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         if (type.getRawClass().isPrimitive()) {
-            extractionContext.found(new ValueSchema<T>(type));
+            extractionContext.found(new ScalarValueSchema<T>(type));
         }
     }
 }

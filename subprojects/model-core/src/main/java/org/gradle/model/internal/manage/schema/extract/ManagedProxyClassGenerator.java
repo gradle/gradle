@@ -32,7 +32,7 @@ import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.StructSchema;
-import org.gradle.model.internal.manage.schema.ValueSchema;
+import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.objectweb.asm.*;
@@ -410,7 +410,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeConfigureMethod(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
-        if (property.getSchema() instanceof ValueSchema) {
+        if (property.getSchema() instanceof ScalarValueSchema) {
             return;
         }
 

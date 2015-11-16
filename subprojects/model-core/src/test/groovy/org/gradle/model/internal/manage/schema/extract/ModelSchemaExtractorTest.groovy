@@ -587,7 +587,7 @@ $type
 
     def "can extract enum"() {
         expect:
-        extract(MyEnum) instanceof ValueSchema
+        extract(MyEnum) instanceof ScalarValueSchema
     }
 
     @Managed
@@ -819,7 +819,7 @@ interface Managed${typeName} {
         def strategy = Mock(ModelSchemaExtractionStrategy) {
             extract(_) >> { ModelSchemaExtractionContext extractionContext ->
                 if (extractionContext.type.rawClass == CustomThing) {
-                    extractionContext.found(new ValueSchema<CustomThing>(extractionContext.type))
+                    extractionContext.found(new ScalarValueSchema<CustomThing>(extractionContext.type))
                 }
             }
         }
@@ -827,7 +827,7 @@ interface Managed${typeName} {
         def store = new DefaultModelSchemaStore(extractor)
 
         then:
-        store.getSchema(CustomThing) instanceof ValueSchema
+        store.getSchema(CustomThing) instanceof ScalarValueSchema
         store.getSchema(UnmanagedThing) instanceof UnmanagedImplStructSchema
     }
 
@@ -843,14 +843,14 @@ interface Managed${typeName} {
         1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(CustomThing)
             extractionContext.child(ModelType.of(UnmanagedThing), "child")
-            extractionContext.found(new ValueSchema<CustomThing>(extractionContext.type))
+            extractionContext.found(new ScalarValueSchema<CustomThing>(extractionContext.type))
         }
         1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)
         }
 
         and:
-        customSchema instanceof ValueSchema
+        customSchema instanceof ScalarValueSchema
     }
 
     def "validator is invoked after all dependencies have been visited"() {
@@ -867,7 +867,7 @@ interface Managed${typeName} {
             assert extractionContext.type == ModelType.of(CustomThing)
             extractionContext.addValidator(validator)
             extractionContext.child(ModelType.of(UnmanagedThing), "child")
-            extractionContext.found(new ValueSchema<CustomThing>(extractionContext.type))
+            extractionContext.found(new ScalarValueSchema<CustomThing>(extractionContext.type))
         }
         1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)

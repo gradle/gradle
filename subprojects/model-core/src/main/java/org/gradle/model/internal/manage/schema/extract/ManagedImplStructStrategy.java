@@ -185,7 +185,7 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
 
                 // Only managed implementation and value types are allowed as a managed property type unless marked with @Unmanaged
                 boolean isAllowedPropertyTypeOfManagedType = propertySchema instanceof ManagedImplSchema
-                    || propertySchema instanceof ValueSchema;
+                    || propertySchema instanceof ScalarValueSchema;
 
                 boolean isDeclaredAsHavingUnmanagedType = propertyResult.getGetter().isAnnotationPresent(Unmanaged.class);
 
