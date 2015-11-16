@@ -42,17 +42,20 @@ class WatchServiceRegistrar implements FileWatcherListener {
     private static final WatchEvent.Kind[] WATCH_KINDS = new WatchEvent.Kind[]{StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY};
 
     private final WatchService watchService;
-    private final FileSystemSubset fileSystemSubset;
-    private final FileSystemSubset unfilteredFileSystemSubset;
     private final FileWatcherListener delegate;
-    private final Iterable<? extends File> roots;
+    private FileSystemSubset fileSystemSubset;
+    private FileSystemSubset unfilteredFileSystemSubset;
+    private Iterable<? extends File> roots;
 
-    WatchServiceRegistrar(WatchService watchService, FileSystemSubset fileSystemSubset, FileWatcherListener delegate) throws IOException {
+    WatchServiceRegistrar(WatchService watchService, FileWatcherListener delegate) {
         this.watchService = watchService;
+        this.delegate = delegate;
+    }
+
+    void watch(FileSystemSubset fileSystemSubset) throws IOException {
         this.fileSystemSubset = fileSystemSubset;
         this.unfilteredFileSystemSubset = fileSystemSubset.unfiltered();
         this.roots = fileSystemSubset.getRoots();
-        this.delegate = delegate;
 
         // Turn the requested watch points into actual enclosing directories that exist
         Iterable<File> enclosingDirsThatExist = Iterables.transform(roots, new Function<File, File>() {
