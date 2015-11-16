@@ -61,4 +61,15 @@ class GCEventParserTest extends Specification {
         then:
         e == GCEventParser.GCEvent.IGNORED
     }
+
+    def "parses young generation allocation failures"() {
+        when:
+        def e = parser.parseLine '2015-11-16T15:20:08.939+0100: [GC (Allocation Failure) --[PSYoungGen: 510285K->510285K(521728K)] 1791411K->1908557K(1920000K), 0,1576176 secs] [Times: user=0,45 sys=0,03, real=0,15 secs]'
+
+        then:
+        e.timestamp == new DateTime(2015, 11, 16, 15, 20, 8, 939, DateTimeZone.default)
+        e.start == 1791411
+        e.committed == 1920000
+        e.end == 1908557
+    }
 }
