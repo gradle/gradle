@@ -19,6 +19,7 @@ package org.gradle.platform.base.component
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.file.TestFile
@@ -38,20 +39,21 @@ class BaseComponentSpecTest extends Specification {
         e.message == "Direct instantiation of a BaseComponentSpec is not permitted. Use a ComponentTypeBuilder instead."
     }
 
-    private <T extends BaseComponentSpec> T create(Class<T> type) {
+    private <T extends BaseComponentSpec> T create(Class<T> type, Class<T> implType = type) {
         def file = new TestFile(".")
-        BaseComponentFixtures.create(type, modelRegistry, componentId, instantiator, file)
+        BaseComponentFixtures.create(type, implType, modelRegistry, componentId, instantiator, file)
     }
 
     def "library has name, path and sensible display name"() {
         when:
-        def component = create(MySampleComponent)
+        def component = create(SampleComponent, MySampleComponent)
 
         then:
         component.class == MySampleComponent
         component.name == componentId.name
         component.projectPath == componentId.projectPath
-        component.displayName == "MySampleComponent '$componentId.name'"
+        component.displayName == "SampleComponent '$componentId.name'"
+        component.toString() == component.displayName
     }
 
     def "create fails if subtype does not have a public no-args constructor"() {
@@ -95,7 +97,9 @@ class BaseComponentSpecTest extends Specification {
         }
     }
 
-    static class MySampleComponent extends BaseComponentSpec {}
+    interface SampleComponent extends ComponentSpec {}
+
+    static class MySampleComponent extends BaseComponentSpec implements SampleComponent {}
 
     static class MyConstructedComponent extends BaseComponentSpec {
         MyConstructedComponent(String arg) {}

@@ -192,7 +192,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         declareCanCallSettersField(visitor);
         writeStaticConstructor(visitor, generatedType, viewClass);
         writeConstructor(visitor, generatedType, superclassType, delegateSchema);
-        writeToString(visitor, generatedType, viewClass);
+        writeToString(visitor, generatedType, viewClass, delegateSchema);
         writeManagedInstanceMethods(visitor, generatedType);
         if (delegateSchema != null) {
             declareDelegateField(visitor, delegateSchema);
@@ -272,14 +272,23 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         constructorVisitor.visitMethodInsn(INVOKESPECIAL, superclassType.getInternalName(), CONSTRUCTOR_NAME, Type.getMethodDescriptor(Type.VOID_TYPE), false);
     }
 
-    private void writeToString(ClassVisitor visitor, Type generatedType, Class<?> viewClass) {
+    private void writeToString(ClassVisitor visitor, Type generatedType, Class<?> viewClass, StructSchema<?> delegateSchema) {
         Method toStringMethod = getToStringMethod(viewClass);
 
-        if (toStringMethod == null || toStringMethod.getDeclaringClass().equals(Object.class)) {
-            writeDefaultToString(visitor, generatedType);
-        } else {
+        if (toStringMethod != null && !toStringMethod.getDeclaringClass().equals(Object.class)) {
             writeNonAbstractMethodWrapper(visitor, generatedType, viewClass, toStringMethod);
+        } else if (delegateSchema != null && delegateSchema.hasProperty("displayName")) {
+            writeDelegatingToString(visitor, generatedType, Type.getType(delegateSchema.getType().getConcreteClass()));
+        } else {
+            writeDefaultToString(visitor, generatedType);
         }
+    }
+
+    private void writeDelegatingToString(ClassVisitor visitor, Type generatedType, Type delegateType) {
+        MethodVisitor methodVisitor = declareMethod(visitor, "toString", TO_STRING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
+        putDelegateFieldValueOnStack(methodVisitor, generatedType, delegateType);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, delegateType.getInternalName(), "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, false);
+        finishVisitingMethod(methodVisitor, ARETURN);
     }
 
     private void writeDefaultToString(ClassVisitor visitor, Type generatedType) {

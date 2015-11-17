@@ -18,7 +18,6 @@ package org.gradle.language.base.internal;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.util.BiFunction;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.BaseInstanceFactory;
@@ -43,10 +42,10 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
     public <T extends LanguageSourceSet, V extends T> void register(ModelType<T> type, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
         InstanceFactory.TypeRegistrationBuilder<T> registration = register(type, ruleDescriptor);
 
-        registration.withImplementation(implementationType, new BiFunction<T, String, MutableModelNode>() {
+        registration.withImplementation(implementationType, new InstanceFactory.ImplementationFactory<T>() {
             @Override
-            public T apply(String name1, final MutableModelNode modelNode) {
-                return BaseLanguageSourceSet.create(implementationType.getConcreteClass(), name1, determineParentName(modelNode), fileResolver, instantiator);
+            public T create(ModelType<? extends T> publicType, String sourceSetName, MutableModelNode modelNode) {
+                return BaseLanguageSourceSet.create(implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), fileResolver, instantiator);
             }
         });
     }

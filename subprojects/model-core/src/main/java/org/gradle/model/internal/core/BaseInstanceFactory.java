@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
-import org.gradle.internal.util.BiFunction;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
@@ -62,29 +61,28 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
     }
 
     @Override
-    public <S extends T> ModelType<? extends S> getImplementationType(ModelType<S> publicType) {
+    public <S extends T> ImplementationInfo<T> getImplementationInfo(final ModelType<S> publicType) {
         ImplementationRegistration<S> implementationRegistration = getImplementationRegistration(publicType);
-        return implementationRegistration.getImplementationType();
+        return new ImplementationInfoImpl<T>(publicType, implementationRegistration);
     }
 
     @Override
-    public <S extends T> ManagedSubtypeImplementationInfo<? extends T> getManagedSubtypeImplementationInfo(ModelType<S> managedType) {
-        if (!managedType.getConcreteClass().isAnnotationPresent(Managed.class)) {
-            throw new IllegalArgumentException(String.format("Type '%s' is not managed", managedType));
+    public <S extends T> ImplementationInfo<T> getManagedSubtypeImplementationInfo(final ModelType<S> publicType) {
+        if (!publicType.getConcreteClass().isAnnotationPresent(Managed.class)) {
+            throw new IllegalArgumentException(String.format("Type '%s' is not managed", publicType));
         }
-        final List<ManagedSubtypeImplementationInfo<? extends T>> implementationInfos = Lists.newArrayListWithCapacity(1);
-        ModelSchemaUtils.walkTypeHierarchy(managedType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
+        final List<ImplementationInfo<T>> implementationInfos = Lists.newArrayListWithCapacity(1);
+        ModelSchemaUtils.walkTypeHierarchy(publicType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
             @Override
             protected void visitRegistration(TypeRegistration<? extends T> registration) {
                 if (registration != null && registration.implementationRegistration != null) {
-                    ModelType<? extends T> implementationType = registration.implementationRegistration.getImplementationType();
-                    implementationInfos.add(new ManagedSubtypeImplementationInfoImpl<T>(registration.publicType, implementationType));
+                    implementationInfos.add(new ImplementationInfoImpl<T>(publicType, registration.implementationRegistration));
                 }
             }
         });
 
         if (implementationInfos.isEmpty()) {
-            throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it doesn't extend an interface with a default implementation", managedType));
+            throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it doesn't extend an interface with a default implementation", publicType));
         }
 
         return implementationInfos.get(0);
@@ -102,13 +100,6 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
             }
         });
         return builder.build();
-    }
-
-    @Override
-    public <S extends T> S create(ModelType<S> type, MutableModelNode modelNode, String name) {
-        ImplementationRegistration<S> implementationRegistration = getImplementationRegistration(type);
-        BiFunction<? extends S, String, ? super MutableModelNode> factory = implementationRegistration.getFactory();
-        return factory.apply(name, modelNode);
     }
 
     @Override
@@ -155,7 +146,6 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
     }
 
     private class TypeRegistrationBuilderImpl<S extends T> implements TypeRegistrationBuilder<S> {
-
         private final ModelRuleDescriptor source;
         private final TypeRegistration<S> registration;
 
@@ -165,7 +155,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
         }
 
         @Override
-        public TypeRegistrationBuilder<S> withImplementation(ModelType<? extends S> implementationType, BiFunction<? extends S, String, ? super MutableModelNode> factory) {
+        public TypeRegistrationBuilder<S> withImplementation(ModelType<? extends S> implementationType, ImplementationFactory<S> factory) {
             registration.setImplementation(implementationType, source, factory);
             return this;
         }
@@ -188,7 +178,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
             this.managedPublicType = publicType.getConcreteClass().isAnnotationPresent(Managed.class);
         }
 
-        public void setImplementation(ModelType<? extends S> implementationType, ModelRuleDescriptor source, BiFunction<? extends S, String, ? super MutableModelNode> factory) {
+        public void setImplementation(ModelType<? extends S> implementationType, ModelRuleDescriptor source, ImplementationFactory<S> factory) {
             if (implementationRegistration != null) {
                 throw new IllegalStateException(String.format("Cannot register implementation for type '%s' because an implementation for this type was already registered by %s",
                     publicType, implementationRegistration.getSource()));
@@ -231,7 +221,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
         }
 
         private void validateManaged() {
-            ManagedSubtypeImplementationInfo<? extends T> implementationInfo = getManagedSubtypeImplementationInfo(publicType);
+            ImplementationInfo<? extends T> implementationInfo = getManagedSubtypeImplementationInfo(publicType);
             ModelType<? extends T> delegateType = implementationInfo.getDelegateType();
             for (InternalViewRegistration<?> internalViewRegistration : internalViewRegistrations) {
                 validateManagedInternalView(internalViewRegistration, delegateType);
@@ -280,9 +270,9 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
     private static class ImplementationRegistration<S> {
         private final ModelRuleDescriptor source;
         private final ModelType<? extends S> implementationType;
-        private final BiFunction<? extends S, String, ? super MutableModelNode> factory;
+        private final ImplementationFactory<S> factory;
 
-        private ImplementationRegistration(ModelRuleDescriptor source, ModelType<? extends S> implementationType, BiFunction<? extends S, String, ? super MutableModelNode> factory) {
+        private ImplementationRegistration(ModelRuleDescriptor source, ModelType<? extends S> implementationType, ImplementationFactory<S> factory) {
             this.source = source;
             this.implementationType = implementationType;
             this.factory = factory;
@@ -296,7 +286,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
             return implementationType;
         }
 
-        public BiFunction<? extends S, String, ? super MutableModelNode> getFactory() {
+        public ImplementationFactory<? extends S> getFactory() {
             return factory;
         }
     }
@@ -319,22 +309,22 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
         }
     }
 
-
-    private static class ManagedSubtypeImplementationInfoImpl<T> implements ManagedSubtypeImplementationInfo<T> {
+    private static class ImplementationInfoImpl<T> implements ImplementationInfo<T> {
         private final ModelType<? extends T> publicType;
-        private final ModelType<? extends T> delegateType;
+        private final ImplementationRegistration<T> implementationRegistration;
 
-        public ManagedSubtypeImplementationInfoImpl(ModelType<? extends T> publicType, ModelType<? extends T> delegateType) {
+        public ImplementationInfoImpl(ModelType<? extends T> publicType, ImplementationRegistration<? extends T> implementationRegistration) {
             this.publicType = publicType;
-            this.delegateType = delegateType;
+            this.implementationRegistration = Cast.uncheckedCast(implementationRegistration);
         }
 
-        public ModelType<? extends T> getPublicType() {
-            return publicType;
+        @Override
+        public T create(MutableModelNode modelNode) {
+            return implementationRegistration.factory.create(publicType, modelNode.getPath().getName(), modelNode);
         }
 
         public ModelType<? extends T> getDelegateType() {
-            return delegateType;
+            return Cast.uncheckedCast(implementationRegistration.implementationType);
         }
 
         @Override

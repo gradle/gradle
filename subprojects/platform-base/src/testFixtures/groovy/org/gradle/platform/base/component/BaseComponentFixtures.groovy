@@ -26,12 +26,12 @@ import org.gradle.platform.base.ComponentSpecIdentifier
 
 class BaseComponentFixtures {
 
-    static <T extends BaseComponentSpec> T create(Class<T> type, ModelRegistryHelper modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
+    static <T extends BaseComponentSpec> T create(Class<T> type, Class<T> implType, ModelRegistryHelper modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
         try {
             modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
             modelRegistry.register(
                 ModelRegistrations.unmanagedInstanceOf(ModelReference.of(componentId.name, type), {
-                    BaseComponentSpec.create(type, componentId, it, instantiator)
+                    BaseComponentSpec.create(type, implType, componentId, it, instantiator)
                 })
                     .descriptor(componentId.name)
                     .build()

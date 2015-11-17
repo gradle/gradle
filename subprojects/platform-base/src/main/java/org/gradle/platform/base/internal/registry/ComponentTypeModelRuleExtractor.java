@@ -21,7 +21,6 @@ import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.util.BiFunction;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
@@ -95,11 +94,11 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
                 ServiceRegistry serviceRegistry = ModelViews.assertType(inputs.get(0), ModelType.of(ServiceRegistry.class)).getInstance();
                 final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
                 final ProjectIdentifier projectIdentifier = ModelViews.assertType(inputs.get(1), ModelType.of(ProjectIdentifier.class)).getInstance();
-                registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new BiFunction<S, String, MutableModelNode>() {
+                registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<S>() {
                     @Override
-                    public S apply(String name, MutableModelNode modelNode1) {
+                    public S create(ModelType<? extends S> publicType, String name, MutableModelNode componentNode) {
                         ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                        return Cast.uncheckedCast(BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode1, instantiator));
+                        return Cast.uncheckedCast(BaseComponentSpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode, instantiator));
                     }
                 });
             }

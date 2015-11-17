@@ -46,7 +46,7 @@ model {
                 def sampleLib = components.sampleLib
                 assert sampleLib instanceof SampleComponent
                 assert sampleLib.projectPath == project.path
-                assert sampleLib.displayName == "DefaultSampleComponent 'sampleLib'"
+                assert sampleLib.displayName == "SampleComponent 'sampleLib'"
                 assert sampleLib.version == null
             }
         }
@@ -163,8 +163,8 @@ model {
 Root project
 ------------------------------------------------------------
 
-DefaultSampleComponent 'sampleLib'
-----------------------------------
+SampleComponent 'sampleLib'
+---------------------------
 
 Source sets
     No source sets.
@@ -211,7 +211,7 @@ BUILD SUCCESSFUL"""
                             def sampleLib = components.sampleLib
                             assert sampleLib instanceof SampleComponent
                             assert sampleLib.projectPath == project.path
-                            assert sampleLib.displayName == "DefaultSampleComponent 'sampleLib'"
+                            assert sampleLib.displayName == "SampleComponent 'sampleLib'"
                         }
                     }
                 }
@@ -262,12 +262,12 @@ BUILD SUCCESSFUL"""
                             def sampleComponent = components.sampleComponent
                             assert sampleComponent instanceof SampleComponent
                             assert sampleComponent.projectPath == project.path
-                            assert sampleComponent.displayName == "DefaultSampleComponent 'sampleComponent'"
+                            assert sampleComponent.displayName == "SampleComponent 'sampleComponent'"
 
                             def sampleLib = components.sampleLib
                             assert sampleLib instanceof SampleLibrary
                             assert sampleLib.projectPath == project.path
-                            assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib'"
+                            assert sampleLib.displayName == "SampleLibrary 'sampleLib'"
                         }
                     }
                 }

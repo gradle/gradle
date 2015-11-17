@@ -228,11 +228,11 @@ model {
         succeeds "tasks"
 
         and:
-        output.contains """beforeEach DefaultCustomComponent 'main'
-afterEach DefaultCustomComponent 'main'
-beforeEach DefaultCustomComponent 'newComponent'
-creating DefaultCustomComponent 'newComponent'
-afterEach DefaultCustomComponent 'newComponent'"""
+        output.contains """beforeEach CustomComponent 'main'
+afterEach CustomComponent 'main'
+beforeEach CustomComponent 'newComponent'
+creating CustomComponent 'newComponent'
+afterEach CustomComponent 'newComponent'"""
 
     }
 
@@ -353,11 +353,11 @@ afterEach DefaultCustomComponent 'newComponent'"""
         succeeds "tasks"
 
         and:
-        output.contains """beforeEach DefaultCustomComponent 'main'
-afterEach DefaultCustomComponent 'main'
-beforeEach DefaultCustomComponent 'newComponent'
-creating DefaultCustomComponent 'newComponent'
-afterEach DefaultCustomComponent 'newComponent'"""
+        output.contains """beforeEach CustomComponent 'main'
+afterEach CustomComponent 'main'
+beforeEach CustomComponent 'newComponent'
+creating CustomComponent 'newComponent'
+afterEach CustomComponent 'newComponent'"""
 
     }
 

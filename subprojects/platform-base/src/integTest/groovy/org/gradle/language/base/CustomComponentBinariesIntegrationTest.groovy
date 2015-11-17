@@ -118,9 +118,9 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
         when:
         succeeds "components"
         then:
-        output.contains(
-"""DefaultSampleLibrary 'sampleLib'
---------------------------------
+        output.contains("""
+SampleLibrary 'sampleLib'
+-------------------------
 
 Source sets
     DefaultLibrarySourceSet 'sampleLib:librarySource'
@@ -230,8 +230,8 @@ Binaries
         succeeds "components"
         then:
         output.contains("""
-DefaultSampleLibrary 'sampleLib'
---------------------------------
+SampleLibrary 'sampleLib'
+-------------------------
 
 Source sets
     DefaultLibrarySourceSet 'sampleLib:librarySource'

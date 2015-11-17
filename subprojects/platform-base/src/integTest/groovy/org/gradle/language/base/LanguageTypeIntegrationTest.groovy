@@ -93,8 +93,8 @@ model {
         succeeds "components"
         and:
         output.contains """
-DefaultSampleComponent 'main'
------------------------------
+SampleComponent 'main'
+----------------------
 
 Source sets
     DefaultCustomLanguageSourceSet 'main:custom'

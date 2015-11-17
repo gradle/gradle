@@ -35,8 +35,8 @@ class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
         succeeds "components"
         then:
         output.contains """
-DefaultDocumentationComponent 'docs'
-------------------------------------
+DocumentationComponent 'docs'
+-----------------------------
 
 Source sets
     DefaultMarkdownSourceSet 'docs:userguide'

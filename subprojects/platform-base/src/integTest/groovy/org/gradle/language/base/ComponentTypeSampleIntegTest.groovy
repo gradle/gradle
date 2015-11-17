@@ -37,7 +37,7 @@ model {
                 def titleAImage = components.imageA
                 assert titleAImage instanceof ImageComponent
                 assert titleAImage.projectPath == project.path
-                assert titleAImage.displayName == "DefaultImageComponent 'imageA'"
+                assert titleAImage.displayName == "ImageComponent 'imageA'"
                 assert titleAImage.title == 'TitleA'
                 assert titleAImage.binaries.values()*.name.sort() == ['14px', '28px', '40px']
             }

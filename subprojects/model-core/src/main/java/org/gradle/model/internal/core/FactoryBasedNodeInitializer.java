@@ -91,17 +91,15 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
                         ServiceRegistry serviceRegistry = ModelViews.getInstance(modelViews, 3, ServiceRegistry.class);
 
                         ModelType<S> type = schema.getType();
-                        ModelType<? extends T> publicType;
                         ModelType<T> delegateType;
+                        InstanceFactory.ImplementationInfo<? extends T> implementationInfo;
                         if (schema instanceof ManagedImplSchema) {
-                            InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(type);
-                            publicType = implementationInfo.getPublicType();
-                            delegateType = Cast.uncheckedCast(implementationInfo.getDelegateType());
+                            implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(type);
                         } else {
-                            publicType = type;
-                            delegateType = Cast.uncheckedCast(instanceFactory.getImplementationType(publicType));
+                            implementationInfo = instanceFactory.getImplementationInfo(type);
                         }
-                        T instance = instanceFactory.create(publicType, modelNode, modelNode.getPath().getName());
+                        delegateType = Cast.uncheckedCast(implementationInfo.getDelegateType());
+                        T instance = implementationInfo.create(modelNode);
                         configureAction.execute(instance);
                         modelNode.setPrivateData(delegateType, instance);
 
@@ -126,13 +124,9 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
 
     private ModelType<? extends T> delegateTypeFor(ModelType<S> publicType) {
         if (schema instanceof ManagedImplSchema) {
-            InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(publicType);
-            if (implementationInfo == null) {
-                throw new IllegalStateException(String.format("No default implementation registered for managed type '%s'", publicType));
-            }
-            return implementationInfo.getDelegateType();
+            return instanceFactory.getManagedSubtypeImplementationInfo(publicType).getDelegateType();
         } else {
-            return instanceFactory.getImplementationType(publicType);
+            return instanceFactory.getImplementationInfo(publicType).getDelegateType();
         }
     }
 

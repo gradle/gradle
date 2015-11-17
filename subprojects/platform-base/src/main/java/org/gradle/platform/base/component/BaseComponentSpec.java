@@ -47,8 +47,8 @@ public class BaseComponentSpec implements ComponentSpecInternal {
     private final MutableModelNode sources;
     private final MutableModelNode modelNode;
 
-    public static <T extends BaseComponentSpec> T create(Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode, Instantiator instantiator) {
-        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, implementationType.getSimpleName(), instantiator));
+    public static <T extends BaseComponentSpec> T create(Class<? extends ComponentSpec> publicType, Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode, Instantiator instantiator) {
+        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, publicType.getSimpleName(), instantiator));
         try {
             try {
                 return instantiator.newInstance(implementationType);

@@ -24,7 +24,6 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.util.BiFunction;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -97,9 +96,9 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
                 ServiceRegistry serviceRegistry = ModelViews.assertType(inputs.get(0), ModelType.of(ServiceRegistry.class)).getInstance();
                 final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
                 final ITaskFactory taskFactory = ModelViews.assertType(inputs.get(1), ModelType.of(ITaskFactory.class)).getInstance();
-                registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new BiFunction<S, String, MutableModelNode>() {
+                registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<S>() {
                     @Override
-                    public S apply(String name, MutableModelNode binaryNode) {
+                    public S create(ModelType<? extends S> publicType, String name, MutableModelNode binaryNode) {
                         MutableModelNode parentNode = binaryNode.getParent().getParent();
                         ComponentSpecInternal owner = parentNode.canBeViewedAs(ModelType.of(ComponentSpecInternal.class))
                             ? parentNode.asImmutable(ModelType.of(ComponentSpecInternal.class), descriptor).getInstance()
