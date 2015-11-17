@@ -43,7 +43,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> targetVersions = []
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
-    int maxLimitIncreasePercentage = 10
 
     BuildExperimentListener buildExperimentListener
 
@@ -85,7 +84,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             def baselineVersion = results.baseline(it)
             baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
             baselineVersion.maxMemoryRegression = maxMemoryRegression
-            baselineVersion.maxLimitIncreasePercentage = maxLimitIncreasePercentage
 
             runVersion(buildContext.distribution(baselineVersion.version), projectDir, baselineVersion.results)
         }

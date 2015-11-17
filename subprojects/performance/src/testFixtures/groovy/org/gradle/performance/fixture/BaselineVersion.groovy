@@ -28,7 +28,6 @@ class BaselineVersion implements VersionResults {
     final MeasuredOperationList results = new MeasuredOperationList()
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
-    int maxLimitIncreasePercentage
 
     BaselineVersion(String version) {
         this.version = version
@@ -50,7 +49,7 @@ class BaselineVersion implements VersionResults {
         }
         def diff = currentVersionAverage - thisVersionAverage
         def desc = diff > Duration.millis(0) ? "slower" : "faster"
-        sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${calculateMaxTimeRegression(current).format()}\n")
+        sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${maxExecutionTimeRegression.format()}\n")
         sb.append(current.speedStats)
         sb.append(results.speedStats)
         sb.append("\n")
@@ -69,7 +68,7 @@ class BaselineVersion implements VersionResults {
         }
         def diff = currentVersionAverage - thisVersionAverage
         def desc = diff > DataAmount.bytes(0) ? "more" : "less"
-        sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${calculateMaxMemoryRegression(current).format()}\n")
+        sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${maxMemoryRegression.format()}\n")
         sb.append(current.memoryStats)
         sb.append(results.memoryStats)
         sb.append("\n")
@@ -77,42 +76,10 @@ class BaselineVersion implements VersionResults {
     }
 
     boolean usesLessMemoryThan(MeasuredOperationList current) {
-        current.totalMemoryUsed.average - results.totalMemoryUsed.average > calculateMaxMemoryRegression(current)
-    }
-
-    private Amount<DataAmount> calculateMaxMemoryRegression(MeasuredOperationList current) {
-        if (maxLimitIncreasePercentage <= 0) {
-            return maxMemoryRegression
-        } else {
-            // increase the limit of the regression by adding the standard deviation to it
-            Amount<DataAmount> baselineStdDeviation = results.totalMemoryUsed.stddev
-            // set the limit for the increase based on a percentage of the average of the baseline
-            Amount<DataAmount> maxLimitIncrease = results.totalMemoryUsed.average * (maxLimitIncreasePercentage / 100)
-            if (baselineStdDeviation > maxLimitIncrease) {
-                return maxMemoryRegression + maxLimitIncrease
-            } else {
-                return maxMemoryRegression + baselineStdDeviation
-            }
-        }
+        current.totalMemoryUsed.average - results.totalMemoryUsed.average > maxMemoryRegression
     }
 
     boolean fasterThan(MeasuredOperationList current) {
-        current.totalTime.average - results.totalTime.average > calculateMaxTimeRegression(current)
-    }
-
-    private Amount<Duration> calculateMaxTimeRegression(MeasuredOperationList current) {
-        if (maxLimitIncreasePercentage <= 0) {
-            return maxExecutionTimeRegression
-        } else {
-            // increase the limit of the regression by adding the standard deviation to it
-            Amount<Duration> baselineStdDeviation = results.totalTime.stddev
-            // set the limit for the increase based on a percentage of the average of the baseline
-            Amount<Duration> maxLimitIncrease = results.totalTime.average * (maxLimitIncreasePercentage / 100)
-            if (baselineStdDeviation > maxLimitIncrease) {
-                return maxExecutionTimeRegression + maxLimitIncrease
-            } else {
-                return maxExecutionTimeRegression + baselineStdDeviation
-            }
-        }
+        current.totalTime.average - results.totalTime.average > maxExecutionTimeRegression
     }
 }
