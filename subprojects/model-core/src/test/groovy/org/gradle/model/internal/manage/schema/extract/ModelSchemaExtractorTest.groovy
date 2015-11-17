@@ -300,6 +300,42 @@ class ModelSchemaExtractorTest extends Specification {
     }
     
     @Managed
+    interface HasDoubleCapsStartingGetter {
+        String getCFlags()
+        void setCFlags(String cflags)
+    }
+
+    def "allows double uppercase char first getters"() {
+        when:
+        def schema = store.getSchema(HasDoubleCapsStartingGetter)
+
+        then:
+        schema instanceof ManagedImplSchema
+        def cflags = schema.properties[0]
+        assert cflags instanceof ModelProperty
+        // TODO:PM We violate the JavaBean spec here, property name should be CFlags
+        cflags.name == "cFlags"
+    }
+    
+    @Managed
+    interface HasFullCapsGetter {
+        String getURL()
+        void setURL(String url)
+    }
+
+    def "allows full caps getters"() {
+        when:
+        def schema = store.getSchema(HasFullCapsGetter)
+
+        then:
+        schema instanceof ManagedImplSchema
+        def url = schema.properties[0]
+        assert url instanceof ModelProperty
+        // TODO:PM We violate the JavaBean spec here, property name should be URL
+        url.name == "uRL"
+    }
+    
+    @Managed
     interface HasTwoFirstsCharLowercaseGetter {
         String getccCompiler()
         void setccCompiler()
@@ -307,7 +343,7 @@ class ModelSchemaExtractorTest extends Specification {
     
     def "reject two firsts char lowercase getters"() {
         expect:
-        fail HasTwoFirstsCharLowercaseGetter, ""
+        fail HasTwoFirstsCharLowercaseGetter, "the 4th character of the getter method name must be an uppercase character"
     }
 
     @Managed
