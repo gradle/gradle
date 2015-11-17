@@ -77,8 +77,9 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         spec.setSourceFileIncludes(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
 
         if (sourceFilesUseMacroIncludes(spec.getSourceFiles(), compilation.getFinalState())) {
-            logger.info("Some #include files could not be determined.  Falling back to slow path which includes all files in the include search path as inputs.");
+            logger.info("The path to some #include files could not be determined.  Falling back to slow path which includes all files in the include search path as inputs for {}.", task.getName());
             for (final File includeRoot : spec.getIncludeRoots()) {
+                logger.debug("adding {} to discovered inputs for {}", includeRoot, task.getName());
                 spec.getIncrementalInputs().newInput(includeRoot);
             }
         }
