@@ -38,13 +38,24 @@ model {
             def projectDependencies = generatedDependencies.get(subprojectNumber)
             if(projectDependencies) {
             %> {
+            <% if(binding.hasVariable('useApiDependencies') && useApiDependencies) { %>
             api {
-                dependencies {<%
+            <% } else { %>
+            sources {
+                java {
+            <% } %>
+                dependencies {
+                    <%
                     projectDependencies.each {
 %>                  project ':project${it}' library 'main'
                     <% } %>
                 }
+            <% if(binding.hasVariable('useApiDependencies') && useApiDependencies) { %>
             }
+            <% } else { %>
+               }
+            }
+            <% } %>
         }
 <% } } %>
         <% if (binding.hasVariable("apiExports")) {
