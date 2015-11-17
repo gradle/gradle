@@ -210,7 +210,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
                     ModelMap<JvmResourceSet> jvmResourceSets = componentSpec.getSources().withType(JvmResourceSet.class);
                     for (JvmResourceSet jvmResourceSet : jvmResourceSets.values()) {
-                        for (File resourceDir : jvmResourceSet.getSource()) {
+                        for (File resourceDir : jvmResourceSet.getSource().getSrcDirs()) {
                             classes.addResourceDir(resourceDir);
                         }
                     }
