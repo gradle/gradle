@@ -56,4 +56,114 @@ model {
         then:
         output.contains("barry lives in Melbourne")
     }
+
+    def "cannot configure a reference property using nested closure"() {
+        buildFile << '''
+@Managed interface Person extends Named {
+    Address getAddress()
+    void setAddress(Address a)
+}
+
+@Managed interface Address {
+    String getCity()
+    void setCity(String s)
+}
+
+model {
+    barry(Person)
+    barry {
+        address {
+            city = 'Melbourne'
+        }
+    }
+}
+'''
+
+        when:
+        fails "model"
+
+        then:
+        failure.assertHasLineNumber(15)
+        failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 14, column 5')
+        failure.assertHasCause('Could not find method address() for arguments [')
+    }
+
+    def "cannot configure a scalar list property using nested closure"() {
+        buildFile << '''
+@Managed interface Person {
+    List<String> getNames()
+}
+
+model {
+    barry(Person)
+    barry {
+        names {
+            add 'barry'
+            add 'baz'
+        }
+    }
+}
+'''
+
+        when:
+        fails "model"
+
+        then:
+        failure.assertHasLineNumber(9)
+        failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 8, column 5')
+        failure.assertHasCause('Could not find method names() for arguments [')
+    }
+
+    def "cannot configure a property with unmanaged type using nested closure"() {
+        buildFile << '''
+@Managed interface Person {
+    @Unmanaged
+    InputStream getInput()
+    void setInput(InputStream name)
+}
+
+model {
+    barry(Person)
+    barry {
+        input {
+            println "broken"
+        }
+    }
+}
+'''
+
+        when:
+        fails "model"
+
+        then:
+        failure.assertHasLineNumber(11)
+        failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 10, column 5')
+        failure.assertHasCause('Could not find method input() for arguments [')
+    }
+
+    def "cannot configure a scalar property using nested closure"() {
+        buildFile << '''
+@Managed interface Person {
+    String getName()
+    void setName(String name)
+}
+
+model {
+    barry(Person)
+    barry {
+        name {
+            println "broken"
+        }
+    }
+}
+'''
+
+        when:
+        fails "model"
+
+        then:
+        failure.assertHasLineNumber(10)
+        failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 9, column 5')
+        failure.assertHasCause('Could not find method name() for arguments [')
+    }
 }
