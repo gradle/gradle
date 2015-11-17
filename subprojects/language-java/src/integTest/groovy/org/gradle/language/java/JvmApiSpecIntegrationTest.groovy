@@ -133,6 +133,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     def "api jar should contain only classes declared in packages exported in api spec"() {
         when:
         addNonApiClasses()
+        app.writeResources(file("src/myLib/resources"))
 
         and:
         buildFile << """
@@ -150,11 +151,13 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
 
         and:
-        def allClasses = app.sources*.classFile.fullPath as String[]
-        def apiClassesOnly = (allClasses -
-            ["non_api/pkg/InternalPerson.class", "compile/test/internal/Util.class"]) as String[];
-        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(allClasses)
-        jarFile("build/jars/myLibApiJar/myLib.jar").hasDescendants(apiClassesOnly)
+        def allClasses = app.sources*.classFile.fullPath
+        def resources = app.resources*.fullPath
+        def apiClassesOnly = (allClasses - resources -
+            ["non_api/pkg/InternalPerson.class", "compile/test/internal/Util.class"])
+        resources.size() > 0
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants((allClasses + resources) as String[])
+        jarFile("build/jars/myLibApiJar/myLib.jar").hasDescendants(apiClassesOnly as String[])
     }
 
     def "api jar should include all library packages when no api specification is declared"() {
