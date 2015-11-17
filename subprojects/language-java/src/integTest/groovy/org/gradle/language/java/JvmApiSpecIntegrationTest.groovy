@@ -263,6 +263,33 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
     }
 
+    def "api jar should be empty if specification matches no package found in runtime jar"() {
+        when:
+        addNonApiClasses()
+
+        and:
+        buildFile << """
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        api {
+                            exports 'arbitrary.pkg'
+                        }
+                    }
+                }
+            }
+        """
+        then:
+        succeeds "assemble"
+        executedAndNotSkipped(':createMyLibApiJar')
+
+        def allClasses = app.sources*.classFile.fullPath
+        def apiClassesOnly = []
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants((allClasses) as String[])
+        jarFile("build/jars/myLibApiJar/myLib.jar").hasDescendants(apiClassesOnly as String[])
+
+    }
+
     def "api jar should include all library packages when no api specification is declared"() {
         when:
         addNonApiClasses()
