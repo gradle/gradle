@@ -22,6 +22,7 @@ import com.google.common.cache.LoadingCache;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.manage.schema.extract.ManagedProxyClassGenerator;
@@ -38,11 +39,7 @@ public class ManagedProxyFactory {
                 return proxyClassGenerator.generate(key.schema, key.delegateSchema);
             }
         });
-    private final Instantiator instantiator;
-
-    public ManagedProxyFactory(Instantiator instantiator) {
-        this.instantiator = instantiator;
-    }
+    private final Instantiator instantiator = DirectInstantiator.INSTANCE;
 
     public <T> T createProxy(ModelElementState state, StructSchema<T> viewSchema, @Nullable StructSchema<? extends T> delegateSchema) {
         try {

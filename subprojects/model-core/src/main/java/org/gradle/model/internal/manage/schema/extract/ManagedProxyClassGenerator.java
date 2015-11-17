@@ -388,6 +388,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             String propertyName = property.getName();
             // Delegated properties are handled in writeDelegateMethods()
             if (delegatePropertyNames.contains(propertyName)) {
+                writeConfigureMethod(visitor, generatedType, property);
                 continue;
             }
             switch (property.getStateManagementType()) {
@@ -410,7 +411,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeConfigureMethod(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
-        if (!(property.getSchema() instanceof CompositeSchema)) {
+        if (!(property.getSchema() instanceof CompositeSchema) || property.isWritable()) {
             return;
         }
 

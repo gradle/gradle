@@ -15,13 +15,9 @@
  */
 
 package org.gradle.model.internal.fixture
-import org.gradle.internal.reflect.DirectInstantiator
+
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 
-class TestManagedProxyFactory extends ManagedProxyFactory {
-    public static final ManagedProxyFactory INSTANCE = new TestManagedProxyFactory()
-
-    TestManagedProxyFactory() {
-        super(DirectInstantiator.INSTANCE)
-    }
+class TestManagedProxyFactory {
+    public static final ManagedProxyFactory INSTANCE = new ManagedProxyFactory()
 }

@@ -345,7 +345,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                         spec.publicData
                         assert false
                     } catch(MissingPropertyException e) {
-                        assert e.message == "Could not find property 'publicData' on InternalSampleSpec 'components.sample'."
+                        assert e.message == "No such property: publicData for class: InternalSampleSpec"
                     }
                 }
 
@@ -380,7 +380,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                         spec.internalData
                         assert false
                     } catch (MissingPropertyException e) {
-                        assert e.message == "Could not find property 'internalData' on SampleComponentSpec 'components.sample'."
+                        assert e.message == "No such property: internalData for class: SampleComponentSpec"
                     }
                 }
 
@@ -396,7 +396,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                         spec.internalData
                         assert false
                     } catch (MissingPropertyException e) {
-                        assert e.message == "Could not find property 'internalData' on SampleComponentSpec 'components.sample'."
+                        assert e.message == "No such property: internalData for class: SampleComponentSpec"
                     }
                 }
 
@@ -413,7 +413,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                         spec.internalData
                         assert false
                     } catch (MissingPropertyException e) {
-                        assert e.message == "Could not find property 'internalData' on SampleComponentSpec 'components.sample'."
+                        assert e.message == "No such property: internalData for class: SampleComponentSpec"
                     }
                 }
 

@@ -15,10 +15,11 @@
  */
 
 package org.gradle.model.internal.manage.instance
+
 import org.gradle.api.Action
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.fixture.TestManagedProxyFactory
 import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import spock.lang.Specification
@@ -26,7 +27,7 @@ import spock.lang.Specification
 class ManagedProxyTest extends Specification {
 
     def schemaStore = DefaultModelSchemaStore.instance
-    def factory = new ManagedProxyFactory(DirectInstantiator.INSTANCE);
+    def factory = TestManagedProxyFactory.INSTANCE
 
     @Managed
     static private interface ManagedType {
