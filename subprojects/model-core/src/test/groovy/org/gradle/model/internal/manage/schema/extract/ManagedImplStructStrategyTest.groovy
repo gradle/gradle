@@ -17,7 +17,10 @@
 package org.gradle.model.internal.manage.schema.extract
 
 import org.gradle.model.Managed
+import org.gradle.model.internal.manage.schema.CompositeSchema
+import org.gradle.model.internal.manage.schema.ManagedImplSchema
 import org.gradle.model.internal.manage.schema.ManagedImplStructSchema
+import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import spock.lang.Shared
@@ -31,6 +34,9 @@ class ManagedImplStructStrategyTest extends Specification {
         expect:
         def schema = store.getSchema(ModelType.of(SomeType))
         schema instanceof ManagedImplStructSchema
+        schema instanceof ManagedImplSchema
+        schema instanceof CompositeSchema
+        schema instanceof StructSchema
         schema.propertyNames == ['readOnlyString', 'strings'] as SortedSet
         schema.properties*.name == ['readOnlyString', 'strings']
         schema.getProperty('readOnlyString').type == ModelType.of(String)

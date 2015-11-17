@@ -16,13 +16,8 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import org.gradle.model.internal.type.ModelType;
-
 /**
- * The schema for a {@link org.gradle.model.ModelMap} element.
+ * The schema for an element that is composed from other elements.
  */
-public class ModelMapSchema<T, E> extends CollectionSchema<T, E> implements CompositeSchema<T> {
-    public ModelMapSchema(ModelType<T> type, ModelType<E> elementType) {
-        super(type, elementType);
-    }
+public interface CompositeSchema<T> extends ModelSchema<T> {
 }

@@ -30,9 +30,9 @@ import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
+import org.gradle.model.internal.manage.schema.CompositeSchema;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.StructSchema;
-import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.objectweb.asm.*;
@@ -410,7 +410,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeConfigureMethod(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
-        if (property.getSchema() instanceof ScalarValueSchema) {
+        if (!(property.getSchema() instanceof CompositeSchema)) {
             return;
         }
 

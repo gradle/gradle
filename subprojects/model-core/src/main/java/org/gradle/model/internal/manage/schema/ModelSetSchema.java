@@ -21,7 +21,7 @@ import org.gradle.model.internal.type.ModelType;
 /**
  * The schema for a {@link org.gradle.model.ModelSet} element.
  */
-public class ModelSetSchema<T, E> extends CollectionSchema<T, E> {
+public class ModelSetSchema<T, E> extends CollectionSchema<T, E> implements CompositeSchema<T> {
     public ModelSetSchema(ModelType<T> type, ModelType<E> elementType) {
         super(type, elementType);
     }

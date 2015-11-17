@@ -18,23 +18,34 @@ package org.gradle.model.internal.manage.schema.extract
 
 import org.gradle.model.internal.manage.schema.CompositeSchema
 import org.gradle.model.internal.manage.schema.ManagedImplSchema
-import org.gradle.model.internal.manage.schema.ModelMapSchema
+import org.gradle.model.internal.manage.schema.ScalarCollectionSchema
 import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import spock.lang.Shared
 import spock.lang.Specification
 
-class ModelMapStrategyTest extends Specification {
+class ScalarCollectionStrategyTest extends Specification {
     @Shared
     def store = DefaultModelSchemaStore.getInstance()
 
-    def "assembles schema for model map"() {
+    def "assembles schema for a Set"() {
         expect:
-        def schema = store.getSchema(ModelTypes.modelMap(String))
-        schema instanceof ModelMapSchema
+        def schema = store.getSchema(ModelTypes.set(ModelType.of(String)))
+        schema instanceof ScalarCollectionSchema
         schema instanceof ManagedImplSchema
-        schema instanceof CompositeSchema
+        !(schema instanceof CompositeSchema)
+        !(schema instanceof StructSchema)
+        schema.elementType == ModelType.of(String)
+        schema.elementTypeSchema == store.getSchema(ModelType.of(String))
+    }
+
+    def "assembles schema for a List"() {
+        expect:
+        def schema = store.getSchema(ModelTypes.list(ModelType.of(String)))
+        schema instanceof ScalarCollectionSchema
+        schema instanceof ManagedImplSchema
+        !(schema instanceof CompositeSchema)
         !(schema instanceof StructSchema)
         schema.elementType == ModelType.of(String)
         schema.elementTypeSchema == store.getSchema(ModelType.of(String))

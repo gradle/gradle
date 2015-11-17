@@ -16,6 +16,9 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
+import org.gradle.model.internal.manage.schema.CompositeSchema
+import org.gradle.model.internal.manage.schema.ManagedImplSchema
+import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
@@ -30,6 +33,9 @@ class UnmanagedImplStructStrategyTest extends Specification {
         expect:
         def schema = store.getSchema(ModelType.of(SomeType))
         schema instanceof UnmanagedImplStructSchema
+        !(schema instanceof ManagedImplSchema)
+        !(schema instanceof CompositeSchema)
+        schema instanceof StructSchema
         schema.propertyNames == ['readOnlyString', 'strings'] as SortedSet
         schema.properties*.name == ['readOnlyString', 'strings']
         schema.getProperty('readOnlyString').schema == store.getSchema(ModelType.of(String))

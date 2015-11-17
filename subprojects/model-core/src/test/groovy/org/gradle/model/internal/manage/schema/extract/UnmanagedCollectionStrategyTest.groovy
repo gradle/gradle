@@ -16,29 +16,26 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
-import org.gradle.model.internal.manage.schema.ScalarCollectionSchema
+import org.gradle.model.internal.manage.schema.CompositeSchema
+import org.gradle.model.internal.manage.schema.ManagedImplSchema
+import org.gradle.model.internal.manage.schema.StructSchema
+import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import spock.lang.Shared
 import spock.lang.Specification
 
-class ScalarCollectionSchemaTest extends Specification {
+class UnmanagedCollectionStrategyTest extends Specification {
     @Shared
     def store = DefaultModelSchemaStore.getInstance()
 
-    def "assembles schema for a Set"() {
+    def "assembles schema for list"() {
         expect:
-        def schema = store.getSchema(ModelTypes.set(ModelType.of(String)))
-        schema instanceof ScalarCollectionSchema
-        schema.elementType == ModelType.of(String)
-        schema.elementTypeSchema == store.getSchema(ModelType.of(String))
-    }
-
-    def "assembles schema for a List"() {
-        expect:
-        def schema = store.getSchema(ModelTypes.list(ModelType.of(String)))
-        schema instanceof ScalarCollectionSchema
-        schema.elementType == ModelType.of(String)
-        schema.elementTypeSchema == store.getSchema(ModelType.of(String))
+        def schema = store.getSchema(ModelTypes.list(ModelType.of(Runnable)))
+        schema instanceof UnmanagedImplStructSchema
+        !(schema instanceof ManagedImplSchema)
+        !(schema instanceof CompositeSchema)
+        schema instanceof StructSchema
+        schema.propertyNames == ['empty'] as SortedSet
     }
 }
