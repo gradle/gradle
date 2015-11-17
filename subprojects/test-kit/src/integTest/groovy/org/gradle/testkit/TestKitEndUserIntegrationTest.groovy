@@ -395,6 +395,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         assertDaemonsAreStopping()
     }
 
+    @LeaksFileHandles
     def "can test plugin and custom task as external files by providing them as classpath through GradleRunner API"() {
         file("settings.gradle") << "include 'sub'"
         file("sub/build.gradle") << "apply plugin: 'groovy'; dependencies { compile localGroovy() }"
