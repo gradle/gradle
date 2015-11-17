@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.jvm.JarBinarySpec
+import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.jvm.platform.JavaPlatform
@@ -45,7 +46,7 @@ class CreateJvmBinariesTest extends Specification {
     def instantiator = Mock(Instantiator)
 
     def "adds a binary for each jvm library"() {
-        def library = BaseComponentFixtures.create(DefaultJvmLibrarySpec, new ModelRegistryHelper(), componentId("jvmLibOne", ":project-path"), DirectInstantiator.INSTANCE, new TestFile("."))
+        def library = BaseComponentFixtures.create(JvmLibrarySpec, DefaultJvmLibrarySpec, new ModelRegistryHelper(), componentId("jvmLibOne", ":project-path"), DirectInstantiator.INSTANCE, new TestFile("."))
         def namingScheme = Mock(BinaryNamingScheme)
         def platform = DefaultJavaPlatform.current()
         def source1 = sourceSet("ss1")

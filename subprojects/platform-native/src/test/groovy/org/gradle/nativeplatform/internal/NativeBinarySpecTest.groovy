@@ -36,7 +36,7 @@ class NativeBinarySpecTest extends Specification {
     def instantiator = DirectInstantiator.INSTANCE
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def component = BaseComponentFixtures.create(TestNativeComponentSpec, new ModelRegistryHelper(), id, instantiator)
+    def component = BaseComponentFixtures.create(NativeComponentSpec, TestNativeComponentSpec, new ModelRegistryHelper(), id, instantiator)
 
     def platform1 = Stub(NativePlatform) {
         getArchitecture() >> Architectures.forInput("i386")

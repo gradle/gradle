@@ -20,6 +20,7 @@ import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.nativeplatform.NativeComponentSpec
 import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
@@ -30,7 +31,7 @@ class DefaultNativeComponentTest extends Specification {
     def component
 
     def setup(){
-        component = BaseComponentFixtures.create(TestNativeComponentSpec, new ModelRegistryHelper(), id, instantiator)
+        component = BaseComponentFixtures.create(NativeComponentSpec, TestNativeComponentSpec, new ModelRegistryHelper(), id, instantiator)
     }
 
     def "flavors can be chosen and will replace default flavor"() {
