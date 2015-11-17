@@ -160,6 +160,109 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         jarFile("build/jars/myLibApiJar/myLib.jar").hasDescendants(apiClassesOnly as String[])
     }
 
+    def "api jar should be rebuilt if API spec adds a new exported package"() {
+        when:
+        addNonApiClasses()
+
+        and:
+        buildFile << """
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        api {
+                            exports 'compile.test'
+                        }
+                    }
+                }
+            }
+        """
+        then:
+        succeeds "assemble"
+
+        and:
+        def allClasses = app.sources*.classFile.fullPath
+        def apiClassesOnly = (allClasses -
+            ["non_api/pkg/InternalPerson.class", "compile/test/internal/Util.class"])
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants((allClasses) as String[])
+        jarFile("build/jars/myLibApiJar/myLib.jar").hasDescendants(apiClassesOnly as String[])
+
+        when:
+        buildFile << """
+            model {
+                components {
+                    myLib {
+                        api {
+                            exports 'compile.test.internal'
+                        }
+                    }
+                }
+            }
+        """
+
+        allClasses = app.sources*.classFile.fullPath
+        apiClassesOnly = (allClasses -
+            ["non_api/pkg/InternalPerson.class"])
+
+        then:
+        succeeds 'assemble'
+
+        and:
+        skipped ':compileMyLibJarMyLibJava'
+        skipped ':createMyLibJar'
+        executedAndNotSkipped(':createMyLibApiJar')
+
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants((allClasses) as String[])
+        jarFile("build/jars/myLibApiJar/myLib.jar").hasDescendants(apiClassesOnly as String[])
+
+    }
+
+    def "api jar should be rebuilt if API spec removes an exported package"() {
+        when:
+        addNonApiClasses()
+
+        and:
+        buildFile << """
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        api {
+                            exports 'compile.test'
+                            exports 'compile.test.internal'
+                        }
+                    }
+                }
+            }
+        """
+        then:
+        succeeds "assemble"
+
+        and:
+        def allClasses = app.sources*.classFile.fullPath
+        def apiClassesOnly = (allClasses -
+            ["non_api/pkg/InternalPerson.class"])
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants((allClasses) as String[])
+        jarFile("build/jars/myLibApiJar/myLib.jar").hasDescendants(apiClassesOnly as String[])
+
+        when:
+        buildFile.text = buildFile.text.replace(/exports 'compile.test.internal'/,'')
+
+        allClasses = app.sources*.classFile.fullPath
+        apiClassesOnly = (allClasses -
+            ["non_api/pkg/InternalPerson.class", "compile/test/internal/Util.class"])
+
+        then:
+        succeeds 'assemble'
+
+        and:
+        skipped ':compileMyLibJarMyLibJava'
+        skipped ':createMyLibJar'
+        executedAndNotSkipped(':createMyLibApiJar')
+
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants((allClasses) as String[])
+        jarFile("build/jars/myLibApiJar/myLib.jar").hasDescendants(apiClassesOnly as String[])
+
+    }
+
     def "api jar should include all library packages when no api specification is declared"() {
         when:
         addNonApiClasses()
