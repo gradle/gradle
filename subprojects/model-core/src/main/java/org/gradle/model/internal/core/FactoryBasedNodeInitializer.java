@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import org.gradle.api.Action;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceRegistry;
@@ -38,12 +37,10 @@ import java.util.Set;
 
 public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManagedModelInitializer<S> {
     private final InstanceFactory<T> instanceFactory;
-    private final Action<? super T> configureAction;
 
-    public FactoryBasedNodeInitializer(InstanceFactory<T> instanceFactory, StructSchema<S> modelSchema, Action<? super T> configureAction) {
+    public FactoryBasedNodeInitializer(InstanceFactory<T> instanceFactory, StructSchema<S> modelSchema) {
         super(modelSchema);
         this.instanceFactory = instanceFactory;
-        this.configureAction = configureAction;
     }
 
     @Override
@@ -100,7 +97,6 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
                         }
                         delegateType = Cast.uncheckedCast(implementationInfo.getDelegateType());
                         T instance = implementationInfo.create(modelNode);
-                        configureAction.execute(instance);
                         modelNode.setPrivateData(delegateType, instance);
 
                         StructSchema<T> delegateSchema = Cast.uncheckedCast(schemaStore.getSchema(delegateType));

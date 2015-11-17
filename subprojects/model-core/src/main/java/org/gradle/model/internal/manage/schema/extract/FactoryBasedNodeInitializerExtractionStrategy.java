@@ -17,8 +17,6 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Action;
-import org.gradle.internal.BiAction;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.FactoryBasedNodeInitializer;
 import org.gradle.model.internal.core.InstanceFactory;
@@ -29,11 +27,9 @@ import org.gradle.model.internal.type.ModelType;
 
 public class FactoryBasedNodeInitializerExtractionStrategy<T> implements NodeInitializerExtractionStrategy {
     protected final InstanceFactory<T> instanceFactory;
-    private final BiAction<? super T, ? super ModelSchema<? extends T>> configAction;
 
-    public FactoryBasedNodeInitializerExtractionStrategy(InstanceFactory<T> instanceFactory, BiAction<? super T, ? super ModelSchema<? extends T>> configAction) {
+    public FactoryBasedNodeInitializerExtractionStrategy(InstanceFactory<T> instanceFactory) {
         this.instanceFactory = instanceFactory;
-        this.configAction = configAction;
     }
 
     @Override
@@ -46,12 +42,7 @@ public class FactoryBasedNodeInitializerExtractionStrategy<T> implements NodeIni
 
     private <S extends T> NodeInitializer getNodeInitializer(final ModelSchema<S> schema) {
         StructSchema<S> managedSchema = Cast.uncheckedCast(schema);
-        return new FactoryBasedNodeInitializer<T, S>(instanceFactory, managedSchema, new Action<T>() {
-            @Override
-            public void execute(T instance) {
-                configAction.execute(instance, schema);
-            }
-        });
+        return new FactoryBasedNodeInitializer<T, S>(instanceFactory, managedSchema);
     }
 
     @Override

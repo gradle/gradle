@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.BiActions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
@@ -131,7 +130,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
         @Mutate
         void registerSourceSetNodeInitializer(NodeInitializerRegistry nodeInitializerRegistry, LanguageSourceSetFactory languageSourceSetFactory) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<LanguageSourceSet>(languageSourceSetFactory, BiActions.doNothing()));
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<LanguageSourceSet>(languageSourceSetFactory));
         }
 
         @Model
