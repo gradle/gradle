@@ -38,6 +38,7 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private File preCompiledHeaderObjectFile;
     private Map<File, SourceIncludes> sourceFileIncludes;
     private String preCompiledHeader;
+    private IncrementalTaskInputs incrementalTaskInputs;
 
     public List<File> getIncludeRoots() {
         return includeRoots;
@@ -171,11 +172,10 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
         this.sourceFileIncludes = map;
     }
 
-    // TODO:
-    private IncrementalTaskInputs incrementalTaskInputs;
     public void setIncrementalInputs(IncrementalTaskInputs inputs) {
         this.incrementalTaskInputs = inputs;
     }
+
     public IncrementalTaskInputs getIncrementalInputs() {
         return incrementalTaskInputs;
     }

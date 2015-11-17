@@ -165,8 +165,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     /**
-     * TODO: Remove me?
-     * @return
+     * Returns an empty file collection built by all build dependencies from the include path.
      */
     @InputFiles
     public FileCollection getIncludeDependencies() {
