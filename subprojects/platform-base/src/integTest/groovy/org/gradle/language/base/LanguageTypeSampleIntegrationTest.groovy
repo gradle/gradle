@@ -43,7 +43,7 @@ Source sets
         srcDir: src${File.separator}docs${File.separator}userguide
 
 Binaries
-    DefaultDocumentationBinary 'docs:binary'
+    DocumentationBinary 'docs:binary'
         build using task: :docsBinary
 """
     }

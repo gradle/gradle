@@ -74,11 +74,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         return ClassDirectoryBinarySpec.class;
     }
 
-    @Override
-    public void setPublicType(Class<? extends BinarySpec> publicType) {
-        throw new UnsupportedOperationException();
-    }
-
     public JvmBinaryTasks getTasks() {
         return tasks;
     }

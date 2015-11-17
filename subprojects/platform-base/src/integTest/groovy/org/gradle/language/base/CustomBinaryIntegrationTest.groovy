@@ -45,7 +45,7 @@ model {
                 assert binaries.size() == 1
                 def sampleBinary = binaries.sampleBinary
                 assert sampleBinary instanceof SampleBinary
-                assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
+                assert sampleBinary.displayName == "SampleBinary 'sampleBinary'"
             }
         }
     }
@@ -70,7 +70,7 @@ model {
                 def sampleBinary = binaries.sampleBinary
                 assert sampleBinary instanceof SampleBinary
                 assert sampleBinary.version == '1.2'
-                assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
+                assert sampleBinary.displayName == "SampleBinary 'sampleBinary'"
             }
         }
     }
@@ -165,7 +165,7 @@ model {
                         assert binaries.size() == 1
                         def sampleBinary = binaries.sampleBinary
                         assert sampleBinary instanceof SampleBinary
-                        assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
+                        assert sampleBinary.displayName == "SampleBinary 'sampleBinary'"
                     }
                 }
             }
@@ -217,11 +217,11 @@ model {
                         assert binaries.size() == 2
                         def sampleBinary = binaries.sampleBinary
                         assert sampleBinary instanceof SampleBinary
-                        assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
+                        assert sampleBinary.displayName == "SampleBinary 'sampleBinary'"
 
                         def anotherSampleBinary = binaries.anotherSampleBinary
                         assert anotherSampleBinary instanceof AnotherSampleBinary
-                        assert anotherSampleBinary.displayName == "DefaultAnotherSampleBinary 'anotherSampleBinary'"
+                        assert anotherSampleBinary.displayName == "AnotherSampleBinary 'anotherSampleBinary'"
                     }
                 }
             }
@@ -300,7 +300,7 @@ No components defined for this project.
 
 Additional binaries
 -------------------
-DefaultSampleBinary 'sampleBinary'
+SampleBinary 'sampleBinary'
     build using task: :sampleBinary
 
 Note: currently not all plugins register their components, so some components may not be visible here.

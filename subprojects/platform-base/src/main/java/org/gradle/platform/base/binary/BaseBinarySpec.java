@@ -55,10 +55,9 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     private final BinaryTasksCollection tasks;
     private final ComponentSpecInternal owner;
     private final String name;
-    private final String typeName;
     private final MutableModelNode modelNode;
     private final MutableModelNode sources;
-    private Class<? extends BinarySpec> publicType;
+    private final Class<? extends BinarySpec> publicType;
 
     private boolean disabled;
 
@@ -88,7 +87,6 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         this.owner = info.owner;
         this.name = info.name;
         this.publicType = info.publicType;
-        this.typeName = info.implementationType.getSimpleName();
         this.modelNode = info.modelNode;
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
 
@@ -100,18 +98,13 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         return publicType;
     }
 
-    @Override
-    public void setPublicType(Class<? extends BinarySpec> publicType) {
-        this.publicType = publicType;
-    }
-
     @Nullable
     public ComponentSpec getComponent() {
         return owner;
     }
 
     protected String getTypeName() {
-        return typeName;
+        return publicType.getSimpleName();
     }
 
     @Override

@@ -43,7 +43,7 @@ model {
                 assert binaries.size() == 1
                 def sampleBinary = binaries.sampleBinary
                 assert sampleBinary instanceof SampleBinary
-                assert sampleBinary.displayName == "BaseBinarySpec 'sampleBinary'"
+                assert sampleBinary.displayName == "SampleBinary 'sampleBinary'"
                 assert sampleBinary.buildable
             }
         }
@@ -69,7 +69,7 @@ model {
                 def sampleBinary = binaries.sampleBinary
                 assert sampleBinary instanceof SampleBinary
                 assert sampleBinary.version == '1.2'
-                assert sampleBinary.displayName == "BaseBinarySpec 'sampleBinary'"
+                assert sampleBinary.displayName == "SampleBinary 'sampleBinary'"
             }
         }
     }
@@ -110,7 +110,7 @@ No components defined for this project.
 
 Additional binaries
 -------------------
-BaseBinarySpec 'sampleBinary'
+SampleBinary 'sampleBinary'
     build using task: :sampleBinary
 
 Note: currently not all plugins register their components, so some components may not be visible here.

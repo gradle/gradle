@@ -96,9 +96,9 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
                         def sampleBinary = binaries.sampleLibBinary
                         def othersSampleBinary = binaries.sampleLibOtherBinary
                         assert sampleBinary instanceof SampleBinary
-                        assert sampleBinary.displayName == "DefaultSampleBinary 'sampleLib:binary'"
+                        assert sampleBinary.displayName == "SampleBinary 'sampleLib:binary'"
                         assert othersSampleBinary instanceof OtherSampleBinary
-                        assert othersSampleBinary.displayName == "OtherSampleBinaryImpl 'sampleLib:otherBinary'"
+                        assert othersSampleBinary.displayName == "OtherSampleBinary 'sampleLib:otherBinary'"
                     }
                 }
             }
@@ -127,9 +127,9 @@ Source sets
         srcDir: src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
-    DefaultSampleBinary 'sampleLib:binary'
+    SampleBinary 'sampleLib:binary'
         build using task: :sampleLibBinary
-    OtherSampleBinaryImpl 'sampleLib:otherBinary'
+    OtherSampleBinary 'sampleLib:otherBinary'
         build using task: :sampleLibOtherBinary
 """)
     }
@@ -238,9 +238,9 @@ Source sets
         srcDir: src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
-    DefaultSampleBinary 'sampleLib:1stBinary'
+    SampleBinary 'sampleLib:1stBinary'
         build using task: :sampleLib1stBinary
-    DefaultSampleBinary 'sampleLib:2ndBinary'
+    SampleBinary 'sampleLib:2ndBinary'
         build using task: :sampleLib2ndBinary
 """)
         where:
@@ -353,7 +353,7 @@ model {
         then:
         output.contains("""
 Binaries
-    DefaultSampleBinary 'sampleLib:derivedFromMethodName'
+    SampleBinary 'sampleLib:derivedFromMethodName'
         build using task: :sampleLibDerivedFromMethodName
 """)
     }
