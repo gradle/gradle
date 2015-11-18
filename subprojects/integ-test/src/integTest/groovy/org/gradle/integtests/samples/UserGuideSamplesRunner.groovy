@@ -102,7 +102,7 @@ class UserGuideSamplesRunner extends Runner {
             def sampleRun = samples.get(childDescription)
             try {
                 cleanup(sampleRun)
-                for (run in sampleRun.runs.sort { it.index }) {
+                for (run in sampleRun.runs) {
                     if (run.brokenForParallel && GradleContextualExecuter.parallel) {
                         continue
                     }
@@ -121,13 +121,15 @@ class UserGuideSamplesRunner extends Runner {
     }
 
     private void cleanup(SampleRun run) {
-        // Clean up previous runs in the same subdir
-        File rootProjectDir = temporaryFolder.testDirectory.file(run.subDir)
-        if (rootProjectDir.exists()) {
-            def delete = new Delete()
-            delete.dir = rootProjectDir
-            delete.includes = "**/.gradle/** **/build/**"
-            AntUtil.execute(delete)
+        run.runs.each { singleRun ->
+            // Clean up previous runs in the same subdir
+            File rootProjectDir = temporaryFolder.testDirectory.file(singleRun.subDir)
+            if (rootProjectDir.exists()) {
+                def delete = new Delete()
+                delete.dir = rootProjectDir
+                delete.includes = "**/.gradle/** **/build/**"
+                AntUtil.execute(delete)
+            }
         }
     }
 
@@ -274,6 +276,9 @@ class UserGuideSamplesRunner extends Runner {
             samplesById.remove('completeCUnitExample')
         }
 
+        samplesById.each { id, sample ->
+            sample.runs = sample.runs.sort { it.index }
+        }
         return samplesById.values()
     }
 
