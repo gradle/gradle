@@ -239,10 +239,46 @@ TODO: Expand this and provide a DSL example.
 
 ### Rule DSL improvements
 
-TODO:
+TODO: `ModelMap` creation and configuration DSL syntax is now treated as nested rule. For example, an element can be configured using the configuration of a sibling as input:
 
-- `ModelMap` creation and configuration DSL syntax is now treated as nested rule.
-- This means that a task can be configured using another task as input.
+    model {
+        components {
+            mylib { ... }
+            test {
+                targetPlatform = $.components.mylib.targetPlatform
+            }
+        }
+    }
+    
+This means that a task can be configured using another task as input:
+
+    model {
+        tasks {
+            jar { ... }
+            dist(Zip) {
+                def jar = $.tasks.jar // The `jar` task has been fully configured and will not change any further
+                from jar.output 
+                into someDir
+            }
+        }
+    }
+    
+TODO: The properties of a `@Managed` type can be configured using nested configure methods:
+
+    model {
+        components {
+            mylib {
+                sources {
+                    // Adds a rule to configure `mylib.sources`
+                    ..
+                }
+                binaries {
+                    // Adds a rule to configure `mylib.sources`
+                    ...
+                }
+            }
+        }
+    }
 
 ### Tooling API exposes source language level on EclipseProject model
 
