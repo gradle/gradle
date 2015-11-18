@@ -24,6 +24,7 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultJvmLibrarySpecTest extends Specification {
+    def registry = new ModelRegistryHelper()
     def libraryId = new DefaultComponentSpecIdentifier(":project-path", "jvm-lib")
 
     def "library has name and path"() {
@@ -37,6 +38,6 @@ class DefaultJvmLibrarySpecTest extends Specification {
     }
 
     private DefaultJvmLibrarySpec createJvmLibrarySpec() {
-        BaseComponentFixtures.create(JvmLibrarySpec, DefaultJvmLibrarySpec, new ModelRegistryHelper(), libraryId, DirectInstantiator.INSTANCE)
+        BaseComponentFixtures.create(JvmLibrarySpec, DefaultJvmLibrarySpec, registry, libraryId, DirectInstantiator.INSTANCE)
     }
 }

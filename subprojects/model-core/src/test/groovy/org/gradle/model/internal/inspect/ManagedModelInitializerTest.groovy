@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.internal.inspect
+
 import org.gradle.api.credentials.Credentials
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.Managed
@@ -29,6 +30,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
+import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
@@ -53,11 +55,11 @@ class ManagedModelInitializerTest extends Specification {
         registerServiceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry)
     }
 
-    private <T> ModelRegistryHelper registerServiceInstance(String path, Class<T> clazz, T instance) {
+    private <T> ModelRegistry registerServiceInstance(String path, Class<T> clazz, T instance) {
         registerServiceInstance(ModelReference.of(path, clazz), instance)
     }
 
-    private <T> ModelRegistryHelper registerServiceInstance(ModelReference<T> reference, T instance) {
+    private <T> ModelRegistry registerServiceInstance(ModelReference<T> reference, T instance) {
         r.register(ModelRegistrations.serviceInstance(reference, instance).build())
     }
 

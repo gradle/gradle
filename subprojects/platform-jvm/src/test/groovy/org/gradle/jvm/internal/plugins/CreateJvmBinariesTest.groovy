@@ -38,6 +38,7 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
 class CreateJvmBinariesTest extends Specification {
+    def registry = new ModelRegistryHelper()
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
     def toolChain = Mock(JavaToolChainInternal)
     def rule = new JvmComponentPlugin.Rules()
@@ -46,7 +47,7 @@ class CreateJvmBinariesTest extends Specification {
     def instantiator = Mock(Instantiator)
 
     def "adds a binary for each jvm library"() {
-        def library = BaseComponentFixtures.create(JvmLibrarySpec, DefaultJvmLibrarySpec, new ModelRegistryHelper(), componentId("jvmLibOne", ":project-path"), DirectInstantiator.INSTANCE, new TestFile("."))
+        def library = BaseComponentFixtures.create(JvmLibrarySpec, DefaultJvmLibrarySpec, registry, componentId("jvmLibOne", ":project-path"), DirectInstantiator.INSTANCE, new TestFile("."))
         def namingScheme = Mock(BinaryNamingScheme)
         def platform = DefaultJavaPlatform.current()
         def source1 = sourceSet("ss1")

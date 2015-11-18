@@ -41,7 +41,7 @@ import java.util.*;
 import static org.gradle.model.internal.core.ModelNode.State.*;
 
 @NotThreadSafe
-public class DefaultModelRegistry extends AbstractModelRegistry {
+public class DefaultModelRegistry implements ModelRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModelRegistry.class);
 
     private final ModelGraph modelGraph;
@@ -154,6 +154,17 @@ public class DefaultModelRegistry extends AbstractModelRegistry {
         return binder;
     }
 
+    @Override
+    public <T> T realize(String path, Class<T> type) {
+        return realize(path, ModelType.of(type));
+    }
+
+    @Override
+    public <T> T realize(String path, ModelType<T> type) {
+        return realize(ModelPath.path(path), type);
+    }
+
+    @Override
     public <T> T realize(ModelPath path, ModelType<T> type) {
         return toType(type, require(path), "get(ModelPath, ModelType)");
     }
@@ -177,6 +188,17 @@ public class DefaultModelRegistry extends AbstractModelRegistry {
         return node;
     }
 
+    @Override
+    public <T> T find(String path, Class<T> type) {
+        return find(path, ModelType.of(type));
+    }
+
+    @Override
+    public <T> T find(String path, ModelType<T> type) {
+        return find(ModelPath.path(path), type);
+    }
+
+    @Override
     public <T> T find(ModelPath path, ModelType<T> type) {
         return toType(type, get(path), "find(ModelPath, ModelType)");
     }

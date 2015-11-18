@@ -15,18 +15,19 @@
  */
 
 package org.gradle.platform.base.component
+
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
+import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.ComponentSpecIdentifier
 
 class BaseComponentFixtures {
 
-    static <T extends BaseComponentSpec> T create(Class<T> type, Class<T> implType, ModelRegistryHelper modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
+    static <T extends BaseComponentSpec> T create(Class<T> type, Class<T> implType, ModelRegistry modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
         try {
             modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
             modelRegistry.register(

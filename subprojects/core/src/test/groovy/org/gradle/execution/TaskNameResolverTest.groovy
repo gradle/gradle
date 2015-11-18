@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.execution
-
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
@@ -22,6 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
 
 import static org.gradle.model.internal.core.ModelNode.State.*
@@ -263,7 +263,7 @@ class TaskNameResolverTest extends Specification {
         }
     }
 
-    def tasks(ModelRegistryHelper registry, Action<? super ModelMap<TaskInternal>> action) {
+    def tasks(ModelRegistry registry, Action<? super ModelMap<TaskInternal>> action) {
         registry.mutateModelMap("tasks", TaskInternal, action)
     }
 
@@ -273,7 +273,7 @@ class TaskNameResolverTest extends Specification {
         return result
     }
 
-    private ModelRegistryHelper createTasksCollection(ModelRegistryHelper registry, String description) {
+    private ModelRegistry createTasksCollection(ModelRegistry registry, String description) {
         registry.modelMap("tasks", TaskInternal) {
             it.registerFactory(TaskInternal) {
                 task(it, description)
