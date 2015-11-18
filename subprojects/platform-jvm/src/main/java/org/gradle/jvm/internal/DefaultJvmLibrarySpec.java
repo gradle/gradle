@@ -98,8 +98,7 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
     }
 
     @Override
-    public DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction) {
+    public void dependencies(Action<? super DependencySpecContainer> configureAction) {
         configureAction.execute(dependencies);
-        return dependencies;
     }
 }
