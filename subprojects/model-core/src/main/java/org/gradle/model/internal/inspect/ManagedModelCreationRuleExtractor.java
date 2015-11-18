@@ -29,6 +29,7 @@ import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -86,7 +87,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         final ModelReference<T> reference = ModelReference.of(modelPath, managedType);
         return ModelRegistrations.of(modelPath)
             .descriptor(descriptor)
-            .action(ModelActionRole.Discover, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+            .action(ModelActionRole.Discover, Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class)), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                     NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
