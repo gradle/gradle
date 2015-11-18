@@ -37,4 +37,9 @@ public class TestNameTestDirectoryProvider extends AbstractTestDirectoryProvider
         testDirectoryProvider.init(method.getName(), target.getClass().getSimpleName());
         return testDirectoryProvider;
     }
+
+    public TestNameTestDirectoryProvider withSuppressCleanup() {
+        suppressCleanup();
+        return this;
+    }
 }
