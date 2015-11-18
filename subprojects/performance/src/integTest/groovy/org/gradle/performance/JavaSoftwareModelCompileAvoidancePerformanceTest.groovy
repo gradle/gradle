@@ -35,7 +35,7 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
 
         runner.buildSpec {
             projectName(testCompileAvoidance).displayName(runner.testId).invocation {
-                tasksToRun('assemble').useDaemon().gradleOpts('-Xmx2G')
+                tasksToRun('assemble').useDaemon().gradleOpts('-Xms2G', '-Xmx2G')
             }
         }
 

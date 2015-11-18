@@ -30,7 +30,7 @@ class JavaSoftwareModelIncrementalBuildPerformanceTest extends AbstractCrossVers
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = ['2.7', '2.8', 'last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
         }

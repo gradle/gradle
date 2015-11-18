@@ -33,7 +33,7 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = [] // TODO: Add '2.10', 'last' once 2.10 is released.
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
 
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
@@ -65,7 +65,7 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = ['2.8', 'last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
         runner.warmUpRuns = 2
         runner.runs = 10
         String fileName = changedFile
