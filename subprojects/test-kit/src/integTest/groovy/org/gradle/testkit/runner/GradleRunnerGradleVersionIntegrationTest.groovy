@@ -17,8 +17,9 @@
 package org.gradle.testkit.runner
 
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
@@ -70,7 +71,6 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerInteg
         gradleVersion << ['2.6', '2.7']
     }
 
-    @LeaksFileHandles
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "distributions are not stored in the test kit dir"() {
         given:
@@ -96,6 +96,10 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerInteg
         testKitDir.eachFileRecurse {
             assert !it.name.contains("gradle-$version-bin.zip")
         }
+
+        cleanup:
+        DaemonsFixture gradleVersionUnderTest = daemons(testKitDir, ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME, version)
+        gradleVersionUnderTest.killAll()
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
