@@ -108,8 +108,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
                                    PlatformResolvers platforms, final JvmLibrarySpecInternal jvmLibrary) {
             List<JavaPlatform> selectedPlatforms = resolvePlatforms(platforms, jvmLibrary);
             final Set<String> exportedPackages = jvmLibrary.getExportedPackages();
-            final Collection<DependencySpec> apiDependencies = jvmLibrary.getApiDependencies();
-            final Collection<DependencySpec> dependencies = jvmLibrary.getDependencies().getDependencies();
+            final Collection<DependencySpec> apiDependencies = apiDependenciesOf(jvmLibrary);
+            final Collection<DependencySpec> dependencies = componentDependenciesOf(jvmLibrary);
             for (final JavaPlatform platform : selectedPlatforms) {
                 String binaryName = buildBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
                 binaries.create(binaryName, new Action<JarBinarySpec>() {
@@ -138,6 +138,14 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     return platformResolver.resolve(JavaPlatform.class, platformRequirement);
                 }
             });
+        }
+
+        private static Collection<DependencySpec> apiDependenciesOf(JvmLibrarySpecInternal jvmLibrary) {
+            return jvmLibrary.getApi().getDependencies().getDependencies();
+        }
+
+        private static Collection<DependencySpec> componentDependenciesOf(JvmLibrarySpecInternal jvmLibrary) {
+            return jvmLibrary.getDependencies().getDependencies();
         }
 
         private String buildBinaryName(JvmLibrarySpec jvmLibrary, BinaryNamingSchemeBuilder namingSchemeBuilder,
