@@ -109,7 +109,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             List<JavaPlatform> selectedPlatforms = resolvePlatforms(platforms, jvmLibrary);
             final Set<String> exportedPackages = jvmLibrary.getExportedPackages();
             final Collection<DependencySpec> apiDependencies = jvmLibrary.getApiDependencies();
-            final Collection<DependencySpec> dependencies = jvmLibrary.getDependencies();
+            final Collection<DependencySpec> dependencies = jvmLibrary.getDependencies().getDependencies();
             for (final JavaPlatform platform : selectedPlatforms) {
                 String binaryName = buildBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
                 binaries.create(binaryName, new Action<JarBinarySpec>() {

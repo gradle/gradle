@@ -93,8 +93,8 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
     }
 
     @Override
-    public Collection<DependencySpec> getDependencies() {
-        return dependencies.getDependencies();
+    public DependencySpecContainer getDependencies() {
+        return dependencies;
     }
 
     @Override

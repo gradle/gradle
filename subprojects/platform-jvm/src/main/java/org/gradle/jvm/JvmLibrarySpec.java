@@ -62,5 +62,5 @@ public interface JvmLibrarySpec extends LibrarySpec, JvmComponentSpec, PlatformA
     /**
      * The component-level dependencies of this library.
      */
-    Collection<DependencySpec> getDependencies();
+    DependencySpecContainer getDependencies();
 }
