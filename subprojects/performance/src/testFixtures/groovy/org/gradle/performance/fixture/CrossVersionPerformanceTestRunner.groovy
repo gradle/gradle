@@ -38,7 +38,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     List<String> tasksToRun = []
     List<String> args = []
-    List<String> gradleOpts = []
+    List<String> gradleOpts = ['-Xms2g', '-Xmx2g']
 
     List<String> targetVersions = []
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)

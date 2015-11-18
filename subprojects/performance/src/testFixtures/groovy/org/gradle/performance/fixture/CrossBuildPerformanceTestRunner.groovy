@@ -65,6 +65,9 @@ class CrossBuildPerformanceTestRunner {
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
         assert builder.projectName
         builder.invocation.workingDirectory = testProjectLocator.findProjectDir(builder.projectName)
+        if (!builder.invocation.gradleOptions) {
+            builder.invocation.gradleOptions = ['-Xms2g', '-Xmx2g']
+        }
     }
 
     public CrossBuildPerformanceResults run() {
