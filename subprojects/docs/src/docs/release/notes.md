@@ -237,7 +237,7 @@ It is now possible to reference external dependencies when building a `JvmLibrar
 
 TODO: Expand this and provide a DSL example.
 
-### Rule DSL improvements
+### Model DSL improvements
 
 TODO: `ModelMap` creation and configuration DSL syntax is now treated as nested rule. For example, an element can be configured using the configuration of a sibling as input:
 
@@ -263,6 +263,21 @@ This means that a task can be configured using another task as input:
         }
     }
     
+This is also available for the various methods of `ModelMap`, such as `all` or `withType`:    
+
+    model {
+        components {
+            all {
+                // Adds a rule for each component
+                ...
+            }
+            withType(JvmLibrarySpec) {
+                // Adds a rule for each JvmLibrarySpec component
+                ...
+            }
+        }
+    }
+    
 TODO: The properties of a `@Managed` type can be configured using nested configure methods:
 
     model {
@@ -279,6 +294,8 @@ TODO: The properties of a `@Managed` type can be configured using nested configu
             }
         }
     }
+
+This is automatically added for any property whose type is `@Managed`, or a `ModelMap<T>` or `ModelSet<T>`.
 
 ### Tooling API exposes source language level on EclipseProject model
 
