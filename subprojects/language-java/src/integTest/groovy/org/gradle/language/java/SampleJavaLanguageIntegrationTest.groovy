@@ -35,6 +35,9 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample apiSpec = new Sample(temporaryFolder, "javaLibraryPlugin/apispec")
 
+    @Rule
+    Sample apiSpecSupport = new Sample(temporaryFolder, "javaLibraryPlugin/apispec-support")
+
     def "quickstart sample builds java based jvm component"() {
         setup:
         executer.inDirectory(quickstart.dir)
@@ -131,10 +134,12 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         fails ':brokenclientJar'
 
         when:
+        executer.inDirectory(apiSpecSupport.dir)
+        succeeds ':updateMainComponent'
         executer.inDirectory(apiSpec.dir)
 
         then:
-        succeeds ':updateMainComponent', ':clientJar'
+        succeeds ':clientJar'
         executedAndNotSkipped ':mainJar'
         skipped ':compileClientJarClientJava'
     }
