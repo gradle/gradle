@@ -1,0 +1,5 @@
+
+task updateMainComponent(type: Copy) {
+    from 'src'
+    into '../apispec/src'
+}

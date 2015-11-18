@@ -1,4 +1,3 @@
-:updateMainComponent
 :compileMainJarMainJava
 :processMainJarMainResources UP-TO-DATE
 :createMainJar

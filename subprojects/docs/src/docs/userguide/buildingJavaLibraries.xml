@@ -393,9 +393,12 @@
             <output args=":brokenclientJar" expectFailure="true" ignoreExtraLines="true" outputFile="buildingJavaLibraries-compile-brokenclient.out"/>
         </sample>
         <para>On the other hand, if <emphasis>Person.java</emphasis> in <emphasis>client</emphasis> is updated and its API hasn't changed, <emphasis>client</emphasis> will not be recompiled. This is in particular important for incremental builds of large projects, where we can avoid the compilation of dependencies in chain, and then dramatically reduce build duration:</para>
+        <sample id="apiSpecification-client" dir="javaLibraryPlugin/apispec-support" title="Recompiling the client">
+            <sourcefile file="src/main/java/org/gradle/Person.java"/>
+            <output args=":updateMainComponent" ignoreExtraLines="true" hidden="true" outputFile="buildingJavaLibraries-updateSources.out"/>
+        </sample>
         <sample id="apiSpecification-client" dir="javaLibraryPlugin/apispec" title="Recompiling the client">
-            <sourcefile file="update/main/java/org/gradle/Person.java"/>
-            <output args=":updateMainComponent :clientJar" ignoreExtraLines="true" outputFile="buildingJavaLibraries-compile-avoid.out"/>
+            <output args=":clientJar" ignoreExtraLines="true" outputFile="buildingJavaLibraries-compile-avoid.out"/>
         </sample>
     </section>
 </chapter>
