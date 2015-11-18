@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.language.coffeescript.internal
+package org.gradle.language.base.sources
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.sources.BaseLanguageSourceSet
-import org.gradle.language.coffeescript.CoffeeScriptSourceSet
+import org.gradle.language.base.LanguageSourceSet
 import spock.lang.Specification
 
-class DefaultCoffeeScriptSourceSetTest extends Specification {
-    def "has useful String representation"() {
-        def sourceSet = BaseLanguageSourceSet.create(CoffeeScriptSourceSet, DefaultCoffeeScriptSourceSet, "coffeeX", "playX", Stub(FileResolver), DirectInstantiator.INSTANCE)
+class BaseLanguageSourceSetTest extends Specification {
+    def "has useful display names"() {
+        def sourceSet = BaseLanguageSourceSet.create(TestSourceSet, TestSourceSetImpl, "test", "parent", Stub(FileResolver), DirectInstantiator.INSTANCE)
 
         expect:
-        sourceSet.displayName == "CoffeeScript source 'playX:coffeeX'"
-        sourceSet.toString() == "CoffeeScript source 'playX:coffeeX'"
+        sourceSet.name == "test"
+        sourceSet.displayName == "TestSourceSet 'parent:test'"
+        sourceSet.toString() == sourceSet.displayName
     }
+
+    interface TestSourceSet extends LanguageSourceSet {}
+
+    static class TestSourceSetImpl extends BaseLanguageSourceSet implements TestSourceSet {}
 }

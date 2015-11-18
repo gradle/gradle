@@ -208,19 +208,19 @@ model {
                     binaries {
                         foo {
                             sources {
-                                bar(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'mylib:bar'")
+                                bar(type: "CustomLanguageSourceSet")
                             }
                             tasks()
                         }
                         main {
                             sources {
-                                someLang(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'mylib:someLang'")
+                                someLang(type: "CustomLanguageSourceSet")
                             }
                             tasks()
                         }
                         test {
                             sources {
-                                test(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'mylib:test'")
+                                test(type: "CustomLanguageSourceSet")
                             }
                             tasks()
                         }
@@ -259,7 +259,7 @@ model {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: DefaultCustomLanguageSourceSet 'mylib:someLang'"
+        output.contains "sources display name: CustomLanguageSourceSet 'mylib:someLang'"
     }
 
     def "elements in binary.sources should not be created when defined"() {

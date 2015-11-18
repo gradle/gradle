@@ -45,7 +45,7 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
         registration.withImplementation(implementationType, new InstanceFactory.ImplementationFactory<T>() {
             @Override
             public T create(ModelType<? extends T> publicType, String sourceSetName, MutableModelNode modelNode) {
-                return BaseLanguageSourceSet.create(implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), fileResolver, instantiator);
+                return BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), fileResolver, instantiator);
             }
         });
     }

@@ -19,6 +19,7 @@ package org.gradle.platform.base.binary
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.sources.BaseLanguageSourceSet
+import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.internal.ComponentSpecInternal
 import spock.lang.Specification
@@ -34,24 +35,24 @@ class BaseBinarySpecTest extends Specification {
     }
 
     def "binary has name and sensible display name"() {
-        def binary = create(MySampleBinary, "sampleBinary")
+        def binary = create(SampleBinary, MySampleBinary, "sampleBinary")
 
         expect:
         binary.class == MySampleBinary
         binary.name == "sampleBinary"
         binary.projectScopedName == "sampleBinary"
-        binary.displayName == "MySampleBinary 'sampleBinary'"
+        binary.displayName == "SampleBinary 'sampleBinary'"
     }
 
     def "qualifies project scoped named and display name using owners name"() {
         def component = Stub(ComponentSpecInternal)
         component.name >> "sample"
-        def binary = create(MySampleBinary, "unitTest", component)
+        def binary = create(SampleBinary, MySampleBinary, "unitTest", component)
 
         expect:
         binary.name == "unitTest"
         binary.projectScopedName == "sampleUnitTest"
-        binary.displayName == "MySampleBinary 'sample:unitTest'"
+        binary.displayName == "SampleBinary 'sample:unitTest'"
     }
 
     def "create fails if subtype does not have a public no-args constructor"() {
@@ -96,11 +97,13 @@ class BaseBinarySpecTest extends Specification {
         binary.source == binary.inputs
     }
 
-    private <T extends BaseBinarySpec> T create(Class<T> type, String name, ComponentSpecInternal owner = null) {
-        BaseBinaryFixtures.create(type, name, owner, Mock(ITaskFactory))
+    private <T extends BaseBinarySpec> T create(Class<T> type, Class<T> implType = type, String name, ComponentSpecInternal owner = null) {
+        BaseBinaryFixtures.create(type, implType, name, owner, Mock(ITaskFactory))
     }
 
-    static class MySampleBinary extends BaseBinarySpec {
+    interface SampleBinary extends BinarySpec {}
+
+    static class MySampleBinary extends BaseBinarySpec implements SampleBinary {
     }
     static class MyConstructedBinary extends BaseBinarySpec {
         MyConstructedBinary(String arg) {}

@@ -102,20 +102,20 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
                 foo {
                     binaries()
                     sources {
-                        bar(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'foo:bar'")
+                        bar(type: "CustomLanguageSourceSet")
                     }
                 }
                 main {
                     binaries()
                     sources {
-                        someLang(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'main:someLang'")
-                        test(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'main:test'")
+                        someLang(type: "CustomLanguageSourceSet")
+                        test(type: "CustomLanguageSourceSet")
                     }
                 }
                 test {
                     binaries()
                     sources {
-                        test(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'test:test'")
+                        test(type: "CustomLanguageSourceSet")
                     }
                 }
             }
@@ -142,7 +142,7 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: DefaultCustomLanguageSourceSet 'main:someLang'"
+        output.contains "sources display name: CustomLanguageSourceSet 'main:someLang'"
     }
 
     def "can reference sources container elements using specialized type in a rule"() {

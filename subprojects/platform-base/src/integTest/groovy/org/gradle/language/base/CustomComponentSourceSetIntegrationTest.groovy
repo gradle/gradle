@@ -140,8 +140,8 @@ model {
 '''
         expect:
         succeeds "verify"
-        output.contains """Binary sources: [DefaultLibrarySourceSet 'sampleLib:binaryA', DefaultLibrarySourceSet 'sampleLib:binaryB', DefaultLibrarySourceSet 'sampleLib:binaryC', DefaultLibrarySourceSet 'sampleLib:binaryD']"""
-        output.contains """Binary inputs: [DefaultLibrarySourceSet 'sampleLib:compA', DefaultLibrarySourceSet 'sampleLib:compB', DefaultLibrarySourceSet 'sampleLib:compC', DefaultLibrarySourceSet 'sampleLib:compD', DefaultLibrarySourceSet 'sampleLib:binaryA', DefaultLibrarySourceSet 'sampleLib:binaryB', DefaultLibrarySourceSet 'sampleLib:binaryC', DefaultLibrarySourceSet 'sampleLib:binaryD']"""
+        output.contains """Binary sources: [LibrarySourceSet 'sampleLib:binaryA', LibrarySourceSet 'sampleLib:binaryB', LibrarySourceSet 'sampleLib:binaryC', LibrarySourceSet 'sampleLib:binaryD']"""
+        output.contains """Binary inputs: [LibrarySourceSet 'sampleLib:compA', LibrarySourceSet 'sampleLib:compB', LibrarySourceSet 'sampleLib:compC', LibrarySourceSet 'sampleLib:compD', LibrarySourceSet 'sampleLib:binaryA', LibrarySourceSet 'sampleLib:binaryB', LibrarySourceSet 'sampleLib:binaryC', LibrarySourceSet 'sampleLib:binaryD']"""
     }
 
     def "fail when multiple source sets are registered with the same name"() {

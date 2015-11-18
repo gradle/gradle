@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.sources.BaseLanguageSourceSet
+import org.gradle.language.java.JavaSourceSet
 import spock.lang.Specification
 
 class DefaultJavaLanguageSourceSetTest extends Specification {
@@ -102,6 +103,6 @@ class DefaultJavaLanguageSourceSetTest extends Specification {
     }
 
     private DefaultJavaLanguageSourceSet newJavaSourceSet() {
-        BaseLanguageSourceSet.create(DefaultJavaLanguageSourceSet, "javaX", "javaX", Stub(FileResolver), instantiator)
+        BaseLanguageSourceSet.create(JavaSourceSet, DefaultJavaLanguageSourceSet, "javaX", "javaX", Stub(FileResolver), instantiator)
     }
 }

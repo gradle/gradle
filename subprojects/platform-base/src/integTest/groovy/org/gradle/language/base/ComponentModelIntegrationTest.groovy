@@ -384,8 +384,8 @@ afterEach CustomComponent 'newComponent'"""
             main {
                 binaries()
                 sources {
-                    bar(nodeValue: "DefaultCustomLanguageSourceSet 'main:bar'")
-                    someLang(nodeValue: "DefaultCustomLanguageSourceSet 'main:someLang'")
+                    bar(nodeValue: "CustomLanguageSourceSet 'main:bar'")
+                    someLang(nodeValue: "CustomLanguageSourceSet 'main:someLang'")
                 }
             }
         }

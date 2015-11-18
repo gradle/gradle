@@ -123,7 +123,7 @@ SampleLibrary 'sampleLib'
 -------------------------
 
 Source sets
-    DefaultLibrarySourceSet 'sampleLib:librarySource'
+    LibrarySourceSet 'sampleLib:librarySource'
         srcDir: src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
@@ -146,9 +146,9 @@ Binaries
                             def sampleBinarySourceSet = binaries.sampleLibBinary.inputs.toList()[0]
                             def othersSampleBinarySourceSet = binaries.sampleLibOtherBinary.inputs.toList()[0]
                             assert sampleBinarySourceSet instanceof DefaultLibrarySourceSet
-                            assert sampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
+                            assert sampleBinarySourceSet.displayName == "LibrarySourceSet 'sampleLib:librarySource'"
                             assert othersSampleBinarySourceSet instanceof DefaultLibrarySourceSet
-                            assert othersSampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
+                            assert othersSampleBinarySourceSet.displayName == "LibrarySourceSet 'sampleLib:librarySource'"
                         }
                     }
                 }
@@ -234,7 +234,7 @@ SampleLibrary 'sampleLib'
 -------------------------
 
 Source sets
-    DefaultLibrarySourceSet 'sampleLib:librarySource'
+    LibrarySourceSet 'sampleLib:librarySource'
         srcDir: src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
