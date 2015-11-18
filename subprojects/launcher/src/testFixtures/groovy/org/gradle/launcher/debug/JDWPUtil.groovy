@@ -16,9 +16,13 @@
 
 package org.gradle.launcher.debug
 
+import org.junit.rules.TestRule
+import org.junit.runner.Description
+import org.junit.runners.model.Statement
+
 import java.nio.ByteBuffer
 
-class JDWPUtil {
+class JDWPUtil implements TestRule {
     String host
     Integer port
     Socket client
@@ -42,14 +46,34 @@ class JDWPUtil {
         this.port = port
     }
 
+    @Override
+    Statement apply(Statement base, Description description) {
+        return new Statement() {
+            @Override
+            void evaluate() throws Throwable {
+                base.evaluate()
+                close()
+            }
+        }
+    }
+
     public JDWPUtil connect() {
-        InetAddress hostAddress = InetAddress.getByName(host ?: "127.0.0.1")
-        client = new Socket(hostAddress, port)
-        toServer = new DataOutputStream(client.getOutputStream())
-        fromServer = new DataInputStream(client.getInputStream())
-        performHandshake()
-        isConnected = true
+        if (!isConnected) {
+            InetAddress hostAddress = InetAddress.getByName(host ?: "127.0.0.1")
+            client = new Socket(hostAddress, port)
+            toServer = new DataOutputStream(client.getOutputStream())
+            fromServer = new DataInputStream(client.getInputStream())
+            performHandshake()
+            isConnected = true
+        }
         return this
+    }
+
+    public void close() {
+        if (client != null) {
+            client.close()
+        }
+        isConnected = false
     }
 
     private void performHandshake() {
