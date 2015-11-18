@@ -34,6 +34,7 @@ public class DefaultJvmApiSpec implements JvmApiSpec {
     private final Set<JvmPackageName> exports = new HashSet<JvmPackageName>();
     private final DefaultDependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
+    @Override
     public void exports(String value) {
         final JvmPackageName packageName;
         try {
@@ -48,14 +49,17 @@ public class DefaultJvmApiSpec implements JvmApiSpec {
         }
     }
 
+    @Override
     public Set<JvmPackageName> getExports() {
         return exports;
     }
 
+    @Override
     public DependencySpecContainer getDependencies() {
         return dependencies;
     }
 
+    @Override
     public void dependencies(Closure<?> configureAction) {
         ConfigureUtil.configure(configureAction, dependencies);
     }
