@@ -18,7 +18,6 @@ package org.gradle.testkit.runner
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
@@ -27,7 +26,6 @@ import spock.lang.Shared
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-@LeaksFileHandles
 @Requires(TestPrecondition.ONLINE)
 class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 

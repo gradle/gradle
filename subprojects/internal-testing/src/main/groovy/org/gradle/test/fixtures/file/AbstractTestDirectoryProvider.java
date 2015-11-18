@@ -92,7 +92,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
                         FileUtils.forceDelete(dir);
                     } catch (IOException e) {
                         // Some releases are async, wait then try again
-                        Thread.sleep(1000);
+                        Thread.sleep(1500);
                         FileUtils.forceDelete(dir);
                     }
                 }
