@@ -99,7 +99,11 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerInteg
 
         cleanup:
         DaemonsFixture gradleVersionUnderTest = daemons(testKitDir, ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME, version)
-        gradleVersionUnderTest.killAll()
+
+        // only exists if executed in daemon process
+        if (gradleVersionUnderTest.daemonLogsDir.exists()) {
+            gradleVersionUnderTest.killAll()
+        }
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
