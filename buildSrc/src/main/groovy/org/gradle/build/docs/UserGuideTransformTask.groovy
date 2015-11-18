@@ -26,6 +26,7 @@ import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document
 import org.w3c.dom.Element
+import org.gradle.api.tasks.*
 
 /**
  * Transforms userguide source into docbook, replacing custom XML elements.
