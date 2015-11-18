@@ -84,8 +84,8 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         then:
         ConcurrentTestUtil.poll() {
             client.connect()
+            client.resume()
         }
-        client.resume()
         gradle.waitForFinish()
     }
 }

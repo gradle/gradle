@@ -43,7 +43,7 @@ class JDWPUtil {
     }
 
     public JDWPUtil connect() {
-        InetAddress hostAddress = InetAddress.getByName("127.0.0.1")
+        InetAddress hostAddress = InetAddress.getByName(host ?: "127.0.0.1")
         client = new Socket(hostAddress, port)
         toServer = new DataOutputStream(client.getOutputStream())
         fromServer = new DataInputStream(client.getInputStream())
@@ -81,12 +81,59 @@ class JDWPUtil {
         message.put(command[0])
         message.put(command[1])
         toServer.write(message.array())
+        verifyResponse()
         return this
+    }
+
+    private void verifyResponse() {
+        boolean responseReceived = false
+
+        while(!responseReceived) {
+            byte[] bytes = new byte[11]
+            int bytesRead = fromServer.read(bytes, 0, bytes.length)
+            if (bytesRead == -1) {
+                throw new IllegalStateException("Stream closed before response was received.")
+            }
+            ByteBuffer header = ByteBuffer.wrap(bytes)
+            int length = header.getInt()
+            int id = header.getInt()
+            byte flags = header.get()
+
+            if (flags == 0x80 as byte) {
+                responseReceived = true
+                short errorCode = header.getShort()
+                if (errorCode != 0) {
+                    throw new JDWPException("Did not get a successful response!")
+                }
+            } else {
+                // if it wasn't a response, then it was an event
+                // TODO do something with these events
+                byte commandSet = header.get()
+                byte command = header.get()
+            }
+
+            // TODO we don't currently do anything with response/event data
+            int dataLength = length - 11
+            if (dataLength > 0) {
+                byte[] dataBytes = new byte[dataLength]
+                fromServer.read(dataBytes, 0, dataLength)
+            }
+        }
     }
 
     private void verifyConnected() {
         if (! isConnected) {
             throw new IllegalStateException("Not connected to debug VM - call connect() first")
+        }
+    }
+
+    public static class JDWPException extends Exception {
+        JDWPException(String message) {
+            super(message)
+        }
+
+        JDWPException(String message, Throwable t) {
+            super(message, t)
         }
     }
 }
