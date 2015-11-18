@@ -47,7 +47,13 @@ public interface JvmApiSpec {
      */
     Set<JvmPackageName> getExports();
 
+    /**
+     * Specify the dependencies of this API.
+     */
     void dependencies(Closure<?> configureAction);
 
+    /**
+     * The dependencies of this API.
+     */
     DependencySpecContainer getDependencies();
 }
