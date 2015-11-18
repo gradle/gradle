@@ -66,7 +66,7 @@ class CrossBuildPerformanceTestRunner {
         assert builder.projectName
         builder.invocation.workingDirectory = testProjectLocator.findProjectDir(builder.projectName)
         if (!builder.invocation.gradleOptions) {
-            builder.invocation.gradleOptions = ['-Xms2g', '-Xmx2g']
+            builder.invocation.gradleOptions = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
         }
     }
 
