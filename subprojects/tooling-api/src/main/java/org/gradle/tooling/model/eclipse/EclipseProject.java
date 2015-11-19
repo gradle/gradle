@@ -15,10 +15,8 @@
  */
 package org.gradle.tooling.model.eclipse;
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.ExternalDependency;
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.HasGradleProject;
+import org.gradle.api.Nullable;
+import org.gradle.tooling.model.*;
 import org.gradle.tooling.model.java.JavaSourceAware;
 
 /**
@@ -42,6 +40,7 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
     /**
      * {@inheritDoc}
      */
+    @Nullable
     EclipseJavaSourceSettings getJavaSourceSettings();
 
     /**
@@ -75,9 +74,10 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
      *
      * @return The list of Eclipse project natures.
      * @since 2.9
+     * @throws UnsupportedMethodException For Gradle versions older than 2.9, where this method is not supported.
      */
     @Incubating
-    DomainObjectSet<? extends EclipseProjectNature> getProjectNatures();
+    DomainObjectSet<? extends EclipseProjectNature> getProjectNatures() throws UnsupportedMethodException;
 
     /**
      * Returns the Eclipse build commands configured on the project.
@@ -92,7 +92,8 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
      *
      * @return The list of Eclipse build commands.
      * @since 2.9
+     * @throws UnsupportedMethodException For Gradle versions older than 2.9, where this method is not supported.
      */
     @Incubating
-    DomainObjectSet<? extends EclipseBuildCommand> getBuildCommands();
+    DomainObjectSet<? extends EclipseBuildCommand> getBuildCommands() throws UnsupportedMethodException;
 }
