@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.integtests.tooling.r210
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.tooling.model.java.JavaVersion
 
 @ToolingApiVersion('>=2.10')
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
@@ -64,7 +62,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.sourceLanguageLevel.version.name == org.gradle.api.JavaVersion.current().toString()
+        rootProject.javaSourceSettings.sourceLanguageLevel == org.gradle.api.JavaVersion.current()
     }
 
     @TargetGradleVersion(">=2.10")
@@ -80,7 +78,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.sourceLanguageLevel.version == JavaVersion.VERSION_1_6
+        rootProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_6
     }
 
     @TargetGradleVersion(">=2.10")
@@ -101,7 +99,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.sourceLanguageLevel.version == JavaVersion.VERSION_1_5
+        rootProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_5
     }
 
     @TargetGradleVersion(">=2.10")
@@ -144,7 +142,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.sourceLanguageLevel.version == JavaVersion.VERSION_1_3
+        rootProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
     }
 
     @TargetGradleVersion(">=2.10")
@@ -187,9 +185,9 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject subprojectC = rootProject.children.find { it.name == 'subproject-c' }
 
         then:
-        subprojectA.javaSourceSettings.sourceLanguageLevel.version == JavaVersion.VERSION_1_1
-        subprojectB.javaSourceSettings.sourceLanguageLevel.version == JavaVersion.VERSION_1_2
-        subprojectC.javaSourceSettings.sourceLanguageLevel.version == JavaVersion.VERSION_1_3
+        subprojectA.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_1
+        subprojectB.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
+        subprojectC.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
     }
 
     private EclipseProject loadEclipseProjectModel() {

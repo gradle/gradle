@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.model.java;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.*;
 
 /**
  * Describes Java source settings.
@@ -30,5 +30,5 @@ public interface JavaSourceSettings {
      *
      * @return The source language level. Never returns {@code null}.
      */
-    JavaLanguageLevel getSourceLanguageLevel();
+    JavaVersion getSourceLanguageLevel();
 }
