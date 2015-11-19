@@ -15,11 +15,15 @@
  */
 
 package org.gradle.performance
+
+import org.gradle.performance.categories.JavaPerformanceTest
 import org.gradle.performance.measure.DataAmount
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
+@Category(JavaPerformanceTest)
 class JavaSoftwareModelIncrementalBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' measuring up-to-date checking speed")
     def "build java software model project"() {

@@ -16,9 +16,13 @@
 
 
 package org.gradle.performance
+
+import org.gradle.performance.categories.BasicPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentSpec
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
-// @Category(Experiment)
+
+@Category(BasicPerformanceTest)
 class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Override

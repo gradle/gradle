@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.performance;
+package org.gradle.performance.categories;
 
+/**
+ * All performance tests
+ */
 public interface PerformanceTest {
 }

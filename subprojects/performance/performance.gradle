@@ -564,7 +564,7 @@ task performanceTest(type: Test) {
     finalizedBy report
     maxParallelForks = 1
     options {
-        includeCategories 'org.gradle.performance.PerformanceTest'
+        includeCategories 'org.gradle.performance.categories.PerformanceTest'
     }
 }
 
@@ -573,7 +573,7 @@ task performanceExperiments(type: Test) {
     finalizedBy report
     maxParallelForks = 1
     options {
-        includeCategories 'org.gradle.performance.Experiment'
+        includeCategories 'org.gradle.performance.categories.Experiment'
     }
 }
 
@@ -605,12 +605,12 @@ if (project.hasProperty('performanceTest.verbose')) {
 
 integTest {
     options {
-        excludeCategories 'org.gradle.performance.PerformanceTest'
+        excludeCategories 'org.gradle.performance.categories.PerformanceTest'
     }
 }
 
 java9IntegTest {
     options {
-        excludeCategories 'org.gradle.performance.PerformanceTest'
+        excludeCategories 'org.gradle.performance.categories.PerformanceTest'
     }
 }

@@ -16,10 +16,12 @@
 
 package org.gradle.performance
 import org.gradle.performance.fixture.BuildExperimentSpec
+import org.junit.experimental.categories.Category
 import spock.lang.Ignore
 import spock.lang.Unroll
 
 @Ignore
+@Category(NativePerformanceTest)
 class NativeScenarioPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {

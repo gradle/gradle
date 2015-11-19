@@ -15,15 +15,17 @@
  */
 
 package org.gradle.performance
-
 import org.apache.commons.io.FileUtils
+import org.gradle.performance.categories.JavaPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.BuildExperimentRunner
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
+@Category(JavaPerformanceTest)
 class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll("CompileAvoidance '#testCompileAvoidance' measuring compile avoidance speed when #cardinalityDesc #scenario #apiDesc")

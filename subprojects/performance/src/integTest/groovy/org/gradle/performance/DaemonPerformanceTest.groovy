@@ -16,11 +16,14 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.BasicPerformanceTest
 import org.gradle.performance.measure.DataAmount
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
+@Category(BasicPerformanceTest)
 class DaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("Project '#testProject' build")
