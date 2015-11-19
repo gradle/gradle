@@ -203,6 +203,26 @@
             </itemizedlist>
         </section>
         <section>
+            <title>“<literal>kotlin-library</literal>”
+            </title>
+            <para>
+                The “<literal>kotlin-library</literal>” build init type is not inferable. It must be explicitly specified.
+            </para>
+            <para>
+                It has the following features:
+            </para>
+            <itemizedlist>
+                <listitem>Uses the “<literal>kotlin</literal>” plugin
+                </listitem>
+                <listitem>Uses the “<literal>jcenter</literal>” dependency repository
+                </listitem>
+                <listitem>Uses <ulink url="http://junit.org">JUnit</ulink>
+                    for testing</listitem>
+                <listitem>Has directories in the conventional locations for source code</listitem>
+                <listitem>Contains a sample class and unit test, if there are no existing source or test files</listitem>
+            </itemizedlist>
+        </section>
+        <section>
             <title>“basic”</title>
             <para>
                 The “<literal>basic</literal>” build init type is useful for creating a fresh new Gradle project.

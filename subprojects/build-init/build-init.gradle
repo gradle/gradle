@@ -67,6 +67,7 @@ class GenerateVersionProperties extends DefaultTask {
         findLatest('groovy', 'org.codehaus.groovy:groovy:latest.release', versionProperties)
         findLatest('junit', 'junit:junit:latest.release', versionProperties)
         findLatest('slf4j', 'org.slf4j:slf4j-api:latest.release', versionProperties)
+        findLatest('kotlin', 'org.jetbrains.kotlin:kotlin-stdlib:latest.release', versionProperties)
         def groovyVersion = VersionNumber.parse(versionProperties['groovy'])
         versionProperties.put('spock', "1.0-groovy-${groovyVersion.major}.${groovyVersion.minor}" as String)
 
