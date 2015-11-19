@@ -15,12 +15,10 @@
  */
 
 package org.gradle.integtests.tooling.r210
-
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
@@ -66,7 +64,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=2.10")
-    def "source language level is defined in Java plugin convention"() {
+    def "source language level is explicitly defined"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -79,70 +77,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         rootProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_6
-    }
-
-    @TargetGradleVersion(">=2.10")
-    def "source language level is defined in Eclipse JDT settings"() {
-        given:
-        settingsFile << "rootProject.name = 'root'"
-        buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
-            eclipse {
-                jdt {
-                    sourceCompatibility = 1.5
-                }
-            }
-        """
-
-        when:
-        EclipseProject rootProject = loadEclipseProjectModel()
-
-        then:
-        rootProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_5
-    }
-
-    @TargetGradleVersion(">=2.10")
-    def "Can' define JDT source language level without the java-base plugin"() {
-        given:
-        settingsFile << "rootProject.name = 'root'"
-        buildFile << """
-            apply plugin: 'eclipse'
-            eclipse {
-                jdt {
-                    sourceCompatibility = 1.3
-                }
-            }
-        """
-
-        when:
-        loadEclipseProjectModel()
-
-        then:
-        thrown(BuildException)
-    }
-
-
-    @TargetGradleVersion(">=2.10")
-    def "Eclipse JDT setting has precedence over Java plugin convention"() {
-        given:
-        settingsFile << "rootProject.name = 'root'"
-        buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
-            sourceCompatibility = 1.4
-            eclipse {
-                jdt {
-                    sourceCompatibility = 1.3
-                }
-            }
-        """
-
-        when:
-        EclipseProject rootProject = loadEclipseProjectModel()
-
-        then:
-        rootProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
     }
 
     @TargetGradleVersion(">=2.10")
