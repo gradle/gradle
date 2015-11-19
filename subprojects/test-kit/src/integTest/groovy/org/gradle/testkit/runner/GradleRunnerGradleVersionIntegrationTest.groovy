@@ -19,6 +19,7 @@ package org.gradle.testkit.runner
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
@@ -98,10 +99,8 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerInteg
         }
 
         cleanup:
-        DaemonsFixture gradleVersionUnderTest = daemons(testKitDir, ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME, version)
-
-        // only exists if executed in daemon process
-        if (gradleVersionUnderTest.daemonLogsDir.exists()) {
+        if (!GradleRunnerIntegTestRunner.debug) {
+            DaemonsFixture gradleVersionUnderTest = daemons(testKitDir, ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME, version)
             gradleVersionUnderTest.killAll()
         }
     }
