@@ -206,10 +206,6 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    protected void resetPrivateData() {
-    }
-
-    @Override
     public void ensureUsable() {
         if (target != null) {
             target.ensureUsable();

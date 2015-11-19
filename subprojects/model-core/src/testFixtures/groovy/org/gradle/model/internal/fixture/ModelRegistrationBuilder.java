@@ -36,7 +36,6 @@ import java.util.List;
 
 public class ModelRegistrationBuilder {
     private final ModelPath path;
-    private boolean ephemeral;
     private ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("tester");
 
     public ModelRegistrationBuilder(ModelPath path) {
@@ -46,11 +45,6 @@ public class ModelRegistrationBuilder {
 
     public ModelRegistrationBuilder descriptor(String descriptor) {
         return descriptor(new SimpleModelRuleDescriptor(descriptor));
-    }
-
-    public ModelRegistrationBuilder ephemeral(boolean flag) {
-        this.ephemeral = flag;
-        return this;
     }
 
     public ModelRegistrationBuilder descriptor(ModelRuleDescriptor descriptor) {
@@ -82,7 +76,6 @@ public class ModelRegistrationBuilder {
             })
             .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
             .descriptor(descriptor)
-            .ephemeral(ephemeral)
             .build();
     }
 
@@ -101,7 +94,6 @@ public class ModelRegistrationBuilder {
                 }
             })
             .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
-            .ephemeral(ephemeral)
             .descriptor(descriptor)
             .build();
     }
@@ -125,7 +117,6 @@ public class ModelRegistrationBuilder {
             })
             .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
             .descriptor(descriptor)
-            .ephemeral(ephemeral)
             .build();
     }
 
@@ -137,7 +128,6 @@ public class ModelRegistrationBuilder {
         return ModelRegistrations.of(path, action)
             .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
             .descriptor(descriptor)
-            .ephemeral(ephemeral)
             .build();
     }
 
@@ -176,7 +166,6 @@ public class ModelRegistrationBuilder {
             )
             .withProjection(UnmanagedModelProjection.of(instantiatorType))
             .descriptor(descriptor)
-            .ephemeral(ephemeral)
             .build();
     }
 }

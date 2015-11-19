@@ -33,8 +33,6 @@ public interface ModelRegistration {
 
     Set<? extends ModelReference<?>> getInputs();
 
-    boolean isEphemeral();
-
     /**
      * Returns whether the node registered is a {@link Service}.
      */

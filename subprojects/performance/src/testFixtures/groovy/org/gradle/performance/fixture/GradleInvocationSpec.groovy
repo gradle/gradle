@@ -15,12 +15,10 @@
  */
 
 package org.gradle.performance.fixture
-
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.launcher.daemon.configuration.GradleProperties
-import org.gradle.model.internal.persist.ReusingModelRegistryStore
 
 @CompileStatic
 @EqualsAndHashCode
@@ -128,10 +126,6 @@ class GradleInvocationSpec {
         Builder useToolingApi(boolean flag) {
             this.useToolingApi = flag
             this
-        }
-
-        Builder enableModelReuse() {
-            gradleOpts("-D$ReusingModelRegistryStore.TOGGLE=true")
         }
 
         Builder disableDaemonLogging() {

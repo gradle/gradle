@@ -21,11 +21,11 @@ import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 
-public class AlwaysNewModelRegistryStore implements ModelRegistryStore {
+public class DefaultModelRegistryStore implements ModelRegistryStore {
 
     private final ModelRuleExtractor extractor;
 
-    public AlwaysNewModelRegistryStore(ModelRuleExtractor extractor) {
+    public DefaultModelRegistryStore(ModelRuleExtractor extractor) {
         this.extractor = extractor;
     }
 

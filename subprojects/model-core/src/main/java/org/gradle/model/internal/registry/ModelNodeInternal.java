@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -24,8 +23,6 @@ import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Set;
@@ -34,9 +31,7 @@ import static org.gradle.model.internal.core.ModelNode.State.Discovered;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ModelNodeInternal.class);
-
-    private ModelRegistration registration;
+    private final ModelRegistration registration;
     private final Set<ModelNodeInternal> dependencies = Sets.newHashSet();
     private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
     private ModelNode.State state = ModelNode.State.Registered;
@@ -55,26 +50,6 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return registration;
     }
 
-    public void replaceRegistration(ModelRegistration registration) {
-        if (isAtLeast(State.Created)) {
-            throw new IllegalStateException("Cannot replace registration rule binder when node is already created (node: " + this + ", state: " + getState() + ")");
-        }
-
-        // Can't change type
-        // TODO:LPTR We can't ensure this with projections being determined later in the node lifecycle, should remove this or fix in some other way
-        // if (!oldRegistration.getPromise().equals(newRegistration.getPromise())) {
-        //     throw new IllegalStateException("can not replace node " + getPath() + " with different promise (old: " + oldRegistration.getPromise() + ", new: " + newRegistration.getPromise() + ")");
-        // }
-
-        // Can't have different inputs
-        if (!registration.getInputs().equals(this.registration.getInputs())) {
-            Joiner joiner = Joiner.on(", ");
-            throw new IllegalStateException("can not replace node " + getPath() + " with registration with different input bindings (old: [" + joiner.join(this.registration.getInputs()) + "], new: [" + joiner.join(registration.getInputs()) + "])");
-        }
-
-        this.registration = registration;
-    }
-
     public List<RuleBinder> getInitializerRuleBinders() {
         return initializerRuleBinders;
     }
@@ -91,11 +66,6 @@ abstract class ModelNodeInternal implements MutableModelNode {
     @Override
     public void setHidden(boolean hidden) {
         this.hidden = hidden;
-    }
-
-    @Override
-    public boolean isEphemeral() {
-        return registration.isEphemeral();
     }
 
     public void notifyFired(RuleBinder binder) {
@@ -177,30 +147,6 @@ abstract class ModelNodeInternal implements MutableModelNode {
     public boolean isAtLeast(State state) {
         return this.getState().compareTo(state) >= 0;
     }
-
-    public void reset() {
-        if (isAtLeast(State.Created)) {
-            setState(State.Discovered);
-            resetPrivateData();
-
-            for (ModelNodeInternal dependent : dependents) {
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("resetting dependent node of {}: {}", this, dependent);
-                }
-                dependent.reset();
-            }
-
-            for (ModelNodeInternal child : getLinks()) {
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("resetting child node of {}: {}", this, child);
-                }
-
-                child.reset();
-            }
-        }
-    }
-
-    protected abstract void resetPrivateData();
 
     @Override
     public Optional<String> getValueDescription() {

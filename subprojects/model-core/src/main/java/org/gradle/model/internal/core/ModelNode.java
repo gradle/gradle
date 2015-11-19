@@ -57,8 +57,6 @@ public interface ModelNode {
         }
     }
 
-    boolean isEphemeral();
-
     ModelPath getPath();
 
     ModelRuleDescriptor getDescriptor();

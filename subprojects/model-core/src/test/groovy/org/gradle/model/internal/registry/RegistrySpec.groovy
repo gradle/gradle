@@ -158,10 +158,6 @@ abstract class RegistrySpec extends Specification {
 
         }
 
-        @Override
-        protected void resetPrivateData() {
-
-        }
 
         @Override
         def <T> T getPrivateData(ModelType<T> type) {

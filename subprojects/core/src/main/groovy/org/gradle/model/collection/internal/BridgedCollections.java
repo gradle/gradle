@@ -82,7 +82,6 @@ public abstract class BridgedCollections {
                 }
             }
         )
-            .ephemeral(true)
             .descriptor(descriptor);
     }
 
