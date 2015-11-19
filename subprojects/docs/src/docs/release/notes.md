@@ -6,6 +6,10 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Performance improvements
+
+Should mention Java compile avoidance
+
 ### Software model changes
 
 TBD - Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
@@ -249,7 +253,7 @@ TODO: `ModelMap` creation and configuration DSL syntax is now treated as nested 
             }
         }
     }
-    
+
 This means that a task can be configured using another task as input:
 
     model {
@@ -257,13 +261,13 @@ This means that a task can be configured using another task as input:
             jar { ... }
             dist(Zip) {
                 def jar = $.tasks.jar // The `jar` task has been fully configured and will not change any further
-                from jar.output 
+                from jar.output
                 into someDir
             }
         }
     }
-    
-This is also available for the various methods of `ModelMap`, such as `all` or `withType`:    
+
+This is also available for the various methods of `ModelMap`, such as `all` or `withType`:
 
     model {
         components {
@@ -277,7 +281,7 @@ This is also available for the various methods of `ModelMap`, such as `all` or `
             }
         }
     }
-    
+
 TODO: The properties of a `@Managed` type can be configured using nested configure methods:
 
     model {
