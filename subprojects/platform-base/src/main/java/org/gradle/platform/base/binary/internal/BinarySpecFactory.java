@@ -16,14 +16,52 @@
 
 package org.gradle.platform.base.binary.internal;
 
-import org.gradle.model.internal.core.BaseInstanceFactory;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
+
+import java.util.Set;
 
 public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec> {
+    private final Instantiator instantiator;
+    private final ITaskFactory taskFactory;
 
-    public BinarySpecFactory(String displayName) {
+    public BinarySpecFactory(String displayName, Instantiator instantiator, ITaskFactory taskFactory) {
         super(displayName, BinarySpec.class, BaseBinarySpec.class);
+        this.instantiator = instantiator;
+        this.taskFactory = taskFactory;
     }
 
+    public <S extends BinarySpec, T extends BaseBinarySpec> void register(final ModelType<S> publicType, final ModelType<T> implementationType,
+                                                                                Set<Class<?>> internalViews, final ModelRuleDescriptor descriptor) {
+        InstanceFactory.TypeRegistrationBuilder<S> registration = register(publicType, descriptor);
+        if (implementationType != null) {
+            registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<S>() {
+                @Override
+                public S create(ModelType<? extends S> publicType, String name, MutableModelNode binaryNode) {
+                    MutableModelNode parentNode = binaryNode.getParent().getParent();
+                    ComponentSpecInternal owner = parentNode.canBeViewedAs(ModelType.of(ComponentSpecInternal.class))
+                        ? parentNode.asImmutable(ModelType.of(ComponentSpecInternal.class), descriptor).getInstance()
+                        : null;
+                    return Cast.uncheckedCast(BaseBinarySpec.create(
+                            publicType.getConcreteClass(),
+                            implementationType.getConcreteClass(),
+                            name,
+                            binaryNode,
+                            owner,
+                            instantiator,
+                            taskFactory));
+                }
+            });
+        }
+        for (Class<?> internalView : internalViews) {
+            registration.withInternalView(ModelType.of(internalView));
+        }
+    }
 }

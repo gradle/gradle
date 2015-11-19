@@ -21,6 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -89,8 +90,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Service
-        BinarySpecFactory binarySpecFactory() {
-            return new BinarySpecFactory("binaries");
+        BinarySpecFactory binarySpecFactory(ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
+            return new BinarySpecFactory("binaries", serviceRegistry.get(Instantiator.class), taskFactory);
         }
 
         @Model
