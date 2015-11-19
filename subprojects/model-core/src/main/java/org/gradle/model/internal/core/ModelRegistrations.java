@@ -183,7 +183,7 @@ abstract public class ModelRegistrations {
             if (!projections.isEmpty()) {
                 action(ModelActionRole.Discover, AddProjectionsAction.of(reference, descriptor, projections));
             }
-            return new DefaultModelRegistration(reference.getPath(), descriptor, service, ephemeral, hidden || service, actions);
+            return new DefaultModelRegistration(reference.getPath(), descriptor, service, ephemeral || service, hidden || service, actions);
         }
 
         private static class DescriptorReference {
