@@ -19,7 +19,7 @@ repositories {
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:\$kotlin_version"
 
     // The production code uses the SLF4J logging API at compile time
     compile 'org.slf4j:slf4j-api:${slf4jVersion.groovyComment}'
@@ -41,7 +41,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:\$kotlin_version"
     }
 }
 
