@@ -53,6 +53,7 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.reflect.Instantiator;
@@ -210,19 +211,29 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
         registerServiceOn(modelRegistry, "serviceRegistry", ServiceRegistry.class, services, instanceDescriptorFor("serviceRegistry"));
-        // TODO:LPTR This is broken, as it ignores changes to Project.buildDir
-        registerInstanceOn(modelRegistry, "buildDir", File.class, getBuildDir());
+        // TODO:LPTR This ignores changes to Project.buildDir after model node has been created
+        registerFactoryOn(modelRegistry, "buildDir", File.class, new Factory<File>() {
+            @Override
+            public File create() {
+                return getBuildDir();
+            }
+        });
         registerInstanceOn(modelRegistry, "projectIdentifier", ProjectIdentifier.class, this);
         registerInstanceOn(modelRegistry, "extensionContainer", ExtensionContainer.class, getExtensions());
         modelRegistry.apply(BasicServicesRules.class);
     }
 
     private <T> void registerInstanceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance) {
+        registerFactoryOn(modelRegistry, path, type, Factories.constant(instance));
+    }
+
+    private <T> void registerFactoryOn(ModelRegistry modelRegistry, String path, Class<T> type, Factory<T> factory) {
         modelRegistry.registerOrReplace(ModelRegistrations
-                .bridgedInstance(ModelReference.of(path, type), instance)
-                .descriptor(instanceDescriptorFor(path))
-                .ephemeral(true)
-                .build());
+            .unmanagedInstance(ModelReference.of(path, type), factory)
+            .descriptor(instanceDescriptorFor(path))
+            .ephemeral(true)
+            .hidden(true)
+            .build());
     }
 
     private <T> void registerServiceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance, String descriptor) {
