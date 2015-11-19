@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -75,9 +76,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
+        // TODO The 'path' is required to here to avoid a rule cycle being reported
         @Service
-        ComponentSpecFactory componentSpecFactory() {
-            return new ComponentSpecFactory("components");
+        ComponentSpecFactory componentSpecFactory(ServiceRegistry serviceRegistry, @Path("projectIdentifier") ProjectIdentifier projectIdentifier) {
+            return new ComponentSpecFactory("components", serviceRegistry.get(Instantiator.class), projectIdentifier);
         }
 
         @ComponentType
