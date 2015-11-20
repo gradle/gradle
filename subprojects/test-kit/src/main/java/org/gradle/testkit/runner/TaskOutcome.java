@@ -16,12 +16,15 @@
 
 package org.gradle.testkit.runner;
 
+import org.gradle.api.Incubating;
+
 /**
  * The outcome of executing a task during a build.
  *
  * @since 2.6
  * @see BuildTask#getOutcome()
  */
+@Incubating
 public enum TaskOutcome {
 
     /**
