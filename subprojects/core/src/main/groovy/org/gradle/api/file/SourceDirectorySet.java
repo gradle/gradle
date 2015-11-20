@@ -17,6 +17,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.Named;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.model.internal.core.UnmanagedStruct;
 
 import java.io.File;
 import java.util.Set;
@@ -28,6 +29,7 @@ import java.util.Set;
  * TODO - configure includes/excludes for individual source dirs, and sync up with CopySpec
  * TODO - allow add FileTree
  */
+@UnmanagedStruct
 public interface SourceDirectorySet extends FileTree, PatternFilterable, Named {
 
     /**

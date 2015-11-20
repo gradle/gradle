@@ -17,13 +17,14 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
+import org.gradle.model.internal.core.UnmanagedStruct;
 
 import java.util.Collection;
 
 /**
  * A container for dependency specifications.
  */
-@Incubating
+@Incubating @UnmanagedStruct
 public interface DependencySpecContainer {
     /**
      * Defines a new dependency, based on a project path. The returned dependency can be mutated.
