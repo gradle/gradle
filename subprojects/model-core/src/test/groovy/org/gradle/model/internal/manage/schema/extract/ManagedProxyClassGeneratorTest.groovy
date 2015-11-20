@@ -17,7 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract
 import com.google.common.base.Optional
 import groovy.transform.NotYetImplemented
-import org.gradle.internal.service.ServiceRegistry
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.typeconversion.DefaultTypeConverter
 import org.gradle.internal.typeconversion.TypeConverter
 import org.gradle.model.Managed
@@ -27,6 +27,7 @@ import org.gradle.model.internal.manage.instance.ModelElementState
 import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.Matchers
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -34,6 +35,9 @@ class ManagedProxyClassGeneratorTest extends Specification {
     static def generator = new ManagedProxyClassGenerator()
     static Map<Class<?>, Map<Class<?>, Class<?>>> generated = [:].withDefault { [:] }
     def schemaStore = DefaultModelSchemaStore.instance
+
+    @Shared
+    def typeConverter = new DefaultTypeConverter(Mock(FileResolver))
 
     def "generates a proxy class for an interface"() {
         expect:
@@ -70,7 +74,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         }
 
         when:
-        SomeType impl = proxyClass.newInstance(state)
+        SomeType impl = proxyClass.newInstance(state, typeConverter)
 
         then:
         assert impl instanceof ManagedInstance
@@ -163,9 +167,9 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         when:
         Class<? extends SomeType> proxyClass = generate(SomeType)
-        SomeType impl1 = proxyClass.newInstance(state1)
-        SomeType impl1alternative = proxyClass.newInstance(state1alternative)
-        SomeType impl2 = proxyClass.newInstance(state2)
+        SomeType impl1 = proxyClass.newInstance(state1, typeConverter)
+        SomeType impl1alternative = proxyClass.newInstance(state1alternative, typeConverter)
+        SomeType impl2 = proxyClass.newInstance(state2, typeConverter)
 
         then:
         Matchers.strictlyEquals(impl1, impl1alternative)
@@ -180,7 +184,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         when:
         Class<? extends SomeType> proxyClass = generate(SomeType)
-        SomeType impl = proxyClass.newInstance(state)
+        SomeType impl = proxyClass.newInstance(state, typeConverter)
         def hashCode = impl.hashCode()
 
         then:
@@ -198,7 +202,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         when:
         Class<? extends PublicUnmanagedType> proxyClass = generate(managedType, UnmanagedImplType)
         def unmanagedInstance = new UnmanagedImplType()
-        PublicUnmanagedType impl = proxyClass.newInstance(state, unmanagedInstance)
+        PublicUnmanagedType impl = proxyClass.newInstance(state, typeConverter, unmanagedInstance)
 
         then:
         impl instanceof ManagedInstance
@@ -229,7 +233,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         when:
         Class<? extends InternalUnmanagedType> proxyClassInternal = generate(InternalUnmanagedType, UnmanagedImplType)
-        InternalUnmanagedType internalImpl = proxyClassInternal.newInstance(state, unmanagedInstance)
+        InternalUnmanagedType internalImpl = proxyClassInternal.newInstance(state, typeConverter, unmanagedInstance)
 
         then:
         unmanagedInstance.unmanagedValue == "Lajos"
@@ -286,7 +290,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         Class<? extends CustomManagedOverloading> proxyClass = generate(CustomManagedOverloading, OverloadingIntegerImpl)
 
         when:
-        OverloadingNumber impl = proxyClass.newInstance(state, new OverloadingIntegerImpl())
+        OverloadingNumber impl = proxyClass.newInstance(state, typeConverter, new OverloadingIntegerImpl())
 
         then:
         impl.value == 2
@@ -301,7 +305,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         def proxyClass = generate(TypeWithPrimitiveMethods, ClassWithPrimitiveMethods)
 
         when:
-        def impl = proxyClass.newInstance(state, new ClassWithPrimitiveMethods())
+        def impl = proxyClass.newInstance(state, typeConverter, new ClassWithPrimitiveMethods())
 
         then:
         impl.someLong(12L) == 13L
@@ -341,7 +345,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         given:
         def proxyClass = generate(SomeTypeWithReadOnlyProperty)
-        def impl = proxyClass.newInstance(state)
+        def impl = proxyClass.newInstance(state, typeConverter)
         def cl = { }
 
         when:
@@ -358,7 +362,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         expect:
         def proxyClass = generate(SomeType)
-        def impl = proxyClass.newInstance(state)
+        def impl = proxyClass.newInstance(state, typeConverter)
         impl.toString() == "<display-name>"
     }
 
@@ -428,13 +432,8 @@ class ManagedProxyClassGeneratorTest extends Specification {
             data[args[0]] = args[1]
         }
 
-        def converter = new DefaultTypeConverter()
-        def services = Mock(ServiceRegistry)
-        services.get(_ as Class) >> { Class type -> if (type == TypeConverter) { return converter } }
-        state.getServices() >> services
-
         def proxy = generate(interfaceWithPrimitiveProperty)
-        def instance = proxy.newInstance(state)
+        def instance = proxy.newInstance(state, typeConverter)
 
         then:
         new GroovyShell(loader, new Binding(instance: instance)).evaluate """
@@ -478,13 +477,9 @@ class ManagedProxyClassGeneratorTest extends Specification {
         state.set(_, _) >> { args ->
             data[args[0]] = args[1]
         }
-        def converter = new DefaultTypeConverter()
-        def services = Mock(ServiceRegistry)
-        services.get(_ as Class) >> { Class type -> if (type == TypeConverter) { return converter } }
-        state.getServices() >> services
 
         def proxy = generate(clazz)
-        def instance = proxy.newInstance(state)
+        def instance = proxy.newInstance(state, typeConverter)
 
         then:
         new GroovyShell(loader, new Binding(instance: instance)).evaluate """
@@ -523,7 +518,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     def <T> T newInstance(Class<T> type) {
         def generated = generate(type)
-        return generated.newInstance(Stub(ModelElementState))
+        return generated.newInstance(Stub(ModelElementState), Stub(TypeConverter))
     }
 
     def <T, M extends T, D extends T> Class<? extends T> generate(Class<T> managedType, Class<D> delegateType = null) {

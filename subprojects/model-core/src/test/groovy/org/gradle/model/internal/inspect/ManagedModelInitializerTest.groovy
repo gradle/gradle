@@ -18,6 +18,7 @@ package org.gradle.model.internal.inspect
 
 import org.gradle.api.credentials.Credentials
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.typeconversion.TypeConverter
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
 import org.gradle.model.Unmanaged
@@ -51,6 +52,7 @@ class ManagedModelInitializerTest extends Specification {
         registerServiceInstance("schemaStore", ModelSchemaStore, DefaultModelSchemaStore.instance)
         registerServiceInstance("proxyFactory", ManagedProxyFactory, proxyFactory)
         registerServiceInstance("serviceRegistry", ServiceRegistry, Mock(ServiceRegistry))
+        registerServiceInstance("typeConverter", TypeConverter, Mock(TypeConverter))
         nodeInitializerRegistry = new TestNodeInitializerRegistry() //Not shared across tests as test may add constructable types only applying to that particular test
         registerServiceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry)
     }

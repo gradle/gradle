@@ -22,6 +22,7 @@ import com.google.common.cache.LoadingCache;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.manage.schema.extract.ManagedProxyClassGenerator;
 import org.gradle.model.internal.type.ModelType;
@@ -41,20 +42,20 @@ public class ManagedProxyFactory {
             }
         });
 
-    public <T> T createProxy(ModelElementState state, StructSchema<T> viewSchema, @Nullable StructSchema<? extends T> delegateSchema) {
+    public <T> T createProxy(ModelElementState state, StructSchema<T> viewSchema, @Nullable StructSchema<? extends T> delegateSchema, TypeConverter typeConverter) {
         try {
             Class<? extends T> generatedClass = getGeneratedImplementation(viewSchema, delegateSchema);
             if (generatedClass == null) {
                 throw new IllegalStateException("No managed implementation class available for: " + viewSchema.getType());
             }
             if (delegateSchema == null) {
-                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class);
-                return constructor.newInstance(state);
+                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class, TypeConverter.class);
+                return constructor.newInstance(state, typeConverter);
             } else {
                 ModelType<? extends T> delegateType = delegateSchema.getType();
                 Object delegate = state.getBackingNode().getPrivateData(delegateType);
-                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class, delegateType.getConcreteClass());
-                return constructor.newInstance(state, delegate);
+                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class, TypeConverter.class, delegateType.getConcreteClass());
+                return constructor.newInstance(state, typeConverter, delegate);
             }
         } catch (InvocationTargetException e) {
             throw UncheckedException.throwAsUncheckedException(e.getTargetException());

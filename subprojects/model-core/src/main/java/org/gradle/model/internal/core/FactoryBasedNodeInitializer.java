@@ -22,7 +22,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Cast;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.AbstractManagedModelInitializer;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -47,17 +47,17 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
     public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
         return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
             .put(ModelActionRole.Discover, DirectNodeInputUsingModelAction.of(subject, descriptor,
-                Arrays.<ModelReference<?>>asList(
+                Arrays.asList(
                     ModelReference.of(ModelSchemaStore.class),
                     ModelReference.of(ManagedProxyFactory.class),
-                    ModelReference.of(ServiceRegistry.class)
+                    ModelReference.of(TypeConverter.class)
                 ),
                 new BiAction<MutableModelNode, List<ModelView<?>>>() {
                     @Override
                     public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
                         ModelSchemaStore schemaStore = ModelViews.getInstance(modelViews, 0, ModelSchemaStore.class);
                         ManagedProxyFactory proxyFactory = ModelViews.getInstance(modelViews, 1, ManagedProxyFactory.class);
-                        ServiceRegistry serviceRegistry = ModelViews.getInstance(modelViews, 2, ServiceRegistry.class);
+                        TypeConverter typeConverter = ModelViews.getInstance(modelViews, 2, TypeConverter.class);
 
                         ModelType<S> publicType = schema.getType();
                         ModelType<? extends T> delegateType = delegateTypeFor(publicType);
@@ -67,17 +67,17 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
                                 delegateType, publicType));
                         }
                         StructSchema<? extends T> delegateStructSchema = Cast.uncheckedCast(delegateSchema);
-                        addProjection(modelNode, publicType, delegateStructSchema, schemaStore, proxyFactory, serviceRegistry);
-                        addInternalViewProjections(modelNode, schemaStore, proxyFactory, serviceRegistry, publicType, delegateStructSchema);
+                        addProjection(modelNode, publicType, delegateStructSchema, schemaStore, proxyFactory, typeConverter);
+                        addInternalViewProjections(modelNode, schemaStore, proxyFactory, typeConverter, publicType, delegateStructSchema);
                     }
                 }
             ))
             .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
-                Arrays.<ModelReference<?>>asList(
+                Arrays.asList(
                     ModelReference.of(NodeInitializerRegistry.class),
                     ModelReference.of(ModelSchemaStore.class),
                     ModelReference.of(ManagedProxyFactory.class),
-                    ModelReference.of(ServiceRegistry.class)
+                    ModelReference.of(TypeConverter.class)
                 ),
                 new BiAction<MutableModelNode, List<ModelView<?>>>() {
                     @Override
@@ -85,7 +85,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
                         NodeInitializerRegistry nodeInitializerRegistry = ModelViews.getInstance(modelViews, 0, NodeInitializerRegistry.class);
                         ModelSchemaStore schemaStore = ModelViews.getInstance(modelViews, 1, ModelSchemaStore.class);
                         ManagedProxyFactory proxyFactory = ModelViews.getInstance(modelViews, 2, ManagedProxyFactory.class);
-                        ServiceRegistry serviceRegistry = ModelViews.getInstance(modelViews, 3, ServiceRegistry.class);
+                        TypeConverter typeConverter = ModelViews.getInstance(modelViews, 3, TypeConverter.class);
 
                         ModelType<S> type = schema.getType();
                         ModelType<T> delegateType;
@@ -100,7 +100,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
                         modelNode.setPrivateData(delegateType, instance);
 
                         StructSchema<T> delegateSchema = Cast.uncheckedCast(schemaStore.getSchema(delegateType));
-                        addPropertyLinks(modelNode, nodeInitializerRegistry, proxyFactory, serviceRegistry, getProperties(delegateSchema, schemaStore));
+                        addPropertyLinks(modelNode, nodeInitializerRegistry, proxyFactory, getProperties(delegateSchema, schemaStore), typeConverter);
                         hideNodesOfHiddenProperties(modelNode, getHiddenProperties(delegateSchema, schemaStore));
                     }
                 }
@@ -108,9 +108,9 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
             .build();
     }
 
-    private void addInternalViewProjections(MutableModelNode modelNode, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry serviceRegistry, ModelType<S> publicType, StructSchema<? extends T> delegateStructSchema) {
+    private void addInternalViewProjections(MutableModelNode modelNode, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, TypeConverter typeConverter, ModelType<S> publicType, StructSchema<? extends T> delegateStructSchema) {
         for (ModelType<?> internalView : internalViewsFor(publicType)) {
-            addProjection(modelNode, internalView, delegateStructSchema, schemaStore, proxyFactory, serviceRegistry);
+            addProjection(modelNode, internalView, delegateStructSchema, schemaStore, proxyFactory, typeConverter);
         }
     }
 
@@ -172,18 +172,18 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
         }
     }
 
-    private <D> void addProjection(MutableModelNode modelNode, ModelType<?> type, StructSchema<? extends D> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
+    private <D> void addProjection(MutableModelNode modelNode, ModelType<?> type, StructSchema<? extends D> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, TypeConverter typeConverter) {
         ModelSchema<?> schema = schemaStore.getSchema(type);
         if (!(schema instanceof StructSchema)) {
             throw new IllegalStateException("View type must be a struct: " + type);
         }
         StructSchema<D> structSchema = Cast.uncheckedCast(schema);
-        modelNode.addProjection(modelProjectionFor(structSchema, delegateSchema, proxyFactory, services));
+        modelNode.addProjection(modelProjectionFor(structSchema, delegateSchema, proxyFactory, typeConverter));
     }
 
-    private <D> ModelProjection modelProjectionFor(StructSchema<D> structSchema, StructSchema<? extends D> delegateSchema, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
+    private <D> ModelProjection modelProjectionFor(StructSchema<D> structSchema, StructSchema<? extends D> delegateSchema, ManagedProxyFactory proxyFactory, TypeConverter typeConverter) {
         if (structSchema instanceof ManagedImplSchema) {
-            return new ManagedModelProjection<D>(structSchema, delegateSchema, proxyFactory, services);
+            return new ManagedModelProjection<D>(structSchema, delegateSchema, proxyFactory, typeConverter);
         } else {
             return UnmanagedModelProjection.of(structSchema.getType());
         }

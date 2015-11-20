@@ -17,7 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Named;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -35,9 +35,13 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
         this.schema = schema;
     }
 
-    protected void addPropertyLinks(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry, ManagedProxyFactory proxyFactory, ServiceRegistry services, Collection<ModelProperty<?>> properties) {
+    protected void addPropertyLinks(MutableModelNode modelNode,
+                                    NodeInitializerRegistry nodeInitializerRegistry,
+                                    ManagedProxyFactory proxyFactory,
+                                    Collection<ModelProperty<?>> properties,
+                                    TypeConverter typeConverter) {
         for (ModelProperty<?> property : properties) {
-            addPropertyLink(modelNode, property, nodeInitializerRegistry, proxyFactory, services);
+            addPropertyLink(modelNode, property, nodeInitializerRegistry, proxyFactory, typeConverter);
         }
         if (isANamedType()) {
             // Only initialize "name" child node if the schema has such a managed property.
@@ -54,7 +58,11 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
         }
     }
 
-    private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry, ManagedProxyFactory proxyFactory, ServiceRegistry services) {
+    private <P> void addPropertyLink(MutableModelNode modelNode,
+                                     ModelProperty<P> property,
+                                     NodeInitializerRegistry nodeInitializerRegistry,
+                                     ManagedProxyFactory proxyFactory,
+                                     TypeConverter typeConverter) {
         // No need to create nodes for unmanaged properties
         if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
             return;
@@ -84,7 +92,7 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
                     // show the type of the node if we do this for now. It should use the schema instead to find
                     // the type of the property node instead.
                     ManagedImplStructSchema<P> structSchema = (ManagedImplStructSchema<P>) propertySchema;
-                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, null, proxyFactory, services);
+                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, null, proxyFactory, typeConverter);
                     ModelRegistration registration = ModelRegistrations.of(childPath)
                         .withProjection(projection)
                         .descriptor(descriptor).build();

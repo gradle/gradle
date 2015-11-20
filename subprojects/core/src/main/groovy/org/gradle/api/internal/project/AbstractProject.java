@@ -59,6 +59,7 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
@@ -206,6 +207,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         @Service
         NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore) {
             return new DefaultNodeInitializerRegistry(schemaStore);
+        }
+
+        @Service
+        TypeConverter typeConverter(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(TypeConverter.class);
         }
     }
 
