@@ -24,6 +24,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
@@ -68,9 +69,9 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         nextBinaryInfo.set(new BinaryInfo(name, publicType, implementationType, modelNode, componentNode, taskFactory, instantiator));
         try {
             try {
-                return instantiator.newInstance(implementationType);
+                return DirectInstantiator.INSTANCE.newInstance(implementationType);
             } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create binary of type %s", implementationType.getSimpleName()), e.getCause());
+                throw new ModelInstantiationException(String.format("Could not create binary of type %s", publicType.getSimpleName()), e.getCause());
             }
         } finally {
             nextBinaryInfo.set(null);
@@ -103,7 +104,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     public ComponentSpec getComponent() {
         return getComponentAs(ComponentSpec.class);
     }
-    
+
     @Nullable
     protected <T extends ComponentSpec> T getComponentAs(Class<T> componentType) {
         if (componentNode != null && componentNode.canBeViewedAs(ModelType.of(componentType))) {
@@ -180,7 +181,6 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     private static class BinaryInfo {
         private final String name;
         private final Class<? extends BinarySpec> publicType;
-        private final Class<? extends BaseBinarySpec> implementationType;
         private final MutableModelNode modelNode;
         private final MutableModelNode componentNode;
         private final ITaskFactory taskFactory;
@@ -189,7 +189,6 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         private BinaryInfo(String name, Class<? extends BinarySpec> publicType, Class<? extends BaseBinarySpec> implementationType, MutableModelNode modelNode, MutableModelNode componentNode, ITaskFactory taskFactory, Instantiator instantiator) {
             this.name = name;
             this.publicType = publicType;
-            this.implementationType = implementationType;
             this.modelNode = modelNode;
             this.componentNode = componentNode;
             this.taskFactory = taskFactory;

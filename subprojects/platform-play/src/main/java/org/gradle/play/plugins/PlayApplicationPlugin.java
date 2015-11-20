@@ -267,7 +267,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                 public void execute(PlayApplicationBinarySpec playApplicationBinarySpec) {
                     for (LanguageSourceSet languageSourceSet : playApplicationBinarySpec.getInputs().withType(languageSourceSetType)) {
                         String name = String.format("%sScalaSources", languageSourceSet.getName());
-                        ScalaLanguageSourceSet twirlScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, name, playApplicationBinarySpec.getName(), fileResolver, instantiator);
+                        ScalaLanguageSourceSet twirlScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, name, playApplicationBinarySpec.getName(), fileResolver);
                         playApplicationBinarySpec.getGeneratedScala().put(languageSourceSet, twirlScalaSources);
                     }
                 }

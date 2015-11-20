@@ -43,7 +43,7 @@ class BaseBinarySpecTest extends Specification {
         def binary = create(SampleBinary, MySampleBinary, "sampleBinary")
 
         expect:
-        binary.class == MySampleBinary
+        binary instanceof MySampleBinary
         binary.name == "sampleBinary"
         binary.projectScopedName == "sampleBinary"
         binary.displayName == "SampleBinary 'sampleBinary'"

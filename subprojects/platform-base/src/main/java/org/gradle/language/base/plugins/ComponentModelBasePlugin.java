@@ -79,8 +79,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     static class Rules extends RuleSource {
         // TODO The 'path' is required to here to avoid a rule cycle being reported
         @Service
-        ComponentSpecFactory componentSpecFactory(ServiceRegistry serviceRegistry, @Path("projectIdentifier") ProjectIdentifier projectIdentifier) {
-            return new ComponentSpecFactory("components", serviceRegistry.get(Instantiator.class), projectIdentifier);
+        ComponentSpecFactory componentSpecFactory(@Path("projectIdentifier") ProjectIdentifier projectIdentifier) {
+            return new ComponentSpecFactory("components", projectIdentifier);
         }
 
         @ComponentType

@@ -15,6 +15,8 @@
  */
 
 package org.gradle.platform.base.binary
+
+import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.core.ModelNode
@@ -27,23 +29,16 @@ import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import org.gradle.platform.base.BinarySpec
 
 class BaseBinaryFixtures {
-
-    private final modelRegistry
-
-    BaseBinaryFixtures() {
-        modelRegistry = new ModelRegistryHelper()
-        modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
-    }
+    static final def GENERATOR = new AsmBackedClassGenerator()
 
     static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> type, String name, MutableModelNode componentNode, ITaskFactory taskFactory) {
-        new BaseBinaryFixtures().createBinary(publicType, type, name, componentNode, taskFactory);
-    }
-
-    public <T extends BaseBinarySpec> T createBinary(Class<? extends BinarySpec> publicType, Class<T> type, String name, MutableModelNode componentNode, ITaskFactory taskFactory) {
         try {
+            def modelRegistry = new ModelRegistryHelper()
+            modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
             modelRegistry.register(
                 ModelRegistrations.unmanagedInstanceOf(ModelReference.of(name, type), {
-                    BaseBinarySpec.create(publicType, type, name, it, componentNode, DirectInstantiator.INSTANCE, taskFactory)
+                    def generated = GENERATOR.generate(type)
+                    BaseBinarySpec.create(publicType, generated, name, it, componentSpecInternal, DirectInstantiator.INSTANCE, taskFactory)
                 })
                     .descriptor(name)
                     .build()

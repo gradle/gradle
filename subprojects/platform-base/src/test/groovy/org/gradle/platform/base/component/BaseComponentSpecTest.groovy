@@ -16,17 +16,14 @@
 
 package org.gradle.platform.base.component
 
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
 class BaseComponentSpecTest extends Specification {
-    def instantiator = DirectInstantiator.INSTANCE
     def componentId = new DefaultComponentSpecIdentifier("p", "c")
     def modelRegistry = new ModelRegistryHelper()
 
@@ -40,8 +37,7 @@ class BaseComponentSpecTest extends Specification {
     }
 
     private <T extends BaseComponentSpec> T create(Class<T> type, Class<T> implType = type) {
-        def file = new TestFile(".")
-        BaseComponentFixtures.create(type, implType, modelRegistry, componentId, instantiator, file)
+        BaseComponentFixtures.create(type, implType, modelRegistry, componentId)
     }
 
     def "library has name, path and sensible display name"() {
@@ -49,7 +45,7 @@ class BaseComponentSpecTest extends Specification {
         def component = create(SampleComponent, MySampleComponent)
 
         then:
-        component.class == MySampleComponent
+        component instanceof MySampleComponent
         component.name == componentId.name
         component.projectPath == componentId.projectPath
         component.displayName == "SampleComponent '$componentId.name'"

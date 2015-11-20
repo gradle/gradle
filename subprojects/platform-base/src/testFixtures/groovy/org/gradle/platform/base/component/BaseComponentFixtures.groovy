@@ -16,7 +16,7 @@
 
 package org.gradle.platform.base.component
 
-import org.gradle.internal.reflect.Instantiator
+import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRegistrations
@@ -31,6 +31,7 @@ import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ComponentSpecIdentifier
 
 class BaseComponentFixtures {
+    static final def GENERATOR = new AsmBackedClassGenerator()
 
     static <P extends ComponentSpec, T extends BaseComponentSpec> P create(Class<P> type, Class<T> implType,  ModelRegistry modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
         def node = createNode(type, implType,  modelRegistry, componentId, instantiator, baseDir);
@@ -42,7 +43,8 @@ class BaseComponentFixtures {
             modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
             modelRegistry.register(
                 ModelRegistrations.unmanagedInstanceOf(ModelReference.of(componentId.name, type), {
-                    BaseComponentSpec.create(type, implType, componentId, it, instantiator)
+                    def decorated = GENERATOR.generate(implType)
+                    BaseComponentSpec.create(type, decorated, componentId, it)
                 })
                     .descriptor(componentId.name)
                     .build()

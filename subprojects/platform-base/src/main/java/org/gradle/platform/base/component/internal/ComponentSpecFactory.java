@@ -18,7 +18,6 @@ package org.gradle.platform.base.component.internal;
 
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.model.internal.core.InstanceFactory;
 import org.gradle.model.internal.core.MutableModelNode;
@@ -32,12 +31,10 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import java.util.Set;
 
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
-    private final Instantiator instantiator;
     private final ProjectIdentifier projectIdentifier;
 
-    public ComponentSpecFactory(String displayName, Instantiator instantiator, ProjectIdentifier projectIdentifier) {
+    public ComponentSpecFactory(String displayName, ProjectIdentifier projectIdentifier) {
         super(displayName, ComponentSpec.class, BaseComponentSpec.class);
-        this.instantiator = instantiator;
         this.projectIdentifier = projectIdentifier;
     }
 
@@ -49,7 +46,7 @@ public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
                 @Override
                 public S create(ModelType<? extends S> publicType, String name, MutableModelNode componentNode) {
                     ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                    return Cast.uncheckedCast(BaseComponentSpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode, instantiator));
+                    return Cast.uncheckedCast(BaseComponentSpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode));
                 }
             });
         }

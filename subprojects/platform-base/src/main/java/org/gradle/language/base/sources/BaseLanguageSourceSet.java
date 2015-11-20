@@ -23,7 +23,7 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
@@ -98,16 +98,16 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
 
     private static ThreadLocal<SourceSetInfo> nextSourceSetInfo = new ThreadLocal<SourceSetInfo>();
 
-    public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> type, String name, String parentName, FileResolver fileResolver, Instantiator instantiator) {
+    public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> type, String name, String parentName, FileResolver fileResolver) {
         if (type.equals(BaseLanguageSourceSet.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseLanguageSourceSet.");
         }
         nextSourceSetInfo.set(new SourceSetInfo(name, parentName, publicType.getSimpleName(), fileResolver));
         try {
             try {
-                return instantiator.newInstance(type);
+                return DirectInstantiator.INSTANCE.newInstance(type);
             } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create LanguageSourceSet of type %s", type.getSimpleName()), e.getCause());
+                throw new ModelInstantiationException(String.format("Could not create LanguageSourceSet of type %s", publicType.getSimpleName()), e.getCause());
             }
         } finally {
             nextSourceSetInfo.set(null);

@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.internal
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.nativeplatform.DependentSourceSet
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.fixture.ModelRegistryHelper
@@ -34,10 +33,9 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class NativeBinarySpecTest extends Specification {
-    def instantiator = DirectInstantiator.INSTANCE
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def component = BaseComponentFixtures.createNode(NativeComponentSpec, TestNativeComponentSpec, new ModelRegistryHelper(), id, instantiator)
+    def component = BaseComponentFixtures.create(NativeComponentSpec, TestNativeComponentSpec, new ModelRegistryHelper(), id)
 
     def platform1 = Stub(NativePlatform) {
         getArchitecture() >> Architectures.forInput("i386")

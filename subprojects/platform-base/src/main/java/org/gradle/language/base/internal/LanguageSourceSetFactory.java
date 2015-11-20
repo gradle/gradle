@@ -17,7 +17,6 @@
 package org.gradle.language.base.internal;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.BaseInstanceFactory;
@@ -31,12 +30,10 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet> {
 
     private final FileResolver fileResolver;
-    private final Instantiator instantiator;
 
-    public LanguageSourceSetFactory(String displayName, FileResolver fileResolver, Instantiator instantiator) {
+    public LanguageSourceSetFactory(String displayName, FileResolver fileResolver) {
         super(displayName, LanguageSourceSet.class, BaseLanguageSourceSet.class);
         this.fileResolver = fileResolver;
-        this.instantiator = instantiator;
     }
 
     public <T extends LanguageSourceSet, V extends T> void register(ModelType<T> type, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
@@ -45,7 +42,7 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
         registration.withImplementation(implementationType, new InstanceFactory.ImplementationFactory<T>() {
             @Override
             public T create(ModelType<? extends T> publicType, String sourceSetName, MutableModelNode modelNode) {
-                return BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), fileResolver, instantiator);
+                return BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), fileResolver);
             }
         });
     }

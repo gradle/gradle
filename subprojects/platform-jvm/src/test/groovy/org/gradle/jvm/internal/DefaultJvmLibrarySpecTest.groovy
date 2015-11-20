@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.internal
 
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.component.BaseComponentFixtures
@@ -37,7 +36,7 @@ class DefaultJvmLibrarySpecTest extends Specification {
         library.displayName == "JVM library 'jvm-lib'"
     }
 
-    private DefaultJvmLibrarySpec createJvmLibrarySpec() {
-        BaseComponentFixtures.create(JvmLibrarySpec, DefaultJvmLibrarySpec, registry, libraryId, DirectInstantiator.INSTANCE)
+    private JvmLibrarySpec createJvmLibrarySpec() {
+        BaseComponentFixtures.create(JvmLibrarySpec, DefaultJvmLibrarySpec, registry, libraryId)
     }
 }

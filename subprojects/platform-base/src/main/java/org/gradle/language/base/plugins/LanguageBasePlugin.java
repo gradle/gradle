@@ -105,7 +105,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @Service
         LanguageSourceSetFactory languageSourceSetFactory(ServiceRegistry serviceRegistry) {
-            return new LanguageSourceSetFactory("sourceSets", serviceRegistry.get(FileResolver.class), serviceRegistry.get(Instantiator.class));
+            return new LanguageSourceSetFactory("sourceSets", serviceRegistry.get(FileResolver.class));
         }
 
         @Model
