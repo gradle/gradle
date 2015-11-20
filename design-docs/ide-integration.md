@@ -81,15 +81,8 @@ we want to have a dedicated model for eclipse specific java information and grad
 
 #### The API
 
-    enum JavaVersion {
-    }
-
-    interface JavaLanguageLevel {
-        JavaVersion getVersion()
-    }
-
     interface JavaSourceSettings {
-        JavaLanguageLevel getSourceLanguageLevel()
+        JavaVersion getSourceLanguageLevel()
     }
 
     interface JavaSourceAware {
@@ -99,7 +92,6 @@ we want to have a dedicated model for eclipse specific java information and grad
     interface EclipseProject extends JavaSourceAware {
     }
 
-
 - The `JavaSourceSettings` interface describes Java-specific details for a model.
   It initially defines only one attribute, describing the `sourceLanguageLevel`.
 - The `getSourceLanguageLevel()` returns the `eclipse.jdt.sourceCompatibility` level that is configurable within the `build.gradle` or per default uses
@@ -108,9 +100,7 @@ similar version as `JavaConvention.sourceCompatibility` configuration.
 - For older Gradle version the `JavaSourceAware.getJavaSourceSettings()` throws `UnsupportedMethodException`.
 
 #### Implementation
-- Introduce tooling api JavaVersion enum representing java versions.
-- Introduce `JavaLanguageLevel` which contains an enum representation of the java language level via `getVersion()`.
-- Add a `JavaSourceSettings` implementation with `JavaLanguageLevel getSourceLanguageLevel()`.
+- Add a `JavaSourceSettings` implementation with `JavaVersion getSourceLanguageLevel()`.
 - Introduce `JavaSourceAware` interface abstracting a common `JavaSourceSettings getJavaSourceSettings()` method.
 - Update `EclipseProject` to extend `JavaSourceAware`.
 - Update DefaultEclipseProject to implement new `.getJavaSourceSettings()` method
