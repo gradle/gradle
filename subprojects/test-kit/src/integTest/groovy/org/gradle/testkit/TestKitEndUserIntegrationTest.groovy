@@ -30,9 +30,11 @@ import org.gradle.testkit.runner.internal.TempTestKitDirProvider
 import org.gradle.util.GFileUtils
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.UsesNativeServices
 import org.junit.runner.RunWith
 import spock.lang.Unroll
 
+@UsesNativeServices
 @RunWith(GradleRunnerIntegTestRunner)
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
