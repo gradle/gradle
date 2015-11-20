@@ -69,19 +69,17 @@ Later work:
 ## Story: Java library sources are compiled against library Jar resolved from Maven repository
 
 - Extend the dependency DSL to reference external libraries:
-    ```
+    ```groovy
     model {
         components {
             main(JvmLibrarySpec) {
-                // TODO This is just a placeholder DSL: define a reasonable one.
                 dependencies {
-                    library group: 'com.acme', name: 'artifact', version: '1.0'
                     library 'com.acme:artifact:1.0'
                 }
             }
         }
     }
-```
+    ```
 
 - Reuse existing repositories DSL, bridging into model space.
 - Main Jar artifact of maven module is included in compile classpath.
@@ -93,6 +91,10 @@ Later work:
 - Update samples and user guide
 - Update newJavaModel performance test?
 
+### Implementation goals
+
+ - Make `DependencySpecContainer` a proper `ModelSet<DependencySpec>`
+
 ### Test cases
 
 - For maven module dependencies
@@ -102,6 +104,7 @@ Later work:
 - For local component dependencies:
     - Artifacts from transitive external dependencies that are non part of component API are _not_ included in the compile classpath.
 - Displays a reasonable error message if the external dependency cannot be found in a declared repository
+- A Java plugin can use use `DependencySpecContainer` as a `ModelSet<DependencySpec>` (create, beforeEach, afterEach)
 
 ### Out of scope
 
