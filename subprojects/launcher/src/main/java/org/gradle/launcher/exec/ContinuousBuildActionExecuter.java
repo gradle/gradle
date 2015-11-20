@@ -133,7 +133,7 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
                         waiter.wait(new Runnable() {
                             @Override
                             public void run() {
-                                logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(actionParameters)).println();
+                                logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(actionParameters));
                             }
                         });
                     }
