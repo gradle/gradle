@@ -24,7 +24,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 import java.util.Set;
 
@@ -45,16 +44,14 @@ public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec> {
             registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<S>() {
                 @Override
                 public S create(ModelType<? extends S> publicType, String name, MutableModelNode binaryNode) {
-                    MutableModelNode parentNode = binaryNode.getParent().getParent();
-                    ComponentSpecInternal owner = parentNode.canBeViewedAs(ModelType.of(ComponentSpecInternal.class))
-                        ? parentNode.asImmutable(ModelType.of(ComponentSpecInternal.class), descriptor).getInstance()
-                        : null;
+                    MutableModelNode componentBinariesNode = binaryNode.getParent();
+                    MutableModelNode componentNode = componentBinariesNode.getParent();
                     return Cast.uncheckedCast(BaseBinarySpec.create(
                             publicType.getConcreteClass(),
                             implementationType.getConcreteClass(),
                             name,
                             binaryNode,
-                            owner,
+                            componentNode,
                             instantiator,
                             taskFactory));
                 }

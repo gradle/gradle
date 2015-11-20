@@ -30,14 +30,10 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBinarySpec implements LibraryBinarySpec {
-    @Override
-    public NativeLibrarySpec getComponent() {
-        return (NativeLibrarySpec) super.getComponent();
-    }
 
     @Override
     public NativeLibrarySpec getLibrary() {
-        return getComponent();
+        return getComponentAs(NativeLibrarySpec.class);
     }
 
     protected boolean hasSources() {

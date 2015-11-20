@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.internal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.nativeplatform.DependentSourceSet
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
@@ -36,7 +37,7 @@ class NativeBinarySpecTest extends Specification {
     def instantiator = DirectInstantiator.INSTANCE
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def component = BaseComponentFixtures.create(NativeComponentSpec, TestNativeComponentSpec, new ModelRegistryHelper(), id, instantiator)
+    def component = BaseComponentFixtures.createNode(NativeComponentSpec, TestNativeComponentSpec, new ModelRegistryHelper(), id, instantiator)
 
     def platform1 = Stub(NativePlatform) {
         getArchitecture() >> Architectures.forInput("i386")
@@ -141,8 +142,8 @@ class NativeBinarySpecTest extends Specification {
         binary.libs as List == [dep1, dep2, sourceDep]
     }
 
-    def testBinary(NativeComponentSpec owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        TestNativeBinariesFactory.create(TestNativeBinarySpec, "test", Mock(ITaskFactory), owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver
+    def testBinary(MutableModelNode componentNode, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
+        TestNativeBinariesFactory.create(TestNativeBinarySpec, "test", Mock(ITaskFactory), componentNode, new DefaultBinaryNamingScheme("baseName", "", []), resolver
             , platform1, buildType1, flavor)
     }
 

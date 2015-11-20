@@ -54,7 +54,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     @Override
     public PlayApplicationSpec getApplication() {
-        return (PlayApplicationSpec) getComponent();
+        return getComponentAs(PlayApplicationSpec.class);
     }
 
     public PlayPlatform getTargetPlatform() {

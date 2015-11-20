@@ -29,10 +29,4 @@ public interface GoogleTestTestSuiteBinarySpec extends NativeTestSuiteBinarySpec
      */
     @Override
     GoogleTestTestSuiteSpec getTestSuite();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    GoogleTestTestSuiteSpec getComponent();
 }

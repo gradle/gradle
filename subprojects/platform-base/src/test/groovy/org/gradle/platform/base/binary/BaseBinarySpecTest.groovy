@@ -17,11 +17,16 @@
 package org.gradle.platform.base.binary
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.platform.base.BinarySpec
+import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.ModelInstantiationException
-import org.gradle.platform.base.internal.ComponentSpecInternal
+import org.gradle.platform.base.component.BaseComponentFixtures
+import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class BaseBinarySpecTest extends Specification {
@@ -45,8 +50,7 @@ class BaseBinarySpecTest extends Specification {
     }
 
     def "qualifies project scoped named and display name using owners name"() {
-        def component = Stub(ComponentSpecInternal)
-        component.name >> "sample"
+        def component = BaseComponentFixtures.createNode(MySampleComponent, MySampleComponent, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "sample"), DirectInstantiator.INSTANCE)
         def binary = create(SampleBinary, MySampleBinary, "unitTest", component)
 
         expect:
@@ -97,9 +101,11 @@ class BaseBinarySpecTest extends Specification {
         binary.source == binary.inputs
     }
 
-    private <T extends BaseBinarySpec> T create(Class<T> type, Class<T> implType = type, String name, ComponentSpecInternal owner = null) {
-        BaseBinaryFixtures.create(type, implType, name, owner, Mock(ITaskFactory))
+    private <T extends BaseBinarySpec> T create(Class<T> type, Class<T> implType = type, String name, MutableModelNode componentNode = null) {
+        BaseBinaryFixtures.create(type, implType, name, componentNode, Mock(ITaskFactory))
     }
+    
+    static class MySampleComponent extends BaseComponentSpec {}
 
     interface SampleBinary extends BinarySpec {}
 

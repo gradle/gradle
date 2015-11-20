@@ -29,10 +29,4 @@ public interface CUnitTestSuiteBinarySpec extends NativeTestSuiteBinarySpec {
      */
     @Override
     CUnitTestSuiteSpec getTestSuite();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    CUnitTestSuiteSpec getComponent();
 }

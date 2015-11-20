@@ -30,6 +30,7 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelMaps;
 import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentSpec;
@@ -53,18 +54,18 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final BinaryTasksCollection tasks;
-    private final ComponentSpecInternal owner;
     private final String name;
     private final MutableModelNode modelNode;
+    private final MutableModelNode componentNode;
     private final MutableModelNode sources;
     private final Class<? extends BinarySpec> publicType;
 
     private boolean disabled;
 
     public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
-                                                      String name, MutableModelNode modelNode, @Nullable ComponentSpecInternal owner,
+                                                      String name, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
                                                       Instantiator instantiator, ITaskFactory taskFactory) {
-        nextBinaryInfo.set(new BinaryInfo(name, publicType, implementationType, modelNode, owner, taskFactory, instantiator));
+        nextBinaryInfo.set(new BinaryInfo(name, publicType, implementationType, modelNode, componentNode, taskFactory, instantiator));
         try {
             try {
                 return instantiator.newInstance(implementationType);
@@ -84,10 +85,10 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         if (info == null) {
             throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead.");
         }
-        this.owner = info.owner;
         this.name = info.name;
         this.publicType = info.publicType;
         this.modelNode = info.modelNode;
+        this.componentNode = info.componentNode;
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
 
         sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
@@ -100,7 +101,15 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     @Nullable
     public ComponentSpec getComponent() {
-        return owner;
+        return getComponentAs(ComponentSpec.class);
+    }
+    
+    @Nullable
+    protected <T extends ComponentSpec> T getComponentAs(Class<T> componentType) {
+        if (componentNode != null && componentNode.canBeViewedAs(ModelType.of(componentType))) {
+            return componentNode.asImmutable(ModelType.of(componentType), componentNode.getDescriptor()).getInstance();
+        }
+        return null;
     }
 
     protected String getTypeName() {
@@ -109,10 +118,12 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     @Override
     public String getProjectScopedName() {
+        ComponentSpec owner = getComponent();
         return owner == null ? name : owner.getName() + StringUtils.capitalize(name);
     }
 
     public String getDisplayName() {
+        ComponentSpec owner = getComponent();
         if (owner == null) {
             return String.format("%s '%s'", getTypeName(), name);
         } else {
@@ -171,16 +182,16 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         private final Class<? extends BinarySpec> publicType;
         private final Class<? extends BaseBinarySpec> implementationType;
         private final MutableModelNode modelNode;
-        private final ComponentSpecInternal owner;
+        private final MutableModelNode componentNode;
         private final ITaskFactory taskFactory;
         private final Instantiator instantiator;
 
-        private BinaryInfo(String name, Class<? extends BinarySpec> publicType, Class<? extends BaseBinarySpec> implementationType, MutableModelNode modelNode, ComponentSpecInternal owner, ITaskFactory taskFactory, Instantiator instantiator) {
+        private BinaryInfo(String name, Class<? extends BinarySpec> publicType, Class<? extends BaseBinarySpec> implementationType, MutableModelNode modelNode, MutableModelNode componentNode, ITaskFactory taskFactory, Instantiator instantiator) {
             this.name = name;
             this.publicType = publicType;
             this.implementationType = implementationType;
             this.modelNode = modelNode;
-            this.owner = owner;
+            this.componentNode = componentNode;
             this.taskFactory = taskFactory;
             this.instantiator = instantiator;
         }

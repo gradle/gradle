@@ -21,13 +21,22 @@ import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ComponentSpecIdentifier
 
 class BaseComponentFixtures {
 
-    static <T extends BaseComponentSpec> T create(Class<T> type, Class<T> implType, ModelRegistry modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
+    static <T extends BaseComponentSpec> T create(Class<? extends ComponentSpec> type, Class<T> implType,  ModelRegistry modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
+        createNode(type, implType,  modelRegistry, componentId, instantiator, baseDir)
+            .asMutable(ModelType.of(type), new SimpleModelRuleDescriptor(componentId.getName()), Collections.emptyList()).getInstance()
+    }
+
+    static <T extends BaseComponentSpec> MutableModelNode createNode(Class<? extends ComponentSpec> type, Class<T> implType,  ModelRegistry modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
         try {
             modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
             modelRegistry.register(
@@ -36,7 +45,7 @@ class BaseComponentFixtures {
                 })
                     .descriptor(componentId.name)
                     .build()
-            ).atState(componentId.name, ModelNode.State.Initialized).getPrivateData(type)
+            ).atState(componentId.name, ModelNode.State.Initialized)
         } catch (ModelRuleExecutionException e) {
             throw e.cause
         }

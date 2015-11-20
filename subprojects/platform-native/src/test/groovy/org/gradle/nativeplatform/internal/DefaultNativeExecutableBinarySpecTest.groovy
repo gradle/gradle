@@ -41,7 +41,7 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
 
     def "has useful string representation"() {
         given:
-        def executable = BaseComponentFixtures.create(NativeExecutableSpec, DefaultNativeExecutableSpec, registry, new DefaultComponentSpecIdentifier("path", "name"), instantiator)
+        def executable = BaseComponentFixtures.createNode(NativeExecutableSpec, DefaultNativeExecutableSpec, registry, new DefaultComponentSpecIdentifier("path", "name"), instantiator)
 
         when:
         def binary = TestNativeBinariesFactory.create(DefaultNativeExecutableBinarySpec, namingScheme.getBinaryName(), taskFactory, executable, namingScheme,

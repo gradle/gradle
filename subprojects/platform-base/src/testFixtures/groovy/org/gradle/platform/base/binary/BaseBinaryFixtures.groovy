@@ -21,10 +21,10 @@ import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import org.gradle.platform.base.BinarySpec
-import org.gradle.platform.base.internal.ComponentSpecInternal
 
 class BaseBinaryFixtures {
 
@@ -35,15 +35,15 @@ class BaseBinaryFixtures {
         modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
     }
 
-    static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> type, String name, ComponentSpecInternal componentSpecInternal, ITaskFactory taskFactory) {
-        new BaseBinaryFixtures().createBinary(publicType, type, name, componentSpecInternal, taskFactory);
+    static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> type, String name, MutableModelNode componentNode, ITaskFactory taskFactory) {
+        new BaseBinaryFixtures().createBinary(publicType, type, name, componentNode, taskFactory);
     }
 
-    public <T extends BaseBinarySpec> T createBinary(Class<? extends BinarySpec> publicType, Class<T> type, String name, ComponentSpecInternal componentSpecInternal, ITaskFactory taskFactory) {
+    public <T extends BaseBinarySpec> T createBinary(Class<? extends BinarySpec> publicType, Class<T> type, String name, MutableModelNode componentNode, ITaskFactory taskFactory) {
         try {
             modelRegistry.register(
                 ModelRegistrations.unmanagedInstanceOf(ModelReference.of(name, type), {
-                    BaseBinarySpec.create(publicType, type, name, it, componentSpecInternal, DirectInstantiator.INSTANCE, taskFactory)
+                    BaseBinarySpec.create(publicType, type, name, it, componentNode, DirectInstantiator.INSTANCE, taskFactory)
                 })
                     .descriptor(name)
                     .build()

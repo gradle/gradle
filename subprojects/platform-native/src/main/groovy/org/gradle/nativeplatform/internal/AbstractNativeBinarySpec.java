@@ -69,12 +69,14 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     private NativeDependencyResolver resolver;
     private Map<File, PreCompiledHeader> prefixFileToPCH = Maps.newHashMap();
 
+    @Override
     public String getDisplayName() {
         return namingScheme.getDescription();
     }
 
+    @Override
     public NativeComponentSpec getComponent() {
-        return (NativeComponentSpec) super.getComponent();
+        return getComponentAs(NativeComponentSpec.class);
     }
 
     public Flavor getFlavor() {
