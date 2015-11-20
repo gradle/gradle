@@ -117,11 +117,11 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
             perc(nonApiChanges, projectsWithDependencies.size())
         }
 
-        private int compatibleApiChangesCount() {
+        private int abiCompatibleApiChangesCount() {
             perc(abiCompatibleChanges, projectsWithDependencies.size())
         }
 
-        private int breakingApiChangesCount() {
+        private int abiBreakingApiChangesCount() {
             perc(abiBreakingChanges, projectsWithDependencies.size())
         }
 
@@ -193,18 +193,18 @@ public String addedProperty;
 ''')
                 }
 
-                projectsWithDependencies.take(compatibleApiChangesCount()).each { subproject ->
-                    def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
-                    def updatedFile = pickFirstJavaSource(internalDir)
+                projectsWithDependencies.take(abiCompatibleApiChangesCount()).each { subproject ->
+                    def srcDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
+                    def updatedFile = pickFirstJavaSource(srcDir)
                     println "Updating API source file $updatedFile in ABI compatible way"
                     Set<Integer> dependents = affectedProjects(subproject)
                     createBackupFor(updatedFile)
                     updatedFile.text = updatedFile.text.replace('return property;', 'return property.toUpperCase();')
                 }
 
-                projectsWithDependencies.take(breakingApiChangesCount()).each { subproject ->
-                    def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
-                    def updatedFile = pickFirstJavaSource(internalDir)
+                projectsWithDependencies.take(abiBreakingApiChangesCount()).each { subproject ->
+                    def srcDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
+                    def updatedFile = pickFirstJavaSource(srcDir)
                     println "Updating API source file $updatedFile in ABI breaking way"
                     createBackupFor(updatedFile)
                     updatedFile.text = updatedFile.text.replace('one() {', 'two() {')
@@ -256,8 +256,8 @@ public String addedProperty;
             dependents
         }
 
-        private int projectId(File it) {
-            Integer.valueOf(it.name - 'project')
+        private int projectId(File pDir) {
+            Integer.valueOf(pDir.name - 'project')
         }
 
         private static File pickFirstJavaSource(File internalDir) {
