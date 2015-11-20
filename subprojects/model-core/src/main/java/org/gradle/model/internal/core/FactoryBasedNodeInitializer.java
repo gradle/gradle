@@ -182,10 +182,6 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
     }
 
     private <D> ModelProjection modelProjectionFor(StructSchema<D> structSchema, StructSchema<? extends D> delegateSchema, ManagedProxyFactory proxyFactory, TypeConverter typeConverter) {
-        if (structSchema instanceof ManagedImplSchema) {
-            return new ManagedModelProjection<D>(structSchema, delegateSchema, proxyFactory, typeConverter);
-        } else {
-            return UnmanagedModelProjection.of(structSchema.getType());
-        }
+        return new ManagedModelProjection<D>(structSchema, delegateSchema, proxyFactory, typeConverter);
     }
 }

@@ -431,20 +431,19 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                 void validateInternal(@Path('components.sample') ComponentSpecInternal spec) {
 //                    assert !(spec instanceof UnmanagedComponentSpec)
                     assert !(spec instanceof SampleComponentSpec)
-                    // TODO:LPTR This should not be true once we stop returning raw unmanaged instances
-                    assert spec instanceof DefaultUnmanagedComponentSpec
+                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
                     assert !(spec instanceof InternalSampleSpec)
                     try {
                         spec.publicData
                         assert false
                     } catch(MissingPropertyException e) {
-                        assert e.message == "Could not find property 'publicData' on SampleComponentSpec 'sample'."
+                        assert e.message == "No such property: publicData for class: org.gradle.platform.base.internal.ComponentSpecInternal"
                     }
                     try {
                         spec.internalData
                         assert false
                     } catch (MissingPropertyException e) {
-                        assert e.message == "Could not find property 'internalData' on SampleComponentSpec 'sample'."
+                        assert e.message == "No such property: internalData for class: org.gradle.platform.base.internal.ComponentSpecInternal"
                     }
                 }
 

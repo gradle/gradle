@@ -120,15 +120,15 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
                     binaries {
                         jar(type: "org.gradle.jvm.JarBinarySpec") {
                             sources {
-                                binarySources(type: "org.gradle.language.java.JavaSourceSet", nodeValue: "Java source 'jvmLibrary:binarySources'")
+                                binarySources(type: "org.gradle.language.java.JavaSourceSet")
                             }
                             tasks()
                         }
                     }
                     sources {
-                        java(type: "org.gradle.language.java.JavaSourceSet", nodeValue: "Java source 'jvmLibrary:java'")
-                        other(type: "org.gradle.language.java.JavaSourceSet", nodeValue: "Java source 'jvmLibrary:other'")
-                        resources(type: "org.gradle.language.jvm.JvmResourceSet", nodeValue: "JVM resources 'jvmLibrary:resources'")
+                        java(type: "org.gradle.language.java.JavaSourceSet")
+                        other(type: "org.gradle.language.java.JavaSourceSet")
+                        resources(type: "org.gradle.language.jvm.JvmResourceSet")
                     }
                 }
             }

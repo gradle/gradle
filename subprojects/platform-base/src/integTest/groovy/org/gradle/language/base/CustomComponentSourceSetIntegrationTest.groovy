@@ -15,9 +15,8 @@
  */
 
 package org.gradle.language.base
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.util.Matchers.containsText
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
@@ -155,10 +154,14 @@ model {
                         main(LibrarySourceSet) {
                             source.srcDir "src/main/lib"
                         }
-                        main(LibrarySourceSet) {
-                            source.srcDir "src/main/lib"
-                        }
                     }
+                }
+            }
+        }
+        sampleLib {
+            binaries.bin.sources {
+                main(LibrarySourceSet) {
+                    source.srcDir "src/main/lib"
                 }
             }
         }
@@ -169,11 +172,7 @@ model {
         fails("components")
 
         then:
-        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule " +
-                "'sampleLib(SampleLibrary) { ... } @ build.gradle line 40, column 9 > " +
-                "components.sampleLib.getBinaries() > create(bin) > components.sampleLib.binaries.bin.getSources() > create(main)'")
-        failure.assertThatCause(containsText("the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 40, column 9 > " +
-                "components.sampleLib.getBinaries() > create(bin) > components.sampleLib.binaries.bin.getSources() > create(main)'" +
-                " is already registered to create this model element."))
+        failure.assertHasCause("Exception thrown while executing model rule: sampleLib { ... } @ build.gradle line 51, column 9")
+        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule 'sampleLib { ... } @ build.gradle line 51, column 9 > components.sampleLib.getBinaries() > create(main)' as the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 40, column 9 > create(bin) > create(main)' is already registered to create this model element.")
     }
 }

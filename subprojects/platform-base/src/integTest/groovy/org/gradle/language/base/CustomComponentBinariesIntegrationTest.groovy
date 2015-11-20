@@ -145,9 +145,9 @@ Binaries
                             def binaries = $.binaries
                             def sampleBinarySourceSet = binaries.sampleLibBinary.inputs.toList()[0]
                             def othersSampleBinarySourceSet = binaries.sampleLibOtherBinary.inputs.toList()[0]
-                            assert sampleBinarySourceSet instanceof DefaultLibrarySourceSet
+                            assert sampleBinarySourceSet instanceof LibrarySourceSet
                             assert sampleBinarySourceSet.displayName == "LibrarySourceSet 'sampleLib:librarySource'"
-                            assert othersSampleBinarySourceSet instanceof DefaultLibrarySourceSet
+                            assert othersSampleBinarySourceSet instanceof LibrarySourceSet
                             assert othersSampleBinarySourceSet.displayName == "LibrarySourceSet 'sampleLib:librarySource'"
                         }
                     }

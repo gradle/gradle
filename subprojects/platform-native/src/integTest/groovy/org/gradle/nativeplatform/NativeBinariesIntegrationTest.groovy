@@ -398,14 +398,14 @@ int main (int argc, char *argv[]) {
                     binaries {
                         executable(type: "org.gradle.nativeplatform.NativeExecutableBinarySpec") {
                             sources {
-                                other(type: "org.gradle.language.c.CSourceSet", nodeValue: "C source 'exe:other'")
+                                other(type: "org.gradle.language.c.CSourceSet")
                             }
                             tasks()
                         }
                     }
                     sources {
-                        c(type: "org.gradle.language.c.CSourceSet", nodeValue: "C source 'exe:c'")
-                        cpp(type: "org.gradle.language.cpp.CppSourceSet", nodeValue: "C++ source 'exe:cpp'")
+                        c(type: "org.gradle.language.c.CSourceSet")
+                        cpp(type: "org.gradle.language.cpp.CppSourceSet")
                     }
                 }
                 lib {
@@ -420,8 +420,8 @@ int main (int argc, char *argv[]) {
                         }
                     }
                     sources {
-                        c(type: "org.gradle.language.c.CSourceSet", nodeValue: "C source 'lib:c'")
-                        cpp(type: "org.gradle.language.cpp.CppSourceSet", nodeValue: "C++ source 'lib:cpp'")
+                        c(type: "org.gradle.language.c.CSourceSet")
+                        cpp(type: "org.gradle.language.cpp.CppSourceSet")
                     }
                 }
             }
