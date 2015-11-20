@@ -44,7 +44,7 @@ class BaseLanguageSourceSetFixtures {
         def node = modelRegistry.atState(name, ModelNode.State.Initialized)
         def viewSchema = DefaultModelSchemaStore.instance.getSchema(type)
         def delegateSchema = DefaultModelSchemaStore.instance.getSchema(implType)
-        return new ManagedModelProjection<T>(viewSchema, delegateSchema, TestManagedProxyFactory.INSTANCE, null).asMutable(ModelType.of(type), node, descriptor, []).instance
+        return new ManagedModelProjection<T>(viewSchema, delegateSchema, TestManagedProxyFactory.INSTANCE, null).asMutable(ModelType.of(type), node, descriptor).instance
     }
 
 }

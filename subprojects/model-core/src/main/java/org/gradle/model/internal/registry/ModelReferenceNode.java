@@ -24,7 +24,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -57,11 +56,11 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public <T> ModelView<? extends T> asMutable(final ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
+    public <T> ModelView<? extends T> asMutable(final ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
         if (target == null) {
             return InstanceModelView.of(getPath(), type, null);
         } else {
-            return new ModelViewWrapper<T>(getPath(), target.asMutable(type, ruleDescriptor, implicitDependencies));
+            return new ModelViewWrapper<T>(getPath(), target.asMutable(type, ruleDescriptor));
         }
     }
 

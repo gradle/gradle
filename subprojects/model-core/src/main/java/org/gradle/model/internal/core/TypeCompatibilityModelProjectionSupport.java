@@ -22,7 +22,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
-import java.util.List;
 
 @ThreadSafe
 public abstract class TypeCompatibilityModelProjectionSupport<M> implements ModelProjection {
@@ -53,7 +52,7 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
         return canBeViewedAsImmutable && canBeAssignedTo(targetType);
     }
 
-    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
+    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
         if (canBeViewedAsMutable(type)) {
             return Cast.uncheckedCast(toView(modelNode, ruleDescriptor, true));
         } else {

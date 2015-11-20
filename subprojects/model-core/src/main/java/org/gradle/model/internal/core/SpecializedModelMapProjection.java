@@ -26,7 +26,6 @@ import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Should be used along with {@code PolymorphicModelMapProjection}.
@@ -70,7 +69,7 @@ public class SpecializedModelMapProjection<P, E> implements ModelProjection {
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
+    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
         if (canBeViewedAsMutable(type)) {
             return Cast.uncheckedCast(toView(node, ruleDescriptor, true));
         } else {
