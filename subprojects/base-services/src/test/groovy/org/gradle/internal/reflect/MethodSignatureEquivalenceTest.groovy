@@ -29,7 +29,7 @@ class MethodSignatureEquivalenceTest extends Specification  {
         int someMethodName(int i)
     }
 
-    def "distinguish overloaded overriden methods"() {
+    def "distinguish overloaded overridden methods"() {
         expect:
         def eq = new MethodSignatureEquivalence();
 

@@ -97,10 +97,10 @@ class ModelSchemaUtilsTest extends Specification {
         CharSequence someOverloadedCovariantMethod(Object param)
     }
     
-    def "gets overriden methods from single type"() {
+    def "gets overridden methods from single type"() {
         expect:
-        def overriden = ModelSchemaUtils.getOverridenMethods(ModelSchemaUtils.getCandidateMethods(TypeWithOverloadedMethods).get("someOverloadedMethod"))
-        overriden == null
+        def overridden = ModelSchemaUtils.getOverriddenMethods(ModelSchemaUtils.getCandidateMethods(TypeWithOverloadedMethods).get("someOverloadedMethod"))
+        overridden == null
     }
 
     def "gets overloaded methods from a single type"() {
@@ -115,12 +115,12 @@ class ModelSchemaUtilsTest extends Specification {
         @Override String someOverloadedCovariantMethod(Object param)
     }
 
-    def "gets overriden methods from type hierachy"() {
+    def "gets overridden methods from type hierachy"() {
         expect:
-        def overriden = ModelSchemaUtils.getOverridenMethods(ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).get("someOverloadedMethod"))
-        overriden.size() == 2
-        overriden[0].size() == 2
-        overriden[1].size() == 2
+        def overridden = ModelSchemaUtils.getOverriddenMethods(ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).get("someOverloadedMethod"))
+        overridden.size() == 2
+        overridden[0].size() == 2
+        overridden[1].size() == 2
     }
 
     def "gets overloaded methods from type hierachy"() {

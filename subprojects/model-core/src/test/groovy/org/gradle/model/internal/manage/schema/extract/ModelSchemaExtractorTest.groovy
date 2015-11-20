@@ -495,7 +495,7 @@ class ModelSchemaExtractorTest extends Specification {
             MethodDescription.name("getValue").owner(SingleIntegerValueProperty).returns(Integer).takes(),
             MethodDescription.name("getValue").owner(SingleStringValueProperty).returns(String).takes(),
         ]
-        def message = Pattern.quote("overloaded methods not supported (invalid methods: ${invalidMethods.join(", ")})")
+        def message = Pattern.quote("overloaded methods are not supported (invalid methods: ${invalidMethods.join(", ")})")
 
         expect:
         fail ConflictingPropertiesInParents, message
@@ -1412,23 +1412,23 @@ interface Managed${typeName} {
     }
     
     @Managed
-    interface ManagedTypeWithOverridenMethodExtendingUnmanagedTypeWithMethod extends UnmanagedSuperTypeWithMethod {
+    interface ManagedTypeWithOverriddenMethodExtendingUnmanagedTypeWithMethod extends UnmanagedSuperTypeWithMethod {
         @Override InputStream doSomething(Object param)
     }
     
-    def "accept methods from unmanaged supertype overriden in managed type"() {
+    def "accept methods from unmanaged supertype overridden in managed type"() {
         expect:
-        extract(ManagedTypeWithOverridenMethodExtendingUnmanagedTypeWithMethod) instanceof ManagedImplStructSchema
+        extract(ManagedTypeWithOverriddenMethodExtendingUnmanagedTypeWithMethod) instanceof ManagedImplStructSchema
     }
 
     @Managed
-    interface ManagedTypeWithCovarianceOverridenMethodExtendingUnamangedTypeWithMethod extends UnmanagedSuperTypeWithMethod {
+    interface ManagedTypeWithCovarianceOverriddenMethodExtendingUnamangedTypeWithMethod extends UnmanagedSuperTypeWithMethod {
         @Override ByteArrayInputStream doSomething(Object param)
     }
     
-    def "accept methods from unmanaged supertype with covariance overriden in managed type"() {
+    def "accept methods from unmanaged supertype with covariance overridden in managed type"() {
         expect:
-        extract(ManagedTypeWithCovarianceOverridenMethodExtendingUnamangedTypeWithMethod) instanceof ManagedImplStructSchema
+        extract(ManagedTypeWithCovarianceOverriddenMethodExtendingUnamangedTypeWithMethod) instanceof ManagedImplStructSchema
     }
 
     interface UnmanagedSuperTypeWithOverloadedMethod {
@@ -1442,7 +1442,7 @@ interface Managed${typeName} {
         @Override ByteArrayInputStream doSomething(Object param, Object other)
     }
     
-    def "accept overloaded overriden methods from unmanaged supertype overriden in managed type"() {
+    def "accept overloaded overridden methods from unmanaged supertype overridden in managed type"() {
         expect:
         extract(ManagedTypeExtendingUnmanagedTypeWithOverloadedMethod) instanceof ManagedImplStructSchema
     }

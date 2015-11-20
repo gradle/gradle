@@ -21,6 +21,7 @@ import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.core.ModelView
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
@@ -31,9 +32,9 @@ import org.gradle.platform.base.ComponentSpecIdentifier
 
 class BaseComponentFixtures {
 
-    static <T extends BaseComponentSpec> T create(Class<? extends ComponentSpec> type, Class<T> implType,  ModelRegistry modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
-        createNode(type, implType,  modelRegistry, componentId, instantiator, baseDir)
-            .asMutable(ModelType.of(type), new SimpleModelRuleDescriptor(componentId.getName()), Collections.emptyList()).getInstance()
+    static <P extends ComponentSpec, T extends BaseComponentSpec> P create(Class<P> type, Class<T> implType,  ModelRegistry modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
+        def node = createNode(type, implType,  modelRegistry, componentId, instantiator, baseDir);
+        node.asMutable(ModelType.of(type), new SimpleModelRuleDescriptor(componentId.getName()), Collections.<ModelView<?>>emptyList()).getInstance()
     }
 
     static <T extends BaseComponentSpec> MutableModelNode createNode(Class<? extends ComponentSpec> type, Class<T> implType,  ModelRegistry modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {

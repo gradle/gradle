@@ -714,14 +714,10 @@ afterEach CustomComponent 'newComponent'"""
 
                 static class Rules extends RuleSource {
                     @Model
-                    void createManagedModel(MyModel value) {
-                        println "createManagedModel"
-                    }
+                    void createManagedModel(MyModel value) {}
 
                     @ComponentType
-                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {
-                        println "registerComponent"
-                    }
+                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {}
                 }
 
             }
@@ -754,14 +750,10 @@ afterEach CustomComponent 'newComponent'"""
 
                 static class Rules extends RuleSource {
                     @Model("android")
-                    public void createManagedModel(MyModel value) {
-                        println "createManagedModel"
-                    }
+                    public void createManagedModel(MyModel value) {}
 
                     @ComponentType
-                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {
-                        println "registerComponent"
-                    }
+                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {}
                 }
 
             }

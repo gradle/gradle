@@ -57,7 +57,7 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
     }
 
     @Override
-    protected void handleOverridenMethods(ModelSchemaExtractionContext<?> extractionContext, List<List<Method>> overridenMethods) {
+    protected void handleOverriddenMethods(ModelSchemaExtractionContext<?> extractionContext, List<List<Method>> overriddenMethods) {
     }
 
     @Override

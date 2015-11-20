@@ -64,25 +64,25 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
     }
 
  @Override
-    protected void handleOverridenMethods(ModelSchemaExtractionContext<?> extractionContext, List<List<Method>> overridenMethods) {
+    protected void handleOverriddenMethods(ModelSchemaExtractionContext<?> extractionContext, List<List<Method>> overriddenMethods) {
         ImmutableSet.Builder<Method> accepted = ImmutableSet.builder();
-        for (List<Method> methods : overridenMethods) {
+        for (List<Method> methods : overriddenMethods) {
             if (methods.size() > 1 && !isMethodDeclaredInManagedType(methods.get(methods.size() - 1))) {
                 accepted.addAll(methods);
             }
         }
-        Set<Method> allOverrides = Sets.newLinkedHashSet(Iterables.concat(overridenMethods));
+        Set<Method> allOverrides = Sets.newLinkedHashSet(Iterables.concat(overriddenMethods));
         Set<Method> acceptedOverrides = accepted.build();
         Sets.SetView<Method> rejectedOverrides = Sets.difference(allOverrides, acceptedOverrides);
         if (!rejectedOverrides.isEmpty() && isMethodDeclaredInManagedType(rejectedOverrides)) {
-            throw invalidMethods(extractionContext, "overriden methods supported", rejectedOverrides);
+            throw invalidMethods(extractionContext, "overridden methods supported", rejectedOverrides);
         }
     }
     
     @Override
     protected void handleOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> overloadedMethods) {
         if (isMethodDeclaredInManagedType(overloadedMethods)) {
-            throw invalidMethods(extractionContext, "overloaded methods not supported", overloadedMethods);
+            throw invalidMethods(extractionContext, "overloaded methods are not supported", overloadedMethods);
         }
     }
 

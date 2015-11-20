@@ -39,7 +39,7 @@ import java.util.Set;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.getOverloadedMethods;
-import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.getOverridenMethods;
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.getOverriddenMethods;
 
 public abstract class StructSchemaExtractionStrategySupport implements ModelSchemaExtractionStrategy {
 
@@ -99,13 +99,13 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
             Collection<Method> methods = methodsByName.get(methodName);
 
-            List<List<Method>> overridenMethods = getOverridenMethods(methods);
-            if (!getterOrSetter(methodName) && overridenMethods != null) {
-                handleOverridenMethods(extractionContext, overridenMethods);
-                List<Method> flattenedOverriden = Lists.newArrayList(Iterables.concat(overridenMethods));
-                methods = Lists.newArrayList(Iterables.filter(methods, not(in(flattenedOverriden))));
-                // TODO:PM mark non get/setters overriden methods accepted by child strategies as handled because they should be by default implementations, not enough context to validate this here
-                handledMethods.addAll(flattenedOverriden);
+            List<List<Method>> overriddenMethods = getOverriddenMethods(methods);
+            if (!getterOrSetter(methodName) && overriddenMethods != null) {
+                handleOverriddenMethods(extractionContext, overriddenMethods);
+                List<Method> flattenedOverridden = Lists.newArrayList(Iterables.concat(overriddenMethods));
+                methods = Lists.newArrayList(Iterables.filter(methods, not(in(flattenedOverridden))));
+                // TODO:PM mark non get/setters overridden methods accepted by child strategies as handled because they should be by default implementations, not enough context to validate this here
+                handledMethods.addAll(flattenedOverridden);
                 if (methods.isEmpty()) {
                     continue;
                 }
@@ -261,7 +261,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     protected abstract void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, Method getter, String message);
 
-    protected abstract void handleOverridenMethods(ModelSchemaExtractionContext<?> extractionContext, List<List<Method>> overridenMethods);
+    protected abstract void handleOverriddenMethods(ModelSchemaExtractionContext<?> extractionContext, List<List<Method>> overriddenMethods);
 
     protected abstract void handleOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> overloadedMethods);
 
