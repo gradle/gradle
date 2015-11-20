@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.hamcrest.CoreMatchers
+import org.hamcrest.Matcher
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -176,15 +177,19 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     protected void failureDescriptionStartsWith(String description) {
-        failure.assertThatDescription(normalizedLineSeparators(CoreMatchers.containsString(description)))
+        failure.assertThatDescription(containsNormalizedString(description))
     }
 
     protected void failureDescriptionContains(String description) {
-        failure.assertThatDescription(normalizedLineSeparators(CoreMatchers.containsString(description)))
+        failure.assertThatDescription(containsNormalizedString(description))
     }
 
     protected void failureCauseContains(String description) {
-        failure.assertThatCause(normalizedLineSeparators(CoreMatchers.containsString(description)))
+        failure.assertThatCause(containsNormalizedString(description))
+    }
+
+    protected Matcher<String> containsNormalizedString(String description) {
+        normalizedLineSeparators(CoreMatchers.containsString(description))
     }
 
     private assertHasResult() {

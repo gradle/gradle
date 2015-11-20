@@ -25,10 +25,15 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
     def theModel(String model) {
         applyJavaPlugin(buildFile)
         buildFile << """
-repositories {
-    maven { url '${mavenRepo.uri}' }
-}"""
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
+        """
         buildFile << model
+    }
+
+    def setup() {
+        file('src/main/java/TestApp.java') << 'public class TestApp {}'
     }
 
     def "can resolve dependency on library in maven repository"() {
@@ -36,27 +41,26 @@ repositories {
         def module = mavenRepo.module("org.gradle", "test").publish()
 
         theModel """
-model {
-    components {
-        main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'org.gradle:test:1.0'
+            model {
+                components {
+                    main(JvmLibrarySpec) {
+                        sources {
+                            java {
+                                dependencies {
+                                    library 'org.gradle:test:1.0'
+                                }
+                            }
+                        }
+                    }
+                }
+                tasks {
+                    create('copyDeps', Copy) {
+                        into 'libs'
+                        from compileMainJarMainJava.classpath
                     }
                 }
             }
-        }
-    }
-    tasks {
-        create('copyDeps', Copy) {
-            into 'libs'
-            from compileMainJarMainJava.classpath
-        }
-    }
-}
-"""
-        file('src/main/java/TestApp.java') << '''public class TestApp {}'''
+        """
 
         when:
         succeeds ':copyDeps'
@@ -76,27 +80,26 @@ model {
                 .publish()
 
         theModel """
-model {
-    components {
-        main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'org.gradle:test:1.0'
+            model {
+                components {
+                    main(JvmLibrarySpec) {
+                        sources {
+                            java {
+                                dependencies {
+                                    library 'org.gradle:test:1.0'
+                                }
+                            }
+                        }
+                    }
+                }
+                tasks {
+                    create('copyDeps', Copy) {
+                        into 'libs'
+                        from compileMainJarMainJava.classpath
                     }
                 }
             }
-        }
-    }
-    tasks {
-        create('copyDeps', Copy) {
-            into 'libs'
-            from compileMainJarMainJava.classpath
-        }
-    }
-}
-"""
-        file('src/main/java/TestApp.java') << '''public class TestApp {}'''
+        """
 
         when:
         succeeds ':copyDeps'
@@ -112,45 +115,44 @@ model {
         mavenRepo.module("org.gradle", "compileDep").publish()
 
         theModel """
-model {
-    components {
-        main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'other'
+            model {
+                components {
+                    main(JvmLibrarySpec) {
+                        sources {
+                            java {
+                                dependencies {
+                                    library 'other'
+                                }
+                            }
+                        }
+                    }
+                    other(JvmLibrarySpec) {
+                        sources {
+                            java {
+                                dependencies {
+                                    library 'org.gradle:compileDep:1.0'
+                                }
+                            }
+                        }
+                    }
+                }
+                tasks {
+                    create('copyDeps') {
+                        dependsOn 'copyMainDeps'
+                        dependsOn 'copyOtherDeps'
+                    }
+                    create('copyMainDeps', Copy) {
+                        into 'mainLibs'
+                        from compileMainJarMainJava.classpath
+                    }
+                    create('copyOtherDeps', Copy) {
+                        into 'otherLibs'
+                        from compileOtherJarOtherJava.classpath
                     }
                 }
             }
-        }
-        other(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'org.gradle:compileDep:1.0'
-                    }
-                }
-            }
-        }
-    }
-    tasks {
-        create('copyDeps') {
-            dependsOn 'copyMainDeps'
-            dependsOn 'copyOtherDeps'
-        }
-        create('copyMainDeps', Copy) {
-            into 'mainLibs'
-            from compileMainJarMainJava.classpath
-        }
-        create('copyOtherDeps', Copy) {
-            into 'otherLibs'
-            from compileOtherJarOtherJava.classpath
-        }
-    }
-}
-"""
-        file('src/main/java/TestApp.java') << '''public class TestApp {}'''
-        file('src/other/java/Other.java') << '''public class Other {}'''
+        """
+        file('src/other/java/Other.java')  << 'public class Other {}'
 
         when:
         succeeds ':copyDeps'
@@ -171,46 +173,65 @@ model {
                 .publish()
 
         theModel """
-model {
-    components {
-        main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'other'
+            model {
+                components {
+                    main(JvmLibrarySpec) {
+                        sources {
+                            java {
+                                dependencies {
+                                    library 'other'
+                                }
+                            }
+                        }
+                    }
+                    other(JvmLibrarySpec) {
+                        api {
+                            dependencies {
+                                library 'org.gradle:apiDep:1.0'
+                            }
+                        }
+                        sources {
+                            java {
+                                dependencies {
+                                    library 'org.gradle:compileDep:1.0'
+                                }
+                            }
+                        }
+                    }
+                }
+                tasks {
+                    create('copyDeps', Copy) {
+                        into 'mainLibs'
+                        from compileMainJarMainJava.classpath
                     }
                 }
             }
-        }
-        other(JvmLibrarySpec) {
-            api {
-                dependencies {
-                    library 'org.gradle:apiDep:1.0'
-                }
-            }
-            sources {
-                java {
-                    dependencies {
-                        library 'org.gradle:compileDep:1.0'
-                    }
-                }
-            }
-        }
-    }
-    tasks {
-        create('copyDeps', Copy) {
-            into 'mainLibs'
-            from compileMainJarMainJava.classpath
-        }
-    }
-}
-"""
-        file('src/main/java/TestApp.java') << '''public class TestApp {}'''
+        """
 
         when:
         succeeds ':copyDeps'
 
         then:
         file('mainLibs').assertHasDescendants('other.jar', 'apiDep-1.0.jar', 'transitiveApiDep-1.0.jar')
+    }
+
+    def "reasonable error message when external dependency cannot be found"() {
+        given:
+        theModel """
+            model {
+                components {
+                    main(JvmLibrarySpec) {
+                        dependencies.library 'org.gradle:test:1.0'
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails 'mainJar'
+
+        and:
+        failureDescriptionContains('Could not resolve all dependencies')
+        failureCauseContains('Could not find org.gradle:test:1.0')
     }
 }
