@@ -22,7 +22,12 @@ import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
 
 public class DefaultGoogleTestTestSuiteBinary extends DefaultNativeTestSuiteBinarySpec implements GoogleTestTestSuiteBinarySpec {
     @Override
-    public GoogleTestTestSuiteSpec getTestSuite() {
+    public GoogleTestTestSuiteSpec getComponent() {
         return getComponentAs(GoogleTestTestSuiteSpec.class);
+    }
+
+    @Override
+    public GoogleTestTestSuiteSpec getTestSuite() {
+        return getComponent();
     }
 }

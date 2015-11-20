@@ -57,6 +57,9 @@ public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBi
      */
     @Override
     NativeTestSuiteSpec getTestSuite();
+    
+    @Override
+    NativeTestSuiteSpec getComponent();
 
     /**
      * The tested binary.
