@@ -163,7 +163,7 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
 
                 // make sure execution is consistent independently of time
                 Collections.shuffle(projects, new Random(31 * projectCount))
-                // restore stale backup files in case a build was interrupted even if interrupted
+                // restore stale backup files in case a build was interrupted
                 cleanup()
 
                 // retrieve the dependencies in an exploitable form
