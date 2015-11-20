@@ -23,6 +23,7 @@ import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
@@ -32,6 +33,7 @@ import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.CompositeSchema;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.StructSchema;
+import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.objectweb.asm.*;
@@ -429,18 +431,36 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeConfigureMethod(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
-        if (!(property.getSchema() instanceof CompositeSchema) || property.isWritable()) {
+        if (property.isWritable()) {
             return;
         }
 
-        // Adds a void $propName(Closure<?> cl) method
+        if (property.getSchema() instanceof CompositeSchema) {
+            // Adds a void $propName(Closure<?> cl) method that delegates to model state
 
-        MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE), null);
-        putStateFieldValueOnStack(methodVisitor, generatedType);
-        putConstantOnStack(methodVisitor, property.getName());
-        putFirstMethodArgumentOnStack(methodVisitor);
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "apply", STATE_APPLY_METHOD_DESCRIPTOR, true);
-        finishVisitingMethod(methodVisitor);
+            MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE), null);
+            putStateFieldValueOnStack(methodVisitor, generatedType);
+            putConstantOnStack(methodVisitor, property.getName());
+            putFirstMethodArgumentOnStack(methodVisitor);
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "apply", STATE_APPLY_METHOD_DESCRIPTOR, true);
+            finishVisitingMethod(methodVisitor);
+            return;
+        }
+        if (property.getSchema() instanceof UnmanagedImplStructSchema) {
+            UnmanagedImplStructSchema<?> structSchema = (UnmanagedImplStructSchema<?>) property.getSchema();
+            if (!structSchema.isAnnotated()) {
+                return;
+            }
+
+            // Adds a void $propName(Closure<?> cl) method that executes the closure
+            MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE), null);
+            putStateFieldValueOnStack(methodVisitor, generatedType);
+            putConstantOnStack(methodVisitor, property.getName());
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "get", STATE_GET_METHOD_DESCRIPTOR, true);
+            putFirstMethodArgumentOnStack(methodVisitor);
+            methodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(ClosureBackedAction.class), "execute", Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLOSURE_TYPE), false);
+            finishVisitingMethod(methodVisitor);
+        }
     }
 
     private void writeSetter(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {

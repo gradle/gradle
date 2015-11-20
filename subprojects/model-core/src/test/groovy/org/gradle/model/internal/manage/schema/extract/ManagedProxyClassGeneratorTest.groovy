@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
+
 import com.google.common.base.Optional
 import groovy.transform.NotYetImplemented
 import org.gradle.api.internal.file.FileResolver
@@ -22,6 +23,7 @@ import org.gradle.internal.typeconversion.DefaultTypeConverter
 import org.gradle.internal.typeconversion.TypeConverter
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.core.UnmanagedStruct
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.instance.ModelElementState
 import org.gradle.model.internal.manage.schema.StructSchema
@@ -340,7 +342,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         }
     }
 
-    def "mixes in configure method for managed property that delegates to element state"() {
+    def "mixes in configure method that forwards to element state for property with managed type"() {
         def state = Mock(ModelElementState)
 
         given:
@@ -353,6 +355,40 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         then:
         1 * state.apply("value", cl)
+        0 * state._
+    }
+
+    def "mixes in eager configure method for property with unmanaged struct type"() {
+        def state = Mock(ModelElementState)
+        def prop = Mock(SomeUnmanagedStruct)
+
+        given:
+        def proxyClass = generate(SomeTypeWithReadOnlyProperty)
+        def impl = proxyClass.newInstance(state)
+
+        when:
+        impl.otherValue {
+            value = "12"
+        }
+
+        then:
+        1 * state.get("otherValue") >> prop
+        1 * prop.setValue("12")
+        0 * state._
+    }
+
+    def "mixes in toString() implementation that delegates to delegate object when it has a displayName property"() {
+        def state = Stub(ModelElementState)
+        def delegate = new Object() {
+            String getDisplayName() {
+                return "<delegate>"
+            }
+        }
+
+        expect:
+        def proxyClass = generate(SomeType, delegate.class)
+        def impl = proxyClass.newInstance(state, delegate)
+        impl.toString() == "<delegate>"
     }
 
     def "mixes in toString() implementation that delegates to element state"() {
@@ -543,6 +579,12 @@ class ManagedProxyClassGeneratorTest extends Specification {
     @Managed
     static interface SomeTypeWithReadOnlyProperty {
         SomeType getValue()
+        SomeUnmanagedStruct getOtherValue()
+    }
+
+    @UnmanagedStruct
+    static interface SomeUnmanagedStruct {
+        void setValue(String value)
     }
 
     @Managed
