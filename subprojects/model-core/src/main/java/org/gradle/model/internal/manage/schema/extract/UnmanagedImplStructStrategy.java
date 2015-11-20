@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
+import org.gradle.model.internal.core.UnmanagedStruct;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema;
@@ -43,7 +44,7 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
                 return propertyResult.getProperty();
             }
         });
-        return new UnmanagedImplStructSchema<R>(extractionContext.getType(), properties, aspects);
+        return new UnmanagedImplStructSchema<R>(extractionContext.getType(), properties, aspects, extractionContext.getType().getConcreteClass().getAnnotation(UnmanagedStruct.class) != null);
     }
 
     @Override

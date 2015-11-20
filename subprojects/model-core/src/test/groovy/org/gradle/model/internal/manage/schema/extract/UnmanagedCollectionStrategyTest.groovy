@@ -36,6 +36,7 @@ class UnmanagedCollectionStrategyTest extends Specification {
         !(schema instanceof ManagedImplSchema)
         !(schema instanceof CompositeSchema)
         schema instanceof StructSchema
+        !schema.annotated
         schema.propertyNames == ['empty'] as SortedSet
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
+import org.gradle.model.internal.core.UnmanagedStruct
 import org.gradle.model.internal.manage.schema.CompositeSchema
 import org.gradle.model.internal.manage.schema.ManagedImplSchema
 import org.gradle.model.internal.manage.schema.StructSchema
@@ -36,10 +37,22 @@ class UnmanagedImplStructStrategyTest extends Specification {
         !(schema instanceof ManagedImplSchema)
         !(schema instanceof CompositeSchema)
         schema instanceof StructSchema
+        !schema.annotated
         schema.propertyNames == ['readOnlyString', 'strings'] as SortedSet
         schema.properties*.name == ['readOnlyString', 'strings']
         schema.getProperty('readOnlyString').schema == store.getSchema(ModelType.of(String))
         schema.getProperty('strings').schema == store.getSchema(ModelTypes.list(ModelType.of(String)))
+    }
+
+    def "assembles schema for unmanaged type marked with @UnmanagedStruct"() {
+        expect:
+        def schema = store.getSchema(ModelType.of(SomeStruct))
+        schema instanceof UnmanagedImplStructSchema
+        !(schema instanceof ManagedImplSchema)
+        !(schema instanceof CompositeSchema)
+        schema instanceof StructSchema
+        schema.annotated
+        schema.propertyNames == ['readOnlyString'] as SortedSet
     }
 
     def "assembles schema for unmanaged type that references itself"() {
@@ -56,6 +69,11 @@ class UnmanagedImplStructStrategyTest extends Specification {
 
         List<String> getStrings()
         void setStrings(List<String> strings)
+    }
+
+    @UnmanagedStruct
+    interface SomeStruct {
+        String getReadOnlyString()
     }
 
     interface Person {
