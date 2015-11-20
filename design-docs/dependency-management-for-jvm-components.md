@@ -84,10 +84,8 @@ Later work:
 - Reuse existing repositories DSL, bridging into model space.
 - Main Jar artifact of maven module is included in compile classpath.
 - Main Jar artifact of any compile-scoped dependencies are included transitively in the compile classpath.
-
 - Assume external library is compatible with all target platforms.
 - Assume external library declares only one variant.
-
 - Update samples and user guide
 - Update newJavaModel performance test?
 
@@ -98,12 +96,12 @@ Later work:
 ### Test cases
 
 - For maven module dependencies
-    - Main Jar artifact of module is included in compile classpath.
-    - Main Jar artifact of compile-scoped transitive dependencies are included in the compile classpath.
-    - Artifacts from runtime-scoped (and other scoped) transitive dependencies are _not_ included in the compile classpath.
+    - ~~Main Jar artifact of module is included in compile classpath.~~
+    - ~~Main Jar artifact of compile-scoped transitive dependencies are included in the compile classpath.~~
+    - ~~Artifacts from runtime-scoped (and other scoped) transitive dependencies are _not_ included in the compile classpath.~~
 - For local component dependencies:
-    - Artifacts from transitive external dependencies that are non part of component API are _not_ included in the compile classpath.
-- Displays a reasonable error message if the external dependency cannot be found in a declared repository
+    - ~~Artifacts from transitive external dependencies that are non part of component API are _not_ included in the compile classpath.~~
+- ~~Displays a reasonable error message if the external dependency cannot be found in a declared repository~~
 - A Java plugin can use use `DependencySpecContainer` as a `ModelSet<DependencySpec>` (create, beforeEach, afterEach)
 
 ### Out of scope
