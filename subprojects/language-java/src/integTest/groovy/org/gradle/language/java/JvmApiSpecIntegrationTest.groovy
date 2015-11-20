@@ -28,21 +28,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
     TestJvmComponent app = new TestJavaComponent()
 
-    def "should succeed when public api specification is absent"() {
-        when:
-        buildFile << """
-            model {
-                components {
-                    myLib(JvmLibrarySpec) {
-                    }
-                }
-            }
-        """
-        then:
-        succeeds "assemble"
-    }
-
-    def "should succeed when public api specification is present but empty"() {
+    def "should succeed when public api specification is empty"() {
         when:
         buildFile << """
             model {
@@ -58,7 +44,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
     }
 
-    def "should succeed when public api specification is present and fully configured"() {
+    def "should succeed when public api specification is fully configured"() {
         when:
         buildFile << """
             model {
