@@ -183,8 +183,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new ComponentRegistry();
     }
 
-    protected TypeConverter createTypeConverter() {
-        return new DefaultTypeConverter(get(FileResolver.class));
+    protected TypeConverter createTypeConverter(FileResolver fileResolver) {
+        return new DefaultTypeConverter(fileResolver);
     }
 
     private class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {
