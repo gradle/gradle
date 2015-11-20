@@ -22,7 +22,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
@@ -104,7 +103,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         errorOutput.contains("unable to resolve class $clazz.name")
         executedAndNotSkipped(':compileTestGroovy')
-        assertDaemonsAreStopping()
+        killDaemons()
 
         where:
         clazz       | origin
@@ -133,7 +132,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test", ":build")
-        assertDaemonsAreStopping()
+        killDaemons()
     }
 
     def "successfully execute functional test and verify expected result"() {
@@ -145,7 +144,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test", ":build")
-        assertDaemonsAreStopping()
+        killDaemons()
     }
 
     def "successfully execute functional tests with parallel forks"() {
@@ -168,7 +167,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             result.assertOutputContains("org.gradle.test.${testClassName} > execute helloWorld task STARTED")
         }
 
-        assertDaemonsAreStopping()
+        killDaemons()
     }
 
     def "successfully execute functional test with custom Gradle user home directory"() {
@@ -225,7 +224,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test", ":build")
-        assertDaemonsAreStopping()
+        killDaemons()
     }
 
     def "functional test fails due to invalid JVM parameter for test execution"() {
@@ -274,7 +273,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         failureDescriptionContains("Execution failed for task ':test'.")
         // IBM JVM produces a slightly different error message
         failure.output.contains('Unrecognized option: -unknown') || failure.output.contains('Command-line option unrecognised: -unknown')
-        assertDaemonsAreStopping()
+        killDaemons()
     }
 
     def "can test plugin and custom task as external files by adding them to the build script's classpath"() {
@@ -391,10 +390,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(':test')
-        assertDaemonsAreStopping()
+        killDaemons()
     }
 
-    @LeaksFileHandles
     def "can test plugin and custom task as external files by providing them as classpath through GradleRunner API"() {
         file("settings.gradle") << "include 'sub'"
         file("sub/build.gradle") << "apply plugin: 'groovy'; dependencies { compile localGroovy() }"
@@ -528,7 +526,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(':test')
-        assertDaemonsAreStopping()
+        killDaemons()
     }
 
     def "can control debug mode through system property"() {
@@ -587,7 +585,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test", ":build")
-        assertDaemonsAreStopping()
+        killDaemons()
     }
 
     @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
@@ -643,7 +641,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test", ":build")
-        assertDaemonsAreStopping()
+        killDaemons()
 
         where:
         gradleVersion << ['2.6', '2.7']
@@ -713,7 +711,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             result.assertOutputContains("org.gradle.test.${testClassName} > execute helloWorld task STARTED")
         }
 
-        assertDaemonsAreStopping()
+        killDaemons()
 
         where:
         gradleVersion << ['2.6', '2.7']
@@ -812,7 +810,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(':test')
-        assertDaemonsAreStopping()
+        killDaemons()
     }
 
     private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
@@ -820,8 +818,8 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         DaemonLogsAnalyzer.newAnalyzer(daemonBaseDir, executer.distribution.version.version)
     }
 
-    private void assertDaemonsAreStopping() {
-        createDaemonLogAnalyzer().visible*.stops()
+    private void killDaemons() {
+        createDaemonLogAnalyzer().killAll()
     }
 
     private static String buildFileForGroovyProject() {
