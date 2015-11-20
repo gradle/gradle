@@ -128,11 +128,9 @@ language levels for each module in a project.
 
 #### The API
 
-    interface IdeaJavaLanguageLevel extends JavaLanguageLevel {
-        boolean isInherited()
-    }
     interface IdeaJavaSourceSettings extends JavaSourceSettings {
-        IdeaJavaLanguageLevel getSourceLanguageLevel()
+        boolean isInherited()
+        JavaVersion getSourceLanguageLevel()
     }
 
     interface IdeaModule extends JavaSourceAware {
@@ -152,8 +150,8 @@ language levels for each module in a project.
 - Update `IdeaModelBuilder` to set values for `getJavaSourceSettings()` for `IdeaProject` and `IdeaModule`
     - return `null` if not a Java project
     - otherwise configure it as follows
-        - `IdeaProject.getJavaSourceSettings().getSourceLanguageLevel().getVersion()` is calculated from `org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`.
-        - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel().getVersion()` returns same value as root `IdeaProject.getLanguageLevel().getLevel()`
+        - `IdeaProject.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`.
+        - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` returns same value as root `IdeaProject.getLanguageLevel().getLevel()`
         - `IdeaModule.getSourceLanguageLevel().isInherited` returns true
 
 #### Test coverage
