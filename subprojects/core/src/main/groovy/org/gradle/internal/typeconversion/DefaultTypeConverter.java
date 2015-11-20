@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-public class DefaultTypeConverters implements TypeConverters {
+public class DefaultTypeConverter implements TypeConverter {
 
     private static final String CANDIDATE = "CharSequence instances.";
     private static final Collection<String> CANDIDATES = Collections.singleton(CANDIDATE);
@@ -227,7 +227,7 @@ public class DefaultTypeConverters implements TypeConverters {
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate(CANDIDATE);
         }
-    };
+    }
 
     public abstract static class NumberConverter<T extends Number> extends CharSequenceConverter<T> {
         private final Class<T> type;
@@ -256,7 +256,7 @@ public class DefaultTypeConverters implements TypeConverters {
 
         protected abstract void convertStringToNumber(String s, NotationConvertResult<? super T> result);
         protected abstract void convertNumberToNumber(Number n, NotationConvertResult<? super T> result);
-    };
+    }
 
     public static class EnumConverter<T extends Enum> extends CharSequenceConverter<T> {
         private final Class<? extends T> enumType;
@@ -272,7 +272,7 @@ public class DefaultTypeConverters implements TypeConverters {
         }
     }
 
-    public DefaultTypeConverters(final FileResolver fileResolver) {
+    public DefaultTypeConverter(final FileResolver fileResolver) {
         fileParser = build(new CharSequenceConverter<File>() {
             public void convert(Object notation, NotationConvertResult<? super File> result) throws TypeConversionException {
                 if (notation instanceof CharSequence) {

@@ -18,8 +18,8 @@ package org.gradle.model.internal.manage.schema.extract
 import com.google.common.base.Optional
 import groovy.transform.NotYetImplemented
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.typeconversion.DefaultTypeConverters
-import org.gradle.internal.typeconversion.TypeConverters
+import org.gradle.internal.typeconversion.DefaultTypeConverter
+import org.gradle.internal.typeconversion.TypeConverter
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.manage.instance.ManagedInstance
@@ -428,9 +428,9 @@ class ManagedProxyClassGeneratorTest extends Specification {
             data[args[0]] = args[1]
         }
 
-        def converter = new DefaultTypeConverters()
+        def converter = new DefaultTypeConverter()
         def services = Mock(ServiceRegistry)
-        services.get(_ as Class) >> { Class type -> if (type == TypeConverters) { return converter } }
+        services.get(_ as Class) >> { Class type -> if (type == TypeConverter) { return converter } }
         state.getServices() >> services
 
         def proxy = generate(interfaceWithPrimitiveProperty)
@@ -478,9 +478,9 @@ class ManagedProxyClassGeneratorTest extends Specification {
         state.set(_, _) >> { args ->
             data[args[0]] = args[1]
         }
-        def converter = new DefaultTypeConverters()
+        def converter = new DefaultTypeConverter()
         def services = Mock(ServiceRegistry)
-        services.get(_ as Class) >> { Class type -> if (type == TypeConverters) { return converter } }
+        services.get(_ as Class) >> { Class type -> if (type == TypeConverter) { return converter } }
         state.getServices() >> services
 
         def proxy = generate(clazz)

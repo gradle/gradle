@@ -25,7 +25,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.Nullable;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.typeconversion.TypeConverters;
+import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
@@ -88,7 +88,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private static final Equivalence<Method> METHOD_EQUIVALENCE = new MethodSignatureEquivalence();
     private static final String SET_OBJECT_PROPERTY_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
     private static final String COERCE_TO_SCALAR_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, CLASS_TYPE, Type.getType(boolean.class));
-    private static final Type TYPE_CONVERTERS_TYPE = Type.getType(TypeConverters.class);
+    private static final Type TYPE_CONVERTERS_TYPE = Type.getType(TypeConverter.class);
     private static final String MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME = MODEL_ELEMENT_STATE_TYPE.getInternalName();
     private static final Type SERVICE_REGISTRY_TYPE = Type.getType(ServiceRegistry.class);
     private static final String GET_SERVICES_METHOD_DESCRIPTOR = Type.getMethodDescriptor(SERVICE_REGISTRY_TYPE);

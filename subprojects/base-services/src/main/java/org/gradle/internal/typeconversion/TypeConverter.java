@@ -16,6 +16,6 @@
 
 package org.gradle.internal.typeconversion;
 
-public interface TypeConverters {
+public interface TypeConverter {
     Object convert(Object notation, Class type, boolean primitive) throws UnsupportedNotationException, TypeConversionException;
 }
