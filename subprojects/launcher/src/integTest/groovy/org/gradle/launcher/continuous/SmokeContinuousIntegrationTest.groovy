@@ -318,7 +318,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
         then:
         succeeds "a"
-        output.endsWith("(ctrl-d to exit)\n")
+        output.endsWith("(ctrl-d to exit)\n\n")
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -328,7 +328,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
         then:
         succeeds "a"
-        output.endsWith("(ctrl-d then enter to exit)\n")
+        output.endsWith("(ctrl-d then enter to exit)\n\n")
     }
 
 }

@@ -79,7 +79,7 @@ class CancellationContinuousIntegrationTest extends Java7RequiringContinuousInte
 
         then:
         succeeds "build" // tests message
-        output.endsWith("...\n")
+        output.endsWith("...\n\n")
 
         when:
         file("src/main/java/Thing.java") << "class Thing {}"
