@@ -23,8 +23,6 @@ import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.LibrarySpec;
 import org.gradle.platform.base.PlatformAwareComponentSpec;
 
-import java.util.Set;
-
 /**
  * Definition of a JVM library component that is to be built by Gradle.
  */
@@ -41,11 +39,6 @@ public interface JvmLibrarySpec extends LibrarySpec, JvmComponentSpec, PlatformA
      * The public API of this library.
      */
     JvmApiSpec getApi();
-
-    /**
-     * The set of packages that comprise this library's public API.
-     */
-    Set<String> getExportedPackages();
 
     /**
      * Specify the component-level dependencies of this library.

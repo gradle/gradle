@@ -107,7 +107,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         public void createBinaries(ModelMap<JarBinarySpec> binaries, BinaryNamingSchemeBuilder namingSchemeBuilder,
                                    PlatformResolvers platforms, final JvmLibrarySpecInternal jvmLibrary) {
             List<JavaPlatform> selectedPlatforms = resolvePlatforms(platforms, jvmLibrary);
-            final Set<String> exportedPackages = jvmLibrary.getExportedPackages();
+            final Set<String> exportedPackages = exportedPackagesOf(jvmLibrary);
             final Collection<DependencySpec> apiDependencies = apiDependenciesOf(jvmLibrary);
             final Collection<DependencySpec> dependencies = componentDependenciesOf(jvmLibrary);
             for (final JavaPlatform platform : selectedPlatforms) {
@@ -138,6 +138,10 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     return platformResolver.resolve(JavaPlatform.class, platformRequirement);
                 }
             });
+        }
+
+        private static Set<String> exportedPackagesOf(JvmLibrarySpecInternal jvmLibrary) {
+            return jvmLibrary.getApi().getExports();
         }
 
         private static Collection<DependencySpec> apiDependenciesOf(JvmLibrarySpecInternal jvmLibrary) {

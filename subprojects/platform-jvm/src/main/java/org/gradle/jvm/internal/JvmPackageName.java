@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm;
-
-import org.gradle.api.Incubating;
+package org.gradle.jvm.internal;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,7 +32,6 @@ import java.util.List;
  * @see #of(String)
  * @since 2.10
  */
-@Incubating
 public class JvmPackageName {
 
     private static final List<String> JAVA_KEYWORDS = Arrays.asList(
