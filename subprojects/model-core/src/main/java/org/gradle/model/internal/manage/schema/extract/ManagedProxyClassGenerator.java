@@ -30,10 +30,7 @@ import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
-import org.gradle.model.internal.manage.schema.CompositeSchema;
-import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.StructSchema;
-import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.objectweb.asm.*;
@@ -406,16 +403,18 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         Class<?> viewClass = viewSchema.getType().getConcreteClass();
         for (ModelProperty<?> property : viewSchema.getProperties()) {
             String propertyName = property.getName();
+
+            writeConfigureMethod(visitor, generatedType, property);
+            writeSetMethod(visitor, generatedType, property);
+
             // Delegated properties are handled in writeDelegateMethods()
             if (delegatePropertyNames.contains(propertyName)) {
-                writeConfigureMethod(visitor, generatedType, property);
                 continue;
             }
             switch (property.getStateManagementType()) {
                 case MANAGED:
                     writeGetters(visitor, generatedType, property);
                     writeSetter(visitor, generatedType, property);
-                    writeConfigureMethod(visitor, generatedType, property);
                     break;
 
                 case UNMANAGED:
@@ -427,6 +426,23 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                     }
                     break;
             }
+        }
+    }
+
+    private void writeSetMethod(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
+        if (!property.isWritable()) {
+            return;
+        }
+
+        if (property.getSchema() instanceof ScalarValueSchema) {
+            // TODO - should we support this?
+            // Adds a void $propName(value) method that sets the value
+            Type propertyType = Type.getType(property.getType().getConcreteClass());
+            MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, propertyType), null);
+            putThisOnStack(methodVisitor);
+            putFirstMethodArgumentOnStack(methodVisitor, propertyType);
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), property.getSetter().getName(), Type.getMethodDescriptor(Type.VOID_TYPE, propertyType), false);
+            finishVisitingMethod(methodVisitor);
         }
     }
 
@@ -454,9 +470,8 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
             // Adds a void $propName(Closure<?> cl) method that executes the closure
             MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE), null);
-            putStateFieldValueOnStack(methodVisitor, generatedType);
-            putConstantOnStack(methodVisitor, property.getName());
-            methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "get", STATE_GET_METHOD_DESCRIPTOR, true);
+            putThisOnStack(methodVisitor);
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), property.getGetters().get(0).getName(), Type.getMethodDescriptor(Type.getType(property.getType().getConcreteClass())), false);
             putFirstMethodArgumentOnStack(methodVisitor);
             methodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(ClosureBackedAction.class), "execute", Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLOSURE_TYPE), false);
             finishVisitingMethod(methodVisitor);

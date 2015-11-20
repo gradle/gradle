@@ -35,8 +35,8 @@ public class AbstractProxyClassGenerator {
         return Cast.uncheckedCast(DEFINE_CLASS_METHOD.invoke(classLoader, generatedTypeName, bytecode, 0, bytecode.length));
     }
 
-    protected void putThisOnStack(MethodVisitor constructorVisitor) {
-        constructorVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+    protected void putThisOnStack(MethodVisitor methodVisitor) {
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
     }
 
     protected void finishVisitingMethod(MethodVisitor methodVisitor) {

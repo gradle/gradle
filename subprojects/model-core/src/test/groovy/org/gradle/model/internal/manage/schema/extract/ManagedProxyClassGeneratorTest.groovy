@@ -358,7 +358,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         0 * state._
     }
 
-    def "mixes in eager configure method for property with unmanaged struct type"() {
+    def "mixes in eager configure method for managed property with unmanaged struct type"() {
         def state = Mock(ModelElementState)
         def prop = Mock(SomeUnmanagedStruct)
 
@@ -374,6 +374,46 @@ class ManagedProxyClassGeneratorTest extends Specification {
         then:
         1 * state.get("otherValue") >> prop
         1 * prop.setValue("12")
+        0 * state._
+    }
+
+    def "mixes in eager configure method for delegating property with unmanaged struct type"() {
+        def state = Mock(ModelElementState)
+        def prop = Mock(SomeUnmanagedStruct)
+        def delegate = new Object() {
+            SomeUnmanagedStruct getOtherValue() {
+                return prop
+            }
+        }
+
+        given:
+        def proxyClass = generate(SomeTypeWithReadOnlyProperty, delegate.class)
+        def impl = proxyClass.newInstance(state, delegate)
+
+        when:
+        impl.otherValue {
+            value = "12"
+        }
+
+        then:
+        1 * prop.setValue("12")
+        0 * state._
+    }
+
+    def "mixes in set method for property with scalar type"() {
+        def state = Mock(ModelElementState)
+
+        given:
+        def proxyClass = generate(SomeType)
+        def impl = proxyClass.newInstance(state)
+
+        when:
+        impl.value = 12
+        impl.primitive = 14L
+
+        then:
+        1 * state.set("value", 12)
+        1 * state.set("primitive", 14L)
         0 * state._
     }
 
@@ -572,8 +612,10 @@ class ManagedProxyClassGeneratorTest extends Specification {
     @Managed
     static interface SomeType {
         Integer getValue()
-
         void setValue(Integer value)
+
+        long getPrimitive()
+        void setPrimitive(long l)
     }
 
     @Managed
