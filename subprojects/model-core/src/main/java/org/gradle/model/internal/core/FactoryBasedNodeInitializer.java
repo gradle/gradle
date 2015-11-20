@@ -47,7 +47,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
     public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
         return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
             .put(ModelActionRole.Discover, DirectNodeInputUsingModelAction.of(subject, descriptor,
-                Arrays.asList(
+                Arrays.<ModelReference<?>>asList(
                     ModelReference.of(ModelSchemaStore.class),
                     ModelReference.of(ManagedProxyFactory.class),
                     ModelReference.of(TypeConverter.class)
@@ -73,7 +73,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
                 }
             ))
             .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
-                Arrays.asList(
+                Arrays.<ModelReference<?>>asList(
                     ModelReference.of(NodeInitializerRegistry.class),
                     ModelReference.of(ModelSchemaStore.class),
                     ModelReference.of(ManagedProxyFactory.class),

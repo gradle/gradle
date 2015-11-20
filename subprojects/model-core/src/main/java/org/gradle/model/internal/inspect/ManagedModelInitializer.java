@@ -39,7 +39,7 @@ public class ManagedModelInitializer<T> extends AbstractManagedModelInitializer<
     public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
         return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
             .put(ModelActionRole.Discover, DirectNodeInputUsingModelAction.of(subject, descriptor,
-                Arrays.asList(
+                Arrays.<ModelReference<?>>asList(
                     ModelReference.of(ManagedProxyFactory.class),
                     ModelReference.of(TypeConverter.class)
                 ),
@@ -53,7 +53,7 @@ public class ManagedModelInitializer<T> extends AbstractManagedModelInitializer<
                 }
             ))
             .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
-                Arrays.asList(
+                Arrays.<ModelReference<?>>asList(
                     ModelReference.of(NodeInitializerRegistry.class),
                     ModelReference.of(ManagedProxyFactory.class),
                     ModelReference.of(TypeConverter.class)
