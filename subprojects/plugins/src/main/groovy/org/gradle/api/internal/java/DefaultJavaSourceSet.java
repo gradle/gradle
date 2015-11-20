@@ -22,6 +22,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.Classpath;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.platform.base.DependencySpecContainer;
+import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -40,7 +41,7 @@ public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements J
 
     @Override
     public DependencySpecContainer getDependencies() {
-        throw new UnsupportedOperationException();
+        return new DefaultDependencySpecContainer();
     }
 
     @Override

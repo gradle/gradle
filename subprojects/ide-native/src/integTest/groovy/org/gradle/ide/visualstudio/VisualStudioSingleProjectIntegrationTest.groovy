@@ -166,7 +166,7 @@ model {
         both(NativeLibrarySpec)
         staticOnly(NativeLibrarySpec) {
             binaries.withType(SharedLibraryBinarySpec) {
-                buildable false
+                buildable = false
             }
         }
     }
