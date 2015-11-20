@@ -26,7 +26,6 @@ import org.gradle.platform.base.*
 class DocumentationPlugin extends RuleSource {
     @ComponentType
     void register(ComponentTypeBuilder<DocumentationComponent> builder) {
-        builder.defaultImplementation(DefaultDocumentationComponent)
     }
 
     @BinaryType

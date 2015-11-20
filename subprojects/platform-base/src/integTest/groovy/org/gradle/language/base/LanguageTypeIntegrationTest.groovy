@@ -60,14 +60,12 @@ model {
     def "can add custom language sourceSet to component"() {
         when:
         buildFile << """
-        interface SampleComponent extends ComponentSpec {}
-        class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
+        @Managed interface SampleComponent extends ComponentSpec {}
 
 
         class CustomComponentPlugin extends RuleSource {
             @ComponentType
             void register(ComponentTypeBuilder<SampleComponent> builder) {
-                builder.defaultImplementation(DefaultSampleComponent)
             }
 
             @Mutate

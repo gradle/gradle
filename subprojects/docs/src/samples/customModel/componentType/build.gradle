@@ -15,14 +15,12 @@
  * limitations under the License.
  */
 
+@Managed
 interface ImageComponent extends LibrarySpec {
-    String title
-    List<String> sizes
-}
-
-class DefaultImageComponent extends BaseComponentSpec implements ImageComponent {
-    List<String> sizes
-    String title
+    String getTitle()
+    void setTitle(String title)
+    List<String> getSizes()
+    void setSizes(List<String> sizes)
 }
 
 interface ImageBinary extends BinarySpec {
@@ -38,7 +36,6 @@ class DefaultImageBinary extends BaseBinarySpec implements ImageBinary {
 class MyImageRenderingPlugin extends RuleSource {
     @ComponentType
     void register(ComponentTypeBuilder<ImageComponent> builder) {
-        builder.defaultImplementation(DefaultImageComponent)
     }
 
     @BinaryType

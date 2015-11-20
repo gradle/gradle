@@ -21,12 +21,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class CustomComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
         buildFile << """
+@Managed
 interface SampleComponent extends ComponentSpec {
     String getVersion()
     void setVersion(String version)
-}
-class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {
-    String version
 }
 """
     }
@@ -89,7 +87,6 @@ model {
             class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.defaultImplementation(DefaultSampleComponent)
                 }
 
                 @Mutate
@@ -128,7 +125,6 @@ model {
             class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.defaultImplementation(DefaultSampleComponent)
                 }
             }
 
@@ -183,7 +179,6 @@ BUILD SUCCESSFUL"""
             class MyComponentDeclarationModel extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.defaultImplementation(DefaultSampleComponent)
                 }
             }
 
@@ -231,7 +226,6 @@ BUILD SUCCESSFUL"""
             class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.defaultImplementation(DefaultSampleComponent)
                 }
 
                 @ComponentType
@@ -301,19 +295,28 @@ BUILD SUCCESSFUL"""
         failure.assertHasCause "Method annotated with @ComponentType must have a single parameter of type 'org.gradle.platform.base.ComponentTypeBuilder'."
     }
 
-    def "cannot register same component type multiple times"(){
+    def "cannot register same unmanaged component type implementation multiple times"(){
         given:
         buildWithCustomComponentPlugin()
 
         and:
         buildFile << """
+            interface UnmanagedComponent extends ComponentSpec {}
+            class DefaultUnmanagedComponent extends BaseComponentSpec implements UnmanagedComponent {}
+            class MyPlugin extends RuleSource {
+                @ComponentType
+                void register(ComponentTypeBuilder<UnmanagedComponent> builder) {
+                    builder.defaultImplementation(DefaultUnmanagedComponent)
+                }
+            }
             class MyOtherPlugin extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.defaultImplementation(DefaultSampleComponent)
+                void register(ComponentTypeBuilder<UnmanagedComponent> builder) {
+                    builder.defaultImplementation(DefaultUnmanagedComponent)
                 }
             }
 
+            apply plugin:MyPlugin
             apply plugin:MyOtherPlugin
 """
 
@@ -323,7 +326,7 @@ BUILD SUCCESSFUL"""
         then:
         failure.assertHasDescription "A problem occurred configuring root project 'custom-component'."
         failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin#register"
-        failure.assertHasCause "Cannot register implementation for type 'SampleComponent' because an implementation for this type was already registered by MySamplePlugin#register"
+        failure.assertHasCause "Cannot register implementation for type 'UnmanagedComponent' because an implementation for this type was already registered by MyPlugin#register"
     }
 
     def buildWithCustomComponentPlugin() {
@@ -332,7 +335,6 @@ BUILD SUCCESSFUL"""
             class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.defaultImplementation(DefaultSampleComponent)
                 }
                 @Mutate
                 void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {

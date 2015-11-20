@@ -1271,14 +1271,11 @@ model {
 
     void addCustomLibraryType(File buildFile) {
         buildFile << """
-            interface CustomLibrary extends LibrarySpec {}
-            class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {}
+            @Managed interface CustomLibrary extends LibrarySpec {}
 
             class ComponentTypeRules extends RuleSource {
                 @ComponentType
-                void registerCustomComponentType(ComponentTypeBuilder<CustomLibrary> builder) {
-                    builder.defaultImplementation(DefaultCustomLibrary)
-                }
+                void registerCustomComponentType(ComponentTypeBuilder<CustomLibrary> builder) {}
             }
 
             apply type: ComponentTypeRules

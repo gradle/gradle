@@ -46,15 +46,12 @@ plugins {
     id 'java-lang'
 }
 
+@Managed
 interface SampleLibrarySpec extends ComponentSpec {}
-
-class DefaultSampleLibrarySpec extends BaseComponentSpec implements SampleLibrarySpec {}
 
 class SampleLibraryRules extends RuleSource {
     @ComponentType
-    void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
-        builder.defaultImplementation(DefaultSampleLibrarySpec)
-    }
+    void registerSampleLibrarySpecType(ComponentTypeBuilder<SampleLibrarySpec> builder) {}
 
     @ComponentBinaries
     public void createBinaries(ModelMap<JarBinarySpec> binaries, SampleLibrarySpec library,
