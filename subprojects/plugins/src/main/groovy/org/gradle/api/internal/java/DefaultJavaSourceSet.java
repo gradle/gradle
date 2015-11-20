@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.java;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.Classpath;
 import org.gradle.language.java.JavaSourceSet;
+import org.gradle.platform.base.DependencySpecContainer;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -34,6 +36,16 @@ public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements J
 
     public Classpath getCompileClasspath() {
         return compileClasspath;
+    }
+
+    @Override
+    public DependencySpecContainer getDependencies() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction) {
+        throw new UnsupportedOperationException();
     }
 
     public TaskDependency getBuildDependencies() {
