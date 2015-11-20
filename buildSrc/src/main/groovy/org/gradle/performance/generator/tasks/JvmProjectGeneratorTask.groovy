@@ -96,15 +96,17 @@ class JvmProjectGeneratorTask extends ProjectGeneratorTask {
             ]
             generateWithTemplate(projectDir, "src/main/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.productionClassName}.${sourceLang}", classFileTemplate, classArgs)
         }
-        testProject.testSourceFiles.times {
-            String packageName = createPackageName(it)
-            Map classArgs = args + [
-                packageName: packageName,
-                productionClassName: createFileName(classFilePrefix, it),
-                testClassName: createFileName(testFilePrefix, it),
-                extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it),
-                extraFields: extraFields(classFilePrefix, it)]
-            generateWithTemplate(projectDir, "src/test/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.testClassName}.${sourceLang}", testFileTemplate, classArgs)
+        if (createTestComponent) {
+            testProject.testSourceFiles.times {
+                String packageName = createPackageName(it)
+                Map classArgs = args + [
+                    packageName               : packageName,
+                    productionClassName       : createFileName(classFilePrefix, it),
+                    testClassName             : createFileName(testFilePrefix, it),
+                    extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it),
+                    extraFields               : extraFields(classFilePrefix, it)]
+                generateWithTemplate(projectDir, "src/test/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.testClassName}.${sourceLang}", testFileTemplate, classArgs)
+            }
         }
     }
 
