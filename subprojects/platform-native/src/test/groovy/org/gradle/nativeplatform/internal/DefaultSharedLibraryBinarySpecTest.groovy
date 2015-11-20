@@ -146,7 +146,7 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
     }
 
     private DefaultSharedLibraryBinarySpec getSharedLibrary() {
-        final library = BaseComponentFixtures.create(NativeLibrarySpec, DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "libName"));
+        final library = BaseComponentFixtures.createNode(NativeLibrarySpec, DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "libName"));
         TestNativeBinariesFactory.create(DefaultSharedLibraryBinarySpec, "test", Mock(ITaskFactory), library, namingScheme, resolver,
                                          platform, buildType, new DefaultFlavor("flavorOne"))
     }

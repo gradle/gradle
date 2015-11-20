@@ -17,28 +17,23 @@
 package org.gradle.platform.base.component
 
 import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.model.internal.core.ModelNode
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.ModelRegistrations
-import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.core.ModelView
-import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ComponentSpecIdentifier
 
 class BaseComponentFixtures {
     static final def GENERATOR = new AsmBackedClassGenerator()
 
-    static <P extends ComponentSpec, T extends BaseComponentSpec> P create(Class<P> type, Class<T> implType,  ModelRegistry modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
-        def node = createNode(type, implType,  modelRegistry, componentId, instantiator, baseDir);
+    static <P extends ComponentSpec, T extends BaseComponentSpec> P create(Class<P> type, Class<T> implType, ModelRegistry modelRegistry, ComponentSpecIdentifier componentId) {
+        def node = createNode(type, implType,  modelRegistry, componentId);
         node.asMutable(ModelType.of(type), new SimpleModelRuleDescriptor(componentId.getName()), Collections.<ModelView<?>>emptyList()).getInstance()
     }
 
-    static <T extends BaseComponentSpec> MutableModelNode createNode(Class<? extends ComponentSpec> type, Class<T> implType,  ModelRegistry modelRegistry, ComponentSpecIdentifier componentId, Instantiator instantiator, File baseDir = null) {
+    static <T extends BaseComponentSpec> MutableModelNode createNode(Class<? extends ComponentSpec> type, Class<T> implType,  ModelRegistry modelRegistry, ComponentSpecIdentifier componentId) {
         try {
             modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
             modelRegistry.register(

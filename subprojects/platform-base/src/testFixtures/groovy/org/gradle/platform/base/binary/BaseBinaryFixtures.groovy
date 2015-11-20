@@ -19,11 +19,7 @@ package org.gradle.platform.base.binary
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.model.internal.core.ModelNode
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.ModelRegistrations
-import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import org.gradle.platform.base.BinarySpec
@@ -38,7 +34,7 @@ class BaseBinaryFixtures {
             modelRegistry.register(
                 ModelRegistrations.unmanagedInstanceOf(ModelReference.of(name, type), {
                     def generated = GENERATOR.generate(type)
-                    BaseBinarySpec.create(publicType, generated, name, it, componentSpecInternal, DirectInstantiator.INSTANCE, taskFactory)
+                    BaseBinarySpec.create(publicType, generated, name, it, componentNode, DirectInstantiator.INSTANCE, taskFactory)
                 })
                     .descriptor(name)
                     .build()

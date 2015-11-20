@@ -364,7 +364,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         given:
         def proxyClass = generate(SomeTypeWithReadOnlyProperty)
-        def impl = proxyClass.newInstance(state)
+        def impl = proxyClass.newInstance(state, typeConverter)
 
         when:
         impl.otherValue {
@@ -388,7 +388,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         given:
         def proxyClass = generate(SomeTypeWithReadOnlyProperty, delegate.class)
-        def impl = proxyClass.newInstance(state, delegate)
+        def impl = proxyClass.newInstance(state, typeConverter, delegate)
 
         when:
         impl.otherValue {
@@ -405,7 +405,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         given:
         def proxyClass = generate(SomeType)
-        def impl = proxyClass.newInstance(state)
+        def impl = proxyClass.newInstance(state, typeConverter)
 
         when:
         impl.value = 12
@@ -427,7 +427,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         expect:
         def proxyClass = generate(SomeType, delegate.class)
-        def impl = proxyClass.newInstance(state, delegate)
+        def impl = proxyClass.newInstance(state, typeConverter, delegate)
         impl.toString() == "<delegate>"
     }
 

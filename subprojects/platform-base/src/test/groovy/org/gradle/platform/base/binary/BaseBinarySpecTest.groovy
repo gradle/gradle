@@ -17,12 +17,11 @@
 package org.gradle.platform.base.binary
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.sources.BaseLanguageSourceSet
-import org.gradle.platform.base.BinarySpec
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.component.BaseComponentSpec
@@ -50,7 +49,7 @@ class BaseBinarySpecTest extends Specification {
     }
 
     def "qualifies project scoped named and display name using owners name"() {
-        def component = BaseComponentFixtures.createNode(MySampleComponent, MySampleComponent, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "sample"), DirectInstantiator.INSTANCE)
+        def component = BaseComponentFixtures.createNode(MySampleComponent, MySampleComponent, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "sample"))
         def binary = create(SampleBinary, MySampleBinary, "unitTest", component)
 
         expect:

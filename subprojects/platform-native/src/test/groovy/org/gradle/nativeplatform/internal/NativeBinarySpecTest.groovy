@@ -35,7 +35,7 @@ import spock.lang.Specification
 class NativeBinarySpecTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def component = BaseComponentFixtures.create(NativeComponentSpec, TestNativeComponentSpec, new ModelRegistryHelper(), id)
+    def component = BaseComponentFixtures.createNode(NativeComponentSpec, TestNativeComponentSpec, new ModelRegistryHelper(), id)
 
     def platform1 = Stub(NativePlatform) {
         getArchitecture() >> Architectures.forInput("i386")
