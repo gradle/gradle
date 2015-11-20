@@ -399,29 +399,13 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         addNonApiClasses()
 
         and:
-        file('buildSrc/src/main/java/Rules.java') << '''
-            import org.gradle.api.Action;
-            import org.gradle.jvm.JvmApiSpec;
-            import org.gradle.jvm.JvmLibrarySpec;
-            import org.gradle.model.Mutate;
-            import org.gradle.model.Path;
-            import org.gradle.model.RuleSource;
-
+        buildFile << '''
             class Rules extends RuleSource {
                 @Mutate
                 void specifyMyLibApi(@Path("components.myLib") JvmLibrarySpec myLib) {
-                    myLib.api(new Action<JvmApiSpec>() {
-                        @Override
-                        public void execute(JvmApiSpec apiSpec) {
-                            apiSpec.exports("compile.test");
-                        }
-                    });
+                    myLib.getApi().exports("compile.test")
                 }
             }
-        '''
-
-        and:
-        buildFile << '''
             apply type: Rules
 
             model {
