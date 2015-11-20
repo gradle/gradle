@@ -1,6 +1,5 @@
-
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +22,12 @@ interface ImageComponent extends LibrarySpec {
     void setSizes(List<String> sizes)
 }
 
+@Managed
 interface ImageBinary extends BinarySpec {
     String getTitle()
+    void setTitle(String title)
     String getSize()
-}
-
-class DefaultImageBinary extends BaseBinarySpec implements ImageBinary {
-    String title
-    String size
+    void setSize(String size)
 }
 
 class MyImageRenderingPlugin extends RuleSource {
@@ -40,7 +37,6 @@ class MyImageRenderingPlugin extends RuleSource {
 
     @BinaryType
     void register(BinaryTypeBuilder<ImageBinary> builder) {
-        builder.defaultImplementation(DefaultImageBinary)
     }
 
     @ComponentBinaries
