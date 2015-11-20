@@ -15,6 +15,8 @@
  */
 
 package org.gradle.performance
+
+import org.gradle.performance.categories.NativePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.junit.experimental.categories.Category
 import spock.lang.Ignore

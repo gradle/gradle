@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 import org.apache.commons.io.FileUtils
+import org.gradle.performance.categories.NativePerformanceTest
 import org.gradle.performance.fixture.*
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.MeasuredOperation
