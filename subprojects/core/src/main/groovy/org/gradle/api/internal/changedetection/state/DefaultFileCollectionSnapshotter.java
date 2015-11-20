@@ -125,7 +125,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         return null;
     }
 
-    static interface IncrementalFileSnapshot {
+    interface IncrementalFileSnapshot {
         boolean isUpToDate(IncrementalFileSnapshot snapshot);
     }
 
