@@ -18,6 +18,7 @@ package org.gradle.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.platform.base.BinaryTasksCollection;
 
 /**
@@ -29,4 +30,9 @@ public interface JvmBinaryTasks extends BinaryTasksCollection {
      * The jar task used to create an archive for this binary.
      */
     Jar getJar();
+
+    /**
+     * The task used to create the API jar for this binary.
+     */
+    ApiJar getApiJar();
 }

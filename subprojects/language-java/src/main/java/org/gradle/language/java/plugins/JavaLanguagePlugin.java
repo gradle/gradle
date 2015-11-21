@@ -29,8 +29,8 @@ import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.internal.DependencyResolvingClasspath;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
+import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
@@ -122,7 +122,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(javaSourceSet.getSource());
-                    DependencyResolvingClasspath classpath = new DependencyResolvingClasspath(binary, (DependentSourceSet) javaSourceSet, dependencyResolver, schemaStore, resolutionAwareRepositories);
+                    DependencyResolvingClasspath classpath = new DependencyResolvingClasspath(binary, javaSourceSet, dependencyResolver, schemaStore, resolutionAwareRepositories);
                     compile.setClasspath(classpath);
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
@@ -130,6 +130,10 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
                     compile.dependsOn(javaSourceSet);
                     binary.getTasks().getJar().dependsOn(compile);
+                    ApiJar apiJar = binary.getTasks().getApiJar();
+                    if (apiJar != null) {
+                        apiJar.dependsOn(compile);
+                    }
                 }
             };
         }

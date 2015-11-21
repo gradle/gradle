@@ -18,6 +18,7 @@ package org.gradle.jvm.internal;
 
 import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
@@ -29,5 +30,9 @@ public class DefaultJvmBinaryTasks extends BinaryTasksCollectionWrapper implemen
 
     public Jar getJar() {
         return findSingleTaskWithType(Jar.class);
+    }
+
+    public ApiJar getApiJar() {
+        return findSingleTaskWithType(ApiJar.class);
     }
 }

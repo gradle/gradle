@@ -21,6 +21,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
@@ -120,6 +121,10 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
                     compile.dependsOn(scalaSourceSet);
                     binary.getTasks().getJar().dependsOn(compile);
+                    ApiJar apiJar = binary.getTasks().getApiJar();
+                    if (apiJar != null) {
+                        apiJar.dependsOn(compile);
+                    }
                 }
             };
         }

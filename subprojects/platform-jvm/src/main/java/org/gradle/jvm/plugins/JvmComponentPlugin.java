@@ -181,16 +181,9 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 }
             });
 
-            String binaryName = binary.getProjectScopedName();
-            if (!binaryName.endsWith("Jar")) {
-                return;
-            }
-
-            String libName = binaryName.substring(0, binaryName.lastIndexOf("Jar"));
-            String createApiJar = "create" + capitalize(libName + "ApiJar");
             final Set<String> exportedPackages = binary.getExportedPackages();
             if (exportedPackages.isEmpty()) {
-                tasks.create(createApiJar, Copy.class, new Action<Copy>() {
+                tasks.create(apiJarTaskName(binary), Copy.class, new Action<Copy>() {
                     @Override
                     public void execute(Copy copy) {
                         copy.setDescription(String.format("Creates the API binary file for %s.", binary));
@@ -200,7 +193,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     }
                 });
             } else {
-                tasks.create(createApiJar, ApiJar.class, new Action<ApiJar>() {
+                tasks.create(apiJarTaskName(binary), ApiJar.class, new Action<ApiJar>() {
                     @Override
                     public void execute(ApiJar jar) {
                         final File apiClassesDir = new File(new File(buildDir, "apiClasses"), runtimeClassesDir.getName());
@@ -210,10 +203,17 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         jar.setApiClassesDir(apiClassesDir);
                         jar.setDestinationDir(binary.getApiJarFile().getParentFile());
                         jar.setArchiveName(binary.getApiJarFile().getName());
-                        jar.dependsOn(createRuntimeJar);
                     }
                 });
             }
+        }
+
+        private String apiJarTaskName(JarBinarySpecInternal binary) {
+            String binaryName = binary.getProjectScopedName();
+            String libName = binaryName.endsWith("Jar")
+                    ? binaryName.substring(0, binaryName.length() - 3)
+                    : binaryName;
+            return "create" + capitalize(libName) + "ApiJar";
         }
     }
 }
