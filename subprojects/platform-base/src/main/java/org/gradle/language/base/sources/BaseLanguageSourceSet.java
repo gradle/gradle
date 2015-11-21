@@ -17,7 +17,6 @@
 package org.gradle.language.base.sources;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
@@ -86,10 +85,6 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
         // TODO:DAZ This doesn't take into account build dependencies of the SourceDirectorySet.
         // Should just ditch SourceDirectorySet from here since it's not really a great model, and drags in too much baggage.
         return generated || !source.isEmpty();
-    }
-
-    public void source(Action<? super SourceDirectorySet> config) {
-        config.execute(getSource());
     }
 
     public SourceDirectorySet getSource() {

@@ -16,7 +16,6 @@
 
 package org.gradle.language.base.internal.registry
 
-import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.AbstractBuildableModelElement
@@ -124,10 +123,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         @Override
         SourceDirectorySet getSource() {
             return null
-        }
-
-        @Override
-        void source(Action<? super SourceDirectorySet> config) {
         }
 
         @Override
