@@ -1,7 +1,7 @@
 :compileMainJarMainJava
+:createMainApiJar
 :processMainJarMainResources
 :createMainJar
-:createMainApiJar
 :mainJar
 :compileClientJarClientJava
 :createClientJar

@@ -1,7 +1,7 @@
 :compileMainJarMainJava
+:createMainApiJar
 :processMainJarMainResources UP-TO-DATE
 :createMainJar
-:createMainApiJar
 :mainJar
 :compileClientJarClientJava UP-TO-DATE
 :createClientJar UP-TO-DATE
