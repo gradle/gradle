@@ -17,7 +17,6 @@
 package org.gradle.platform.base.binary;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
@@ -36,7 +35,10 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
-import org.gradle.platform.base.internal.*;
+import org.gradle.platform.base.internal.BinaryBuildAbility;
+import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
+import org.gradle.platform.base.internal.FixedBuildAbility;
 import org.gradle.util.DeprecationLogger;
 
 /**
@@ -151,10 +153,6 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         return getInputs();
     }
 
-    public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
-        action.execute(getSources());
-    }
-
     @Override
     public DomainObjectSet<LanguageSourceSet> getInputs() {
         return inputSourceSets;
@@ -167,11 +165,6 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     public BinaryTasksCollection getTasks() {
         return tasks;
-    }
-
-    @Override
-    public void tasks(Action<? super BinaryTasksCollection> action) {
-        action.execute(tasks);
     }
 
     public boolean isLegacyBinary() {

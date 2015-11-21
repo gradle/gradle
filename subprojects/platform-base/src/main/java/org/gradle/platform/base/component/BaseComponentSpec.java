@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.component;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
@@ -110,18 +109,8 @@ public class BaseComponentSpec implements ComponentSpecInternal {
     }
 
     @Override
-    public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
-        action.execute(getSources());
-    }
-
-    @Override
     public ModelMap<BinarySpec> getBinaries() {
         return ModelMaps.asMutableView(binaries, BinarySpec.class, modelNode.toString() + ".getBinaries()");
-    }
-
-    @Override
-    public void binaries(Action<? super ModelMap<BinarySpec>> action) {
-        action.execute(getBinaries());
     }
 
     public Set<? extends Class<? extends TransformationFileType>> getInputTypes() {

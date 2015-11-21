@@ -17,7 +17,6 @@
 package org.gradle.jvm.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.jvm.JvmApiSpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.JvmResources;
@@ -65,11 +64,6 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
     }
 
     @Override
-    public void api(Action<? super JvmApiSpec> configureAction) {
-        configureAction.execute(apiSpec);
-    }
-
-    @Override
     public JvmApiSpec getApi() {
         return apiSpec;
     }
@@ -77,10 +71,5 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
     @Override
     public DependencySpecContainer getDependencies() {
         return dependencies;
-    }
-
-    @Override
-    public void dependencies(Action<? super DependencySpecContainer> configureAction) {
-        configureAction.execute(dependencies);
     }
 }
