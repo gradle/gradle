@@ -84,7 +84,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         run "mainJar"
 
         when:
-        this.sourceFiles[1].delete()
+        sourceFiles[1].delete()
         run "mainJar"
 
         then:

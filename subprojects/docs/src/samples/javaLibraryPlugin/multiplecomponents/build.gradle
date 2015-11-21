@@ -22,6 +22,7 @@ model {
             }
         }
 
+// START SNIPPET api-dependency
         commons(JvmLibrarySpec) {
             api {
                 dependencies {
@@ -29,6 +30,7 @@ model {
                 }
             }
         }
+// END SNIPPET api-dependency
 
         collections(JvmLibrarySpec)
     }
