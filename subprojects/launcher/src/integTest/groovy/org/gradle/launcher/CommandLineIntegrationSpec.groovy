@@ -27,7 +27,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
-    @Rule JDWPUtil client = new JDWPUtil(5005)
+    @Rule JDWPUtil jdwpClient = new JDWPUtil(5005)
 
     @IgnoreIf({ AvailableJavaHomes.java5 == null })
     def "provides reasonable failure message when attempting to run under java 5"() {
@@ -84,8 +84,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         ConcurrentTestUtil.poll() {
-            client.connect()
-            client.resume()
+            jdwpClient.connect().resume()
         }
         gradle.waitForFinish()
     }

@@ -22,6 +22,10 @@ import org.junit.runners.model.Statement
 
 import java.nio.ByteBuffer
 
+/**
+ * A utility for communicating with a VM in debug mode using JDWP.  Currently
+ * only supports the suspend and resume commands.
+ */
 class JDWPUtil implements TestRule {
     String host
     Integer port
@@ -31,6 +35,7 @@ class JDWPUtil implements TestRule {
     private boolean isConnected
 
     private static final String HANDSHAKE = "JDWP-Handshake"
+    private static final byte RESPONSE_FLAG = 0x80 as byte
 
     // See http://docs.oracle.com/javase/6/docs/platform/jpda/jdwp/jdwp-protocol.html for additional commands.
     // First element is the command set, the second is the command id
@@ -59,11 +64,19 @@ class JDWPUtil implements TestRule {
 
     public JDWPUtil connect() {
         if (!isConnected) {
+            // Clean up any residual connection
+            close()
+
+            // Start a new connection
             InetAddress hostAddress = InetAddress.getByName(host ?: "127.0.0.1")
             client = new Socket(hostAddress, port)
             toServer = new DataOutputStream(client.getOutputStream())
             fromServer = new DataInputStream(client.getInputStream())
+
+            // Complete the handshake
             performHandshake()
+
+            // If we get here, we have a successful connection and can send commands
             isConnected = true
         }
         return this
@@ -113,6 +126,7 @@ class JDWPUtil implements TestRule {
         boolean responseReceived = false
 
         while(!responseReceived) {
+            // Read the header first
             byte[] bytes = new byte[11]
             int bytesRead = fromServer.read(bytes, 0, bytes.length)
             if (bytesRead == -1) {
@@ -123,11 +137,12 @@ class JDWPUtil implements TestRule {
             int id = header.getInt()
             byte flags = header.get()
 
-            if (flags == 0x80 as byte) {
+            // Check to see if this was a response message
+            if (flags == RESPONSE_FLAG) {
                 responseReceived = true
                 short errorCode = header.getShort()
                 if (errorCode != 0) {
-                    throw new JDWPException("Did not get a successful response!")
+                    throw new JDWPException("Did not get a successful response (error code: ${errorCode})!")
                 }
             } else {
                 // if it wasn't a response, then it was an event
@@ -136,6 +151,7 @@ class JDWPUtil implements TestRule {
                 byte command = header.get()
             }
 
+            // Get the data portion of the message
             // TODO we don't currently do anything with response/event data
             int dataLength = length - 11
             if (dataLength > 0) {
