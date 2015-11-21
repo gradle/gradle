@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
 import org.gradle.language.fixtures.TestJavaComponent
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -144,6 +145,38 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         resources.size() > 0
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants((allClasses + resources) as String[])
         jarFile("build/jars/myLibApiJar/myLib.jar").hasDescendants(apiClassesOnly as String[])
+    }
+
+    def "api jar should not be rebuilt when resource class changes"() {
+        when:
+        addNonApiClasses()
+        List<TestFile> resources = app.writeResources(file("src/myLib/resources"))
+
+        and:
+        buildFile << """
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        api {
+                            exports 'compile.test'
+                        }
+                    }
+                }
+            }
+        """
+        then:
+        succeeds "assemble"
+
+        when:
+        resources.each {
+            it << "More content"
+        }
+
+        then:
+        succeeds "assemble"
+
+        and:
+        skipped(':createMyLibApiJar')
     }
 
     def "api jar should be rebuilt if API spec adds a new exported package"() {
@@ -370,7 +403,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
             }
         """
         then:
-        succeeds "createMyLibApiJar"
+        succeeds "myLibJar"
 
         and:
         def allClasses = app.sources*.classFile.fullPath as String[]
@@ -402,7 +435,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
             }
         '''
         then:
-        succeeds "createMyLibApiJar"
+        succeeds "myLibJar"
 
         and:
         def allClasses = app.sources*.classFile.fullPath as String[]
@@ -427,7 +460,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
             }
         """
         then:
-        succeeds "createMyLibApiJar"
+        succeeds "myLibJar"
 
         and:
         def allClasses = app.sources*.classFile.fullPath as String[]
