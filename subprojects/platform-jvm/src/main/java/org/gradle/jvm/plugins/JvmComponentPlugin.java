@@ -165,7 +165,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         @BinaryTasks
         public void createTasks(ModelMap<Task> tasks, final JarBinarySpecInternal binary, final @Path("buildDir") File buildDir) {
-           final File runtimeClassesDir = binary.getClassesDir();
+            final File runtimeClassesDir = binary.getClassesDir();
+            final File resourcesDir = binary.getResourcesDir();
             final File runtimeJarDestDir = binary.getJarFile().getParentFile();
             final String runtimeJarArchiveName = binary.getJarFile().getName();
             final String createRuntimeJar = "create" + capitalize(binary.getProjectScopedName());
@@ -174,7 +175,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 public void execute(Jar jar) {
                     jar.setDescription(String.format("Creates the binary file for %s.", binary));
                     jar.from(runtimeClassesDir);
-                    jar.from(binary.getResourcesDir());
+                    jar.from(resourcesDir);
                     jar.setDestinationDir(runtimeJarDestDir);
                     jar.setArchiveName(runtimeJarArchiveName);
                 }

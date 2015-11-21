@@ -140,8 +140,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        executedAndNotSkipped(':compileMainJarMainJava')
+        recompiled("MyLib")
+        recompiled("Main")
 
         where:
         scope << scopes
@@ -184,8 +184,8 @@ public class PersonInternal extends Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        skipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        notRecompiled 'Main'
 
         where:
         scope << scopes
@@ -228,8 +228,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        skipped(':compileMainJarMainJava')
+        recompiled "MyLib"
+        notRecompiled "Main"
     }
 
     def "changing method body of API class should not trigger recompilation of the consuming library"() {
@@ -266,8 +266,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        skipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        notRecompiled 'Main'
     }
 
     @Ignore("Requires a better definition of what ABI means")
@@ -303,8 +303,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        skipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        notRecompiled 'Main'
     }
 
     def "changing signature of public method of API class should trigger recompilation of the consuming library"() {
@@ -344,8 +344,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        executedAndNotSkipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        recompiled 'Main'
     }
 
     def "extraction of private method in API class should not trigger recompilation of the consuming library"() {
@@ -389,8 +389,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        skipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        notRecompiled 'Main'
     }
 
     def "changing the order of public methods of API class should not trigger recompilation of the consuming library"() {
@@ -440,8 +440,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        skipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        notRecompiled 'Main'
     }
 
     def "adding a private field to an API class should not trigger recompilation of the consuming library"() {
@@ -483,8 +483,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        skipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        notRecompiled 'Main'
     }
 
     def "adding a private method to an API class should not trigger recompilation of the consuming library"() {
@@ -527,8 +527,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        skipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        notRecompiled 'Main'
     }
 
     def "changing the order of members of API class should not trigger recompilation of the consuming library"() {
@@ -580,8 +580,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        skipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        notRecompiled 'Main'
     }
 
       def "changing an API field of an API class should trigger recompilation of the consuming library"() {
@@ -625,8 +625,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        executedAndNotSkipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        recompiled 'Main'
     }
 
      def "changing the superclass of an API class should trigger recompilation of the consuming library"() {
@@ -672,8 +672,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        executedAndNotSkipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        recompiled 'Main'
     }
 
      def "changing the interfaces of an API class should trigger recompilation of the consuming library"() {
@@ -720,8 +720,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        executedAndNotSkipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        recompiled 'Main'
     }
 
     def "changing order of annotations on API class should not trigger recompilation of the consuming library"() {
@@ -792,8 +792,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        skipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        notRecompiled 'Main'
     }
 
     def "changing order of annotations on API method should not trigger recompilation of the consuming library"() {
@@ -866,8 +866,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        skipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        notRecompiled 'Main'
     }
 
     def "changing order of annotations on API method parameter should not trigger recompilation of the consuming library"() {
@@ -941,8 +941,8 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        skipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        notRecompiled 'Main'
     }
 
     def "changing order of annotations on API field should not trigger recompilation of the consuming library"() {
@@ -1015,8 +1015,17 @@ public class Person {
         succeeds ':mainJar'
 
         and:
-        executedAndNotSkipped(':compileMyLibJarMyLibJava')
-        skipped(':compileMainJarMainJava')
+        recompiled 'MyLib'
+        notRecompiled 'Main'
     }
 
+    private recompiled(String name) {
+        executedAndNotSkipped(":compile${name}Jar${name}Java")
+        true
+    }
+
+    private notRecompiled(String name) {
+        skipped(":compile${name}Jar${name}Java")
+        true
+    }
 }
