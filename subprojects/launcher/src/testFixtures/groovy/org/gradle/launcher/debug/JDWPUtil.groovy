@@ -60,11 +60,6 @@ class JDWPUtil implements TestRule {
             def connectionArgs = connection.defaultArguments()
             connectionArgs.get("port").setValue(port as String)
             connectionArgs.get("hostname").setValue(host ?: "127.0.0.1")
-
-            // Clean up any residual connection
-            close()
-
-            // Connect to the VM
             vm = connection.attach(connectionArgs)
         }
         return vm
