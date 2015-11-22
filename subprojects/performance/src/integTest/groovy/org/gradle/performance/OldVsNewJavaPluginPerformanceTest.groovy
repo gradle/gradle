@@ -16,12 +16,13 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category(JavaPerformanceTest)
+@Category([Experiment, JavaPerformanceTest])
 class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Override
@@ -35,9 +36,14 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         when:
         runner.testGroup = "old vs new java plugin"
         runner.testId = "$size project old vs new java plugin $scenario build"
-        runner.buildSpec {
+        runner.baseline {
             projectName("${size}NewJava").displayName("new plugin").invocation {
                 tasksToRun(*tasks).useDaemon()
+            }
+        }
+        runner.baseline {
+            projectName("${size}NewJava").displayName("new plugin (no client logging)").invocation {
+                tasksToRun(*tasks).useDaemon().disableDaemonLogging()
             }
         }
         /*
@@ -53,11 +59,6 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
             }
         }
         */
-        runner.buildSpec {
-            projectName("${size}NewJava").displayName("new plugin (no client logging)").invocation {
-                tasksToRun(*tasks).useDaemon().disableDaemonLogging()
-            }
-        }
         runner.baseline {
             projectName("${size}OldJava").displayName("old plugin").invocation {
                 tasksToRun(*tasks).useDaemon()

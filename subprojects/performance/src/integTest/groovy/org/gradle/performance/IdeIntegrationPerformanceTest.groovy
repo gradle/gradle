@@ -16,14 +16,13 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([Experiment, JavaPerformanceTest])
+@Category([JavaPerformanceTest])
 class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' eclipse")
     def "eclipse"() {
