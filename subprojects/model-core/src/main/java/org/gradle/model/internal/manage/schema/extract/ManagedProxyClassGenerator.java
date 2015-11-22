@@ -436,22 +436,17 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
         if (property.getSchema() instanceof ScalarValueSchema) {
             // TODO - should we support this?
-            // Adds a void $propName(value) method that sets the value
-            Type propertyType = Type.getType(property.getType().getConcreteClass());
-            MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, propertyType), null);
+            // Adds a void $propName(Object value) method that sets the value
+            MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE), null);
             putThisOnStack(methodVisitor);
-            putFirstMethodArgumentOnStack(methodVisitor, propertyType);
-            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), property.getSetter().getName(), Type.getMethodDescriptor(Type.VOID_TYPE, propertyType), false);
+            putFirstMethodArgumentOnStack(methodVisitor);
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), property.getSetter().getName(), Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE), false);
             finishVisitingMethod(methodVisitor);
         }
     }
 
     private void writeConfigureMethod(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
-        if (property.isWritable()) {
-            return;
-        }
-
-        if (property.getSchema() instanceof CompositeSchema) {
+        if (!property.isWritable() && property.getSchema() instanceof CompositeSchema) {
             // Adds a void $propName(Closure<?> cl) method that delegates to model state
 
             MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE), null);
@@ -462,7 +457,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             finishVisitingMethod(methodVisitor);
             return;
         }
-        if (property.getSchema() instanceof UnmanagedImplStructSchema) {
+        if (!property.isWritable() && property.getSchema() instanceof UnmanagedImplStructSchema) {
             UnmanagedImplStructSchema<?> structSchema = (UnmanagedImplStructSchema<?>) property.getSchema();
             if (!structSchema.isAnnotated()) {
                 return;
@@ -475,7 +470,21 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             putFirstMethodArgumentOnStack(methodVisitor);
             methodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(ClosureBackedAction.class), "execute", Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLOSURE_TYPE), false);
             finishVisitingMethod(methodVisitor);
+            return;
         }
+
+        // Adds a void $propName(Closure<?> cl) method that throws MME, to avoid attempts to convert closure to something else
+        MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE), null);
+        putThisOnStack(methodVisitor);
+        putConstantOnStack(methodVisitor, property.getName());
+        methodVisitor.visitInsn(Opcodes.ICONST_1);
+        methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, OBJECT_TYPE.getInternalName());
+        methodVisitor.visitInsn(Opcodes.DUP);
+        methodVisitor.visitInsn(Opcodes.ICONST_0);
+        putFirstMethodArgumentOnStack(methodVisitor);
+        methodVisitor.visitInsn(Opcodes.AASTORE);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), "methodMissing", METHOD_MISSING_METHOD_DESCRIPTOR, false);
+        finishVisitingMethod(methodVisitor);
     }
 
     private void writeSetter(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {

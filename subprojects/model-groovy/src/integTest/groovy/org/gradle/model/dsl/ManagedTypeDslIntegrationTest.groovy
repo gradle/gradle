@@ -57,6 +57,41 @@ model {
         output.contains("barry lives in Melbourne")
     }
 
+    def "can use convenience methods to configure property of scalar type"() {
+        buildFile << '''
+@Managed interface Thing {
+    int getNumber()
+    void setNumber(int i)
+    File getFile()
+    void setFile(File f)
+}
+
+model {
+    tasks {
+        show(Task) {
+            doLast {
+                def t = $.thing
+                println "t.number: $t.number"
+                println "t.file: $t.file"
+            }
+        }
+    }
+    thing(Thing)
+    thing {
+        number "12"
+        file "build.gradle"
+    }
+}
+'''
+
+        when:
+        run "show"
+
+        then:
+        output.contains("t.number: 12")
+        output.contains("t.file: ${buildFile}")
+    }
+
     def "cannot configure a reference property using nested closure"() {
         buildFile << '''
 @Managed interface Person extends Named {
@@ -85,7 +120,7 @@ model {
         then:
         failure.assertHasLineNumber(15)
         failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 14, column 5')
-        failure.assertHasCause('Could not find method address() for arguments [')
+        failure.assertHasCause('No signature of method: Person.address() is applicable for argument types: (')
     }
 
     def "cannot configure a scalar list property using nested closure"() {
@@ -111,7 +146,7 @@ model {
         then:
         failure.assertHasLineNumber(9)
         failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 8, column 5')
-        failure.assertHasCause('Could not find method names() for arguments [')
+        failure.assertHasCause('No signature of method: Person.names() is applicable for argument types: (')
     }
 
     def "cannot configure a property with unmanaged type using nested closure"() {
@@ -138,7 +173,7 @@ model {
         then:
         failure.assertHasLineNumber(11)
         failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 10, column 5')
-        failure.assertHasCause('Could not find method input() for arguments [')
+        failure.assertHasCause('No signature of method: Person.input() is applicable for argument types: (')
     }
 
     def "cannot configure a scalar property using nested closure"() {
@@ -164,6 +199,6 @@ model {
         then:
         failure.assertHasLineNumber(10)
         failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 9, column 5')
-        failure.assertHasCause('Could not find method name() for arguments [')
+        failure.assertHasCause('No signature of method: Person.name() is applicable for argument types: (')
     }
 }
