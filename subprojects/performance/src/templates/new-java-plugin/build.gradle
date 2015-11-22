@@ -1,34 +1,24 @@
+import org.gradle.model.*
+
 plugins {
     id 'jvm-component'
     id 'java-lang'
 }
 
-configurations {
-    checkstyle
-}
-
-repositories {
-    jcenter()
-}
-
-dependencies {
-    checkstyle "com.puppycrawl.tools:checkstyle:5.9"
-}
-
 model {
     components {
         main(JvmLibrarySpec)
-        test(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'main'
-                    }
-                }
-            }
-        }
     }
     tasks {
+        create("test", Test) {
+            dependsOn "jar", "compileTestJava", "processTestResources"
+        }
+        create("compileTestJava", JavaCompile) {
+            dependsOn "jar"
+        }
+        create("processTestResources", Copy) {
+
+        }
         create("extraTask1", MyTaskClass) {
             description = name
             doLast {}
@@ -46,71 +36,40 @@ model {
             doLast {}
         }
     }
+    tasks.check {
+        dependsOn "test"
+    }
+    tasks.build {
+        // not quite parity with the old build, we have no way of expressing
+        // tasks.build.dependsOn tasks.withType(Checkstyle)
+        dependsOn \$("tasks.checkstyleMain"), \$("tasks.checkstyleTest")
+    }
 
     checkstyle(CheckstyleExtension) {
         ignoreFailures = true
+    }
+
+    tasks {
+        create("checkstyleMain", Checkstyle)
+        create("checkstyleTest", Checkstyle)
+        withType(Checkstyle, CheckstyleTaskDefaults)
     }
 
     custom(CustomExtension) {
         action = { println "" }
         value = "."
     }
+
+    tasks {
+        withType(MyTaskClass, TaskWiring)
+    }
+
 }
 
-class TestTaskWiring extends RuleSource {
-    @Mutate
-    void createTestTask(ModelMap<Task> tasks, ModelMap<BinarySpec> binaries, ModelMap<JvmLibrarySpec> libraries) {
-        def testJarClassesDir = binaries.get('testJar').classesDir
-        def testSourceDirs = libraries.get('test').sources.collect {
-            it.source.srcDirs
-        }.flatten()
-        tasks.create("test", Test) {
-            dependsOn 'testJar'
-            classpath = project.files(binaries.get('mainJar').classesDir, testJarClassesDir)
-            testClassesDir = testJarClassesDir
-            testSrcDirs = testSourceDirs
-            description = "Runs the unit tests."
-            binResultsDir = new File(getTestResultsDir(project), String.format("binary/%s", name))
-            workingDir = project.projectDir
-            reports.html.destination = getTestReportDir(project)
-            reports.junitXml.destination = getTestResultsDir(project)
-        }
-        tasks.get("check").dependsOn "test"
-    }
-
-    static final String testResultsDirName = 'test-results'
-    static final String testReportDirName = 'tests'
-    private File getTestResultsDir(Project project) {
-        new File(project.buildDir, testResultsDirName)
-    }
-    private File getTestReportDir(Project project) {
-        new File(new File(project.buildDir, 'reports'), testReportDirName)
-    }
-}
-
-class CheckstyleWiring extends RuleSource {
-    @Mutate
-    void createCheckstyleTasks(ModelMap<Task> tasks, ModelMap<JvmLibrarySpec> libraries, CheckstyleExtension extension) {
-        def checkstyleTaskNames = libraries.collect { JvmLibrarySpec librarySpec ->
-            String taskName = "checkstyle\${librarySpec.getName().capitalize()}"
-            tasks.create(taskName, Checkstyle) { task ->
-                source = librarySpec.sources.collect {
-                    it.source.srcDirs
-                }.flatten()
-                checkstyleClasspath = project.configurations.checkstyle
-                classpath = project.files(librarySpec.binaries.values().classesDir)
-                configFile = new File(project.rootDir, "checkstyle.xml")
-                configProperties = [:]
-                ignoreFailures = extension.ignoreFailures
-                reports.xml.with {
-                    enabled = true
-                    destination = new File(new File(project.buildDir, "reports"), "\${task.name}.xml")
-                }
-                dependsOn librarySpec.binaries.values().tasks.name.flatten()
-            }
-            taskName
-        }
-        tasks.check.dependsOn checkstyleTaskNames
+class CheckstyleTaskDefaults extends RuleSource {
+    @Defaults
+    void add(Checkstyle task, CheckstyleExtension extension) {
+        task.ignoreFailures = extension.ignoreFailures
     }
 }
 
@@ -130,14 +89,11 @@ interface CustomExtension {
 }
 
 class TaskWiring extends RuleSource {
-
     @Mutate
-    void wire(ModelMap<Task> tasks, CustomExtension custom) {
-        tasks.create('myTask', MyTaskClass) {
-            doLast(custom.action)
-            10.times {
-                description += custom.value
-            }
+    void wire(MyTaskClass task, CustomExtension custom) {
+        task.doLast(custom.action)
+        10.times {
+            task.description += custom.value
         }
     }
 }
@@ -154,7 +110,3 @@ class MyTaskClass extends DefaultTask {
     boolean flag
 
 }
-
-apply plugin: TaskWiring
-apply plugin: TestTaskWiring
-apply plugin: CheckstyleWiring
