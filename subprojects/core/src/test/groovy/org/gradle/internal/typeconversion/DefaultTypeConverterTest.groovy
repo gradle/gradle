@@ -17,6 +17,7 @@
 package org.gradle.internal.typeconversion
 
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class DefaultTypeConverterTest extends Specification {
@@ -69,10 +70,10 @@ class DefaultTypeConverterTest extends Specification {
 
         then:
         def e = thrown(UnsupportedNotationException)
-        e.message == """Cannot convert the provided notation to an object of type Long: ${cl.toString()}.
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to an object of type Long: ${cl.toString()}.
 The following types/formats are supported:
   - String or CharSequence instances.
-  - Number instances."""
+  - Number instances.""")
     }
 
     def "converts CharSequence to Boolean"() {
@@ -106,9 +107,9 @@ The following types/formats are supported:
 
         then:
         def e = thrown(UnsupportedNotationException)
-        e.message == """Cannot convert the provided notation to an object of type Boolean: ${cl.toString()}.
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to an object of type Boolean: ${cl.toString()}.
 The following types/formats are supported:
-  - String or CharSequence instances."""
+  - String or CharSequence instances.""")
     }
 
     def "converts CharSequence to String"() {
@@ -130,10 +131,10 @@ The following types/formats are supported:
 
         then:
         def e = thrown(UnsupportedNotationException)
-        e.message == """Cannot convert the provided notation to a String: ${cl.toString()}.
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to a String: ${cl.toString()}.
 The following types/formats are supported:
   - String or CharSequence instances.
-  - Any number or boolean."""
+  - Any number or boolean.""")
     }
 
     enum Thing { SOME_THING, SOME_OTHER_THING }
@@ -151,8 +152,8 @@ The following types/formats are supported:
 
         then:
         def e = thrown(UnsupportedNotationException)
-        e.message == """Cannot convert the provided notation to an object of type Thing: ${cl.toString()}.
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to an object of type Thing: ${cl.toString()}.
 The following types/formats are supported:
-  - String or CharSequence instances."""
+  - String or CharSequence instances.""")
     }
 }
