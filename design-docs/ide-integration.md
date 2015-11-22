@@ -22,7 +22,6 @@ language levels for each module in a project.
 
     interface IdeaJavaSourceSettings extends JavaSourceSettings {
         boolean isInherited()
-        JavaVersion getSourceLanguageLevel()
     }
 
     interface IdeaModule extends JavaSourceAware {
@@ -31,6 +30,8 @@ language levels for each module in a project.
 
     interface IdeaProject extends JavaSourceAware {
     }
+
+TBD: Either add empty `IdeaProjectJavaSourceSettings` or remove `EclipseJavaSourceSettings`, for consistency.
 
 #### Implementation
 - Introduce `IdeaJavaLanguageLevel` extending `JavaLanguageLevel`
@@ -43,22 +44,29 @@ language levels for each module in a project.
     - return `null` if not a Java project
     - otherwise configure it as follows
         - `IdeaProject.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`.
-        - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` returns same value as root `IdeaProject.getLanguageLevel().getLevel()`
-        - `IdeaModule.getSourceLanguageLevel().isInherited` returns true
+        - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` is calculated the same way as the default for an Eclipse project, using the same logic.
+        - `IdeaModule.getSourceLanguageLevel().isInherited` returns `fale` if different from the IDEA project, `true` if the same.
+- Add a comment on `IdeaProject.getLanguageLevel()` that `getJavaSourceSettings()` should be preferred. 
+- TBD: provide a value for `javaSourceSettings.sourceLanguageLevel` based on `languageLevel` for older Gradle versions. Given this, could possibly add default module settings.
 
 #### Test coverage
 - `IdeaModule.getJavaSourceSettings()` returns null for non java projects
 - `IdeaProject.getJavaSourceSettings()` returns null for non java projects
-- `IdeaModule.getJavaSourceSettings().isInherited()` returns true.
+    - TBD: should probably never return null, or return null only when no module has Java source.
+- `IdeaModule.getJavaSourceSettings().isInherited()` returns true when the same as project's version, false when different.
 - `IdeaProject.getJavaSourceSettings()` throws `UnsupportedMethodException`for older target Gradle version.
+    - TBD: could be inferred from `languageLevel`.
 - `IdeaModule.getJavaSourceSettings()` throws `UnsupportedMethodException`for older target Gradle version.
+    - TBD: could be inferred from project's settings.
 - `IdeaProject.getJavaSourceSettings().getSourceLanguageLevel()` matches language level information obtained from `project.sourceCompatibility`.
-- `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` matches custom `idea.project.languageLevel`.
+- `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` matches language level information obtained from `project.sourceCompatibility`.
 - Can handle multi project builds with different source levels per subproject.
+- Can handle multi project builds where some projects are not a Java project and some are.
+- Can handle multi project builds where root project is not a Java project, but some of its children are.
 
 #### Open questions
-- configuring per-module source level is currently not supported Idea plugin?
 
+- configuring per-module source level is currently not supported Idea plugin?
 
 ### Story - Expose target JDK for Java projects to Eclipse
 
@@ -81,6 +89,9 @@ language levels for each module in a project.
     interface EclipseProject extends JavaSourceAware {
         JavaSourceSettings getJavaSourceSettings()
     }
+
+TBD: A Java runtime can be used for projects that don't have any Java source. How will we model this?
+TBD: Adding properties to `JavaSourceSettings` also adds these to `IdeaProject` and `IdeaModule`. Will need to define some behaviour for the IDEA model. 
 
 #### Implementation
 
