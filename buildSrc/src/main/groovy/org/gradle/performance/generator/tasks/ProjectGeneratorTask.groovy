@@ -53,7 +53,6 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     Random random = new Random(1L)
 
     def ProjectGeneratorTask() {
-        outputs.upToDateWhen { false }
         setProjects(1)
         destDir = project.file("${project.buildDir}/${name}")
     }
