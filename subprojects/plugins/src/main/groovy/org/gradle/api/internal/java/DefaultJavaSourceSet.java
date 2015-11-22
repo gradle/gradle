@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.java;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.TaskDependency;
@@ -42,11 +41,6 @@ public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements J
     @Override
     public DependencySpecContainer getDependencies() {
         return new DefaultDependencySpecContainer();
-    }
-
-    @Override
-    public DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction) {
-        throw new UnsupportedOperationException();
     }
 
     public TaskDependency getBuildDependencies() {

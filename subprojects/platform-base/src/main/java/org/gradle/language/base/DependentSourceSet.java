@@ -16,7 +16,6 @@
 
 package org.gradle.language.base;
 
-import org.gradle.api.Action;
 import org.gradle.platform.base.DependencySpecContainer;
 
 /**
@@ -24,6 +23,4 @@ import org.gradle.platform.base.DependencySpecContainer;
  */
 public interface DependentSourceSet extends LanguageSourceSet {
     DependencySpecContainer getDependencies();
-
-    DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);
 }

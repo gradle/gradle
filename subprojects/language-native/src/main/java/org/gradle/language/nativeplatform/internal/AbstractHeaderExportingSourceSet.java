@@ -15,7 +15,6 @@
  */
 package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.language.base.LanguageSourceSet;
@@ -38,10 +37,6 @@ public abstract class AbstractHeaderExportingSourceSet extends BaseLanguageSourc
 
     public SourceDirectorySet getExportedHeaders() {
         return exportedHeaders;
-    }
-
-    public void exportedHeaders(Action<? super SourceDirectorySet> config) {
-        config.execute(getExportedHeaders());
     }
 
     public SourceDirectorySet getImplicitHeaders() {

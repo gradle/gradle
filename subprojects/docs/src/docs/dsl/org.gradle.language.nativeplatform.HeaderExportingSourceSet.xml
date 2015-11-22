@@ -36,9 +36,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>exportedHeaders</td>
-            </tr>
         </table>
     </section>
 </section>
