@@ -17,5 +17,8 @@
 package org.gradle.internal.typeconversion;
 
 public interface TypeConverter {
-    Object convert(Object notation, Class type, boolean primitive) throws UnsupportedNotationException, TypeConversionException;
+    /**
+     * @param type The target type. Should be the boxed type for primitives.
+     */
+    Object convert(Object notation, Class<?> type, boolean primitive) throws UnsupportedNotationException, TypeConversionException;
 }

@@ -133,7 +133,7 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         '''
 
     @Unroll
-    void 'only CharSequence input values are supported'() {
+    void 'only CharSequence input values are supported - #varname'() {
         when:
         buildFile << CLASSES
         buildFile << """
