@@ -15,12 +15,11 @@
  */
 
 package org.gradle.performance
-
 import org.gradle.performance.categories.JavaPerformanceTest
-import org.gradle.performance.measure.DataAmount
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
 @Category(JavaPerformanceTest)
@@ -31,14 +30,14 @@ class JavaSoftwareModelIncrementalBuildPerformanceTest extends AbstractCrossVers
         runner.testId = "build new java project $testProject" + (parallelWorkers ? " (parallel)" : "")
         runner.testProject = testProject
         runner.tasksToRun = ['build']
-        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.7', '2.8', 'last']
+        runner.maxExecutionTimeRegression = maxTimeRegression
+        runner.maxMemoryRegression = maxMemoryRegression
+        runner.targetVersions = ['2.8', '2.9', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
         }
-        runner.maxMemoryRegression = DataAmount.mbytes(150)
 
         when:
         def result = runner.run()
@@ -47,10 +46,10 @@ class JavaSoftwareModelIncrementalBuildPerformanceTest extends AbstractCrossVers
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject               | maxExecutionTimeRegression | parallelWorkers
-        "smallJavaSwModelProject" | millis(1000)               | 0
-        "smallJavaSwModelProject" | millis(1000)               | 4
-        "largeJavaSwModelProject" | millis(5000)               | 0
-        "largeJavaSwModelProject" | millis(5000)               | 4
+        testProject               | maxTimeRegression | maxMemoryRegression | parallelWorkers
+        "smallJavaSwModelProject" | millis(200)       | mbytes(5)           | 0
+        "smallJavaSwModelProject" | millis(200)       | mbytes(5)           | 4
+        "largeJavaSwModelProject" | millis(1000)      | mbytes(50)          | 0
+        "largeJavaSwModelProject" | millis(1000)      | mbytes(50)          | 4
     }
 }

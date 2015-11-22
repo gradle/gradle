@@ -66,7 +66,7 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         runner.tasksToRun = ['build']
         runner.args = ["--parallel", "--max-workers=4"]
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.8', 'last']
+        runner.targetVersions = ['2.8', '2.9', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
         runner.warmUpRuns = 2
@@ -140,11 +140,8 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
 
         where:
         buildSize | changeType              | maxExecutionTimeRegression | changedFile                       | changeClosure
-        "small"   | 'source file change'    | millis(1000)               | 'modules/project1/src/src45_c.c'  | this.&changeCSource
-        "medium"  | 'source file change'    | millis(5000)               | 'modules/project5/src/src100_c.c' | this.&changeCSource
-        "small"   | 'header file change'    | millis(1000)               | 'common/common/include/header8.h' | this.&changeHeader
+        "medium"  | 'source file change'    | millis(200)                | 'modules/project5/src/src100_c.c' | this.&changeCSource
         "medium"  | 'header file change'    | millis(5000)               | 'common/common/include/header8.h' | this.&changeHeader
-        "small"   | 'recompile all sources' | millis(1000)               | null                              | null
         "medium"  | 'recompile all sources' | millis(5000)               | null                              | null
     }
 
