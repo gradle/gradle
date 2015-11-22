@@ -35,11 +35,8 @@ import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.objectweb.asm.*;
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.*;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -406,6 +403,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
             writeConfigureMethod(visitor, generatedType, property);
             writeSetMethod(visitor, generatedType, property);
+            createTypeConvertingSetter(visitor, generatedType, property);
 
             // Delegated properties are handled in writeDelegateMethods()
             if (delegatePropertyNames.contains(propertyName)) {
@@ -519,36 +517,38 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         invokeStateSetMethod(methodVisitor);
 
         finishVisitingMethod(methodVisitor);
-
-        if (propertyClass.isPrimitive() || BOXED_TYPES.values().contains(propertyClass) || propertyClass.isEnum()
-            || BigDecimal.class.equals(propertyClass) || BigInteger.class.equals(propertyClass) || String.class.equals(propertyClass)
-            || File.class.equals(propertyClass)) {
-            createScalarConvertingSetter(visitor, generatedType, propertyClass, setter, methodDescriptor);
-        }
     }
 
     // the overload of type Object for Groovy coercions:  public void setFoo(Object foo)
-    private void createScalarConvertingSetter(ClassVisitor visitor, Type generatedType, Class<?> propertyTypeClass, Method setter, String methodDescriptor) {
+    private void createTypeConvertingSetter(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
+        if (!property.isWritable() || !(property.getSchema() instanceof ScalarValueSchema)) {
+            return;
+        }
+
+        Class<?> propertyClass = property.getType().getConcreteClass();
+        Type propertyType = Type.getType(propertyClass);
+        Class<?> boxedClass = propertyClass.isPrimitive() ? BOXED_TYPES.get(propertyClass) : propertyClass;
+        Type boxedType = Type.getType(boxedClass);
+
+        Method setter = property.getSetter().getMethod();
         MethodVisitor methodVisitor = declareMethod(visitor, setter.getName(), SET_OBJECT_PROPERTY_DESCRIPTOR, SET_OBJECT_PROPERTY_DESCRIPTOR);
 
-        Class<?> objectType = propertyTypeClass.isPrimitive() ? BOXED_TYPES.get(propertyTypeClass) : propertyTypeClass;
-        String propertyType = Type.getInternalName(objectType);
         putThisOnStack(methodVisitor);
         putTypeConverterFieldValueOnStack(methodVisitor, generatedType);
 
         // Object converted = $typeConverter.convert(foo, Float.class, false);
         methodVisitor.visitVarInsn(ALOAD, 1); // put var #1 ('foo') on the stack
-        methodVisitor.visitLdcInsn(Type.getType(objectType)); // push the constant Class onto the stack
-        methodVisitor.visitInsn(propertyTypeClass.isPrimitive() ? ICONST_1 : ICONST_0); // push int 1 or 0 (interpreted as true or false) onto the stack
+        methodVisitor.visitLdcInsn(boxedType); // push the constant Class onto the stack
+        methodVisitor.visitInsn(propertyClass.isPrimitive() ? ICONST_1 : ICONST_0); // push int 1 or 0 (interpreted as true or false) onto the stack
         methodVisitor.visitMethodInsn(INVOKEINTERFACE, TYPE_CONVERTER_TYPE.getInternalName(), "convert", COERCE_TO_SCALAR_DESCRIPTOR, true);
-        methodVisitor.visitTypeInsn(CHECKCAST, propertyType);
+        methodVisitor.visitTypeInsn(CHECKCAST, boxedType.getInternalName());
 
-        if (propertyTypeClass.isPrimitive()) {
-            unboxType(methodVisitor, propertyTypeClass);
+        if (propertyClass.isPrimitive()) {
+            unboxType(methodVisitor, propertyClass);
         }
 
         // invoke the typed setter, popping 'this' and 'converted' from the stack
-        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), setter.getName(), methodDescriptor, false);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), setter.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, propertyType), false);
         finishVisitingMethod(methodVisitor);
     }
 
