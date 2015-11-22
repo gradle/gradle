@@ -105,6 +105,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         errorOutput.contains("unable to resolve class $clazz.name")
         executedAndNotSkipped(':compileTestGroovy')
+        assertDaemonsAreStopping()
+
+        cleanup:
         killDaemons()
 
         where:
@@ -134,6 +137,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test", ":build")
+        assertDaemonsAreStopping()
+
+        cleanup:
         killDaemons()
     }
 
@@ -146,6 +152,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test", ":build")
+        assertDaemonsAreStopping()
+
+        cleanup:
         killDaemons()
     }
 
@@ -169,6 +178,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             result.assertOutputContains("org.gradle.test.${testClassName} > execute helloWorld task STARTED")
         }
 
+        assertDaemonsAreStopping()
+
+        cleanup:
         killDaemons()
     }
 
@@ -226,6 +238,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test", ":build")
+        assertDaemonsAreStopping()
+
+        cleanup:
         killDaemons()
     }
 
@@ -275,6 +290,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         failureDescriptionContains("Execution failed for task ':test'.")
         // IBM JVM produces a slightly different error message
         failure.output.contains('Unrecognized option: -unknown') || failure.output.contains('Command-line option unrecognised: -unknown')
+        assertDaemonsAreStopping()
+
+        cleanup:
         killDaemons()
     }
 
@@ -392,6 +410,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(':test')
+        assertDaemonsAreStopping()
+
+        cleanup:
         killDaemons()
     }
 
@@ -528,6 +549,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(':test')
+        assertDaemonsAreStopping()
+
+        cleanup:
         killDaemons()
     }
 
@@ -587,6 +611,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test", ":build")
+        assertDaemonsAreStopping()
+
+        cleanup:
         killDaemons()
     }
 
@@ -643,6 +670,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test", ":build")
+        assertDaemonsAreStopping()
+
+        cleanup:
         killDaemons()
 
         where:
@@ -713,6 +743,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             result.assertOutputContains("org.gradle.test.${testClassName} > execute helloWorld task STARTED")
         }
 
+        assertDaemonsAreStopping()
+
+        cleanup:
         killDaemons()
 
         where:
@@ -812,12 +845,19 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(':test')
+        assertDaemonsAreStopping()
+
+        cleanup:
         killDaemons()
     }
 
     private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
         File daemonBaseDir = new File(new TempTestKitDirProvider().getDir(), 'daemon')
         DaemonLogsAnalyzer.newAnalyzer(daemonBaseDir, executer.distribution.version.version)
+    }
+
+    private void assertDaemonsAreStopping() {
+        createDaemonLogAnalyzer().visible*.stops()
     }
 
     private void killDaemons() {
