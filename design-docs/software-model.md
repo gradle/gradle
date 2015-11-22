@@ -40,9 +40,14 @@ Unordered and not all appropriately story sized.
     - Should include some information about the identity of the input, or its display name, and probably how it was referenced in the code
     - Should provide some information about what the mutation was.
 
+## Software model
+
+- Validate (or otherwise encode) the names of components, binaries, LSS, etc so that the result makes sense for file names and task names. 
+
 ## Reporting
 
 - Model report shows too much detail by default, should probably not include tasks and just show 'data'
+- Model report should be robust in the face of failures, as it will likely be used to diagnose such failures.
 - Values for properties with primitive and other scalar types do not show up in model report unless they have been set
 - Value for property with type collection of scalars is not shown in model report unless value has been set.
 - `null` value for mutable property with type collection of scalars is not shown in model report (but empty list is).
