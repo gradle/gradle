@@ -23,6 +23,7 @@ import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion('>=2.10')
+@TargetGradleVersion(">=2.10")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=1.0-milestone-8 <2.10")
@@ -38,7 +39,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         thrown(UnsupportedMethodException)
     }
 
-    @TargetGradleVersion(">=2.10")
     def "non-Java projects return null for source settings"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -50,7 +50,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         rootProject.javaSourceSettings == null
     }
 
-    @TargetGradleVersion(">=2.10")
     def "Java project returns default source compatibility"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -60,10 +59,9 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.sourceLanguageLevel == org.gradle.api.JavaVersion.current()
+        rootProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.current()
     }
 
-    @TargetGradleVersion(">=2.10")
     def "source language level is explicitly defined"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -79,7 +77,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         rootProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_6
     }
 
-    @TargetGradleVersion(">=2.10")
     def "Multi-project build can define different source language level for subprojects"() {
         given:
         buildFile << """

@@ -16,7 +16,8 @@
 
 package org.gradle.tooling.model.java;
 
-import org.gradle.api.*;
+import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
 
 /**
  * Describes Java source settings.
