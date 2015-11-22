@@ -28,6 +28,7 @@
             <listitem><para>Incremental parallel compilation, precompiled headers.</para></listitem>
             <listitem><para>Dependency management between native software components.</para></listitem>
             <listitem><para>Unit test execution.</para></listitem>
+            <listitem><para>Generate Visual studio solution and project files.</para></listitem>
             <listitem><para>Deep integration with various tool chain, including discovery of installed tool chains.</para></listitem>
         </itemizedlist>
     </section>
