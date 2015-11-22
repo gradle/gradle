@@ -84,7 +84,8 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         ConcurrentTestUtil.poll() {
-            jdwpClient.connect().resume()
+            // Connect, resume threads, and disconnect from VM
+            jdwpClient.connect().dispose()
         }
         gradle.waitForFinish()
     }

@@ -26,14 +26,12 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /**
- * A utility for communicating with a VM in debug mode using JDWP.  Currently
- * only supports the suspend and resume commands.
+ * A utility for communicating with a VM in debug mode using JDWP.
  */
 class JDWPUtil implements TestRule {
     String host
     Integer port
     VirtualMachine vm
-    private boolean isConnected
 
     JDWPUtil(Integer port) {
         this.port = port
@@ -55,22 +53,21 @@ class JDWPUtil implements TestRule {
         }
     }
 
-    public JDWPUtil connect() {
-        if (!isConnected) {
+    public VirtualMachine connect() {
+        if (vm == null) {
             VirtualMachineManager vmm = Bootstrap.virtualMachineManager()
             AttachingConnector connection = vmm.attachingConnectors().find { "dt_socket".equalsIgnoreCase(it.transport().name()) }
             def connectionArgs = connection.defaultArguments()
             connectionArgs.get("port").setValue(port as String)
             connectionArgs.get("hostname").setValue(host ?: "127.0.0.1")
-            vm = connection.attach(connectionArgs)
 
             // Clean up any residual connection
             close()
 
-            // If we get here, we have a successful connection and can send commands
-            isConnected = true
+            // Connect to the VM
+            vm = connection.attach(connectionArgs)
         }
-        return this
+        return vm
     }
 
     public void close() {
@@ -78,26 +75,9 @@ class JDWPUtil implements TestRule {
             try {
                 vm.dispose()
             } catch (VMDisconnectedException e) {
-                // This is ok - we're just trying to make sure all resources are released
+                // This is ok - we're just trying to make sure all resources are released and threads
+                // have been resumed - this implies the VM has exited already.
             }
-        }
-        isConnected = false
-    }
-
-    public JDWPUtil resume() {
-        println "Sending resume command..."
-        vm.resume()
-        return this
-    }
-
-    public JDWPUtil suspend() {
-        println "Sending suspend command..."
-        vm.suspend()
-    }
-
-    private void verifyConnected() {
-        if (! isConnected) {
-            throw new IllegalStateException("Not connected to debug VM - call connect() first")
         }
     }
 }
