@@ -111,7 +111,7 @@ Later work:
 - For local component dependencies:
     - ~~Artifacts from transitive external dependencies that are non part of component API are _not_ included in the compile classpath.~~
 - ~~Displays a reasonable error message if the external dependency cannot be found in a declared repository~~
-- Displays a reasonable error message if a module id is given to `library`
+- ~~Displays a reasonable error message if a module id is given to `library`~~
 
 ### Out of scope
 
