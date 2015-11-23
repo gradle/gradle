@@ -18,7 +18,7 @@ package org.gradle.model.internal.registry;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
+import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.ArrayList;
@@ -27,23 +27,37 @@ import java.util.Collections;
 import java.util.List;
 
 @NotThreadSafe
-abstract class RuleBinder {
+public class RuleBinder {
 
-    private final ModelRuleDescriptor descriptor;
-    private final BindingPredicate subjectReference;
+    private final ModelBinding subjectBinding;
+    private final ModelAction action;
     private final List<BindingPredicate> inputReferences;
     private final Collection<RuleBinder> binders;
 
     private int inputsBound;
-    private List<ModelBinding> inputBindings;
-    private Action<ModelBinding> inputBindAction;
+    private final List<ModelBinding> inputBindings;
 
-    public RuleBinder(BindingPredicate subjectReference, List<BindingPredicate> inputReferences, ModelRuleDescriptor descriptor, Collection<RuleBinder> binders) {
-        this.subjectReference = subjectReference;
+    public RuleBinder(BindingPredicate subjectReference, List<BindingPredicate> inputReferences, ModelAction action, Collection<RuleBinder> binders) {
+        this.action = action;
         this.inputReferences = inputReferences;
-        this.descriptor = descriptor;
         this.binders = binders;
-        inputBindAction = new Action<ModelBinding>() {
+        this.subjectBinding = binding(subjectReference, action.getDescriptor(), true, new Action<ModelBinding>() {
+            @Override
+            public void execute(ModelBinding modelBinding) {
+                ModelNodeInternal node = modelBinding.getNode();
+                BindingPredicate predicate = modelBinding.getPredicate();
+                if (node.isAtLeast(predicate.getState())) {
+                    throw new IllegalStateException(String.format("Cannot add rule %s for model element '%s' at state %s as this element is already at state %s.",
+                        modelBinding.referrer,
+                        node.getPath(),
+                        predicate.getState().previous(),
+                        node.getState()
+                    ));
+                }
+                maybeFire();
+            }
+        });
+        this.inputBindings = inputBindings(inputReferences, action.getDescriptor(), new Action<ModelBinding>() {
             @Override
             public void execute(ModelBinding modelBinding) {
                 ModelNodeInternal node = modelBinding.getNode();
@@ -59,25 +73,24 @@ abstract class RuleBinder {
                 ++inputsBound;
                 maybeFire();
             }
-        };
-        this.inputBindings = inputBindings(inputReferences);
+        });
         if (!isBound()) {
             binders.add(this);
         }
     }
 
-    private List<ModelBinding> inputBindings(List<BindingPredicate> inputReferences) {
+    private static List<ModelBinding> inputBindings(List<BindingPredicate> inputReferences, ModelRuleDescriptor descriptor, Action<ModelBinding> inputBindAction) {
         if (inputReferences.isEmpty()) {
             return Collections.emptyList();
         }
         List<ModelBinding> bindings = new ArrayList<ModelBinding>(inputReferences.size());
         for (BindingPredicate inputReference : inputReferences) {
-            bindings.add(binding(inputReference, false, inputBindAction));
+            bindings.add(binding(inputReference, descriptor, false, inputBindAction));
         }
         return bindings;
     }
 
-    protected ModelBinding binding(BindingPredicate reference, boolean writable, Action<ModelBinding> bindAction) {
+    private static ModelBinding binding(BindingPredicate reference, ModelRuleDescriptor descriptor, boolean writable, Action<ModelBinding> bindAction) {
         if (reference.getPath() != null) {
             return new PathBinderCreationListener(descriptor, reference, writable, bindAction);
         }
@@ -85,19 +98,25 @@ abstract class RuleBinder {
     }
 
     /**
+     * Returns the rule being bound.
+     */
+    public ModelAction getAction() {
+        return action;
+    }
+
+    /**
      * Returns the reference to the <em>output</em> of the rule. The state returned from {@link BindingPredicate#getState()} should reflect
      * the target state, not the input state. Implicitly, a rule accepts as input the subject in the state that is the predecessor of the target state.
      */
     public BindingPredicate getSubjectReference() {
-        return subjectReference;
+        return subjectBinding.getPredicate();
     }
 
     /**
      * A rule may have a subject binding, but may not require it. All rules, however, have a subject and hence a subject reference.
      */
-    @Nullable
     public ModelBinding getSubjectBinding() {
-        return null;
+        return subjectBinding;
     }
 
     public List<ModelBinding> getInputBindings() {
@@ -105,16 +124,22 @@ abstract class RuleBinder {
     }
 
     public ModelRuleDescriptor getDescriptor() {
-        return descriptor;
+        return action.getDescriptor();
     }
 
-    protected void maybeFire() {
+    private void maybeFire() {
         if (isBound()) {
             binders.remove(this);
         }
     }
 
     public boolean isBound() {
-        return inputsBound == inputReferences.size();
+        return subjectBinding.isBound()
+            && inputsBound == inputReferences.size();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s[%s - %s]", getClass().getSimpleName(), subjectBinding, action.getDescriptor());
     }
 }

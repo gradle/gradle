@@ -107,7 +107,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             // We need to re-bind early actions like projections and creators even when reusing
             boolean earlyAction = role.compareTo(ModelActionRole.Create) <= 0;
             if (!reset || earlyAction) {
-                ModelActionBinder binder = forceBind(action.getSubject(), role, action, ModelPath.ROOT);
+                RuleBinder binder = forceBind(action.getSubject(), role, action, ModelPath.ROOT);
                 if (earlyAction) {
                     node.addInitializerRuleBinder(binder);
                 }
@@ -146,10 +146,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         forceBind(subject, role, mutator, scope);
     }
 
-    private <T> ModelActionBinder forceBind(ModelReference<T> subject, ModelActionRole role, ModelAction mutator, ModelPath scope) {
+    private <T> RuleBinder forceBind(ModelReference<T> subject, ModelActionRole role, ModelAction mutator, ModelPath scope) {
         BindingPredicate mappedSubject = mapSubject(subject, role, scope);
         List<BindingPredicate> mappedInputs = mapInputs(mutator.getInputs(), scope);
-        ModelActionBinder binder = new ModelActionBinder(mappedSubject, mappedInputs, mutator, unboundRules);
+        RuleBinder binder = new RuleBinder(mappedSubject, mappedInputs, mutator, unboundRules);
         ruleBindings.add(binder);
         return binder;
     }
@@ -463,12 +463,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private void fireAction(ModelActionBinder boundMutator) {
+    private void fireAction(RuleBinder boundMutator) {
         final List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction().getDescriptor());
         ModelBinding subjectBinding = boundMutator.getSubjectBinding();
-        if (subjectBinding == null) {
-            throw new IllegalStateException("Subject binding must not be null");
-        }
         final ModelNodeInternal node = subjectBinding.getNode();
         final ModelAction mutator = boundMutator.getAction();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
@@ -1153,15 +1150,16 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             for (RuleBinder rule : ruleBindings.getRulesWithInput(input)) {
-                if (rule.getSubjectBinding() == null || !rule.getSubjectBinding().isBound()) {
+                ModelBinding subjectBinding = rule.getSubjectBinding();
+                if (!subjectBinding.isBound()) {
                     // TODO - implement these cases
                     continue;
                 }
-                if (rule.getSubjectBinding().getNode().getPath().equals(input.path)) {
+                if (subjectBinding.getNode().getPath().equals(input.path)) {
                     // Ignore future states of the input node
                     continue;
                 }
-                dependencies.add(graph.nodeAtState(new NodeAtState(rule.getSubjectBinding().getNode().getPath(), rule.getSubjectReference().getState())));
+                dependencies.add(graph.nodeAtState(new NodeAtState(subjectBinding.getNode().getPath(), rule.getSubjectReference().getState())));
             }
             return true;
         }
@@ -1223,9 +1221,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             for (RuleBinder binder : ruleBindings.getRulesWithSubject(target)) {
                 if (seenRules.add(binder)) {
                     noActionsAdded = false;
-                    if (binder instanceof ModelActionBinder) {
-                        dependencies.add(new RunModelAction(getPath(), (ModelActionBinder) binder));
-                    }
+                    dependencies.add(new RunModelAction(getPath(), binder));
                 }
             }
             return noActionsAdded;
@@ -1438,10 +1434,8 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            if (binder.getSubjectBinding() != null) {
-                // Shouldn't really be here. Currently this goal is used by {@link #bindAllReferences} which also expects the subject to be bound
-                maybeBind(binder.getSubjectBinding(), dependencies);
-            }
+            // Shouldn't really be here. Currently this goal is used by {@link #bindAllReferences} which also expects the subject to be bound
+            maybeBind(binder.getSubjectBinding(), dependencies);
             for (ModelBinding binding : binder.getInputBindings()) {
                 maybeBind(binding, dependencies);
             }
@@ -1498,9 +1492,9 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private class RunModelAction extends RunAction {
-        private final ModelActionBinder binder;
+        private final RuleBinder binder;
 
-        public RunModelAction(ModelPath path, ModelActionBinder binder) {
+        public RunModelAction(ModelPath path, RuleBinder binder) {
             super(path, binder);
             this.binder = binder;
         }

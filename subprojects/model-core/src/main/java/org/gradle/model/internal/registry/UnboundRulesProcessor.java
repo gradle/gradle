@@ -46,12 +46,10 @@ class UnboundRulesProcessor {
             UnboundRule.Builder builder = UnboundRule.descriptor(String.valueOf(binder.getDescriptor()));
 
             ModelBinding subjectBinding = binder.getSubjectBinding();
-            if (subjectBinding != null) {
-                // Only report subject binding if target state is after node creation
-                if (subjectBinding.getPredicate().getState().compareTo(ModelNode.State.Created) > 0) {
-                    UnboundRuleInput.Builder inputBuilder = toInputBuilder(subjectBinding);
-                    builder.mutableInput(inputBuilder);
-                }
+            // Only report subject binding if target state is after node creation
+            if (subjectBinding.getPredicate().getState().compareTo(ModelNode.State.Created) > 0) {
+                UnboundRuleInput.Builder inputBuilder = toInputBuilder(subjectBinding);
+                builder.mutableInput(inputBuilder);
             }
 
             for (int i = 0; i < binder.getInputBindings().size(); ++i) {

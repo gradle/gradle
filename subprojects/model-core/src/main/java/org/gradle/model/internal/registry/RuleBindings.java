@@ -94,7 +94,7 @@ class RuleBindings {
     }
 
     public void add(RuleBinder ruleBinder) {
-        addRule(ruleBinder, rulesBySubject, subject(ruleBinder));
+        addRule(ruleBinder, rulesBySubject, ruleBinder.getSubjectBinding());
         for (ModelBinding binding : ruleBinder.getInputBindings()) {
             addRule(ruleBinder, rulesByInput, binding);
         }
@@ -130,23 +130,8 @@ class RuleBindings {
         }
     }
 
-    private ModelBinding subject(RuleBinder ruleBinder) {
-        if (ruleBinder.getSubjectBinding() != null) {
-            return ruleBinder.getSubjectBinding();
-        }
-        // Create a dummy binding. Could probably reorganise things to avoid this
-        return new ModelBinding(ruleBinder.getDescriptor(), ruleBinder.getSubjectReference(), true) {
-            @Override
-            public boolean canBindInState(ModelNode.State state) {
-                return true;
-            }
-        };
-    }
-
     private static void unbind(RuleBinder rule, ModelNodeInternal node) {
-        if (rule.getSubjectBinding() != null) {
-            rule.getSubjectBinding().onUnbind(node);
-        }
+        rule.getSubjectBinding().onUnbind(node);
         for (ModelBinding binding : rule.getInputBindings()) {
             binding.onUnbind(node);
         }
