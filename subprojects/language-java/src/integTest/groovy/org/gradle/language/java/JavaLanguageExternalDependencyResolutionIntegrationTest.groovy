@@ -47,7 +47,7 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
                         sources {
                             java {
                                 dependencies {
-                                    library 'org.gradle:test:1.0'
+                                    module 'org.gradle:test:1.0'
                                 }
                             }
                         }
@@ -86,7 +86,7 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
                         sources {
                             java {
                                 dependencies {
-                                    library 'org.gradle:test:1.0'
+                                    module 'org.gradle:test:1.0'
                                 }
                             }
                         }
@@ -130,7 +130,7 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
                         sources {
                             java {
                                 dependencies {
-                                    library 'org.gradle:compileDep:1.0'
+                                    module 'org.gradle:compileDep:1.0'
                                 }
                             }
                         }
@@ -187,13 +187,13 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
                     other(JvmLibrarySpec) {
                         api {
                             dependencies {
-                                library 'org.gradle:apiDep:1.0'
+                                module 'org.gradle:apiDep:1.0'
                             }
                         }
                         sources {
                             java {
                                 dependencies {
-                                    library 'org.gradle:compileDep:1.0'
+                                    module 'org.gradle:compileDep:1.0'
                                 }
                             }
                         }
@@ -221,7 +221,7 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
             model {
                 components {
                     main(JvmLibrarySpec) {
-                        dependencies.library 'org.gradle:test:1.0'
+                        dependencies.module 'org.gradle:test:1.0'
                     }
                 }
             }
@@ -233,5 +233,24 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         and:
         failureDescriptionContains('Could not resolve all dependencies')
         failureCauseContains('Could not find org.gradle:test:1.0')
+    }
+
+    def "reasonable error message when specifying a module id via library DSL"() {
+        given:
+        theModel """
+            model {
+                components {
+                    main(JvmLibrarySpec) {
+                        dependencies.library 'org.gradle:test:1.0'
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails 'mainJar'
+
+        and:
+        failureCauseContains("`org.gradle:test:1.0' is not a valid library name. Did you mean to refer to a module instead?")
     }
 }

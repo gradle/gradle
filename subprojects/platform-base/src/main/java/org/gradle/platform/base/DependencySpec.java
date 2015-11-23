@@ -17,7 +17,6 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
 /**
  * A dependency onto a Gradle component.
@@ -26,20 +25,9 @@ import org.gradle.api.Nullable;
 public interface DependencySpec {
 
     /**
-     * Returns the project path of the project this dependency refers to.
+     * The human friendly name of this dependency.
      *
-     * @return the project path
+     * @return human friendly name
      */
-    @Nullable
-    String getProjectPath();
-
-    /**
-     * Returns the name of the library this dependency refers to. If null, it should be assumed that the project
-     * defines a single library.
-     *
-     * @return the library name
-     */
-    @Nullable
-    String getLibraryName();
-
+    String getDisplayName();
 }

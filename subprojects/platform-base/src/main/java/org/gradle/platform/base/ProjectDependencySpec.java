@@ -16,15 +16,29 @@
 
 package org.gradle.platform.base;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
+
 /**
- * A builder of a {@link DependencySpec}. Implementations are required to return
- * immutable dependency specs.
+ * A dependency onto a library published by a project.
  */
-public interface DependencySpecBuilder {
+@Incubating
+public interface ProjectDependencySpec extends DependencySpec {
+
     /**
-     * Builds a concrete immutable {@link DependencySpec} instance.
+     * Returns the project path of the project this dependency refers to.
      *
-     * @return an immutable dependency specification
+     * @return the project path
      */
-    DependencySpec build();
+    @Nullable
+    String getProjectPath();
+
+    /**
+     * Returns the name of the library this dependency refers to. If null, it should be assumed that the project
+     * defines a single library.
+     *
+     * @return the library name
+     */
+    @Nullable
+    String getLibraryName();
 }

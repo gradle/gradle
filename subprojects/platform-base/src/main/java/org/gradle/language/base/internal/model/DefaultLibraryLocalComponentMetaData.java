@@ -15,7 +15,6 @@
  */
 package org.gradle.language.base.internal.model;
 
-import com.google.common.base.Strings;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -34,9 +33,12 @@ import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetaData;
 import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.ModuleDependencySpec;
+import org.gradle.platform.base.ProjectDependencySpec;
 
 import java.util.Collections;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
 import static org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier.CONFIGURATION_API;
 
@@ -78,30 +80,36 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         }
     }
 
-    // TODO:DAZ: The dependencySpec should be transformed based on defaultProject (and other context) elsewhere.
     private void addDependency(DependencySpec dependency, String defaultProject) {
-        String projectPath = dependency.getProjectPath();
-        String libraryName = dependency.getLibraryName();
-        if (projectPath == null && libraryName != null && libraryName.contains(":")) {
-            ModuleVersionSelector requested = moduleVersionSelectorFrom(libraryName);
-            ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
-            // TODO:DAZ: This hard-codes the assumption of a 'compile' configuration on the external module
-            // Instead, we should be creating an API configuration for each resolved module
-            addDependency(dependencyMetadataFor(selector, requested, CONFIGURATION_COMPILE));
-        } else {
-            if (Strings.isNullOrEmpty(projectPath)) {
-                projectPath = defaultProject;
-            }
-            // currently we use "null" as variant value, because there's only one variant: API
-            ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
-            DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(projectPath), nullToEmpty(libraryName), getId().getVersion());
-            addDependency(dependencyMetadataFor(selector, requested, CONFIGURATION_API));
-        }
+        DependencyMetaData metadata = dependency instanceof ModuleDependencySpec
+            ? moduleDependencyMetadata((ModuleDependencySpec) dependency)
+            : projectDependencyMetadata((ProjectDependencySpec) dependency, defaultProject);
+        addDependency(metadata);
     }
 
-    private ModuleVersionSelector moduleVersionSelectorFrom(String libraryName) {
-        String[] components = libraryName.split(":");
-        return new DefaultModuleVersionSelector(components[0], components[1], components[2]);
+    private DependencyMetaData moduleDependencyMetadata(ModuleDependencySpec moduleDependency) {
+        ModuleVersionSelector requested = moduleVersionSelectorFrom(moduleDependency);
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
+        // TODO:DAZ: This hard-codes the assumption of a 'compile' configuration on the external module
+        // Instead, we should be creating an API configuration for each resolved module
+        return dependencyMetadataFor(selector, requested, CONFIGURATION_COMPILE);
+    }
+
+    // TODO:DAZ:RBO: projectDependency should be transformed based on defaultProject (and other context) elsewhere.
+    private DependencyMetaData projectDependencyMetadata(ProjectDependencySpec projectDependency, String defaultProject) {
+        String projectPath = projectDependency.getProjectPath();
+        if (isNullOrEmpty(projectPath)) {
+            projectPath = defaultProject;
+        }
+        String libraryName = projectDependency.getLibraryName();
+        // currently we use "null" as variant value, because there's only one variant: API
+        ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
+        DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(projectPath), nullToEmpty(libraryName), getId().getVersion());
+        return dependencyMetadataFor(selector, requested, CONFIGURATION_API);
+    }
+
+    private ModuleVersionSelector moduleVersionSelectorFrom(ModuleDependencySpec module) {
+        return new DefaultModuleVersionSelector(module.getGroup(), module.getName(), module.getVersion());
     }
 
     private DependencyMetaData dependencyMetadataFor(ComponentSelector selector, ModuleVersionSelector requested, String configuration) {

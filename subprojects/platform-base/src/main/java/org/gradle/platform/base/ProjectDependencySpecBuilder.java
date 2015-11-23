@@ -13,18 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.platform.base;
 
 /**
- * A builder of a {@link DependencySpec}. Implementations are required to return
- * immutable dependency specs.
+ * A builder of a {@link ProjectDependencySpec}.
  */
-public interface DependencySpecBuilder {
+public interface ProjectDependencySpecBuilder extends DependencySpecBuilder {
+
     /**
-     * Builds a concrete immutable {@link DependencySpec} instance.
+     * Narrows this dependency specification down to a specific project.
      *
-     * @return an immutable dependency specification
+     * @param path the project path
+     *
+     * @return this instance
      */
-    DependencySpec build();
+    ProjectDependencySpecBuilder project(String path);
+
+    /**
+     * Narrows this dependency specification down to a specific library.
+     *
+     * @param name the library name
+     *
+     * @return this instance
+     */
+    ProjectDependencySpecBuilder library(String name);
 }

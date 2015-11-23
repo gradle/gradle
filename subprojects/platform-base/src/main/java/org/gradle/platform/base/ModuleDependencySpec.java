@@ -16,15 +16,34 @@
 
 package org.gradle.platform.base;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
+
 /**
- * A builder of a {@link DependencySpec}. Implementations are required to return
- * immutable dependency specs.
+ * A dependency onto a module.
  */
-public interface DependencySpecBuilder {
+@Incubating
+public interface ModuleDependencySpec extends DependencySpec {
+
     /**
-     * Builds a concrete immutable {@link DependencySpec} instance.
+     * The group of the module this dependency specification refers to.
      *
-     * @return an immutable dependency specification
+     * @return the module group name
      */
-    DependencySpec build();
+    String getGroup();
+
+    /**
+     * The name of the module this dependency specification refers to.
+     *
+     * @return the module name
+     */
+    String getName();
+
+    /**
+     * The version range of the module this dependency specification refers to.
+     *
+     * @return the module version range
+     */
+    @Nullable
+    String getVersion();
 }

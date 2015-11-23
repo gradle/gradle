@@ -16,13 +16,11 @@
 
 package org.gradle.api.reporting.components.internal;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.DependentSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.reporting.ReportRenderer;
@@ -30,7 +28,6 @@ import org.gradle.reporting.ReportRenderer;
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Set;
 
 class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuilder> {
@@ -79,14 +76,7 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
                 builder.collection("dependencies", dependencies.getDependencies(), new ReportRenderer<DependencySpec, TextReportBuilder>() {
                     @Override
                     public void render(DependencySpec model, TextReportBuilder output) throws IOException {
-                        List<String> parts = Lists.newArrayList();
-                        if (model.getProjectPath() != null) {
-                            parts.add("project '" + model.getProjectPath() + "'");
-                        }
-                        if (model.getLibraryName() != null) {
-                            parts.add("library '" + model.getLibraryName() + "'");
-                        }
-                        output.item(Joiner.on(' ').join(parts));
+                        output.item(model.getDisplayName());
                     }
                 }, "dependencies");
             }

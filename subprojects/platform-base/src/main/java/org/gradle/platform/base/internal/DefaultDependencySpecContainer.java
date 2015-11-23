@@ -16,64 +16,81 @@
 
 package org.gradle.platform.base.internal;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import org.gradle.api.Action;
-import org.gradle.platform.base.DependencySpec;
-import org.gradle.platform.base.DependencySpecBuilder;
-import org.gradle.platform.base.DependencySpecContainer;
+import org.gradle.platform.base.*;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+
+import static java.util.Collections.emptySet;
 
 public class DefaultDependencySpecContainer implements DependencySpecContainer {
 
-    private final List<DefaultDependencySpec.Builder> builders = new LinkedList<DefaultDependencySpec.Builder>();
+    private final List<DependencySpecBuilder> builders = new LinkedList<DependencySpecBuilder>();
 
     @Override
-    public DependencySpecBuilder project(final String path) {
-        return doCreate(new Action<DefaultDependencySpec.Builder>() {
-            @Override
-            public void execute(DefaultDependencySpec.Builder builder) {
-                builder.project(path);
-            }
-        });
+    public ProjectDependencySpecBuilder project(String path) {
+        return projectDependency().project(path);
     }
 
     @Override
-    public DependencySpecBuilder library(final String name) {
-        return doCreate(new Action<DefaultDependencySpec.Builder>() {
-            @Override
-            public void execute(DefaultDependencySpec.Builder builder) {
-                builder.library(name);
-            }
-        });
+    public ProjectDependencySpecBuilder library(String name) {
+        return projectDependency().library(name);
     }
 
+    @Override
+    public ModuleDependencySpecBuilder module(String moduleIdOrName) {
+        return moduleIdOrName.contains(":")
+            ? moduleDependencyFromModuleId(moduleIdOrName)
+            : moduleDependency().module(moduleIdOrName);
+    }
+
+    @Override
+    public ModuleDependencySpecBuilder group(String name) {
+        return moduleDependency().group(name);
+    }
+
+    @Override
     public Collection<DependencySpec> getDependencies() {
-        if (builders.isEmpty()) {
-            return Collections.emptySet();
+        if (isEmpty()) {
+            return emptySet();
         }
-        return ImmutableSet.copyOf(Lists.transform(builders, new Function<DefaultDependencySpec.Builder, DependencySpec>() {
-            @Override
-            public DependencySpec apply(DefaultDependencySpec.Builder builder) {
-                return builder.build();
-            }
-        }));
-    }
-
-    private DefaultDependencySpec.Builder doCreate(Action<? super DefaultDependencySpec.Builder> action) {
-        DefaultDependencySpec.Builder builder = new DefaultDependencySpec.Builder();
-        action.execute(builder);
-        builders.add(builder);
-        return builder;
+        return dependencySpecSet();
     }
 
     @Override
     public boolean isEmpty() {
         return builders.isEmpty();
+    }
+
+    private DefaultProjectDependencySpec.Builder projectDependency() {
+        DefaultProjectDependencySpec.Builder builder = new DefaultProjectDependencySpec.Builder();
+        builders.add(builder);
+        return builder;
+    }
+
+    private DefaultModuleDependencySpec.Builder moduleDependency() {
+        DefaultModuleDependencySpec.Builder builder = new DefaultModuleDependencySpec.Builder();
+        builders.add(builder);
+        return builder;
+    }
+
+    private ModuleDependencySpecBuilder moduleDependencyFromModuleId(String moduleId) {
+        //TODO:RBO: validate module id syntax here
+        String[] components = moduleId.split(":");
+        return moduleDependency()
+            .group(components[0])
+            .module(components[1])
+            .version(components.length < 3 ? null : components[2]);
+    }
+
+    private Set<DependencySpec> dependencySpecSet() {
+        ImmutableSet.Builder<DependencySpec> specs = ImmutableSet.builder();
+        for (DependencySpecBuilder specBuilder : builders) {
+            specs.add(specBuilder.build());
+        }
+        return specs.build();
     }
 }
