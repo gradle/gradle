@@ -428,11 +428,8 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeSetMethod(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
-        if (!property.isWritable()) {
-            return;
-        }
+        if (property.isWritable() && property.getSchema() instanceof ScalarValueSchema) {
 
-        if (property.getSchema() instanceof ScalarValueSchema) {
             // TODO - should we support this?
             // Adds a void $propName(Object value) method that sets the value
             MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE), null);

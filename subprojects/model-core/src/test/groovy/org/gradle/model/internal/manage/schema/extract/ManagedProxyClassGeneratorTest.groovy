@@ -20,7 +20,6 @@ import com.google.common.base.Optional
 import groovy.transform.NotYetImplemented
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.typeconversion.DefaultTypeConverter
-import org.gradle.internal.typeconversion.TypeConverter
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.core.UnmanagedStruct
@@ -29,7 +28,6 @@ import org.gradle.model.internal.manage.instance.ModelElementState
 import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.Matchers
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -37,9 +35,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
     static def generator = new ManagedProxyClassGenerator()
     static Map<Class<?>, Map<Class<?>, Class<?>>> generated = [:].withDefault { [:] }
     def schemaStore = DefaultModelSchemaStore.instance
-
-    @Shared
-    def typeConverter = new DefaultTypeConverter(Mock(FileResolver))
+    def typeConverter = new DefaultTypeConverter(Stub(FileResolver))
 
     def "generates a proxy class for an interface"() {
         expect:
@@ -400,7 +396,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         0 * state._
     }
 
-    def "mixes in set method for property with scalar type"() {
+    def "mixes in set method for managed property with scalar type"() {
         def state = Mock(ModelElementState)
 
         given:
@@ -408,13 +404,45 @@ class ManagedProxyClassGeneratorTest extends Specification {
         def impl = proxyClass.newInstance(state, typeConverter)
 
         when:
-        impl.value = 12
-        impl.primitive = 14L
+        impl.value 12
+        impl.primitive 14L
 
         then:
         1 * state.set("value", 12)
         1 * state.set("primitive", 14L)
         0 * state._
+
+        when:
+        impl.value "123"
+
+        then:
+        1 * state.set("value", 123)
+        0 * state._
+    }
+
+    def "mixes in set method for delegated property with scalar type"() {
+        def state = Mock(ModelElementState)
+        def delegate = Mock(UnmanagedImplType)
+
+        given:
+        def proxyClass = generate(PublicUnmanagedType, UnmanagedImplType)
+        def impl = proxyClass.newInstance(state, typeConverter, delegate)
+
+        when:
+        impl.unmanagedValue "value"
+        impl.intValue 12
+
+        then:
+        1 * delegate.setUnmanagedValue("value")
+        1 * delegate.setIntValue(12)
+        0 * delegate._
+
+        when:
+        impl.intValue "123"
+
+        then:
+        1 * delegate.setIntValue(123)
+        0 * delegate._
     }
 
     def "mixes in toString() implementation that delegates to delegate object when it has a displayName property"() {
@@ -484,6 +512,33 @@ class ManagedProxyClassGeneratorTest extends Specification {
         then:
         MissingMethodException e = thrown()
         e.message.startsWith("No signature of method: ${SomeType.name}.unknown() is applicable")
+    }
+
+    def "reports contract type rather than implementation class when attempting to invoke configure method for property that does not have one"() {
+        given:
+        def impl = newInstance(SomeType)
+
+        when:
+        impl.value { broken }
+
+        then:
+        MissingMethodException e = thrown()
+        e.message.startsWith("No signature of method: ${SomeType.name}.value() is applicable")
+    }
+
+    def "reports contract type rather than implementation class when attempting to invoke set method for property that does not have one"() {
+        given:
+        def state = Mock(ModelElementState) {
+            get("readOnly") >> true
+        }
+        def impl = generate(SomeTypeWithReadOnlyProperty).newInstance(state, typeConverter)
+
+        when:
+        impl.readOnly Boolean.FALSE
+
+        then:
+        MissingMethodException e = thrown()
+        e.message.startsWith("No signature of method: ${SomeTypeWithReadOnlyProperty.name}.readOnly() is applicable")
     }
 
     @Unroll
@@ -594,7 +649,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     def <T> T newInstance(Class<T> type) {
         def generated = generate(type)
-        return generated.newInstance(Stub(ModelElementState), Stub(TypeConverter))
+        return generated.newInstance(Stub(ModelElementState), typeConverter)
     }
 
     def <T, M extends T, D extends T> Class<? extends T> generate(Class<T> managedType, Class<D> delegateType = null) {
@@ -622,6 +677,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
     static interface SomeTypeWithReadOnlyProperty {
         SomeType getValue()
         SomeUnmanagedStruct getOtherValue()
+        boolean isReadOnly()
     }
 
     @UnmanagedStruct
@@ -654,6 +710,9 @@ class ManagedProxyClassGeneratorTest extends Specification {
         void setUnmanagedValue(String unmanagedValue)
 
         String sayHello()
+
+        int getIntValue()
+        void setIntValue(int value)
     }
 
     static interface InternalUnmanagedType extends PublicUnmanagedType {
@@ -664,6 +723,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     static class UnmanagedImplType implements InternalUnmanagedType {
         String unmanagedValue
+        int intValue
 
         @Override
         Integer add(Integer a, Integer b) {
