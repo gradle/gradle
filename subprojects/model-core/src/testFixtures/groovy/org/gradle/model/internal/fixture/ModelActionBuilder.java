@@ -88,6 +88,14 @@ public class ModelActionBuilder<T> {
         return toAction(action, path, type, descriptor);
     }
 
+    public <I> ModelAction action(ModelPath modelPath, Class<I> inputType, BiAction<? super T, ? super I> action) {
+        return action(modelPath, ModelType.of(inputType), action);
+    }
+
+    public <I> ModelAction action(String modelPath, Class<I> inputType, BiAction<? super T, ? super I> action) {
+        return action(ModelPath.path(modelPath), ModelType.of(inputType), action);
+    }
+
     public <I> ModelAction action(ModelPath modelPath, ModelType<I> inputType, BiAction<? super T, ? super I> action) {
         return action(modelPath, inputType, inputType.toString(), action);
     }

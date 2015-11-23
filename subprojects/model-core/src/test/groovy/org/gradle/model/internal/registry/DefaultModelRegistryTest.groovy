@@ -655,6 +655,38 @@ class DefaultModelRegistryTest extends Specification {
         ex.message == "Tried to remove model 'foo' but it is depended on by: 'bar'"
     }
 
+    def "can remove an element with children that has not been used as input by a rule"() {
+        given:
+        registry.register("parent") { it.unmanagedNode (Integer) { MutableModelNode node ->
+            node.addLink(registry.instanceRegistration("parent.foo", 12.toInteger()))
+        }}
+        registry.realize("parent")
+
+        when:
+        registry.remove(ModelPath.path("parent"))
+
+        then:
+        registry.atStateOrLater("parent", ModelNode.State.Registered) == null
+        registry.atStateOrLater("parent.foo", ModelNode.State.Registered) == null
+    }
+
+    def "cannot remove an element whose child has already been used as input by a rule"() {
+        given:
+        registry.register("parent") { it.unmanagedNode (Integer) { MutableModelNode node ->
+            node.addLink(registry.instanceRegistration("parent.foo", 12.toInteger()))
+        }}
+        registry.registerInstance("bar", new Bean())
+        registry.mutate { it.path("bar").action("parent.foo", Integer, BiActions.doNothing()) }
+        registry.realize("bar", Bean).value == "[12]"
+
+        when:
+        registry.remove(ModelPath.path("parent"))
+
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "Tried to remove model 'parent.foo' but it is depended on by: 'bar'"
+    }
+
     @Unroll
     def "cannot bind action targeting type for role #targetRole where type is not available"() {
         when:

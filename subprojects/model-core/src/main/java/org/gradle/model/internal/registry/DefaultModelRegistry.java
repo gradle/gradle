@@ -19,6 +19,7 @@ package org.gradle.model.internal.registry;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
@@ -213,14 +214,27 @@ public class DefaultModelRegistry implements ModelRegistry {
             return;
         }
 
-        // TODO:LPTR Make sure none of the children are depended on either
-        if (!Iterables.isEmpty(node.getDependents())) {
-            throw new IllegalStateException(String.format("Tried to remove model '%s' but it is depended on by: '%s'", path, Joiner.on(", ").join(node.getDependents())));
-        }
+        List<ModelNodeInternal> nodesToRemove = Lists.newArrayList();
+        ensureCanRemove(node, nodesToRemove);
+        Collections.reverse(nodesToRemove);
 
-        modelGraph.remove(node);
-        ruleBindings.remove(node);
-        unboundRules.removeAll(node.getInitializerRuleBinders());
+        for (ModelNodeInternal nodeToRemove : nodesToRemove) {
+            modelGraph.remove(nodeToRemove);
+            ruleBindings.remove(nodeToRemove);
+            unboundRules.removeAll(nodeToRemove.getInitializerRuleBinders());
+        }
+    }
+
+    private void ensureCanRemove(ModelNodeInternal node, List<ModelNodeInternal> nodesToRemove) {
+        if (!(node instanceof ModelReferenceNode)) {
+            for (ModelNodeInternal childNode : node.getLinks()) {
+                ensureCanRemove(childNode, nodesToRemove);
+            }
+        }
+        if (!Iterables.isEmpty(node.getDependents())) {
+            throw new IllegalStateException(String.format("Tried to remove model '%s' but it is depended on by: '%s'",  node.getPath(), Joiner.on(", ").join(node.getDependents())));
+        }
+        nodesToRemove.add(node);
     }
 
     @Override
