@@ -50,4 +50,16 @@ class AbstractEclipseIntegrationSpec extends AbstractIdeIntegrationSpec {
     protected EclipseProjectFixture project(String project) {
         EclipseProjectFixture.create(testDirectory.file(project))
     }
+
+    protected File getComponentFile(Map options = [:]) {
+        getFile(options, ".settings/org.eclipse.wst.common.component")
+    }
+
+    protected File getFacetFile(Map options = [:]) {
+        getFile(options, '.settings/org.eclipse.wst.common.project.facet.core.xml')
+    }
+
+    protected File getClasspathFile(Map options = [:]) {
+        getFile(options, ".classpath")
+    }
 }
