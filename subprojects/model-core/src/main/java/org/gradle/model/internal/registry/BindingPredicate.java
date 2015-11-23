@@ -61,7 +61,6 @@ public class BindingPredicate extends ModelPredicate {
         return reference.getScope();
     }
 
-    @Nullable
     public ModelNode.State getState() {
         return reference.getState();
     }

@@ -48,7 +48,7 @@ abstract class RuleBinder {
             public void execute(ModelBinding modelBinding) {
                 ModelNodeInternal node = modelBinding.getNode();
                 BindingPredicate reference = modelBinding.getPredicate();
-                if (reference.getState() != null && node.getState().compareTo(reference.getState()) > 0) {
+                if (node.getState().compareTo(reference.getState()) > 0) {
                     throw new IllegalStateException(String.format("Cannot add rule %s with input model element '%s' at state %s as this element is already at state %s.",
                         modelBinding.referrer,
                         node.getPath(),

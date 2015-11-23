@@ -1153,7 +1153,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             for (RuleBinder rule : ruleBindings.getRulesWithInput(input)) {
-                if (rule.getSubjectBinding() == null || !rule.getSubjectBinding().isBound() || rule.getSubjectReference().getState() == null) {
+                if (rule.getSubjectBinding() == null || !rule.getSubjectBinding().isBound()) {
                     // TODO - implement these cases
                     continue;
                 }

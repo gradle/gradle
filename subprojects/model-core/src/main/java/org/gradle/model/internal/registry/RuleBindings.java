@@ -68,9 +68,6 @@ class RuleBindings {
     private void bound(Reference reference, ModelNodeInternal node) {
         ModelBinding binding = reference.binding;
         binding.onBind(node);
-        if (binding.predicate.getState() == null) {
-            throw new IllegalArgumentException("No state specified for binding: " + binding);
-        }
         reference.index.put(new NodeAtState(node.getPath(), binding.predicate.getState()), reference.owner);
     }
 
