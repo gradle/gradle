@@ -396,6 +396,7 @@ required by the test code needs to be declared for the test classpath.
 
 ### Changes to incubating software model
 
+- All rule methods on `RuleSource` must not be private, and all other methods must be private.
 - `BinarySpec.name` should no longer be considered a unique identifier for the binary within a project.
 - The name for the 'build' task for a binary is now qualified with the name of its component. For example, `jar` in `mylib` will have a build task called 'mylibJar'
 - The name for the compile tasks for a binary is now qualified with the name of its component.

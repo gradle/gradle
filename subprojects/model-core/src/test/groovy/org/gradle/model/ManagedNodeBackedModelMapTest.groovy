@@ -668,7 +668,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         then:
         ModelRuleExecutionException e = thrown()
         e.cause.class == InvalidModelRuleDeclarationException
-        e.cause.message == "Type java.lang.Object is not a valid model rule source: rule source classes must directly extend org.gradle.model.RuleSource"
+        e.cause.message == "Type java.lang.Object is not a valid rule source: rule source classes must directly extend org.gradle.model.RuleSource"
     }
 
     static class ElementRules extends RuleSource {
