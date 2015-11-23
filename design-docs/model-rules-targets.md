@@ -115,3 +115,40 @@ And combining:
     void applyBinaryRules(BinaryRules rules, BinarySpec binary) {
         rules.sources = binary.inputs
     }
+
+## Stories
+
+### Rule method can define rules using a `RuleSource`
+
+- Add `@Rules` annotation and allow to be attached to method.
+- A `@Rules` method can accept inputs but not do anything with them at this stage.
+- Invoked and applied when subject is transitioned to `initialized`.
+- Can be applied to:
+    - Top-level `RuleSource`
+    - Rules source applied via `ModelMap.withType()`
+    - Rules applied using a `@Rules` rule.
+- Error when `@Rule` applied to a method whose parameter is not a `RuleSource`.
+
+- TBD: useful descriptor for rules in `RuleSource`.
+
+### `RuleSource` can declare inputs to be bound
+
+- Allow `@Input` properties to be declared on `RuleSource` subtypes.
+- Getter and setter must be abstract.
+- Generate and cache an implementation class.
+- Allow a `@Rules` method to set values for the `RuleSource` properties:
+     - Inputs should be at or after `initialized`.
+     - Inputs should not be mutable.
+- `@Input` properties treated as implicit input for all rules. 
+    - Getter should provide a value during rule invocation.
+- Error when `RuleSource` used with null value for input property.
+- Error when mutating `@Input` property outside `@Rule` method.
+- Error when reading `@Input` property outside self rule execution.
+- TBD: useful descriptor for input property.
+
+### `RuleSource` can declare subject to be bound
+
+- Allow `@Subject` property to be declared on `RuleSource` subtypes.
+- Validation as per inputs.
+- User guide and samples describe how to use this.
+- TBD: useful descriptor for subject property.
