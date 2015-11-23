@@ -30,19 +30,19 @@ This approach is to build on `RuleSource` and allow some programmatic control ov
 An example, in a `RuleSource` applied to each `BinarySpec`:
 
     @Rules
-    void defineTaskRules(TaskRulesSource rule, BinarySpec binary) {
+    void defineTaskRules(TaskRuleSource rule, BinarySpec binary) {
         // configures the rule
         rule.tasks = binary.tasks
         rule.sources = binary.inputs
     }
     
     // Can be reused for any thing built from sources
-    abstract static class TaskRulesSource extends RulesSource {
-        @Subject // When present, defines the subject of all the rules on this `RulesSource`
+    abstract static class TaskRuleSource extends RuleSource {
+        @Subject // When present, defines the subject of all the rules on this `RuleSource`
         abstract ModelMap<Task> getTasks()
         abstract void setTasks(ModelMap<Task> tasks)
         
-        @Input // Each such property defines an implicit input of all the rules on this `RulesSource`
+        @Input // Each such property defines an implicit input of all the rules on this `RuleSource`
         abstract Set<LanguageSourceSet> getSources()
         abstract void setSources(Set<LanguageSourceSet> sources)
         
@@ -53,18 +53,18 @@ An example, in a `RuleSource` applied to each `BinarySpec`:
     }
     
     @Rules
-    void defineSourceInputs(InputsRulesSource rule, BinarySpec binary) {
+    void defineSourceInputs(InputsRuleSource rule, BinarySpec binary) {
         rule.target = binary.inputs
         rule.sources = binary.sources
     }
     
     @Rules
-    void defineSourceInputs(InputsRulesSource rule, BinarySpec binary) {
+    void defineSourceInputs(InputsRuleSource rule, BinarySpec binary) {
         rule.target = binary.input
         rule.sources = binary.component?.sources // using `null` to mean 'ignore this rule source`, could be more explicit
     }
     
-    abstract static class InputsRulesSource extends RuleSource {
+    abstract static class InputsRuleSource extends RuleSource {
         @Subject
         abstract Set<? super LanguageSourceSet> getTarget()
         abstract void setTarget(Set<? super LanguageSourceSet> target)
@@ -83,7 +83,7 @@ Or, from a `RuleSource` attached to each `ComponentSpec`:
 
     @Rules
     void defineBinaryRules(ComponentSpec comp) {
-        comp.binaries.all(InputsRulesSource) { rules, binary ->
+        comp.binaries.all(InputsRuleSource) { rules, binary ->
             // Action to configure the rule, not the binary
             rules.sources = comp.sources 
             rules.target = binary.inputs
