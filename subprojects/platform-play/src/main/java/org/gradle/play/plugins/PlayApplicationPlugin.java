@@ -259,7 +259,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             createGeneratedScalaSourceSetsForType(RoutesSourceSet.class, binaries, serviceRegistry);
         }
 
-        void createGeneratedScalaSourceSetsForType(final Class<? extends LanguageSourceSet> languageSourceSetType, ModelMap<PlayApplicationBinarySpec> binaries, ServiceRegistry serviceRegistry) {
+        private void createGeneratedScalaSourceSetsForType(final Class<? extends LanguageSourceSet> languageSourceSetType, ModelMap<PlayApplicationBinarySpec> binaries, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             binaries.all(new Action<PlayApplicationBinarySpec>() {
