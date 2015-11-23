@@ -15,6 +15,39 @@ Should mention Java compile avoidance
 TBD - Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
 might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
 
+#### Convenient configuration of scalar properties from Groovy
+
+The Groovy DSL for configuring model nodes now supports automatic conversions of types for scalar types, making it very easy to use one type for another. In particular, you can use a `String` wherever a scalar type is expected. For example:
+
+    enum FailType {
+       FAIL_BUILD,
+       WARNING
+    }
+
+    @Managed
+    interface CoverageConfiguration {
+       double getMinClassCoverage()
+       void setMinClassCoverage(double minCoverage)
+
+       double getMinPackageCoverage()
+       void setMinPackageCoverage(double minCoverage)
+
+       FailType getFailType()
+       void setFailType(FailType failType)
+
+       File getReportTemplateDir()
+       void setReportTemplateDir(File templateDir)
+    }
+
+    model {
+        coverage {
+           minClassCoverage = '0.7' // can use a `String` where a `double` was expected
+           minPackageCoverage = 1L // can use a `long` where a `double` was expected
+           failType = 'WARNING' // can use a `String` instead of an `Enum`
+           templateReportDir = 'src/templates/coverage' // creates a `File` which path is relative to the current project directory
+        }
+    }
+
 #### Component level dependencies for Java libraries
 
 In most cases it is more natural and convenient to define dependencies per component rather than individually on a source set and it is now possible to do so when defining a Java library.
