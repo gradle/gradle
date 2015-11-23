@@ -16,30 +16,54 @@
 
 package org.gradle.performance
 import org.apache.commons.io.FileUtils
+import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.BuildExperimentRunner
+import org.gradle.performance.measure.MeasuredOperation
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-@Category(JavaPerformanceTest)
+@Category([Experiment, JavaPerformanceTest])
 class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuildPerformanceTest {
 
-    @Unroll("CompileAvoidance '#testCompileAvoidance' measuring compile avoidance speed when #cardinalityDesc #scenario #apiDesc")
+    @Unroll("Compile avoidance for #size project")
     def "build java software model project"() {
         given:
         runner.testGroup = "compile avoidance using Java software model"
-        runner.testId = "$size project compile avoidance $cardinalityDesc $scenario $apiDesc"
-        runner.buildExperimentListener = new SourceFileUpdater(nonApiChanges, abiCompatibleChanges, abiBreakingChanges)
+        runner.testId = "$size project compile avoidance"
 
-        runner.buildSpec {
-            projectName(testCompileAvoidance).displayName(runner.testId).invocation {
-                tasksToRun('assemble').useDaemon().gradleOpts('-Xms2G', '-Xmx2G')
+        // note to the reader: we cannot rely on @Unroll because the report aggregation works by test execution, so all need
+        // to be executed as part of a single test method
+        def scenarios = [
+            // nonApiChanges, abiCompatibleChanges and abiBreakingChanges are expressed in percentage of projects that are going to be
+            // updated in the test
+                'internal API changes': [10, 0, 0],
+                'ABI compatible changes': [0, 10, 0],
+                'ABI breaking changes': [0, 0, 10]
+        ]
+
+        def apiTypes = [
+            WithApi: 'with declared API',
+            WithoutApi: 'without declared API'
+        ]
+
+        scenarios.each { name, changes ->
+            def (nonApiChanges, abiCompatibleChanges, abiBreakingChanges) = changes
+            apiTypes.each { apiType, apiDesc ->
+                String projectDir = "${size}JavaSwModelCompileAvoidance${apiType}"
+                runner.baseline {
+                    projectName(projectDir).displayName("$name $apiDesc").invocation {
+                        tasksToRun('assemble').useDaemon().gradleOpts('-Xms2G', '-Xmx2G')
+                    }.listener(new SourceFileUpdater(nonApiChanges, abiCompatibleChanges, abiBreakingChanges))
+                }
             }
         }
+
 
         when:
         runner.run()
@@ -47,47 +71,9 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
         then:
         noExceptionThrown()
 
-        cleanup:
-        runner.buildExperimentListener.cleanup()
-
         where:
+        size << ['small', 'large']
 
-        // nonApiChanges, abiCompatibleChanges and abiBreakingChanges are expressed in percentage of projects that are going to be
-        // updated in the test
-        scenario                 | testCompileAvoidance                         | nonApiChanges | abiCompatibleChanges | abiBreakingChanges
-        'internal API changes'   | "smallJavaSwModelCompileAvoidanceWithApi"    | 10            | 0                    | 0
-        'internal API changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 10            | 0                    | 0
-//        'internal API changes'   | "smallJavaSwModelCompileAvoidanceWithApi"    | 50            | 0                    | 0
-//        'internal API changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 50            | 0                    | 0
-//
-        'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 10                   | 0
-        'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 10                   | 0
-//        'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 50                   | 0
-//        'ABI compatible changes' | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 50                   | 0
-
-        'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 10
-        'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 0                    | 10
-//        'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 50
-//        'ABI breaking changes'   | "smallJavaSwModelCompileAvoidanceWithoutApi" | 0             | 0                    | 50
-
-        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 10            | 0                    | 0
-        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 10            | 0                    | 0
-//        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 50            | 0                    | 0
-//        'internal API changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 50            | 0                    | 0
-//
-        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 10                   | 0
-        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 10                   | 0
-//        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 50                   | 0
-//        'ABI compatible changes' | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 50                   | 0
-//
-        'ABI breaking changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 10
-        'ABI breaking changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 0                    | 10
-//        'ABI breaking changes'   | "largeJavaSwModelCompileAvoidanceWithApi"    | 0             | 0                    | 50
-//        'ABI breaking changes'   | "largeJavaSwModelCompileAvoidanceWithoutApi" | 0             | 0                    | 50
-
-        size = testCompileAvoidance[0..4]
-        cardinalityDesc = (nonApiChanges + abiCompatibleChanges + abiBreakingChanges) < 50 ? 'some' : 'many'
-        apiDesc = testCompileAvoidance.contains('Without') ? 'without declared API' : 'with declared API'
     }
 
     private static class SourceFileUpdater extends BuildExperimentListenerAdapter {
@@ -229,6 +215,14 @@ public String addedProperty;
                         }
                     }
                 }
+            }
+        }
+
+        @Override
+        void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+            if (invocationInfo.iterationNumber == invocationInfo.iterationMax) {
+                println "Last iteration complete"
+                cleanup()
             }
         }
 
