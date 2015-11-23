@@ -35,6 +35,8 @@ language levels for each module in a project.
         IdeaProjectJavaSourceSettings getJavaSourceSettings()
     }
 
+TBD: It looks like in IDEA a project always has some Java source settings, which means that `IdeaProject.getJavaSourceSettings()` should always return non-null.
+TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that tooling model and generated files are consistent in module type, and project and module language level.
 
 #### Implementation
 - Introduce `IdeaModuleJavaSourceSettings` extending `JavaSourceSettings`.
@@ -47,7 +49,7 @@ language levels for each module in a project.
     - return `null` if not a Java project
     - otherwise configure it as follows
         - `IdeaProject.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`.
-        - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `project.sourceCompatiblity`
+        - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `project.sourceCompatibility`
         - `IdeaModule.getSourceLanguageLevel().isInherited` returns `false` if different from the IDEA project, `true` if the same.
 - Add a comment on `IdeaProject.getLanguageLevel()` that `getJavaSourceSettings()` should be preferred.
 - For older Gradle versions value for `javaSourceSettings.sourceLanguageLevel` for IdeaModule and IdeaProject is inferred from `languageLevel`
@@ -55,6 +57,8 @@ language levels for each module in a project.
         ( see `TaskPropertyHandlerFactory` as an example for this)
 
 #### Test coverage
+
+- `IdeaProject.languageLevel` always has the same value as `IdeaProject.javaSourceSettings.javaVersion`
 - `IdeaModule.getJavaSourceSettings()` returns null for non java projects
 - `IdeaModule.getJavaSourceSettings().isInherited()` returns true when the same as project's version, false when different.
 - `IdeaProject.getJavaSourceSettings()` returns inferred value from `languageLevel` for older target Gradle version.
@@ -64,6 +68,7 @@ language levels for each module in a project.
 - Can handle multi project builds with different source levels per subproject.
 - Can handle multi project builds where some projects are not a Java project and some are.
 - Can handle multi project builds where root project is not a Java project, but some of its children are.
+- Can handle multi project builds where no projects are Java projects.
 
 #### Open questions
 
@@ -92,7 +97,10 @@ language levels for each module in a project.
     }
 
 TBD: A Java runtime can be used for projects that don't have any Java source. How will we model this?
-TBD: Adding properties to `JavaSourceSettings` also adds these to `IdeaProject` and `IdeaModule`. Will need to define some behaviour for the IDEA model.
+TBD: Adding properties to `JavaSourceSettings` also adds these to `IdeaProject` and `IdeaModule`. Will need to define some behaviour for the IDEA model, or add to the
+Eclipse specific type first.
+TBD: 'targetLanguageLevel' really refers to the target bytecode version.
+TBD: Apply to `.classpath` and `.settings/...` generation, so that tooling model and generated files are consistent.
 
 #### Implementation
 
@@ -115,6 +123,7 @@ TBD: Adding properties to `JavaSourceSettings` also adds these to `IdeaProject` 
 - Java project, with 'eclipse' plugin not defining custom target compatibility via `eclipse.jdt.targetCompatibility`
 - Java project, with 'eclipse' plugin defining custom target compatibility via `eclipse.jdt.targetCompatibility`
 - Multiproject java project build with different target levels per subproject.
+- Project that is not a Java project.
 - throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetRuntime()
 - throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetLanguageLevel()
 
@@ -124,9 +133,15 @@ TBD: Adding properties to `JavaSourceSettings` also adds these to `IdeaProject` 
 
 - 2 days
 
+TBD: Apply to `.ipr` and `.iml` generation, so that the tooling model and the generated files are consistent.
+
 #### Implementation
 
-- Update IdeaModelBuilder to
+#### Test cases
+
+- Multiproject build with mix of target Java versions
+- Multiproject build with mix of Java and non-Java projects
+- Multiproject build with no Java projects
 
 ### Story - Introduce JavaProject
 
