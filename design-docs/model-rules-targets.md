@@ -6,7 +6,7 @@ Some example rules:
 2. For each binary `b`, the inputs source sets for `b` include all the source sets owned by `b`.
 3. For each binary `b` owned by component `c`, the source sets for `b` include all the source sets owned by `c`.
 
-Concepts:
+Missing features that prevent such rules from being implemented:
 
 - apply rules to all subjects that match some predicate.
     - most often match on type.
@@ -22,14 +22,14 @@ This approach is to build on `RuleSource` and allow some programmatic control ov
 - Allow some inputs of the rules of a `RuleSource` to be programmatically declared as properties of the `RuleSource`.
 - Implementation of state is managed.
 - Add a `@Rules` rule type, which defines a `RuleSource`, in the same way as `@Model` defines a model element.
-    - Accepts some `RuleSource` subtype as subject, which can be mutated to attach references to subject and/or some inputs.
-    - Inputs are not mutable nor readable, only the structure can be queried.
+    - Accepts some `RuleSource` subtype as first parameter, which can be mutated to attach references to subject and/or some inputs.
+    - Inputs are not mutable nor readable, only the structure can be queried to reference various model elements.
 
 An example, in a `RuleSource` applied to each `BinarySpec`:
 
     @Rules
     void defineTaskRules(TaskRulesSource rule, BinarySpec binary) {
-        // configures the rules
+        // configures the rule
         rule.tasks = binary.tasks
         rule.sources = binary.inputs
     }
@@ -59,7 +59,7 @@ An example, in a `RuleSource` applied to each `BinarySpec`:
     @Rules
     void defineSourceInputs(InputsRulesSource rule, BinarySpec binary) {
         rule.target = binary.input
-        rule.sources = binary.component?.sources // TODO - using `null` to mean 'ignore this rule source`
+        rule.sources = binary.component?.sources // using `null` to mean 'ignore this rule source`, could be more explicit
     }
     
     abstract static class InputsRulesSource extends RuleSource {
@@ -77,7 +77,7 @@ An example, in a `RuleSource` applied to each `BinarySpec`:
         }
     }
     
-Or, applied to each `ComponentSpec`:
+Or, from a `RuleSource` attached to each `ComponentSpec`:
 
     @Rules
     void defineBinaryRules(ComponentSpec comp) {
@@ -87,10 +87,10 @@ Or, applied to each `ComponentSpec`:
             rules.target = binary.inputs
         }
     }
-    
+        
 ## Apply rules to multiple elements
 
-Mark a rule as applicable to all of a given type
+Mark a rule as applicable to all elements of a given type.
 
 - Add an `@Each` annotation that can be applied to a rule method, which applies the rule to each element of the given type.
 - Cannot be used with `@Path` to select the subject.
