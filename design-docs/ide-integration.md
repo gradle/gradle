@@ -47,7 +47,7 @@ language levels for each module in a project.
     - return `null` if not a Java project
     - otherwise configure it as follows
         - `IdeaProject.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`.
-        - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` is calculated the same way as the default for an Eclipse project, using the same logic.
+        - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `project.sourceCompatiblity`
         - `IdeaModule.getSourceLanguageLevel().isInherited` returns `false` if different from the IDEA project, `true` if the same.
 - Add a comment on `IdeaProject.getLanguageLevel()` that `getJavaSourceSettings()` should be preferred.
 - For older Gradle versions value for `javaSourceSettings.sourceLanguageLevel` for IdeaModule and IdeaProject is inferred from `languageLevel`
