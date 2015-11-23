@@ -6,13 +6,14 @@ Some example rules:
 2. For each binary `b`, the inputs source sets for `b` include all the source sets owned by `b`.
 3. For each binary `b` owned by component `c`, the source sets for `b` include all the source sets owned by `c`.
 
-Missing features that prevent such rules from being implemented:
+Missing features that prevent such rules from being implemented in a plugin:
 
-- apply rules to all subjects that match some predicate.
-    - most often match on type.
-- reference subject relative to some other object.
-- reference inputs relative to subject.
-- ideally statically typed, no path strings.
+- Apply rules to all subjects that match some predicate.
+    - Most often match on type.
+- Reference subject relative to some other object.
+- Reference inputs relative to subject.
+
+Ideally statically typed, for early feedback and authoring support, and to allow inference without execution.
 
 ## Programmatic creation and binding of rules
 
@@ -21,8 +22,9 @@ This approach is to build on `RuleSource` and allow some programmatic control ov
 - Allow the subject of the rules of a `RuleSource` to be programmatically declared as a property of the `RuleSource`.
 - Allow some inputs of the rules of a `RuleSource` to be programmatically declared as properties of the `RuleSource`.
 - Implementation of state is managed.
-- Add a `@Rules` rule type, which defines a `RuleSource`, in the same way as `@Model` defines a model element.
+- Add a `@Rules` rule annotation, which is attached to a method to define a rule that defines a `RuleSource`, in the same way as `@Model` defines a model element.
     - Accepts some `RuleSource` subtype as first parameter, which can be mutated to attach references to subject and/or some inputs.
+    - Can accept one or more inputs as subsequent parameters.
     - Inputs are not mutable nor readable, only the structure can be queried to reference various model elements.
 
 An example, in a `RuleSource` applied to each `BinarySpec`:
@@ -92,7 +94,7 @@ Or, from a `RuleSource` attached to each `ComponentSpec`:
 
 Mark a rule as applicable to all elements of a given type.
 
-- Add an `@Each` annotation that can be applied to a rule method, which applies the rule to each element of the given type.
+- Add an `@Each` annotation that can be attached to a rule method, which applies the rule to each element of the given type.
 - Cannot be used with `@Path` to select the subject.
 
 For example:
@@ -113,4 +115,3 @@ And combining:
     void applyBinaryRules(BinaryRules rules, BinarySpec binary) {
         rules.sources = binary.inputs
     }
-    
