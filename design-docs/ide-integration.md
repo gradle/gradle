@@ -20,18 +20,21 @@ language levels for each module in a project.
 
 #### The API
 
-    interface IdeaJavaSourceSettings extends JavaSourceSettings {
+    interface IdeaModuleJavaSourceSettings extends JavaSourceSettings {
         boolean isInherited()
     }
 
     interface IdeaModule extends JavaSourceAware {
-        IdeaJavaSourceSettings getJavaSourceSettings()
+        IdeaModuleJavaSourceSettings getJavaSourceSettings()
+    }
+
+    interface IdeaProjectJavaSourceSettings extends JavaSourceSettings {
     }
 
     interface IdeaProject extends JavaSourceAware {
+        IdeaProjectJavaSourceSettings getJavaSourceSettings()
     }
 
-TBD: Either add empty `IdeaProjectJavaSourceSettings` or remove `EclipseJavaSourceSettings`, for consistency.
 
 #### Implementation
 - Introduce `IdeaJavaLanguageLevel` extending `JavaLanguageLevel`
@@ -46,7 +49,7 @@ TBD: Either add empty `IdeaProjectJavaSourceSettings` or remove `EclipseJavaSour
         - `IdeaProject.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`.
         - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` is calculated the same way as the default for an Eclipse project, using the same logic.
         - `IdeaModule.getSourceLanguageLevel().isInherited` returns `fale` if different from the IDEA project, `true` if the same.
-- Add a comment on `IdeaProject.getLanguageLevel()` that `getJavaSourceSettings()` should be preferred. 
+- Add a comment on `IdeaProject.getLanguageLevel()` that `getJavaSourceSettings()` should be preferred.
 - TBD: provide a value for `javaSourceSettings.sourceLanguageLevel` based on `languageLevel` for older Gradle versions. Given this, could possibly add default module settings.
 
 #### Test coverage
@@ -91,7 +94,7 @@ TBD: Either add empty `IdeaProjectJavaSourceSettings` or remove `EclipseJavaSour
     }
 
 TBD: A Java runtime can be used for projects that don't have any Java source. How will we model this?
-TBD: Adding properties to `JavaSourceSettings` also adds these to `IdeaProject` and `IdeaModule`. Will need to define some behaviour for the IDEA model. 
+TBD: Adding properties to `JavaSourceSettings` also adds these to `IdeaProject` and `IdeaModule`. Will need to define some behaviour for the IDEA model.
 
 #### Implementation
 
