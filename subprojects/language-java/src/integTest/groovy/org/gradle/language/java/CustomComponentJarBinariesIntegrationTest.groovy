@@ -39,7 +39,6 @@ class CustomComponentJarBinariesIntegrationTest extends AbstractIntegrationSpec 
 
         buildFile << """
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
-import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 
 plugins {
     id 'jvm-component'
@@ -55,7 +54,6 @@ class SampleLibraryRules extends RuleSource {
 
     @ComponentBinaries
     public void createBinaries(ModelMap<JarBinarySpec> binaries, SampleLibrarySpec library,
-                               BinaryNamingSchemeBuilder namingSchemeBuilder,
                                @Path("buildDir") File buildDir) {
         def platform = DefaultJavaPlatform.current()
         binaries.create("jar") { binary ->
