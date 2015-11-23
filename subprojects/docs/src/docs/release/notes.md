@@ -6,6 +6,25 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Software Model DSL for declaring dependencies on external module
+
+It is now possible to declare dependencies on external modules via a strongly typed DSL:
+
+    model {
+        components {
+            main(JvmLibrarySpec) {
+                dependencies {
+                    // external module dependency can start with either group or module
+                    group 'com.acme' module 'artifact' version '1.0'
+                    module 'artifact' group 'com.acme' version '1.0'
+
+                    // shorthand module notation also works, version number is optional
+                    module 'com.acme:artifact:1.42'
+                }
+            }
+        }
+    }
+
 ### Performance improvements
 
 Should mention Java compile avoidance
