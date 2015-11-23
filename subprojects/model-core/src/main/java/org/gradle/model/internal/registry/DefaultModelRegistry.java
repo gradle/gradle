@@ -206,22 +206,24 @@ public class DefaultModelRegistry implements ModelRegistry {
         modelGraph.addListener(listener);
     }
 
+    @Override
     public void remove(ModelPath path) {
         ModelNodeInternal node = modelGraph.find(path);
         if (node == null) {
             return;
         }
 
-        Iterable<? extends ModelNode> dependents = node.getDependents();
-        if (Iterables.isEmpty(dependents)) {
-            modelGraph.remove(node);
-            ruleBindings.remove(node);
-            unboundRules.removeAll(node.getInitializerRuleBinders());
-        } else {
-            throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: " + Joiner.on(", ").join(dependents));
+        // TODO:LPTR Make sure none of the children are depended on either
+        if (!Iterables.isEmpty(node.getDependents())) {
+            throw new IllegalStateException(String.format("Tried to remove model '%s' but it is depended on by: '%s'", path, Joiner.on(", ").join(node.getDependents())));
         }
+
+        modelGraph.remove(node);
+        ruleBindings.remove(node);
+        unboundRules.removeAll(node.getInitializerRuleBinders());
     }
 
+    @Override
     public void bindAllReferences() throws UnboundModelRulesException {
         GoalGraph graph = new GoalGraph();
         for (ModelNodeInternal node : modelGraph.getFlattened().values()) {

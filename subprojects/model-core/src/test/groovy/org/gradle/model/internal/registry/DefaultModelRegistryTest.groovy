@@ -631,11 +631,28 @@ class DefaultModelRegistryTest extends Specification {
         registry.registerInstance("thing", new Bean(value: "old"))
         registry.configure(ModelActionRole.Mutate) { it.path("thing").action { it.value = "${it.value} path" } }
         registry.configure(ModelActionRole.Mutate) { it.type(Bean).action { it.value = "${it.value} type" } }
+        registry.realize("thing")
         registry.remove(ModelPath.path("thing"))
         registry.registerInstance("thing", new Bean(value: "new"))
 
         expect:
         registry.realize("thing", Bean).value == "new path type"
+    }
+
+    def "cannot remove an element that has already been used as input by a rule"() {
+        given:
+        def action = Mock(BiAction)
+        registry.registerInstance("foo", 12.toInteger())
+        registry.registerInstance("bar", new Bean())
+        registry.mutate { it.path("bar").type(Bean).action(Integer, action) }
+        registry.realize("bar", Bean).value == "[12]"
+
+        when:
+        registry.remove(ModelPath.path("foo"))
+
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "Tried to remove model 'foo' but it is depended on by: 'bar'"
     }
 
     @Unroll
