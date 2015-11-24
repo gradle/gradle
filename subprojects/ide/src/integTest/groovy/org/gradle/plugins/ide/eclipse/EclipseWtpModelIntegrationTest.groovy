@@ -136,7 +136,6 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
         !component.contains('bar') //excluded
     }
 
-
     def "allows configuring hooks for component"() {
         given:
         componentFile << '''<?xml version="1.0" encoding="UTF-8"?>
@@ -189,7 +188,6 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
         !component.contains('coolDeployName')
         component.contains('<be>cool</be>')
     }
-
 
     def "allows configuring hooks for facet"() {
         given:
@@ -282,7 +280,6 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
         component.contains('bar.txt')
         !component.contains('baz.txt')
     }
-
 
     @Issue("GRADLE-1881")
     def "uses eclipse project name for wtp module dependencies"() {
