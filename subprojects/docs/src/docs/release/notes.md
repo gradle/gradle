@@ -426,6 +426,7 @@ We would like to thank the following community members for making contributions 
 * [Jeffry Gaston](https://github.com/mathjeff) - Debug message improvement.
 * [Chun Yang](https://github.com/chunyang) - Play resources now properly maintain directory hierarchy.
 * [Alexander Shoykhet](https://github.com/ashoykh) - Performance improvement for executing finalizer tasks with many dependencies.
+* [Peter Ledbrook](https://github.com/pledbrook) - User Guide improvements.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
