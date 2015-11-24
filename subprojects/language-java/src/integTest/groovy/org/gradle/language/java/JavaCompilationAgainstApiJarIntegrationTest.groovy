@@ -99,6 +99,8 @@ public class TestApp {
 
         and:
         fails ':mainJar'
+        failure.assertHasDescription("Execution failed for task ':compileMainJarMainJava'.")
+        failure.assertHasCause("Compilation failed; see the compiler error output for details.")
 
         where:
         scope << scopes
