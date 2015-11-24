@@ -70,10 +70,6 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 - Can handle multi project builds where root project is not a Java project, but some of its children are.
 - Can handle multi project builds where no projects are Java projects.
 
-#### Open questions
-
-- configuring per-module source level is currently not supported Idea plugin?
-
 ### Story - Expose target JDK for Java projects to Eclipse
 
 #### Estimate
@@ -87,7 +83,7 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
         File getHomeDirectory()
     }
 
-    interface JavaSourceSettings {
+    interface EclipseJavaSourceSettings {
         JavaRuntimeEnvironment getTargetRuntime()
         JavaLanguageLevel getTargetLanguageLevel()
     }
@@ -96,11 +92,10 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
         JavaSourceSettings getJavaSourceSettings()
     }
 
-TBD: A Java runtime can be used for projects that don't have any Java source. How will we model this?
-TBD: Adding properties to `JavaSourceSettings` also adds these to `IdeaProject` and `IdeaModule`. Will need to define some behaviour for the IDEA model, or add to the
-Eclipse specific type first.
+
+- A Java runtime can be used for projects that don't have any Java source. In eclipse this projects are is modelled as java projects.
+
 TBD: 'targetLanguageLevel' really refers to the target bytecode version.
-TBD: Apply to `.classpath` and `.settings/...` generation, so that tooling model and generated files are consistent.
 
 #### Implementation
 
@@ -113,6 +108,8 @@ TBD: Apply to `.classpath` and `.settings/...` generation, so that tooling model
 - Update `EclipseModelBuilder` to set values for the target language level and target runtime
     - return `null` if the project doesn't apply the `java-base` plug-in.
     - otherwise `JavaSourceSettings.getTargetLanguageLevel()` returns the value of `eclipse.jdt.targetCompatibility`.
+- Update `.classpath` and `.settings/...` generation, so that tooling model and generated files are consistent.
+
 
 #### Test coverage
 
