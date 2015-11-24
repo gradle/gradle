@@ -1155,11 +1155,13 @@ public class DefaultModelRegistry implements ModelRegistry {
                     // TODO - implement these cases
                     continue;
                 }
-                if (subjectBinding.getNode().getPath().equals(input.path)) {
+                ModelPath targetPath = subjectBinding.getNode().getPath();
+                if (targetPath.equals(input.path)) {
                     // Ignore future states of the input node
                     continue;
                 }
-                dependencies.add(graph.nodeAtState(new NodeAtState(subjectBinding.getNode().getPath(), rule.getSubjectReference().getState())));
+                ModelNode.State targetState = subjectBinding.getPredicate().getState();
+                dependencies.add(graph.nodeAtState(new NodeAtState(targetPath, targetState)));
             }
             return true;
         }

@@ -105,15 +105,7 @@ public class RuleBinder {
     }
 
     /**
-     * Returns the reference to the <em>output</em> of the rule. The state returned from {@link BindingPredicate#getState()} should reflect
-     * the target state, not the input state. Implicitly, a rule accepts as input the subject in the state that is the predecessor of the target state.
-     */
-    public BindingPredicate getSubjectReference() {
-        return subjectBinding.getPredicate();
-    }
-
-    /**
-     * A rule may have a subject binding, but may not require it. All rules, however, have a subject and hence a subject reference.
+     * Returns the subject binding for the rule.
      */
     public ModelBinding getSubjectBinding() {
         return subjectBinding;
