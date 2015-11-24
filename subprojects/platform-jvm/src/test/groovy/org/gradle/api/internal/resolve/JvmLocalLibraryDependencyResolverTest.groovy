@@ -34,6 +34,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResu
 import org.gradle.jvm.JarBinarySpec
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.internal.DefaultJavaPlatformVariantAxisCompatibility
+import org.gradle.jvm.internal.DefaultJarFile
 import org.gradle.jvm.internal.JarBinarySpecInternal
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
@@ -231,6 +232,10 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
             def librarySpecs = libraries.collect { library ->
                 def lib = Mock(JvmLibrarySpec)
                 lib.name >> library
+
+                def apiJar = new DefaultJarFile()
+                apiJar.setFile(new File("api.jar"))
+
                 def binaries = Mock(ModelMap)
                 def binary = Mock(JarBinarySpecInternal)
                 binary.publicType >> JarBinarySpec
@@ -240,8 +245,9 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
                 binary.buildTask >> Mock(Task)
                 binary.targetPlatform >> platform
                 binary.jarFile >> new File("api.jar")
-                binary.apiJarFile >> new File("api.jar")
+                binary.apiJar >> apiJar
                 binary.apiDependencies >> []
+                binary.dependencies >> []
                 binary.inputs >> toDomainObjectSet(LanguageSourceSet)
                 def values = [binary]
                 binaries.values() >> { values }

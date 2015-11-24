@@ -17,26 +17,16 @@
 package org.gradle.model.internal.manage.schema.extract
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
-import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
-import spock.lang.Specification
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-class ScalarTypesInManagedModelTest extends Specification {
-
-    def r = new ModelRegistryHelper()
-    def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
+class ScalarTypesInManagedModelTest extends ProjectRegistrySpec {
 
     def classLoader = new GroovyClassLoader(this.class.classLoader)
-
-    def setup() {
-        r.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
-    }
 
     @Unroll
     def "cannot have read only property of scalar type #someType.simpleName"() {
@@ -110,7 +100,7 @@ class ScalarTypesInManagedModelTest extends Specification {
     }
 
     private void realize(Class type) {
-        r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(type)).descriptor(r.desc("bar")).build())
-        r.realize("bar", type)
+        registry.register(ModelRegistrations.of(registry.path("bar"), nodeInitializerRegistry.getNodeInitializer(type)).descriptor(registry.desc("bar")).build())
+        registry.realize("bar", type)
     }
 }

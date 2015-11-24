@@ -45,7 +45,7 @@ public interface GradleProject extends HierarchicalElement, BuildableElement {
     DomainObjectSet<? extends GradleProject> getChildren();
 
     /**
-     * Returns the path of this project. This is a unique identifier for this project.
+     * Returns the path of this project. This is a unique identifier for this project within the build.
      *
      * @return The path.
      */
@@ -64,26 +64,29 @@ public interface GradleProject extends HierarchicalElement, BuildableElement {
      *
      * @return The build script.
      * @since 1.8
+     * @throws UnsupportedMethodException For Gradle versions older than 1.8, where this method is not supported.
      */
     @Incubating
-    GradleScript getBuildScript();
+    GradleScript getBuildScript() throws UnsupportedMethodException;
 
     /**
      * Returns the build directory for this project.
      *
      * @return The build directory.
      * @since 2.0
+     * @throws UnsupportedMethodException For Gradle versions older than 2.0, where this method is not supported.
      */
     @Incubating
-    File getBuildDirectory();
+    File getBuildDirectory() throws UnsupportedMethodException;
 
     /**
      * Returns the project directory for this project.
      *
      * @return The project directory.
      * @since 2.4
+     * @throws UnsupportedMethodException For Gradle versions older than 2.4, where this method is not supported.
      */
     @Incubating
-    File getProjectDirectory();
+    File getProjectDirectory() throws UnsupportedMethodException;
 
 }

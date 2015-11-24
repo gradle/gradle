@@ -23,7 +23,7 @@ import java.util.List;
 public interface BinaryNamingScheme {
     String getBaseName();
 
-    String getLifecycleTaskName();
+    String getBinaryName();
 
     String getTaskName(@Nullable String verb);
 

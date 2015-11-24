@@ -32,8 +32,9 @@ import org.gradle.initialization.ReportedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiter;
+import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileSystemChangeWaiter;
+import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.os.OperatingSystem;
@@ -48,21 +49,21 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ListenerManager listenerManager;
     private final OperatingSystem operatingSystem;
-    private final FileSystemChangeWaiter waiter;
+    private final FileSystemChangeWaiterFactory changeWaiterFactory;
     private final ExecutorFactory executorFactory;
     private final JavaVersion javaVersion;
     private final StyledTextOutput logger;
 
     public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
-        this(delegate, listenerManager, styledTextOutputFactory, JavaVersion.current(), OperatingSystem.current(), executorFactory, new DefaultFileSystemChangeWaiter(executorFactory, fileWatcherFactory));
+        this(delegate, listenerManager, styledTextOutputFactory, JavaVersion.current(), OperatingSystem.current(), executorFactory, new DefaultFileSystemChangeWaiterFactory(executorFactory, fileWatcherFactory));
     }
 
-    ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, JavaVersion javaVersion, OperatingSystem operatingSystem, ExecutorFactory executorFactory, FileSystemChangeWaiter waiter) {
+    ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, JavaVersion javaVersion, OperatingSystem operatingSystem, ExecutorFactory executorFactory, FileSystemChangeWaiterFactory changeWaiterFactory) {
         this.delegate = delegate;
         this.listenerManager = listenerManager;
         this.javaVersion = javaVersion;
         this.operatingSystem = operatingSystem;
-        this.waiter = waiter;
+        this.changeWaiterFactory = changeWaiterFactory;
         this.executorFactory = executorFactory;
         this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.LIFECYCLE);
     }
@@ -127,7 +128,9 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
                 cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
                     @Override
                     public void execute(BuildCancellationToken cancellationToken) {
-                        waiter.wait(toWatch, cancellationToken, new Runnable() {
+                        FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(cancellationToken);
+                        waiter.watch(toWatch);
+                        waiter.wait(new Runnable() {
                             @Override
                             public void run() {
                                 logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(actionParameters));

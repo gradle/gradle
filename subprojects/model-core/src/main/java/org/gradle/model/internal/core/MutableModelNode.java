@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 public interface MutableModelNode extends ModelNode {
+    boolean canBeViewedAs(ModelType<?> type);
 
     /**
      * Creates a mutable view over this node's value.
@@ -38,16 +39,16 @@ public interface MutableModelNode extends ModelNode {
     /**
      * Adds a reference node to the graph. A reference node is a node that refers to some other node elsewhere in the graph, similar to a symbolic link.
      *
-     * The path returned by {@link ModelCreator#getPath()} is used to determine the name of the reference.
+     * The path returned by {@link ModelRegistration#getPath()} is used to determine the name of the reference.
      */
-    void addReference(ModelCreator creator);
+    void addReference(ModelRegistration registration);
 
     /**
-     * Adds a node to the graph, linked from this node. The given creator is used to initialize the node when required.
+     * Adds a node to the graph, linked from this node. The given registration is used to initialize the node when required.
      *
-     * The path returned by {@link ModelCreator#getPath()} is used to determine the name of the link.
+     * The path returned by {@link ModelRegistration#getPath()} is used to determine the name of the link.
      */
-    void addLink(ModelCreator creator);
+    void addLink(ModelRegistration registration);
 
     /**
      * Removes a node linked from this node from the graph.

@@ -21,7 +21,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 
-public class ScalarCollectionSchema<T, E> extends ModelCollectionSchema<T, E> {
+public class ScalarCollectionSchema<T, E> extends CollectionSchema<T, E> {
     public ScalarCollectionSchema(ModelType<T> type, ModelType<E> elementType) {
         super(type, elementType);
     }

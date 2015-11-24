@@ -22,15 +22,13 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.M2Installation
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.PomHttpArtifact
-import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
-
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -68,12 +66,12 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         run 'projects'
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 Root project 'webinar-parent'
 +--- Project ':webinar-api' - Webinar APIs
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
-"""))
+"""
     }
 
     def "multiModuleWithNestedParent"() {
@@ -118,12 +116,12 @@ Root project 'webinar-parent'
         run 'projects'
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 Root project 'webinar-parent'
 +--- Project ':webinar-api' - Webinar APIs
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
-"""))
+"""
     }
 
     def "singleModule"() {
@@ -295,13 +293,13 @@ it.exclude group: '*', module: 'badArtifact'
         run 'projects'
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 Root project 'webinar-parent'
 +--- Project ':util-parent'
 +--- Project ':webinar-api' - Webinar APIs
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
-"""))
+"""
     }
 
     void gradleFilesGenerated(TestFile parentFolder = file(".")) {

@@ -23,6 +23,10 @@ abstract class TestJvmComponent {
 
     abstract String getLanguageName()
 
+    List<JvmSourceFile> getExpectedClasses() {
+        return getSources().collect{it.classFile}
+    }
+
     List<JvmSourceFile> getExpectedOutputs(){
         return getSources().collect{it.classFile}.plus(resources);
     }

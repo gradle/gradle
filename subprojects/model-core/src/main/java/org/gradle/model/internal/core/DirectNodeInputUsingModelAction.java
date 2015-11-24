@@ -55,6 +55,18 @@ public class DirectNodeInputUsingModelAction<T> extends AbstractModelActionWithV
         };
     }
 
+    public static <T, I, J> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, ModelReference<I> input1, ModelReference<J> input2, final TriAction<? super MutableModelNode, ? super I, ? super J> action) {
+        return new AbstractModelAction<T>(reference, descriptor, input1, input2) {
+            @Override
+            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                action.execute(modelNode,
+                    Cast.<I>uncheckedCast(inputs.get(0).getInstance()),
+                    Cast.<J>uncheckedCast(inputs.get(1).getInstance())
+                );
+            }
+        };
+    }
+
     @Override
     public void execute(MutableModelNode modelNode, T view, List<ModelView<?>> inputs) {
         action.execute(modelNode, view, inputs);

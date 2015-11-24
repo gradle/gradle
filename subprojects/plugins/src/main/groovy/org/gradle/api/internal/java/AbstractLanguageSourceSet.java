@@ -17,7 +17,6 @@
 package org.gradle.api.internal.java;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
@@ -45,7 +44,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
         return name;
     }
 
-    public String getFullName() {
+    public String getProjectScopedName() {
         return fullName;
     }
 
@@ -76,10 +75,6 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
     @Override
     public String toString() {
         return getDisplayName();
-    }
-
-    public void source(Action<? super SourceDirectorySet> config) {
-        config.execute(getSource());
     }
 
     public SourceDirectorySet getSource() {

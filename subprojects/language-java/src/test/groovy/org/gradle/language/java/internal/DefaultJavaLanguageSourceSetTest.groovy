@@ -16,22 +16,11 @@
 
 package org.gradle.language.java.internal
 
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.base.sources.BaseLanguageSourceSet
+import org.gradle.language.base.sources.BaseLanguageSourceSetFixtures
+import org.gradle.language.java.JavaSourceSet
 import spock.lang.Specification
 
 class DefaultJavaLanguageSourceSetTest extends Specification {
-
-    Instantiator instantiator
-
-    def setup() {
-        instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
-    }
-
     def "can add a project dependency using dependencies property"() {
         def sourceSet = newJavaSourceSet()
 
@@ -101,7 +90,7 @@ class DefaultJavaLanguageSourceSetTest extends Specification {
         sourceSet.dependencies.dependencies[2].libraryName == 'barLib'
     }
 
-    private DefaultJavaLanguageSourceSet newJavaSourceSet() {
-        BaseLanguageSourceSet.create(DefaultJavaLanguageSourceSet, "javaX", "javaX", Stub(FileResolver), instantiator)
+    private JavaSourceSet newJavaSourceSet() {
+        BaseLanguageSourceSetFixtures.create(JavaSourceSet, DefaultJavaLanguageSourceSet, "javaX")
     }
 }

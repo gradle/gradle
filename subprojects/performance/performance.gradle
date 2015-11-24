@@ -1,5 +1,5 @@
-import org.gradle.performance.generator.tasks.*
 import org.gradle.performance.generator.*
+import org.gradle.performance.generator.tasks.*
 
 apply plugin: 'javascript-base'
 
@@ -383,19 +383,41 @@ task largeJavaSwModelProject(type: JvmProjectGeneratorTask) {
     sourceFiles = 1000
 }
 
-configure([smallJavaSwModelProject, largeJavaSwModelProject]) {
+task smallJavaSwModelCompileAvoidanceWithApi(type: JvmProjectGeneratorTask) {
+    projects = 10
+    sourceFiles = 100
+}
+
+task largeJavaSwModelCompileAvoidanceWithApi(type: JvmProjectGeneratorTask) {
+    projects = 100
+    sourceFiles = 1000
+}
+
+task smallJavaSwModelCompileAvoidanceWithoutApi(type: JvmProjectGeneratorTask) {
+    projects = 10
+    sourceFiles = 100
+}
+
+task largeJavaSwModelCompileAvoidanceWithoutApi(type: JvmProjectGeneratorTask) {
+    projects = 100
+    sourceFiles = 1000
+}
+
+configure([smallJavaSwModelProject, largeJavaSwModelProject,
+           smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi,
+           smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi]) {
     linesOfCodePerSourceFile = 50
     filesPerPackage = 10
     useSubProjectNumberInSourceFileNames = true
     subProjectTemplates = ['java-source', 'java-sw-model-project', 'with-junit']
 
     def dependencyGenerator = DependencyGenerator.newInstance(numberOfProjects: it.projectCount)
-    boolean smallProjectType = (name == 'smallJavaSwModelProject')
+    boolean smallProjectType = (name.startsWith('small'))
     dependencyGenerator.numberOfDependencies = smallProjectType ? 3 : 10
     dependencyGenerator.numberOfLayers = smallProjectType ? 3 : 5
     dependencyGenerator.layerRatio = smallProjectType ? 1 : 2
 
-    templateArgs = [projectDependencies: true, generatedDependencies: dependencyGenerator.createDependencies(), testMethodCount: 1]
+    templateArgs = [projectDependencies: true, generatedDependencies: dependencyGenerator.createDependencies(), testMethodCount: 1, useApiDependencies: false]
     testDependencies = files()
 
     dependencyGraph {
@@ -411,6 +433,50 @@ configure([smallJavaSwModelProject, largeJavaSwModelProject]) {
     numberOfExternalDependencies = smallProjectType ? 5 : 50
 }
 
+configure([smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi, smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi]) {
+    templateArgs.apiExports = [].withDefault { name.contains('Without') ? [] : ['org.gradle.test.performance'] }
+    templateArgs.useApiDependencies = true
+    numberOfExternalDependencies = 0
+    createTestComponent = false
+    sourceFiles = 300
+    dependencyGraph {
+        size = 0
+    }
+    createPackageName = { testProject, fileNumber ->
+        def pkg = 'org.gradle.test.performance'
+        if (fileNumber % 2 == 0) {
+            pkg = "${pkg}.internal"
+        }
+        pkg.toString()
+    }
+    createFileName = { testProject, prefix, fileNumber ->
+        def suffix
+        if (fileNumber % 2 == 0) {
+            suffix = "${fileNumber}Internal"
+        } else {
+            suffix = "${fileNumber + 1}"
+        }
+        "${prefix}${testProject.subprojectNumber}_${suffix}".toString()
+    }
+    createExtendsAndImplementsClause = { testProject, prefix, fileNumber ->
+        if (fileNumber>0 && (fileNumber % 2 == 0)) {
+            "extends org.gradle.test.performance.${prefix}${testProject.subprojectNumber}_${fileNumber}"
+        } else {
+            ''
+        }
+    }
+    createExtraFields = { testProject, prefix, fileNumber ->
+        if (fileNumber % 2 == 1) {
+            templateArgs.generatedDependencies[testProject.subprojectNumber].collect {
+                [modifier: 'public', name: "projectDep${it}", type: "${prefix}${it}_${fileNumber + 1}"]
+            }
+        } else {
+            []
+        }
+    }
+
+}
+
 task nativeMonolithicOverlapping(type: MonolithicNativeProjectGeneratorTask) {
     templateArgs = [ overlapWithOutput: true ]
 }
@@ -419,11 +485,28 @@ task nativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
     templateArgs = [ overlapWithOutput: false ]
 }
 
-configure([nativeMonolithicOverlapping, nativeMonolithic]) {
+task smallNativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
+    templateArgs = [overlapWithOutput: false]
+}
+
+task mediumNativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
+    templateArgs = [overlapWithOutput: false]
+}
+
+configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic, mediumNativeMonolithic]) {
     projects = 100
+
     // number of source files to generate in each project of each type
     // this generates 200 C, 200 C++, 200 headers and 400 unused C/C++ files
     sourceFiles = 200
+
+    if (name.startsWith('small')) {
+        projects = 2
+        sourceFiles = 100
+    } else if (name.startsWith('medium')) {
+        projects = 10
+    }
+
     templateArgs += [
             // number of functions created in each source file
             functionCount: 50,
@@ -438,6 +521,7 @@ configure([nativeMonolithicOverlapping, nativeMonolithic]) {
     ]
     rootProjectTemplates = [ 'native-monolithic' ]
     subProjectTemplates = [ ]
+    additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
 }
 
 task all {
@@ -453,7 +537,8 @@ task prepareSamples {
         variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
         smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
         bigOldJavaMoreSource, lotProjectDependencies, smallJavaSwModelProject, largeJavaSwModelProject,
-        nativeMonolithic, nativeMonolithicOverlapping
+        nativeMonolithic, nativeMonolithicOverlapping, smallNativeMonolithic, mediumNativeMonolithic,
+        smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi, smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi
     group = "Project Setup"
     description = "Generates all sample projects for automated performance tests"
 }
@@ -480,7 +565,7 @@ task performanceTest(type: Test) {
     finalizedBy report
     maxParallelForks = 1
     options {
-        includeCategories 'org.gradle.performance.PerformanceTest'
+        includeCategories 'org.gradle.performance.categories.PerformanceTest'
     }
 }
 
@@ -489,7 +574,7 @@ task performanceExperiments(type: Test) {
     finalizedBy report
     maxParallelForks = 1
     options {
-        includeCategories 'org.gradle.performance.Experiment'
+        includeCategories 'org.gradle.performance.categories.Experiment'
     }
 }
 
@@ -507,6 +592,12 @@ if (project.hasProperty('org.gradle.performance.heapdump')) {
     }
 }
 
+if (project.hasProperty('org.gradle.performance.hotspotlog')) {
+    configure([performanceTest, performanceExperiments]) {
+        systemProperties['org.gradle.performance.hotspotlog'] = '1'
+    }
+}
+
 if (project.hasProperty('performanceTest.verbose')) {
     configure([performanceTest, performanceExperiments]) {
         testLogging.showStandardStreams = true
@@ -515,12 +606,12 @@ if (project.hasProperty('performanceTest.verbose')) {
 
 integTest {
     options {
-        excludeCategories 'org.gradle.performance.PerformanceTest'
+        excludeCategories 'org.gradle.performance.categories.PerformanceTest'
     }
 }
 
 java9IntegTest {
     options {
-        excludeCategories 'org.gradle.performance.PerformanceTest'
+        excludeCategories 'org.gradle.performance.categories.PerformanceTest'
     }
 }

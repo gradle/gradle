@@ -68,7 +68,7 @@ Source sets
         srcDir: src/someLib/resources
 
 Binaries
-    Jar 'someLibJar'
+    Jar 'someLib:jar'
         build using task: :someLibJar
         targetPlatform: $currentJava
         tool chain: $currentJdk
@@ -108,21 +108,21 @@ Source sets
         srcDir: src/myLib/resources
 
 Binaries
-    Jar 'java5MyLibJar'
-        build using task: :java5MyLibJar
+    Jar 'myLib:java5Jar'
+        build using task: :myLibJava5Jar
         targetPlatform: Java SE 5
         tool chain: $currentJdk
-        Jar file: build/jars/java5MyLibJar/myLib.jar
-    Jar 'java6MyLibJar'
-        build using task: :java6MyLibJar
+        Jar file: build/jars/myLibJava5Jar/myLib.jar
+    Jar 'myLib:java6Jar'
+        build using task: :myLibJava6Jar
         targetPlatform: Java SE 6
         tool chain: $currentJdk
-        Jar file: build/jars/java6MyLibJar/myLib.jar
-    Jar 'java7MyLibJar'
-        build using task: :java7MyLibJar
+        Jar file: build/jars/myLibJava6Jar/myLib.jar
+    Jar 'myLib:java7Jar'
+        build using task: :myLibJava7Jar
         targetPlatform: Java SE 7
         tool chain: $currentJdk
-        Jar file: build/jars/java7MyLibJar/myLib.jar
+        Jar file: build/jars/myLibJava7Jar/myLib.jar
 """
     }
 
@@ -162,21 +162,21 @@ Source sets
         srcDir: src/myLib/resources
 
 Binaries
-    Jar 'java5MyLibJar'
-        build using task: :java5MyLibJar
+    Jar 'myLib:java5Jar'
+        build using task: :myLibJava5Jar
         targetPlatform: Java SE 5
         tool chain: $currentJdk
-        Jar file: build/jars/java5MyLibJar/myLib.jar
-    Jar 'java6MyLibJar'
-        build using task: :java6MyLibJar
+        Jar file: build/jars/myLibJava5Jar/myLib.jar
+    Jar 'myLib:java6Jar'
+        build using task: :myLibJava6Jar
         targetPlatform: Java SE 6
         tool chain: $currentJdk
-        Jar file: build/jars/java6MyLibJar/myLib.jar
-    Jar 'java9MyLibJar' (not buildable)
-        build using task: :java9MyLibJar
+        Jar file: build/jars/myLibJava6Jar/myLib.jar
+    Jar 'myLib:java9Jar' (not buildable)
+        build using task: :myLibJava9Jar
         targetPlatform: Java SE 9
         tool chain: $currentJdk
-        Jar file: build/jars/java9MyLibJar/myLib.jar
+        Jar file: build/jars/myLibJava9Jar/myLib.jar
         Could not target platform: 'Java SE 9' using tool chain: '${currentJdk}'.
 
 JVM library 'myLib2'
@@ -189,7 +189,7 @@ Source sets
         srcDir: src/myLib2/resources
 
 Binaries
-    Jar 'myLib2Jar' (not buildable)
+    Jar 'myLib2:jar' (not buildable)
         build using task: :myLib2Jar
         targetPlatform: Java SE 6
         tool chain: $currentJdk
@@ -244,21 +244,21 @@ Source sets
         srcDir: src/someLib/resources
 
 Binaries
-    Jar 'java5SomeLibJar'
-        build using task: :java5SomeLibJar
+    Jar 'someLib:java5Jar'
+        build using task: :someLibJava5Jar
         targetPlatform: Java SE 5
         tool chain: $currentJdk
-        Jar file: build/jars/java5SomeLibJar/someLib.jar
+        Jar file: build/jars/someLibJava5Jar/someLib.jar
         source sets:
             Java source 'someLib:java2'
                 srcDir: src/main/java2
                 dependencies:
                     library 'some-library'
-    Jar 'java6SomeLibJar'
-        build using task: :java6SomeLibJar
+    Jar 'someLib:java6Jar'
+        build using task: :someLibJava6Jar
         targetPlatform: Java SE 6
         tool chain: $currentJdk
-        Jar file: build/jars/java6SomeLibJar/someLib.jar
+        Jar file: build/jars/someLibJava6Jar/someLib.jar
 """
     }
 
@@ -331,14 +331,14 @@ Source sets
         srcDir: src/someLib/resources
 
 Binaries
-    Jar 'customJar'
-        build using task: :customJar
+    Jar 'someLib:customJar'
+        build using task: :someLibCustomJar
         buildType: debug
         flavor: free
         targetPlatform: $currentJava
         tool chain: $currentJdk
-        Jar file: build/jars/customJar/someLib.jar
-    Jar 'someLibJar'
+        Jar file: build/jars/someLibCustomJar/someLib.jar
+    Jar 'someLib:jar'
         build using task: :someLibJar
         targetPlatform: $currentJava
         tool chain: $currentJdk

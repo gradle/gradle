@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
-import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
@@ -94,15 +93,15 @@ task block << {
         def out = executer.withArguments("--stop").run().output
 
         then:
-        out == TextUtil.toPlatformLineSeparators('''Stopping daemon(s).
+        out == '''Stopping daemon(s).
 Gradle daemon stopped.
-''')
+'''
 
         when:
         out = executer.withArguments("--stop").run().output
 
         then:
-        out == TextUtil.toPlatformLineSeparators("""$DaemonMessages.NO_DAEMONS_RUNNING
-""")
+        out == """$DaemonMessages.NO_DAEMONS_RUNNING
+"""
     }
 }

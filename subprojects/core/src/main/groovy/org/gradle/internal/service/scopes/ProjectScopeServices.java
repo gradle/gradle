@@ -48,6 +48,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.typeconversion.DefaultTypeConverter;
+import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
@@ -179,6 +181,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected ComponentRegistry createComponentRegistry() {
         return new ComponentRegistry();
+    }
+
+    protected TypeConverter createTypeConverter(FileResolver fileResolver) {
+        return new DefaultTypeConverter(fileResolver);
     }
 
     private class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {

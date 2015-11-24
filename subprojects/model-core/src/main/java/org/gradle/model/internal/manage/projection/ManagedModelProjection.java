@@ -17,12 +17,12 @@
 package org.gradle.model.internal.manage.projection;
 
 import com.google.common.base.Optional;
+import groovy.lang.Closure;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Cast;
+import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.ModelViewClosedException;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelView;
-import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.TypeCompatibilityModelProjectionSupport;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -39,17 +39,19 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
     private static final ModelType<? extends Collection<?>> COLLECTION_MODEL_TYPE = new ModelType<Collection<?>>() {
     };
-    private final ModelManagedImplStructSchema<M> schema;
-    private final ModelStructSchema<? extends M> delegateSchema;
-    private final ModelSchemaStore schemaStore;
+    private final StructSchema<M> schema;
+    private final StructSchema<? extends M> delegateSchema;
     private final ManagedProxyFactory proxyFactory;
+    private final TypeConverter typeConverter;
 
-    public ManagedModelProjection(ModelManagedImplStructSchema<M> schema, ModelStructSchema<? extends M> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+    public ManagedModelProjection(StructSchema<M> schema, StructSchema<? extends M> delegateSchema,
+                                  ManagedProxyFactory proxyFactory,
+                                  TypeConverter typeConverter) {
         super(schema.getType(), true, true);
         this.schema = schema;
         this.delegateSchema = delegateSchema;
-        this.schemaStore = schemaStore;
         this.proxyFactory = proxyFactory;
+        this.typeConverter = typeConverter;
     }
 
     @Override
@@ -69,7 +71,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
             }
 
             public M getInstance() {
-                return proxyFactory.createProxy(new State(), schema, delegateSchema);
+                return proxyFactory.createProxy(new State(), schema, delegateSchema, typeConverter);
             }
 
             public void close() {
@@ -77,6 +79,10 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
             }
 
             class State implements ModelElementState {
+
+                State() {
+                }
+
                 @Override
                 public MutableModelNode getBackingNode() {
                     return modelNode;
@@ -102,12 +108,12 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                 private <T> T doGet(ModelProperty<T> property, String propertyName) {
                     ModelType<T> propertyType = property.getType();
 
-                    // TODO we are relying on the creator having established these links, we should be checking
+                    // TODO we are relying on the registration having established these links, we should be checking
                     MutableModelNode propertyNode = modelNode.getLink(propertyName);
                     propertyNode.ensureUsable();
 
                     ModelView<? extends T> modelView;
-                    ModelSchema<T> propertySchema = schemaStore.getSchema(propertyType);
+                    ModelSchema<T> propertySchema = property.getSchema();
                     if (property.isWritable() && propertySchema instanceof ScalarCollectionSchema) {
                         Collection<?> instance = ScalarCollectionSchema.get(propertyNode);
                         if (instance == null) {
@@ -125,26 +131,30 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     return modelView.getInstance();
                 }
 
+                @Override
+                public void apply(String name, Closure<?> action) {
+                    ClosureBackedAction.execute(get(name), action);
+                }
+
                 public void set(String name, Object value) {
                     if (!writable || closed) {
                         throw new ModelViewClosedException(getType(), ruleDescriptor);
                     }
 
                     ModelProperty<?> property = schema.getProperty(name);
-                    ModelType<?> propertyType = property.getType();
 
-                    value = doSet(name, value, propertyType);
+                    value = doSet(name, value, property);
                     propertyViews.put(name, value);
                 }
 
-                private <T> Object doSet(String name, Object value, ModelType<T> propertyType) {
-                    ModelSchema<T> propertySchema = schemaStore.getSchema(propertyType);
+                private <T> Object doSet(String name, Object value, ModelProperty<T> property) {
+                    ModelSchema<T> propertySchema = property.getSchema();
 
-                    // TODO we are relying on the creator having established these links, we should be checking
+                    // TODO we are relying on the registration having established these links, we should be checking
                     MutableModelNode propertyNode = modelNode.getLink(name);
                     propertyNode.ensureUsable();
 
-                    if (propertySchema instanceof ManagedImplModelSchema) {
+                    if (propertySchema instanceof ManagedImplSchema) {
                         if (value == null) {
                             if (propertySchema instanceof ScalarCollectionSchema) {
                                 ScalarCollectionSchema.clear(propertyNode);
@@ -167,7 +177,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         }
                     } else {
                         T castValue = Cast.uncheckedCast(value);
-                        propertyNode.setPrivateData(propertyType, castValue);
+                        propertyNode.setPrivateData(property.getType(), castValue);
                     }
                     return value;
                 }

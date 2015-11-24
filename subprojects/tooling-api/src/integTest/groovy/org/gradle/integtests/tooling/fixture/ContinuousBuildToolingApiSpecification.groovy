@@ -82,14 +82,24 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
                 // if the build is very fast, the timestamp of the file will not change and the JDK file watch service won't see the change.
                 def initScript = file("init.gradle")
                 initScript.text = """
-                    def startAt = System.nanoTime()
-                    gradle.buildFinished {
-                        long sinceStart = (System.nanoTime() - startAt) / 1000000L
-                        if (sinceStart > 0 && sinceStart < 2000) {
-                          sleep(2000 - sinceStart)
-                        }
-                    }
-                """
+                    |import java.lang.management.ManagementFactory
+
+                    |gradle.rootProject {
+                    |    try {
+                    |        gradle.rootProject.buildDir.mkdir()
+                    |        new File(gradle.rootProject.buildDir, "build.pid").text = ManagementFactory.getRuntimeMXBean().getName().split("@")[0]
+                    |    } catch (Throwable t) {
+                    |    }
+                    |}
+
+                    |def startAt = System.nanoTime()
+                    |gradle.buildFinished {
+                    |    long sinceStart = (System.nanoTime() - startAt) / 1000000L
+                    |    if (sinceStart > 0 && sinceStart < 2000) {
+                    |      sleep(2000 - sinceStart)
+                    |    }
+                    |}
+                """.stripMargin()
 
                 BuildLauncher launcher = projectConnection.newBuild()
                     .withArguments("--continuous", "-I", initScript.absolutePath)
@@ -142,9 +152,21 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     }
 
     private void waitForBuild() {
-        ConcurrentTestUtil.poll(buildTimeout, 0.5) {
-            def out = stdout.toString()
-            assert out.contains(WAITING_MESSAGE)
+        boolean success
+        long pollingStartMillis = System.currentTimeMillis()
+        long pollingStartNanos = System.nanoTime()
+        try {
+            ConcurrentTestUtil.poll(buildTimeout, 0.5) {
+                def out = stdout.toString()
+                assert out.contains(WAITING_MESSAGE)
+            }
+            success = true
+        } finally {
+            if (!success) {
+                println "Polling lasted ${System.currentTimeMillis() - pollingStartMillis} ms measured with walltime clock"
+                println "Polling lasted ${(long) ((System.nanoTime() - pollingStartNanos) / 1000000L)} ms measured with monotonic clock"
+                requestJstackForBuildProcess()
+            }
         }
 
         def out = stdout.toString()
@@ -153,6 +175,20 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
         stderr.reset()
 
         result = out.contains("BUILD SUCCESSFUL") ? new OutputScrapingExecutionResult(out, err) : new OutputScrapingExecutionFailure(out, err)
+    }
+
+    def requestJstackForBuildProcess() {
+        def pidFile = file("build/build.pid")
+        if (pidFile.exists()) {
+            def pid = pidFile.text
+            def jdkBinDir = new File(System.getProperty("java.home"), "../bin").canonicalFile
+            if (jdkBinDir.isDirectory()) {
+                println "--------------------------------------------------"
+                def jstackOutput = ["${jdkBinDir}/jstack", pid].execute().text
+                println jstackOutput
+                println "--------------------------------------------------"
+            }
+        }
     }
 
     protected List<String> getExecutedTasks() {

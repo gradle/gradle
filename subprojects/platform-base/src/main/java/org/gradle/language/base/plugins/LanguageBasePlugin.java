@@ -18,36 +18,32 @@ package org.gradle.language.base.plugins;
 import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.Transformers;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
-import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
+import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
-import org.gradle.language.base.internal.model.FunctionalSourceSetNodeInitializer;
 import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
+import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.model.*;
-import org.gradle.model.collection.internal.BridgedCollections;
-import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
-import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.ConstructableTypesRegistry;
-import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry;
+import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
+import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.BinaryType;
+import org.gradle.platform.base.BinaryTypeBuilder;
+import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -63,12 +59,10 @@ import java.util.Set;
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
 
-    private final Instantiator instantiator;
     private final ModelRegistry modelRegistry;
 
     @Inject
-    public LanguageBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry) {
-        this.instantiator = instantiator;
+    public LanguageBasePlugin(ModelRegistry modelRegistry) {
         this.modelRegistry = modelRegistry;
     }
 
@@ -78,38 +72,19 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     private void applyRules(ModelRegistry modelRegistry) {
-        DefaultBinaryContainer binaries = instantiator.newInstance(DefaultBinaryContainer.class, instantiator);
-        final String descriptor = LanguageBasePlugin.class.getSimpleName() + ".apply()";
-        final ModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(descriptor);
-        ModelPath binariesPath = ModelPath.path("binaries");
+        final String baseDescriptor = LanguageBasePlugin.class.getSimpleName() + "#";
 
-        ModelType<BinarySpec> binarySpecModelType = ModelType.of(BinarySpec.class);
-        // TODO:LPTR Remove once reuse is taken out
-        modelRegistry.createOrReplace(
-            BridgedCollections.creator(
-                ModelReference.of(binariesPath, DefaultBinaryContainer.class),
-                Transformers.constant(binaries),
-                Named.Namer.INSTANCE,
-                descriptor,
-                BridgedCollections.itemDescriptor(descriptor)
-            )
-                .descriptor(descriptor)
-                .service(true)
-                .ephemeral(true)
-                .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType,
-                    ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(binarySpecModelType))))
-                .withProjection(UnmanagedModelProjection.of(DefaultBinaryContainer.class))
-                .build()
-        );
-
-        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(ModelReference.of(binariesPath), ruleDescriptor, new Action<MutableModelNode>() {
+        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(ModelReference.of("binaries"),
+                new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTasks"), new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode binariesNode) {
-                binariesNode.applyToAllLinks(ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpec.class), ruleDescriptor, ModelReference.of(ITaskFactory.class), new BiAction<BinarySpec, ITaskFactory>() {
+                binariesNode.applyToAllLinks(ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpec.class),
+                                new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTask"), ModelReference.of(ITaskFactory.class), new BiAction<BinarySpec, ITaskFactory>() {
                     @Override
                     public void execute(BinarySpec binary, ITaskFactory taskFactory) {
-                        if (!((BinarySpecInternal) binary).isLegacyBinary()) {
-                            TaskInternal binaryLifecycleTask = taskFactory.create(binary.getName(), DefaultTask.class);
+                        BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binary;
+                        if (!binarySpecInternal.isLegacyBinary()) {
+                            TaskInternal binaryLifecycleTask = taskFactory.create(binarySpecInternal.getProjectScopedName(), DefaultTask.class);
                             binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                             binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
                             binary.setBuildTask(binaryLifecycleTask);
@@ -122,38 +97,40 @@ public class LanguageBasePlugin implements Plugin<Project> {
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
             DirectNodeNoInputsModelAction.of(
                 ModelReference.of(BinarySpec.class),
-                new SimpleModelRuleDescriptor(descriptor),
+                new SimpleModelRuleDescriptor(baseDescriptor + ComponentSpecInitializer.class.getSimpleName() + ".binaryAction()"),
                 ComponentSpecInitializer.binaryAction()));
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @Service
-        ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ModelSchemaStore.class);
+        LanguageSourceSetFactory languageSourceSetFactory(ServiceRegistry serviceRegistry) {
+            return new LanguageSourceSetFactory("sourceSets", serviceRegistry.get(FileResolver.class));
         }
 
-        @Service
-        ManagedProxyFactory proxyFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ManagedProxyFactory.class);
-        }
+        @Model
+        void binaries(BinaryContainer binaries) {}
 
-        @Service
-        ConstructableTypesRegistry constructableTypesRegistry() {
-            return new DefaultConstructableTypesRegistry();
-        }
-
-        @Mutate
-        // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
-        void registerFunctionalSourceSetNodeInitializer(ConstructableTypesRegistry constructableTypesRegistry, ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer(instantiator));
+        @BinaryType
+        void registerBaseBinarySpec(BinaryTypeBuilder<BinarySpec> builder) {
+            builder.defaultImplementation(BaseBinarySpec.class);
+            builder.internalView(BinarySpecInternal.class);
         }
 
         @Mutate
-        // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
-        void registerNodeInitializerExtractionStrategies(NodeInitializerRegistry nodeInitializerRegistry, ConstructableTypesRegistry constructableTypesRegistry) {
-            nodeInitializerRegistry.registerStrategy(constructableTypesRegistry);
+        void registerSourceSetTypes(LanguageSourceSetFactory languageSourceSetFactory, LanguageRegistry languageRegistry) {
+            for (LanguageRegistration<?> languageRegistration : languageRegistry) {
+                register(languageSourceSetFactory, languageRegistration);
+            }
+        }
+
+        private <T extends LanguageSourceSet> void register(LanguageSourceSetFactory lssFactory, LanguageRegistration<T> languageRegistration) {
+            lssFactory.register(languageRegistration.getSourceSetType(), languageRegistration.getSourceSetImplementationType(), languageRegistration.getRuleDescriptor());
+        }
+
+        @Mutate
+        void registerSourceSetNodeInitializer(NodeInitializerRegistry nodeInitializerRegistry, LanguageSourceSetFactory languageSourceSetFactory) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<LanguageSourceSet>(languageSourceSetFactory));
         }
 
         @Model
@@ -178,18 +155,16 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, ModelMap<BinarySpec> binaries) {
+        void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, ModelMap<BinarySpecInternal> binaries) {
             List<BinarySpecInternal> notBuildable = Lists.newArrayList();
             boolean hasBuildableBinaries = false;
-            for (BinarySpec binary : binaries) {
-                // TODO:HH Need this cast because chained filtering on the Binary map is broken (See NodeBackedModelMap)
-                BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binary;
-                if (!binarySpecInternal.isLegacyBinary()) {
-                    if (binarySpecInternal.isBuildable()) {
-                        assemble.dependsOn(binarySpecInternal);
+            for (BinarySpecInternal binary : binaries) {
+                if (!binary.isLegacyBinary()) {
+                    if (binary.isBuildable()) {
+                        assemble.dependsOn(binary);
                         hasBuildableBinaries = true;
                     } else {
-                        notBuildable.add(binarySpecInternal);
+                        notBuildable.add(binary);
                     }
                 }
             }
@@ -214,7 +189,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
                     formatter.node("No buildable binaries found");
                     formatter.startChildren();
                     for (BinarySpecInternal binary : notBuildable) {
-                        formatter.node(binary.getName());
+                        formatter.node(binary.getDisplayName());
                         formatter.startChildren();
                         binary.getBuildAbility().explain(formatter);
                         formatter.endChildren();

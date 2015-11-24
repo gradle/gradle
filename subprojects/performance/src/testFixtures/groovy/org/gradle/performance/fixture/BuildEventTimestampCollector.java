@@ -44,8 +44,8 @@ public class BuildEventTimestampCollector implements DataCollector {
     }
 
     @Override
-    public void collect(File testProjectDir, MeasuredOperation operation) {
-        final File timestampFile = new File(testProjectDir, outputFile);
+    public void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
+        final File timestampFile = new File(invocationInfo.getProjectDir(), outputFile);
         final String absolutePath = timestampFile.getAbsolutePath();
         if (!timestampFile.exists()) {
             throw new IllegalStateException(String.format("Could not find %s. Cannot collect build event timestamps.", absolutePath));
@@ -55,8 +55,8 @@ public class BuildEventTimestampCollector implements DataCollector {
             throw new IllegalStateException(String.format("Build event timestamp log at %s should contain at least 3 lines.", absolutePath));
         }
         List<Long> timestamps = parseTimestamps(absolutePath, lines);
-        operation.setConfigurationTime(Duration.millis(timestamps.get(1) - timestamps.get(0)));
-        operation.setExecutionTime(Duration.millis(timestamps.get(2) - timestamps.get(1)));
+        operation.setConfigurationTime(Duration.millis((timestamps.get(1) - timestamps.get(0)) / 1000000L));
+        operation.setExecutionTime(Duration.millis((timestamps.get(2) - timestamps.get(1)) / 1000000L));
     }
 
     private List<Long> parseTimestamps(final String absolutePath, List<String> lines) {

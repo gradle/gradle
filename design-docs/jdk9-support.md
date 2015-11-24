@@ -96,13 +96,11 @@ For this story, it is expected that the API jar is built after the runtime jar. 
 - Consuming source is recompiled when API class is changed.
 - Consuming source is not recompiled when non-API class changes.
 
-## Story: Consuming Java source is not recompiled when signature (ABI) of a library has not changed
+## Story: Java source is not recompiled when signature of the declared API of a dependent library has not changed
 
 AKA: API classes can reference non-API classes of the same library and adding a private method to the an API class should not trigger recompilation of consuming sources.
 
-Produce a stubbed API jar instead of an API jar by generating stub classes using an ASM based API class stub generator. This should only be done
-if an API is declared: despite that's what we want to do ultimately, if a component doesn't declare an API, it is not expected to create a stubbed API
-jar: we will instead use a copy of the runtime jar. A later story adds support for stubbed API jars in any case.
+Produce a stubbed API jar instead of an API jar by generating stub classes using an ASM based API class stub generator. This should only be done if an API is declared: despite that's what we want to do ultimately, if a component doesn't declare an API, it is not expected to create a stubbed API jar: we will instead use a copy of the runtime jar. A later story adds support for stubbed API jars in any case.
 
 ### Implementation
 
@@ -140,6 +138,14 @@ creation of a static initializer that we want to avoid).
 - Adding a private method to an API class should not trigger recompilation of the consuming library
 - Changing an API field of an API class should trigger recompilation of the consuming library
 - Changing the superclass or interfaces of an API class should trigger recompilation of the consuming library
+
+## Story: Java source is not recompiled when signature of the undeclared API of a dependent library has not changed
+
+If a component doesn't declare an API, produce a stubbed API jar like in the case an API is declared. Consider all packages as belonging to the API.
+This story should include performance tests that prove that incremental builds are faster:
+
+- because downstream dependencies are not recompiled when the API signature doesn't change
+- because it is done independently of the fact a component declares an API or not
 
 ## Story: Java library API references the APIs of other libraries
 
@@ -186,17 +192,43 @@ model {
 
 ### Test cases
 
-- When compiling sources for `main` that has a dependency on `A` above:
-    - Compile classpath includes API jars from `A`, `B` and `C`
-    - Compile classpath does _not_ include API jar from `D`
-- No failure attempting to build `main`, where `D` contains bad code
-- Reasonable error message attempting to build `main`, where `C` contains bad code
-- When compiling sources for `B` above:
+- ~~When compiling sources for `main` that has a dependency on `A` above:~~
+    - ~~Compile classpath includes API jars from `A`, `B` and `C`~~
+    - ~~Compile classpath does _not_ include API jar from `D`~~
+- ~~When compiling sources for `B` above:~~
     - ~~Compile classpath includes API from `C`~~
-
 ### Open issues
 
 - Declare a dependency set at the component level, to be used as the default for all its source sets.
+
+## Story: Performance tests assess the incremental build performance for a large multiproject java build
+
+Declaring an API on a component should have a significant impact on performance of incremental builds of large projects:
+whenever component `A` depends on component `B` and that `B` declares an API, then if `B` is changed but its ABI remains
+the same, `A` is not recompiled. Eventually, when generation of ABI signature is going to be expanded to all local libraries,
+we want to make sure that performance of incremental builds will also improve when no API is declared.
+
+The goal of this story is to capture these performance improvements into benchmarks and non regression tests.
+
+### Benchmarks
+
+* Change a source file that has no impact on the ABI of a library that is used transitively
+* Change a source file that has an impact on the ABI of a library that is used transitively
+
+This should be done for the 2 cases: API is declared and no API is declared (in the latter, no API declared is equivalent to
+having all packages exported, so changing a source file without having an impact on ABI means updating a method body or
+adding a private method).
+
+### Implementation
+
+Should reuse the [performance test generator](https://github.com/gradle/gradle/tree/master/buildSrc/src/main/groovy/org/gradle/performance/generator).
+Add, if not available already, ability to update a file for each iteration.
+There should be transitive dependencies: `A` depends on `B` depends on `C`..., and `A`
+is updated.
+
+### Out of scope
+
+Do not activate incremental compilation. Later stories may enable finer grained incremental builds with incremental compilation.
 
 ## Story: Consuming an API jar should throw an error
 
@@ -334,18 +366,6 @@ The last step of separating API from implementation involves the creation of a b
 - Building the runtime jar should not depend on the API jar
 - Building the runtime jar and the API jar should depend on the same compilation tasks
 
-## Story: Produce a stubbed API jar when no API is declared
-
-If a component doesn't declare an API, produce a stubbed API jar like in the case an API is declared. Consider all packages as belonging to the API.
-This story should include performance tests that prove that incremental builds are faster:
-
-- because downstream dependencies are not recompiled when the API signature doesn't change
-- because it is done independently of the fact a component declares an API or not
-
-## Story: Dependencies report shows compile time dependency graph of a Java library
-
-- Dependency report shows all JVM components for the project, and the resolved compile time graphs for each variant.
-
 ## Backlog
 
 - Validate dependencies of API classes at build time to verify all API dependencies are exported.
@@ -355,67 +375,7 @@ This story should include performance tests that prove that incremental builds a
 - Discovery of annotation processor implementations.
 - Add an option to optionally exclude package private members from the API.
 
-# Feature: Java library is compiled against the API jar of Java libraries in binary repository
-
-## Story: Java library sources are compiled against library Jar resolved from Maven repository
-
-- Extend the dependency DSL to reference external libraries:
-    ```
-    model {
-        components {
-            main(JvmLibrarySpec) {
-                dependencies {
-                    library group: 'com.acme', name: 'artifact', version: '1.0'
-                    library 'com.acme:artifact:1.0'
-                }
-            }
-        }
-    }
-    ```
-
-    TODO: Need a better DSL.
-- Reuse existing repositories DSL, bridging into model space.
-- Main Jar artifact of maven module is included in compile classpath.
-- Main Jar artifact of any compile-scoped dependencies are included transitively in the compile classpath.
-
-- Update samples and user guide
-- Update newJavaModel performance test?
-
-### Test cases
-
-- For maven module dependencies
-    - Main Jar artifact of module is included in compile classpath.
-    - Main Jar artifact of compile-scoped transitive dependencies are included in the compile classpath.
-    - Artifacts from runtime-scoped (and other scoped) transitive dependencies are _not_ included in the compile classpath.
-- For local component dependencies:
-    - Artifacts from transitive external dependencies that are non part of component API are _not_ included in the compile classpath.
-- Displays a reasonable error message if the external dependency cannot be found in a declared repository
-
-### Open issues
-
-- Should we use a single `dependencies` block to define API and compile dependencies, or use 2 separate `dependencies` blocks?
-- Need to provide support for `ResolutionStrategy`: forced versions, dependency substitution, etc
-
-## Story: Resolve external dependencies from Ivy repositories
-
-- Use artifacts and dependencies from some conventional configuration (eg `compile`, or `default` if not present) an for Ivy module.
-
-## Story: Generate a stubbed API jar for external dependencies
-
-- Generate stubbed API for external Jar and use this for compilation. Cache the generated stubbed API jar.
-- Verify library is not recompiled when API of external library has not changed (eg method body change, add private element).
-- Dependencies report shows external libraries in compile time dependency graph.
-
-### Implementation
-
-Should reuse the "stub generator" that is used to create an API jar for local projects.
-
-### Test cases
-
-- Stubs only contain public members of the external dependency
-- Trying to use a stub at runtime should throw an `UnsupportedOperationException`
-
-## Feature: Development team migrates Java library to Java 9
+# Feature: Development team migrates Java library to Java 9
 
 Allow a Java library to build for Java 9, and produce both modular and non-modular variants that can be used by different consumers.
 

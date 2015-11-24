@@ -50,7 +50,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     public TaskContainerInternal create() {
         ModelReference<DefaultTaskContainer> containerReference = ModelReference.of(TaskContainerInternal.MODEL_PATH, DefaultTaskContainer.class);
 
-        ModelCreators.Builder creatorBuilder = BridgedCollections.creator(
+        ModelRegistrations.Builder registrationBuilder = BridgedCollections.registration(
             containerReference,
             new Transformer<DefaultTaskContainer, MutableModelNode>() {
                 @Override
@@ -63,8 +63,8 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
             new Namer()
         );
 
-        modelRegistry.createOrReplace(
-            creatorBuilder
+        modelRegistry.registerOrReplace(
+            registrationBuilder
                 .withProjection(ModelMapModelProjection.unmanaged(Task.class, ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>, MutableModelNode>() {
                     @Override
                     public NamedEntityInstantiator<Task> transform(MutableModelNode modelNode) {

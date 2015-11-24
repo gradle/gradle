@@ -47,15 +47,15 @@ public abstract class AbstractUnmanagedModelCreationRuleExtractor<T extends Anno
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
         BiAction<MutableModelNode, List<ModelView<?>>> transformer = new ModelRuleInvokerBackedTransformer<R>(returnType, ruleDefinition.getRuleInvoker(), descriptor);
-        ModelCreators.Builder builder = ModelCreators.of(ModelPath.path(modelName), references, transformer)
+        ModelRegistrations.Builder builder = ModelRegistrations.of(ModelPath.path(modelName), references, transformer)
             .withProjection(new UnmanagedModelProjection<R>(returnType, true, true))
             .descriptor(descriptor);
-        ModelCreator modelCreator = buildCreator(builder);
+        ModelRegistration modelRegistration = buildRegistration(builder);
 
-        return new ExtractedModelCreator(modelCreator);
+        return new ExtractedModelRegistration(modelRegistration);
     }
 
-    protected abstract ModelCreator buildCreator(ModelCreators.Builder builder);
+    protected abstract ModelRegistration buildRegistration(ModelRegistrations.Builder builder);
 
     public String getDescription() {
         return String.format("%s and returning a model element", super.getDescription());

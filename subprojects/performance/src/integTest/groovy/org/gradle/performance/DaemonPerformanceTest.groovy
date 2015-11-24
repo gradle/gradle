@@ -16,11 +16,14 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.BasicPerformanceTest
 import org.gradle.performance.measure.DataAmount
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
+@Category(BasicPerformanceTest)
 class DaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("Project '#testProject' build")
@@ -33,7 +36,7 @@ class DaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.maxExecutionTimeRegression = maxTimeReg
         runner.maxMemoryRegression = maxMemReg
         runner.targetVersions = ['1.0', '2.0', '2.2.1', '2.4', '2.8', 'last']
-        runner.gradleOpts = ["-Xmx1g", "-XX:SoftRefLRUPolicyMSPerMB=0"]
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:SoftRefLRUPolicyMSPerMB=0"]
 
         when:
         def result = runner.run()

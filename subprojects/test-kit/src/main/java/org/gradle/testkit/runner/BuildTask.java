@@ -16,12 +16,15 @@
 
 package org.gradle.testkit.runner;
 
+import org.gradle.api.Incubating;
+
 /**
  * A task that was executed when running a specific build.
  *
  * @since 2.6
  * @see BuildResult
  */
+@Incubating
 public interface BuildTask {
 
     /**

@@ -19,32 +19,29 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.test.fixtures.file.TestFile
 
 class EclipseProjectFixture {
-    private final TestFile projectDir
-    private Node project
+    private final Node project
 
-    EclipseProjectFixture(TestFile projectDir) {
-        this.projectDir = projectDir
+    private EclipseProjectFixture(Node project) {
+        this.project = project
     }
 
-    private Node getProject() {
-        if (project == null) {
-            TestFile file = projectDir.file('.project')
-            file.assertIsFile()
-            project = new XmlParser().parse(file)
-        }
-        return project
+    static EclipseProjectFixture create(TestFile projectDir) {
+        TestFile file = projectDir.file('.project')
+        file.assertIsFile()
+        new EclipseProjectFixture(new XmlParser().parse(file))
+
     }
 
     String getProjectName() {
-        getProject().'name'.text()
+        return this.project.'name'.text()
     }
 
     String getComment() {
-        getProject().'comment'.text()
+        return this.project.'comment'.text()
     }
 
     void assertHasReferencedProjects(String... referencedProjects) {
-        assert getProject().projects.project*.text() == referencedProjects as List
+        assert this.project.projects.project*.text() == referencedProjects as List
     }
 
 
@@ -56,7 +53,7 @@ class EclipseProjectFixture {
     }
 
     void assertHasNatures(String... natures) {
-        assert getProject().natures.nature*.text() == natures as List
+        assert this.project.natures.nature*.text() == natures as List
     }
 
     void assertHasJavaFacetBuilders() {
@@ -67,23 +64,23 @@ class EclipseProjectFixture {
     }
 
     void assertHasBuilders(String... builders) {
-        assert getProject().buildSpec.buildCommand.name*.text() == builders as List
+        assert this.project.buildSpec.buildCommand.name*.text() == builders as List
     }
 
     void assertHasLinkedResources(String... names) {
-        assert getProject().linkedResources.link.name*.text() == names as List
+        assert this.project.linkedResources.link.name*.text() == names as List
     }
 
     void assertHasBuilder(String builderName, Map args) {
-        assert getProject().buildSpec.buildCommand.name*.text().contains(builderName)
+        assert this.project.buildSpec.buildCommand.name*.text().contains(builderName)
         args.each { key, value ->
-            def argument = getProject().buildSpec.buildCommand.find { it.name.text() == builderName }.arguments.dictionary.find { it.key.text() == key }
+            def argument = this.project.buildSpec.buildCommand.find { it.name.text() == builderName }.arguments.dictionary.find { it.key.text() == key }
             assert argument != null
             assert argument.value.text() == value
         }
     }
 
     void assertHasLinkedResource(String name, String type, String location) {
-        assert null != getProject().linkedResources.link.findAll { it.name.text() == name && it.type.text() == type && it.location.text() == location }
+        assert null != this.project.linkedResources.link.findAll { it.name.text() == name && it.type.text() == type && it.location.text() == location }
     }
 }

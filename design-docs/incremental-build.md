@@ -32,14 +32,6 @@ metadata used for directory scanning to "visiting" the file tree so that metadat
 - Performance gains will be measured from existing performance tests. ✔︎
 - Expect existing test coverage will cover behavior of input/output snapshotting and file collection operations. ✔︎
 
-## Story: Changes to reduce byte/char array allocations and array copying
-
-- Just do it
-
-## Story: Changes for adjusting collection sizes when final size is known
-
-- Just do it
-
 ## Story: Reduce the in-memory size of the task history cache by interning file paths
 
 ### Implementation
@@ -91,21 +83,6 @@ Goal: support suppressing default excludes
 - Add support for suppressing the default excludes that are part of Ant integration legacy in Gradle. Default excludes aren't needed when there are specific include patterns. The default excludes support can be added to the same new PatternSet subclass that supports the separate (Caching)PatternSpecFactory.
 - make SourceSets in Gradle use the new PatternSet implementation that supports suppressing the default excludes and uses the CachingPatternSpecFactory managed by the Gradle infrastructure (`GlobalScopeServices`)
 
-
-## Story: High number of UnknownDomainObjectExceptions when resolving libraries in native projects.
-
-### Implementation
-
-- remove the use of UnknownDomainObjectException as flow control of normal program flow in LibraryBinaryLocator implementations (ChainedLibraryBinaryLocator, PrebuiltLibraryBinaryLocator, ProjectLibraryBinaryLocator). 
-  - return null from LibraryBinaryLocator.getBinaries method when binaries cannot be located.
-  - since exceptions won't be used for passing detailed error messages, they will be removed.
-- LibraryResolveException should be thrown in DefaultLibraryResolver.resolveLibraryBinary method if LibraryBinaryLocator returns a null.
-
-### Test coverage
-
-- No new test coverage is needed. Change existing test to follow the changed interface contract of LibraryBinaryLocator.
-
-
 ## Story: Add "discovered" inputs to incremental tasks
 
 This story adds a way for an incremental task to register additional inputs once execution has started.  At the end of execution, the discovered inputs are recorded in the task's execution history.
@@ -147,7 +124,7 @@ This story adds a way for an incremental task to register additional inputs once
 ### Open issues
 
 - If a discovered input is missing when it is discovered, should we treat that as a missing file input or a fatal problem? -- currently this is a fatal problem (files must exist)
-- Any change to discovered inputs causes all inputs to be out-of-date
+- Any change to discovered inputs causes all inputs to be out-of-date -- currently, task is still incremental
 - It would be nice to perform discovery incrementally.
 - It looks straightforward to not "stream" the hashes into the discovered snapshot and just create it all at once (like the other snapshots do).
 - The previous discovered files snapshot can be thrown away as soon as we know we'll be executing.
@@ -155,9 +132,116 @@ This story adds a way for an incremental task to register additional inputs once
 
 ## Story: Use source #include information as discovered inputs
 
-Based on IncrementalCompiler's #include extractor, add header files as discovered inputs to compile tasks.
+Based on IncrementalNativeCompiler's #include extractor, add header files as discovered inputs to compile tasks.
+
+### Implementation
+
+- From IncrementalNativeCompiler, add resolved includes to NativeCompileSpec
+- From AbstractNativeCompileTask, add resolved includes as discovered inputs to incremental task inputs
+- In AbstractNativeCompileTask, use @Input for getIncludes()
+- Remove "include hack" from perf tests for 2.10+.  Keep "include hack" for 2.8/2.9, unless they'll build within a reasonable time due to all of the other changes.
+
+### Test coverage
+
+- Reuse existing test coverage
+- Measure improvement/regression with native perf tests
+
+### Open issues
+
+- How to deal with missing #include files (macros and missing files)
+
+## Story: Performance test for native incremental build where some files require recompilation
+
+#### Constraints
+- Change happens after a previous build, so it is not a clean build
+- Needs to be something that causes the linker to run, so not just a comment change
+
+#### Implementation
+- modify existing internal Performance testing framework to support measurements for these scenarios
+  - callbacks for before and after invocation with the information about the current test invocation
+    - test phase: warmup or measurement
+    - test loop number
+    - maximum number of loops
+    - BuildExperimentSpec instance
+  - in the before invocation callback, we can make changes to files
+  - add ability to omit measurements in the after invocation callback
+    - the build invocation that is done before changing files has to be omitted from measurements
+- implementation plan for the test:
+  - The build is run multiple times. Use the features added in the previous step for implementing the behaviour.
+    - on odd build loops, run the build and omit the measurement
+    - on even build loops, do the modification and run the build and record the measurement
+  - run the build loop 2 times in warmup phase and 10 times in execution phase (modification is made on every second loop).
+  - Create 2 new builds for performance tests that are downsized from the `nativeMonolithic` build
+    - `smallNativeMonolithic`: 1% of `nativeMonolithic` size
+        - use for all 3 scenarios
+    - `mediumNativeMonolithic`: 10% of `nativeMonolithic` size
+        - use for 2 scenarios (1 file changes, few files change)
+
+example of using `BuildExperimentListener` for testing
+```
+    @Unroll('Project #type native build 1 change')
+    def "build with 1 change"() {
+        given:
+        runner.testId = "native build ${type} 1 change"
+        runner.testProject = "${type}NativeMonolithic"
+        runner.tasksToRun = ["assemble"]
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.targetVersions = ['2.8', 'last']
+        runner.buildExperimentListener = new BuildExperimentListener() {
+            @Override
+            GradleInvocationCustomizer createInvocationCustomizer(BuildExperimentInvocationInfo invocationInfo) {
+                null
+            }
+
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                if(invocationInfo.loopNumber % 2 == 0) {
+                    // do change
+
+                } else if (invocationInfo.loopNumber > 2) {
+                    // remove change
+
+                }
+            }
+
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                if(invocationInfo.loopNumber % 2 == 1) {
+                    measurementCallback.omitMeasurement()
+                }
+            }
+        }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        type     | maxExecutionTimeRegression
+        "small"  | millis(1000)
+        "medium" | millis(5000)
+    }
+```
+
+
+### Scenario: Incremental build where 1 file requires recompilation
+- 1 C source file changed
+
+### Scenario: Incremental build where a few files require recompilation
+- 1 header file (included in a few source files) changed
+
+### Scenario: Incremental build where all files require recompilation
+- 1 compiler option changed
 
 # Unprioritized
+
+## Story: Profiling for native incremental build where some files require recompilation
+
+- Profile and find performance hotspots for the 1 file / few files changed scenarios introduced in the "Performance test for native incremental build where some files require recompilation" story.
+- Spike changes for optimizing biggest bottlenecks to be able to find more hotspots that only show up in profiling after reducing/removing the current bottlenecks.
+- Document the findings and add stories for doing improvements.
 
 ## Story: not loading the file snapshots in up-to-date checking
 
@@ -170,7 +254,6 @@ Based on IncrementalCompiler's #include extractor, add header files as discovere
   - this might happen when file modification times are different, but content is the same
 - The "fileSnapshots" in-memory cache should use weak references for values.
   - loaded fileSnapshots will get GCd under memory pressure
-
 
 ## Story: Reuse native source file dependency information within a build
 
@@ -203,6 +286,87 @@ unmodified.
 ### Test coverage
 
 TBD
+
+## Story: Author specifies all files to include in source directory
+
+Currently, all source sets consist of a collection of root directories and a set of
+include/exclude patterns. Since we do not distinguish between patterns that have a
+single match (path/to/foo.c) and a glob (**/*.c), we must always scan all root
+directory paths and check all include and exclude patterns.  It's common for some
+projects to have an exhaustive list of all source files and no globbing.  In those
+cases, we could avoid directory walking and pattern matching.
+
+### DSL
+
+Introduces a method `source(String, Closure<PatternFilterable-like>)` to `LanguageSourceSet`:
+
+    model {
+        components {
+            lib(NativeLibrarySpec) {
+                sources {
+                    cpp {
+                        source("src/lib/cpp") // 1. no configuration, assume default pattern for source set
+                        source("src/lib/cpp") {
+                            // 2. only include patterns
+                            include '**/*.cpp', '**/*.c++', '**/*.C'
+                        }
+                        source("src/lib/cpp") {
+                            // 3. mix of explicit files and patterns
+                            include 'foo/bar.cpp'
+                            include 'baz/**/*.cpp'
+                            exclude '**/*.h'
+                            exclude 'baz/fubar.cpp'
+                        }
+                        source("src/lib/cpp") {
+                            // 4. only explicit list of files
+                            include 'foo/bar.cpp'
+                            include 'baz/baz.cpp'
+                        }
+                        source {
+                            // 5. existing API
+                            srcDirs 'src/lib/cpp'
+                            include 'foo/bar.cpp', 'baz/**/*.cpp'
+                            exclude '**/*.h', 'baz/fubar.cpp'
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+1. turns into a file collection with 'src/lib/cpp' as a root dir and some default set of patterns
+1. turns into the same thing as #1 with a different set of patterns
+1. turns into a union of file collections:
+    - file collection with just "foo/bar.cpp" (no scanning needed)
+    - file collection root dir 'src/lib/cpp' with include pattern 'baz/**/*.cpp' and exclude pattern '**/*.h'
+    - file collection of excluded files 'baz/fubar.cpp' (no scanning needed)
+    - union = (a+b)-c
+1. is the fastest and turns into a file collection with just a set of files. (no scanning needed)
+1. is what we have today.  I think the migration would be
+    - Introduce new syntax (release X)
+    - Deprecate and warn that old syntax is going away -- part of the warning might be a generated "this is what it would look like" message
+    - Remove old API (release X+?), but keep source(Closure) around a bit longer to point people back to the migration path.  We wouldn't honor configuration done with source(Closure) anymore.
+1. Figuring out if an include/exclude pattern is really a file would be just checking for '*' in the pattern.
+
+### Things to consider:
+
+- What do the defaults look like and how do they mix with this? e.g., how do I add exclusions without duplicating the default path?
+
+    model {
+        components {
+            lib(NativeLibrarySpec) {
+                cpp {
+                    source("src/lib/cpp") {
+                        exclude 'fubar.cpp'
+                    }
+                    // maybe repurpose old syntax to mean "exclude/include patterns for default"?
+                    source {
+                        exclude 'fubar.cpp'
+                    }
+                }
+            }
+        }
+    }
 
 ## Story: Reduce number of directory scans in up-to-date checks
 

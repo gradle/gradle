@@ -28,7 +28,7 @@ class GCEventParser {
     private final Pattern ignorePattern;
 
     GCEventParser(char decimalSeparator) {
-        pattern = Pattern.compile(String.format("(.+): \\[(?:(?:Full )?GC(?: ?(?:[^\\s]+|\\(.+?\\)))?) (?:\\d+\\%s\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)", decimalSeparator));
+        pattern = Pattern.compile(String.format("(.+): \\[(?:(?:Full )?GC(?: ?(?:[^\\s]+|\\(.+?\\)))?) (?:\\d+\\%s\\d+: )?(?:--)?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)", decimalSeparator));
         ignorePattern = Pattern.compile(String.format("Java HotSpot.+|Memory:.+|/proc.+|CommandLine flags:.+|\\s*\\[Times: .+\\]\\s*"));
     }
 

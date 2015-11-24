@@ -18,7 +18,7 @@ package org.gradle.language.java
 
 import spock.lang.Unroll
 
-import static JavaIntegrationTesting.applyJavaPlugin
+import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.util.Matchers.containsText
 
 class MultipleBinaryTypesWithVariantsTest extends VariantAwareDependencyResolutionSpec {
@@ -131,34 +131,24 @@ class AnotherBuildTypeBinary extends DefaultJarBinarySpec implements BuildTypeAs
 }
 
 // define the 3 concrete library types
-interface StringBuildTypeLib extends LibrarySpec {}
+@Managed interface StringBuildTypeLib extends LibrarySpec {}
 
-interface BuildTypeBuildTypeLib extends LibrarySpec {}
+@Managed interface BuildTypeBuildTypeLib extends LibrarySpec {}
 
-interface AnotherBuildTypeBuildTypeLib extends LibrarySpec {}
-
-class DefaultStringBuildTypeLib extends BaseComponentSpec implements StringBuildTypeLib {}
-
-class DefaultBuildTypeBuildTypeLib extends BaseComponentSpec implements BuildTypeBuildTypeLib {}
-
-class DefaultAnotherBuildTypeBuildTypeLib extends BaseComponentSpec implements AnotherBuildTypeBuildTypeLib {}
-
+@Managed interface AnotherBuildTypeBuildTypeLib extends LibrarySpec {}
 
 class ComponentTypeRules extends RuleSource {
 
     @ComponentType
     void registerStringBuildTypeComponent(ComponentTypeBuilder<StringBuildTypeLib> builder) {
-        builder.defaultImplementation(DefaultStringBuildTypeLib)
     }
 
     @ComponentType
     void registerBuildTypeBuildTypeComponent(ComponentTypeBuilder<BuildTypeBuildTypeLib> builder) {
-        builder.defaultImplementation(DefaultBuildTypeBuildTypeLib)
     }
 
     @ComponentType
     void registerAnotherBuildTypeBuildTypeComponent(ComponentTypeBuilder<AnotherBuildTypeBuildTypeLib> builder) {
-        builder.defaultImplementation(DefaultAnotherBuildTypeBuildTypeLib)
     }
 
     @BinaryType
@@ -180,14 +170,11 @@ class ComponentTypeRules extends RuleSource {
 
         def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${JavaVersion.current().majorVersion}"))
         def toolChain = toolChains.getForPlatform(platform)
-        def baseName = "${library.name}"
-        String binaryName = "${baseName}Jar"
-        binaries.create(binaryName) { jar ->
+        binaries.create('jar') { jar ->
             jar.toolChain = toolChain
             jar.targetPlatform = platform
             jar.buildType = jarBuildType
         }
-
     }
 
     @ComponentBinaries

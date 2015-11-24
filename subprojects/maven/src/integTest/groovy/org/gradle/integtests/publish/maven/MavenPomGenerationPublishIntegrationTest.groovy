@@ -21,6 +21,9 @@ import spock.lang.Unroll
 
 // this spec documents the status quo, not a desired behavior
 class MavenPomGenerationPublishIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        overrideMavenLocal()
+    }
 
     @Unroll
     def "how configuration of archive task affects generated POM"() {

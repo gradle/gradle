@@ -16,21 +16,11 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.TestResources
-import org.junit.Rule
-import org.junit.Test
 import spock.lang.Issue
 
-class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
-
-    @Rule
-    public final TestResources testResources = new TestResources(testDirectoryProvider)
-
-    String component
-
-    @Test
-    void allowsConfiguringEclipseWtp() {
-        //given
+class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
+    def "allows configuring Eclipse wtp"() {
+        given:
         file('someExtraSourceDir').mkdirs()
         file('src/foo/bar').mkdirs()
 
@@ -38,359 +28,363 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
         mavenRepo.module("gradle", "bar").publish()
         mavenRepo.module("gradle", "baz").publish()
 
-        //when
-        runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
 
-configurations {
-  configOne
-  configTwo
-}
+            configurations {
+              configOne
+              configTwo
+            }
 
-repositories {
-  maven { url "${mavenRepo.uri}" }
-}
+            repositories {
+              maven { url "${mavenRepo.uri}" }
+            }
 
-dependencies {
-  configOne 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
-  configTwo 'gradle:baz:1.0'
-}
+            dependencies {
+              configOne 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
+              configTwo 'gradle:baz:1.0'
+            }
 
-eclipse {
+            eclipse {
 
-  pathVariables 'userHomeVariable' : file(System.properties['user.home'])
+              pathVariables 'userHomeVariable' : file(System.properties['user.home'])
 
-  wtp {
-    component {
-      contextPath = 'killerApp'
+              wtp {
+                component {
+                  contextPath = 'killerApp'
 
-      sourceDirs += file('someExtraSourceDir')
+                  sourceDirs += file('someExtraSourceDir')
 
-      plusConfigurations << configurations.configOne
-      minusConfigurations << configurations.configTwo
+                  plusConfigurations << configurations.configOne
+                  minusConfigurations << configurations.configTwo
 
-      deployName = 'someBetterDeployName'
+                  deployName = 'someBetterDeployName'
 
-      resource sourcePath: './src/foo/bar', deployPath: './deploy/foo/bar'
+                  resource sourcePath: './src/foo/bar', deployPath: './deploy/foo/bar'
 
-      property name: 'wbPropertyOne', value: 'New York!'
-    }
-    facet {
-      facet name: 'gradleFacet', version: '1.333'
-    }
-  }
-}
+                  property name: 'wbPropertyOne', value: 'New York!'
+                }
+                facet {
+                  facet name: 'gradleFacet', version: '1.333'
+                }
+              }
+            }
         """
 
-        component = getFile([:], '.settings/org.eclipse.wst.common.component').text
-        def facet = getFile([:], '.settings/org.eclipse.wst.common.project.facet.core.xml').text
+        settingsFile << "rootProject.name = 'root'"
 
-        //then component:
-        contains('someExtraSourceDir')
+        when:
+        succeeds('eclipse')
 
-        contains('foo-1.0.jar', 'bar-1.0.jar')
-        assert !component.contains('baz-1.0.jar')
-
-        contains('someBetterDeployName')
-
+        then:
+        def component = componentFile.text
+        component.contains('someExtraSourceDir')
+        component.contains('foo-1.0.jar')
+        component.contains('bar-1.0.jar')
+        !component.contains('baz-1.0.jar')
+        component.contains('someBetterDeployName')
         //contains('userHomeVariable') //TODO don't know how to test it at the moment
+        component.contains('./src/foo/bar')
+        component.contains('./deploy/foo/bar')
+        component.contains('wbPropertyOne')
+        component.contains('New York!')
+        component.contains('killerApp')
 
-        contains('./src/foo/bar', './deploy/foo/bar')
-        contains('wbPropertyOne', 'New York!')
-
-        contains('killerApp')
-
-        assert facet.contains('gradleFacet')
-        assert facet.contains('1.333')
+        def facet = facetFile.text
+        facet.contains('gradleFacet')
+        facet.contains('1.333')
     }
 
     @Issue("GRADLE-2653")
-    @Test
-    void "wtp component respects configuration modifications"() {
-        //given
+    def "wtp component respects configuration modifications"() {
+        given:
         mavenRepo.module("gradle", "foo").publish()
         mavenRepo.module("gradle", "bar").publish()
         mavenRepo.module("gradle", "baz").publish()
         mavenRepo.module("gradle", "baz", "2.0").publish()
 
-        //when
-        runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
 
-repositories {
-  maven { url "${mavenRepo.uri}" }
-}
+            repositories {
+              maven { url "${mavenRepo.uri}" }
+            }
 
-dependencies {
-  compile 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
-}
+            dependencies {
+              compile 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
+            }
 
-configurations.compile {
-  exclude module: 'bar' //an exclusion
-  resolutionStrategy.force 'gradle:baz:2.0' //forced module
-}
+            configurations.all {
+              exclude module: 'bar' //an exclusion
+              resolutionStrategy.force 'gradle:baz:2.0' //forced module
+            }
         """
 
-        //when
-        component = getFile([:], '.settings/org.eclipse.wst.common.component').text
+        settingsFile << "rootProject.name = 'root'"
 
-        //then
+        when:
+        succeeds('eclipse')
+
+        then:
+        def component =  componentFile.text
         component.contains('foo-1.0.jar')
         component.contains('baz-2.0.jar') //forced version
         !component.contains('bar') //excluded
     }
 
-    @Test
-    void allowsConfiguringHooksForComponent() {
-        //given
-        def componentFile = file('.settings/org.eclipse.wst.common.component')
+    def "allows configuring hooks for component"() {
+        given:
         componentFile << '''<?xml version="1.0" encoding="UTF-8"?>
-<project-modules id="moduleCoreId" project-version="2.0">
-	<wb-module deploy-name="coolDeployName">
-		<property name="context-root" value="root"/>
-		<wb-resource deploy-path="/" source-path="src/main/webapp"/>
-	</wb-module>
-</project-modules>
-'''
+            <project-modules id="moduleCoreId" project-version="2.0">
+              <wb-module deploy-name="coolDeployName">
+                <property name="context-root" value="root"/>
+                <wb-resource deploy-path="/" source-path="src/main/webapp"/>
+              </wb-module>
+            </project-modules>
+        '''
 
-        //when
-        runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
 
-def hooks = []
+            def hooks = []
 
-eclipse {
-  wtp {
-    component {
-      file {
-        beforeMerged {
-          hooks << 'beforeMerged'
-          assert it.deployName == 'coolDeployName'
-        }
-        whenMerged {
-          hooks << 'whenMerged'
-          it.deployName = 'betterDeployName'
-        }
-        withXml { it.asNode().appendNode('be', 'cool') }
-      }
-    }
-  }
-}
+            eclipse {
+              wtp {
+                component {
+                  file {
+                    beforeMerged {
+                      hooks << 'beforeMerged'
+                      assert it.deployName == 'coolDeployName'
+                    }
+                    whenMerged {
+                      hooks << 'whenMerged'
+                      it.deployName = 'betterDeployName'
+                    }
+                    withXml { it.asNode().appendNode('be', 'cool') }
+                  }
+                }
+              }
+            }
 
-eclipseWtpComponent.doLast() {
-  assert hooks == ['beforeMerged', 'whenMerged']
-}
-
+            eclipseWtpComponent.doLast() {
+              assert hooks == ['beforeMerged', 'whenMerged']
+            }
         """
 
-        //when
-        component = getFile([:], '.settings/org.eclipse.wst.common.component').text
+        settingsFile << "rootProject.name = 'root'"
 
-        //then
-        assert component.contains('betterDeployName')
-        assert !component.contains('coolDeployName')
-        assert component.contains('<be>cool</be>')
+        when:
+        succeeds('eclipse')
+
+        then:
+        def component = componentFile.text
+        component.contains('betterDeployName')
+        !component.contains('coolDeployName')
+        component.contains('<be>cool</be>')
     }
 
-    @Test
-    void allowsConfiguringHooksForFacet() {
-        //given
-        def componentFile = file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-        componentFile << '''<?xml version="1.0" encoding="UTF-8"?>
-<faceted-project>
-	<fixed facet="jst.java"/>
-	<fixed facet="jst.web"/>
-	<installed facet="jst.web" version="2.4"/>
-	<installed facet="jst.java" version="5.0"/>
-	<installed facet="facet.one" version="1.0"/>
-</faceted-project>
-'''
+    def "allows configuring hooks for facet"() {
+        given:
+        facetFile << '''<?xml version="1.0" encoding="UTF-8"?>
+            <faceted-project>
+              <fixed facet="jst.java"/>
+              <fixed facet="jst.web"/>
+              <installed facet="jst.web" version="2.4"/>
+              <installed facet="jst.java" version="5.0"/>
+              <installed facet="facet.one" version="1.0"/>
+            </faceted-project>
+        '''
 
-        //when
-        runEclipseTask """
-import org.gradle.plugins.ide.eclipse.model.Facet
+        buildFile << """
+            import org.gradle.plugins.ide.eclipse.model.Facet
 
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+            apply plugin: 'java'
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
 
-eclipse {
-  wtp {
-    facet {
-      file {
-        beforeMerged {
-          assert it.facets.contains(new Facet('facet.one', '1.0'))
-          it.facets.add(new Facet('facet.two', '2.0'))
-        }
-        whenMerged {
-          assert it.facets.contains(new Facet('facet.one', '1.0'))
-          assert it.facets.contains(new Facet('facet.two', '2.0'))
-          it.facets.add(new Facet('facet.three', '3.0'))
-        }
-        withXml { it.asNode().appendNode('be', 'cool') }
-      }
-    }
-  }
-}
+            eclipse {
+              wtp {
+                facet {
+                  file {
+                    beforeMerged {
+                      assert it.facets.contains(new Facet('facet.one', '1.0'))
+                      it.facets.add(new Facet('facet.two', '2.0'))
+                    }
+                    whenMerged {
+                      assert it.facets.contains(new Facet('facet.one', '1.0'))
+                      assert it.facets.contains(new Facet('facet.two', '2.0'))
+                      it.facets.add(new Facet('facet.three', '3.0'))
+                    }
+                    withXml { it.asNode().appendNode('be', 'cool') }
+                  }
+                }
+              }
+            }
         """
 
-        def facet = getFile([:], '.settings/org.eclipse.wst.common.project.facet.core.xml').text
+        settingsFile << "rootProject.name = 'root'"
 
-        assert facet.contains('facet.one')
-        assert facet.contains('facet.two')
-        assert facet.contains('facet.three')
+        when:
+        succeeds('eclipse')
 
-        assert facet.contains('<be>cool</be>')
+        then:
+        def facet = facetFile.text
+        facet.contains('facet.one')
+        facet.contains('facet.two')
+        facet.contains('facet.three')
+        facet.contains('<be>cool</be>')
     }
 
     @Issue("GRADLE-2661")
-    @Test
-    void "file dependencies respect plus minus configurations"() {
-        //when
-        runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+    def "file dependencies respect plus minus configurations"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
 
-configurations {
-  configOne
-  configTwo
-}
+            configurations {
+              configOne
+              configTwo
+            }
 
-dependencies {
-  configOne files('foo.txt', 'bar.txt', 'baz.txt')
-  configTwo files('baz.txt')
-}
+            dependencies {
+              configOne files('foo.txt', 'bar.txt', 'baz.txt')
+              configTwo files('baz.txt')
+            }
 
-eclipse {
-  wtp {
-    component {
-        plusConfigurations << configurations.configOne
-        minusConfigurations << configurations.configTwo
-    }
-  }
-}
+            eclipse {
+              wtp {
+                component {
+                  plusConfigurations << configurations.configOne
+                  minusConfigurations << configurations.configTwo
+                }
+              }
+            }
         """
 
-        def component = getFile([:], '.settings/org.eclipse.wst.common.component').text
-        assert component.contains('foo.txt')
-        assert component.contains('bar.txt')
-        assert !component.contains('baz.txt')
+        settingsFile << "rootProject.name = 'root'"
+
+        when:
+        succeeds('eclipse')
+
+        then:
+        def component = componentFile.text
+        component.contains('foo.txt')
+        component.contains('bar.txt')
+        !component.contains('baz.txt')
     }
 
-    @Test
     @Issue("GRADLE-1881")
-    void "uses eclipse project name for wtp module dependencies"() {
-        //given
-        def settings = file('settings.gradle')
-        settings << "include 'impl', 'contrib'"
+    def "uses eclipse project name for wtp module dependencies"() {
+        given:
+        buildFile << """
+            project(':impl') {
+              apply plugin: 'java'
+              apply plugin: 'war'
+              apply plugin: 'eclipse-wtp'
 
-        def build = file('build.gradle')
-        build << """
-project(':impl') {
-  apply plugin: 'java'
-  apply plugin: 'war'
-  apply plugin: 'eclipse-wtp'
+              dependencies { compile project(':contrib') }
 
-  dependencies { compile project(':contrib') }
+              eclipse.project.name = 'cool-impl'
+            }
 
-  eclipse.project.name = 'cool-impl'
-}
+            project(':contrib') {
+              apply plugin: 'java'
+              apply plugin: 'eclipse-wtp'
+              //should not have war nor ear applied
 
-project(':contrib') {
-  apply plugin: 'java'
-  apply plugin: 'eclipse-wtp'
-  //should not have war nor ear applied
+              eclipse.project.name = 'cool-contrib'
+            }
+        """
 
-  eclipse.project.name = 'cool-contrib'
-}
-"""
-        //when
-        executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
+        settingsFile << "include 'impl', 'contrib'"
 
-        //then
+        when:
+        succeeds('eclipse')
+
+        then:
         def implComponent = wtpComponent('impl')
-        assert implComponent.deployName == 'cool-impl'
-        assert implComponent.project('cool-contrib')
+        implComponent.deployName == 'cool-impl'
+        implComponent.project('cool-contrib')
 
         def contribComponent = wtpComponent('contrib')
-        assert contribComponent.deployName == 'cool-contrib'
+        contribComponent.deployName == 'cool-contrib'
     }
 
-    @Test
     @Issue("GRADLE-1881")
-    void "does not explode if dependent project does not have eclipse plugin"() {
-        //given
-        def settings = file('settings.gradle')
-        settings << "include 'impl', 'contrib'"
+    def "does not explode if dependent project does not have eclipse plugin"() {
+        given:
+        buildFile << """
+            project(':impl') {
+              apply plugin: 'java'
+              apply plugin: 'war'
+              apply plugin: 'eclipse-wtp'
 
-        def build = file('build.gradle')
-        build << """
-project(':impl') {
-  apply plugin: 'java'
-  apply plugin: 'war'
-  apply plugin: 'eclipse-wtp'
+              dependencies { compile project(':contrib') }
 
-  dependencies { compile project(':contrib') }
+              eclipse.project.name = 'cool-impl'
+            }
 
-  eclipse.project.name = 'cool-impl'
-}
+            project(':contrib') {
+              apply plugin: 'java'
+            }
+        """
 
-project(':contrib') {
-  apply plugin: 'java'
-}
-"""
-        //when
-        executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
+        settingsFile << "include 'impl', 'contrib'"
 
-        //then no exception thrown
+        when:
+        succeeds('eclipse')
+
+        then:
+        notThrown(Exception)
     }
 
-    @Test
     @Issue("GRADLE-2030")
-    void "component for war plugin does not contain non-existing source and resource dirs"() {
-        //given
+    def "component for war plugin does not contain non-existing source and resource dirs"() {
+        given:
         file('xxxSource').createDir()
         file('xxxResource').createDir()
 
-        //when
-        runEclipseTask """
-          apply plugin: 'java'
-          apply plugin: 'war'
-          apply plugin: 'eclipse-wtp'
-          
-          sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
 
-          eclipse.wtp.component {
-            resource sourcePath: 'xxxResource', deployPath: 'deploy-xxx'
-            resource sourcePath: 'yyyResource', deployPath: 'deploy-yyy'
-          }
-"""
-        //then
-        def component = getComponentFile().text
+            sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
 
-        assert component.contains('xxxSource')
-        assert !component.contains('yyySource')
+            eclipse.wtp.component {
+              resource sourcePath: 'xxxResource', deployPath: 'deploy-xxx'
+              resource sourcePath: 'yyyResource', deployPath: 'deploy-yyy'
+            }
+        """
 
-        assert component.contains('xxxResource')
-        assert !component.contains('yyyResource')
+        settingsFile << "rootProject.name = 'root'"
+
+        when:
+        succeeds('eclipse')
+
+        then:
+        def component = componentFile.text
+        component.contains('xxxSource')
+        !component.contains('yyySource')
+        component.contains('xxxResource')
+        !component.contains('yyyResource')
     }
 
-    @Test
     @Issue("GRADLE-2030")
-    void "component for ear plugin does not contain non-existing source and resource dirs"() {
-        //given
+    def "component for ear plugin does not contain non-existing source and resource dirs"() {
+        given:
         file('xxxSource').createDir()
         file('xxxResource').createDir()
 
-        //when
-        runEclipseTask """
+        buildFile << """
           apply plugin: 'java'
           apply plugin: 'ear'
           apply plugin: 'eclipse-wtp'
@@ -403,47 +397,50 @@ project(':contrib') {
             resource sourcePath: 'xxxResource', deployPath: 'deploy-xxx'
             resource sourcePath: 'yyyResource', deployPath: 'deploy-yyy'
           }
-"""
-        //then
+        """
+
+        settingsFile << "rootProject.name = 'root'"
+
+        when:
+        succeeds('eclipse')
+
+        then:
         def component = getComponentFile().text
-
-        assert component.contains('xxxSource')
-        assert !component.contains('yyySource')
-
-        assert component.contains('xxxResource')
-        assert !component.contains('yyyResource')
-        
-        assert !component.contains('nonExistingAppDir')
+        component.contains('xxxSource')
+        !component.contains('yyySource')
+        component.contains('xxxResource')
+        !component.contains('yyyResource')
+        !component.contains('nonExistingAppDir')
     }
 
-    @Test
-    void "component for ear plugin contains the app dir"() {
-        //given
+    def "component for ear plugin contains the app dir"() {
+        given:
         file('coolAppDir').createDir()
 
-        //when
-        runEclipseTask """
-          apply plugin: 'java'
-          apply plugin: 'ear'
-          apply plugin: 'eclipse-wtp'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'ear'
+            apply plugin: 'eclipse-wtp'
 
-          appDirName = 'coolAppDir'
-"""
-        //then
-        def component = getComponentFile().text
+            appDirName = 'coolAppDir'
+        """
 
-        assert component.contains('coolAppDir')
+        settingsFile << "rootProject.name = 'root'"
+
+        when:
+        succeeds('eclipse')
+
+        then:
+        componentFile.text.contains('coolAppDir')
     }
 
-    @Test
     @Issue("GRADLE-1974")
-    void "may use web libraries container"() {
-        //given
+    def "may use web libraries container"() {
+        given:
         //adding a little bit more stress with a subproject and some web resources:
         file("src/main/webapp/index.jsp") << "<html>Hey!</html>"
-        file("settings.gradle") << "include 'someCoolLib'"
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'war'
             apply plugin: 'eclipse-wtp'
 
@@ -460,36 +457,38 @@ project(':contrib') {
             }
         """
 
-        //when
-        executer.withTasks("eclipse").run()
+        settingsFile << "include 'someCoolLib'"
 
-        //then the container is configured
-        assert getClasspathFile().text.contains(EclipseWtpPlugin.WEB_LIBS_CONTAINER)
+        when:
+        succeeds('eclipse')
+
+        then: //the container is configured
+        classpathFile.text.contains(EclipseWtpPlugin.WEB_LIBS_CONTAINER)
     }
 
-    @Test
     @Issue("GRADLE-1974")
-    void "the web container is not present without war+wtp combo"() {
-        //given
-        file("build.gradle") << """
+    def "the web container is not present without war+wtp combo"() {
+        given:
+        buildFile << """
             apply plugin: 'java' //anything but not war
             apply plugin: 'eclipse-wtp'
         """
 
-        //when
-        executer.withTasks("eclipse").run()
+        settingsFile << "rootProject.name = 'root'"
 
-        //then container is added only once:
-        assert !getClasspathFile().text.contains(EclipseWtpPlugin.WEB_LIBS_CONTAINER)
+        when:
+        succeeds('eclipse')
+
+        then: //container is added only once:
+        !classpathFile.text.contains(EclipseWtpPlugin.WEB_LIBS_CONTAINER)
     }
 
-    @Test
     @Issue("GRADLE-1707")
-    void "the library and variable classpath entries are marked as component non-dependency"() {
-        //given
+    def "the library and variable classpath entries are marked as component non-dependency"() {
+        given:
         file('libs/myFoo.jar').touch()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'war'
             apply plugin: 'eclipse-wtp'
 
@@ -503,26 +502,26 @@ project(':contrib') {
             eclipse.pathVariables MY_LIBS: file('libs')
         """
 
-        //when
-        executer.withTasks("eclipse").run()
+        settingsFile << "rootProject.name = 'root'"
 
-        //then
-        def classpath = classpath
-        def component = wtpComponent
+        when:
+        succeeds('eclipse')
 
+        then:
         //the jar dependency is configured in the WTP component file and in the classpath
+        def classpath = getClasspath()
         classpath.lib('commons-io-1.4.jar').assertIsExcludedFromDeployment()
-        component.lib('commons-io-1.4.jar').assertDeployedAt('/WEB-INF/lib')
 
+        def component = getWtpComponent()
+        component.lib('commons-io-1.4.jar').assertDeployedAt('/WEB-INF/lib')
         classpath.lib('myFoo.jar').assertIsExcludedFromDeployment()
         component.lib('myFoo.jar').assertDeployedAt('/WEB-INF/lib')
     }
 
-    @Test
     @Issue("GRADLE-1707")
-    void "classpath entries are protected from conflicting component dependency attributes"() {
-        //given
-        file("build.gradle") << """
+    def "classpath entries are protected from conflicting component dependency attributes"() {
+        given:
+        buildFile << """
             apply plugin: 'war'
             apply plugin: 'eclipse-wtp'
 
@@ -545,55 +544,51 @@ project(':contrib') {
             }
         """
 
-        //when
-        executer.withTasks("eclipse").run()
+        settingsFile << "rootProject.name = 'root'"
 
-        //then
-        def classpath = classpath
+        when:
+        succeeds('eclipse')
+
+        then:
         classpath.lib('commons-io-1.4.jar').assertIsDeployedTo('WEB-INF/lib')
     }
 
-    @Test
     @Issue("GRADLE-1412")
-    void "dependent project's library and variable classpath entries contain necessary dependency attribute"() {
-        //given
+    def "dependent project's library and variable classpath entries contain necessary dependency attribute"() {
+        given:
         file('libs/myFoo.jar').touch()
-        file('settings.gradle') << "include 'someLib'"
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'war'
             apply plugin: 'eclipse-wtp'
 
             dependencies {
-                compile project(':someLib')
+              compile project(':someLib')
             }
 
             project(':someLib') {
-                apply plugin: 'java'
-                apply plugin: 'eclipse-wtp'
-                
-                repositories { mavenCentral() }
+              apply plugin: 'java'
+              apply plugin: 'eclipse-wtp'
 
-                dependencies {
-                  compile 'commons-io:commons-io:1.4'
-                  compile files('libs/myFoo.jar')
-                }
+              repositories { mavenCentral() }
 
-                eclipse.pathVariables MY_LIBS: file('libs')
+              dependencies {
+                compile 'commons-io:commons-io:1.4'
+                compile files('libs/myFoo.jar')
+              }
+
+              eclipse.pathVariables MY_LIBS: file('libs')
             }
         """
 
-        //when
-        executer.withTasks("eclipse").run()
+        settingsFile << "include 'someLib'"
 
-        //then
+        when:
+        succeeds('eclipse')
+
+        then:
         def classpath = classpath('someLib')
-
         classpath.lib('commons-io-1.4.jar').assertIsDeployedTo('../')
         classpath.lib('myFoo.jar').assertIsDeployedTo('../')
-    }
-
-    protected def contains(String ... contents) {
-        contents.each { assert component.contains(it)}
     }
 }

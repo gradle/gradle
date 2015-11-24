@@ -34,6 +34,6 @@ public interface TargetedNativeComponent extends PlatformAwareComponentSpec {
     /**
      * Specifies the names of one or more {@link BuildType}s that this component should be built for.
      */
-    void targetBuildTypes(String... platformSelectors);
+    void targetBuildTypes(String... buildTypeSelectors);
 
 }

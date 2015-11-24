@@ -26,11 +26,11 @@ public interface NativeLibraryBinarySpec extends NativeBinarySpec, LibraryBinary
      * {@inheritDoc}
      */
     @Override
-    NativeLibrarySpec getLibrary();
-
+    NativeLibrarySpec getComponent();
+    
     /**
      * {@inheritDoc}
      */
     @Override
-    NativeLibrarySpec getComponent();
+    NativeLibrarySpec getLibrary();
 }

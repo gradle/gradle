@@ -23,8 +23,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 @Requires(TestPrecondition.ONLINE)
 class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -36,19 +34,18 @@ class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds "components"
         then:
-        output.contains(toPlatformLineSeparators("""
-DefaultDocumentationComponent 'docs'
-------------------------------------
+        output.contains """
+DocumentationComponent 'docs'
+-----------------------------
 
 Source sets
-    DefaultMarkdownSourceSet 'docs:userguide'
+    MarkdownSourceSet 'docs:userguide'
         srcDir: src${File.separator}docs${File.separator}userguide
 
 Binaries
-    DefaultDocumentationBinary 'docsBinary'
+    DocumentationBinary 'docs:binary'
         build using task: :docsBinary
-"""))
-
+"""
     }
 
     def "can build binary"() {
@@ -57,9 +54,9 @@ Binaries
         when:
         succeeds "assemble"
         then:
-        executedTasks == [":docsBinaryUserguideHtmlCompile", ":zipDocsBinary", ":docsBinary", ":assemble"]
+        executedTasks == [":compileDocsBinaryUserguide", ":zipDocsBinary", ":docsBinary", ":assemble"]
         and:
-        new ZipTestFixture(languageTypeSample.dir.file("build/docsBinary/docsBinary.zip")).containsDescendants(
+        new ZipTestFixture(languageTypeSample.dir.file("build/binary/binary.zip")).containsDescendants(
                 "userguide/chapter1.html",
                 "userguide/chapter2.html",
                 "userguide/index.html")

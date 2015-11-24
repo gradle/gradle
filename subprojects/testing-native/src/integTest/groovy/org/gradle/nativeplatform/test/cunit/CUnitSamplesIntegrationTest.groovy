@@ -16,10 +16,10 @@
 
 
 package org.gradle.nativeplatform.test.cunit
+
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -47,8 +47,8 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
     def "cunit"() {
         given:
-        // CUnit prebuilt library only works for VS2010 on windows
-        if (OperatingSystem.current().windows && !isVisualCpp2010()) {
+        // Only run on Windows when using VisualCpp toolchain
+        if (OperatingSystem.current().windows && !isVisualCpp()) {
             return
         }
 
@@ -58,8 +58,8 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         then:
         executedAndNotSkipped ":operatorsTestCUnitLauncher",
-                              ":compilePassingOperatorsTestCUnitExeOperatorsTestC", ":compilePassingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
-                              ":linkPassingOperatorsTestCUnitExe", ":passingOperatorsTestCUnitExe",
+                              ":compileOperatorsTestPassingCUnitExeOperatorsTestC", ":compileOperatorsTestPassingCUnitExeOperatorsTestCunitLauncher",
+                              ":linkPassingOperatorsTestCUnitExe", ":operatorsTestPassingCUnitExe",
                               ":installPassingOperatorsTestCUnitExe", ":runPassingOperatorsTestCUnitExe"
 
         and:
@@ -76,8 +76,8 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         then:
         skipped ":operatorsTestCUnitLauncher"
-        executedAndNotSkipped ":compileFailingOperatorsTestCUnitExeOperatorsTestC", ":compileFailingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
-                              ":linkFailingOperatorsTestCUnitExe", ":failingOperatorsTestCUnitExe",
+        executedAndNotSkipped ":compileOperatorsTestFailingCUnitExeOperatorsTestC", ":compileOperatorsTestFailingCUnitExeOperatorsTestCunitLauncher",
+                              ":linkFailingOperatorsTestCUnitExe", ":operatorsTestFailingCUnitExe",
                               ":installFailingOperatorsTestCUnitExe", ":runFailingOperatorsTestCUnitExe"
 
         and:
@@ -89,7 +89,7 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
         failingResults.checkAssertions(6, 4, 2)
     }
 
-    private static boolean isVisualCpp2010() {
-        return (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp && (AbstractInstalledToolChainIntegrationSpec.toolChain as AvailableToolChains.InstalledVisualCpp).version.major == "10")
+    private static boolean isVisualCpp() {
+        return AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp
     }
 }

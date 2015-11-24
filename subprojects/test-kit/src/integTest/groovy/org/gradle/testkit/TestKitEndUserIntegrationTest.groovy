@@ -16,11 +16,12 @@
 
 package org.gradle.testkit
 
+import com.google.common.math.IntMath
 import groovy.io.FileType
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
@@ -29,13 +30,17 @@ import org.gradle.testkit.runner.internal.TempTestKitDirProvider
 import org.gradle.util.GFileUtils
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.UsesNativeServices
 import org.junit.runner.RunWith
+import spock.lang.Unroll
 
+@UsesNativeServices
 @RunWith(GradleRunnerIntegTestRunner)
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireGradleHome().withStackTraceChecksDisabled()
+        executer.withEnvironmentVars(GRADLE_USER_HOME: executer.gradleUserHomeDir.absolutePath)
         buildFile << buildFileForGroovyProject()
     }
 
@@ -60,7 +65,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         def jarsDir = testDirectoryProvider.createDir('jars')
 
         new File(distribution.gradleHomeDir, 'lib').eachFileRecurse(FileType.FILES) { f ->
-            if (["tooling-api", "base-services", "test-kit", "gradle-core"].any { f.name.contains it }) {
+            if (["test-kit"].any { f.name.contains it }) {
                 GFileUtils.copyFile(f, new File(jarsDir, f.name))
             }
         }
@@ -82,6 +87,62 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         failure.output.contains("Could not find a Gradle runtime to use based on the location of the GradleRunner class: $testKitJar.canonicalPath. Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar.")
     }
 
+    @Unroll
+    def "attempt to use #origin class in functional test should fail"() {
+        buildFile << gradleTestKitDependency()
+        writeTest """
+            package org.gradle.test
+
+            import $clazz.name
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {}
+        """
+
+        when:
+        fails('build')
+
+        then:
+        errorOutput.contains("unable to resolve class $clazz.name")
+        executedAndNotSkipped(':compileTestGroovy')
+        assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
+
+        where:
+        clazz       | origin
+        JavaVersion | 'Gradle core'
+        IntMath     | 'Google Guava'
+    }
+
+    def "class from user-defined library doesn't conflict with same Gradle core library in runtime classpath"() {
+        buildFile << gradleTestKitDependency()
+        buildFile << """
+            dependencies {
+                testCompile 'com.google.guava:guava-jdk5:13.0'
+            }
+        """
+        writeTest """
+            package org.gradle.test
+
+            import $IntMath.name
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {}
+        """
+
+        when:
+        succeeds('build')
+
+        then:
+        executedAndNotSkipped(":test", ":build")
+        assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
+    }
+
     def "successfully execute functional test and verify expected result"() {
         buildFile << gradleTestKitDependency()
         writeTest successfulSpockTest('BuildLogicFunctionalTest')
@@ -92,6 +153,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":test", ":build")
         assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
     }
 
     def "successfully execute functional tests with parallel forks"() {
@@ -115,6 +179,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         }
 
         assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
     }
 
     def "successfully execute functional test with custom Gradle user home directory"() {
@@ -172,6 +239,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":test", ":build")
         assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
     }
 
     def "functional test fails due to invalid JVM parameter for test execution"() {
@@ -221,9 +291,11 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         // IBM JVM produces a slightly different error message
         failure.output.contains('Unrecognized option: -unknown') || failure.output.contains('Command-line option unrecognised: -unknown')
         assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
     }
 
-    @LeaksFileHandles
     def "can test plugin and custom task as external files by adding them to the build script's classpath"() {
         file("settings.gradle") << "include 'sub'"
         file("sub/build.gradle") << "apply plugin: 'groovy'; dependencies { compile localGroovy() }"
@@ -339,6 +411,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(':test')
         assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
     }
 
     def "can test plugin and custom task as external files by providing them as classpath through GradleRunner API"() {
@@ -475,6 +550,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(':test')
         assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
     }
 
     def "can control debug mode through system property"() {
@@ -534,6 +612,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":test", ":build")
         assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
     }
 
     @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
@@ -590,6 +671,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":test", ":build")
         assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
 
         where:
         gradleVersion << ['2.6', '2.7']
@@ -661,8 +745,110 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         assertDaemonsAreStopping()
 
+        cleanup:
+        killDaemons()
+
         where:
         gradleVersion << ['2.6', '2.7']
+    }
+
+    def "can test settings plugin as external files by adding them to the build script's classpath"() {
+        buildFile <<
+            gradleApiDependency() <<
+            gradleTestKitDependency() <<
+            """
+                task createClasspathManifest {
+                    def outputDir = file("\$buildDir/\$name")
+
+                    inputs.files sourceSets.main.runtimeClasspath
+                    outputs.dir outputDir
+
+                    doLast {
+                        outputDir.mkdirs()
+                        file("\$outputDir/plugin-classpath.txt").text = sourceSets.main.runtimeClasspath.join("\\n")
+                    }
+                }
+
+                dependencies {
+                    testCompile files(createClasspathManifest)
+                }
+            """
+
+        file("src/main/groovy/org/gradle/test/HelloWorldSettingsPlugin.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.initialization.Settings
+
+            class HelloWorldSettingsPlugin implements Plugin<Settings> {
+                void apply(Settings settings) {
+                    println 'Hello world!'
+                }
+            }
+        """
+
+        writeTest """
+            package org.gradle.test
+
+            import org.gradle.testkit.runner.GradleRunner
+            import static org.gradle.testkit.runner.TaskOutcome.*
+            import org.junit.Rule
+            import org.junit.rules.TemporaryFolder
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {
+                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                File buildFile
+                File settingsFile
+
+                def setup() {
+                    buildFile = testProjectDir.newFile('build.gradle')
+                    settingsFile = testProjectDir.newFile('settings.gradle')
+                    def pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
+                      .readLines()
+                      .collect { it.replace('\\\\', '\\\\\\\\') } // escape backslashes in Windows paths
+                      .collect { "'\$it'" }
+                      .join(", ")
+
+                    settingsFile << \"\"\"
+                        buildscript {
+                            dependencies {
+                                classpath files(\$pluginClasspath)
+                            }
+                        }
+                    \"\"\"
+                }
+
+                def "apply settings plugin"() {
+                    given:
+                    settingsFile << 'apply plugin: org.gradle.test.HelloWorldSettingsPlugin'
+
+                    when:
+                    def result = GradleRunner.create()
+                        .withProjectDir(testProjectDir.root)
+                        .withArguments('tasks')
+                        .withDebug($GradleRunnerIntegTestRunner.debug)
+                        .build()
+
+                    then:
+                    result.output.contains('Hello world!')
+                    result.taskPaths(SUCCESS) == [':tasks']
+                    result.taskPaths(SKIPPED).empty
+                    result.taskPaths(UP_TO_DATE).empty
+                    result.taskPaths(FAILED).empty
+                }
+            }
+        """
+
+        when:
+        succeeds('build')
+
+        then:
+        executedAndNotSkipped(':test')
+        assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
     }
 
     private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
@@ -672,6 +858,10 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     private void assertDaemonsAreStopping() {
         createDaemonLogAnalyzer().visible*.stops()
+    }
+
+    private void killDaemons() {
+        createDaemonLogAnalyzer().killAll()
     }
 
     private static String buildFileForGroovyProject() {

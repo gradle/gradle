@@ -32,6 +32,12 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample multicomponent = new Sample(temporaryFolder, "javaLibraryPlugin/multiplecomponents")
 
+    @Rule
+    Sample apiSpec = new Sample(temporaryFolder, "javaLibraryPlugin/apispec")
+
+    @Rule
+    Sample apiSpecSupport = new Sample(temporaryFolder, "javaLibraryPlugin/apispec-support")
+
     def "quickstart sample builds java based jvm component"() {
         setup:
         executer.inDirectory(quickstart.dir)
@@ -53,17 +59,17 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds("assemble")
 
         then: "the Java 5 version of the jar doesn't include any Java 6 class"
-        new JarTestFixture(platformAware.dir.file("core/build/jars/java5MainJar/main.jar")).hasDescendants(
+        new JarTestFixture(platformAware.dir.file("core/build/jars/mainJava5Jar/main.jar")).hasDescendants(
             "org/gradle/Person.class", "org/gradle/resource.xml"
         )
 
         and: "the Java 6 jar contains the Person6 class"
-        new JarTestFixture(platformAware.dir.file("core/build/jars/java6MainJar/main.jar")).hasDescendants(
+        new JarTestFixture(platformAware.dir.file("core/build/jars/mainJava6Jar/main.jar")).hasDescendants(
             "org/gradle/Person.class", "org/gradle/Person6.class", "org/gradle/resource.xml"
         )
 
         and:
-        new JarTestFixture(platformAware.dir.file("server/build/jars/java6MainJar/main.jar")).hasDescendants(
+        new JarTestFixture(platformAware.dir.file("server/build/jars/mainJava6Jar/main.jar")).hasDescendants(
             "org/gradle/Server.class"
         )
     }
@@ -94,5 +100,47 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         new JarTestFixture(multicomponent.dir.file("util/build/jars/mainJar/main.jar")).hasDescendants(
             "org/gradle/Utils.class"
         )
+    }
+
+    def "demonstrates compile avoidance by declaring an API"() {
+        setup:
+        executer.inDirectory(apiSpec.dir)
+
+        when:
+        succeeds ':mainJar', ':clientJar'
+
+        then:
+        new JarTestFixture(apiSpec.dir.file("build/jars/mainJar/main.jar")).hasDescendants(
+            "org/gradle/Person.class",
+            "org/gradle/utils/StringUtils.class",
+            "org/gradle/internal/PersonInternal.class",
+            "org/gradle/resource.xml"
+        )
+
+        new JarTestFixture(apiSpec.dir.file("build/jars/mainApiJar/main.jar")).hasDescendants(
+            "org/gradle/Person.class",
+            "org/gradle/utils/StringUtils.class"
+        )
+
+        and:
+        new JarTestFixture(apiSpec.dir.file("build/jars/clientJar/client.jar")).hasDescendants(
+            "org/gradle/Client.class"
+        )
+
+        when:
+        executer.inDirectory(apiSpec.dir)
+
+        then:
+        fails ':brokenclientJar'
+
+        when:
+        executer.inDirectory(apiSpecSupport.dir)
+        succeeds ':updateMainComponent'
+        executer.inDirectory(apiSpec.dir)
+
+        then:
+        succeeds ':clientJar'
+        executedAndNotSkipped ':mainApiJar'
+        skipped ':compileClientJarClientJava'
     }
 }

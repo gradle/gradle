@@ -34,7 +34,7 @@ Possibly don't show this when same as the parent element (see how it looks)
 Possibly add a 'show details' command-line option to enable this.
 
 
-`org.gradle.model.internal.core.ModelCreator.getDescriptor()`
+`org.gradle.model.internal.core.ModelRegistration.getDescriptor()`
 
 
 # Story: Model report shows details of rules that affected a model element

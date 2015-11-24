@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.jvm;
 
-import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
@@ -32,7 +30,6 @@ import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 import org.gradle.platform.base.internal.FixedBuildAbility;
@@ -66,22 +63,17 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     @Override
+    public String getProjectScopedName() {
+        return getName();
+    }
+
+    @Override
     public Class<? extends BinarySpec> getPublicType() {
         return ClassDirectoryBinarySpec.class;
     }
 
-    @Override
-    public void setPublicType(Class<? extends BinarySpec> publicType) {
-        throw new UnsupportedOperationException();
-    }
-
     public JvmBinaryTasks getTasks() {
         return tasks;
-    }
-
-    @Override
-    public void tasks(Action<? super BinaryTasksCollection> action) {
-        action.execute(tasks);
     }
 
     public JavaToolChain getToolChain() {
@@ -133,11 +125,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     @Override
-    public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public DomainObjectSet<LanguageSourceSet> getSource() {
         return getInputs();
     }
@@ -155,11 +142,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     @Override
     public void addSourceSet(LanguageSourceSet sourceSet) {
         sourceSets.add(sourceSet);
-    }
-
-    @Override
-    public NamedDomainObjectFactoryRegistry<LanguageSourceSet> getEntityInstantiator() {
-        throw new UnsupportedOperationException();
     }
 
     public String getDisplayName() {

@@ -128,15 +128,19 @@ class Jdk7DirectoryWalkerTest extends Specification {
         checkFileVisitDetailsEqual(visitedWithDefaultWalker, visitedWithJdk7Walker)
     }
 
-    private boolean checkFileVisitDetailsEqual(List<FileVisitDetails> visitedWithDefaultWalker, List<FileVisitDetails> visitedWithJdk7Walker) {
-        visitedWithDefaultWalker.every { FileVisitDetails details ->
+    private void checkFileVisitDetailsEqual(List<FileVisitDetails> visitedWithDefaultWalker, List<FileVisitDetails> visitedWithJdk7Walker) {
+        visitedWithDefaultWalker.each { FileVisitDetails details ->
             def detailsFromJdk7Walker = visitedWithJdk7Walker.find { it.file.absolutePath == details.file.absolutePath }
 
-            detailsFromJdk7Walker != null &&
-                details.lastModified == detailsFromJdk7Walker.lastModified &&
+            assert detailsFromJdk7Walker != null &&
+                millisToSeconds(details.lastModified) == millisToSeconds(detailsFromJdk7Walker.lastModified) &&
                 details.directory == detailsFromJdk7Walker.directory &&
                 (details.directory || details.size == detailsFromJdk7Walker.size)
         }
+    }
+
+    private long millisToSeconds(long millis) {
+        millis / 1000L
     }
 
     private generateFilesAndSubDirectories(TestFile parentDir, int fileCount, int dirCount, int maxDepth, int currentDepth, AtomicInteger fileIdGenerator) {

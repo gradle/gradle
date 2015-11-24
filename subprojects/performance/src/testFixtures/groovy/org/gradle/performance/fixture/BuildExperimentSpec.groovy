@@ -30,8 +30,9 @@ class BuildExperimentSpec {
     Integer invocationCount
     Long sleepAfterWarmUpMillis
     Long sleepAfterTestRoundMillis
+    BuildExperimentListener listener
 
-    BuildExperimentSpec(String displayName, String projectName, GradleInvocationSpec invocation, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis) {
+    BuildExperimentSpec(String displayName, String projectName, GradleInvocationSpec invocation, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener) {
         this.displayName = displayName
         this.projectName = projectName
         this.invocation = invocation
@@ -39,6 +40,7 @@ class BuildExperimentSpec {
         this.invocationCount = invocationCount
         this.sleepAfterWarmUpMillis = sleepAfterWarmUpMillis
         this.sleepAfterTestRoundMillis = sleepAfterTestRoundMillis
+        this.listener = listener
     }
 
     static Builder builder() {
@@ -57,6 +59,7 @@ class BuildExperimentSpec {
         Integer invocationCount
         Long sleepAfterWarmUpMillis = 5000L
         Long sleepAfterTestRoundMillis = 1000L
+        BuildExperimentListener listener
 
         Builder displayName(String displayName) {
             this.displayName = displayName
@@ -93,6 +96,11 @@ class BuildExperimentSpec {
             this
         }
 
+        Builder listener(BuildExperimentListener listener) {
+            this.listener = listener
+            this
+        }
+
         BuildExperimentSpec build() {
             assert projectName != null
             assert displayName != null
@@ -100,7 +108,7 @@ class BuildExperimentSpec {
             assert warmUpCount >= 0
             assert invocationCount > 0
 
-            new BuildExperimentSpec(displayName, projectName, invocation.buildInfo(displayName, projectName).build(), warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis)
+            new BuildExperimentSpec(displayName, projectName, invocation.buildInfo(displayName, projectName).build(), warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
         }
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.hamcrest.Matchers.containsString
 
 public class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
@@ -554,7 +553,7 @@ task checkDeps << {
         run("dependencies")
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 childFirst
 +--- org:d:1.0
 |    \\--- org:x:1.0 -> 2.0 FAILED
@@ -575,7 +574,7 @@ parentFirst
 +--- org:d:1.0
 |    \\--- org:x:1.0 -> 2.0 FAILED
 \\--- org:f:1.0
-     \\--- org:x:2.0 FAILED"""))
+     \\--- org:x:2.0 FAILED"""
     }
 
     @Issue("GRADLE-2752")

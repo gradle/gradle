@@ -121,13 +121,15 @@ class UserGuideSamplesRunner extends Runner {
     }
 
     private void cleanup(SampleRun run) {
-        // Clean up previous runs in the same subdir
-        File rootProjectDir = temporaryFolder.testDirectory.file(run.subDir)
-        if (rootProjectDir.exists()) {
-            def delete = new Delete()
-            delete.dir = rootProjectDir
-            delete.includes = "**/.gradle/** **/build/**"
-            AntUtil.execute(delete)
+        run.runs.each { singleRun ->
+            // Clean up previous runs in the same subdir
+            File rootProjectDir = temporaryFolder.testDirectory.file(singleRun.subDir)
+            if (rootProjectDir.exists()) {
+                def delete = new Delete()
+                delete.dir = rootProjectDir
+                delete.includes = "**/.gradle/** **/build/**"
+                AntUtil.execute(delete)
+            }
         }
     }
 
@@ -206,7 +208,7 @@ class UserGuideSamplesRunner extends Runner {
         def children = samples.children()
         assertSamplesGenerated(!children.isEmpty())
 
-        children.each { Node sample ->
+        children.eachWithIndex { Node sample, int index ->
             def id = sample.'@id'
             def dir = sample.'@dir'
             def args = sample.'@args'
@@ -222,6 +224,7 @@ class UserGuideSamplesRunner extends Runner {
             run.ignoreExtraLines = ignoreExtraLines
             run.ignoreLineOrder = ignoreLineOrder
             run.expectFailure = expectFailure
+            run.index = index
 
             sample.file.each { file -> run.files << file.'@path' }
             sample.dir.each { file -> run.dirs << file.'@path' }
@@ -273,6 +276,9 @@ class UserGuideSamplesRunner extends Runner {
             samplesById.remove('completeCUnitExample')
         }
 
+        samplesById.each { id, sample ->
+            sample.runs = sample.runs.sort { it.index }
+        }
         return samplesById.values()
     }
 
@@ -295,6 +301,7 @@ Please run 'gradle docs:userguideDocbook' first"""
         boolean allowDeprecation
         List files = []
         List dirs = []
+        int index
 
         boolean getMustRun() {
             return args || files || dirs

@@ -137,7 +137,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds "check"
     }
 
-    def "can set/get properties of all supported unmanaged types using Groovy"() {
+    def "can set/get properties of all supported scalar types using Groovy"() {
         when:
         buildScript '''
             @Managed
@@ -223,7 +223,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds "check"
     }
 
-    def "can set/get properties of all supported unmanaged types using Java"() {
+    def "can set/get properties of all supported scalar types using Java"() {
         given:
         file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;

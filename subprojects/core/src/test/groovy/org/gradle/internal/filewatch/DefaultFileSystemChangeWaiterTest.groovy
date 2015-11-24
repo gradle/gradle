@@ -31,18 +31,19 @@ import java.util.concurrent.atomic.AtomicReference
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
-
     @Rule
     TestNameTestDirectoryProvider testDirectory
 
     def "can wait for filesystem change"() {
         when:
-        def w = new DefaultFileSystemChangeWaiter(executorFactory, new DefaultFileWatcherFactory(executorFactory))
+        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, new DefaultFileWatcherFactory(executorFactory))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
+        def w = wf.createChangeWaiter(c)
 
         start {
-            w.wait(f, c) {
+            w.watch(f)
+            w.wait {
                 instant.notified
             }
             instant.done
@@ -60,12 +61,14 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
     def "escapes on cancel"() {
         when:
-        def w = new DefaultFileSystemChangeWaiter(executorFactory, new DefaultFileWatcherFactory(executorFactory))
+        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, new DefaultFileWatcherFactory(executorFactory))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
+        def w = wf.createChangeWaiter(c)
 
         start {
-            w.wait(f, c) {
+            w.watch(f)
+            w.wait {
                 instant.notified
             }
             instant.done
@@ -85,20 +88,22 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         given:
         def onErrorReference = new AtomicReference<Action>()
         def fileWatcherFactory = Mock(FileWatcherFactory) {
-            watch(_, _, _) >> { FileSystemSubset systemSubset, Action onError, FileWatcherListener listener ->
+            watch(_, _) >> { Action onError, FileWatcherListener listener ->
                 onErrorReference.set(onError)
                 Mock(FileWatcher)
             }
 
         }
         when:
-        def w = new DefaultFileSystemChangeWaiter(executorFactory, fileWatcherFactory)
+        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, fileWatcherFactory)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
+        def w = wf.createChangeWaiter(c)
 
         start {
             try {
-                w.wait(f, c) {
+                w.watch(f)
+                w.wait {
                     instant.notified
                 }
             } catch (Exception e) {
@@ -120,13 +125,15 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
     def "waits until there is a quiet period - #description"(String description, Closure fileChanger) {
         when:
         def quietPeriod = 1000L
-        def w = new DefaultFileSystemChangeWaiter(executorFactory, new DefaultFileWatcherFactory(executorFactory), quietPeriod)
+        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, new DefaultFileWatcherFactory(executorFactory), quietPeriod)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
+        def w = wf.createChangeWaiter(c)
         def testfile = testDirectory.file("testfile")
 
         start {
-            w.wait(f, c) {
+            w.watch(f)
+            w.wait {
                 instant.notified
             }
             instant.done
@@ -138,12 +145,12 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         when:
         def lastChangeRef = new AtomicLong(0)
         gcAndIdleBefore()
-        fileChanger(instant, testfile, lastChangeRef)
+        fileChanger(instant, testfile, lastChangeRef, logger)
 
         then:
         waitFor.done
         lastChangeRef.get() != 0
-        (System.nanoTime() - lastChangeRef.get()) / 1000000L >= quietPeriod
+        Math.round((System.nanoTime() - lastChangeRef.get()) / 1000000L) >= quietPeriod
 
         where:
         description            | fileChanger
@@ -151,23 +158,32 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         'append and keep open' | this.&changeByAppendingAndKeepingFileOpen
     }
 
-    private void changeByAppendingAndClosing(instant, testfile, lastChangeRef) {
+    private void changeByAppendingAndClosing(instant, testfile, lastChangeRef, testLogger) {
         for (int i = 0; i < 10; i++) {
+            if (i > 0) {
+                sleep(50)
+            }
+            testLogger.log("loop ${i + 1}/10")
             instant.assertNotReached('done')
             testfile << "change"
+            testLogger.log("changed")
             lastChangeRef.set(System.nanoTime())
-            sleep(50)
         }
     }
 
-    private void changeByAppendingAndKeepingFileOpen(instant, testfile, lastChangeRef) {
+    private void changeByAppendingAndKeepingFileOpen(instant, testfile, lastChangeRef, testLogger) {
         new FileWriter(testfile).withWriter { Writer out ->
             for (int i = 0; i < 10; i++) {
+                if (i > 0) {
+                    sleep(50)
+                }
+                testLogger.log("loop ${i + 1}/10")
                 instant.assertNotReached('done')
                 out.write("change\n")
+                testLogger.log("written")
                 out.flush()
+                testLogger.log("flushed")
                 lastChangeRef.set(System.nanoTime())
-                sleep(50)
             }
         }
     }

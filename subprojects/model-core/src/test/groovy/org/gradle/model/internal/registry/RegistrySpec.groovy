@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.registry
 
-import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.Nullable
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.*
@@ -25,23 +24,17 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
-class RegistrySpec extends Specification {
+abstract class RegistrySpec extends Specification {
     protected static class TestNode extends ModelNodeInternal {
         def links = []
 
         TestNode(String creationPath, Class<?> type) {
-            super(toBinder(creationPath, type))
+            super(ModelRegistrations.of(ModelPath.path(creationPath)).descriptor("test").build())
+            addProjection(new UnmanagedModelProjection(ModelType.of(type)))
         }
 
-        TestNode(CreatorRuleBinder creatorBinder) {
-            super(creatorBinder)
-        }
-
-        private static CreatorRuleBinder toBinder(String creationPath, Class<?> type) {
-            def creator = ModelCreators.of(ModelPath.path(creationPath)).descriptor("test").withProjection(new UnmanagedModelProjection(ModelType.of(type))).build()
-            def subject = new BindingPredicate()
-            def binder = new CreatorRuleBinder(creator, subject, [], [])
-            binder
+        TestNode(ModelRegistration registration) {
+            super(registration)
         }
 
         @Override
@@ -55,18 +48,23 @@ class RegistrySpec extends Specification {
         }
 
         @Override
+        boolean canBeViewedAs(ModelType<?> type) {
+            return true
+        }
+
+        @Override
         def <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
             return null
         }
 
         @Override
-        void addReference(ModelCreator creator) {
+        void addReference(ModelRegistration registration) {
 
         }
 
 
         @Override
-        void addLink(ModelCreator creator) {
+        void addLink(ModelRegistration registration) {
 
         }
 
@@ -204,10 +202,6 @@ class RegistrySpec extends Specification {
         MutableModelNode getParent() {
             return null
         }
-
-        @Override
-        void addProjection(ModelProjection projection) {
-        }
     }
 
     protected static class RuleBinderTestBuilder {
@@ -263,14 +257,8 @@ class RegistrySpec extends Specification {
         }
 
         RuleBinder build() {
-            def binder
-            if (subjectReference == null) {
-                def action = new ProjectionBackedModelCreator(null, descriptor, false, false, false, [], ImmutableMultimap.of())
-                binder = new CreatorRuleBinder(action, new BindingPredicate(), inputReferences, [])
-            } else {
-                def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})
-                binder = new ModelActionBinder(subjectReference, inputReferences, action, [])
-            }
+            def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})
+            def binder = new RuleBinder(subjectReference, inputReferences, action, [])
             if (subjectReferenceBindingPath) {
                 binder.subjectBinding.boundTo = new TestNode(subjectReferenceBindingPath, Object)
             }

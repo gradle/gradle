@@ -19,7 +19,6 @@ package org.gradle.model.internal.core;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
@@ -36,32 +35,21 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     private final List<NodeInitializerExtractionStrategy> allStrategies;
     private final List<NodeInitializerExtractionStrategy> additionalStrategies;
     private final ModelSchemaStore schemaStore;
-    private final ScalarCollectionNodeInitializerExtractionStrategy scalarCollectionNodeInitializerExtractionStrategy;
-    private final ManagedSetNodeInitializerExtractionStrategy managedSetNodeInitializerExtractionStrategy;
-    private final ModelMapNodeInitializerExtractionStrategy modelMapNodeInitializerExtractionStrategy;
-    private final ModelSetNodeInitializerExtractionStrategy modelSetNodeInitializerExtractionStrategy;
 
     public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore) {
-        this(schemaStore, new ManagedProxyFactory());
-    }
-
-    public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
         this.schemaStore = schemaStore;
-        scalarCollectionNodeInitializerExtractionStrategy = new ScalarCollectionNodeInitializerExtractionStrategy();
-        managedSetNodeInitializerExtractionStrategy = new ManagedSetNodeInitializerExtractionStrategy();
-        modelMapNodeInitializerExtractionStrategy = new ModelMapNodeInitializerExtractionStrategy(this);
-        modelSetNodeInitializerExtractionStrategy = new ModelSetNodeInitializerExtractionStrategy();
         this.allStrategies = Lists.newArrayList(
-            modelSetNodeInitializerExtractionStrategy,
-            managedSetNodeInitializerExtractionStrategy,
-            modelMapNodeInitializerExtractionStrategy,
-            scalarCollectionNodeInitializerExtractionStrategy,
-            new ManagedImplStructNodeInitializerExtractionStrategy(schemaStore, proxyFactory)
+            new ModelSetNodeInitializerExtractionStrategy(),
+            new ManagedSetNodeInitializerExtractionStrategy(),
+            new SpecializedMapNodeInitializerExtractionStrategy(),
+            new ModelMapNodeInitializerExtractionStrategy(),
+            new ScalarCollectionNodeInitializerExtractionStrategy(),
+            new ManagedImplStructNodeInitializerExtractionStrategy()
         );
         additionalStrategies = Lists.newArrayList();
     }
 
-    public ModelTypeInitializationException canNotConstructTypeException(NodeInitializerContext context) {
+    public ModelTypeInitializationException canNotConstructTypeException(NodeInitializerContext<?, ?, ?> context) {
         Iterable<ModelType<?>> scalars = Iterables.concat(ScalarTypes.TYPES, ScalarTypes.NON_FINAL_TYPES);
         Set<ModelType<?>> constructableTypes = new TreeSet<ModelType<?>>(new Comparator<ModelType<?>>() {
             @Override
@@ -76,7 +64,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     }
 
     @Override
-    public NodeInitializer getNodeInitializer(NodeInitializerContext nodeInitializerContext) {
+    public NodeInitializer getNodeInitializer(NodeInitializerContext<?, ?, ?> nodeInitializerContext) {
         NodeInitializer nodeInitializer = findNodeInitializer(nodeInitializerContext.getModelType());
         if (nodeInitializer != null) {
             return nodeInitializer;
@@ -85,7 +73,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     }
 
     @Nullable
-    public NodeInitializer findNodeInitializer(ModelType<?> type) {
+    private NodeInitializer findNodeInitializer(ModelType<?> type) {
         ModelSchema<?> schema = schemaStore.getSchema(type);
         for (NodeInitializerExtractionStrategy extractor : allStrategies) {
             NodeInitializer nodeInitializer = extractor.extractNodeInitializer(schema);
@@ -97,7 +85,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     }
 
     @Override
-    public void ensureHasInitializer(NodeInitializerContext nodeInitializer) {
+    public void ensureHasInitializer(NodeInitializerContext<?, ?, ?> nodeInitializer) {
         getNodeInitializer(nodeInitializer);
     }
 
@@ -105,10 +93,5 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     public void registerStrategy(NodeInitializerExtractionStrategy strategy) {
         allStrategies.add(0, strategy);
         additionalStrategies.add(0, strategy);
-    }
-
-    @Override
-    public <T> boolean hasNodeInitializer(ModelType<T> type) {
-        return null != findNodeInitializer(type);
     }
 }

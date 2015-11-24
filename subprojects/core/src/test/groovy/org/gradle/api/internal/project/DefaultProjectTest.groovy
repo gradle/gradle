@@ -679,7 +679,7 @@ def scriptMethod(Closure closure) {
     void testBuildDir() {
         File dir = new File(rootDir, 'dir')
         context.checking {
-            one(fileOperationsMock).file(Project.DEFAULT_BUILD_DIR_NAME)
+            allowing(fileOperationsMock).file(Project.DEFAULT_BUILD_DIR_NAME)
             will(returnValue(dir))
         }
         assertEquals(dir, child1.buildDir)

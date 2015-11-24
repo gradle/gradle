@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.jvm.JvmBinaryTasks;
@@ -30,20 +31,19 @@ import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
 public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpecInternal {
     private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(super.getTasks());
+    private final JarFile apiJar = new DefaultJarFile();
     private JavaToolChain toolChain;
     private JavaPlatform platform;
     private File classesDir;
     private File resourcesDir;
     private File jarFile;
-    private File apiJarFile;
-    private ComponentSpec component;
-    private Set<String> exportedPackages = Collections.emptySet();
-    private Collection<DependencySpec> apiDependencies = Collections.emptySet();
+    private Set<String> exportedPackages = ImmutableSet.of();
+    private Set<DependencySpec> apiDependencies = ImmutableSet.of();
+    private Set<DependencySpec> componentLevelDependencies = ImmutableSet.of();
 
     @Override
     protected String getTypeName() {
@@ -51,12 +51,8 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     }
 
     @Override
-    public void setComponent(ComponentSpec componentSpec) {
-        this.component = componentSpec;
-    }
-
-    @Override
     public LibraryBinaryIdentifier getId() {
+        ComponentSpec component = getComponent();
         return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }
 
@@ -86,6 +82,11 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     }
 
     @Override
+    public JarFile getApiJar() {
+        return apiJar;
+    }
+
+    @Override
     public File getJarFile() {
         return jarFile;
     }
@@ -97,12 +98,12 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public File getApiJarFile() {
-        return apiJarFile;
+        return apiJar.getFile();
     }
 
     @Override
     public void setApiJarFile(File apiJarFile) {
-        this.apiJarFile = apiJarFile;
+        apiJar.setFile(apiJarFile);
     }
 
     @Override
@@ -127,7 +128,7 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public void setExportedPackages(Set<String> exportedPackages) {
-        this.exportedPackages = exportedPackages;
+        this.exportedPackages = ImmutableSet.copyOf(exportedPackages);
     }
 
     @Override
@@ -137,12 +138,22 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public void setApiDependencies(Collection<DependencySpec> apiDependencies) {
-       this.apiDependencies = apiDependencies;
+       this.apiDependencies = ImmutableSet.copyOf(apiDependencies);
     }
 
     @Override
     public Collection<DependencySpec> getApiDependencies() {
         return apiDependencies;
+    }
+
+    @Override
+    public void setDependencies(Collection<DependencySpec> dependencies) {
+        componentLevelDependencies = ImmutableSet.copyOf(dependencies);
+    }
+
+    @Override
+    public Collection<DependencySpec> getDependencies() {
+        return componentLevelDependencies;
     }
 
     @Override

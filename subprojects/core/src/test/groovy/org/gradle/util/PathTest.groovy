@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.util
 
 import spock.lang.Specification
@@ -23,6 +23,7 @@ import static org.gradle.util.Matchers.strictlyEquals
 class PathTest extends Specification {
     def construction() {
         expect:
+        new Path(':').getPath() == ':'
         Path.path(':').is(Path.ROOT)
         Path.ROOT.getPath() == ':'
         Path.path('a').getPath() == 'a'
@@ -30,7 +31,7 @@ class PathTest extends Specification {
         Path.path(':a').getPath() == ':a'
         Path.path(':a:b').getPath() == ':a:b'
     }
-    
+
     def equalsAndHashCode() {
         expect:
         strictlyEquals(Path.ROOT, Path.ROOT)

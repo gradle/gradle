@@ -19,10 +19,8 @@ package org.gradle.jvm;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.platform.base.DependencySpec;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -58,8 +56,4 @@ public interface JarBinarySpec extends JvmBinarySpec {
     void setExportedPackages(Set<String> exportedPackages);
 
     Set<String> getExportedPackages();
-
-    void setApiDependencies(Collection<DependencySpec> apiDependencies);
-
-    Collection<DependencySpec> getApiDependencies();
 }

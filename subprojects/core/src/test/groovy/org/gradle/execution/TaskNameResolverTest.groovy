@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.execution
-
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
@@ -22,6 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
 
 import static org.gradle.model.internal.core.ModelNode.State.*
@@ -54,7 +54,7 @@ class TaskNameResolverTest extends Specification {
 
         then:
         registry.state(path("tasks")) == SelfClosed
-        registry.state(path("tasks.task")) == ProjectionsDefined
+        registry.state(path("tasks.task")) == Discovered
 
         and:
         asTasks(candidates).size() == 1
@@ -123,13 +123,13 @@ class TaskNameResolverTest extends Specification {
 
         then:
         registry.state(path("tasks")) == SelfClosed
-        childRegistry.state(path("tasks")) == Known
+        childRegistry.state(path("tasks")) == Registered
         registry.state(path("tasks.task")) == GraphClosed
 
         and:
         asTasks(results)*.description == ["root"]
         registry.state(path("tasks")) == SelfClosed
-        childRegistry.state(path("tasks")) == Known
+        childRegistry.state(path("tasks")) == Registered
         registry.state(path("tasks.task")) == GraphClosed
     }
 
@@ -170,8 +170,8 @@ class TaskNameResolverTest extends Specification {
 
         then:
         resolver.selectAll(project, false).keySet() == ["task1", "task2"].toSet()
-        registry.state(path("tasks.task1")) == ProjectionsDefined
-        registry.state(path("tasks.task2")) == ProjectionsDefined
+        registry.state(path("tasks.task1")) == Discovered
+        registry.state(path("tasks.task2")) == Discovered
     }
 
     def "lazily locates all tasks for multiple projects"() {
@@ -198,21 +198,21 @@ class TaskNameResolverTest extends Specification {
         registry.state(path("tasks")) == SelfClosed
         childRegistry.state(path("tasks")) == SelfClosed
 
-        registry.state(path("tasks.name1")) == ProjectionsDefined
-        registry.state(path("tasks.name2")) == ProjectionsDefined
-        childRegistry.state(path("tasks.name1")) == ProjectionsDefined
-        childRegistry.state(path("tasks.name3")) == ProjectionsDefined
+        registry.state(path("tasks.name1")) == Discovered
+        registry.state(path("tasks.name2")) == Discovered
+        childRegistry.state(path("tasks.name1")) == Discovered
+        childRegistry.state(path("tasks.name3")) == Discovered
 
         and:
         asTasks(candidates.get('name1'))*.description == ["root", "child"]
         registry.state(path("tasks.name1")) == GraphClosed
         childRegistry.state(path("tasks.name1")) == GraphClosed
-        registry.state(path("tasks.name2")) == ProjectionsDefined
-        childRegistry.state(path("tasks.name3")) == ProjectionsDefined
+        registry.state(path("tasks.name2")) == Discovered
+        childRegistry.state(path("tasks.name3")) == Discovered
 
         asTasks(candidates.get('name2'))*.description == ["root"]
         registry.state(path("tasks.name2")) == GraphClosed
-        childRegistry.state(path("tasks.name3")) == ProjectionsDefined
+        childRegistry.state(path("tasks.name3")) == Discovered
 
         asTasks(candidates.get('name3'))*.description == ["child"]
         childRegistry.state(path("tasks.name3")) == GraphClosed
@@ -242,17 +242,17 @@ class TaskNameResolverTest extends Specification {
         registry.state(path("tasks")) == SelfClosed
         childRegistry.state(path("tasks")) == SelfClosed
 
-        registry.state(path("tasks.name1")) == ProjectionsDefined
-        registry.state(path("tasks.name2")) == ProjectionsDefined
-        childRegistry.state(path("tasks.name1")) == ProjectionsDefined
-        childRegistry.state(path("tasks.name3")) == ProjectionsDefined
+        registry.state(path("tasks.name1")) == Discovered
+        registry.state(path("tasks.name2")) == Discovered
+        childRegistry.state(path("tasks.name1")) == Discovered
+        childRegistry.state(path("tasks.name3")) == Discovered
 
         and:
         asTasks(candidates.get('name1'))*.description == ["root"]
         registry.state(path("tasks.name1")) == GraphClosed
-        childRegistry.state(path("tasks.name1")) == ProjectionsDefined
-        registry.state(path("tasks.name2")) == ProjectionsDefined
-        childRegistry.state(path("tasks.name3")) == ProjectionsDefined
+        childRegistry.state(path("tasks.name1")) == Discovered
+        registry.state(path("tasks.name2")) == Discovered
+        childRegistry.state(path("tasks.name3")) == Discovered
     }
 
     def task(String name, String description = "") {
@@ -263,7 +263,7 @@ class TaskNameResolverTest extends Specification {
         }
     }
 
-    def tasks(ModelRegistryHelper registry, Action<? super ModelMap<TaskInternal>> action) {
+    def tasks(ModelRegistry registry, Action<? super ModelMap<TaskInternal>> action) {
         registry.mutateModelMap("tasks", TaskInternal, action)
     }
 
@@ -273,7 +273,7 @@ class TaskNameResolverTest extends Specification {
         return result
     }
 
-    private ModelRegistryHelper createTasksCollection(ModelRegistryHelper registry, String description) {
+    private ModelRegistry createTasksCollection(ModelRegistry registry, String description) {
         registry.modelMap("tasks", TaskInternal) {
             it.registerFactory(TaskInternal) {
                 task(it, description)

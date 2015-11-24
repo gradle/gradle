@@ -18,32 +18,28 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.test.fixtures.file.TestFile
 
 class EclipseWtpComponentFixture {
-    private final TestFile projectDir
-    private Node component
+    private final Node component
 
-    EclipseWtpComponentFixture(TestFile projectDir) {
-        this.projectDir = projectDir
+    private EclipseWtpComponentFixture(Node component) {
+        this.component = component;
     }
 
-    private Node getComponent() {
-        if (component == null) {
-            TestFile file = projectDir.file(".settings/org.eclipse.wst.common.component")
-            file.assertIsFile()
-            component = new XmlParser().parse(file)
-        }
-        return component
+    static EclipseWtpComponentFixture create(TestFile projectDir) {
+        TestFile file = projectDir.file(".settings/org.eclipse.wst.common.component")
+        file.assertIsFile()
+        new EclipseWtpComponentFixture(new XmlParser().parse(file))
     }
 
     String getDeployName() {
-        return getComponent()."wb-module"."@deploy-name".text()
+        return component."wb-module"."@deploy-name".text()
     }
 
     List<WbResource> getResources() {
-        return getComponent()."wb-module"."wb-resource".collect { new WbResource(it) }
+        return component."wb-module"."wb-resource".collect { new WbResource(it) }
     }
 
     List<WbModule> getModules() {
-        return getComponent()."wb-module"."dependent-module".collect { new WbModule(it) }
+        return component."wb-module"."dependent-module".collect { new WbModule(it) }
     }
 
     WbModule lib(String jarName) {
@@ -82,6 +78,11 @@ class EclipseWtpComponentFixture {
         void assertDeployedAt(String path) {
             assert node."@deploy-path" == path
         }
+
+        @Override
+        String toString() {
+            "WbModule[node=" + node + "]";
+        }
     }
 
     class WbResource {
@@ -93,6 +94,11 @@ class EclipseWtpComponentFixture {
 
         void assertDeployedAt(String path) {
             assert node."@deploy-path" == path
+        }
+
+        @Override
+        String toString() {
+            "WbResource[node=" + node + "]";
         }
     }
 }

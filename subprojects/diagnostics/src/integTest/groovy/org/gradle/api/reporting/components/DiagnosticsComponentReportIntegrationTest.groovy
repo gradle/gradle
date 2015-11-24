@@ -76,7 +76,7 @@ Source sets
         srcDir: src/jvmLib/resources
 
 Binaries
-    Jar 'jvmLibJar'
+    Jar 'jvmLib:jar'
         build using task: :jvmLibJar
         targetPlatform: $currentJava
         tool chain: $currentJdk

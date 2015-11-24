@@ -252,7 +252,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                             if (dependentSourceSet.getPreCompiledHeader() != null) {
                                 nativeBinarySpec.getPrefixFileToPCH().put(((DependentSourceSetInternal) dependentSourceSet).getPrefixHeaderFile(), new PreCompiledHeader());
                                 final SourceTransformTaskConfig pchTransformTaskConfig = transform.getPchTransformTask();
-                                String pchTaskName = String.format("%s%s%sPreCompiledHeader", pchTransformTaskConfig.getTaskPrefix(), StringUtils.capitalize(nativeBinarySpec.getName()), StringUtils.capitalize(dependentSourceSet.getName()));
+                                String pchTaskName = String.format("%s%s%sPreCompiledHeader", pchTransformTaskConfig.getTaskPrefix(), StringUtils.capitalize(nativeBinarySpec.getProjectScopedName()), StringUtils.capitalize(dependentSourceSet.getName()));
                                 Task pchTask = tasks.create(pchTaskName, pchTransformTaskConfig.getTaskType(), new Action<DefaultTask>() {
                                     @Override
                                     public void execute(DefaultTask task) {

@@ -85,6 +85,6 @@ task retrieve(type: Sync) {
         expect:
         fails 'retrieve'
         and:
-        errorOutput.contains("> Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 'sftp'")
+        failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 'sftp'")
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.instance;
 
+import groovy.lang.Closure;
 import org.gradle.model.internal.core.MutableModelNode;
 
 public interface ModelElementState {
@@ -26,4 +27,7 @@ public interface ModelElementState {
     Object get(String name);
 
     void set(String name, Object value);
+
+    void apply(String name, Closure<?> action);
+
 }

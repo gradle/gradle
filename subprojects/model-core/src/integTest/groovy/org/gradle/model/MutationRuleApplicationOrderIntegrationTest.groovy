@@ -147,7 +147,7 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
             model {
                 tasks {
                     echo(EchoTask) {
-                        recorder = $('recorder')
+                        recorder = $.recorder
                     }
                 }
                 recorder {

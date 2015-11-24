@@ -89,11 +89,13 @@ model {
         run "model"
 
         then:
-        ModelReportOutput.from(output).hasNodeStructure {
+        def reportOutput = ModelReportOutput.from(output)
+        reportOutput.hasNodeStructure {
             testSuites {
                 unitTests {
                     binaries {
                         tests {
+                            sources()
                             tasks()
                         }
                     }
@@ -103,8 +105,76 @@ model {
                 }
             }
         }
+        reportOutput.hasNodeStructure {
+            binaries {
+                unitTestTests {
+                    tasks()
+                }
+            }
+        }
 
+        when:
+        run "check"
 
+        then:
+        noExceptionThrown()
+    }
+
+    def "plugin can define multiple test suites"() {
+        buildFile << """
+
+apply plugin: NativeBinariesTestPlugin
+apply plugin: TestSuitePlugin
+
+model {
+    testSuites {
+        unit(CustomTestSuite)
+        functional(CustomTestSuite)
+    }
+}
+"""
+
+        when:
+        run "model"
+
+        then:
+        def reportOutput = ModelReportOutput.from(output)
+        reportOutput.hasNodeStructure {
+            testSuites {
+                functional {
+                    binaries {
+                        tests {
+                            sources()
+                            tasks()
+                        }
+                    }
+                    sources {
+                        tests()
+                    }
+                }
+                unit {
+                    binaries {
+                        tests {
+                            sources()
+                            tasks()
+                        }
+                    }
+                    sources {
+                        tests()
+                    }
+                }
+            }
+        }
+        reportOutput.hasNodeStructure {
+            binaries {
+                functionalTests {
+                    tasks()
+                }
+                unitTests {
+                    tasks()
+                }
+            }
+        }
 
         when:
         run "check"
@@ -135,7 +205,6 @@ model {
                 unitTests {
                     binaries()
                     sources()
-
                 }
             }
         }

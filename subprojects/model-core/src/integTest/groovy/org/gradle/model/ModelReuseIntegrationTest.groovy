@@ -48,7 +48,7 @@ class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
                 tasks {
                     create("show") {
                         doLast {
-                            println "vals: " + System.identityHashCode(\$("vals"))
+                            println "vals: " + System.identityHashCode(\$.vals)
                             println "task: " + System.identityHashCode(it)
                         }
                     }

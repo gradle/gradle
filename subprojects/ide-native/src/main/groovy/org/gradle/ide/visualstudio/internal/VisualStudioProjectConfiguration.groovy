@@ -15,7 +15,7 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-import org.gradle.language.PreprocessingTool
+import org.gradle.nativeplatform.PreprocessingTool
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal

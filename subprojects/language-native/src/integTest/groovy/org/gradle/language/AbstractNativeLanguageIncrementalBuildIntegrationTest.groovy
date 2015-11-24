@@ -197,7 +197,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         headerFile << """
             int unused();
 """
-
         run "mainExecutable"
 
         then:

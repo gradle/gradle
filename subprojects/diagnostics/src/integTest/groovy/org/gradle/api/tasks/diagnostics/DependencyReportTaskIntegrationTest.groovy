@@ -17,8 +17,6 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.requireOwnGradleUserHomeDir()
@@ -53,13 +51,13 @@ project(":c") {
         run ":c:dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 compile
 \\--- project :a
      +--- project :b
      |    \\--- project :c (*)
      \\--- project :c (*)
-"""))
+"""
         output.contains '(*) - dependencies omitted (listed previously)'
     }
 
@@ -84,14 +82,13 @@ compile
         run "dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 foo
 +--- i:dont:exist FAILED
 \\--- foo:baz:1.0
      \\--- foo:bar:1.0
           \\--- foo:unknown:1.0 FAILED
 """
-        ))
     }
 
     def "marks dynamic versions that can't be resolved as 'FAILED'"() {
@@ -116,7 +113,7 @@ foo
         run "dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 foo
 +--- org:unknown:1.2+ FAILED
 +--- org:unknown:[1.0,2.0] FAILED
@@ -125,7 +122,6 @@ foo
 +--- org:other:1.2 FAILED
 \\--- org:other:2.0+ FAILED
 """
-        ))
     }
 
     def "marks modules that can't be resolved after conflict resolution as 'FAILED'"() {
@@ -149,13 +145,12 @@ foo
         run "dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 config
 +--- foo:bar:1.0
 |    \\--- foo:baz:2.0 FAILED
 \\--- foo:baz:1.0 -> 2.0 FAILED
 """
-        ))
     }
 
     def "marks modules that can't be resolved after forcing a different version as 'FAILED'"() {
@@ -186,13 +181,12 @@ config
         run "dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 config
 \\--- org:libA:1.0
      +--- org:libB:1.0 -> 2.0 FAILED
      \\--- org:libC:1.0 -> 1.2+ FAILED
 """
-        ))
     }
 
     def "renders dependencies even if the configuration was already resolved"() {
@@ -285,7 +279,7 @@ rootProject.name = 'root'
         then:
         output.contains "compile - Compile classpath for source set 'main'."
 
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 +--- project :a
 |    \\--- foo:bar:1.0 -> 3.0
 |         \\--- foo:baz:5.0
@@ -297,7 +291,7 @@ rootProject.name = 'root'
 |    \\--- foo:bar:2.0 -> 3.0 (*)
 \\--- project :e
      \\--- foo:bar:3.0 (*)
-"""))
+"""
     }
 
     def "renders the dependency tree"() {
@@ -329,7 +323,7 @@ rootProject.name = 'root'
         run ":dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 conf
 \\--- org:toplevel:1.0
      +--- org:middle1:1.0
@@ -338,7 +332,7 @@ conf
      \\--- org:middle2:1.0
           +--- org:leaf3:1.0
           \\--- org:leaf4:1.0
-"""))
+"""
     }
 
     def "shows selected versions in case of a multi-phase conflict"() {
@@ -371,14 +365,14 @@ conf
         run ":dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 conf
 +--- bar:bar:5.0 -> 6.0
 |    \\--- foo:foo:3.0
 +--- bar:bar:6.0 (*)
 +--- foo:foo:1.0 -> 3.0
 \\--- foo:foo:2.0 -> 3.0
-"""))
+"""
     }
 
     def "deals with dynamic versions with conflicts"() {
@@ -408,12 +402,12 @@ conf
         run ":dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 conf
 +--- foo:foo:1+ -> 2.5
 |    \\--- foo:bar:2.0
 \\--- foo:foo:2+ -> 2.5 (*)
-"""))
+"""
     }
 
     def "renders ivy tree with custom configurations"() {
@@ -444,11 +438,11 @@ conf
         run ":dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 conf
 \\--- org:parent:1.0
      \\--- org:child:1.0
-"""))
+"""
     }
 
     def "renders the ivy tree with conflicts"() {
@@ -482,7 +476,7 @@ conf
         run ":dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 conf
 +--- org:toplevel:1.0
 |    +--- org:middle1:1.0
@@ -492,7 +486,7 @@ conf
 |         +--- org:leaf3:1.0
 |         \\--- org:leaf4:1.0 -> 2.0
 \\--- org:leaf4:2.0
-"""))
+"""
     }
 
     def "tells if there are no dependencies"() {
@@ -503,10 +497,10 @@ conf
         run "dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 foo
 No dependencies
-"""))
+"""
     }
 
     def "tells if there are no configurations"() {
@@ -567,12 +561,12 @@ No dependencies
         run "dependencies", "--configuration", "conf2"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 conf2
 \\--- org:toplevel2:1.0
      +--- org:leaf3:1.0
      \\--- org:leaf4:1.0
-"""))
+"""
 
         !output.contains("conf1")
     }
@@ -602,10 +596,10 @@ conf2
         run "dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 conf
 \\--- org.utils:impl:1.3 FAILED
-"""))
+"""
     }
 
     def "renders a mix of project and external dependencies"() {
@@ -667,7 +661,7 @@ rootProject.name = 'root'
         then:
         output.contains "compile - Compile classpath for source set 'main'."
 
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 compile - Compile classpath for source set 'main'.
 +--- project :a
 |    \\--- foo:bar:1.0 -> 2.0
@@ -678,7 +672,7 @@ compile - Compile classpath for source set 'main'.
 \\--- project :d
      \\--- project :e
           \\--- foo:bar:2.0
-"""))
+"""
     }
 
     def "reports external dependency replaced with project dependency"()
@@ -720,10 +714,10 @@ compile - Compile classpath for source set 'main'.
         run(":impl:dependencies")
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 compile
 \\--- org.utils:api:1.3 -> project :api2
-"""))
+"""
     }
 
     def "reports external dependency with version updated by resolve rule"() {
@@ -762,10 +756,10 @@ compile
         run(":impl:dependencies")
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 compile
 \\--- org.utils:api:1.3 -> 0.1
-"""))
+"""
     }
 
     def "reports external dependency substituted with another"() {
@@ -805,10 +799,10 @@ compile
         run(":impl:dependencies")
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 compile
 +--- org.utils:api:1.3 -> 0.1
 \\--- org.original:original:1.0 -> org.other:another:0.1
-"""))
+"""
     }
 }

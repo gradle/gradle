@@ -19,8 +19,14 @@ import java.util.List;
 import java.util.Set;
 
 public interface ExecutionResult {
+    /**
+     * Stdout of the Gradle execution, normalized to use new-line char as line separator.
+     */
     String getOutput();
 
+    /**
+     * Stderr of the Gradle execution, normalized to use new-line char as line separator.
+     */
     String getError();
 
     ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder);

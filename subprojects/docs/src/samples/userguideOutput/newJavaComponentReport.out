@@ -16,7 +16,7 @@ Source sets
         srcDir: src/main/resources
 
 Binaries
-    Jar 'mainJar'
+    Jar 'main:jar'
         build using task: :mainJar
         targetPlatform: java7
         tool chain: JDK 7 (1.7)

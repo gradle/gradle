@@ -15,10 +15,9 @@
  */
 package org.gradle.tooling.model.eclipse;
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.ExternalDependency;
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.HasGradleProject;
+import org.gradle.api.Nullable;
+import org.gradle.tooling.model.*;
+import org.gradle.tooling.model.java.JavaSourceAware;
 
 /**
  * The complete model of an Eclipse project.
@@ -27,7 +26,7 @@ import org.gradle.tooling.model.HasGradleProject;
  *
  * @since 1.0-milestone-3
  */
-public interface EclipseProject extends HierarchicalEclipseProject, HasGradleProject {
+public interface EclipseProject extends HierarchicalEclipseProject, HasGradleProject, JavaSourceAware {
     /**
      * {@inheritDoc}
      */
@@ -37,6 +36,12 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
      * {@inheritDoc}
      */
     DomainObjectSet<? extends EclipseProject> getChildren();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Nullable
+    EclipseJavaSourceSettings getJavaSourceSettings();
 
     /**
      * The gradle project that is associated with this project.
@@ -60,33 +65,34 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
     /**
      * Returns the Eclipse natures configured on the project.
      * <p>
-     * If the Gradle project applies a plugin which is recognized by 'eclipse' plugin then the corresponding
-     * nature will be automatically part of the result. For example, if the project applies the 'java' plugin the
-     * result will contain the {@code "org.eclipse.jdt.core.javanature"} entry. The 'scala' plugin behaves similarly:
-     * when applied then the result will contain the {@code "org.scala-ide.sdt.core.scalanature"} entry.
+     * Some natures are automatically added to the result based on the Gradle plugins applied on the project.
+     * For example, if the project applies the 'java' plugin the result will contain the
+     * {@code "org.eclipse.jdt.core.javanature"} entry. Note, that the exact list of automatically added
+     * natures is not part of the API and can vary between Gradle releases.
      * <p>
      * The result can be customized via the 'eclipse' plugin configuration.
      *
      * @return The list of Eclipse project natures.
      * @since 2.9
+     * @throws UnsupportedMethodException For Gradle versions older than 2.9, where this method is not supported.
      */
     @Incubating
-    DomainObjectSet<? extends EclipseProjectNature> getProjectNatures();
+    DomainObjectSet<? extends EclipseProjectNature> getProjectNatures() throws UnsupportedMethodException;
 
     /**
      * Returns the Eclipse build commands configured on the project.
      * <p>
-     * If the Gradle project applies a plugin which is recognized by 'eclipse' plugin then the corresponding
-     * build command will be automatically part of the result. For example, if the project applies the 'java' plugin the
-     * result will contain the {@code "org.eclipse.jdt.core.javabuilder"} build command. The
-     * 'scala' plugin behaves similarly: when applied then the result will contain the
-     * {@code "org.scala-ide.sdt.core.scalabuilder"} entry.
+     * Some build commands are automatically added to the result based on the Gradle plugins applied on the project.
+     * For example, if the project applies the 'java' plugin the result will contain the
+     * {@code "org.eclipse.jdt.core.javabuilder"} build command. Note, that the exact list of automatically
+     * added build commands is not part of the API and can vary between Gradle releases.
      * <p>
      * The result can be customized via the 'eclipse' plugin configuration.
      *
      * @return The list of Eclipse build commands.
      * @since 2.9
+     * @throws UnsupportedMethodException For Gradle versions older than 2.9, where this method is not supported.
      */
     @Incubating
-    DomainObjectSet<? extends EclipseBuildCommand> getBuildCommands();
+    DomainObjectSet<? extends EclipseBuildCommand> getBuildCommands() throws UnsupportedMethodException;
 }

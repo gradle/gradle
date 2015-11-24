@@ -13,7 +13,7 @@ model {
 // END SNIPPET declare-target-platforms
 // START SNIPPET binary-specific-sourceset
         main {
-            binaries.java6MainJar {
+            binaries.java6Jar {
                 sources {
                     java6(JavaSourceSet) {
                         source.srcDir 'src/main/java6'

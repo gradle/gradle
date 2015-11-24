@@ -18,8 +18,8 @@ package org.gradle.play.tasks
 
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.TextUtil
-import static org.gradle.play.integtest.fixtures.Repositories.*
+
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORES
 
 class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
     def destinationDirPath = "build/playBinary/src/compilePlayBinaryTwirlTemplates/views/html"
@@ -138,7 +138,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         succeeds "components"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
+        output.contains """
 Play Application 'play'
 -----------------------
 
@@ -163,7 +163,7 @@ Source sets
         includes: **/*.html
 
 Binaries
-"""))
+"""
 
     }
 

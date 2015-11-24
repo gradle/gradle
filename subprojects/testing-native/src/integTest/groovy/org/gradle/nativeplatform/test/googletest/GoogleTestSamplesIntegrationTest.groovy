@@ -45,8 +45,8 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
         succeeds "runPassing"
 
         then:
-        executedAndNotSkipped ":compilePassingOperatorsTestGoogleTestExeOperatorsTestCpp",
-                ":linkPassingOperatorsTestGoogleTestExe", ":passingOperatorsTestGoogleTestExe",
+        executedAndNotSkipped ":compileOperatorsTestPassingGoogleTestExeOperatorsTestCpp",
+                ":linkPassingOperatorsTestGoogleTestExe", ":operatorsTestPassingGoogleTestExe",
                 ":installPassingOperatorsTestGoogleTestExe", ":runPassingOperatorsTestGoogleTestExe"
 
         and:
@@ -61,8 +61,8 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
         fails "runFailing"
 
         then:
-        executedAndNotSkipped ":compileFailingOperatorsTestGoogleTestExeOperatorsTestCpp",
-                ":linkFailingOperatorsTestGoogleTestExe", ":failingOperatorsTestGoogleTestExe",
+        executedAndNotSkipped ":compileOperatorsTestFailingGoogleTestExeOperatorsTestCpp",
+                ":linkFailingOperatorsTestGoogleTestExe", ":operatorsTestFailingGoogleTestExe",
                 ":installFailingOperatorsTestGoogleTestExe", ":runFailingOperatorsTestGoogleTestExe"
 
         and:

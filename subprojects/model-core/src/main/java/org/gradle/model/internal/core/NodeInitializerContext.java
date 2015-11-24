@@ -20,34 +20,46 @@ import com.google.common.base.Optional;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.type.ModelType;
 
-public class NodeInitializerContext {
-    private final ModelType<?> modelType;
-    private final Optional<ModelProperty<?>> modelProperty;
-    private final Optional<? extends ModelType<?>> declaringType;
+public class NodeInitializerContext<T, P, O> {
+    private final ModelType<T> modelType;
+    private final Optional<PropertyContext<P, O>> propertyContextOptional;
 
-    public NodeInitializerContext(ModelType<?> modelType, Optional<ModelProperty<?>> modelProperty, Optional<? extends ModelType<?>> declaringType) {
+    public NodeInitializerContext(ModelType<T> modelType, Optional<PropertyContext<P, O>> propertyContextOptional) {
         this.modelType = modelType;
-        this.modelProperty = modelProperty;
-        this.declaringType = declaringType;
+        this.propertyContextOptional = propertyContextOptional;
     }
 
-    public static NodeInitializerContext forType(ModelType<?> modelType) {
-        return new NodeInitializerContext(modelType, Optional.<ModelProperty<?>>absent(), Optional.<ModelType<?>>absent());
+    public static <T, P, O> NodeInitializerContext<T, P, O> forType(ModelType<T> modelType) {
+        return new NodeInitializerContext<T, P, O>(modelType, Optional.<PropertyContext<P, O>>absent());
     }
 
-    public static NodeInitializerContext forProperty(ModelType<?> modelType, ModelProperty<?> modelProperty, ModelType<?> containingType) {
-        return new NodeInitializerContext(modelType, Optional.<ModelProperty<?>>of(modelProperty), Optional.of(containingType));
+    public static <T, P, O> NodeInitializerContext<T, P, O> forProperty(ModelType<T> modelType, ModelProperty<P> modelProperty, ModelType<O> containingType) {
+        return new NodeInitializerContext<T, P, O>(modelType, Optional.of(new PropertyContext<P, O>(modelProperty, containingType)));
     }
 
-    public ModelType<?> getModelType() {
+    public ModelType<T> getModelType() {
         return modelType;
     }
 
-    public Optional<ModelProperty<?>> getModelProperty() {
-        return modelProperty;
+    public Optional<PropertyContext<P, O>> getPropertyContextOptional() {
+        return propertyContextOptional;
     }
 
-    public Optional<? extends ModelType<?>> getDeclaringType() {
-        return declaringType;
+    static class PropertyContext<P, O> {
+        private final ModelProperty<P> modelProperty;
+        private final ModelType<O> declaringType;
+
+        private PropertyContext(ModelProperty<P> modelProperty, ModelType<O> declaringType) {
+            this.modelProperty = modelProperty;
+            this.declaringType = declaringType;
+        }
+
+        public ModelProperty<P> getModelProperty() {
+            return modelProperty;
+        }
+
+        public ModelType<O> getDeclaringType() {
+            return declaringType;
+        }
     }
 }

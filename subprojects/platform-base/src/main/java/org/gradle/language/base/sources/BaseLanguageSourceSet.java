@@ -17,14 +17,14 @@
 package org.gradle.language.base.sources;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.platform.base.ModelInstantiationException;
 
@@ -46,14 +46,25 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
     public String getName() {
         return name;
     }
+    public String getParentName() {
+        return parentName;
+    }
 
-    public String getFullName() {
+    public String getProjectScopedName() {
         return fullName;
     }
 
+    public String getDisplayName() {
+        return String.format("%s '%s:%s'", getTypeName(), parentName, getName());
+    }
+
     @Override
-    public String getParentName() {
-        return parentName;
+    public String toString() {
+        return getDisplayName();
+    }
+
+    protected String getTypeName() {
+        return typeName;
     }
 
     @Override
@@ -76,39 +87,22 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
         return generated || !source.isEmpty();
     }
 
-    protected String getTypeName() {
-        return typeName;
-    }
-
-    public String getDisplayName() {
-        return String.format("%s '%s:%s'", getTypeName(), parentName, getName());
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    public void source(Action<? super SourceDirectorySet> config) {
-        config.execute(getSource());
-    }
-
     public SourceDirectorySet getSource() {
         return source;
     }
 
     private static ThreadLocal<SourceSetInfo> nextSourceSetInfo = new ThreadLocal<SourceSetInfo>();
 
-    public static <T extends BaseLanguageSourceSet> T create(Class<T> type, String name, String parentName, FileResolver fileResolver, Instantiator instantiator) {
+    public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> type, String name, String parentName, FileResolver fileResolver) {
         if (type.equals(BaseLanguageSourceSet.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseLanguageSourceSet.");
         }
-        nextSourceSetInfo.set(new SourceSetInfo(name, parentName, type.getSimpleName(), fileResolver));
+        nextSourceSetInfo.set(new SourceSetInfo(name, parentName, publicType.getSimpleName(), fileResolver));
         try {
             try {
-                return instantiator.newInstance(type);
+                return DirectInstantiator.INSTANCE.newInstance(type);
             } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create LanguageSourceSet of type %s", type.getSimpleName()), e.getCause());
+                throw new ModelInstantiationException(String.format("Could not create LanguageSourceSet of type %s", publicType.getSimpleName()), e.getCause());
             }
         } finally {
             nextSourceSetInfo.set(null);

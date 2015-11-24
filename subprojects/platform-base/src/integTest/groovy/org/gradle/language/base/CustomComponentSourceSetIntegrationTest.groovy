@@ -64,7 +64,7 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
         buildFile << '''
 class Dump extends RuleSource {
     @Mutate
-    void tasks(ModelMap<Task> tasks, BinaryContainer binaries) {
+    void tasks(ModelMap<Task> tasks, ModelMap<BinarySpec> binaries) {
         tasks.create("verify") {
             doLast {
                 binaries.each { binary ->
@@ -139,8 +139,8 @@ model {
 '''
         expect:
         succeeds "verify"
-        output.contains """Binary sources: [DefaultLibrarySourceSet 'sampleLib:binaryA', DefaultLibrarySourceSet 'sampleLib:binaryB', DefaultLibrarySourceSet 'sampleLib:binaryC', DefaultLibrarySourceSet 'sampleLib:binaryD']"""
-        output.contains """Binary inputs: [DefaultLibrarySourceSet 'sampleLib:compA', DefaultLibrarySourceSet 'sampleLib:compB', DefaultLibrarySourceSet 'sampleLib:compC', DefaultLibrarySourceSet 'sampleLib:compD', DefaultLibrarySourceSet 'sampleLib:binaryA', DefaultLibrarySourceSet 'sampleLib:binaryB', DefaultLibrarySourceSet 'sampleLib:binaryC', DefaultLibrarySourceSet 'sampleLib:binaryD']"""
+        output.contains """Binary sources: [LibrarySourceSet 'sampleLib:binaryA', LibrarySourceSet 'sampleLib:binaryB', LibrarySourceSet 'sampleLib:binaryC', LibrarySourceSet 'sampleLib:binaryD']"""
+        output.contains """Binary inputs: [LibrarySourceSet 'sampleLib:compA', LibrarySourceSet 'sampleLib:compB', LibrarySourceSet 'sampleLib:compC', LibrarySourceSet 'sampleLib:compD', LibrarySourceSet 'sampleLib:binaryA', LibrarySourceSet 'sampleLib:binaryB', LibrarySourceSet 'sampleLib:binaryC', LibrarySourceSet 'sampleLib:binaryD']"""
     }
 
     def "fail when multiple source sets are registered with the same name"() {
@@ -154,10 +154,14 @@ model {
                         main(LibrarySourceSet) {
                             source.srcDir "src/main/lib"
                         }
-                        main(LibrarySourceSet) {
-                            source.srcDir "src/main/lib"
-                        }
                     }
+                }
+            }
+        }
+        sampleLib {
+            binaries.bin.sources {
+                main(LibrarySourceSet) {
+                    source.srcDir "src/main/lib"
                 }
             }
         }
@@ -165,9 +169,10 @@ model {
 }
 """
         when:
-        def failure = fails("components")
+        fails("components")
 
         then:
-        failure.assertHasCause "Entry with name already exists: main"
+        failure.assertHasCause("Exception thrown while executing model rule: sampleLib { ... } @ build.gradle line 51, column 9")
+        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule 'sampleLib { ... } @ build.gradle line 51, column 9 > components.sampleLib.getBinaries() > create(main)' as the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 40, column 9 > create(bin) > create(main)' is already registered to create this model element.")
     }
 }

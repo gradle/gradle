@@ -17,14 +17,16 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
+import org.gradle.model.internal.core.UnmanagedStruct;
 
 import java.util.Collection;
 
 /**
  * A container for dependency specifications.
  */
-@Incubating
+@Incubating @UnmanagedStruct
 public interface DependencySpecContainer {
+
     /**
      * Defines a new dependency, based on a project path. The returned dependency can be mutated.
      *
@@ -32,7 +34,7 @@ public interface DependencySpecContainer {
      *
      * @return a mutable dependency, added to this container
      */
-    DependencySpecBuilder project(String path);
+    ProjectDependencySpecBuilder project(String path);
 
     /**
      * Defines a new dependency, based on a library name. The returned dependency can be mutated.
@@ -41,7 +43,25 @@ public interface DependencySpecContainer {
      *
      * @return a mutable dependency, added to this container
      */
-    DependencySpecBuilder library(String name);
+    ProjectDependencySpecBuilder library(String name);
+
+    /**
+     * Defines a new module dependency, based on a module id or a simple name. The returned dependency can be mutated.
+     *
+     * @param moduleIdOrName of the module
+     *
+     * @return a mutable module dependency, added to this container
+     */
+    ModuleDependencySpecBuilder module(String moduleIdOrName);
+
+    /**
+     * Defines a new module dependency, based on a module group name. The returned dependency can be mutated.
+     *
+     * @param name of the module group
+     *
+     * @return a mutable module dependency, added to this container
+     */
+    ModuleDependencySpecBuilder group(String name);
 
     /**
      * Returns an immutable view of dependencies stored in this container.
@@ -56,5 +76,4 @@ public interface DependencySpecContainer {
      * @return true if this container doesn't contain any dependency specification.
      */
     boolean isEmpty();
-
 }

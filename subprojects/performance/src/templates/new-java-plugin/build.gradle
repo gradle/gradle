@@ -1,3 +1,10 @@
+/**
+ * We don't yet have support for Checkstyle in the Java Software Model. And we don't want to add non-model code
+ * to configure the real Checkstyle extension, because it will hide some of the new-model configuration improvements.
+ * So we configure a CheckstyleExtension without correctly wiring it for execution.
+ *
+ * This adds configuration-time weight without legacy overhead. The 'old-java-plugin' is configured in a similar way.
+ */
 import org.gradle.model.*
 
 plugins {

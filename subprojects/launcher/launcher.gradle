@@ -1,3 +1,5 @@
+import org.gradle.internal.jvm.Jvm
+
 configurations {
     startScriptGenerator
 }
@@ -18,6 +20,9 @@ dependencies {
     integTestRuntime project(':plugins')
 
     testFixturesCompile project(':internalIntegTesting')
+
+    // Needed for testing debug command line option
+    testFixturesCompile files(Jvm.current().toolsJar)
 
     startScriptGenerator project(':plugins')
 }

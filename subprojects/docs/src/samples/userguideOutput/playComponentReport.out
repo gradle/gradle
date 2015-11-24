@@ -27,7 +27,7 @@ Source sets
         includes: **/*.html
 
 Binaries
-    Play Application Jar 'playBinary'
+    Play Application Jar 'play:binary'
         build using task: :playBinary
         targetPlatform: Play Platform (Play 2.3.9, Scala: 2.11, Java: Java SE 8)
 

@@ -16,10 +16,7 @@
 
 package org.gradle.testkit.runner
 
-import java.util.concurrent.CountDownLatch
-
 import static org.gradle.testkit.runner.TaskOutcome.*
-
 /**
  * Tests more intricate aspects of the BuildResult object
  */
@@ -72,17 +69,18 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerIntegrationT
         when:
         file("settings.gradle") << "include 'a', 'b', 'c', 'd'"
         buildFile << """
-            def latch = new $CountDownLatch.name(1)
-
+            def startLatch = new java.util.concurrent.CountDownLatch(1)
+            def stopLatch = new java.util.concurrent.CountDownLatch(1)
             project(":a") {
               task t << {
-                latch.await()
+                startLatch.countDown() // allow b to finish
+                stopLatch.await() // wait for d to start
               }
             }
 
             project(":b") {
-              task t {
-                shouldRunAfter ":a:t"
+              task t << {
+                startLatch.await() // wait for a to start
               }
             }
 
@@ -96,7 +94,7 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerIntegrationT
               task t {
                 dependsOn ":c:t"
                 doLast {
-                  latch.countDown()
+                  stopLatch.countDown() // allow a to finish
                 }
               }
             }

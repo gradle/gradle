@@ -38,6 +38,7 @@ import org.gradle.model.*;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.distribution.PlayDistribution;
 import org.gradle.play.distribution.PlayDistributionContainer;
+import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.distribution.DefaultPlayDistribution;
 import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
 
@@ -79,12 +80,12 @@ public class PlayDistributionPlugin extends RuleSource {
     }
 
     @Defaults
-    void createDistributions(@Path("distributions") PlayDistributionContainer distributions, ModelMap<PlayApplicationBinarySpec> playBinaries, PlayPluginConfigurations configurations, ServiceRegistry serviceRegistry) {
+    void createDistributions(@Path("distributions") PlayDistributionContainer distributions, ModelMap<PlayApplicationBinarySpecInternal> playBinaries, PlayPluginConfigurations configurations, ServiceRegistry serviceRegistry) {
         FileOperations fileOperations = serviceRegistry.get(FileOperations.class);
         Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-        for (PlayApplicationBinarySpec binary : playBinaries) {
-            PlayDistribution distribution = instantiator.newInstance(DefaultPlayDistribution.class, binary.getName(), fileOperations.copySpec(), binary);
-            distribution.setBaseName(binary.getName());
+        for (PlayApplicationBinarySpecInternal binary : playBinaries) {
+            PlayDistribution distribution = instantiator.newInstance(DefaultPlayDistribution.class, binary.getProjectScopedName(), fileOperations.copySpec(), binary);
+            distribution.setBaseName(binary.getProjectScopedName());
             distributions.add(distribution);
         }
     }
@@ -93,7 +94,7 @@ public class PlayDistributionPlugin extends RuleSource {
     void createDistributionContentTasks(ModelMap<Task> tasks, final @Path("buildDir") File buildDir,
                                         final @Path("distributions") PlayDistributionContainer distributions,
                                         final PlayPluginConfigurations configurations) {
-        for (PlayDistribution distribution : distributions.withType(PlayDistribution.class)) {
+        for (final PlayDistribution distribution : distributions.withType(PlayDistribution.class)) {
             final PlayApplicationBinarySpec binary = distribution.getBinary();
             if (binary == null) {
                 throw new InvalidUserCodeException(String.format("Play Distribution '%s' does not have a configured Play binary.", distribution.getName()));
@@ -104,7 +105,7 @@ public class PlayDistributionPlugin extends RuleSource {
             tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
                 @Override
                 public void execute(Jar jar) {
-                    jar.setDescription("Assembles an application jar suitable for deployment for the '" + binary.getName() + "' binary.");
+                    jar.setDescription("Assembles an application jar suitable for deployment for the " + binary + ".");
                     jar.dependsOn(binary.getTasks().withType(Jar.class));
                     jar.from(jar.getProject().zipTree(binary.getJarFile()));
                     jar.setDestinationDir(distJarDir);
@@ -122,10 +123,10 @@ public class PlayDistributionPlugin extends RuleSource {
             tasks.create(createStartScriptsTaskName, CreateStartScripts.class, new Action<CreateStartScripts>() {
                 @Override
                 public void execute(CreateStartScripts createStartScripts) {
-                    createStartScripts.setDescription("Creates OS specific scripts to run the '" + binary.getName() + "' application.");
+                    createStartScripts.setDescription("Creates OS specific scripts to run the " + binary + ".");
                     createStartScripts.setClasspath(distributionJar.getOutputs().getFiles());
                     createStartScripts.setMainClassName("play.core.server.NettyServer");
-                    createStartScripts.setApplicationName(binary.getName());
+                    createStartScripts.setApplicationName(distribution.getName());
                     createStartScripts.setOutputDir(scriptsDir);
                 }
             });

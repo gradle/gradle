@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
@@ -29,9 +30,6 @@ import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.java.JavaSourceSet
 import org.gradle.language.jvm.JvmResourceSet
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.type.ModelType
-import org.gradle.model.internal.type.ModelTypes
 import org.gradle.platform.base.BinarySpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
@@ -40,6 +38,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
+import static org.gradle.model.internal.type.ModelTypes.modelMap
 import static org.gradle.util.WrapUtil.toLinkedSet
 
 class JavaBasePluginTest extends Specification {
@@ -268,7 +267,7 @@ class JavaBasePluginTest extends Specification {
         }
 
         when:
-        def sources = project.modelRegistry.realize(ModelPath.path("sources"), ModelType.of(ProjectSourceSet))
+        def sources = project.modelRegistry.realize("sources", ProjectSourceSet)
 
         then:
         sources.size() == 2
@@ -295,8 +294,8 @@ class JavaBasePluginTest extends Specification {
         }
 
         when:
-        def binaries = project.modelRegistry.realize(ModelPath.path("binaries"), ModelTypes.modelMap(BinarySpec))
-        def sources = project.modelRegistry.realize(ModelPath.path("sources"), ModelType.of(ProjectSourceSet))
+        def binaries = project.modelRegistry.realize("binaries", modelMap(BinarySpec))
+        def sources = project.modelRegistry.realize("sources", ProjectSourceSet)
 
         then:
         binaries.size() == 1
@@ -318,7 +317,7 @@ class JavaBasePluginTest extends Specification {
                 output.resourcesDir = project.file("resources")
             }
         }
-        def binaries = project.modelRegistry.realize(ModelPath.path("binaries"), ModelTypes.modelMap(BinarySpec))
+        def binaries = project.modelRegistry.realize("binaries", modelMap(BinarySpec))
 
         then:
         def binary = binaries.get("customClasses")

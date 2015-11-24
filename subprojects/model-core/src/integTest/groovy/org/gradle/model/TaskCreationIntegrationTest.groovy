@@ -18,7 +18,6 @@ package org.gradle.model
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -100,6 +99,30 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         output.contains "a - task a"
         output.contains "b - task b"
         output.contains "c - task c"
+    }
+
+    def "can use rule DSL to configure task using another task as input"() {
+        given:
+        buildFile << '''
+            model {
+                tasks {
+                    a {
+                        message = 'greetings from task a'
+                    }
+                    a(MessageTask)
+                    b(MessageTask) {
+                        def taskA = $.tasks.a
+                        message = taskA.message + " via task b"
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds "b"
+
+        then:
+        output.contains "greetings from task a via task b"
     }
 
     def "can configure tasks using rule DSL"() {
@@ -444,14 +467,14 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "bar", "foo"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""tasks defined
+        output.contains """tasks defined
 bar created
 bar initialized
 bar configured
 foo created
 foo initialized
 foo configured
-"""))
+"""
     }
 
     def "two rules attempt to create task"() {
@@ -599,7 +622,7 @@ foo configured
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: model.tasks.foo")
+        failure.assertHasCause("Exception thrown while executing model rule: tasks.foo { ... } @ build.gradle line 21, column 17")
         failure.assertHasCause("config failure")
         failure.assertHasLineNumber(22)
     }

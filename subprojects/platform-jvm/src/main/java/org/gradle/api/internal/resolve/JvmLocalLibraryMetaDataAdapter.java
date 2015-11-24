@@ -16,31 +16,27 @@
 
 package org.gradle.api.internal.resolve;
 
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
-import org.gradle.jvm.JarBinarySpec;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.DependencySpec;
 
 import java.util.Collections;
+
+import static org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier.CONFIGURATION_API;
+import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData.newDefaultLibraryLocalComponentMetadata;
 
 public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapter {
 
     @Override
-    public DefaultLibraryLocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, TaskDependency buildDependencies, String projectPath) {
-        JarBinarySpec jarBinarySpec = (JarBinarySpec) selectedBinary;
-        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(jarBinarySpec.getId(), buildDependencies);
-        LibraryPublishArtifact jarBinary = new LibraryPublishArtifact("jar", jarBinarySpec.getApiJarFile());
-        metaData.addArtifacts(DefaultLibraryBinaryIdentifier.CONFIGURATION_API, Collections.singleton(jarBinary));
-        addApiDependenciesTo(metaData, jarBinarySpec, projectPath);
-        return metaData;
-    }
-
-    private void addApiDependenciesTo(DefaultLibraryLocalComponentMetaData metaData, JarBinarySpec binary, String projectPath) {
-        for (DependencySpec dependency : binary.getApiDependencies()) {
-            metaData.addDependency(dependency, projectPath);
-        }
+    public DefaultLibraryLocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, String projectPath) {
+        JarBinarySpecInternal jarBinarySpec = (JarBinarySpecInternal) selectedBinary;
+        DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
+        buildDependencies.add(jarBinarySpec.getApiJar());
+        DefaultLibraryLocalComponentMetaData metadata = newDefaultLibraryLocalComponentMetadata(jarBinarySpec.getId(), buildDependencies, jarBinarySpec.getApiDependencies(), projectPath);
+        LibraryPublishArtifact jarBinary = new LibraryPublishArtifact("jar", jarBinarySpec.getApiJar().getFile());
+        metadata.addArtifacts(CONFIGURATION_API, Collections.singleton(jarBinary));
+        return metadata;
     }
 
 }

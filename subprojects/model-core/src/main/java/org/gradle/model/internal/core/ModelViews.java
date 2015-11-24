@@ -18,6 +18,8 @@ package org.gradle.model.internal.core;
 
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.List;
+
 public abstract class ModelViews {
 
     public static <T> ModelView<T> assertType(ModelView<?> untypedView, ModelType<T> type) {
@@ -50,4 +52,11 @@ public abstract class ModelViews {
         return assertType(untypedView, ModelType.of(type)).getInstance();
     }
 
+    public static <T> T getInstance(List<? extends ModelView<?>> views, int index, ModelType<T> type) {
+        return getInstance(views.get(index), type);
+    }
+
+    public static <T> T getInstance(List<? extends ModelView<?>> views, int index, Class<T> type) {
+        return getInstance(views.get(index), type);
+    }
 }

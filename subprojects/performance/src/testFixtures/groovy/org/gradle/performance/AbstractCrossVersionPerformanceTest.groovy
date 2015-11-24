@@ -17,6 +17,7 @@
 package org.gradle.performance
 
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.performance.categories.PerformanceTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.CompositeDataReporter
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner

@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.hamcrest.CoreMatchers
+import org.hamcrest.Matcher
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -46,6 +47,8 @@ class AbstractIntegrationSpec extends Specification {
     ExecutionFailure failure
     private MavenFileRepository mavenRepo
     private IvyFileRepository ivyRepo
+    private File mavenLocalDirectory
+    private boolean overrideMavenLocal
 
     protected TestFile getBuildFile() {
         testDirectory.file('build.gradle')
@@ -174,15 +177,19 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     protected void failureDescriptionStartsWith(String description) {
-        failure.assertThatDescription(normalizedLineSeparators(CoreMatchers.containsString(description)))
+        failure.assertThatDescription(containsNormalizedString(description))
     }
 
     protected void failureDescriptionContains(String description) {
-        failure.assertThatDescription(normalizedLineSeparators(CoreMatchers.containsString(description)))
+        failure.assertThatDescription(containsNormalizedString(description))
     }
 
     protected void failureCauseContains(String description) {
-        failure.assertThatCause(normalizedLineSeparators(CoreMatchers.containsString(description)))
+        failure.assertThatCause(containsNormalizedString(description))
+    }
+
+    protected Matcher<String> containsNormalizedString(String description) {
+        normalizedLineSeparators(CoreMatchers.containsString(description))
     }
 
     private assertHasResult() {
@@ -213,6 +220,34 @@ class AbstractIntegrationSpec extends Specification {
 
     public MavenLocalRepository mavenLocal(Object repo) {
         return new MavenLocalRepository(file(repo))
+    }
+
+    void overrideMavenLocal() {
+        overrideMavenLocal(file(".m2/repository"))
+    }
+
+    void overrideMavenLocal(File dir) {
+        mavenLocalDirectory = dir
+        if (!overrideMavenLocal) {
+            overrideMavenLocal = true
+            executer.beforeExecute {
+                if (this.overrideMavenLocal) {
+                    executer.withArgument("-Dmaven.repo.local=${this.mavenLocalDirectory.getAbsolutePath()}")
+                }
+            }
+        }
+    }
+
+    void dontOverrideMavenLocal() {
+        overrideMavenLocal = false
+    }
+
+    boolean isOverrideMavenLocal() {
+        this.overrideMavenLocal
+    }
+
+    File getMavenLocalDirectory() {
+        this.mavenLocalDirectory
     }
 
     public MavenFileRepository getMavenRepo() {

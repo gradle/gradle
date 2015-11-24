@@ -25,11 +25,13 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelValueSchema;
+import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @NotThreadSafe
 public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor<Model> {
@@ -63,7 +65,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         }
 
         ModelType<?> managedType = references.get(0).getType();
-        return new ExtractedModelCreator(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
+        return new ExtractedModelRegistration(buildRegistrationForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
     }
 
     @Override
@@ -71,10 +73,10 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         return ruleDefinition.getAnnotation(Model.class).value();
     }
 
-    private <T> ModelCreator buildModelCreatorForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, final ModelPath modelPath) {
+    private <T> ModelRegistration buildRegistrationForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, final ModelPath modelPath) {
         final ModelSchema<T> modelSchema = getModelSchema(managedType, ruleDefinition);
 
-        if (modelSchema instanceof ModelValueSchema) {
+        if (modelSchema instanceof ScalarValueSchema) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.");
         }
 
@@ -83,28 +85,18 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         final ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
         final ModelReference<T> reference = ModelReference.of(modelPath, managedType);
-        return ModelCreators.of(modelPath)
+        return ModelRegistrations.of(modelPath)
             .descriptor(descriptor)
-            .action(ModelActionRole.DefineProjections, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+            .action(ModelActionRole.Discover, Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class)), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                     NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
                     NodeInitializer initializer = getNodeInitializer(descriptor, modelSchema, nodeInitializerRegistry);
-                    for (ModelProjection projection : initializer.getProjections()) {
-                        node.addProjection(projection);
+                    for (Map.Entry<ModelActionRole, ModelAction> actionInRole : initializer.getActions(ModelReference.of(modelPath), descriptor).entries()) {
+                        ModelActionRole role = actionInRole.getKey();
+                        ModelAction action = actionInRole.getValue();
+                        node.applyToSelf(role, action);
                     }
-                    ModelAction projector = initializer.getProjector(modelPath, descriptor);
-                    if (projector != null) {
-                        node.applyToSelf(ModelActionRole.DefineProjections, projector);
-                    }
-                }
-            })
-            .action(ModelActionRole.Create, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                @Override
-                public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
-                    NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
-                    NodeInitializer initializer = getNodeInitializer(descriptor, modelSchema, nodeInitializerRegistry);
-                    node.applyToSelf(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(ModelReference.of(modelPath), descriptor, initializer.getInputs(), initializer));
                 }
             })
             .action(ModelActionRole.Initialize, InputUsingModelAction.of(

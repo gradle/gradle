@@ -20,6 +20,7 @@
             </thead>
             <tr><td>outOfDate</td></tr>
             <tr><td>removed</td></tr>
+            <tr><td>newInput</td></tr>
         </table>
     </section>
 </section>

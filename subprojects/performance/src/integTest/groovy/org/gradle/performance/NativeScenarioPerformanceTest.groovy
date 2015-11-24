@@ -15,15 +15,19 @@
  */
 
 package org.gradle.performance
+
+import org.gradle.performance.categories.NativePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentSpec
+import org.junit.experimental.categories.Category
 import spock.lang.Ignore
 import spock.lang.Unroll
 
 @Ignore
+@Category(NativePerformanceTest)
 class NativeScenarioPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-        builder.invocation.gradleOpts("-Xmx1024m", "-XX:MaxPermSize=256m")
+        builder.invocation.gradleOpts("-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m")
         super.defaultSpec(builder)
     }
 
@@ -52,6 +56,8 @@ class NativeScenarioPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(*tasks).useDaemon().disableDaemonLogging()
             }
         }
+        /*
+        TODO: enable after fixing model reuse
         runner.buildSpec {
             projectName("${size}ScenarioNative").displayName("with daemon (reuse)").invocation {
                 tasksToRun(*tasks).useDaemon().enableModelReuse()
@@ -62,6 +68,7 @@ class NativeScenarioPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(*tasks).useToolingApi().enableModelReuse()
             }
         }
+        */
 
         then:
         runner.run()

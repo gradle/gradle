@@ -101,7 +101,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyPlugin']")
-        failure.assertHasCause("Type MyPlugin\$Rules is not a valid model rule source: enclosed classes must be static and non private")
+        failure.assertHasCause("Type MyPlugin\$Rules is not a valid rule source: enclosed classes must be static and non private")
     }
 
     def "informative error message when two plugins declare model at the same path"() {
@@ -154,7 +154,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 tasks {
-                    $("string")
+                    $.string
                 }
             }
 
@@ -187,7 +187,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 tasks {
-                    $("string")
+                    $.string
                 }
             }
         '''
@@ -200,24 +200,26 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("oh no!")
     }
 
-    def "informative error message when dsl mutation rule throws"() {
+    def "informative error message when mutation rule throws"() {
         when:
         buildScript '''
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
                     String string() { "foo" }
+
+                    @Mutate
+                    void broken(String s) {
+                        throw new RuntimeException("oh no!")
+                    }
                 }
             }
 
             apply type: MyPlugin
 
             model {
-                string {
-                    throw new RuntimeException("oh no!")
-                }
                 tasks {
-                    $("string")
+                    $.string
                 }
             }
         '''
@@ -226,11 +228,11 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: model.string")
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin.Rules#broken")
         failure.assertHasCause("oh no!")
     }
 
-    def "model creator must provide instance"() {
+    def "model registration must provide instance"() {
         when:
         buildScript '''
             class MyPlugin {
@@ -246,7 +248,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 tasks {
-                    $("string")
+                    $.string
                 }
             }
         '''
@@ -395,7 +397,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'Rules']")
-        failure.assertHasCause("Type Rules is not a valid model rule source: instance creation failed")
+        failure.assertHasCause("Type Rules is not a valid rule source: instance creation failed")
         failure.assertHasCause("failing constructor")
     }
 }

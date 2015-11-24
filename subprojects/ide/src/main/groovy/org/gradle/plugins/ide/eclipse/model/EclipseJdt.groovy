@@ -43,7 +43,7 @@ import org.gradle.util.ConfigureUtil
  *       whenMerged { jdt
  *         //you can tinker with the {@link Jdt} here
  *       }
- *       
+ *
  *       //withProperties allows addition of properties not currently
  *       //modeled by Gradle
  *       withProperties { properties ->
@@ -61,10 +61,10 @@ class EclipseJdt {
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
-    JavaVersion sourceCompatibility
+    JavaVersion sourceCompatibility = JavaVersion.current()
 
     void setSourceCompatibility(Object sourceCompatibility) {
-        this.sourceCompatibility = JavaVersion.toVersion(sourceCompatibility)
+            this.sourceCompatibility = JavaVersion.toVersion(sourceCompatibility) ?: sourceCompatibility
     }
 
     /**
@@ -72,10 +72,10 @@ class EclipseJdt {
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
-    JavaVersion targetCompatibility
+    JavaVersion targetCompatibility = JavaVersion.current()
 
     void setTargetCompatibility(Object targetCompatibility) {
-        this.targetCompatibility = JavaVersion.toVersion(targetCompatibility)
+        this.targetCompatibility = JavaVersion.toVersion(targetCompatibility)  ?: targetCompatibility
     }
 
     /**
@@ -96,7 +96,7 @@ class EclipseJdt {
      * See {@link #file(Closure) }
      */
     final PropertiesFileContentMerger file
-    
+
     EclipseJdt(PropertiesFileContentMerger file) {
         this.file = file
     }

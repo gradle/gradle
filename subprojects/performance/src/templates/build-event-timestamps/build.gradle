@@ -3,11 +3,11 @@ ${original}
 def configurationEndTimestamp
 
 gradle.taskGraph.whenReady {
-    configurationEndTimestamp = System.currentTimeMillis()
+    configurationEndTimestamp = System.nanoTime()
 }
 
 gradle.buildFinished { buildResult ->
-    def buildEndTimestamp = System.currentTimeMillis()
+    def buildEndTimestamp = System.nanoTime()
     buildDir.mkdirs()
     def writer = new File(buildDir, "buildEventTimestamps.txt").newPrintWriter()
     try {

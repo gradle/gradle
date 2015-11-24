@@ -161,7 +161,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         file('discovered/file1.txt') << "changed content"
 
         then:
-        executesWithRebuildContext()
+        executesWithIncrementalContext()
     }
 
     def "incremental task is informed of 'out-of-date' files when input file added"() {
@@ -207,7 +207,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         file('discovered/file2.txt').delete()
 
         then:
-        executesWithRebuildContext("ext.discovered = [ 'file0.txt', 'file1.txt' ]")
+        executesWithIncrementalContext("ext.discovered = [ 'file0.txt', 'file1.txt' ]")
     }
 
     def "incremental task discovered inputs are based on last execution only"() {
@@ -220,7 +220,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // discovered inputs are file0-file1
-        executesWithRebuildContext("ext.discovered = [ 'file0.txt', 'file1.txt' ]")
+        executesWithIncrementalContext("ext.discovered = [ 'file0.txt', 'file1.txt' ]")
 
         when:
         file('discovered/file2.txt') << "the file is back"
@@ -244,7 +244,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         when:
         file('discovered/file2.txt') << "file changed"
         then:
-        executesWithRebuildContext()
+        executesWithIncrementalContext()
     }
 
     def "incremental task is informed of 'out-of-date' files when all discovered input files removed"() {
@@ -257,7 +257,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         file('discovered/file2.txt').delete()
 
         then:
-        executesWithRebuildContext("ext.discovered = [ ]")
+        executesWithIncrementalContext("ext.discovered = [ ]")
     }
 
     def "incremental task is informed of 'out-of-date' files with added, removed and modified files"() {

@@ -47,7 +47,7 @@ class RuleBindings {
         }
     }
 
-    public void nodeProjectionsDefined(ModelNodeInternal node) {
+    public void nodeDiscovered(ModelNodeInternal node) {
         for (Reference reference : pathReferences.get(node.getPath())) {
             if (!reference.binding.isBound()) {
                 bound(reference, node);
@@ -68,9 +68,6 @@ class RuleBindings {
     private void bound(Reference reference, ModelNodeInternal node) {
         ModelBinding binding = reference.binding;
         binding.onBind(node);
-        if (binding.predicate.getState() == null) {
-            throw new IllegalArgumentException("No state specified for binding: " + binding);
-        }
         reference.index.put(new NodeAtState(node.getPath(), binding.predicate.getState()), reference.owner);
     }
 
@@ -97,7 +94,7 @@ class RuleBindings {
     }
 
     public void add(RuleBinder ruleBinder) {
-        addRule(ruleBinder, rulesBySubject, subject(ruleBinder));
+        addRule(ruleBinder, rulesBySubject, ruleBinder.getSubjectBinding());
         for (ModelBinding binding : ruleBinder.getInputBindings()) {
             addRule(ruleBinder, rulesByInput, binding);
         }
@@ -118,8 +115,8 @@ class RuleBindings {
             pathReferences.put(predicate.getPath(), reference);
         } else if (predicate.getScope() != null) {
             for (ModelNodeInternal node : modelGraph.findAllInScope(predicate.getScope())) {
-                // Do not try to attach to nodes that are not in ProjectionsDefined yet
-                if (!node.isAtLeast(ModelNode.State.ProjectionsDefined)) {
+                // Do not try to attach to nodes that are not Discovered yet
+                if (!node.isAtLeast(ModelNode.State.Discovered)) {
                     continue;
                 }
                 if (binding.isTypeCompatible(node.getPromise())) {
@@ -133,23 +130,8 @@ class RuleBindings {
         }
     }
 
-    private ModelBinding subject(RuleBinder ruleBinder) {
-        if (ruleBinder.getSubjectBinding() != null) {
-            return ruleBinder.getSubjectBinding();
-        }
-        // Create a dummy binding. Could probably reorganise things to avoid this
-        return new ModelBinding(ruleBinder.getDescriptor(), ruleBinder.getSubjectReference(), true) {
-            @Override
-            public boolean canBindInState(ModelNode.State state) {
-                return true;
-            }
-        };
-    }
-
     private static void unbind(RuleBinder rule, ModelNodeInternal node) {
-        if (rule.getSubjectBinding() != null) {
-            rule.getSubjectBinding().onUnbind(node);
-        }
+        rule.getSubjectBinding().onUnbind(node);
         for (ModelBinding binding : rule.getInputBindings()) {
             binding.onUnbind(node);
         }

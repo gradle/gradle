@@ -18,7 +18,6 @@ package org.gradle.internal.filewatch;
 
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -63,10 +62,10 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
     }
 
     @Override
-    public FileWatcher watch(FileSystemSubset systemSubset, Action<? super Throwable> onError, FileWatcherListener listener) {
+    public FileWatcher watch(Action<? super Throwable> onError, FileWatcherListener listener) {
         if (fileWatcherFactory == null) {
             fileWatcherFactory = createFileWatcherFactory();
         }
-        return fileWatcherFactory.watch(systemSubset, onError, listener);
+        return fileWatcherFactory.watch(onError, listener);
     }
 }

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language
+
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -23,9 +24,6 @@ import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.type.ModelType
-import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.NativeBinary
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
@@ -35,6 +33,8 @@ import org.gradle.platform.base.ComponentSpec
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.model.internal.type.ModelTypes.modelMap
 
 abstract class AbstractNativeComponentPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
@@ -48,15 +48,15 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
     abstract String getPluginName();
 
     ModelMap<ComponentSpec> realizeComponents() {
-        project.modelRegistry.realize(ModelPath.path("components"), ModelTypes.modelMap(ComponentSpec))
+        project.modelRegistry.realize("components", modelMap(ComponentSpec))
     }
 
     ProjectSourceSet realizeSourceSets() {
-        project.modelRegistry.find(ModelPath.path("sources"), ModelType.of(ProjectSourceSet))
+        project.modelRegistry.find("sources", ProjectSourceSet)
     }
 
     ModelMap<BinarySpec> realizeBinaries() {
-        project.modelRegistry.find(ModelPath.path("binaries"), ModelTypes.modelMap(BinarySpec))
+        project.modelRegistry.find("binaries", modelMap(BinarySpec))
     }
 
     def "creates source set with conventional locations for components"() {

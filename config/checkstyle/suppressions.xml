@@ -7,6 +7,8 @@
 <suppressions>
     <!-- These packages are duplicated in core, don't require a package-info.java in each place -->
     <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]platform-base[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]maven[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]plugins[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>

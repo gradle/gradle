@@ -16,14 +16,18 @@
 
 
 package org.gradle.performance
+
+import org.gradle.performance.categories.BasicPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentSpec
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
-// @Category(Experiment)
+
+@Category(BasicPerformanceTest)
 class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-        builder.invocation.gradleOpts("-Xmx1024m", "-XX:MaxPermSize=256m")
+        builder.invocation.gradleOpts("-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m")
         super.defaultSpec(builder)
     }
 
@@ -37,6 +41,8 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(task).useDaemon()
             }
         }
+        /*
+        TODO: enable after fixing model reuse
         runner.buildSpec {
             projectName("${size}VariantsNewModel").displayName("new model (reuse)").invocation {
                 tasksToRun(task).useDaemon().enableModelReuse()
@@ -47,6 +53,7 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(task).useToolingApi().enableModelReuse()
             }
         }
+        */
         runner.buildSpec {
             projectName("${size}VariantsNewModel").displayName("new model (no client logging)").invocation {
                 tasksToRun(task).useDaemon().disableDaemonLogging()
@@ -93,6 +100,8 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(*tasks).useDaemon()
             }
         }
+        /*
+        TODO: enable after fixing model reuse
         runner.buildSpec {
             projectName("variantsNewModelMultiproject").displayName("new model (reuse)").invocation {
                 tasksToRun(*tasks).useDaemon().enableModelReuse()
@@ -103,6 +112,7 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(*tasks).useToolingApi().enableModelReuse()
             }
         }
+        */
         runner.buildSpec {
             projectName("variantsNewModelMultiproject").displayName("new model (no client logging)").invocation {
                 tasksToRun(*tasks).useDaemon().disableDaemonLogging()

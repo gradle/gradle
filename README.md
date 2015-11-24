@@ -18,7 +18,9 @@ To build the entire Gradle project, you should run the following in the root of 
 
     ./gradlew build
 
-This will compile all the code, generate all the documentation and run all the tests. It can take up to an hour on a fast machine because we have thousands of tests, including integration tests that exercise virtually every Gradle feature. Among the things we test are: compatibility across versions, validity of samples and Javadoc snippets, daemon process capabilities, etc.
+This will compile all the code, generate all the documentation and run all the tests. It can take several hours because we have thousands of tests, including integration tests that exercise virtually every Gradle feature. Among the things we test are: compatibility across versions, validity of samples and Javadoc snippets, daemon process capabilities, etc.
+
+In order to for this build to pass, you will need a supported native tool chain installed. See the [Gradle userguide](https://docs.gradle.org/current/userguide/nativeBinaries.html#native-binaries:tool-chain-support) for a list of supported tool chains.
 
 ### Installing from source
 

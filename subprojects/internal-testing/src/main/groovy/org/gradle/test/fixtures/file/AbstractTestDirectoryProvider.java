@@ -16,8 +16,10 @@
 
 package org.gradle.test.fixtures.file;
 
+import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.test.fixtures.ConcurrentTestUtil;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -88,13 +90,12 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
 
             try {
                 if (cleanup && dir != null && dir.exists()) {
-                    try {
-                        FileUtils.forceDelete(dir);
-                    } catch (IOException e) {
-                        // Some releases are async, wait then try again
-                        Thread.sleep(1000);
-                        FileUtils.forceDelete(dir);
-                    }
+                    ConcurrentTestUtil.poll(new Closure(null, null) {
+                        @SuppressWarnings("UnusedDeclaration")
+                        void doCall() throws IOException {
+                            FileUtils.forceDelete(dir);
+                        }
+                    });
                 }
             } catch (Exception e) {
                 if (suppressCleanupErrors) {

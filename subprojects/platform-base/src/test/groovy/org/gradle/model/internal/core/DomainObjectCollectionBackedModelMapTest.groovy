@@ -24,7 +24,6 @@ import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.internal.DefaultDomainObjectCollection
 import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator
 import org.gradle.internal.Actions
-import org.gradle.model.internal.manage.instance.ManagedInstance
 import spock.lang.Specification
 
 class DomainObjectCollectionBackedModelMapTest extends Specification {
@@ -32,50 +31,38 @@ class DomainObjectCollectionBackedModelMapTest extends Specification {
         given:
         def backingCollection = Mock(DomainObjectCollection)
         def instantiator = Mock(NamedEntityInstantiator)
-        def modelMap = DomainObjectCollectionBackedModelMap.wrap(Item, backingCollection, instantiator, new Named.Namer(), Actions.doNothing())
+        def modelMap = DomainObjectCollectionBackedModelMap.wrap(SomeType, backingCollection, instantiator, new Named.Namer(), Actions.doNothing())
 
         when:
         modelMap.create("alma")
 
         then:
-        1 * instantiator.create("alma", Item) >>  { new Item(name: "alma") }
+        1 * instantiator.create("alma", SomeType) >>  { new SomeType(name: "alma") }
         1 * backingCollection.add({ item -> item.name == "alma" })
         1 * backingCollection.iterator() >> { Iterators.emptyIterator() }
         0 * _
     }
 
-    class Item implements Named {
+    class SomeType implements Named {
         String name
-    }
-
-    def "is not managed instance when wrapped in groovy decorator"() {
-        when:
-        def backingCollection = Mock(DomainObjectCollection)
-        def instantiator = Mock(NamedEntityInstantiator)
-        def modelMap = DomainObjectCollectionBackedModelMap.wrap(Item, backingCollection, instantiator, new Named.Namer(), Actions.doNothing())
-        def groovyWrapper = ModelMapGroovyDecorator.wrap(modelMap)
-
-        then:
-        !(groovyWrapper instanceof ManagedInstance)
-        !(groovyWrapper.withType(Object) instanceof ManagedInstance)
     }
 
     def "reasonable error message when creating a non-constructible type"() {
         given:
-        def backingCollection = new DefaultDomainObjectCollection(Item, []);
-        def instantiator = new DefaultPolymorphicNamedEntityInstantiator(Item, "Item")
-        instantiator.registerFactory(Item, new NamedDomainObjectFactory<Item>(){
-            public Item create(String name) {
-                return new Item(name: name)
+        def backingCollection = new DefaultDomainObjectCollection(SomeType, []);
+        def instantiator = new DefaultPolymorphicNamedEntityInstantiator(SomeType, "the collection")
+        instantiator.registerFactory(SomeType, new NamedDomainObjectFactory<SomeType>(){
+            public SomeType create(String name) {
+                return new SomeType(name: name)
             }
         })
-        def modelMap = new DomainObjectCollectionBackedModelMap(Item, backingCollection, instantiator, new Named.Namer(), Actions.doNothing())
+        def modelMap = new DomainObjectCollectionBackedModelMap(SomeType, backingCollection, instantiator, new Named.Namer(), Actions.doNothing())
 
         when:
         modelMap.create("alma", List)
 
         then:
         def e = thrown InvalidUserDataException
-        e.message.contains("Cannot create a List because this type is not known to Item. Known types are: Item")
+        e.message.contains("Cannot create a List because this type is not known to the collection. Known types are: SomeType")
     }
 }

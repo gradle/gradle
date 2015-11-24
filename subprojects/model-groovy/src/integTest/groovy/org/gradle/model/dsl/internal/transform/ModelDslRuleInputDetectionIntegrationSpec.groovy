@@ -17,7 +17,6 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.containsString
@@ -166,9 +165,9 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         then:
         succeeds "tasks"
-        result.output.contains(TextUtil.toPlatformLineSeparators('''thing configured
+        result.output.contains '''thing configured
 tasks configured
-'''))
+'''
 
         where:
         syntax << [
@@ -200,8 +199,37 @@ tasks configured
             '$',
             '$.toString()',
             '$.$("foo")',
-            '$."${ 1 + 2}"'
+            '$."${ 1 + 2}"',
+            '$*.things',
+            '$?.things',
         ]
+    }
+
+    def "path for dollar var expression ends with first non-property reference"() {
+        when:
+        buildScript '''
+        @Managed
+        interface Thing {
+            List<String> getValues()
+        }
+        model {
+            thing(Thing) {
+                values.addAll(['', '2', '3'])
+            }
+            tasks {
+                echo(Task) {
+                    doLast {
+                        println "values: " + $.thing.values*.empty
+                        println "values: " + $.thing.values?.empty
+                    }
+                }
+            }
+        }
+        '''
+
+        then:
+        succeeds "echo"
+        output.contains "values: [true, false, false]"
     }
 
     @Unroll
@@ -425,17 +453,17 @@ cl.call()
 
         then:
         failureCauseContains('''
-  model.fooar @ build.gradle line 20, column 17
+  fooar { ... } @ build.gradle line 20, column 17
     subject:
       - fooar Object [*]
           suggestions: foobar
 
-  model.foobah @ build.gradle line 18, column 17
+  foobah { ... } @ build.gradle line 18, column 17
     subject:
       - foobah Object [*]
           suggestions: foobar
 
-  model.foonar @ build.gradle line 16, column 17
+  foonar { ... } @ build.gradle line 16, column 17
     subject:
       - foonar Object [*]
           suggestions: foobar
@@ -471,7 +499,7 @@ cl.call()
 
         then:
         failureCauseContains('''
-  model.tasks.raboof @ build.gradle line 15, column 17
+  tasks.raboof { ... } @ build.gradle line 15, column 17
     subject:
       - tasks.raboof Object
     inputs:
@@ -484,6 +512,7 @@ cl.call()
 ''')
     }
 
+    // This is temporary. Will be closed once more progress on DSL has been made
     def "can access project and script from rule"() {
         when:
         buildScript """

@@ -27,13 +27,13 @@ import java.util.Deque;
 @Contextual
 public class InvalidManagedModelElementTypeException extends RuntimeException {
 
-    private static String createPathString(ModelSchemaExtractionContext<?> extractionContext) {
+    private static String createPathString(DefaultModelSchemaExtractionContext<?> extractionContext) {
         StringBuilder prefix = new StringBuilder("  ");
         StringWriter out = new StringWriter();
         PrintWriter writer = new PrintWriter(out);
 
         Deque<String> descriptions = Lists.newLinkedList();
-        ModelSchemaExtractionContext<?> current = extractionContext;
+        DefaultModelSchemaExtractionContext<?> current = extractionContext;
         while (current != null) {
             descriptions.push(current.getDescription());
             current = current.getParent();
@@ -55,7 +55,7 @@ public class InvalidManagedModelElementTypeException extends RuntimeException {
         return out.toString();
     }
 
-    private static String getMessage(ModelSchemaExtractionContext<?> extractionContext, String message) {
+    private static String getMessage(DefaultModelSchemaExtractionContext<?> extractionContext, String message) {
         ModelType<?> type = extractionContext.getType();
         StringWriter out = new StringWriter();
         PrintWriter writer = new PrintWriter(out);
@@ -75,7 +75,7 @@ public class InvalidManagedModelElementTypeException extends RuntimeException {
     }
 
     public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext, String message, Throwable throwable) {
-        super(getMessage(extractionContext, message), throwable);
+        super(getMessage((DefaultModelSchemaExtractionContext<?>) extractionContext, message), throwable);
     }
 
 }

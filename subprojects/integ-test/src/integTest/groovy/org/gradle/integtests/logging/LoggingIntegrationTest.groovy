@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
@@ -406,8 +405,8 @@ class OutputOccurrence {
         if (index == 0) {
             return
         }
-        int startLine = index - SystemProperties.instance.lineSeparator.length()
-        if (startLine < 0 || !actual.substring(startLine).startsWith(SystemProperties.instance.lineSeparator)) {
+        int startLine = index - 1
+        if (startLine < 0 || !actual.substring(startLine).startsWith('\n')) {
             throw new AssertionError("Expected content '$expected' is not at the start of a line in output $actual.")
         }
     }
@@ -417,17 +416,17 @@ class OutputOccurrence {
         if (endLine == actual.length()) {
             return
         }
-        if (!actual.substring(endLine).startsWith(SystemProperties.instance.lineSeparator)) {
+        if (!actual.substring(endLine).startsWith('\n')) {
             throw new AssertionError("Expected content '$expected' is not at the end of a line in output $actual.")
         }
     }
 
     void assertHasPrefix(String pattern) {
-        int startLine = actual.lastIndexOf(SystemProperties.instance.lineSeparator, index)
+        int startLine = actual.lastIndexOf('\n', index)
         if (startLine < 0) {
             startLine = 0
         } else {
-            startLine += SystemProperties.instance.lineSeparator.length()
+            startLine += 1
         }
         
         String actualPrefix = actual.substring(startLine, index)

@@ -19,11 +19,23 @@ package org.gradle.platform.base;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Task;
+import org.gradle.model.internal.core.UnmanagedStruct;
 
 /**
  * A collection of tasks associated to a binary
  * */
+@UnmanagedStruct
 public interface BinaryTasksCollection extends DomainObjectSet<Task> {
+    /**
+     * Generates a name for a task that performs some action on the binary.
+     */
+    String taskName(String verb);
+
+    /**
+     * Generates a name for a task that performs some action on the binary.
+     */
+    String taskName(String verb, String object);
+
     /**
      * The 'lifecycle' task, that can be used to construct this binary.
      */

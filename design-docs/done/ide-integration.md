@@ -298,3 +298,111 @@ Change the IDEA classpath mapping to do something similar.
  would need to be checked back into version control. With frequent changes that could get cumbersome. The benefit of using a classpath container is that the `.classpath` file doesn't change over
  time. The downside of using a classpath container is that it requires the use of Eclipse APIs and additional dependencies to Gradle core. As a side note: This model is used for other Eclipse IDE
   integrations like M2Eclipse and IvyDE so it's not uncommon. My guess is that it would require almost a rewrite of the existing code in the Gradle Eclipse plugin.
+
+### Story - Expose natures and builders for projects
+
+The Motiviation here is to model java projects better within the EclipseProject model. Therefore we want to provide
+the Eclipse Model with information about natures and builders. A Java Project is identified
+by having an EclipseModel providing a java nature. IDEs should not guess which natures and builders to add but get the information
+from the TAPI.
+
+#### Estimate
+
+- 3 days
+
+#### The API
+
+    interface EclipseProject {
+        ...
+        ...
+        DomainObjectSet<? extends EclipseProjectNature> getProjectNatures();
+
+        DomainObjectSet<? extends BuildCommand> getBuildCommands()
+        ...
+    }
+
+    interface EclipseBuildCommand{
+        String getName()
+        Map<String,String> getArguments()
+    }
+
+    public interface EclipseProjectNature {
+
+        /**
+         * Returns the unique identifier of the project nature.
+         */
+        String getId();
+    }
+
+
+#### Implementation
+
+- Add `DomainObjectSet<? extends EclipseProjectNature> getProjectNatures()` to the EclipseProject interface.
+- Add `List<DefaultEclipseProjectNature> projectNatures` property (setter + getter) to `DefaultEclipseProject`
+- Change EclipseModelBuilder to
+    - Add `org.eclipse.jdt.core.javanature` nature for all java projects in the multiproject build to EclipseProject.
+    - Add all natures declared via `eclipse.project.natures` to EclipseProject model.
+
+- Add `DomainObjectSet<? extends BuildCommand> getBuildCommands()` to the EclipseProject interface.
+- Add `List<BuildCommand> buildCommands` property to `DefaultEclipseProject`
+- Change EclipseModelBuilder to
+    - Add build command with name `org.eclipse.jdt.core.javabuilder` and no arguments for all java projects in multiproject build
+    - Apply custom added build commands (via `eclipse.project.buildCommand`)
+
+#### Test coverage
+
+- `EclipseProject#getProjectNatures()` of a Java project contains java nature (`org.eclipse.jdt.core.javanature`)
+- `EclipseProject#getProjectNatures()` respects custom added natures (via `eclipse.eclipse.project.natures`)
+- older Gradle versions throw decent error when calling `EclipseProject#getProjectNatures() `
+
+- `EclipseProject#getBuildCommands()` of a Java project contains java builder (`org.eclipse.jdt.core.javabuilder`)
+- `EclipseProject#getBuildCommands()` respects custom added build commands.
+- older Gradle versions throw decent error when calling `EclipseProject#getBuildCommands()`
+
+
+### Story - Expose Java source level for Java projects to Eclipse
+
+The IDE models should provide the java source compatibility level. To model java language specific information
+we want to have a dedicated model for eclipse specific java information and gradle specific java information.
+
+#### Estimate
+
+- 3 days
+
+#### The API
+
+    interface JavaSourceSettings {
+        JavaVersion getSourceLanguageLevel()
+    }
+
+    interface JavaSourceAware {
+        JavaSourceSettings getJavaSourceSettings()
+    }
+
+    interface EclipseProject extends JavaSourceAware {
+    }
+
+- The `JavaSourceSettings` interface describes Java-specific details for a model.
+  It initially defines only one attribute, describing the `sourceLanguageLevel`.
+- The `getSourceLanguageLevel()` returns the `eclipse.jdt.sourceCompatibility` level that is configurable within the `build.gradle` or per default uses
+similar version as `JavaConvention.sourceCompatibility` configuration.
+- For a no Java Project `JavaSourceAware.getJavaSourceSettings()` returns null
+- For older Gradle version the `JavaSourceAware.getJavaSourceSettings()` throws `UnsupportedMethodException`.
+
+#### Implementation
+- Add a `JavaSourceSettings` implementation with `JavaVersion getSourceLanguageLevel()`.
+- Introduce `JavaSourceAware` interface abstracting a common `JavaSourceSettings getJavaSourceSettings()` method.
+- Update `EclipseProject` to extend `JavaSourceAware`.
+- Update DefaultEclipseProject to implement new `.getJavaSourceSettings()` method
+- Update `EclipseModelBuilder` to set values for the `JavaSourceSettings`
+    - return `null` if the project doesn't apply the `java-base` plug-in.
+    - otherwise `JavaSourceSettings.getSourceLanguageLevel()` returns the value of `eclipse.jdt.sourceCompatibility`.
+
+#### Test coverage
+
+- throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetLanguageLevel()
+- `EclipseProject.getJavaSourceSettings().getSourceLanguageLevel()` throws `UnsupportedMethodException`for older target Gradle version.
+- `EclipseProject.getJavaSourceSettings()` returns null if no java project.
+- Java project, with 'eclipse' plugin not defining custom source compatibility via `eclipse.jdt.sourceCompatibility`
+- Java project, with 'eclipse' plugin defining custom source compatibility via `eclipse.jdt.sourceCompatibility`
+- Multiproject java project build with different source levels per subproject

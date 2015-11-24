@@ -27,17 +27,17 @@ import java.io.File;
 
 public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec implements NativeExecutableBinary, NativeExecutableBinarySpecInternal {
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
-    private NativeInstallationSpec installation = new NativeInstallationSpec();
-    private NativeExecutableFileSpec executable = new NativeExecutableFileSpec();
+    private final NativeInstallationSpec installation = new NativeInstallationSpec();
+    private final NativeExecutableFileSpec executable = new NativeExecutableFileSpec();
 
     @Override
     public NativeExecutableSpec getComponent() {
-        return (NativeExecutableSpec) super.getComponent();
+        return getComponentAs(NativeExecutableSpec.class);
     }
 
     @Override
     public NativeExecutableSpec getApplication() {
-        return getComponent();
+        return getComponentAs(NativeExecutableSpec.class);
     }
 
     @Override
@@ -64,6 +64,7 @@ public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec 
         return tasks.getLink();
     }
 
+    @Override
     public NativeExecutableBinarySpec.TasksCollection getTasks() {
         return tasks;
     }

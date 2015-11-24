@@ -53,14 +53,17 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
+import org.gradle.model.RuleSource;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.*;
@@ -185,58 +188,69 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         populateModelRegistry(services.get(ModelRegistry.class));
     }
 
+    static class BasicServicesRules extends RuleSource {
+        @Service
+        ITaskFactory taskFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ITaskFactory.class);
+        }
+
+        @Service
+        ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ModelSchemaStore.class);
+        }
+
+        @Service
+        ManagedProxyFactory proxyFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ManagedProxyFactory.class);
+        }
+
+        @Service
+        NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore) {
+            return new DefaultNodeInitializerRegistry(schemaStore);
+        }
+
+        @Service
+        TypeConverter typeConverter(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(TypeConverter.class);
+        }
+    }
+
     private void populateModelRegistry(ModelRegistry modelRegistry) {
-        ModelCreator taskFactoryCreator = ModelCreators.serviceInstance(ModelReference.of("taskFactory", ITaskFactory.class), services.get(ITaskFactory.class))
-            .descriptor("Project.<init>.taskFactory")
+        registerServiceOn(modelRegistry, "serviceRegistry", ServiceRegistry.class, services, instanceDescriptorFor("serviceRegistry"));
+        // TODO:LPTR This ignores changes to Project.buildDir after model node has been created
+        registerFactoryOn(modelRegistry, "buildDir", File.class, new Factory<File>() {
+            @Override
+            public File create() {
+                return getBuildDir();
+            }
+        });
+        registerInstanceOn(modelRegistry, "projectIdentifier", ProjectIdentifier.class, this);
+        registerInstanceOn(modelRegistry, "extensionContainer", ExtensionContainer.class, getExtensions());
+        modelRegistry.apply(BasicServicesRules.class);
+    }
+
+    private <T> void registerInstanceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance) {
+        registerFactoryOn(modelRegistry, path, type, Factories.constant(instance));
+    }
+
+    private <T> void registerFactoryOn(ModelRegistry modelRegistry, String path, Class<T> type, Factory<T> factory) {
+        modelRegistry.registerOrReplace(ModelRegistrations
+            .unmanagedInstance(ModelReference.of(path, type), factory)
+            .descriptor(instanceDescriptorFor(path))
             .ephemeral(true)
-            .build();
+            .hidden(true)
+            .build());
+    }
 
-        modelRegistry.createOrReplace(taskFactoryCreator);
-
-        modelRegistry.createOrReplace(
-            ModelCreators.serviceInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
-                .descriptor("Project.<init>.serviceRegistry()")
-                .ephemeral(true)
-                .build()
+    private <T> void registerServiceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance, String descriptor) {
+        modelRegistry.registerOrReplace(ModelRegistrations.serviceInstance(ModelReference.of(path, type), instance)
+            .descriptor(descriptor)
+            .build()
         );
+    }
 
-        ModelSchemaStore schemaStore = services.get(ModelSchemaStore.class);
-        ManagedProxyFactory proxyFactory = services.get(ManagedProxyFactory.class);
-        NodeInitializerRegistry nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore, proxyFactory);
-        modelRegistry.createOrReplace(
-            ModelCreators.serviceInstance(ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class), nodeInitializerRegistry)
-                .descriptor("Project.<init>.nodeInitializerRegistry()")
-                .ephemeral(true)
-                .build()
-        );
-
-        modelRegistry.createOrReplace(
-            ModelCreators.unmanagedInstance(ModelReference.of("buildDir", File.class), new Factory<File>() {
-                public File create() {
-                    return getBuildDir();
-                }
-            })
-                .descriptor("Project.<init>.buildDir()")
-                .ephemeral(true)
-                .hidden(true)
-                .build()
-        );
-
-        modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
-                .descriptor("Project.<init>.projectIdentifier()")
-                .ephemeral(true)
-                .hidden(true)
-                .build()
-        );
-
-        modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of("extensionContainer", ExtensionContainer.class), getExtensions())
-                .descriptor("Project.<init>.extensions()")
-                .ephemeral(true)
-                .hidden(true)
-                .build()
-        );
+    private String instanceDescriptorFor(String path) {
+        return "Project.<init>." + path + "()";
     }
 
     public ProjectInternal getRootProject() {

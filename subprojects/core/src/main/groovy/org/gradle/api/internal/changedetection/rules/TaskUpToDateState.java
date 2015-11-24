@@ -67,9 +67,8 @@ public class TaskUpToDateState {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.  See stacktrace for details.", task.getName()), e);
         }
 
-        TaskStateChanges cachedDiscoveredInputFilesState = caching(discoveredInputFilesState);
-        allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState, cachedDiscoveredInputFilesState);
-        rebuildChanges = new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, cachedDiscoveredInputFilesState);
+        allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState, caching(discoveredInputFilesState));
+        rebuildChanges = new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState);
     }
 
     private TaskStateChanges caching(TaskStateChanges wrapped) {

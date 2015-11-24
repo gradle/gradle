@@ -35,6 +35,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     int linesOfCodePerSourceFile = 5
     int filesPerPackage = 100
     boolean useSubProjectNumberInSourceFileNames = false
+    List<String> additionalProjectFiles = []
 
     final List<TestProject> projects = []
     List<String> rootProjectTemplates = ['root-project']
@@ -52,7 +53,6 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     Random random = new Random(1L)
 
     def ProjectGeneratorTask() {
-        outputs.upToDateWhen { false }
         setProjects(1)
         destDir = project.file("${project.buildDir}/${name}")
     }
@@ -135,8 +135,8 @@ abstract class ProjectGeneratorTask extends DefaultTask {
         if (!templates.empty) {
             templates.addAll(['build-event-timestamps', 'heap-capture'])
         }
-        generateProject(rootProject, 
-            subprojects: subprojectNames, 
+        generateProject(rootProject,
+            subprojects: subprojectNames,
             projectDir: destDir,
             files: subprojectNames.empty ? [] : ['settings.gradle', 'checkstyle.xml'],
             templates: templates,
@@ -149,11 +149,11 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     }
 
     def generateSubProject(TestProject testProject) {
-        generateProject(testProject, 
-            subprojects: [], 
-            projectDir: new File(destDir, testProject.name), 
+        generateProject(testProject,
+            subprojects: [],
+            projectDir: new File(destDir, testProject.name),
             files: [],
-            templates: subProjectTemplates, 
+            templates: subProjectTemplates,
             includeSource: true)
     }
 
@@ -164,13 +164,12 @@ abstract class ProjectGeneratorTask extends DefaultTask {
         def files = []
         files.addAll(args.files)
         files.addAll(['build.gradle', 'pom.xml', 'build.xml'])
-        // TODO: 
-        files.addAll(['common.gradle', 'prebuilt.gradle', 'components.gradle'])
+        files.addAll(additionalProjectFiles)
 
-        args += [projectName  : testProject.name, 
-                 subprojectNumber: testProject.subprojectNumber, 
-                 propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)), 
-                 repository: testProject.repository, 
+        args += [projectName  : testProject.name,
+                 subprojectNumber: testProject.subprojectNumber,
+                 propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)),
+                 repository: testProject.repository,
                  dependencies: testProject.dependencies,
                  testProject: testProject ]
 

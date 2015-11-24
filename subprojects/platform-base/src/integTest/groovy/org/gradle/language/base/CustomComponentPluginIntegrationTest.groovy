@@ -17,17 +17,14 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 class CustomComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
         buildFile << """
+@Managed
 interface SampleComponent extends ComponentSpec {
     String getVersion()
     void setVersion(String version)
-}
-class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {
-    String version
 }
 """
     }
@@ -37,23 +34,23 @@ class DefaultSampleComponent extends BaseComponentSpec implements SampleComponen
         buildWithCustomComponentPlugin()
 
         and:
-        buildFile << """
+        buildFile << '''
 model {
     tasks {
         create("checkModel") {
-            def components = \$("components")
+            def components = $.components
             doLast {
                 assert components.size() == 1
                 def sampleLib = components.sampleLib
                 assert sampleLib instanceof SampleComponent
                 assert sampleLib.projectPath == project.path
-                assert sampleLib.displayName == "DefaultSampleComponent 'sampleLib'"
+                assert sampleLib.displayName == "SampleComponent 'sampleLib'"
                 assert sampleLib.version == null
             }
         }
     }
 }
-"""
+'''
         then:
         succeeds "checkModel"
     }
@@ -90,7 +87,6 @@ model {
             class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.defaultImplementation(DefaultSampleComponent)
                 }
 
                 @Mutate
@@ -125,11 +121,10 @@ model {
 
     def "can register custom component model without creating"() {
         when:
-        buildFile << """
+        buildFile << '''
             class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.defaultImplementation(DefaultSampleComponent)
                 }
             }
 
@@ -139,12 +134,12 @@ model {
                 tasks {
                     create("checkModel") {
                         doLast {
-                            assert \$("components").size() == 0
+                            assert $.components.size() == 0
                         }
                     }
                 }
             }
-"""
+'''
 
         then:
         succeeds "checkModel"
@@ -158,14 +153,14 @@ model {
         succeeds "components"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators(""":components
+        output.contains """:components
 
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
 
-DefaultSampleComponent 'sampleLib'
-----------------------------------
+SampleComponent 'sampleLib'
+---------------------------
 
 Source sets
     No source sets.
@@ -175,16 +170,15 @@ Binaries
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
-BUILD SUCCESSFUL"""))
+BUILD SUCCESSFUL"""
     }
 
     def "can have component declaration and creation in separate plugins"() {
         when:
-        buildFile << """
+        buildFile << '''
             class MyComponentDeclarationModel extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.defaultImplementation(DefaultSampleComponent)
                 }
             }
 
@@ -206,18 +200,18 @@ BUILD SUCCESSFUL"""))
             model {
                 tasks {
                     create("checkModel") {
-                        def components = \$("components")
+                        def components = $.components
                         doLast {
                             assert components.size() == 1
                             def sampleLib = components.sampleLib
                             assert sampleLib instanceof SampleComponent
                             assert sampleLib.projectPath == project.path
-                            assert sampleLib.displayName == "DefaultSampleComponent 'sampleLib'"
+                            assert sampleLib.displayName == "SampleComponent 'sampleLib'"
                         }
                     }
                 }
             }
-"""
+'''
 
         then:
         succeeds "checkModel"
@@ -225,14 +219,13 @@ BUILD SUCCESSFUL"""))
 
     def "Can define and create multiple component types in the same plugin"(){
         when:
-        buildFile << """
+        buildFile << '''
             interface SampleLibrary extends LibrarySpec {}
             class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
             class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.defaultImplementation(DefaultSampleComponent)
                 }
 
                 @ComponentType
@@ -256,24 +249,24 @@ BUILD SUCCESSFUL"""))
             model {
                 tasks {
                     create("checkModel") {
-                        def components = \$("components")
+                        def components = $.components
                         doLast {
                             assert components.size() == 2
 
                             def sampleComponent = components.sampleComponent
                             assert sampleComponent instanceof SampleComponent
                             assert sampleComponent.projectPath == project.path
-                            assert sampleComponent.displayName == "DefaultSampleComponent 'sampleComponent'"
+                            assert sampleComponent.displayName == "SampleComponent 'sampleComponent'"
 
                             def sampleLib = components.sampleLib
                             assert sampleLib instanceof SampleLibrary
                             assert sampleLib.projectPath == project.path
-                            assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib'"
+                            assert sampleLib.displayName == "SampleLibrary 'sampleLib'"
                         }
                     }
                 }
             }
-"""
+'''
 
         then:
         succeeds "checkModel"
@@ -302,19 +295,28 @@ BUILD SUCCESSFUL"""))
         failure.assertHasCause "Method annotated with @ComponentType must have a single parameter of type 'org.gradle.platform.base.ComponentTypeBuilder'."
     }
 
-    def "cannot register same component type multiple times"(){
+    def "cannot register same unmanaged component type implementation multiple times"(){
         given:
         buildWithCustomComponentPlugin()
 
         and:
         buildFile << """
+            interface UnmanagedComponent extends ComponentSpec {}
+            class DefaultUnmanagedComponent extends BaseComponentSpec implements UnmanagedComponent {}
+            class MyPlugin extends RuleSource {
+                @ComponentType
+                void register(ComponentTypeBuilder<UnmanagedComponent> builder) {
+                    builder.defaultImplementation(DefaultUnmanagedComponent)
+                }
+            }
             class MyOtherPlugin extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.defaultImplementation(DefaultSampleComponent)
+                void register(ComponentTypeBuilder<UnmanagedComponent> builder) {
+                    builder.defaultImplementation(DefaultUnmanagedComponent)
                 }
             }
 
+            apply plugin:MyPlugin
             apply plugin:MyOtherPlugin
 """
 
@@ -324,7 +326,7 @@ BUILD SUCCESSFUL"""))
         then:
         failure.assertHasDescription "A problem occurred configuring root project 'custom-component'."
         failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin#register"
-        failure.assertHasCause "Cannot register implementation for type 'SampleComponent' because an implementation for this type was already registered by MySamplePlugin#register"
+        failure.assertHasCause "Cannot register implementation for type 'UnmanagedComponent' because an implementation for this type was already registered by MyPlugin#register"
     }
 
     def buildWithCustomComponentPlugin() {
@@ -333,7 +335,6 @@ BUILD SUCCESSFUL"""))
             class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.defaultImplementation(DefaultSampleComponent)
                 }
                 @Mutate
                 void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {

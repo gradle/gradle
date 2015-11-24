@@ -15,13 +15,14 @@
  */
 
 package org.gradle.performance
-
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.performance.categories.BasicPerformanceTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import org.junit.experimental.categories.Category
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.HttpHeaders
 import org.mortbay.jetty.Server
@@ -33,9 +34,8 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import org.junit.experimental.categories.Category
 
-@Category(PerformanceTest)
+@Category(BasicPerformanceTest)
 class DependencyResolutionStressTest extends Specification {
     @Rule TestNameTestDirectoryProvider workspace = new TestNameTestDirectoryProvider()
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()

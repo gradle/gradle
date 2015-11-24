@@ -17,8 +17,6 @@
 package org.gradle.testkit.runner.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.GradleDistributionLocator;
-import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
@@ -30,6 +28,8 @@ import org.gradle.testkit.runner.internal.dist.URILocatedGradleDistribution;
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
 import org.gradle.testkit.runner.internal.io.WriterOutputStream;
+import org.gradle.tooling.internal.classpath.DefaultGradleDistributionLocator;
+import org.gradle.tooling.internal.classpath.GradleDistributionLocator;
 
 import java.io.File;
 import java.io.OutputStream;

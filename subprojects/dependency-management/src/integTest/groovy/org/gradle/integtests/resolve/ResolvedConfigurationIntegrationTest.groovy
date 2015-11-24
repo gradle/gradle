@@ -14,90 +14,94 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve
-
-import org.gradle.api.Project
-import org.gradle.api.artifacts.LenientConfiguration
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.specs.Specs
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
-import org.gradle.util.TestUtil
-import org.junit.Before
-import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
-public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTest {
-    def DefaultProject project = TestUtil.createRootProject()
-    def Project childProject = TestUtil.createChildProject(project, "child", new File("."))
-
-    @Before
-    public void boringSetup() {
-        project.allprojects { apply plugin: 'java' }
-
-        project.repositories {
-            maven { url mavenRepo.uri }
-        }
+public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+            }
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
+        """
     }
 
-    @Test
-    public void "resolves leniently"() {
+    def "resolves leniently"() {
+        settingsFile << "include 'child'"
         mavenRepo.module('org.foo', 'hiphop').publish()
         mavenRepo.module('org.foo', 'rock').dependsOn("some unresolved dependency").publish()
 
-        project.dependencies {
-            compile 'org.foo:hiphop:1.0'
-            compile 'unresolved.org:hiphopxx:3.0' //does not exist
-            compile childProject
+        buildFile << """
+            dependencies {
+                compile 'org.foo:hiphop:1.0'
+                compile 'unresolved.org:hiphopxx:3.0' //does not exist
+                compile project(":child")
 
-            compile 'org.foo:rock:1.0' //contains unresolved transitive dependency
-        }
+                compile 'org.foo:rock:1.0' //contains unresolved transitive dependency
+            }
 
-        LenientConfiguration compile = project.configurations.compile.resolvedConfiguration.lenientConfiguration
+            task validate << {
+                LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
 
-        def unresolved = compile.getUnresolvedModuleDependencies()
-        def resolved = compile.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
+                def unresolved = compile.getUnresolvedModuleDependencies()
+                def resolved = compile.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
 
-        assert resolved.size() == 3
-        assert resolved.find { it.moduleName == 'hiphop' }
-        assert resolved.find { it.moduleName == 'rock' }
-        assert resolved.find { it.moduleName == 'child' }
+                assert resolved.size() == 3
+                assert resolved.find { it.moduleName == 'hiphop' }
+                assert resolved.find { it.moduleName == 'rock' }
+                assert resolved.find { it.moduleName == 'child' }
 
-        assert unresolved.size() == 2
-        assert unresolved.find { it.selector.group == 'unresolved.org' && it.selector.name == 'hiphopxx' && it.selector.version == '3.0' }
-        assert unresolved.find { it.selector.name == 'some unresolved dependency' }
+                assert unresolved.size() == 2
+                assert unresolved.find { it.selector.group == 'unresolved.org' && it.selector.name == 'hiphopxx' && it.selector.version == '3.0' }
+                assert unresolved.find { it.selector.name == 'some unresolved dependency' }
+            }
+        """
+
+        expect:
+        succeeds "validate"
     }
 
-    @Test
-    public void "resolves leniently from mixed confs"() {
+    def "resolves leniently from mixed confs"() {
         mavenRepo.module('org.foo', 'hiphop').publish()
         mavenRepo.module('org.foo', 'rock').dependsOn("some unresolved dependency").publish()
 
-        project.configurations {
-            someConf
-        }
+        buildFile << """
+            configurations {
+                someConf
+            }
 
-        project.dependencies {
-            compile 'org.foo:hiphop:1.0'
-            someConf 'org.foo:hiphopxx:1.0' //does not exist
-        }
+            dependencies {
+                compile 'org.foo:hiphop:1.0'
+                someConf 'org.foo:hiphopxx:1.0' //does not exist
+            }
 
-        LenientConfiguration compile = project.configurations.compile.resolvedConfiguration.lenientConfiguration
+            task validate << {
+                LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
 
-        def unresolved = compile.getUnresolvedModuleDependencies()
-        def resolved = compile.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
+                def unresolved = compile.getUnresolvedModuleDependencies()
+                def resolved = compile.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
 
-        assert resolved.size() == 1
-        assert resolved.find { it.moduleName == 'hiphop' }
-        assert unresolved.size() == 0
+                assert resolved.size() == 1
+                assert resolved.find { it.moduleName == 'hiphop' }
+                assert unresolved.size() == 0
 
-        LenientConfiguration someConf = project.configurations.someConf.resolvedConfiguration.lenientConfiguration
+                LenientConfiguration someConf = configurations.someConf.resolvedConfiguration.lenientConfiguration
 
-        unresolved = someConf.getUnresolvedModuleDependencies()
-        resolved = someConf.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
+                unresolved = someConf.getUnresolvedModuleDependencies()
+                resolved = someConf.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
 
-        assert resolved.size() == 0
-        assert unresolved.size() == 1
-        assert unresolved.find { it.selector.name == 'hiphopxx' }
+                assert resolved.size() == 0
+                assert unresolved.size() == 1
+                assert unresolved.find { it.selector.name == 'hiphopxx' }
+            }
+        """
+
+        expect:
+        succeeds "validate"
     }
 }

@@ -17,22 +17,10 @@
 package org.gradle.nativeplatform.test.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
-import org.gradle.model.Defaults;
-import org.gradle.model.ModelMap;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
-import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.*;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -41,10 +29,10 @@ import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
-import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -52,27 +40,16 @@ import java.io.File;
  */
 @Incubating
 public class NativeBinariesTestPlugin implements Plugin<Project> {
-    private final ModelRegistry modelRegistry;
-    private final ModelSchemaStore schemaStore;
-
-    @Inject
-    public NativeBinariesTestPlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
-        this.modelRegistry = modelRegistry;
-        this.schemaStore = schemaStore;
-    }
 
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
-
-        ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(NativeBinariesTestPlugin.class.getName() + ".apply()");
-        SpecializedMapSchema<TestSuiteContainer> schema = (SpecializedMapSchema<TestSuiteContainer>) schemaStore.getSchema(ModelType.of(TestSuiteContainer.class));
-        ModelCreator testSuitesCreator = ModelMapCreators.specialized(ModelPath.path("testSuites"), TestSuiteSpec.class, TestSuiteContainer.class, schema.getImplementationType().asSubclass(TestSuiteContainer.class), descriptor);
-
-        modelRegistry.create(testSuitesCreator);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
+        @Model
+        void testSuites(TestSuiteContainer testSuites) {}
+
         @Defaults
         void attachTestedBinarySourcesToTestBinaries(ModelMap<BinarySpec> binaries) {
             binaries.withType(NativeTestSuiteBinarySpecInternal.class).afterEach(new Action<NativeTestSuiteBinarySpecInternal>() {
@@ -110,7 +87,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         public void copyTestBinariesToGlobalContainer(ModelMap<BinarySpec> binaries, TestSuiteContainer testSuites) {
             for (TestSuiteSpec testSuite : testSuites.withType(TestSuiteSpec.class).values()) {
                 for (BinarySpec binary : testSuite.getBinaries().values()) {
-                    binaries.put(binary.getName(), binary);
+                    binaries.put(((BinarySpecInternal) binary).getProjectScopedName(), binary);
                 }
             }
         }

@@ -15,20 +15,20 @@
  */
 
 package org.gradle.language.base.plugins
+
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.type.ModelType
-import org.gradle.model.internal.type.ModelTypes
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.internal.BinarySpecInternal
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.model.internal.type.ModelTypes.modelMap
 
 class LanguageBasePluginTest extends Specification {
     DefaultProject project = TestUtil.createRootProject()
@@ -39,12 +39,12 @@ class LanguageBasePluginTest extends Specification {
 
     def "adds a 'binaries' container to the project model"() {
         expect:
-        project.modelRegistry.find(ModelPath.path("binaries"), ModelTypes.modelMap(BinarySpec)) != null
+        project.modelRegistry.find("binaries", modelMap(BinarySpec)) != null
     }
 
     def "adds a 'sources' container to the project model"() {
         expect:
-        project.modelRegistry.find(ModelPath.path("sources"), ModelType.of(ProjectSourceSet)) != null
+        project.modelRegistry.find("sources", ProjectSourceSet) != null
     }
 
     def "copies binary tasks into task container"() {

@@ -18,8 +18,6 @@ package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -41,18 +39,18 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "registers language in languageRegistry"(){
         given:
-        buildFile << """
+        buildFile << '''
 model {
     tasks {
         create("printLanguages") {
             it.doLast {
-                 def languages = \$("languages")*.name.sort().join(", ")
-                 println "registered languages: \$languages"
+                 def languages = $.languages*.name.sort().join(", ")
+                 println "registered languages: $languages"
             }
         }
     }
 }
-        """
+        '''
         when:
         succeeds "printLanguages"
         then:
@@ -62,14 +60,12 @@ model {
     def "can add custom language sourceSet to component"() {
         when:
         buildFile << """
-        interface SampleComponent extends ComponentSpec {}
-        class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
+        @Managed interface SampleComponent extends ComponentSpec {}
 
 
         class CustomComponentPlugin extends RuleSource {
             @ComponentType
             void register(ComponentTypeBuilder<SampleComponent> builder) {
-                builder.defaultImplementation(DefaultSampleComponent)
             }
 
             @Mutate
@@ -94,14 +90,14 @@ model {
         then:
         succeeds "components"
         and:
-        output.contains(toPlatformLineSeparators("""
-DefaultSampleComponent 'main'
------------------------------
+        output.contains """
+SampleComponent 'main'
+----------------------
 
 Source sets
-    DefaultCustomLanguageSourceSet 'main:custom'
+    CustomLanguageSourceSet 'main:custom'
         srcDir: src${File.separator}main${File.separator}custom
-"""))
+"""
     }
 
 }

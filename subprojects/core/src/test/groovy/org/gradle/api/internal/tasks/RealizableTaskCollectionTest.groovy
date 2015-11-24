@@ -29,10 +29,10 @@ class RealizableTaskCollectionTest extends Specification {
         given:
         ModelRegistryHelper registry = new ModelRegistryHelper()
         ModelPath path = ModelPath.path("tasks")
-        registry.createInstance("tasks", "foo tasks")
+        registry.registerInstance("tasks", "foo tasks")
             .mutate {
             it.path "tasks" node {
-                it.addLink(registry.instanceCreator(taskPath, Mock(realizableType)))
+                it.addLink(registry.instanceRegistration(taskPath, Mock(realizableType)))
             }
         }
 
@@ -53,10 +53,10 @@ class RealizableTaskCollectionTest extends Specification {
         ModelRegistryHelper registry = new ModelRegistryHelper()
         ModelPath path = ModelPath.path("tasks")
 
-        registry.createInstance("tasks", "foo tasks")
+        registry.registerInstance("tasks", "foo tasks")
             .mutate {
             it.path "tasks" node {
-                it.addLink(registry.instanceCreator("tasks.redundant", Mock(RedundantTask)))
+                it.addLink(registry.instanceRegistration("tasks.redundant", Mock(RedundantTask)))
             }
         }
 
@@ -65,7 +65,7 @@ class RealizableTaskCollectionTest extends Specification {
         collection.realizeRuleTaskTypes()
 
         then:
-        registry.state("tasks.redundant") == ModelNode.State.ProjectionsDefined
+        registry.state("tasks.redundant") == ModelNode.State.Discovered
     }
 
     def "realize is idempotent"() {
@@ -73,10 +73,10 @@ class RealizableTaskCollectionTest extends Specification {
         ModelRegistryHelper registry = new ModelRegistryHelper()
         ModelPath path = ModelPath.path("tasks")
 
-        registry.createInstance("tasks", "foo tasks")
+        registry.registerInstance("tasks", "foo tasks")
             .mutate {
             it.path "tasks" node {
-                it.addLink(registry.instanceCreator("tasks.redundant", Mock(RedundantTask)))
+                it.addLink(registry.instanceRegistration("tasks.redundant", Mock(RedundantTask)))
             }
         }
 

@@ -15,12 +15,17 @@
  */
 
 package org.gradle.performance
-
+import org.apache.commons.io.FileUtils
+import org.gradle.performance.categories.NativePerformanceTest
+import org.gradle.performance.fixture.*
 import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.MeasuredOperation
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
+@Category(NativePerformanceTest)
 class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' measuring incremental build speed")
     def "build monolithic native project"() {
@@ -29,11 +34,10 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.8', 'last']
+        runner.targetVersions = [] // TODO: Add '2.10', 'last' once 2.10 is released.
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
-        // TODO: Remove this once we no longer scan directories so much
-        runner.args += [ '-PincludeHack=true' ]
+        runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
+
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
         }
@@ -43,7 +47,8 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        result.assertEveryBuildSucceeds()
+        // TODO: when 2.10 is available result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject                   | maxExecutionTimeRegression | parallelWorkers
@@ -51,5 +56,103 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         "nativeMonolithic"            | millis(1000)               | 4
         "nativeMonolithicOverlapping" | millis(1000)               | 0
         "nativeMonolithicOverlapping" | millis(1000)               | 4
+    }
+
+    @Unroll('Project #buildSize native build #changeType')
+    def "build with changes"() {
+        given:
+        runner.testId = "native build ${buildSize} ${changeType}"
+        runner.testProject = "${buildSize}NativeMonolithic"
+        runner.tasksToRun = ['build']
+        runner.args = ["--parallel", "--max-workers=4"]
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.targetVersions = ['2.8', '2.9', 'last']
+        runner.useDaemon = true
+        runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        runner.warmUpRuns = 2
+        runner.runs = 10
+        String fileName = changedFile
+        Closure fileChanger = changeClosure
+        boolean compilerOptionChange = (changeClosure == null)
+        runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
+            File file
+            String originalContent
+
+            @Override
+            GradleInvocationCustomizer createInvocationCustomizer(BuildExperimentInvocationInfo invocationInfo) {
+                if (compilerOptionChange) {
+                    return new GradleInvocationCustomizer() {
+                        @Override
+                        GradleInvocationSpec customize(GradleInvocationSpec invocationSpec) {
+                            if (invocationInfo.iterationNumber % 2 == 0) {
+                                println "Adding -PaddMoreDefines to arguments"
+                                return invocationSpec.withAdditionalArgs(["-PaddMoreDefines"])
+                            } else {
+                                return invocationSpec
+                            }
+                        }
+                    }
+                } else {
+                    null
+                }
+            }
+
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                if (fileChanger != null) {
+                    if (file == null) {
+                        file = new File(invocationInfo.projectDir, fileName)
+                        assert file.exists()
+                        def backupFile = new File(file.parentFile, file.name + "~")
+                        if (backupFile.exists()) {
+                            originalContent = backupFile.text
+                            file.text = originalContent
+                        } else {
+                            originalContent = file.text
+                            FileUtils.copyFile(file, backupFile)
+                        }
+                    }
+                    if (invocationInfo.iterationNumber % 2 == 0) {
+                        println "Changing $file"
+                        // do change
+                        fileChanger(file, originalContent)
+                    } else if (invocationInfo.iterationNumber > 2) {
+                        println "Reverting $file"
+                        file.text = originalContent
+                    }
+                }
+            }
+
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                if (invocationInfo.iterationNumber % 2 == 1) {
+                    println "Omitting measurement from last run."
+                    measurementCallback.omitMeasurement()
+                }
+            }
+        }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        buildSize | changeType              | maxExecutionTimeRegression | changedFile                       | changeClosure
+        "medium"  | 'source file change'    | millis(200)                | 'modules/project5/src/src100_c.c' | this.&changeCSource
+        "medium"  | 'header file change'    | millis(5000)               | 'common/common/include/header8.h' | this.&changeHeader
+        "medium"  | 'recompile all sources' | millis(5000)               | null                              | null
+    }
+
+    void changeCSource(File file, String originalContent) {
+        file.text = originalContent + """\nint C_function_added_in_test () {
+                    |  printf("Hello world!");
+                    |  return 0;
+                    |}\n""".stripMargin()
+    }
+
+    void changeHeader(File file, String originalContent) {
+        file.text = originalContent.replaceFirst(~/#endif/, '#define HELLO_WORLD "Hello world!"\n#endif')
     }
 }

@@ -34,7 +34,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.TextUtil;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -771,7 +770,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     String error = executionResult.getError();
                     if (executionResult instanceof ExecutionFailure) {
                         // Axe everything after the expected exception
-                        int pos = error.indexOf("* Exception is:" + TextUtil.getPlatformLineSeparator());
+                        int pos = error.indexOf("* Exception is:\n");
                         if (pos >= 0) {
                             error = error.substring(0, pos);
                         }

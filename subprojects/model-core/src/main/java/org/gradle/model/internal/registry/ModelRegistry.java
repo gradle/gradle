@@ -34,6 +34,8 @@ public interface ModelRegistry {
      * @return the node as the given type
      */
     <T> T realize(ModelPath path, ModelType<T> type);
+    <T> T realize(String path, ModelType<T> type);
+    <T> T realize(String path, Class<T> type);
 
     /**
      * Get the fully defined model element at the given path.
@@ -57,6 +59,10 @@ public interface ModelRegistry {
      */
     @Nullable
     <T> T find(ModelPath path, ModelType<T> type);
+    @Nullable
+    <T> T find(String path, ModelType<T> type);
+    @Nullable
+    <T> T find(String path, Class<T> type);
 
     /**
      * Returns the node at the given path at the desired state, if it exists.
@@ -93,9 +99,9 @@ public interface ModelRegistry {
 
     void remove(ModelPath path);
 
-    ModelRegistry replace(ModelCreator newCreator);
+    ModelRegistry replace(ModelRegistration newRegistration);
 
-    ModelRegistry createOrReplace(ModelCreator newCreator);
+    ModelRegistry registerOrReplace(ModelRegistration newRegistration);
 
     /**
      * Attempts to bind the references of all model rules known at this point in time.
@@ -115,7 +121,7 @@ public interface ModelRegistry {
      */
     void bindAllReferences() throws UnboundModelRulesException;
 
-    ModelRegistry create(ModelCreator creator);
+    ModelRegistry register(ModelRegistration registration);
 
     ModelRegistry configure(ModelActionRole role, ModelAction action);
 

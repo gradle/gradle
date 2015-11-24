@@ -52,8 +52,11 @@ class PlayTestPluginTest extends Specification {
 
     def setup(){
         _ * binaryContainer.iterator() >> [binary].iterator()
-        _ * binary.name >> "someBinary"
-        _ * binary.getTasks() >> Mock(BinaryTasksCollection)
+        _ * binary.projectScopedName >> "someBinary"
+        _ * binary.getTasks() >> Stub(BinaryTasksCollection) {
+            taskName(_, _) >> { String verb, String object -> "${verb}SomeBinary${object.capitalize()}"}
+            taskName(_) >> { String verb -> "${verb}SomeBinary"}
+        }
 
         _ * configurations.create(_) >> configuration
         _ * configurations.maybeCreate(_) >> configuration

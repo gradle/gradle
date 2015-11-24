@@ -17,8 +17,10 @@
 package org.gradle.testkit.runner
 
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
+import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
@@ -27,7 +29,6 @@ import spock.lang.Shared
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-@LeaksFileHandles
 @Requires(TestPrecondition.ONLINE)
 class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
@@ -95,6 +96,12 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerInteg
 
         testKitDir.eachFileRecurse {
             assert !it.name.contains("gradle-$version-bin.zip")
+        }
+
+        cleanup:
+        if (!GradleRunnerIntegTestRunner.debug) {
+            DaemonsFixture gradleVersionUnderTest = daemons(testKitDir, ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME, version)
+            gradleVersionUnderTest.killAll()
         }
     }
 

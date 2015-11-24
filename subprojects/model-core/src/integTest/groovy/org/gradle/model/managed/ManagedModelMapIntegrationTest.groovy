@@ -55,8 +55,8 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("print") {
                   doLast {
-                    println "containerThings: ${$("container.things").values().collect { it.name + ":" + it.value }.sort().join(",")}"
-                    println "things: ${$("things").values().collect { it.name + ":" + it.value }.sort().join(",")}"
+                    println "containerThings: ${$.container.things.collect { it.name + ":" + it.value }.sort().join(",")}"
+                    println "things: ${$.things.collect { it.name + ":" + it.value }.sort().join(",")}"
                   }
                 }
               }
@@ -107,8 +107,8 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("print") {
                   doLast {
-                    println "containerThings: ${$("container.things").values().collect { it.name + ":" + it.value }.sort().join(",")}"
-                    println "things: ${$("things").values().collect { it.name + ":" + it.value }.sort().join(",")}"
+                    println "containerThings: ${$.container.things.collect { it.name + ":" + it.value }.sort().join(",")}"
+                    println "things: ${$.things.collect { it.name + ":" + it.value }.sort().join(",")}"
                   }
                 }
               }
@@ -311,7 +311,7 @@ parent
               tasks {
                 create("print") {
                   doLast {
-                    println "things: ${$("things").values().collect { it.name }.join(',')}"
+                    println "things: ${$.things.collect { it.name }.join(',')}"
                   }
                 }
               }

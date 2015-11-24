@@ -50,7 +50,7 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
         task.source(sourceSet.getSource());
 
         final Project project = task.getProject();
-        task.setObjectFileDir(project.file(project.getBuildDir() + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + sourceSet.getFullName()));
+        task.setObjectFileDir(project.file(project.getBuildDir() + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + sourceSet.getProjectScopedName()));
 
         Tool assemblerTool = binary.getToolByName("assembler");
         task.setAssemblerArgs(assemblerTool.getArgs());

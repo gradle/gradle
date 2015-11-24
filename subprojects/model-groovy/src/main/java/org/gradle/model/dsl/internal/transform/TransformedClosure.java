@@ -16,11 +16,27 @@
 
 package org.gradle.model.dsl.internal.transform;
 
+import org.gradle.api.Nullable;
 import org.gradle.model.dsl.internal.inputs.PotentialInputs;
 
 /**
  * Implemented by transformed rules closure.
  */
 public interface TransformedClosure {
-    void applyRuleInputs(PotentialInputs inputs);
+    /**
+     * Returns the input references for this closure.
+     */
+    InputReferences inputReferences();
+
+    /**
+     * Returns the source location for this closure.
+     */
+    SourceLocation sourceLocation();
+
+    /**
+     * Marks this closure as a rule action, with the given inputs
+     *
+     * @param nestedRuleFactory Factory to use to create nested rules.
+     */
+    void makeRule(PotentialInputs inputs, @Nullable ClosureBackedRuleFactory nestedRuleFactory);
 }

@@ -17,7 +17,6 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -43,7 +42,7 @@ class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTes
                 components {
                     main {
                         sources {
-                            main(CustomLanguageSourceSet)
+                            someLang(CustomLanguageSourceSet)
                         }
                     }
                 }
@@ -57,8 +56,8 @@ class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTes
             class ComponentBinaryRules extends RuleSource {
                 @ComponentBinaries
                 void addBinaries(ModelMap<CustomBinary> binaries, CustomComponent component) {
-                    binaries.create(component.name + "Main", CustomBinary)
-                    binaries.create(component.name + "Test", CustomBinary)
+                    binaries.create("b1", CustomBinary)
+                    binaries.create("b2", CustomBinary)
                 }
             }
 
@@ -141,156 +140,7 @@ model {
             }
         }
     }
-
-    def "can reference sources container for a component in a rule"() {
-        given:
-        withMainSourceSet()
-        buildFile << '''
-            model {
-                tasks {
-                    create("printSourceNames") {
-                        def sources = $("components.main.sources")
-                        doLast {
-                            println "names: ${sources.values()*.name}"
-                        }
-                    }
-                }
-            }
-        '''
-
-        when:
-        succeeds "printSourceNames"
-
-        then:
-        output.contains "names: [main]"
-    }
-
-    def "component sources container elements are visible in model report"() {
-        given:
-        withMainSourceSet()
-        buildFile << """
-            model {
-                components {
-                    main {
-                        sources {
-                            test(CustomLanguageSourceSet)
-                        }
-                    }
-                    test(CustomComponent) {
-                        sources {
-                            test(CustomLanguageSourceSet)
-                        }
-                    }
-                    foo(CustomComponent) {
-                        sources {
-                            bar(CustomLanguageSourceSet)
-                        }
-                    }
-                }
-            }
-        """
-        when:
-        succeeds "model"
-
-        then:
-        ModelReportOutput.from(output).hasNodeStructure {
-            components {
-                foo {
-                    binaries()
-                    sources {
-                        bar(nodeValue: "DefaultCustomLanguageSourceSet 'foo:bar'")
-                    }
-                }
-                main {
-                    binaries()
-                    sources {
-                        main()
-                        test()
-                    }
-                }
-                test {
-                    binaries()
-                    sources {
-                        test()
-                    }
-                }
-            }
-        }
-    }
-
-    def "can reference sources container elements in a rule"() {
-        given:
-        withMainSourceSet()
-        buildFile << '''
-            model {
-                tasks {
-                    create("printSourceDisplayName") {
-                        def sources = $("components.main.sources.main")
-                        doLast {
-                            println "sources display name: ${sources.displayName}"
-                        }
-                    }
-                }
-            }
-        '''
-
-        when:
-        succeeds "printSourceDisplayName"
-
-        then:
-        output.contains "sources display name: DefaultCustomLanguageSourceSet 'main:main'"
-    }
-
-    def "can reference sources container elements using specialized type in a rule"() {
-        given:
-        withMainSourceSet()
-        buildFile << '''
-            class TaskRules extends RuleSource {
-                @Mutate
-                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.sources.main") CustomLanguageSourceSet sourceSet) {
-                    tasks.create("printSourceData") {
-                        doLast {
-                            println "sources data: ${sourceSet.data}"
-                        }
-                    }
-                }
-            }
-
-            apply type: TaskRules
-        '''
-
-        when:
-        succeeds "printSourceData"
-
-        then:
-        output.contains "sources data: foo"
-    }
-
-    def "cannot remove source sets"() {
-        given:
-        withMainSourceSet()
-        buildFile << '''
-            class SourceSetRemovalRules extends RuleSource {
-                @Mutate
-                void clearSourceSets(@Path("components.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
-                    sourceSets.clear()
-                }
-
-                @Mutate
-                void closeMainComponentSourceSetsForTasks(ModelMap<Task> tasks, @Path("components.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
-                }
-            }
-
-            apply type: SourceSetRemovalRules
-        '''
-
-        when:
-        fails()
-
-        then:
-        failureHasCause("This collection does not support element removal.")
-    }
-
+    
     def "plugin can create component"() {
         when:
         buildFile << """
@@ -352,7 +202,6 @@ model {
                     }
                 }
             }
-
         }
     }
 
@@ -379,11 +228,11 @@ model {
         succeeds "tasks"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'main'
-afterEach DefaultCustomComponent 'main'
-beforeEach DefaultCustomComponent 'newComponent'
-creating DefaultCustomComponent 'newComponent'
-afterEach DefaultCustomComponent 'newComponent'"""))
+        output.contains """beforeEach CustomComponent 'main'
+afterEach CustomComponent 'main'
+beforeEach CustomComponent 'newComponent'
+creating CustomComponent 'newComponent'
+afterEach CustomComponent 'newComponent'"""
 
     }
 
@@ -440,7 +289,6 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                 sources()
             }
         }
-
     }
 
     def "buildscript can configure component with given name"() {
@@ -505,11 +353,11 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "tasks"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'main'
-afterEach DefaultCustomComponent 'main'
-beforeEach DefaultCustomComponent 'newComponent'
-creating DefaultCustomComponent 'newComponent'
-afterEach DefaultCustomComponent 'newComponent'"""))
+        output.contains """beforeEach CustomComponent 'main'
+afterEach CustomComponent 'main'
+beforeEach CustomComponent 'newComponent'
+creating CustomComponent 'newComponent'
+afterEach CustomComponent 'newComponent'"""
 
     }
 
@@ -536,19 +384,27 @@ afterEach DefaultCustomComponent 'newComponent'"""))
             main {
                 binaries()
                 sources {
-                    bar(nodeValue: "DefaultCustomLanguageSourceSet 'main:bar'")
-                    main(nodeValue: "DefaultCustomLanguageSourceSet 'main:main'")
+                    bar(type: "CustomLanguageSourceSet")
+                    someLang(type: "CustomLanguageSourceSet")
                 }
             }
         }
     }
 
-    def "reasonable error message when creating component with default implementation"() {
+    def "reasonable error message when creating unmanaged component with default implementation"() {
         when:
         buildFile << """
+        interface UnmanagedComponent extends ComponentSpec {}
+        class DefaultUnmanagedComponent extends BaseComponentSpec implements UnmanagedComponent {}
+        class MyRules extends RuleSource {
+            @ComponentType
+            public void register(ComponentTypeBuilder<UnmanagedComponent> builder) {
+                builder.defaultImplementation(DefaultUnmanagedComponent)
+            }
+        }
         model {
             components {
-                another(DefaultCustomComponent)
+                another(DefaultUnmanagedComponent)
             }
         }
 
@@ -557,7 +413,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("Cannot create a 'DefaultCustomComponent' because this type is not known to components. Known types are: CustomComponent"))
+        failure.assertThatCause(containsText("Cannot create a 'DefaultUnmanagedComponent' because this type is not known to components. Known types are: CustomComponent"))
     }
 
     def "reasonable error message when creating component with no implementation"() {
@@ -704,9 +560,11 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                 main {
                     binaries {
                         main {
+                            sources()
                             tasks()
                         }
                         test {
+                            sources()
                             tasks()
                         }
                     }
@@ -715,9 +573,11 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                 test {
                     binaries {
                         main {
+                            sources()
                             tasks()
                         }
                         test {
+                            sources()
                             tasks()
                         }
                     }
@@ -734,7 +594,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
             model {
                 tasks {
                     create("printBinaryNames") {
-                        def binaries = $("components.main.binaries")
+                        def binaries = $.components.main.binaries
                         doLast {
                             println "names: ${binaries.keySet().toList()}"
                         }
@@ -747,7 +607,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "printBinaryNames"
 
         then:
-        output.contains "names: [mainMain, mainTest]"
+        output.contains "names: [b1, b2]"
     }
 
     def "can reference binaries container elements using specialized type in a rule"() {
@@ -756,7 +616,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         buildFile << '''
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.mainMain") CustomBinary binary) {
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.b1") CustomBinary binary) {
                     tasks.create("printBinaryData") {
                         doLast {
                             println "binary data: ${binary.data}"
@@ -783,7 +643,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
             model {
                 tasks {
                     create("printBinaryTaskNames") {
-                        def tasks = $("components.main.binaries.mainMain.tasks")
+                        def tasks = $.components.main.binaries.b1.tasks
                         doLast {
                             println "names: ${tasks*.name}"
                         }
@@ -796,7 +656,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "printBinaryTaskNames"
 
         then:
-        output.contains "names: [customMainMainMainMain]"
+        output.contains "names: [customMainB1MainSomeLang]"
     }
 
     def "can view components container as a model map and as a collection builder"() {
@@ -845,8 +705,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
             interface SampleBinarySpec extends BinarySpec {}
             class DefaultSampleBinary extends BaseBinarySpec implements SampleBinarySpec {}
 
-            interface SampleComponent extends ComponentSpec{}
-            class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
+            @Managed interface SampleComponent extends ComponentSpec{}
 
             class MyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
@@ -855,15 +714,10 @@ afterEach DefaultCustomComponent 'newComponent'"""))
 
                 static class Rules extends RuleSource {
                     @Model
-                    void createManagedModel(MyModel value) {
-                        println "createManagedModel"
-                    }
+                    void createManagedModel(MyModel value) {}
 
                     @ComponentType
-                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {
-                        println "registerComponent"
-                        builder.defaultImplementation(DefaultSampleComponent)
-                    }
+                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {}
                 }
 
             }
@@ -886,8 +740,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
             interface SampleBinarySpec extends BinarySpec {}
             class DefaultSampleBinary extends BaseBinarySpec implements SampleBinarySpec {}
 
-            interface SampleComponent extends ComponentSpec{}
-            class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
+            @Managed interface SampleComponent extends ComponentSpec{}
 
             class MyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
@@ -897,15 +750,10 @@ afterEach DefaultCustomComponent 'newComponent'"""))
 
                 static class Rules extends RuleSource {
                     @Model("android")
-                    public void createManagedModel(MyModel value) {
-                        println "createManagedModel"
-                    }
+                    public void createManagedModel(MyModel value) {}
 
                     @ComponentType
-                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {
-                        println "registerComponent"
-                        builder.defaultImplementation(DefaultSampleComponent)
-                    }
+                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {}
                 }
 
             }

@@ -130,6 +130,6 @@ public class NotationParserBuilder<T> {
         }
         composites.addAll(this.notationParsers);
 
-        return new NotationConverterToNotationParserAdapter<Object, T>(new CompositeNotationConverter<Object, T>(composites));
+        return new NotationConverterToNotationParserAdapter<Object, T>(composites.size() == 1 ? composites.get(0) : new CompositeNotationConverter<Object, T>(composites));
     }
 }

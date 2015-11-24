@@ -57,7 +57,8 @@ class MixedPlayAndJvmLibraryProjectIntegrationTest extends AbstractIntegrationSp
         executedAndNotSkipped(":compileJvmLibJarJvmLibJava", ":processJvmLibJarJvmLibResources", ":createJvmLibJar", ":jvmLibJar", ":createPlayBinaryAssetsJar",
                 ":compilePlayBinaryRoutes", ":compilePlayBinaryTwirlTemplates", ":compilePlayBinaryScala", ":createPlayBinaryJar", ":playBinary", ":assemble")
         and:
-        file("build/classes/jvmLibJar").assertHasDescendants(jvmApp.expectedOutputs*.fullPath as String[])
+        file("build/classes/jvmLibJar").assertHasDescendants(jvmApp.expectedClasses*.fullPath as String[])
+        file("build/resources/jvmLibJar").assertHasDescendants(jvmApp.resources*.fullPath as String[])
         new JarTestFixture(file("build/jars/jvmLibJar/jvmLib.jar")).hasDescendants(jvmApp.expectedOutputs*.fullPath as String[])
         file("build/playBinary/lib/mixedJvmAndPlay.jar").exists()
         file("build/playBinary/lib/mixedJvmAndPlay-assets.jar").exists()

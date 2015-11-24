@@ -55,7 +55,7 @@ public class NativeBinaries {
         final BuildType buildType,
         final Flavor flavor
     ) {
-        final String name = namingScheme.getLifecycleTaskName();
+        final String name = namingScheme.getBinaryName();
         binaries.create(name, type);
 
         // This is horrendously bad.

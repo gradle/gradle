@@ -31,7 +31,7 @@ class ModelGraphTest extends Specification {
     }
 
     def "notifies listener when node added"() {
-        def listener = Mock(ModelCreationListener)
+        def listener = Mock(ModelListener)
         def a = node("a")
         def b = node("b")
 
@@ -43,13 +43,13 @@ class ModelGraphTest extends Specification {
         graph.add(b)
 
         then:
-        1 * listener.onCreate(a)
-        1 * listener.onCreate(b)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(a)
+        1 * listener.onDiscovered(b)
+        0 * listener.onDiscovered(_)
     }
 
     def "notifies listener when node added in projected state"() {
-        def listener = Mock(ModelCreationListener)
+        def listener = Mock(ModelListener)
         def a = node("a")
         def b = node("b")
 
@@ -60,19 +60,19 @@ class ModelGraphTest extends Specification {
         graph.add(a)
 
         then:
-        1 * listener.onCreate(a)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(a)
+        0 * listener.onDiscovered(_)
 
         when:
         graph.add(b)
 
         then:
-        1 * listener.onCreate(b)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(b)
+        0 * listener.onDiscovered(_)
     }
 
     def "notifies listener of existing nodes"() {
-        def listener = Mock(ModelCreationListener)
+        def listener = Mock(ModelListener)
         def a = node("a")
         def b = node("b")
 
@@ -84,15 +84,15 @@ class ModelGraphTest extends Specification {
         graph.addListener(listener)
 
         then:
-        1 * listener.onCreate(graph.root)
-        1 * listener.onCreate(a)
-        1 * listener.onCreate(b)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(graph.root)
+        1 * listener.onDiscovered(a)
+        1 * listener.onDiscovered(b)
+        0 * listener.onDiscovered(_)
     }
 
     def "notifies listener when node reaches projected state"() {
-        def listener = Mock(ModelCreationListener)
-        def a = node("a", String, State.Known)
+        def listener = Mock(ModelListener)
+        def a = node("a", String, State.Registered)
 
         given:
         graph.addListener(listener)
@@ -101,18 +101,18 @@ class ModelGraphTest extends Specification {
         graph.add(a)
 
         then:
-        0 * listener.onCreate(_)
+        0 * listener.onDiscovered(_)
 
         when:
-        graph.nodeProjectionsDefined(a)
+        graph.nodeDiscovered(a)
 
         then:
-        1 * listener.onCreate(a)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(a)
+        0 * listener.onDiscovered(_)
     }
 
     def "stops notifying listener of new nodes after listener signals it is done"() {
-        def listener = Mock(ModelCreationListener)
+        def listener = Mock(ModelListener)
         def a = node("a")
         def b = node("b")
 
@@ -124,12 +124,12 @@ class ModelGraphTest extends Specification {
         graph.add(b)
 
         then:
-        1 * listener.onCreate(a) >> true
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(a) >> true
+        0 * listener.onDiscovered(_)
     }
 
     def "stops notifying listener of existing nodes after listener signals it is done"() {
-        def listener = Mock(ModelCreationListener)
+        def listener = Mock(ModelListener)
         def a = node("a")
         def b = node("b")
         def c = node("c")
@@ -143,13 +143,13 @@ class ModelGraphTest extends Specification {
         graph.add(c)
 
         then:
-        1 * listener.onCreate(graph.root)
-        1 * listener.onCreate(a) >> true
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(graph.root)
+        1 * listener.onDiscovered(a) >> true
+        0 * listener.onDiscovered(_)
     }
 
     def "notifies listener of new node with matching path"() {
-        def listener = Mock(ModelCreationListener)
+        def listener = Mock(ModelListener)
 
         def a = node("a")
         def b = node("b")
@@ -165,12 +165,12 @@ class ModelGraphTest extends Specification {
         graph.add(c)
 
         then:
-        1 * listener.onCreate(b)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(b)
+        0 * listener.onDiscovered(_)
     }
 
     def "notifies listener of existing node with matching path"() {
-        def listener = Mock(ModelCreationListener)
+        def listener = Mock(ModelListener)
 
         def a = node("a")
         def b = node("b")
@@ -186,12 +186,12 @@ class ModelGraphTest extends Specification {
         graph.addListener(listener)
 
         then:
-        1 * listener.onCreate(b)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(b)
+        0 * listener.onDiscovered(_)
     }
 
     def "notifies listener of node with matching parent"() {
-        def listener = Mock(ModelCreationListener)
+        def listener = Mock(ModelListener)
 
         def a = node("a")
         def b = node("a.b")
@@ -208,20 +208,20 @@ class ModelGraphTest extends Specification {
         graph.addListener(listener)
 
         then:
-        1 * listener.onCreate(b)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(b)
+        0 * listener.onDiscovered(_)
 
         when:
         graph.add(c)
         graph.add(d)
 
         then:
-        1 * listener.onCreate(c)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(c)
+        0 * listener.onDiscovered(_)
     }
 
     def "notifies listener of node with matching type"() {
-        def listener = Mock(ModelCreationListener)
+        def listener = Mock(ModelListener)
 
         def a = node("a", Integer)
         def b = node("b", String)
@@ -236,31 +236,31 @@ class ModelGraphTest extends Specification {
         graph.add(b)
 
         then:
-        0 * listener.onCreate(_)
+        0 * listener.onDiscovered(_)
 
         when:
         graph.addListener(listener)
 
         then:
-        1 * listener.onCreate(b)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(b)
+        0 * listener.onDiscovered(_)
 
         when:
         graph.add(c)
 
         then:
-        1 * listener.onCreate(c)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(c)
+        0 * listener.onDiscovered(_)
 
         when:
         graph.add(d)
 
         then:
-        0 * listener.onCreate(_)
+        0 * listener.onDiscovered(_)
     }
 
     def "notifies listener of node with matching parent and type"() {
-        def listener = Mock(ModelCreationListener)
+        def listener = Mock(ModelListener)
 
         def a = node("a", String)
         def b = node("a.b", String)
@@ -278,20 +278,20 @@ class ModelGraphTest extends Specification {
         graph.addListener(listener)
 
         then:
-        1 * listener.onCreate(b)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(b)
+        0 * listener.onDiscovered(_)
 
         when:
         graph.add(c)
         graph.add(d)
 
         then:
-        1 * listener.onCreate(c)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(c)
+        0 * listener.onDiscovered(_)
     }
 
     def "notifies listener of node with matching ancestor"() {
-        def listener = Mock(ModelCreationListener)
+        def listener = Mock(ModelListener)
 
         def a = node("a")
         def b = node("a.b")
@@ -312,9 +312,9 @@ class ModelGraphTest extends Specification {
         graph.addListener(listener)
 
         then:
-        1 * listener.onCreate(b)
-        1 * listener.onCreate(c)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(b)
+        1 * listener.onDiscovered(c)
+        0 * listener.onDiscovered(_)
 
         when:
         graph.add(d)
@@ -322,13 +322,13 @@ class ModelGraphTest extends Specification {
         graph.add(f)
 
         then:
-        1 * listener.onCreate(d)
-        1 * listener.onCreate(e)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(d)
+        1 * listener.onDiscovered(e)
+        0 * listener.onDiscovered(_)
     }
 
     def "notifies listener of node with root ancestor"() {
-        def listener = Mock(ModelCreationListener)
+        def listener = Mock(ModelListener)
 
         def a = node("a")
         def b = node("a.b")
@@ -344,25 +344,25 @@ class ModelGraphTest extends Specification {
         graph.addListener(listener)
 
         then:
-        1 * listener.onCreate(graph.root)
-        1 * listener.onCreate(a)
-        1 * listener.onCreate(b)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(graph.root)
+        1 * listener.onDiscovered(a)
+        1 * listener.onDiscovered(b)
+        0 * listener.onDiscovered(_)
 
         when:
         graph.add(c)
         graph.add(d)
 
         then:
-        1 * listener.onCreate(c)
-        1 * listener.onCreate(d)
-        0 * listener.onCreate(_)
+        1 * listener.onDiscovered(c)
+        1 * listener.onDiscovered(d)
+        0 * listener.onDiscovered(_)
     }
 
     def "listener can add listeners when node added"() {
-        def listener1 = Mock(ModelCreationListener)
-        def listener2 = Mock(ModelCreationListener)
-        def listener3 = Mock(ModelCreationListener)
+        def listener1 = Mock(ModelListener)
+        def listener2 = Mock(ModelListener)
+        def listener3 = Mock(ModelListener)
         def a = node("a")
         def b = node("b")
 
@@ -376,19 +376,19 @@ class ModelGraphTest extends Specification {
         graph.add(b)
 
         then:
-        1 * listener1.onCreate(graph.root)
-        1 * listener1.onCreate(a) >> { graph.addListener(listener2); false }
-        1 * listener1.onCreate(b) >> { graph.addListener(listener3); false }
-        1 * listener2.onCreate(b)
-        1 * listener3.onCreate(b)
-        0 * listener1.onCreate(_)
-        0 * listener2.onCreate(_)
-        0 * listener3.onCreate(_)
+        1 * listener1.onDiscovered(graph.root)
+        1 * listener1.onDiscovered(a) >> { graph.addListener(listener2); false }
+        1 * listener1.onDiscovered(b) >> { graph.addListener(listener3); false }
+        1 * listener2.onDiscovered(b)
+        1 * listener3.onDiscovered(b)
+        0 * listener1.onDiscovered(_)
+        0 * listener2.onDiscovered(_)
+        0 * listener3.onDiscovered(_)
     }
 
     def "listener can add nodes that are consumed by other listeners"() {
-        def listener1 = Mock(ModelCreationListener)
-        def listener2 = Mock(ModelCreationListener)
+        def listener1 = Mock(ModelListener)
+        def listener2 = Mock(ModelListener)
         def a = node("a")
         def b = node("b")
         def c = node("c")
@@ -403,18 +403,18 @@ class ModelGraphTest extends Specification {
         graph.add(a)
 
         then:
-        1 * listener1.onCreate(a) >> { graph.add(b); false }
-        1 * listener1.onCreate(b) >> { graph.add(c); false }
-        1 * listener1.onCreate(c) >> { graph.add(d); false }
-        1 * listener1.onCreate(d)
-        1 * listener2.onCreate(b) >> true
-        0 * listener1.onCreate(_)
-        0 * listener2.onCreate(_)
+        1 * listener1.onDiscovered(a) >> { graph.add(b); false }
+        1 * listener1.onDiscovered(b) >> { graph.add(c); false }
+        1 * listener1.onDiscovered(c) >> { graph.add(d); false }
+        1 * listener1.onDiscovered(d)
+        1 * listener2.onDiscovered(b) >> true
+        0 * listener1.onDiscovered(_)
+        0 * listener2.onDiscovered(_)
     }
 
     def "listener is not notified of nodes it creates after it signals it is done"() {
-        def listener1 = Mock(ModelCreationListener)
-        def listener2 = Mock(ModelCreationListener)
+        def listener1 = Mock(ModelListener)
+        def listener2 = Mock(ModelListener)
         def a = node("a")
         def b = node("b")
         def c = node("c")
@@ -423,20 +423,20 @@ class ModelGraphTest extends Specification {
         given:
         graph.addListener(listener1)
         graph.addListener(listener2)
-        listener2.onCreate(b) >> { graph.add(c); graph.add(d) }
+        listener2.onDiscovered(b) >> { graph.add(c); graph.add(d) }
 
         when:
         graph.add(a)
 
         then:
-        1 * listener1.onCreate(a) >> {
+        1 * listener1.onDiscovered(a) >> {
             graph.add(b);
             true
         }
-        0 * listener1.onCreate(_)
+        0 * listener1.onDiscovered(_)
     }
 
-    def node(String path, Class<?> type = String, State state = State.ProjectionsDefined) {
+    def node(String path, Class<?> type = String, State state = State.Discovered) {
         return Stub(ModelNodeInternal) {
             getPath() >> ModelPath.path(path)
             getState() >> state

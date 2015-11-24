@@ -53,8 +53,11 @@ public class GCLoggingCollector implements DataCollector {
         return Collections.emptyList();
     }
 
-    public void collect(File testProjectDir, MeasuredOperation operation) {
+    public void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
         collect(operation, Locale.getDefault());
+        if (logFile.exists() && invocationInfo != null) {
+            LogFiles.copyLogFile(logFile, invocationInfo, "gc_", ".txt");
+        }
     }
 
     public void collect(MeasuredOperation operation, Locale locale) {

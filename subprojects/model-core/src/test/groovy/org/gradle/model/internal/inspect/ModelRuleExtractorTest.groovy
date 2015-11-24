@@ -50,6 +50,23 @@ class ModelRuleExtractorTest extends Specification {
         extractor.extract(EmptyClass).empty
     }
 
+    static class ClassWithNonRuleMethods extends RuleSource {
+        static List thing() {
+            []
+        }
+        static <T> List<T> genericThing() {
+            []
+        }
+
+        private doStuff() {}
+        private <T> T selectThing(List<T> list) { null }
+    }
+
+    def "can have non-rule methods that would be invalid rules"() {
+        expect:
+        extractor.extract(ClassWithNonRuleMethods).empty
+    }
+
     static class SimpleModelCreationRuleInferredName extends RuleSource {
         @Model
         static ModelThing modelPath() {
@@ -75,14 +92,14 @@ class ModelRuleExtractorTest extends Specification {
         def rule = extract(SimpleModelCreationRuleInferredName).first()
 
         then:
-        rule instanceof ExtractedModelCreator
+        rule instanceof ExtractedModelRegistration
 
         when:
         rule.apply(mockRegistry, ModelPath.ROOT)
 
         then:
-        1 * mockRegistry.create(_) >> { ModelCreator creator ->
-            assert creator.path.toString() == "modelPath"
+        1 * mockRegistry.register(_) >> { ModelRegistration registration ->
+            assert registration.path.toString() == "modelPath"
         }
         0 * _
     }
@@ -133,7 +150,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == "$HasGenericModelRule.name#thing() is not a valid model rule method: cannot have type variables (i.e. cannot be a generic method)"
+        e.message == "$HasGenericModelRule.name#thing() is not a valid rule method: cannot have type variables (i.e. cannot be a generic method)"
     }
 
     static class HasMultipleRuleAnnotations extends RuleSource {
@@ -150,7 +167,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == "${ModelType.of(HasMultipleRuleAnnotations).displayName}#thing is not a valid model rule method: can only be one of [annotated with @Model and returning a model element, annotated with @Service and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate]"
+        e.message == "ModelRuleExtractorTest.HasMultipleRuleAnnotations#thing is not a valid rule method: can only be one of [annotated with @Model and returning a model element, annotated with @Service and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate]"
     }
 
     static class ConcreteGenericModelType extends RuleSource {
@@ -189,20 +206,6 @@ class ModelRuleExtractorTest extends Specification {
         type.typeVariables[0] == ModelType.of(String)
     }
 
-    static class HasRuleWithIdentityCrisis extends RuleSource {
-        @Mutate
-        @Model
-        void foo() {}
-    }
-
-    def "rule cannot be of more than one type"() {
-        when:
-        registerRules(HasRuleWithIdentityCrisis)
-
-        then:
-        thrown InvalidModelRuleDeclarationException
-    }
-
     static class GenericMutationRule extends RuleSource {
         @Mutate
         <T> void mutate(T thing) {}
@@ -213,7 +216,8 @@ class ModelRuleExtractorTest extends Specification {
         registerRules(GenericMutationRule)
 
         then:
-        thrown InvalidModelRuleDeclarationException
+        def e = thrown(InvalidModelRuleDeclarationException)
+        e.message == "${GenericMutationRule.name}#mutate(T) is not a valid rule method: cannot have type variables (i.e. cannot be a generic method)"
     }
 
     static class NonVoidMutationRule extends RuleSource {
@@ -226,7 +230,8 @@ class ModelRuleExtractorTest extends Specification {
         registerRules(NonVoidMutationRule)
 
         then:
-        thrown InvalidModelRuleDeclarationException
+        def e = thrown(InvalidModelRuleDeclarationException)
+        e.message == "ModelRuleExtractorTest.NonVoidMutationRule#mutate is not a valid model rule method: only void can be used as return type for mutation rules"
     }
 
     static class RuleWithEmptyInputPath extends RuleSource {
@@ -239,7 +244,9 @@ class ModelRuleExtractorTest extends Specification {
         registerRules(RuleWithEmptyInputPath)
 
         then:
-        thrown InvalidModelRuleDeclarationException
+        def e = thrown(InvalidModelRuleDeclarationException)
+        e.message == "Declaration of model rule ModelRuleExtractorTest.RuleWithEmptyInputPath#create is invalid."
+        e.cause.message == "Cannot use an empty string as a model path."
     }
 
     static class RuleWithInvalidInputPath extends RuleSource {
@@ -252,7 +259,9 @@ class ModelRuleExtractorTest extends Specification {
         registerRules(RuleWithInvalidInputPath)
 
         then:
-        thrown InvalidModelRuleDeclarationException
+        def e = thrown(InvalidModelRuleDeclarationException)
+        e.message == "Declaration of model rule ModelRuleExtractorTest.RuleWithInvalidInputPath#create is invalid."
+        e.cause.message == "Model element name '!!!!' has illegal first character '!' (names must start with an ASCII letter or underscore)."
     }
 
     static class MutationRules extends RuleSource {
@@ -280,11 +289,10 @@ class ModelRuleExtractorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).descriptor("strings").build())
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(path, type), []).descriptor("strings").build())
 
         when:
         registerRules(MutationRules)
-
 
         then:
         def node = registry.realizeNode(path)
@@ -316,7 +324,7 @@ class ModelRuleExtractorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).descriptor("strings").build())
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(path, type), []).descriptor("strings").build())
 
         when:
         registerRules(MutationAndFinalizeRules)
@@ -331,8 +339,8 @@ class ModelRuleExtractorTest extends Specification {
         def stringListType = new ModelType<List<String>>() {}
         def integerListType = new ModelType<List<Integer>>() {}
 
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("strings"), stringListType), []).descriptor("strings").build())
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).descriptor("integers").build())
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(ModelPath.path("strings"), stringListType), []).descriptor("strings").build())
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).descriptor("integers").build())
 
         then:
         extractor.extract(MutationAndFinalizeRules)*.action*.descriptor == [
@@ -355,7 +363,8 @@ class ModelRuleExtractorTest extends Specification {
         registerRules(InvalidModelNameViaAnnotation)
 
         then:
-        thrown InvalidModelRuleDeclarationException
+        def e = thrown(InvalidModelRuleDeclarationException)
+        e.message == "Path of declared model element created by rule ModelRuleExtractorTest.InvalidModelNameViaAnnotation#foo is invalid."
     }
 
     static class RuleSourceCreatingAClassAnnotatedWithManaged extends RuleSource {
@@ -409,7 +418,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "Declaration of model rule ${getClass().simpleName}.$inspected.simpleName#bar is invalid."
+        e.message == "Declaration of model rule ModelRuleExtractorTest.$inspected.simpleName#bar is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type.
 The type was analyzed due to the following dependencies:
@@ -437,7 +446,7 @@ ${managedType.name}
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "Declaration of model rule ${ModelType.of(RuleSourceCreatingManagedWithNonManageableParent).displayName}#bar is invalid."
+        e.message == "Declaration of model rule ModelRuleExtractorTest.RuleSourceCreatingManagedWithNonManageableParent#bar is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type.
 The type was analyzed due to the following dependencies:
@@ -461,7 +470,35 @@ ${ManagedWithNonManageableParents.name}
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "$HasRuleWithUncheckedModelMap.name#modelPath(org.gradle.model.ModelMap) is not a valid model rule method: raw type org.gradle.model.ModelMap used for parameter 1 (all type parameters must be specified of parameterized type)"
+        e.message == "$HasRuleWithUncheckedModelMap.name#modelPath(org.gradle.model.ModelMap) is not a valid rule method: raw type org.gradle.model.ModelMap used for parameter 1 (all type parameters must be specified of parameterized type)"
+    }
+
+    static class NotEverythingAnnotated extends RuleSource {
+        void mutate(String thing) {}
+        private void ok() {}
+    }
+
+    def "all non-private methods must be annotated"() {
+        when:
+        registerRules(NotEverythingAnnotated)
+
+        then:
+        def e = thrown(InvalidModelRuleDeclarationException)
+        e.message == "${NotEverythingAnnotated.name}#mutate(java.lang.String) is not a valid rule method: a method that is not annotated as a rule must be private"
+    }
+
+    static class PrivateAnnotated extends RuleSource {
+        @Mutate
+        private void notOk() { }
+    }
+
+    def "no private methods may be annotated"() {
+        when:
+        registerRules(PrivateAnnotated)
+
+        then:
+        def e = thrown(InvalidModelRuleDeclarationException)
+        e.message == "${PrivateAnnotated.name}#notOk() is not a valid rule method: a rule method cannot be private"
     }
 
     def "extracted rules are cached"() {

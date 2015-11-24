@@ -17,7 +17,6 @@
 package org.gradle.internal.filewatch;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.file.FileSystemSubset;
 
 public interface FileWatcherFactory {
 
@@ -31,10 +30,9 @@ public interface FileWatcherFactory {
      * <p>
      * No events will be emitted after that watcher has been stopped.
      *
-     * @param systemSubset the parts of the file system to watch
      * @param onError what to do if an error occurs while watching
      * @param listener the receiver of events
      * @return a, stoppable, handle to the watcher
      */
-    FileWatcher watch(FileSystemSubset systemSubset, Action<? super Throwable> onError, FileWatcherListener listener);
+    FileWatcher watch(Action<? super Throwable> onError, FileWatcherListener listener);
 }

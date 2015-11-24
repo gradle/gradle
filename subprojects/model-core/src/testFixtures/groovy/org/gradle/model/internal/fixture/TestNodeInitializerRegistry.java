@@ -25,7 +25,7 @@ import org.gradle.model.internal.type.ModelType;
 public class TestNodeInitializerRegistry extends DefaultNodeInitializerRegistry {
     public static final TestNodeInitializerRegistry INSTANCE = new TestNodeInitializerRegistry();
 
-    private TestNodeInitializerRegistry() {
+    public TestNodeInitializerRegistry() {
         super(DefaultModelSchemaStore.getInstance());
     }
 

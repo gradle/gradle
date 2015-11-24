@@ -33,6 +33,8 @@ class CrossBuildPerformanceTestRunner {
 
     final DataReporter<CrossBuildPerformanceResults> reporter
 
+    BuildExperimentListener buildExperimentListener
+
     public CrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter) {
         this.reporter = dataReporter
         this.experimentRunner = experimentRunner
@@ -57,11 +59,15 @@ class CrossBuildPerformanceTestRunner {
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         builder.invocation.distribution(gradleDistribution)
+        builder.listener(buildExperimentListener)
     }
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
         assert builder.projectName
         builder.invocation.workingDirectory = testProjectLocator.findProjectDir(builder.projectName)
+        if (!builder.invocation.gradleOptions) {
+            builder.invocation.gradleOptions = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
+        }
     }
 
     public CrossBuildPerformanceResults run() {

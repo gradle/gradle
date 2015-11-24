@@ -282,13 +282,13 @@ model {
         buildFile << """
 model {
     components {
-        hello(NativeLibrarySpec) {
+        hello(NativeLibrarySpec) { l ->
             targetPlatform "x86"
             binaries.all {
                 sources {
                     variant(CppSourceSet) {
                         source.srcDir "src/variant/cpp"
-                        lib hello.sources.cpp
+                        lib l.sources.cpp
                     }
                 }
             }
@@ -312,12 +312,12 @@ model {
         buildFile << """
 model {
     testSuites {
-        helloTest {
+        helloTest { t ->
             binaries.all {
                 sources {
                     variant(CppSourceSet) {
                         source.srcDir "src/variantTest/cpp"
-                        lib helloTest.sources.cpp
+                        lib t.sources.cpp
                     }
                 }
             }

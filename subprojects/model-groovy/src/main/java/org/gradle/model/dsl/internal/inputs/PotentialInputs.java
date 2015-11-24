@@ -16,8 +16,6 @@
 
 package org.gradle.model.dsl.internal.inputs;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Maps;
 import org.gradle.model.internal.core.ModelView;
 
 import java.util.List;
@@ -28,14 +26,9 @@ public class PotentialInputs {
     private final Map<String, PotentialInput> inputs;
     private final List<ModelView<?>> modelViews;
 
-    public PotentialInputs(List<ModelView<?>> modelViews, Iterable<PotentialInput> inputs) {
+    public PotentialInputs(List<ModelView<?>> modelViews, Map<String, PotentialInput> inputs) {
         this.modelViews = modelViews;
-        this.inputs = Maps.uniqueIndex(inputs, new Function<PotentialInput, String>() {
-            @Override
-            public String apply(PotentialInput input) {
-                return input.getConsumerPath();
-            }
-        });
+        this.inputs = inputs;
     }
 
     public Object get(String path) {

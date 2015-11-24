@@ -48,7 +48,7 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 second {
-                    $("third")
+                    $.third
                 }
             }
         '''
@@ -61,7 +61,7 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
 first
 \\- Rules#first
    \\- second
-      \\- model.second @ build.gradle line 26, column 17
+      \\- second { ... } @ build.gradle line 26, column 17
          \\- third
             \\- Rules#third
                \\- first""")

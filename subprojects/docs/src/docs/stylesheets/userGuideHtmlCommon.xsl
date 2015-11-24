@@ -25,6 +25,7 @@
 
     <xsl:param name="use.extensions">1</xsl:param>
     <xsl:param name="toc.section.depth">1</xsl:param>
+    <xsl:param name="toc.max.depth">2</xsl:param>
     <xsl:param name="section.autolabel">1</xsl:param>
     <xsl:param name="section.label.includes.component.label">1</xsl:param>
     <xsl:param name="css.decoration">0</xsl:param>
@@ -40,6 +41,7 @@
 
     <xsl:param name="generate.toc">
         book toc,title,example
+        part toc,title
     </xsl:param>
 
     <xsl:param name="formal.title.placement">
@@ -83,9 +85,9 @@
     </xsl:param>
 
     <xsl:template match="tip[@role='exampleLocation']" mode="class.value"><xsl:value-of select="@role"/></xsl:template>
-    
+
     <xsl:param name="admon.textlabel">0</xsl:param>
-    
+
     <!-- BOOK TITLEPAGE -->
 
     <!-- Customize the contents of the book titlepage -->
@@ -118,7 +120,7 @@
             <xsl:apply-templates select=".." mode="object.title.markup"/>
         </h1>
     </xsl:template>
-    
+
     <!-- TABLES -->
 
     <!-- Duplicated from docbook stylesheets, to fix problem where html table does not get a title -->

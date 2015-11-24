@@ -212,56 +212,56 @@ Source sets
 
 Binaries
     Shared library 'someLib:amd64:free:sharedLibrary'
-        build using task: :amd64FreeSomeLibSharedLibrary
+        build using task: :someLibAmd64FreeSharedLibrary
         buildType: build type 'debug'
         flavor: flavor 'free'
         targetPlatform: platform 'amd64'
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/someLibSharedLibrary/amd64Free/libsomeLib.dylib
     Static library 'someLib:amd64:free:staticLibrary'
-        build using task: :amd64FreeSomeLibStaticLibrary
+        build using task: :someLibAmd64FreeStaticLibrary
         buildType: build type 'debug'
         flavor: flavor 'free'
         targetPlatform: platform 'amd64'
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/someLibStaticLibrary/amd64Free/libsomeLib.a
     Shared library 'someLib:amd64:paid:sharedLibrary'
-        build using task: :amd64PaidSomeLibSharedLibrary
+        build using task: :someLibAmd64PaidSharedLibrary
         buildType: build type 'debug'
         flavor: flavor 'paid'
         targetPlatform: platform 'amd64'
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/someLibSharedLibrary/amd64Paid/libsomeLib.dylib
     Static library 'someLib:amd64:paid:staticLibrary'
-        build using task: :amd64PaidSomeLibStaticLibrary
+        build using task: :someLibAmd64PaidStaticLibrary
         buildType: build type 'debug'
         flavor: flavor 'paid'
         targetPlatform: platform 'amd64'
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/someLibStaticLibrary/amd64Paid/libsomeLib.a
     Shared library 'someLib:i386:free:sharedLibrary'
-        build using task: :i386FreeSomeLibSharedLibrary
+        build using task: :someLibI386FreeSharedLibrary
         buildType: build type 'debug'
         flavor: flavor 'free'
         targetPlatform: platform 'i386'
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/someLibSharedLibrary/i386Free/libsomeLib.dylib
     Static library 'someLib:i386:free:staticLibrary'
-        build using task: :i386FreeSomeLibStaticLibrary
+        build using task: :someLibI386FreeStaticLibrary
         buildType: build type 'debug'
         flavor: flavor 'free'
         targetPlatform: platform 'i386'
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/someLibStaticLibrary/i386Free/libsomeLib.a
     Shared library 'someLib:i386:paid:sharedLibrary'
-        build using task: :i386PaidSomeLibSharedLibrary
+        build using task: :someLibI386PaidSharedLibrary
         buildType: build type 'debug'
         flavor: flavor 'paid'
         targetPlatform: platform 'i386'
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/someLibSharedLibrary/i386Paid/libsomeLib.dylib
     Static library 'someLib:i386:paid:staticLibrary'
-        build using task: :i386PaidSomeLibStaticLibrary
+        build using task: :someLibI386PaidStaticLibrary
         buildType: build type 'debug'
         flavor: flavor 'paid'
         targetPlatform: platform 'i386'

@@ -20,8 +20,8 @@ import org.gradle.model.ModelViewClosedException
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
-import org.gradle.model.internal.manage.schema.ManagedImplModelSchema
-import org.gradle.model.internal.manage.schema.ModelStructSchema
+import org.gradle.model.internal.manage.schema.ManagedImplSchema
+import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
@@ -47,15 +47,15 @@ abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>>
     def setup() {
         internalType = holderType()
         internalTypeSchema = schemaStore.getSchema(internalType)
-        assert internalTypeSchema instanceof ModelStructSchema
+        assert internalTypeSchema instanceof StructSchema
         collectionProperty = internalTypeSchema.getProperty('items')
         collectionType = collectionProperty.type as ModelType<C>
         def collectionSchema = schemaStore.getSchema(collectionType)
-        assert collectionSchema instanceof ManagedImplModelSchema
+        assert collectionSchema instanceof ManagedImplSchema
         def nodeInitializer = nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(collectionSchema.getType()))
         reference = ModelReference.of(collectionPath, collectionType)
-        registry.create(
-            ModelCreators.of(collectionPath, nodeInitializer)
+        registry.register(
+            ModelRegistrations.of(collectionPath, nodeInitializer)
                 .descriptor("define collection")
                 .build()
         )

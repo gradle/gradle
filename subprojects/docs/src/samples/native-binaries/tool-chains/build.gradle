@@ -54,7 +54,7 @@ model {
 model {
     tasks {
         buildAllExecutables(Task) {
-            dependsOn $('binaries').findAll { it.buildable }
+            dependsOn $.binaries.findAll { it.buildable }
         }
     }
 }

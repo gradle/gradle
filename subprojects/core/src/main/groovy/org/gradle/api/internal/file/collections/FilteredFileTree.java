@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.specs.Spec;
 
 public interface FilteredFileTree {
-    public FileTreeInternal getOriginalFileTree();
+    FileTreeInternal getOriginalFileTree();
 
-    public Spec<FileTreeElement> getFilter();
+    Spec<FileTreeElement> getFilter();
 }

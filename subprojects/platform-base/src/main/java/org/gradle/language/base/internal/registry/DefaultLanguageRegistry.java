@@ -40,7 +40,7 @@ public class DefaultLanguageRegistry extends DefaultDomainObjectSet<LanguageRegi
     public String getSupportedTypeNames() {
         List<String> names = Lists.newArrayList();
         for (LanguageRegistration<?> languageRegistration : this) {
-            names.add(languageRegistration.getSourceSetType().getSimpleName());
+            names.add(languageRegistration.getSourceSetType().getDisplayName());
         }
         Collections.sort(names);
         return names.isEmpty() ? "(None)" : Joiner.on(", ").join(names);

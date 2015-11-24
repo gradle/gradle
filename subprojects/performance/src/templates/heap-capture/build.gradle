@@ -7,9 +7,9 @@ gradle.buildFinished {
     if (project.hasProperty('heapdump')) {
         boolean skipHeapDump = false
 
-        if (['testPhase', 'testLoopNumber', 'testLoopMax'].every { project.hasProperty(it) }) {
+        if (['buildExperimentPhase', 'buildExperimentIterationNumber', 'buildExperimentIterationMax'].every { project.hasProperty(it) }) {
             // only dump heap automaticly on the last iteration of the testrun (not in warmup)
-            if (project.testPhase != 'testrun' || project.testLoopNumber != project.testLoopMax) {
+            if (project.buildExperimentPhase != 'measurement' || project.buildExperimentIterationNumber != project.buildExperimentIterationMax) {
                 skipHeapDump = true
             }
         }
@@ -24,7 +24,7 @@ gradle.buildFinished {
             }
             if (hotspotDiagnosticMXBean) {
                 logger.lifecycle "Creating heap dump..."
-                def dumpDescription = (project.hasProperty("testDisplayName") ? (rootProject.name + "_" + project.testDisplayName) : rootProject.name).replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("[_]+", "_")
+                def dumpDescription = (project.hasProperty("buildExperimentDisplayName") ? (rootProject.name + "_" + project.buildExperimentDisplayName) : rootProject.name).replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("[_]+", "_")
                 File dumpFile = new File(System.getProperty("java.io.tmpdir"), "heapdump-\${dumpDescription}-\${new Date().format('yyyy-MM-dd-HH-mm-ss')}.hprof")
                 hotspotDiagnosticMXBean.dumpHeap(dumpFile.absolutePath, true)
                 logger.lifecycle "Dumped to \${dumpFile.absolutePath}."

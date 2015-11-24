@@ -17,7 +17,6 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
@@ -63,7 +62,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("printPeople") {
                   doLast {
-                    def people = $("people")
+                    def people = $.people
                     def names = people*.name.sort().join(", ")
                     println "people: ${people.toString()}"
                     println "names: $names"
@@ -102,7 +101,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
-                def people = $('people')
+                def people = $.people
                 create("printPeople") {
                   doLast {
                     def names = people*.name.sort().join(", ")
@@ -152,7 +151,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
-                def g = $('group')
+                def g = $.group
                 create("printGroup") {
                   doLast {
                     def members = g.members*.name.sort().join(", ")
@@ -240,7 +239,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("printPeople") {
                   doLast {
-                    def people = $("people")
+                    def people = $.people
                     println "people: $people"
                   }
                 }
@@ -252,11 +251,11 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printPeople"
 
         and:
-        output.contains TextUtil.toPlatformLineSeparators('''apply defaults
+        output.contains '''apply defaults
 initialize
 configure
 finalize
-''')
+'''
     }
 
     def "creation and configuration of managed set elements is deferred until required"() {
@@ -304,7 +303,7 @@ finalize
               tasks {
                 create("printPeople") {
                   doLast {
-                    def names = $("people")*.name.sort().join(", ")
+                    def names = $.people*.name.sort().join(", ")
                     println "people: $names"
                   }
                 }
@@ -316,7 +315,7 @@ finalize
         succeeds "printPeople"
 
         and:
-        output.contains TextUtil.toPlatformLineSeparators('''p1 defined
+        output.contains '''p1 defined
 p2 defined
 p3 defined
 construct Person
@@ -325,7 +324,7 @@ construct Person
 configure p2
 construct Person
 configure p3
-''')
+'''
 
         output.contains "people: p1, p2, p3"
     }
@@ -504,7 +503,7 @@ configure p3
 
             model {
                 tasks {
-                    $("people").create {}
+                    $.people.create {}
                 }
             }
         '''
@@ -513,7 +512,7 @@ configure p3
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'model.tasks @ build.gradle")
+        failure.assertHasCause("Exception thrown while executing model rule: tasks { ... } @ build.gradle")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'tasks { ... } @ build.gradle")
     }
 }

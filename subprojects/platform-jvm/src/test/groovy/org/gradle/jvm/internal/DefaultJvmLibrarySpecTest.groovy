@@ -16,13 +16,14 @@
 
 package org.gradle.jvm.internal
 
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultJvmLibrarySpecTest extends Specification {
+    def registry = new ModelRegistryHelper()
     def libraryId = new DefaultComponentSpecIdentifier(":project-path", "jvm-lib")
 
     def "library has name and path"() {
@@ -35,7 +36,7 @@ class DefaultJvmLibrarySpecTest extends Specification {
         library.displayName == "JVM library 'jvm-lib'"
     }
 
-    private DefaultJvmLibrarySpec createJvmLibrarySpec() {
-        BaseComponentFixtures.create(DefaultJvmLibrarySpec, new ModelRegistryHelper(), libraryId, DirectInstantiator.INSTANCE)
+    private JvmLibrarySpec createJvmLibrarySpec() {
+        BaseComponentFixtures.create(JvmLibrarySpec, DefaultJvmLibrarySpec, registry, libraryId)
     }
 }

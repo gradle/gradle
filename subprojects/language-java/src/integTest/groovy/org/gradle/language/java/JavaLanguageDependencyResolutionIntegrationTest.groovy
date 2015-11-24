@@ -19,31 +19,27 @@ package org.gradle.language.java
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Unroll
 
-import static JavaIntegrationTesting.applyJavaPlugin
+import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class JavaLanguageDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can resolve dependency on local library"() {
+    @Unroll
+    def "can resolve #scope level dependency on local library"() {
         given:
         applyJavaPlugin(buildFile)
-        buildFile << '''
+        buildFile << """
 model {
     components {
         zdep(JvmLibrarySpec)
         main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'zdep'
-                    }
-                }
-            }
+            ${scope.declarationFor 'zdep'}
         }
     }
 }
-'''
+"""
         file('src/zdep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
@@ -51,8 +47,10 @@ model {
         succeeds ':tasks', ':mainJar'
 
         then:
-        executedAndNotSkipped ':tasks', ':compileZdepJarZdepJava', ':createZdepJar', ':zdepJar', ':compileMainJarMainJava'
+        executedAndNotSkipped ':tasks', ':compileZdepJarZdepJava', ':zdepApiJar', ':compileMainJarMainJava', ':mainApiJar', ':mainJar'
 
+        where:
+        scope << DependencyScope.values()
     }
 
     def "can define a dependency on the same library"() {
@@ -80,7 +78,6 @@ model {
 
         then:
         executedAndNotSkipped(':tasks', ':createMainJar', ':mainJar')
-
     }
 
     def "can define a cyclic dependency but building fails"() {
@@ -128,27 +125,21 @@ model {
 
         then: 'A cyclic dependency is found'
         failure.assertHasDescription('Circular dependency between the following tasks')
-
     }
 
-    def "should fail if library doesn't exist"() {
+    @Unroll
+    def "should fail if library doesn't exist (#scope)"() {
         given:
         applyJavaPlugin(buildFile)
-        buildFile << '''
+        buildFile << """
 model {
     components {
         main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'someLib'
-                    }
-                }
-            }
+            ${scope.declarationFor 'someLib'}
         }
     }
 }
-'''
+"""
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
@@ -161,45 +152,39 @@ model {
         fails ':mainJar'
 
         then: "displays the possible solution"
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':' library 'someLib'")
         failure.assertHasCause("Project ':' does not contain library 'someLib'. Did you want to use 'main'?")
 
+        where:
+        scope << DependencyScope.values()
     }
 
-    def "can resolve dependency on a different project library"() {
+    @Unroll
+    def "can resolve #scope level dependency on a different project library"() {
         given:
         applyJavaPlugin(buildFile)
-        buildFile << '''
-
+        buildFile << """
 model {
     components {
         main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        project ':dep' library 'main'
-                    }
-                }
-            }
+            ${scope.declarationFor('main', ':dep')}
         }
     }
 
     tasks {
         mainJar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.contains(':dep:mainJar')
+            assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.contains(':dep:mainApiJar')
         }
     }
 }
-'''
-        file('settings.gradle') << 'include "dep"'
-        file('dep/build.gradle') << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
+"""
 
+        file('settings.gradle') << 'include "dep"'
+        def depBuildFile = file('dep/build.gradle')
+        applyJavaPlugin(depBuildFile)
+        depBuildFile << '''
 model {
     components {
         main(JvmLibrarySpec)
@@ -221,6 +206,8 @@ model {
         then:
         executedAndNotSkipped ':dep:createMainJar'
 
+        where:
+        scope << DependencyScope.values()
     }
 
     def "should fail if project doesn't exist"() {
@@ -242,12 +229,9 @@ model {
 }
 '''
         file('settings.gradle') << 'include "dep"'
-        file('dep/build.gradle') << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
+        def depBuildFile = file('dep/build.gradle')
+        applyJavaPlugin(depBuildFile)
+        depBuildFile << '''
 model {
     components {
         main(JvmLibrarySpec)
@@ -266,30 +250,26 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':sub' library 'main'")
         failure.assertHasCause("Project ':sub' not found.")
-
     }
 
-    def "should fail if project exists but not library"() {
+    @Unroll
+    def "should fail if project exists but not library (#scope)"() {
         given:
         applyJavaPlugin(buildFile)
-        buildFile << '''
+        buildFile << """
 model {
     components {
         main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        project ':dep' library 'doesNotExist'
-                    }
-                }
-            }
+            $scope.begin
+                project ':dep' library 'doesNotExist'
+            $scope.end
         }
     }
 }
-'''
+"""
         file('settings.gradle') << 'include "dep"'
         file('dep/build.gradle') << '''
 plugins {
@@ -315,31 +295,31 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep' library 'doesNotExist'")
 
         and: "displays a suggestion about the library to use"
         failure.assertHasCause("Project ':dep' does not contain library 'doesNotExist'. Did you want to use 'main'?")
+
+        where:
+        scope << DependencyScope.values()
     }
 
-    def "should display the list of candidate libraries in case a library is not found"() {
+    @Unroll
+    def "should display the list of candidate libraries in case a library is not found (#scope)"() {
         given:
         applyJavaPlugin(buildFile)
-        buildFile << '''
+        buildFile << """
 model {
     components {
         main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        project ':dep' library 'doesNotExist'
-                    }
-                }
-            }
+            $scope.begin
+                project ':dep' library 'doesNotExist'
+            $scope.end
         }
     }
 }
-'''
+"""
         file('settings.gradle') << 'include "dep"'
         file('dep/build.gradle') << '''
 plugins {
@@ -366,29 +346,29 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep' library 'doesNotExist'")
 
         and: "displays a list of suggestion for libraries to use"
         failure.assertHasCause("Project ':dep' does not contain library 'doesNotExist'. Did you want to use one of 'awesome', 'lib'?")
+
+        where:
+        scope << DependencyScope.values()
     }
 
-    def "can resolve dependencies on a different projects"() {
+    @Unroll
+    def "can resolve #scope level dependencies on a different projects"() {
         given:
         applyJavaPlugin(buildFile)
-        buildFile << '''
+        buildFile << """
 model {
     components {
         other(JvmLibrarySpec)
         main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'other'
-                        project ':dep' library 'main'
-                    }
-                }
-            }
+            $scope.begin
+                library 'other'
+                project ':dep' library 'main'
+            $scope.end
         }
     }
 
@@ -396,11 +376,11 @@ model {
         mainJar.finalizedBy('checkDependencies')
         create('checkDependencies') {
             assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.containsAll(
-            [':otherJar',':dep:mainJar'])
+            [':otherApiJar',':dep:mainApiJar'])
         }
     }
 }
-'''
+"""
         file('settings.gradle') << 'include "dep"'
         file('dep/build.gradle') << '''
 plugins {
@@ -430,26 +410,25 @@ model {
         then:
         executedAndNotSkipped ':dep:createMainJar', ':createOtherJar'
 
+        where:
+        scope << DependencyScope.values()
     }
 
-    def "should fail and display the list of candidate libraries in case a library is required but multiple candidates available"() {
+    @Unroll
+    def "should fail and display the list of candidate libraries in case a library is required but multiple candidates available (#scope)"() {
         given:
         applyJavaPlugin(buildFile)
-        buildFile << '''
+        buildFile << """
 model {
     components {
         main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        project ':dep'
-                    }
-                }
-            }
+            $scope.begin
+                project ':dep'
+            $scope.end
         }
     }
 }
-'''
+"""
         file('settings.gradle') << 'include "dep"'
         file('dep/build.gradle') << '''
 plugins {
@@ -476,11 +455,14 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep'")
 
         and: "displays a list of suggestions for libraries in dependent project"
         failure.assertHasCause("Project ':dep' contains more than one library. Please select one of 'awesome', 'lib'")
+
+        where:
+        scope << DependencyScope.values()
     }
 
     def "should fail and display a sensible error message if target project doesn't define any library"() {
@@ -502,13 +484,7 @@ model {
 }
 '''
         file('settings.gradle') << 'include "dep"'
-        file('dep/build.gradle') << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
-'''
+        applyJavaPlugin(file('dep/build.gradle'))
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         when:
@@ -521,7 +497,7 @@ plugins {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep'")
 
         and: "displays that the dependent project doesn't define any dependency"
@@ -548,7 +524,6 @@ model {
 '''
         file('settings.gradle') << 'include "dep"'
         file('dep/build.gradle') << ''
-
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         when:
@@ -561,76 +536,66 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep'")
 
         and:
         failure.assertHasCause("Project ':dep' doesn't define any library.")
     }
 
-    def "classpath for sourceset excludes transitive sourceset jar"() {
+    @Unroll
+    def "compile classpath for #mainScope dependency #excludesOrIncludes transitive #libScope dependency"() {
         given:
         applyJavaPlugin(buildFile)
-        buildFile << '''
-model {
-    components {
-        main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        project ':b' library 'main'
+        buildFile << """
+            model {
+                components {
+                    main(JvmLibrarySpec) {
+                        $mainScope.begin
+                            project ':b' library 'main'
+                        $mainScope.end
                     }
                 }
-            }
-        }
-    }
 
-    tasks {
-        create('checkClasspath') {
-            doLast {
-                def cp = compileMainJarMainJava.classpath.files
-                assert cp.contains(new File(project(':b').createMainApiJar.destinationDir, "main.jar"))
-                assert !cp.contains(new File(project(':c').createMainApiJar.destinationDir, 'main.jar'))
-            }
-        }
-        mainJar.finalizedBy('checkClasspath')
-    }
+                tasks {
+                    create('checkClasspath') {
+                        doLast {
+                            def cp = compileMainJarMainJava.classpath.files
+                            assert cp.contains(new File(project(':b').mainApiJar.destinationDir, "main.jar"))
+                            def cJar = new File(project(':c').mainApiJar.destinationDir, 'main.jar')
+                            assert ${excludesOrIncludes == 'excludes' ? '!' : ''}cp.contains(cJar)
+                        }
+                    }
+                    mainJar.finalizedBy('checkClasspath')
+                }
 
-}
-'''
+            }
+        """
         file('settings.gradle') << 'include "b","c"'
-        file('b/build.gradle') << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
-model {
-    components {
-        main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        project ':c' library 'main'
+        file('b/build.gradle').with {
+            applyJavaPlugin(it)
+            it << """
+                model {
+                    components {
+                        main(JvmLibrarySpec) {
+                            $libScope.begin
+                                project ':c' library 'main'
+                            $libScope.end
+                        }
                     }
                 }
-            }
+            """
         }
-    }
-}
-'''
-        file('c/build.gradle') << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
-model {
-    components {
-        main(JvmLibrarySpec)
-    }
-}
-'''
+        file('c/build.gradle').with {
+            applyJavaPlugin(it)
+            it << '''
+                model {
+                    components {
+                        main(JvmLibrarySpec)
+                    }
+                }
+            '''
+        }
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
         file('b/src/main/java/Dep.java') << 'public class Dep { void someMethod(Deeper deeper) {} }'
         file('c/src/main/java/Deeper.java') << 'public class Deeper {}'
@@ -647,6 +612,19 @@ model {
         then:
         executedAndNotSkipped ':c:createMainJar', ':b:createMainJar'
 
+        where:
+        mainScope                 | libScope
+        DependencyScope.SOURCES   | DependencyScope.SOURCES
+        DependencyScope.SOURCES   | DependencyScope.COMPONENT
+        DependencyScope.SOURCES   | DependencyScope.API
+        DependencyScope.COMPONENT | DependencyScope.SOURCES
+        DependencyScope.COMPONENT | DependencyScope.COMPONENT
+        DependencyScope.COMPONENT | DependencyScope.API
+        DependencyScope.API       | DependencyScope.SOURCES
+        DependencyScope.API       | DependencyScope.COMPONENT
+        DependencyScope.API       | DependencyScope.API
+
+        excludesOrIncludes = libScope == DependencyScope.API ? 'includes' : 'excludes'
     }
 
     def "dependency resolution should be limited to the scope of the API of a single project"() {
@@ -659,15 +637,15 @@ import org.gradle.model.internal.type.ModelType
 class DependencyResolutionObserver extends RuleSource {
     @Mutate void createCheckTask(CollectionBuilder<Task> tasks) {
         tasks.create('checkDependenciesForMainJar') {
-        doLast {
-            def task = tasks.get('compileMainJarMainJava')
-            def cp = task.classpath.files
-            assert cp == [new File(task.project.project(':b').modelRegistry.find(ModelPath.path('tasks.createMainApiJar'), ModelType.of(Task)).destinationDir, 'main.jar')] as Set
-
-        }
+            doLast {
+                def task = tasks.get('compileMainJarMainJava')
+                def cp = task.classpath.files
+                assert cp == [new File(task.project.project(':b').modelRegistry.find(ModelPath.path('tasks.mainApiJar'), ModelType.of(Task)).destinationDir, 'main.jar')] as Set
+            }
         }
     }
 }
+
 apply plugin: DependencyResolutionObserver
 
 model {
@@ -682,7 +660,6 @@ model {
             }
         }
     }
-
 }
 '''
         file('settings.gradle') << 'include "b"'
@@ -740,10 +717,9 @@ model {
         fails ':b:checkDependenciesForMainJar'
 
         then: "dependency resolution fails because project 'c' doesn't exist"
-        failure.assertHasCause(/Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java''/)
+        failure.assertHasCause(/Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java''/)
         failure.assertHasCause(/Could not resolve project ':c' library 'main'./)
         failure.assertHasCause(/Project ':c' not found./)
-
     }
 
     def "classpath for sourceset excludes transitive sourceset jar if no explicit library name is used"() {
@@ -767,8 +743,8 @@ model {
         create('checkClasspath') {
             doLast {
                 def cp = compileMainJarMainJava.classpath.files
-                assert cp.contains(new File(project(':b').createMainApiJar.destinationDir, 'main.jar'))
-                assert !cp.contains(new File(project(':c').createMainApiJar.destinationDir, 'main.jar'))
+                assert cp.contains(new File(project(':b').mainApiJar.destinationDir, 'main.jar'))
+                assert !cp.contains(new File(project(':c').mainApiJar.destinationDir, 'main.jar'))
             }
         }
         mainJar.finalizedBy('checkClasspath')
@@ -824,7 +800,6 @@ model {
 
         then:
         executedAndNotSkipped ':c:createMainJar', ':b:createMainJar'
-
     }
 
     def "fails if a dependency does not provide any JarBinarySpec"() {
@@ -861,7 +836,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':' library 'zdep'")
 
         and:
@@ -916,11 +891,12 @@ model {
         executedAndNotSkipped(':b:createMainJar')
     }
 
+    @Unroll
     @Requires(TestPrecondition.JDK7_OR_LATER)
-    def "should choose appropriate Java variants"() {
+    def "should choose appropriate Java variants for #scope level dependency"() {
         given:
         applyJavaPlugin(buildFile)
-        buildFile << '''
+        buildFile << """
 model {
     components {
         dep(JvmLibrarySpec) {
@@ -930,26 +906,22 @@ model {
         main(JvmLibrarySpec) {
             targetPlatform 'java7'
             targetPlatform 'java6'
-            sources {
-                java {
-                    dependencies {
-                        library 'dep'
-                    }
-                }
-            }
+            $scope.begin
+                library 'dep'
+            $scope.end
         }
     }
 
     tasks {
-        java6MainJar.finalizedBy('checkDependencies')
-        java7MainJar.finalizedBy('checkDependencies')
+        mainJava6Jar.finalizedBy('checkDependencies')
+        mainJava7Jar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(depJar)
-            assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(depJar)
+            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depApiJar)
+            assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depApiJar)
         }
     }
 }
-'''
+"""
         file('src/dep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
@@ -960,10 +932,13 @@ model {
         executedAndNotSkipped ':tasks'
 
         and:
-        succeeds 'java6MainJar'
+        succeeds 'mainJava6Jar'
 
         and:
-        succeeds 'java7MainJar'
+        succeeds 'mainJava7Jar'
+
+        where:
+        scope << DependencyScope.values()
     }
 
     def "should fail because multiple binaries match for the same variant"() {
@@ -1023,10 +998,10 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause(normaliseLineSeparators("""Multiple compatible variants found for library 'dep':
-    - Jar 'depJar' [platform:'java6']
-    - Jar 'depJar2' [platform:'java6']"""
+    - Jar 'dep:jar' [platform:'java6']
+    - Jar 'dep:jar2' [platform:'java6']"""
         ))
     }
 
@@ -1039,12 +1014,11 @@ class CustomBinaries extends RuleSource {
    @ComponentBinaries
    void createBinaries(ModelMap<JarBinarySpec> binaries, JvmLibrarySpec spec) {
        // duplicate binaries, to make sure we have two binaries for the same platform
+       if (spec.name != 'dep') { return }
        def newBins = [:]
        binaries.keySet().each { bName ->
-           if (bName =~ /dep/) {
-              def binary = binaries.get(bName)
-              newBins["${bName}2"] = binary
-           }
+          def binary = binaries.get(bName)
+          newBins["${bName}2"] = binary
        }
 
        newBins.each { k,v -> binaries.create(k) {
@@ -1087,31 +1061,32 @@ model {
         executedAndNotSkipped ':tasks'
 
         and: "attempt to build main jar Java 6"
-        fails ':java6MainJar'
+        fails ':mainJava6Jar'
 
         then: "fails because multiple binaries are available for the Java 6 variant of 'dep'"
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:java6Jar'' source set 'Java source 'main:java'")
         failure.assertHasCause(normaliseLineSeparators("""Multiple compatible variants found for library 'dep':
-    - Jar 'depJar' [platform:'java6']
-    - Jar 'depJar2' [platform:'java6']"""
+    - Jar 'dep:jar' [platform:'java6']
+    - Jar 'dep:jar2' [platform:'java6']"""
         ))
 
         when: "attempt to build main jar Java 7"
-        fails ':java7MainJar'
+        fails ':mainJava7Jar'
 
         then: "fails because multiple binaries are available for the Java 6 compatible variant of 'dep'"
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java7MainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:java7Jar'' source set 'Java source 'main:java'")
         failure.assertHasCause(normaliseLineSeparators("""Multiple compatible variants found for library 'dep':
-    - Jar 'depJar' [platform:'java6']
-    - Jar 'depJar2' [platform:'java6']"""
+    - Jar 'dep:jar' [platform:'java6']
+    - Jar 'dep:jar2' [platform:'java6']"""
         ))
     }
 
+    @Unroll
     @Requires(TestPrecondition.JDK7_OR_LATER)
-    def "should choose matching variants from dependency"() {
+    def "should choose matching variants from #scope level dependency"() {
         given:
         applyJavaPlugin(buildFile)
-        buildFile << '''
+        buildFile << """
 model {
     components {
         dep(JvmLibrarySpec) {
@@ -1122,26 +1097,22 @@ model {
         main(JvmLibrarySpec) {
             targetPlatform 'java7'
             targetPlatform 'java6'
-            sources {
-                java {
-                    dependencies {
-                        library 'dep'
-                    }
-                }
-            }
+            $scope.begin
+                library 'dep'
+            $scope.end
         }
     }
 
     tasks {
-        java6MainJar.finalizedBy('checkDependencies')
-        java7MainJar.finalizedBy('checkDependencies')
+        mainJava6Jar.finalizedBy('checkDependencies')
+        mainJava7Jar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(java6DepJar)
-            assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(java7DepJar)
+            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depJava6ApiJar)
+            assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depJava7ApiJar)
         }
     }
 }
-'''
+"""
         file('src/dep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
@@ -1152,7 +1123,10 @@ model {
         executedAndNotSkipped ':tasks'
 
         and:
-        succeeds 'java6MainJar', 'java7MainJar'
+        succeeds 'mainJava6Jar', 'mainJava7Jar'
+
+        where:
+        scope << DependencyScope.values()
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
@@ -1182,11 +1156,11 @@ model {
     }
 
     tasks {
-        java6MainJar.finalizedBy('checkDependencies')
-        java7MainJar.finalizedBy('checkDependencies')
+        mainJava6Jar.finalizedBy('checkDependencies')
+        mainJava7Jar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(java6DepJar)
-            assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(java7DepJar)
+            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depJava6ApiJar)
+            assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depJava7ApiJar)
         }
     }
 }
@@ -1201,10 +1175,10 @@ model {
         executedAndNotSkipped ':tasks'
 
         then:
-        succeeds 'java6MainJar'
+        succeeds 'mainJava6Jar'
 
         and:
-        succeeds 'java7MainJar'
+        succeeds 'mainJava7Jar'
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -1286,7 +1260,7 @@ model {
         executedAndNotSkipped ':tasks'
 
         and:
-        fails ':java6MainJar'
+        fails ':mainJava6Jar'
 
         then:
         failure.assertHasCause(normaliseLineSeparators(
@@ -1297,40 +1271,34 @@ model {
 
     void addCustomLibraryType(File buildFile) {
         buildFile << """
-            interface CustomLibrary extends LibrarySpec {}
-            class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {}
+            @Managed interface CustomLibrary extends LibrarySpec {}
 
             class ComponentTypeRules extends RuleSource {
                 @ComponentType
-                void registerCustomComponentType(ComponentTypeBuilder<CustomLibrary> builder) {
-                    builder.defaultImplementation(DefaultCustomLibrary)
-                }
+                void registerCustomComponentType(ComponentTypeBuilder<CustomLibrary> builder) {}
             }
 
             apply type: ComponentTypeRules
         """
     }
 
-    def "collects all errors if there's more than one resolution failure"() {
+    @Unroll
+    def "collects all errors if there's more than one resolution failure for #scope level dependencies"() {
         given:
         applyJavaPlugin(buildFile)
-        buildFile << '''
+        buildFile << """
 model {
     components {
         main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'someLib' // first error
-                        project ':b' // second error
-                        project ':c' library 'foo' // third error
-                    }
-                }
-            }
+            $scope.begin
+                library 'someLib' // first error
+                project ':b' // second error
+                project ':c' library 'foo' // third error
+            $scope.end
         }
     }
 }
-'''
+"""
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
@@ -1343,7 +1311,7 @@ model {
         fails ':mainJar'
 
         then: "displays a reasonable error message indicating the faulty source set"
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
 
         and: "first resolution error is displayed"
         failure.assertHasCause("Could not resolve project ':' library 'someLib'")
@@ -1356,5 +1324,8 @@ model {
         and: "third resolution error is displayed"
         failure.assertHasCause("Could not resolve project ':c' library 'foo'")
         failure.assertHasCause("Project ':c' not found")
+
+        where:
+        scope << DependencyScope.values()
     }
 }

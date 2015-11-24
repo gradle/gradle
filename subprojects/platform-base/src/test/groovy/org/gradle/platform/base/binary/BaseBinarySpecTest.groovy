@@ -16,19 +16,19 @@
 
 package org.gradle.platform.base.binary
 
-import org.gradle.api.NamedDomainObjectFactory
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.sources.BaseLanguageSourceSet
+import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ModelInstantiationException
+import org.gradle.platform.base.component.BaseComponentFixtures
+import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class BaseBinarySpecTest extends Specification {
-    def instantiator = DirectInstantiator.INSTANCE
-
     def "cannot instantiate directly"() {
         when:
         new BaseBinarySpec() {}
@@ -38,27 +38,29 @@ class BaseBinarySpecTest extends Specification {
         e.message == "Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead."
     }
 
-    def "cannot create instance of base class"() {
-        when:
-        BaseBinarySpec.create(BinarySpec, BaseBinarySpec, "sampleBinary", instantiator, Mock(ITaskFactory))
-
-        then:
-        def e = thrown ModelInstantiationException
-        e.message == "Cannot create instance of abstract class BaseBinarySpec."
-    }
-
     def "binary has name and sensible display name"() {
-        def binary = BaseBinarySpec.create(BinarySpec, MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
+        def binary = create(SampleBinary, MySampleBinary, "sampleBinary")
 
         expect:
-        binary.class == MySampleBinary
+        binary instanceof MySampleBinary
         binary.name == "sampleBinary"
-        binary.displayName == "MySampleBinary 'sampleBinary'"
+        binary.projectScopedName == "sampleBinary"
+        binary.displayName == "SampleBinary 'sampleBinary'"
+    }
+
+    def "qualifies project scoped named and display name using owners name"() {
+        def component = BaseComponentFixtures.createNode(MySampleComponent, MySampleComponent, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "sample"))
+        def binary = create(SampleBinary, MySampleBinary, "unitTest", component)
+
+        expect:
+        binary.name == "unitTest"
+        binary.projectScopedName == "sampleUnitTest"
+        binary.displayName == "SampleBinary 'sample:unitTest'"
     }
 
     def "create fails if subtype does not have a public no-args constructor"() {
         when:
-        BaseBinarySpec.create(BinarySpec, MyConstructedBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
+        create(MyConstructedBinary, "sampleBinary")
 
         then:
         def e = thrown ModelInstantiationException
@@ -68,21 +70,16 @@ class BaseBinarySpecTest extends Specification {
     }
 
     def "can own source sets"() {
-        def fileResolver = Mock(FileResolver)
-        def binary = BaseBinarySpec.create(BinarySpec, MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
-        binary.entityInstantiator.registerFactory(CustomSourceSet, new NamedDomainObjectFactory<CustomSourceSet>() {
-            @Override
-            CustomSourceSet create(String name) {
-                return BaseLanguageSourceSet.create(CustomSourceSet, name, "test-parent", fileResolver, instantiator)
-            }
-        })
-
+        def binary = create(MySampleBinary, "sampleBinary")
+        def customSourceSet = Stub(LanguageSourceSet) {
+            getName() >> "custom"
+        }
         def inputSourceSet = Stub(LanguageSourceSet) {
             getName() >> "input"
         }
 
         when:
-        binary.sources.create("custom", CustomSourceSet)
+        binary.sources.put("custom", customSourceSet)
 
         then:
         binary.sources.values()*.name == ["custom"]
@@ -97,13 +94,21 @@ class BaseBinarySpecTest extends Specification {
 
     def "source property is the same as inputs property"() {
         given:
-        def binary = BaseBinarySpec.create(BinarySpec, MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
+        def binary = create(MySampleBinary, "sampleBinary")
 
         expect:
         binary.source == binary.inputs
     }
 
-    static class MySampleBinary extends BaseBinarySpec {
+    private <T extends BaseBinarySpec> T create(Class<T> type, Class<T> implType = type, String name, MutableModelNode componentNode = null) {
+        BaseBinaryFixtures.create(type, implType, name, componentNode, Mock(ITaskFactory))
+    }
+    
+    static class MySampleComponent extends BaseComponentSpec {}
+
+    interface SampleBinary extends BinarySpec {}
+
+    static class MySampleBinary extends BaseBinarySpec implements SampleBinary {
     }
     static class MyConstructedBinary extends BaseBinarySpec {
         MyConstructedBinary(String arg) {}

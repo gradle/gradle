@@ -326,6 +326,9 @@
                 <td>org.gradle.api.plugins.antlr.AntlrTask</td>
             </tr>
             <tr>
+                <td>org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.plugins.quality.Checkstyle</td>
             </tr>
             <tr>
@@ -542,24 +545,6 @@
         <table>
             <title>Native software types</title>
             <tr>
-                <td>org.gradle.nativeplatform.NativeExecutable</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeLibrary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeBinary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeExecutableBinary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.SharedLibraryBinary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.StaticLibraryBinary</td>
-            </tr>
-            <tr>
                 <td>org.gradle.nativeplatform.PrebuiltLibrary</td>
             </tr>
             <tr>
@@ -591,6 +576,9 @@
             </tr>
             <tr>
                 <td>org.gradle.nativeplatform.StaticLibraryBinarySpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.platform.NativePlatform</td>
             </tr>
             <tr>
                 <td>org.gradle.nativeplatform.BuildType</td>
@@ -642,6 +630,24 @@
             </tr>
             <tr>
                 <td>org.gradle.ide.visualstudio.VisualStudioSolution</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.NativeExecutable</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.NativeLibrary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.NativeBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.NativeExecutableBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.SharedLibraryBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.StaticLibraryBinary</td>
             </tr>
         </table>
     </section>

@@ -48,8 +48,8 @@ public class ClassDirectoryBinaryNamingScheme implements BinaryNamingScheme {
         return baseName;
     }
 
-    public String getLifecycleTaskName() {
-        return getTaskName(null, "classes");
+    public String getBinaryName() {
+        return baseName;
     }
 
     public String getTaskName(@Nullable String verb) {

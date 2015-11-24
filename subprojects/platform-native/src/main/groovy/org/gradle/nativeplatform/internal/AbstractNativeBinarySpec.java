@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.internal;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
-import org.gradle.language.PreprocessingTool;
+import org.gradle.nativeplatform.PreprocessingTool;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
@@ -31,7 +31,6 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
-import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
@@ -61,7 +60,6 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
             .put("rcCompiler", rcCompiler)
             .build();
 
-    private NativeComponentSpec component;
     private PlatformToolProvider toolProvider;
     private BinaryNamingScheme namingScheme;
     private Flavor flavor;
@@ -71,16 +69,14 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     private NativeDependencyResolver resolver;
     private Map<File, PreCompiledHeader> prefixFileToPCH = Maps.newHashMap();
 
+    @Override
     public String getDisplayName() {
         return namingScheme.getDescription();
     }
 
+    @Override
     public NativeComponentSpec getComponent() {
-        return component;
-    }
-
-    public void setComponent(ComponentSpec component) {
-        this.component = (NativeComponentSpec) component;
+        return getComponentAs(NativeComponentSpec.class);
     }
 
     public Flavor getFlavor() {

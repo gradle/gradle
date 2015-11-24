@@ -48,9 +48,9 @@ public class CompositeDataCollector implements DataCollector {
         return additional;
     }
 
-    public void collect(File testProjectDir, MeasuredOperation operation) {
+    public void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
         for (DataCollector collector : collectors) {
-            collector.collect(testProjectDir, operation);
+            collector.collect(invocationInfo, operation);
         }
     }
 }

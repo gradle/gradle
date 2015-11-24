@@ -105,8 +105,44 @@ BUILD SUCCESSFUL
         expect:
         modelReport.reportNode.'**'.primaryCredentials.username.@nodeValue[0] == 'uname'
         modelReport.reportNode.'**'.primaryCredentials.username.@type[0] == 'java.lang.String'
-        modelReport.reportNode.'**'.primaryCredentials.@rules[0][0]== 'Rule1'
-        modelReport.reportNode.'**'.primaryCredentials.@rules[0][1]== 'Rule2'
+        modelReport.reportNode.'**'.primaryCredentials.@rules[0][0] == 'Rule1'
+        modelReport.reportNode.'**'.primaryCredentials.@rules[0][1] == 'Rule2'
+    }
+
+    def "should parse model report nodes and values containing special chars"() {
+        setup:
+        def modelReport = ModelReportParser.parse(""":model
+
+
+My Report
+
+
+
++ lss
+    | Type:   	org.gradle.language.cpp.CppSourceSet
+    | Value:  	C++ source 'lss:lss'
+    | Creator: 	Rules#lss
+
+BUILD SUCCESSFUL
+""")
+
+        expect:
+        modelReport.reportNode.lss.@nodeValue[0] == "C++ source 'lss:lss'"
+        modelReport.reportNode.lss.@type[0] == 'org.gradle.language.cpp.CppSourceSet'
+        modelReport.reportNode.lss.@creator[0] == 'Rules#lss'
+    }
+
+    @Unroll
+    def "should identify node lines"() {
+        expect:
+        boolean result = ModelReportParser.lineIsANode(line)
+        result == expected
+
+        where:
+        line                                   | expected
+        '+ numbers'                            | true
+        '      + numbers'                      | true
+        "    | Value:  \tC++ source 'lss:lss'" | false
     }
 
     def "should find a node attributes"() {
@@ -117,8 +153,9 @@ BUILD SUCCESSFUL
         then:
         reportNode.attribute(expectedAttribute) == expectedValue
         where:
-        line                       | expectedAttribute | expectedValue
-        '| Value: \t some value' | 'nodeValue'       | 'some value'
-        '| Type: \t some type'   | 'type'            | 'some type'
+        line                               | expectedAttribute | expectedValue
+        '| Value: \t some value'           | 'nodeValue'       | 'some value'
+        '| Type: \t some type'             | 'type'            | 'some type'
+        "| Value:  \tC++ source 'lss:lss'" | 'nodeValue'       | "C++ source 'lss:lss'"
     }
 }

@@ -16,47 +16,49 @@
 
 package org.gradle.platform.base.binary.internal;
 
-import com.google.common.collect.Maps;
-import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.internal.rules.DefaultRuleAwareNamedDomainObjectFactoryRegistry;
-import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
-import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
-import org.gradle.model.internal.core.BaseInstanceFactory;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.gradle.internal.Cast.uncheckedCast;
+import java.util.Set;
 
 public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec> {
-    private final CollectingNamedBinarySpecFactoryRegistry collector = new CollectingNamedBinarySpecFactoryRegistry();
-    private final RuleAwareNamedDomainObjectFactoryRegistry<BinarySpec> domainObjectFactories = new DefaultRuleAwareNamedDomainObjectFactoryRegistry<BinarySpec>(collector);
+    private final Instantiator instantiator;
+    private final ITaskFactory taskFactory;
 
-    public BinarySpecFactory(String displayName) {
+    public BinarySpecFactory(String displayName, Instantiator instantiator, ITaskFactory taskFactory) {
         super(displayName, BinarySpec.class, BaseBinarySpec.class);
+        this.instantiator = instantiator;
+        this.taskFactory = taskFactory;
     }
 
-    public <U extends BinarySpec> void registerDomainObjectFactory(Class<U> type, ModelRuleDescriptor descriptor, NamedDomainObjectFactory<? extends U> factory) {
-        domainObjectFactories.registerFactory(type, factory, descriptor);
-    }
-
-    public void copyDomainObjectFactoriesInto(NamedDomainObjectFactoryRegistry<BinarySpec> destination) {
-        for (Map.Entry<Class<BinarySpec>, NamedDomainObjectFactory<? extends BinarySpec>> factory : collector.factories.entrySet()) {
-            destination.registerFactory(factory.getKey(), factory.getValue());
+    public <S extends BinarySpec, T extends BaseBinarySpec> void register(final ModelType<S> publicType, final ModelType<T> implementationType,
+                                                                                Set<Class<?>> internalViews, final ModelRuleDescriptor descriptor) {
+        InstanceFactory.TypeRegistrationBuilder<S> registration = register(publicType, descriptor);
+        if (implementationType != null) {
+            registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<S>() {
+                @Override
+                public S create(ModelType<? extends S> publicType, String name, MutableModelNode binaryNode) {
+                    MutableModelNode componentBinariesNode = binaryNode.getParent();
+                    MutableModelNode componentNode = componentBinariesNode.getParent();
+                    return Cast.uncheckedCast(BaseBinarySpec.create(
+                            publicType.getConcreteClass(),
+                            implementationType.getConcreteClass(),
+                            name,
+                            binaryNode,
+                            componentNode,
+                            instantiator,
+                            taskFactory));
+                }
+            });
         }
-    }
-
-    private static class CollectingNamedBinarySpecFactoryRegistry implements NamedDomainObjectFactoryRegistry<BinarySpec> {
-
-        private final HashMap<Class<BinarySpec>, NamedDomainObjectFactory<? extends BinarySpec>> factories = Maps.newHashMap();
-
-        @Override
-        public <U extends BinarySpec> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory) {
-            Class<BinarySpec> o = uncheckedCast(type);
-            factories.put(o, factory);
+        for (Class<?> internalView : internalViews) {
+            registration.withInternalView(ModelType.of(internalView));
         }
     }
 }

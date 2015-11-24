@@ -8,7 +8,7 @@ Root project
       | Type:   	Person
       | Creator: 	PersonRules#person
       | Rules:
-         ⤷ model.person @ build.gradle line 57, column 3
+         ⤷ person { ... } @ build.gradle line 57, column 3
          ⤷ PersonRules#setFirstName
     + age
           | Type:   	int
@@ -50,6 +50,12 @@ Root project
       | Creator: 	Project.<init>.tasks()
       | Rules:
          ⤷ PersonRules#createHelloTask
+    + buildEnvironment
+          | Type:   	org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask
+          | Value:  	task ':buildEnvironment'
+          | Creator: 	tasks.addPlaceholderAction(buildEnvironment)
+          | Rules:
+             ⤷ copyToTaskContainer
     + components
           | Type:   	org.gradle.api.reporting.components.ComponentReport
           | Value:  	task ':components'

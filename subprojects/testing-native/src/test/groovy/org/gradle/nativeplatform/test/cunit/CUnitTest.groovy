@@ -16,13 +16,13 @@
 package org.gradle.nativeplatform.test.cunit
 
 import org.gradle.language.c.CSourceSet
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.test.cunit.plugins.CUnitPlugin
 import org.gradle.platform.base.test.TestSuiteSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.model.internal.type.ModelTypes.modelMap
 
 class CUnitTest extends Specification {
     final def project = TestUtil.createRootProject();
@@ -38,7 +38,7 @@ class CUnitTest extends Specification {
         project.evaluate()
 
         when:
-        CUnitTestSuiteSpec testSuite = project.modelRegistry.realize(ModelPath.path("testSuites"), ModelTypes.modelMap(TestSuiteSpec)).mainTest
+        CUnitTestSuiteSpec testSuite = project.modelRegistry.realize("testSuites", modelMap(TestSuiteSpec)).mainTest
         def sources = testSuite.sources.values()
         def binaries = testSuite.binaries.values()
 
