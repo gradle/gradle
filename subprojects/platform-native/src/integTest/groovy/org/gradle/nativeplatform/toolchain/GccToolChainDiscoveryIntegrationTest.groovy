@@ -71,7 +71,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
+        executable("build/exe/main/main").exec().out == helloWorldApp.englishOutput
     }
 
     def "does not break when compiler not available and not building"() {

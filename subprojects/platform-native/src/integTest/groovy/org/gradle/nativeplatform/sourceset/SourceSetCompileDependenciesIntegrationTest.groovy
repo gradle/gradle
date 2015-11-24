@@ -91,7 +91,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == "12\n"
+        executable("build/exe/main/main").exec().out == "12\n"
     }
 
     def "dependencies of language source set added to binary are not shared when compiling"() {
@@ -120,7 +120,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == "12\n"
+        executable("build/exe/main/main").exec().out == "12\n"
     }
 
     def "dependencies of binary are shared with all source sets when compiling"() {
@@ -144,6 +144,6 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == "11\n"
+        executable("build/exe/main/main").exec().out == "11\n"
     }
 }

@@ -50,7 +50,7 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
                 ":installPassingOperatorsTestGoogleTestExe", ":runPassingOperatorsTestGoogleTestExe"
 
         and:
-        def passingResults = new GoogleTestTestResults(googleTest.dir.file("build/test-results/operatorsTestGoogleTestExe/passing/test_detail.xml"))
+        def passingResults = new GoogleTestTestResults(googleTest.dir.file("build/test-results/operatorsTest/passing/test_detail.xml"))
         passingResults.suiteNames == ['OperatorTests']
         passingResults.suites['OperatorTests'].passingTests == ['test_minus', 'test_plus']
         passingResults.suites['OperatorTests'].failingTests == []
@@ -66,7 +66,7 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
                 ":installFailingOperatorsTestGoogleTestExe", ":runFailingOperatorsTestGoogleTestExe"
 
         and:
-        def failingResults = new GoogleTestTestResults(googleTest.dir.file("build/test-results/operatorsTestGoogleTestExe/failing/test_detail.xml"))
+        def failingResults = new GoogleTestTestResults(googleTest.dir.file("build/test-results/operatorsTest/failing/test_detail.xml"))
         failingResults.suiteNames == ['OperatorTests']
         failingResults.suites['OperatorTests'].passingTests == ['test_minus']
         failingResults.suites['OperatorTests'].failingTests == ['test_plus']

@@ -71,7 +71,7 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
 
     private <T extends NativeLibraryBinary> String getName(Class<T> type, PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor) {
         BinaryNamingScheme namingScheme = DefaultBinaryNamingScheme.component(library.getName())
-                .withRole(type.getSimpleName())
+                .withBinaryType(type.getSimpleName())
                 .withVariantDimension(platform.getName())
                 .withVariantDimension(buildType.getName())
                 .withVariantDimension(flavor.getName());

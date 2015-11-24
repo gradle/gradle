@@ -72,17 +72,17 @@ model {
         succeeds "mainDebugExecutable", "mainIntegrationExecutable", "mainReleaseExecutable"
 
         then:
-        with(executable("build/binaries/mainExecutable/debug/main")) {
+        with(executable("build/exe/main/debug/main")) {
             it.assertExists()
             it.assertDebugFileExists()
             it.exec().out == helloWorldApp.englishOutput
         }
-        with (executable("build/binaries/mainExecutable/integration/main")) {
+        with (executable("build/exe/main/integration/main")) {
             it.assertExists()
             it.assertDebugFileExists()
             it.exec().out == helloWorldApp.frenchOutput
         }
-        with (executable("build/binaries/mainExecutable/release/main")) {
+        with (executable("build/exe/main/release/main")) {
             it.assertExists()
             it.assertDebugFileDoesNotExist()
             it.exec().out == helloWorldApp.englishOutput
@@ -119,7 +119,7 @@ model {
         then:
         // Build type dimension is flattened since there is only one possible value
         executedAndNotSkipped(":mainExecutable")
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
+        executable("build/exe/main/main").exec().out == helloWorldApp.frenchOutput
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -158,8 +158,8 @@ model {
         succeeds "installDebugMainExecutable", "installReleaseMainExecutable"
 
         then:
-        installation("build/install/mainExecutable/debug").exec().out == helloWorldApp.frenchOutput
-        installation("build/install/mainExecutable/release").exec().out == helloWorldApp.englishOutput
+        installation("build/install/main/debug").exec().out == helloWorldApp.frenchOutput
+        installation("build/install/main/release").exec().out == helloWorldApp.englishOutput
     }
 
     def "fails with reasonable error message when trying to target an unknown build type"() {

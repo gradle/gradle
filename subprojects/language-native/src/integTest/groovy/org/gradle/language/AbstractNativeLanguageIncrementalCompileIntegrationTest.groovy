@@ -66,7 +66,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         otherHeaderFile = file("src/main/headers/other.h") << """
             // Dummy header file
 """
-        objectFileDir = file("build/objs/mainExecutable")
+        objectFileDir = file("build/objs/main")
         outputs = new CompilationOutputsFixture(objectFileDir)
     }
 
@@ -550,7 +550,7 @@ model {
         given:
         run "mainExecutable"
 
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/exe/main/main")
         executable.assertExists()
 
         when:

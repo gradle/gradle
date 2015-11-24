@@ -46,9 +46,14 @@ public interface BinaryNamingScheme {
     BinaryNamingScheme withComponentName(String componentName);
 
     /**
-     * Creates a copy of this scheme, replacing the role.
+     * Creates a copy of this scheme, replacing the role. The 'role' refers to the role that the binary plays within its component.
      */
-    BinaryNamingScheme withRole(String role);
+    BinaryNamingScheme withRole(String role, boolean isMain);
+
+    /**
+     * Creates a copy of this scheme, replacing the binary type.
+     */
+    BinaryNamingScheme withBinaryType(String type);
 
     /**
      * Creates a copy of this scheme, replacing the output type.

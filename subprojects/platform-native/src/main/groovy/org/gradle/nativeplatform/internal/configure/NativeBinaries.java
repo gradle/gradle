@@ -38,10 +38,10 @@ public class NativeBinaries {
         Flavor flavor
     ) {
         if (component instanceof NativeLibrarySpec) {
-            createNativeBinary(SharedLibraryBinarySpec.class, binaries, resolver, namingScheme.withRole("SharedLibrary"), platform, buildType, flavor);
-            createNativeBinary(StaticLibraryBinarySpec.class, binaries, resolver, namingScheme.withRole("StaticLibrary"), platform, buildType, flavor);
+            createNativeBinary(SharedLibraryBinarySpec.class, binaries, resolver, namingScheme.withBinaryType("SharedLibrary").withRole("shared", false), platform, buildType, flavor);
+            createNativeBinary(StaticLibraryBinarySpec.class, binaries, resolver, namingScheme.withBinaryType("StaticLibrary").withRole("static", false), platform, buildType, flavor);
         } else {
-            createNativeBinary(NativeExecutableBinarySpec.class, binaries, resolver, namingScheme.withRole("Executable"), platform, buildType, flavor);
+            createNativeBinary(NativeExecutableBinarySpec.class, binaries, resolver, namingScheme.withBinaryType("Executable").withRole("executable", true), platform, buildType, flavor);
         }
     }
 

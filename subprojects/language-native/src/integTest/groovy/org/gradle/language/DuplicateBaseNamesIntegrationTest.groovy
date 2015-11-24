@@ -57,7 +57,7 @@ model {
             """
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == expectedOutput
+        executable("build/exe/main/main").exec().out == expectedOutput
         where:
         testApp                                              |   expectedOutput
         new DuplicateCBaseNamesTestApp()                     |    "foo1foo2"
@@ -123,7 +123,7 @@ model {
 
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == "fooFromC\nfooFromCpp\nfooFromAsm\n"
+        executable("build/exe/main/main").exec().out == "fooFromC\nfooFromCpp\nfooFromAsm\n"
     }
 
     @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
@@ -145,7 +145,7 @@ model {
             """
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == "foo1foo2"
+        executable("build/exe/main/main").exec().out == "foo1foo2"
         where:
         testApp << [ new DuplicateObjectiveCBaseNamesTestApp(), new DuplicateObjectiveCppBaseNamesTestApp() ]
     }
@@ -172,6 +172,6 @@ model {
             """
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == "foo1foo2"
+        executable("build/exe/main/main").exec().out == "foo1foo2"
     }
 }

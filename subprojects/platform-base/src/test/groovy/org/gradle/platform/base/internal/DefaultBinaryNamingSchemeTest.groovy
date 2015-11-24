@@ -60,21 +60,30 @@ class DefaultBinaryNamingSchemeTest extends Specification {
     }
 
     def "generates output directory"() {
-        def namingScheme = createNamingScheme(parentName, role, dimensions, outputType)
+        def namingScheme = createNamingScheme(parentName, binaryType, dimensions, outputType)
 
         expect:
         namingScheme.outputDirectoryBase == outputDir
 
         where:
-        parentName    | role         | dimensions                                 | outputType | outputDir
+        parentName    | binaryType   | dimensions                                 | outputType | outputDir
         "test"        | null         | []                                         | null       | "test"
-        "test"        | null         | ["one", "two"]                             | null       | "test/oneTwo"
+        "test"        | null         | ["one", "two"]                             | null       | "test/one/two"
         "test"        | null         | []                                         | "jars"     | "jars/test"
-        "test"        | "executable" | []                                         | null       | "testExecutable"
-        "test"        | "executable" | ["one", "two"]                             | null       | "testExecutable/oneTwo"
-        "mainLibrary" | "executable" | ["enterpriseEdition", "osx_x64", "static"] | null       | "mainLibraryExecutable/enterpriseEditionOsx_x64Static"
-        "mainLibrary" | "executable" | ["EnterpriseEdition", "Osx_x64", "Static"] | null       | "mainLibraryExecutable/enterpriseEditionOsx_x64Static"
-        "mainLibrary" | "executable" | ["EnterpriseEdition", "Osx_x64", "Static"] | "exes"     | "exes/mainLibraryExecutable/enterpriseEditionOsx_x64Static"
+        "test"        | "executable" | []                                         | null       | "test/executable"
+        "test"        | "executable" | ["one", "two"]                             | null       | "test/executable/one/two"
+        "mainLibrary" | "executable" | ["enterpriseEdition", "osx_x64", "static"] | null       | "mainLibrary/executable/enterpriseEdition/osx_x64/static"
+        "mainLibrary" | "executable" | ["EnterpriseEdition", "Osx_x64", "Static"] | null       | "mainLibrary/executable/enterpriseEdition/osx_x64/static"
+        "mainLibrary" | "executable" | ["EnterpriseEdition", "Osx_x64", "Static"] | "exes"     | "exes/mainLibrary/executable/enterpriseEdition/osx_x64/static"
+    }
+
+    def "prefers role over binary type name in output directory names"() {
+        def namingScheme = DefaultBinaryNamingScheme.component("testSuite").withBinaryType("GoogleTestExecutable").withVariantDimension("linux")
+
+        expect:
+        namingScheme.outputDirectoryBase == "testSuite/googleTestExecutable/linux"
+        namingScheme.withRole("executable", false).outputDirectoryBase == "testSuite/executable/linux"
+        namingScheme.withRole("executable", true).outputDirectoryBase == "testSuite/linux"
     }
 
     def "generates description"() {
@@ -95,11 +104,11 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         def original = createNamingScheme("parent", "role", ["dim1"])
 
         expect:
-        original.outputDirectoryBase == "parentRole/dim1"
-        original.withComponentName("other").outputDirectoryBase == "otherRole/dim1"
-        original.withRole("other").outputDirectoryBase == "parentOther/dim1"
-        original.withVariantDimension("dim2").outputDirectoryBase == "parentRole/dim1Dim2"
-        original.withOutputType("output").outputDirectoryBase == "output/parentRole/dim1"
+        original.outputDirectoryBase == "parent/role/dim1"
+        original.withComponentName("other").outputDirectoryBase == "other/role/dim1"
+        original.withBinaryType("other").outputDirectoryBase == "parent/other/dim1"
+        original.withVariantDimension("dim2").outputDirectoryBase == "parent/role/dim1/dim2"
+        original.withOutputType("output").outputDirectoryBase == "output/parent/role/dim1"
     }
 
     def "ignores variant dimension with only one value"() {
@@ -113,8 +122,8 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         scheme.variantDimensions == ["a"]
     }
 
-    private BinaryNamingScheme createNamingScheme(def parentName, def role, def dimensions, def outputType = null) {
-        return new DefaultBinaryNamingScheme(parentName, role, dimensions, outputType)
+    private BinaryNamingScheme createNamingScheme(def parentName, def binaryType, def dimensions, def outputType = null) {
+        return new DefaultBinaryNamingScheme(parentName, binaryType, null, false, dimensions, outputType)
     }
 
     private Named named(String name) {

@@ -87,8 +87,8 @@ model {
         notExecuted ":mainUnknownExecutable"
 
         and:
-        executable("build/binaries/mainExecutable/${NativePlatformsTestFixture.defaultPlatformName}/main").assertExists()
-        executable("build/binaries/mainExecutable/unknown/main").assertDoesNotExist()
+        executable("build/exe/main/${NativePlatformsTestFixture.defaultPlatformName}/main").assertExists()
+        executable("build/exe/main/unknown/main").assertDoesNotExist()
     }
 
     def "assemble task produces sensible error when there are no buildable binaries" () {
@@ -162,7 +162,7 @@ model {
         succeeds "mainExecutable"
 
         and:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
+        executable("build/exe/main/main").exec().out == helloWorldApp.englishOutput
     }
 
     // TODO:DAZ Should not need a component here
@@ -202,7 +202,7 @@ model {
         succeeds "mainExecutable"
 
         and:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
+        executable("build/exe/main/main").exec().out == helloWorldApp.englishOutput
     }
 
     def "cannot add java sources to native binary"() {
@@ -363,7 +363,7 @@ int main (int argc, char *argv[]) {
         succeeds "installEchoExecutable"
 
         then:
-        def installation = installation("build/install/echoExecutable")
+        def installation = installation("build/install/echo")
         installation.exec().out == "\n"
         installation.exec("foo", "bar").out == "[foo] [bar] \n"
     }

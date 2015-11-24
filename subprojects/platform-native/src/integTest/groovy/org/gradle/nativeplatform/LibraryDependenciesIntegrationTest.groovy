@@ -119,7 +119,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.englishOutput
+        installation("build/install/main").exec().out == app.englishOutput
 
         where:
         notationName | notation
@@ -152,7 +152,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.englishOutput
+        installation("build/install/main").exec().out == app.englishOutput
 
         where:
         notationName | notation
@@ -184,7 +184,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
     def "can use map notation to reference library in different project"() {
@@ -220,7 +220,7 @@ project(":lib") {
         succeeds ":exe:installMainExecutable"
 
         then:
-        installation("exe/build/install/mainExecutable").exec().out == app.englishOutput
+        installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
     def "can use map notation to reference library in different project with configure-on-demand"() {
@@ -257,7 +257,7 @@ project(":lib") {
         succeeds ":exe:installMainExecutable"
 
         then:
-        installation("exe/build/install/mainExecutable").exec().out == app.englishOutput
+        installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
     def "can use map notation to transitively reference libraries in different projects"() {
@@ -303,7 +303,7 @@ project(":greet") {
         succeeds ":exe:installMainExecutable"
 
         then:
-        installation("exe/build/install/mainExecutable").exec().out == app.englishOutput
+        installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
     def "can have component graph with project dependency cycle"() {
@@ -345,7 +345,7 @@ project(":lib") {
         succeeds ":exe:installMainExecutable"
 
         then:
-        installation("exe/build/install/mainExecutable").exec().out == app.englishOutput
+        installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
     def "can have component graph with diamond dependency"() {
@@ -378,7 +378,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.englishOutput
+        installation("build/install/main").exec().out == app.englishOutput
 
         and:
         notExecuted ":greetingsSharedLibrary"
@@ -415,15 +415,15 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.englishOutput
+        installation("build/install/main").exec().out == app.englishOutput
 
         and:
         executedAndNotSkipped ":greetingsSharedLibrary", ":greetingsStaticLibrary"
-        sharedLibrary("build/binaries/greetingsSharedLibrary/greetings").assertExists()
-        staticLibrary("build/binaries/greetingsStaticLibrary/greetings").assertExists()
+        sharedLibrary("build/libs/greetings/shared/greetings").assertExists()
+        staticLibrary("build/libs/greetings/static/greetings").assertExists()
 
         and:
-        println executable("build/binaries/mainExecutable/main").binaryInfo.listLinkedLibraries()
-        println sharedLibrary("build/binaries/helloSharedLibrary/hello").binaryInfo.listLinkedLibraries()
+        println executable("build/exe/main/main").binaryInfo.listLinkedLibraries()
+        println sharedLibrary("build/libs/hello/shared/hello").binaryInfo.listLinkedLibraries()
     }
 }

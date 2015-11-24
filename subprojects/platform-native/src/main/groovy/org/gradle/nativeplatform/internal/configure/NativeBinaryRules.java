@@ -71,36 +71,24 @@ public class NativeBinaryRules extends RuleSource {
         staticLibrary.setStaticLibraryFile(staticLibraryFileFor(nativeBinary, buildDir));
     }
 
-    private static File executableFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return binaryOutputFileFor(nativeBinary, buildDir, executableNameFor(nativeBinary));
+    public static File executableFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
+        return new File(nativeBinary.getNamingScheme().withOutputType("exe").getOutputDirectory(buildDir), executableNameFor(nativeBinary));
     }
 
     private static File sharedLibraryLinkFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return binaryOutputFileFor(nativeBinary, buildDir, sharedLibraryLinkFileNameFor(nativeBinary));
+        return new File(nativeBinary.getNamingScheme().withOutputType("libs").getOutputDirectory(buildDir), sharedLibraryLinkFileNameFor(nativeBinary));
     }
 
     private static File sharedLibraryFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return binaryOutputFileFor(nativeBinary, buildDir, sharedLibraryNameFor(nativeBinary));
+        return new File(nativeBinary.getNamingScheme().withOutputType("libs").getOutputDirectory(buildDir), sharedLibraryNameFor(nativeBinary));
     }
 
     private static File staticLibraryFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return binaryOutputFileFor(nativeBinary, buildDir, staticLibraryNameFor(nativeBinary));
+        return new File(nativeBinary.getNamingScheme().withOutputType("libs").getOutputDirectory(buildDir), staticLibraryNameFor(nativeBinary));
     }
 
-    private static File binaryOutputFileFor(NativeBinarySpecInternal nativeBinary, File buildDir, String fileName) {
-        return new File(binaryOutputDirFor(nativeBinary, buildDir), fileName);
-    }
-
-    private static File binaryOutputDirFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return outputDirectoryFor(nativeBinary, buildDir, "binaries");
-    }
-
-    private static File installationDirFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return outputDirectoryFor(nativeBinary, buildDir, "install");
-    }
-
-    private static File outputDirectoryFor(NativeBinarySpecInternal nativeBinary, File buildDir, String purpose) {
-        return nativeBinary.getNamingScheme().withOutputType(purpose).getOutputDirectory(buildDir);
+    public static File installationDirFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
+        return nativeBinary.getNamingScheme().withOutputType("install").getOutputDirectory(buildDir);
     }
 
     private static String executableNameFor(NativeBinarySpecInternal nativeBinary) {

@@ -21,6 +21,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
+import org.gradle.nativeplatform.internal.configure.NativeBinaryRules;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
@@ -70,8 +71,8 @@ public class NativeTestSuites {
                 testBinary.setResolver(resolver);
                 testBinary.setToolChain(testedBinary.getToolChain());
                 testBinary.getExecutable().setToolChain(testedBinary.getToolChain());
-                testBinary.getExecutable().setFile(executableFileFor(testBinary, buildDir, namingScheme));
-                testBinary.getInstallation().setDirectory(installDir(buildDir, namingScheme));
+                testBinary.getExecutable().setFile(executableFileFor(testBinary, buildDir));
+                testBinary.getInstallation().setDirectory(installDir(testBinary, buildDir));
             }
         });
     }
@@ -84,27 +85,19 @@ public class NativeTestSuites {
         return testSuite.getTestedComponent().getBinaries().withType(type).values();
     }
 
-    private static File executableFileFor(NativeTestSuiteBinarySpecInternal testBinary, File buildDir, BinaryNamingScheme namingScheme) {
-        return new File(binariesDir(buildDir, namingScheme), executableNameFor(testBinary));
+    private static File executableFileFor(NativeTestSuiteBinarySpecInternal testBinary, File buildDir) {
+        return NativeBinaryRules.executableFileFor(testBinary, buildDir);
     }
 
-    private static String executableNameFor(NativeTestSuiteBinarySpecInternal testBinary) {
-        String baseName = testBinary.getComponent().getBaseName();
-        return testBinary.getPlatformToolProvider().getExecutableName(baseName);
-    }
-
-    private static File binariesDir(File buildDir, BinaryNamingScheme namingScheme) {
-        return namingScheme.withOutputType("binaries").getOutputDirectory(buildDir);
-    }
-
-    private static File installDir(File buildDir, BinaryNamingScheme namingScheme) {
-        return namingScheme.withOutputType("install").getOutputDirectory(buildDir);
+    private static File installDir(NativeTestSuiteBinarySpecInternal testBinary, File buildDir) {
+        return NativeBinaryRules.installationDirFor(testBinary, buildDir);
     }
 
     private static BinaryNamingScheme namingSchemeFor(NativeTestSuiteSpec testSuite, NativeBinarySpecInternal testedBinary, String typeString) {
         return testedBinary.getNamingScheme()
             .withComponentName(testSuite.getBaseName())
-            .withRole(typeString);
+            .withBinaryType(typeString)
+            .withRole("executable", true);
     }
 
 }

@@ -63,7 +63,7 @@ class NativeBinaryRulesTest extends Specification {
         NativeBinaryRules.assignTools(binary, toolChains, tmpDir.testDirectory)
 
         then:
-        executableFile.file == tmpDir.testDirectory.file("binaries/comp_name/exe_name")
+        executableFile.file == tmpDir.testDirectory.file("exe/comp_name/exe_name")
         installation.directory == tmpDir.testDirectory.file("install/comp_name")
     }
 
@@ -78,8 +78,8 @@ class NativeBinaryRulesTest extends Specification {
         NativeBinaryRules.assignTools(binary, toolChains, tmpDir.testDirectory)
 
         then:
-        1 * binary.setSharedLibraryFile(tmpDir.testDirectory.file("binaries/comp_name/shared_library_name"))
-        1 * binary.setSharedLibraryLinkFile(tmpDir.testDirectory.file("binaries/comp_name/shared_library_link_name"))
+        1 * binary.setSharedLibraryFile(tmpDir.testDirectory.file("libs/comp_name/shared_library_name"))
+        1 * binary.setSharedLibraryLinkFile(tmpDir.testDirectory.file("libs/comp_name/shared_library_link_name"))
     }
 
     def "test static library"() {
@@ -92,7 +92,7 @@ class NativeBinaryRulesTest extends Specification {
         NativeBinaryRules.assignTools(binary, toolChains, tmpDir.testDirectory)
 
         then:
-        1 * binary.setStaticLibraryFile(tmpDir.testDirectory.file("binaries/comp_name/static_library_name"))
+        1 * binary.setStaticLibraryFile(tmpDir.testDirectory.file("libs/comp_name/static_library_name"))
     }
 
     private <T extends NativeBinarySpecInternal> T initBinary(Class<T> type, Class<? extends NativeComponentSpec> componentType) {

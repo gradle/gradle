@@ -89,7 +89,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == FRENCH + " " + FRENCH
+        installation("build/install/main").exec().out == FRENCH + " " + FRENCH
     }
 
     def "builds executable for each defined flavor when not configured for component"() {
@@ -97,9 +97,9 @@ model {
         succeeds "installEnglishMainExecutable", "installFrenchMainExecutable", "installGermanMainExecutable"
 
         then:
-        installation("build/install/mainExecutable/english").assertInstalled()
-        installation("build/install/mainExecutable/french").assertInstalled()
-        installation("build/install/mainExecutable/german").assertInstalled()
+        installation("build/install/main/english").assertInstalled()
+        installation("build/install/main/french").assertInstalled()
+        installation("build/install/main/german").assertInstalled()
     }
 
     @LeaksFileHandles("can't delete build/install/mainExecutable/french")
@@ -132,8 +132,8 @@ model {
         succeeds "installEnglishMainExecutable", "installFrenchMainExecutable"
 
         then:
-        installation("build/install/mainExecutable/english").exec().out == DEFAULT + " " + DEFAULT
-        installation("build/install/mainExecutable/french").exec().out == FRENCH + " " + FRENCH
+        installation("build/install/main/english").exec().out == DEFAULT + " " + DEFAULT
+        installation("build/install/main/french").exec().out == FRENCH + " " + FRENCH
     }
 
     def "build fails when library has no matching flavour"() {

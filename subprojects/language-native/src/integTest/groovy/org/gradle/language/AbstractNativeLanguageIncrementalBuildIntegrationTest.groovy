@@ -108,7 +108,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         given:
         run "installMainExecutable"
 
-        def install = installation("build/install/mainExecutable")
+        def install = installation("build/install/main")
 
         when:
         sourceFile.text = app.alternateMainSource.content
@@ -158,12 +158,13 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
             skipped ":mainExecutable"
         }
     }
+
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "recompiles library and relinks executable with library source file change"() {
         given:
         run "installMainExecutable"
         maybeWait()
-        def install = installation("build/install/mainExecutable")
+        def install = installation("build/install/main")
 
         when:
         for (int i = 0; i < librarySourceFiles.size(); i++) {
@@ -258,7 +259,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         given:
         run "installMainExecutable"
 
-        def install = installation("build/install/mainExecutable")
+        def install = installation("build/install/main")
 
         when:
         buildFile << """
@@ -326,7 +327,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         given:
         run "mainExecutable", "helloStaticLibrary"
 
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/exe/main/main")
         def snapshot = executable.snapshot()
 
         when:
@@ -348,7 +349,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         run "mainExecutable"
 
         when:
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/exe/main/main")
         def snapshot = executable.snapshot()
 
         and:
@@ -417,13 +418,13 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         run "helloStaticLibrary"
 
         then:
-        String objectFilesPath = "build/objs/helloStaticLibrary/hello${sourceType}"
+        String objectFilesPath = "build/objs/hello/static/hello${sourceType}"
         def oldObjFile = objectFileFor(librarySourceFiles[0], objectFilesPath)
         def newObjFile = objectFileFor( librarySourceFiles[0].getParentFile().file("changed_${librarySourceFiles[0].name}"), objectFilesPath)
         assert oldObjFile.file
         assert !newObjFile.file
 
-        assert staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(oldObjFile.name)
+        assert staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(oldObjFile.name)
 
         when:
         librarySourceFiles.each { rename(it) }
@@ -439,8 +440,8 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         newObjFile.file
 
         and:
-        assert staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(newObjFile.name)
-        assert !staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(oldObjFile.name)
+        assert staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(newObjFile.name)
+        assert !staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(oldObjFile.name)
     }
 
     @RequiresInstalledToolChain(GccCompatible)
@@ -572,7 +573,7 @@ model {
 """
         then:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == "HELLO\n"
+        executable("build/exe/main/main").exec().out == "HELLO\n"
 
         when:
         headerFile.text = """
@@ -583,7 +584,6 @@ model {
         and:
         executedAndNotSkipped "compileMainExecutableMainCpp"
     }
-
 
     def buildingCorCppWithGcc() {
         return toolChain.meets(ToolChainRequirement.Gcc) && (sourceType == "C" || sourceType == "Cpp")

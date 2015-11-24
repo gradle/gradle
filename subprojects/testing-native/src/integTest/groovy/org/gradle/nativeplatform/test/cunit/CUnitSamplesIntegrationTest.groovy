@@ -63,7 +63,7 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
                               ":installPassingOperatorsTestCUnitExe", ":runPassingOperatorsTestCUnitExe"
 
         and:
-        def passingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTestCUnitExe/passing/CUnitAutomated-Results.xml"))
+        def passingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTest/passing/CUnitAutomated-Results.xml"))
         passingResults.suiteNames == ['operator tests']
         passingResults.suites['operator tests'].passingTests == ['test_plus', 'test_minus']
         passingResults.suites['operator tests'].failingTests == []
@@ -81,7 +81,7 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
                               ":installFailingOperatorsTestCUnitExe", ":runFailingOperatorsTestCUnitExe"
 
         and:
-        def failingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTestCUnitExe/failing/CUnitAutomated-Results.xml"))
+        def failingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTest/failing/CUnitAutomated-Results.xml"))
         failingResults.suiteNames == ['operator tests']
         failingResults.suites['operator tests'].passingTests == ['test_minus']
         failingResults.suites['operator tests'].failingTests == ['test_plus']

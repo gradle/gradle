@@ -53,7 +53,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         run "mainExecutable"
 
         then:
-        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        def mainExecutable = executable("build/exe/main/main")
         mainExecutable.assertExists()
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }
@@ -79,7 +79,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         run "mainExecutable"
 
         then:
-        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        def mainExecutable = executable("build/exe/main/main")
         mainExecutable.assertExists()
         mainExecutable.exec().out == helloWorldApp.frenchOutput
     }
@@ -105,7 +105,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         run "mainExecutable"
 
         then:
-        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        def mainExecutable = executable("build/exe/main/main")
         mainExecutable.assertExists()
         mainExecutable.exec().out == helloWorldApp.frenchOutput
     }
@@ -134,10 +134,10 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         run "installMainExecutable"
 
         then:
-        sharedLibrary("build/binaries/helloSharedLibrary/hello").assertExists()
-        executable("build/binaries/mainExecutable/main").assertExists()
+        sharedLibrary("build/libs/hello/shared/hello").assertExists()
+        executable("build/exe/main/main").assertExists()
 
-        def install = installation("build/install/mainExecutable")
+        def install = installation("build/install/main")
         install.assertInstalled()
         install.assertIncludesLibraries("hello")
         install.exec().out == helloWorldApp.englishOutput
@@ -200,10 +200,10 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         run "installMainExecutable"
 
         then:
-        sharedLibrary("build/binaries/helloSharedLibrary/hello").assertExists()
-        executable("build/binaries/mainExecutable/main").assertExists()
+        sharedLibrary("build/libs/hello/shared/hello").assertExists()
+        executable("build/exe/main/main").assertExists()
 
-        def install = installation("build/install/mainExecutable")
+        def install = installation("build/install/main")
         install.assertInstalled()
         install.assertIncludesLibraries("hello")
         install.exec().out == helloWorldApp.englishOutput
@@ -237,11 +237,11 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         run "installMainExecutable"
 
         then:
-        staticLibrary("build/binaries/helloStaticLibrary/hello").assertExists()
-        executable("build/binaries/mainExecutable/main").assertExists()
+        staticLibrary("build/libs/hello/static/hello").assertExists()
+        executable("build/exe/main/main").assertExists()
 
         and:
-        def install = installation("build/install/mainExecutable")
+        def install = installation("build/install/main")
         install.assertInstalled()
         install.exec().out == helloWorldApp.frenchOutput
     }
@@ -272,7 +272,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
 
         expect:
         succeeds "mainExecutable"
-        def mainExecutable = executable("$nestedProjectPath/build/binaries/mainExecutable/main")
+        def mainExecutable = executable("$nestedProjectPath/build/exe/main/main")
         mainExecutable.assertExists()
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }

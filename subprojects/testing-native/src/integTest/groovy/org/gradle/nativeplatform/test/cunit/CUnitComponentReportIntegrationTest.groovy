@@ -60,7 +60,7 @@ Binaries
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeExecutable/someExe
+        executable file: build/exe/someExe/someExe
 
 Cunit test suite 'someExeTest'
 ------------------------------
@@ -79,7 +79,7 @@ Binaries
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeTestCUnitExe/someExeTest
+        executable file: build/exe/someExeTest/someExeTest
 """
     }
 }

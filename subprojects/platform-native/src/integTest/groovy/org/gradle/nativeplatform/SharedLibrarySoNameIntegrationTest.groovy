@@ -44,7 +44,7 @@ model {
         succeeds "helloSharedLibrary"
 
         then:
-        final sharedLibrary = sharedLibrary("build/binaries/helloSharedLibrary/hello")
+        final sharedLibrary = sharedLibrary("build/libs/hello/shared/hello")
         sharedLibrary.soName == sharedLibrary.file.name
     }
 
@@ -60,7 +60,7 @@ tasks.withType(LinkSharedLibrary) {
         succeeds "helloSharedLibrary"
 
         then:
-        sharedLibrary("build/binaries/helloSharedLibrary/hello").soName == "hello-install-name"
+        sharedLibrary("build/libs/hello/shared/hello").soName == "hello-install-name"
     }
 
     def "library soname defaults when installName is null"() {
@@ -75,7 +75,7 @@ tasks.withType(LinkSharedLibrary) {
         succeeds "helloSharedLibrary"
 
         then:
-        final library = sharedLibrary("build/binaries/helloSharedLibrary/hello")
+        final library = sharedLibrary("build/libs/hello/shared/hello")
         def expectedSoName = OperatingSystem.current().macOsX ? library.file.absolutePath : null
         library.soName == expectedSoName
     }

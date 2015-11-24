@@ -42,7 +42,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir
     final library = BaseComponentFixtures.createNode(NativeLibrarySpec, DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "libName"))
-    def namingScheme = DefaultBinaryNamingScheme.component("main").withRole("staticLibrary")
+    def namingScheme = DefaultBinaryNamingScheme.component("main").withBinaryType("staticLibrary")
     def toolChain = Stub(NativeToolChainInternal)
     def platform = Stub(NativePlatform)
     def buildType = Stub(BuildType)
