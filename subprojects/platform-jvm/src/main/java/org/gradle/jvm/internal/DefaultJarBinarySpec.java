@@ -35,12 +35,12 @@ import java.util.Set;
 
 public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpecInternal {
     private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(super.getTasks());
+    private final JarFile apiJar = new DefaultJarFile();
     private JavaToolChain toolChain;
     private JavaPlatform platform;
     private File classesDir;
     private File resourcesDir;
     private File jarFile;
-    private File apiJarFile;
     private Set<String> exportedPackages = ImmutableSet.of();
     private Set<DependencySpec> apiDependencies = ImmutableSet.of();
     private Set<DependencySpec> componentLevelDependencies = ImmutableSet.of();
@@ -82,6 +82,11 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     }
 
     @Override
+    public JarFile getApiJar() {
+        return apiJar;
+    }
+
+    @Override
     public File getJarFile() {
         return jarFile;
     }
@@ -93,12 +98,12 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public File getApiJarFile() {
-        return apiJarFile;
+        return apiJar.getFile();
     }
 
     @Override
     public void setApiJarFile(File apiJarFile) {
-        this.apiJarFile = apiJarFile;
+        apiJar.setFile(apiJarFile);
     }
 
     @Override

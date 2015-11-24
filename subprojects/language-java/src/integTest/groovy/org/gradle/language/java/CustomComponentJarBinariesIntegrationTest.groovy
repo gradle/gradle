@@ -118,7 +118,7 @@ model {
         succeeds "sampleLibJar", "validate"
 
         then:
-        executed ":lib1Jar", ":lib2Jar"
+        executed ":lib1ApiJar", ":lib2ApiJar"
         new JarTestFixture(file("build/jars/sampleLibJar/sampleLib.jar")).hasDescendants(
             "Sample.class",
             "sample.properties",

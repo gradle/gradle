@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData;
 import org.gradle.internal.component.model.*;
@@ -98,9 +97,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
                     result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName, compatibleBinaries)));
                 } else {
                     BinarySpec selectedBinary = compatibleBinaries.iterator().next();
-                    DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-                    buildDependencies.add(selectedBinary);
-                    LocalComponentMetaData metaData = libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary, buildDependencies, selectorProjectPath);
+                    LocalComponentMetaData metaData = libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary, selectorProjectPath);
                     result.resolved(metaData);
                 }
             }

@@ -29,7 +29,6 @@ import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.internal.DependencyResolvingClasspath;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
-import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
@@ -129,11 +128,9 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
                     compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
                     compile.dependsOn(javaSourceSet);
+
                     binary.getTasks().getJar().dependsOn(compile);
-                    ApiJar apiJar = binary.getTasks().getApiJar();
-                    if (apiJar != null) {
-                        apiJar.dependsOn(compile);
-                    }
+                    binary.getApiJar().builtBy(compile);
                 }
             };
         }

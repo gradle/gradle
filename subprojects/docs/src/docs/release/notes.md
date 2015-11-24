@@ -387,8 +387,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Changes to TestKit's runtime classpath
 
-- External dependencies e.g. Google Guava brought in by Gradle core libraries when using the TestKit runtime classpath are no longer usable in functional test code. Any external dependency
-required by the test code needs to be declared for the test classpath.
+- External dependencies e.g. Google Guava brought in by Gradle core libraries when using the TestKit runtime classpath are no longer usable in functional test code. Any external dependency required by the test code needs to be declared for the test classpath.
 
 ### Changes to model rules DSL
 
@@ -400,20 +399,23 @@ required by the test code needs to be declared for the test classpath.
 - `BinarySpec.name` should no longer be considered a unique identifier for the binary within a project.
 - The name for the 'build' task for a binary is now qualified with the name of its component. For example, `jar` in `mylib` will have a build task called 'mylibJar'
 - The name for the compile tasks for a binary is now qualified with the name of its component.
-- JVM libraries have a binary called `jar` rather than one qualified with the library name.
-- When building a JVM library with multiple variants, the task and output directory names have changed. The library name is now first.
 - The top-level `binaries` container is now a `ModelMap` instead of a `DomainObjectContainer`. It is still accessible as `BinaryContainer`.
 - `ComponentSpec.sources` and `BinarySpec.sources` now have true `ModelMap` semantics. Elements are created and configured on demand, and appear in the model report.
 - It is no longer possible to configure `BinarySpec.sources` from the top-level `binaries` container: this functionality will be re-added in a subsequent release.
 - `FunctionalSourceSet` is now a subtype of `ModelMap`, and no longer extends `Named`
-- The implementation object of a `ComponentSpec`, `BinarySpec` or `LanguageSourceSet`, if defined, is no longer visible. These elements can only be accessed using their
-public types or internal view types.
+- The implementation object of a `ComponentSpec`, `BinarySpec` or `LanguageSourceSet`, if defined, is no longer visible. These elements can only be accessed using their public types or internal view types.
 
-### Changes to incubating native software model
+### Changes to incubating Native Software Model
 
 - Task names have changed for components with multiple variants. The library or executable name is now first.
 - `org.gradle.language.PreprocessingTool` has moved to `org.gradle.nativeplatform.PreprocessingTool`
 - TODO: Changes to discovered inputs/include paths
+
+### Changes to incubating Java Software Model
+
+- JVM libraries have a binary called `jar` rather than one qualified with the library name.
+- When building a JVM library with multiple variants, the task and output directory names have changed. The library name is now first.
+- The name of the task to build an API jar for a `JarBinarySpec` has been changed: what was previously "createMyLibApiJar" is now simply "myLibApiJar".
 
 ## External contributions
 

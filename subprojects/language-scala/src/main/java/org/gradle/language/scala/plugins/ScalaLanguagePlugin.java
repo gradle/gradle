@@ -20,8 +20,8 @@ import org.gradle.api.*;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
+import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
@@ -103,7 +103,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlatformScalaCompile compile = (PlatformScalaCompile) task;
                     ScalaLanguageSourceSet scalaSourceSet = (ScalaLanguageSourceSet) sourceSet;
-                    JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
+                    JarBinarySpecInternal binary = (JarBinarySpecInternal) binarySpec;
                     JavaPlatform javaPlatform = binary.getTargetPlatform();
                     // TODO RG resolve the scala platform from the binary
 
@@ -120,11 +120,9 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     compile.setSourceCompatibility(javaPlatform.getTargetCompatibility().toString());
 
                     compile.dependsOn(scalaSourceSet);
+
                     binary.getTasks().getJar().dependsOn(compile);
-                    ApiJar apiJar = binary.getTasks().getApiJar();
-                    if (apiJar != null) {
-                        apiJar.dependsOn(compile);
-                    }
+                    binary.getApiJar().builtBy(compile);
                 }
             };
         }

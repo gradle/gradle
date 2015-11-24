@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.resolve;
+package org.gradle.jvm.internal;
 
-import org.gradle.internal.component.local.model.LocalComponentMetaData;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.api.internal.AbstractBuildableModelElement;
 
-public interface LocalLibraryMetaDataAdapter {
-    LocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, String projectPath);
+import java.io.File;
+
+public class DefaultJarFile extends AbstractBuildableModelElement implements JarFile {
+    private File file;
+    @Override
+    public File getFile() {
+        return file;
+    }
+
+    @Override
+    public void setFile(File jarFile) {
+        this.file = jarFile;
+    }
 }

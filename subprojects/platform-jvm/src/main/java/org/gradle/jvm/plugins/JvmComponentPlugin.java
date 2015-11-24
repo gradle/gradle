@@ -181,19 +181,22 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 }
             });
 
+            final JarFile apiJar = binary.getApiJar();
             final Set<String> exportedPackages = binary.getExportedPackages();
+            String apiJarTaskName = apiJarTaskName(binary);
             if (exportedPackages.isEmpty()) {
-                tasks.create(apiJarTaskName(binary), Copy.class, new Action<Copy>() {
+                tasks.create(apiJarTaskName, Copy.class, new Action<Copy>() {
                     @Override
                     public void execute(Copy copy) {
                         copy.setDescription(String.format("Creates the API binary file for %s.", binary));
                         copy.from(new File(runtimeJarDestDir, runtimeJarArchiveName));
-                        copy.setDestinationDir(binary.getApiJarFile().getParentFile());
+                        copy.setDestinationDir(apiJar.getFile().getParentFile());
                         copy.dependsOn(createRuntimeJar);
+                        apiJar.setBuildTask(copy);
                     }
                 });
             } else {
-                tasks.create(apiJarTaskName(binary), ApiJar.class, new Action<ApiJar>() {
+                tasks.create(apiJarTaskName, ApiJar.class, new Action<ApiJar>() {
                     @Override
                     public void execute(ApiJar jar) {
                         final File apiClassesDir = new File(new File(buildDir, "apiClasses"), runtimeClassesDir.getName());
@@ -201,8 +204,9 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         jar.setRuntimeClassesDir(runtimeClassesDir);
                         jar.setExportedPackages(exportedPackages);
                         jar.setApiClassesDir(apiClassesDir);
-                        jar.setDestinationDir(binary.getApiJarFile().getParentFile());
-                        jar.setArchiveName(binary.getApiJarFile().getName());
+                        jar.setDestinationDir(apiJar.getFile().getParentFile());
+                        jar.setArchiveName(apiJar.getFile().getName());
+                        apiJar.setBuildTask(jar);
                     }
                 });
             }
@@ -213,7 +217,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             String libName = binaryName.endsWith("Jar")
                     ? binaryName.substring(0, binaryName.length() - 3)
                     : binaryName;
-            return "create" + capitalize(libName) + "ApiJar";
+            return libName + "ApiJar";
         }
     }
 }

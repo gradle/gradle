@@ -107,7 +107,7 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(apiSpec.dir)
 
         when:
-        succeeds ':clientJar'
+        succeeds ':mainJar', ':clientJar'
 
         then:
         new JarTestFixture(apiSpec.dir.file("build/jars/mainJar/main.jar")).hasDescendants(
@@ -140,7 +140,7 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds ':clientJar'
-        executedAndNotSkipped ':mainJar'
+        executedAndNotSkipped ':mainApiJar'
         skipped ':compileClientJarClientJava'
     }
 }

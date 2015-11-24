@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.resolve;
+package org.gradle.jvm.internal;
 
-import org.gradle.internal.component.local.model.LocalComponentMetaData;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.api.BuildableModelElement;
 
-public interface LocalLibraryMetaDataAdapter {
-    LocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, String projectPath);
+import java.io.File;
+
+public interface JarFile extends BuildableModelElement {
+    /**
+     * The jar file output for this binary.
+     */
+    File getFile();
+
+    /**
+     * Sets the jar file output for this binary.
+     */
+    void setFile(File jarFile);
 }

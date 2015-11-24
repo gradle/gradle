@@ -176,7 +176,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
 
         and:
-        skipped(':createMyLibApiJar')
+        skipped(':myLibApiJar')
     }
 
     def "api jar should be rebuilt if API spec adds a new exported package"() {
@@ -228,7 +228,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         and:
         skipped ':compileMyLibJarMyLibJava'
         skipped ':createMyLibJar'
-        executedAndNotSkipped(':createMyLibApiJar')
+        executedAndNotSkipped(':myLibApiJar')
 
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants((allClasses) as String[])
         jarFile("build/jars/myLibApiJar/myLib.jar").hasDescendants(apiClassesOnly as String[])
@@ -275,7 +275,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         and:
         skipped ':compileMyLibJarMyLibJava'
         skipped ':createMyLibJar'
-        executedAndNotSkipped(':createMyLibApiJar')
+        executedAndNotSkipped(':myLibApiJar')
 
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants((allClasses) as String[])
         jarFile("build/jars/myLibApiJar/myLib.jar").hasDescendants(apiClassesOnly as String[])
@@ -300,7 +300,7 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         """
         then:
         succeeds "assemble"
-        executedAndNotSkipped(':createMyLibApiJar')
+        executedAndNotSkipped(':myLibApiJar')
 
         def allClasses = app.sources*.classFile.fullPath
         def apiClassesOnly = []
