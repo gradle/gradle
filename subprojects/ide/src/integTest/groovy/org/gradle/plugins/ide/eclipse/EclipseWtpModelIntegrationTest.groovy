@@ -118,7 +118,7 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
               compile 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
             }
 
-            configurations.compile {
+            configurations.all {
               exclude module: 'bar' //an exclusion
               resolutionStrategy.force 'gradle:baz:2.0' //forced module
             }
@@ -130,7 +130,7 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
 
         then:
         component.contains('foo-1.0.jar')
-        //component.contains('baz-2.0.jar') //forced version // TODO (donat) investigate why this assertion is failing
+        component.contains('baz-2.0.jar') //forced version
         !component.contains('bar') //excluded
     }
 
