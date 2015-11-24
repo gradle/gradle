@@ -24,7 +24,6 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.Managed;
-import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -63,21 +62,32 @@ public class ModelSchemaUtils {
      *
      * <p>Methods are returned in the order of their specialization, most specialized methods first.</p>
      */
-    public static <T> ListMultimap<String, Method> getCandidateMethods(Class<T> clazz) {
-        final ImmutableListMultimap.Builder<String, Method> methodsBuilder = ImmutableListMultimap.builder();
-        walkTypeHierarchy(clazz, new TypeVisitor<T>() {
+    public static <T> CandidateMethods getCandidateMethods(Class<T> clazz) {
+        final ImmutableListMultimap.Builder<String, Method> methodsByNameBuilder = ImmutableListMultimap.builder();
+        ModelSchemaUtils.walkTypeHierarchy(clazz, new ModelSchemaUtils.TypeVisitor<T>() {
             @Override
             public void visitType(Class<? super T> type) {
                 for (Method method : type.getDeclaredMethods()) {
-                    if (isIgnoredMethod(method)) {
+                    if (ModelSchemaUtils.isIgnoredMethod(method)) {
                         continue;
                     }
-
-                    methodsBuilder.put(method.getName(), method);
+                    methodsByNameBuilder.put(method.getName(), method);
                 }
             }
         });
-        return methodsBuilder.build();
+        ImmutableListMultimap<String, Method> methodsByName = methodsByNameBuilder.build();
+        ImmutableMap.Builder<String, Map<Equivalence.Wrapper<Method>, Collection<Method>>> candidatesBuilder = ImmutableMap.builder();
+        for (String methodName : methodsByName.keySet()) {
+            ImmutableList<Method> methodsWithSameName = methodsByName.get(methodName);
+            ListMultimap<Equivalence.Wrapper<Method>, Method> equivalenceIndex = Multimaps.index(methodsWithSameName, new Function<Method, Equivalence.Wrapper<Method>>() {
+                @Override
+                public Equivalence.Wrapper<Method> apply(Method method) {
+                    return METHOD_EQUIVALENCE.wrap(method);
+                }
+            });
+            candidatesBuilder.put(methodName, equivalenceIndex.asMap());
+        }
+        return new CandidateMethods(candidatesBuilder.build());
     }
 
     public static boolean isIgnoredMethod(Method method) {
@@ -159,41 +169,5 @@ public class ModelSchemaUtils {
      */
     public static boolean isMethodDeclaredInManagedType(Method method) {
         return method.getDeclaringClass().isAnnotationPresent(Managed.class);
-    }
-
-    /**
-     * Returns the declarations of overridden methods, or null if there are no override.
-     */
-    @Nullable
-    public static List<List<Method>> getOverriddenMethods(Collection<Method> methods) {
-        ImmutableList.Builder<List<Method>> builder = ImmutableList.builder();
-        if (methods.size() > 1) {
-            ListMultimap<Integer, Method> equivalenceIndex = Multimaps.index(methods, new Function<Method, Integer>() {
-                public Integer apply(Method method) {
-                    return METHOD_EQUIVALENCE.hash(method);
-                }
-            });
-            for (List<Method> overriddenChain : Multimaps.asMap(equivalenceIndex).values()) {
-                if (overriddenChain.size() > 1) {
-                    builder.add(overriddenChain);
-                }
-            }
-        }
-        List<List<Method>> overridden = builder.build();
-        return overridden.isEmpty() ? null : overridden;
-    }
-
-    /**
-     * Returns the different overloaded versions of a method, or null if there are no overloads.
-     */
-    @Nullable
-    public static List<Method> getOverloadedMethods(Collection<Method> methods) {
-        if (methods.size() > 1) {
-            List<Method> deduped = CollectionUtils.dedup(methods, METHOD_EQUIVALENCE);
-            if (deduped.size() > 1) {
-                return deduped;
-            }
-        }
-        return null;
     }
 }

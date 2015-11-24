@@ -64,10 +64,10 @@ class ModelSchemaUtilsTest extends Specification {
         def methods = ModelSchemaUtils.getCandidateMethods(Child)
 
         then:
-        methods.keySet() == (["doSomething"] as Set)
-        methods.values()*.name == ["doSomething", "doSomething"]
-        methods.values()*.declaringClass == [Child, Base]
-        methods.values()*.declaredAnnotations.flatten()*.annotationType() == [Nullable, Incubating]
+        methods.methodNames() == (["doSomething"] as Set)
+        methods.allMethods().values().flatten()*.name == ["doSomething", "doSomething"]
+        methods.allMethods().values().flatten()*.declaringClass == [Child, Base]
+        methods.allMethods().values()*.declaredAnnotations.flatten()*.annotationType() == [Nullable, Incubating]
     }
 
     @Managed
@@ -78,7 +78,7 @@ class ModelSchemaUtilsTest extends Specification {
 
     def "detects managed property"() {
         expect:
-        ModelSchemaUtils.isMethodDeclaredInManagedType(ModelSchemaUtils.getCandidateMethods(ManagedType).get("getValue")) == true
+        ModelSchemaUtils.isMethodDeclaredInManagedType(ModelSchemaUtils.getCandidateMethods(ManagedType).methodsNamed("getValue").values().flatten()) == true
     }
 
     class UnmanagedType  {
@@ -87,46 +87,65 @@ class ModelSchemaUtilsTest extends Specification {
 
     def "detects unmanaged property"() {
         expect:
-        ModelSchemaUtils.isMethodDeclaredInManagedType(ModelSchemaUtils.getCandidateMethods(UnmanagedType).get("getValue")) == false
+        ModelSchemaUtils.isMethodDeclaredInManagedType(ModelSchemaUtils.getCandidateMethods(UnmanagedType).methodsNamed("getValue").values().flatten()) == false
     }
 
     interface TypeWithOverloadedMethods {
         String anything()
         String someOverloadedMethod(Object param)
         String someOverloadedMethod(int param)
-        CharSequence someOverloadedCovariantMethod(Object param)
+        CharSequence someOverriddenCovariantMethod(Object param)
     }
-    
+
     def "gets overridden methods from single type"() {
         expect:
-        def overridden = ModelSchemaUtils.getOverriddenMethods(ModelSchemaUtils.getCandidateMethods(TypeWithOverloadedMethods).get("someOverloadedMethod"))
+        def overridden = ModelSchemaUtils.getCandidateMethods(TypeWithOverloadedMethods).overridenMethodsNamed("someOverloadedMethod")
         overridden == null
     }
 
     def "gets overloaded methods from a single type"() {
         expect:
-        def overloaded = ModelSchemaUtils.getOverloadedMethods(ModelSchemaUtils.getCandidateMethods(TypeWithOverloadedMethods).get("someOverloadedMethod"))
+        def overloaded = ModelSchemaUtils.getCandidateMethods(TypeWithOverloadedMethods).overloadedMethodsNamed("someOverloadedMethod")
         overloaded.size() == 2
+        overloaded.values()[0]*.name == ["someOverloadedMethod"]
+        overloaded.values()[1]*.name == ["someOverloadedMethod"]
     }
-    
+
     interface SubTypeWithOverloadedMethods extends TypeWithOverloadedMethods {
         @Override String someOverloadedMethod(Object param)
         @Override String someOverloadedMethod(int param)
-        @Override String someOverloadedCovariantMethod(Object param)
+        @Override String someOverriddenCovariantMethod(Object param)
     }
 
     def "gets overridden methods from type hierachy"() {
         expect:
-        def overridden = ModelSchemaUtils.getOverriddenMethods(ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).get("someOverloadedMethod"))
+        def overridden = ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).overridenMethodsNamed("someOverloadedMethod")
         overridden.size() == 2
-        overridden[0].size() == 2
-        overridden[1].size() == 2
+        overridden.values()[0].size() == 2
+        overridden.values()[0]*.name == ["someOverloadedMethod", "someOverloadedMethod"]
+        overridden.values()[0]*.parameterTypes == [[Object], [Object]]
+        overridden.values()[0]*.returnType == [String, String]
+        overridden.values()[1].size() == 2
+        overridden.values()[1]*.name == ["someOverloadedMethod", "someOverloadedMethod"]
+        overridden.values()[1]*.parameterTypes == [[int], [int]]
+        overridden.values()[1]*.returnType == [String, String]
+    }
+
+    def "gets covariant return type overriden methods from type hierarchy"() {
+        expect:
+        def overridden = ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).overridenMethodsNamed("someOverriddenCovariantMethod")
+        overridden.size() == 1
+        overridden.values()[0].size() == 2
+        overridden.values()[0]*.name == ["someOverriddenCovariantMethod", "someOverriddenCovariantMethod"]
+        overridden.values()[0]*.parameterTypes == [[Object], [Object]]
+        overridden.values()[0]*.returnType == [String, CharSequence]
     }
 
     def "gets overloaded methods from type hierachy"() {
         expect:
-        def overloaded = ModelSchemaUtils.getOverloadedMethods(ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).get("someOverloadedMethod"))
+        def overloaded = ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).overloadedMethodsNamed("someOverloadedMethod")
         overloaded.size() == 2
+        overloaded.values()[0]*.name == ["someOverloadedMethod", "someOverloadedMethod"]
+        overloaded.values()[1]*.name == ["someOverloadedMethod", "someOverloadedMethod"]
     }
-
 }
