@@ -20,15 +20,15 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
-
 
 /**
  * fix version declaration later
  * */
 @ToolingApiVersion('>=2.10')
 @TargetGradleVersion(">=2.10")
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification{
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "Java project has target language level"() {
         given:
@@ -78,17 +78,21 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification{
         rootProject.javaSourceSettings.targetLanguageLevel == JavaVersion.VERSION_1_5
     }
 
-
-    def "target language level is "() {
+    /**
+     * TODO split this testcase up as eclipse source settings are provided since 2.10 and target runtime will be part of 2.11
+     * */
+    @spock.lang.Ignore
+    @TargetGradleVersion("=2.10")
+    def "older Gradle versions throw exception when querying Java source settings"() {
         given:
         settingsFile << "rootProject.name = 'root'"
-        buildFile << "apply plugin: 'java'"
 
         when:
         EclipseProject rootProject = loadEclipseProjectModel()
+        rootProject.javaSourceSettings.targetLanguageLevel
 
         then:
-        rootProject.javaSourceSettings.targetLanguageLevel == JavaVersion.current()
+        thrown(UnsupportedMethodException)
     }
 
     private EclipseProject loadEclipseProjectModel() {
