@@ -87,7 +87,7 @@ model {
         projectFile.projectConfigurations.values().each {
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle :install${it.name.capitalize()}MainExecutable"
+            assert it.buildCommand == "gradle :installMain${it.name.capitalize()}Executable"
             assert it.outputFile == OperatingSystem.current().getExecutableName("build/install/main/${it.outputDir}/lib/main")
         }
 

@@ -159,7 +159,7 @@ model {
 }
 """
         when:
-        succeeds "installDebugMainExecutable", "installReleaseMainExecutable"
+        succeeds "installMainDebugExecutable", "installMainReleaseExecutable"
 
         then:
         installation("build/install/main/debug").exec().out == "Hello from the debug library"

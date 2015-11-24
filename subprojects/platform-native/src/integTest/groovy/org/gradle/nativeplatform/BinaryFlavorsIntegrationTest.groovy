@@ -94,7 +94,7 @@ model {
 
     def "builds executable for each defined flavor when not configured for component"() {
         when:
-        succeeds "installEnglishMainExecutable", "installFrenchMainExecutable", "installGermanMainExecutable"
+        succeeds "installMainEnglishExecutable", "installMainFrenchExecutable", "installMainGermanExecutable"
 
         then:
         installation("build/install/main/english").assertInstalled()
@@ -129,7 +129,7 @@ model {
 """
 
         and:
-        succeeds "installEnglishMainExecutable", "installFrenchMainExecutable"
+        succeeds "installMainEnglishExecutable", "installMainFrenchExecutable"
 
         then:
         installation("build/install/main/english").exec().out == DEFAULT + " " + DEFAULT

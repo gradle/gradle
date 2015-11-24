@@ -33,16 +33,10 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         "test"     | ""     | []             | null       | "classes" | "testClasses"
         "test"     | "type" | []             | "assemble" | null      | "assembleTestType"
         "test"     | "type" | []             | "compile"  | "java"    | "compileTestTypeJava"
-        "test"     | "type" | ["one", "two"] | null       | null      | "oneTwoTestType"
-        "test"     | "type" | ["one", "two"] | null       | "classes" | "oneTwoTestTypeClasses"
-        "test"     | "type" | ["one", "two"] | "assemble" | null      | "assembleOneTwoTestType"
-        "test"     | "type" | ["one", "two"] | "compile"  | "java"    | "compileOneTwoTestTypeJava"
-    }
-
-    def "generates task name with extended inputs"() {
-        expect:
-        def namingScheme = createNamingScheme("theBinary", "theType", ['firstDimension', 'secondDimension'])
-        namingScheme.getTaskName("theVerb", "theTarget") == "theVerbFirstDimensionSecondDimensionTheBinaryTheTypeTheTarget"
+        "test"     | "type" | ["one", "two"] | null       | null      | "testOneTwoType"
+        "test"     | "type" | ["one", "two"] | null       | "classes" | "testOneTwoTypeClasses"
+        "test"     | "type" | ["one", "two"] | "assemble" | null      | "assembleTestOneTwoType"
+        "test"     | "type" | ["one", "two"] | "compile"  | "java"    | "compileTestOneTwoTypeJava"
     }
 
     def "generates binary name"() {
@@ -101,14 +95,15 @@ class DefaultBinaryNamingSchemeTest extends Specification {
     }
 
     def "can create copies"() {
-        def original = createNamingScheme("parent", "role", ["dim1"])
+        def original = createNamingScheme("parent", "type", ["dim1"])
 
         expect:
-        original.outputDirectoryBase == "parent/role/dim1"
-        original.withComponentName("other").outputDirectoryBase == "other/role/dim1"
+        original.outputDirectoryBase == "parent/type/dim1"
+        original.withComponentName("other").outputDirectoryBase == "other/type/dim1"
         original.withBinaryType("other").outputDirectoryBase == "parent/other/dim1"
-        original.withVariantDimension("dim2").outputDirectoryBase == "parent/role/dim1/dim2"
-        original.withOutputType("output").outputDirectoryBase == "output/parent/role/dim1"
+        original.withVariantDimension("dim2").outputDirectoryBase == "parent/type/dim1/dim2"
+        original.withOutputType("output").outputDirectoryBase == "output/parent/type/dim1"
+        original.withRole("role", false).outputDirectoryBase == "parent/role/dim1"
     }
 
     def "ignores variant dimension with only one value"() {

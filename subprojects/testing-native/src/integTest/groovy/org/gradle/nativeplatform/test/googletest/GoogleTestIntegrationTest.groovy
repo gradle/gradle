@@ -335,6 +335,7 @@ model {
         useStandardConfig()
         useConventionalSourceLocations()
         run "runHelloTestGoogleTestExe"
+        executed ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
 
         when:
         run "runHelloTestGoogleTestExe"

@@ -155,7 +155,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     public String getTaskName(@Nullable String verb, @Nullable String target) {
-        return makeName(verb, dimensionPrefix, parentName, binaryType, target);
+        return makeName(verb, parentName, dimensionPrefix, binaryType, target);
     }
 
     public String makeName(String... words) {

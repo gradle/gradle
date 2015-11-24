@@ -372,6 +372,7 @@ model {
         useStandardConfig()
         useConventionalSourceLocations()
         run "runHelloTestCUnitExe"
+        executed ":helloTestCUnitExe", ":runHelloTestCUnitExe"
 
         when:
         run "runHelloTestCUnitExe"

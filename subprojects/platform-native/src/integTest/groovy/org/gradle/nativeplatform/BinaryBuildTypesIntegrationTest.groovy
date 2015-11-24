@@ -155,7 +155,7 @@ model {
 }
         """
         and:
-        succeeds "installDebugMainExecutable", "installReleaseMainExecutable"
+        succeeds "installMainDebugExecutable", "installMainReleaseExecutable"
 
         then:
         installation("build/install/main/debug").exec().out == helloWorldApp.frenchOutput

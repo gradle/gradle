@@ -97,11 +97,11 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample flavors
 
         when:
-        run "installEnglishMainExecutable"
+        run "installMainEnglishExecutable"
 
         then:
-        executedAndNotSkipped ":compileHelloEnglishSharedLibraryHelloCpp", ":linkEnglishHelloSharedLibrary", ":helloEnglishSharedLibrary"
-        executedAndNotSkipped ":compileMainEnglishExecutableMainCpp", ":linkEnglishMainExecutable", ":mainEnglishExecutable"
+        executedAndNotSkipped ":compileHelloEnglishSharedLibraryHelloCpp", ":linkHelloEnglishSharedLibrary", ":helloEnglishSharedLibrary"
+        executedAndNotSkipped ":compileMainEnglishExecutableMainCpp", ":linkMainEnglishExecutable", ":mainEnglishExecutable"
 
         and:
         executable(flavors.dir.file("build/exe/main/english/main")).assertExists()
@@ -112,11 +112,11 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         sample flavors
-        run "installFrenchMainExecutable"
+        run "installMainFrenchExecutable"
 
         then:
-        executedAndNotSkipped ":compileHelloFrenchSharedLibraryHelloCpp", ":linkFrenchHelloSharedLibrary", ":helloFrenchSharedLibrary"
-        executedAndNotSkipped ":compileMainFrenchExecutableMainCpp", ":linkFrenchMainExecutable", ":mainFrenchExecutable"
+        executedAndNotSkipped ":compileHelloFrenchSharedLibraryHelloCpp", ":linkHelloFrenchSharedLibrary", ":helloFrenchSharedLibrary"
+        executedAndNotSkipped ":compileMainFrenchExecutableMainCpp", ":linkMainFrenchExecutable", ":mainFrenchExecutable"
 
         and:
         executable(flavors.dir.file("build/exe/main/french/main")).assertExists()
@@ -215,7 +215,7 @@ model {
 """
 
         when:
-        run "installArmMainExecutable", "installSparcMainExecutable"
+        run "installMainArmExecutable", "installMainSparcExecutable"
 
         then:
         executable(targetPlatforms.dir.file("build/exe/main/arm/main")).exec().out == "Hello from ${toolChain.typeDisplayName}!\n"

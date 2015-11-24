@@ -54,13 +54,13 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         when:
         sample cunit
-        succeeds "runPassing"
+        succeeds "runOperatorsTestPassingCUnitExe"
 
         then:
         executedAndNotSkipped ":operatorsTestCUnitLauncher",
                               ":compileOperatorsTestPassingCUnitExeOperatorsTestC", ":compileOperatorsTestPassingCUnitExeOperatorsTestCunitLauncher",
-                              ":linkPassingOperatorsTestCUnitExe", ":operatorsTestPassingCUnitExe",
-                              ":installPassingOperatorsTestCUnitExe", ":runPassingOperatorsTestCUnitExe"
+                              ":linkOperatorsTestPassingCUnitExe", ":operatorsTestPassingCUnitExe",
+                              ":installOperatorsTestPassingCUnitExe", ":runOperatorsTestPassingCUnitExe"
 
         and:
         def passingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTest/passing/CUnitAutomated-Results.xml"))
@@ -72,13 +72,13 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         when:
         sample cunit
-        fails "runFailing"
+        fails "runOperatorsTestFailingCUnitExe"
 
         then:
         skipped ":operatorsTestCUnitLauncher"
         executedAndNotSkipped ":compileOperatorsTestFailingCUnitExeOperatorsTestC", ":compileOperatorsTestFailingCUnitExeOperatorsTestCunitLauncher",
-                              ":linkFailingOperatorsTestCUnitExe", ":operatorsTestFailingCUnitExe",
-                              ":installFailingOperatorsTestCUnitExe", ":runFailingOperatorsTestCUnitExe"
+                              ":linkOperatorsTestFailingCUnitExe", ":operatorsTestFailingCUnitExe",
+                              ":installOperatorsTestFailingCUnitExe", ":runOperatorsTestFailingCUnitExe"
 
         and:
         def failingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTest/failing/CUnitAutomated-Results.xml"))
