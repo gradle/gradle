@@ -42,6 +42,11 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
             }
         }
         runner.buildSpec {
+            projectName("${size}VariantsNewModel").displayName("new model (tooling api)").invocation {
+                tasksToRun(task).useToolingApi()
+            }
+        }
+        runner.buildSpec {
             projectName("${size}VariantsNewModel").displayName("new model (no client logging)").invocation {
                 tasksToRun(task).useDaemon().disableDaemonLogging()
             }
@@ -85,6 +90,11 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.buildSpec {
             projectName("variantsNewModelMultiproject").displayName("new model").invocation {
                 tasksToRun(*tasks).useDaemon()
+            }
+        }
+        runner.buildSpec {
+            projectName("variantsNewModelMultiproject").displayName("new model (tooling api)").invocation {
+                tasksToRun(*tasks).useToolingApi()
             }
         }
         runner.buildSpec {
