@@ -109,7 +109,7 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.children[1].buildCommands.collect { it.arguments } == [['child2Key': 'child2Value']]
     }
 
-    def "no source language level set for non-JVM projects"() {
+    def "no java source settings set for non-JVM projects"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
 
