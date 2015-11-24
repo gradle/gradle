@@ -38,8 +38,8 @@
         <xi:include href='commandLineTutorial.xml'/>
         <xi:include href='gradleWrapper.xml'/>
         <xi:include href='gradleDaemon.xml'/>
-        <xi:include href='introMultiProjectBuilds.xml'/>
         <xi:include href='artifactDependenciesTutorial.xml'/>
+        <xi:include href='introMultiProjectBuilds.xml'/>
         <xi:include href='continuousBuild.xml'/>
         <xi:include href='guiTutorial.xml'/>
         <xi:include href='buildEnvironment.xml'/>
@@ -47,7 +47,7 @@
         <xi:include href='embedding.xml'/>
     </part>
     <part>
-        <title>Core build development</title>
+        <title>Writing Gradle build scripts</title>
         <xi:include href='buildScriptsTutorial.xml'/>
         <xi:include href='buildInitPlugin.xml'/>
         <xi:include href='writingBuildScripts.xml'/>
