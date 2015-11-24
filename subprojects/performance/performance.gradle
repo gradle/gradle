@@ -438,6 +438,7 @@ configure([smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoid
     templateArgs.useApiDependencies = true
     numberOfExternalDependencies = 0
     createTestComponent = false
+    sourceFiles = 300
     dependencyGraph {
         size = 0
     }
