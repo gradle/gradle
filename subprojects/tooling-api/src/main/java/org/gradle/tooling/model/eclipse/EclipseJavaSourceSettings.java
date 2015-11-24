@@ -18,7 +18,6 @@ package org.gradle.tooling.model.eclipse;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.tooling.model.java.JavaRuntime;
 import org.gradle.tooling.model.java.JavaSourceSettings;
 
 /**
@@ -28,6 +27,5 @@ import org.gradle.tooling.model.java.JavaSourceSettings;
  */
 @Incubating
 public interface EclipseJavaSourceSettings extends JavaSourceSettings {
-    JavaRuntime getTargetRuntime();
     JavaVersion getTargetLanguageLevel();
 }

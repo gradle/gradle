@@ -20,6 +20,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import java.io.File;
 
+/**
+ * A model for information related the Java Runtime.
+ */
 @Incubating
 public interface JavaRuntime {
     JavaVersion getJavaVersion();

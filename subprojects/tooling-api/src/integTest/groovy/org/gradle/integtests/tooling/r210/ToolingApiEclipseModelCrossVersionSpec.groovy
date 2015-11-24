@@ -121,4 +121,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         subprojectC.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
     }
 
+    private EclipseProject loadEclipseProjectModel() {
+        withConnection { connection -> connection.getModel(EclipseProject) }
+    }
 }
