@@ -63,8 +63,6 @@ import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
-import org.gradle.model.internal.persist.DefaultModelRegistryStore;
-import org.gradle.model.internal.persist.ModelRegistryStore;
 
 import java.util.List;
 
@@ -239,10 +237,6 @@ public class GlobalScopeServices {
 
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {
         return new ModelRuleSourceDetector();
-    }
-
-    protected ModelRegistryStore createModelRegistryStore(GradleBuildEnvironment buildEnvironment, ModelRuleExtractor ruleExtractor) {
-        return new DefaultModelRegistryStore(ruleExtractor);
     }
 
     protected ImportsReader createImportsReader() {
