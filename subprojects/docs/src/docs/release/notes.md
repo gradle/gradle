@@ -405,6 +405,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 - Task names have changed for components with multiple variants. The library or executable name is now first.
 - `org.gradle.language.PreprocessingTool` has moved to `org.gradle.nativeplatform.PreprocessingTool`
+- Output directory names have changed.
 - TODO: Changes to discovered inputs/include paths
 
 ### Changes to incubating Java Software Model

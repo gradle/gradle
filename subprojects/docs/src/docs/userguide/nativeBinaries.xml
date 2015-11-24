@@ -237,19 +237,19 @@
                 <td><apilink class="org.gradle.nativeplatform.NativeExecutableSpec"/></td>
                 <td><apilink class="org.gradle.nativeplatform.NativeExecutableBinarySpec"/></td>
                 <td><literal><replaceable>${component.name}</replaceable>Executable</literal></td>
-                <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>Executable/<replaceable>${component.name}</replaceable></filename></td>
+                <td><filename><replaceable>${project.buildDir}</replaceable>/exe/<replaceable>${component.name}</replaceable>/<replaceable>${component.name}</replaceable></filename></td>
             </tr>
             <tr>
                 <td><apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/></td>
                 <td><apilink class="org.gradle.nativeplatform.SharedLibraryBinarySpec"/></td>
                 <td><literal><replaceable>${component.name}</replaceable>SharedLibrary</literal></td>
-                <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>SharedLibrary/lib<replaceable>${component.name}</replaceable>.so</filename></td>
+                <td><filename><replaceable>${project.buildDir}</replaceable>/libs/<replaceable>${component.name}</replaceable>/shared/lib<replaceable>${component.name}</replaceable>.so</filename></td>
             </tr>
             <tr>
                 <td><apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/></td>
                 <td><apilink class="org.gradle.nativeplatform.StaticLibraryBinarySpec"/></td>
                 <td><literal><replaceable>${component.name}</replaceable>StaticLibrary</literal></td>
-                    <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>StaticLibrary/<replaceable>${component.name}</replaceable>.a</filename></td>
+                    <td><filename><replaceable>${project.buildDir}</replaceable>/libs/<replaceable>${component.name}</replaceable>/static/<replaceable>${component.name}</replaceable>.a</filename></td>
             </tr>
         </table>
 
