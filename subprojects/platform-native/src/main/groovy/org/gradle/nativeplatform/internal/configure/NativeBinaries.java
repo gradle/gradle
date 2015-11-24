@@ -25,7 +25,6 @@ import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
 public class NativeBinaries {
 
@@ -33,16 +32,16 @@ public class NativeBinaries {
         NativeComponentSpec component,
         ModelMap<NativeBinarySpec> binaries,
         NativeDependencyResolver resolver,
-        BinaryNamingSchemeBuilder namingScheme,
+        BinaryNamingScheme namingScheme,
         NativePlatform platform,
         BuildType buildType,
         Flavor flavor
     ) {
         if (component instanceof NativeLibrarySpec) {
-            createNativeBinary(SharedLibraryBinarySpec.class, binaries, resolver, namingScheme.withTypeString("SharedLibrary").build(), platform, buildType, flavor);
-            createNativeBinary(StaticLibraryBinarySpec.class, binaries, resolver, namingScheme.withTypeString("StaticLibrary").build(), platform, buildType, flavor);
+            createNativeBinary(SharedLibraryBinarySpec.class, binaries, resolver, namingScheme.withRole("SharedLibrary"), platform, buildType, flavor);
+            createNativeBinary(StaticLibraryBinarySpec.class, binaries, resolver, namingScheme.withRole("StaticLibrary"), platform, buildType, flavor);
         } else {
-            createNativeBinary(NativeExecutableBinarySpec.class, binaries, resolver, namingScheme.withTypeString("Executable").build(), platform, buildType, flavor);
+            createNativeBinary(NativeExecutableBinarySpec.class, binaries, resolver, namingScheme.withRole("Executable"), platform, buildType, flavor);
         }
     }
 

@@ -25,7 +25,6 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.test.TestSuiteContainer;
 
 import java.io.File;
@@ -54,7 +53,7 @@ public class NativeTestSuites {
         });
     }
 
-    public static void createNativeTestSuiteBinary(NativeTestSuiteSpec testSuite,
+    private static void createNativeTestSuiteBinary(NativeTestSuiteSpec testSuite,
                                                    Class<? extends NativeTestSuiteBinarySpec> testSuiteBinaryClass,
                                                    String typeString, final NativeBinarySpec testedBinary,
                                                    final File buildDir, ServiceRegistry serviceRegistry) {
@@ -103,10 +102,9 @@ public class NativeTestSuites {
     }
 
     private static BinaryNamingScheme namingSchemeFor(NativeTestSuiteSpec testSuite, NativeBinarySpecInternal testedBinary, String typeString) {
-        return new DefaultBinaryNamingSchemeBuilder(testedBinary.getNamingScheme())
+        return testedBinary.getNamingScheme()
             .withComponentName(testSuite.getBaseName())
-            .withTypeString(typeString)
-            .build();
+            .withRole(typeString);
     }
 
 }

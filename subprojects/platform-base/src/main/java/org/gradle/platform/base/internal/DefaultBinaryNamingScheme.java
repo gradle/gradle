@@ -19,19 +19,43 @@ package org.gradle.platform.base.internal;
 import org.gradle.api.Nullable;
 import org.gradle.util.GUtil;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     final String parentName;
-    final String typeString;
+    final String roleName;
     final String dimensionPrefix;
     final List<String> dimensions;
 
-    public DefaultBinaryNamingScheme(String parentName, String typeString, List<String> dimensions) {
+    public DefaultBinaryNamingScheme(String parentName, String roleName, List<String> dimensions) {
         this.parentName = parentName;
-        this.typeString = typeString;
+        this.roleName = roleName;
         this.dimensions = dimensions;
         this.dimensionPrefix = createPrefix(dimensions);
+    }
+
+    public static BinaryNamingScheme component(String componentName) {
+        return new DefaultBinaryNamingScheme(componentName, "", Collections.<String>emptyList());
+    }
+
+    @Override
+    public BinaryNamingScheme withVariantDimension(String dimension) {
+        List<String> newDimensions = new ArrayList<String>(dimensions.size() + 1);
+        newDimensions.addAll(dimensions);
+        newDimensions.add(dimension);
+        return new DefaultBinaryNamingScheme(parentName, roleName, newDimensions);
+    }
+
+    @Override
+    public BinaryNamingScheme withRole(String role) {
+        return new DefaultBinaryNamingScheme(parentName, role, dimensions);
+    }
+
+    @Override
+    public BinaryNamingScheme withComponentName(String componentName) {
+        return new DefaultBinaryNamingScheme(componentName, roleName, dimensions);
     }
 
     private String createPrefix(List<String> dimensions) {
@@ -46,11 +70,11 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     public String getBinaryName() {
-        return makeName(dimensionPrefix, typeString);
+        return makeName(dimensionPrefix, roleName);
     }
 
     public String getOutputDirectoryBase() {
-        StringBuilder builder = new StringBuilder(makeName(parentName, typeString));
+        StringBuilder builder = new StringBuilder(makeName(parentName, roleName));
         if (dimensionPrefix.length() > 0) {
             builder.append('/');
             builder.append(dimensionPrefix);
@@ -60,7 +84,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
 
     public String getDescription() {
         StringBuilder builder = new StringBuilder();
-        builder.append(GUtil.toWords(typeString));
+        builder.append(GUtil.toWords(roleName));
         builder.append(" '");
         builder.append(parentName);
         for (String dimension : dimensions) {
@@ -68,7 +92,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
             builder.append(dimension);
         }
         builder.append(':');
-        appendUncapitalized(builder, typeString);
+        appendUncapitalized(builder, roleName);
         builder.append("'");
         return builder.toString();
     }
@@ -82,7 +106,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     public String getTaskName(@Nullable String verb, @Nullable String target) {
-        return makeName(verb, dimensionPrefix, parentName, typeString, target);
+        return makeName(verb, dimensionPrefix, parentName, roleName, target);
     }
 
     public String makeName(String... words) {

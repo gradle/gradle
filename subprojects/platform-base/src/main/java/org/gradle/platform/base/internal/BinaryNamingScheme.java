@@ -34,4 +34,19 @@ public interface BinaryNamingScheme {
     String getDescription();
 
     List<String> getVariantDimensions();
+
+    /**
+     * Creates a copy of this scheme, replacing the component name.
+     */
+    BinaryNamingScheme withComponentName(String componentName);
+
+    /**
+     * Creates a copy of this scheme, replacing the role.
+     */
+    BinaryNamingScheme withRole(String role);
+
+    /**
+     * Creates a copy of this scheme, <em>adding</em> a variant dimension.
+     */
+    BinaryNamingScheme withVariantDimension(String dimension);
 }

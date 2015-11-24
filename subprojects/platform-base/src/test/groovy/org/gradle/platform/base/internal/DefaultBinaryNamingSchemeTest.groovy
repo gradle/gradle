@@ -21,11 +21,11 @@ import spock.lang.Specification
 class DefaultBinaryNamingSchemeTest extends Specification {
     def "generates task names for native binaries"() {
         expect:
-        def namingScheme = createNamingScheme(parentName, type, dimensions)
+        def namingScheme = createNamingScheme(parentName, role, dimensions)
         namingScheme.getTaskName(verb, target) == taskName
 
         where:
-        parentName | type   | dimensions     | verb       | target    | taskName
+        parentName | role   | dimensions     | verb       | target    | taskName
         "test"     | ""     | []             | null       | null      | "test"
         "test"     | "type" | []             | null       | null      | "testType"
         "test"     | "type" | []             | null       | "classes" | "testTypeClasses"
@@ -86,7 +86,17 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         "parent"   | "SharedLibrary" | ["one", "two"] | "shared library 'parent:one:two:sharedLibrary'"
     }
 
-    private BinaryNamingScheme createNamingScheme(def parentName, def type, def dimensions) {
-        return new DefaultBinaryNamingScheme(parentName, type, dimensions)
+    def "can create copies"() {
+        def original = createNamingScheme("parent", "role", ["dim1"])
+
+        expect:
+        original.outputDirectoryBase == "parentRole/dim1"
+        original.withComponentName("other").outputDirectoryBase == "otherRole/dim1"
+        original.withRole("other").outputDirectoryBase == "parentOther/dim1"
+        original.withVariantDimension("dim2").outputDirectoryBase == "parentRole/dim1Dim2"
+    }
+
+    private BinaryNamingScheme createNamingScheme(def parentName, def role, def dimensions) {
+        return new DefaultBinaryNamingScheme(parentName, role, dimensions)
     }
 }
