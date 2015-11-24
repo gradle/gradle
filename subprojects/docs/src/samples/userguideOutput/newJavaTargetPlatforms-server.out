@@ -3,21 +3,19 @@
 :core:compileMainJava5JarMainJava
 :core:processMainJava5JarMainResources
 :core:createMainJava5Jar
-:core:createMainJava5ApiJar
-:core:mainJava5Jar
+:core:mainJava5ApiJar
 :server:compileMainJava5JarMainJava
 :server:createMainJava5Jar
-:server:createMainJava5ApiJar
+:server:mainJava5ApiJar
 :server:mainJava5Jar
 :core:compileMainJava6JarMainJava
 :core:compileMainJava6JarMainJava6
 :core:processMainJava6JarMainResources
 :core:createMainJava6Jar
-:core:createMainJava6ApiJar
-:core:mainJava6Jar
+:core:mainJava6ApiJar
 :server:compileMainJava6JarMainJava
 :server:createMainJava6Jar
-:server:createMainJava6ApiJar
+:server:mainJava6ApiJar
 :server:mainJava6Jar
 :server:assemble
 :server:check UP-TO-DATE

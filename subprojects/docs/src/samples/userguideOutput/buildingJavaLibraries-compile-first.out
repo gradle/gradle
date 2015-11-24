@@ -1,11 +1,8 @@
 :compileMainJarMainJava
-:createMainApiJar
-:processMainJarMainResources
-:createMainJar
-:mainJar
+:mainApiJar
 :compileClientJarClientJava
 :createClientJar
-:createClientApiJar
+:clientApiJar
 :clientJar
 
 BUILD SUCCESSFUL
