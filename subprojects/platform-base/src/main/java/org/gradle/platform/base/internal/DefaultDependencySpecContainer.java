@@ -66,13 +66,14 @@ public class DefaultDependencySpecContainer implements DependencySpecContainer {
     }
 
     private DefaultProjectDependencySpec.Builder projectDependency() {
-        DefaultProjectDependencySpec.Builder builder = new DefaultProjectDependencySpec.Builder();
-        builders.add(builder);
-        return builder;
+        return add(new DefaultProjectDependencySpec.Builder());
     }
 
     private DefaultModuleDependencySpec.Builder moduleDependency() {
-        DefaultModuleDependencySpec.Builder builder = new DefaultModuleDependencySpec.Builder();
+        return add(new DefaultModuleDependencySpec.Builder());
+    }
+
+    private <T extends DependencySpecBuilder> T add(T builder) {
         builders.add(builder);
         return builder;
     }
