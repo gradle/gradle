@@ -543,26 +543,26 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
         settingsFile << "include 'someLib'"
 
         buildFile << """
-          apply plugin: 'war'
-          apply plugin: 'eclipse-wtp'
-
-          dependencies {
-            compile project(':someLib')
-          }
-
-          project(':someLib') {
-            apply plugin: 'java'
+            apply plugin: 'war'
             apply plugin: 'eclipse-wtp'
 
-            repositories { mavenCentral() }
-
             dependencies {
-              compile 'commons-io:commons-io:1.4'
-              compile files('libs/myFoo.jar')
+              compile project(':someLib')
             }
 
-            eclipse.pathVariables MY_LIBS: file('libs')
-          }
+            project(':someLib') {
+              apply plugin: 'java'
+              apply plugin: 'eclipse-wtp'
+
+              repositories { mavenCentral() }
+
+              dependencies {
+                compile 'commons-io:commons-io:1.4'
+                compile files('libs/myFoo.jar')
+              }
+
+              eclipse.pathVariables MY_LIBS: file('libs')
+            }
         """
 
         when:
