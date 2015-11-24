@@ -84,8 +84,8 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
     }
 
     interface EclipseJavaSourceSettings {
-        JavaRuntimeEnvironment getTargetRuntime()
-        JavaLanguageLevel getTargetLanguageLevel()
+        JavaRuntime getTargetRuntime()
+        JavaVersion getTargetLanguageLevel()
     }
 
     interface EclipseProject extends JavaSourceAware {
@@ -103,13 +103,11 @@ TBD: 'targetLanguageLevel' really refers to the target bytecode version.
 - `JavaRuntimeEnvironment` should expose
     - `JavaVersion getJavaVersion()` - the version of the JRE
     - `File getHomeDirectory()` - the directory of the JRE in use
-- Add `JavaLanguageLevel getTargetLanguageLevel()` to `JavaSourceSettings to expose the java target combatibility level.
+- Add `JavaLanguageLevel getTargetLanguageLevel()` to `EclipseJavaSourceSettings` to expose the java target combatibility level.
 - Update `DefaultJavaSourceSettings` to expose JRE and target language level information based on current JVM in use
 - Update `EclipseModelBuilder` to set values for the target language level and target runtime
-    - return `null` if the project doesn't apply the `java-base` plug-in.
-    - otherwise `JavaSourceSettings.getTargetLanguageLevel()` returns the value of `eclipse.jdt.targetCompatibility`.
+    - `EclipseJavaSourceSettings.getTargetLanguageLevel()` returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.
 - Update `.classpath` and `.settings/...` generation, so that tooling model and generated files are consistent.
-
 
 #### Test coverage
 
