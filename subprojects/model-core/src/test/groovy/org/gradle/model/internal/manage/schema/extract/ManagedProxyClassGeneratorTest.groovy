@@ -752,4 +752,43 @@ class ManagedProxyClassGeneratorTest extends Specification {
         abstract String getManagedValue()
         abstract void setManagedValue(String managedValue)
     }
+
+    static interface UnmanagedSuperType {}
+
+    static class DefaultPublicTypeAsAbstractClassWithMethod implements UnmanagedSuperType {
+        String getSomeValue() {
+            "from default implementation"
+        }
+    }
+
+    @Managed static abstract class PublicTypeAsAbstractClassWithMethod extends UnmanagedSuperType {
+        String getSomeValue() {
+            "from abstract class"
+        }
+    }
+
+    @NotYetImplemented
+    def "favour managed public type abstract class methods over default implementation methods"() {
+        def node = Stub(MutableModelNode)
+        def state = Mock(ModelElementState) {
+            getBackingNode() >> node
+        }
+
+        when:
+        Class<? extends UnmanagedSuperType> proxyClass = generate(PublicTypeAsAbstractClassWithMethod, DefaultPublicTypeAsAbstractClassWithMethod)
+        def unmanagedInstance = new DefaultPublicTypeAsAbstractClassWithMethod()
+        UnmanagedSuperType impl = proxyClass.newInstance(state, unmanagedInstance)
+
+        then:
+        impl instanceof ManagedInstance
+        ((ManagedInstance) impl).backingNode == node
+        PublicTypeAsAbstractClassWithMethod.isAssignableFrom(proxyClass)
+        PublicTypeAsAbstractClassWithMethod.isAssignableFrom(impl.class)
+
+        when:
+        def value = impl.getSomeValue()
+        then:
+        value == "from abstract class"
+    }
+
 }
