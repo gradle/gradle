@@ -78,6 +78,11 @@ class EclipseWtpComponentFixture {
         void assertDeployedAt(String path) {
             assert node."@deploy-path" == path
         }
+
+        @Override
+        String toString() {
+            "WbModule[node=" + node + "]";
+        }
     }
 
     class WbResource {
@@ -89,6 +94,11 @@ class EclipseWtpComponentFixture {
 
         void assertDeployedAt(String path) {
             assert node."@deploy-path" == path
+        }
+
+        @Override
+        String toString() {
+            "WbResource[node=" + node + "]";
         }
     }
 }
