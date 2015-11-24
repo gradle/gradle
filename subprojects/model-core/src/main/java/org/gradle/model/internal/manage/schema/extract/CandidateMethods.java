@@ -53,8 +53,8 @@ public class CandidateMethods {
      */
     public Map<Equivalence.Wrapper<Method>, Collection<Method>> allMethods() {
         ImmutableMap.Builder<Equivalence.Wrapper<Method>, Collection<Method>> builder = ImmutableMap.builder();
-        for (Map<Equivalence.Wrapper<Method>, Collection<Method>> eachMethodName : candidates.values()) {
-            builder.putAll(eachMethodName);
+        for (Map<Equivalence.Wrapper<Method>, Collection<Method>> candidatesForSomeName : candidates.values()) {
+            builder.putAll(candidatesForSomeName);
         }
         return builder.build();
     }
@@ -65,19 +65,16 @@ public class CandidateMethods {
      */
     @Nullable
     public Map<Equivalence.Wrapper<Method>, Collection<Method>> methodsNamed(String methodName) {
-        if (candidates.containsKey(methodName)) {
-            return candidates.get(methodName);
-        }
-        return null;
+        return candidates.get(methodName);
     }
 
     /**
      * @param methodName Method name
-     * @return Overriden candidate methods named {@literal methodName} indexed by signature equivalence or
+     * @return Overridden candidate methods named {@literal methodName} indexed by signature equivalence or
      * {@literal null} if none
      */
     @Nullable
-    public Map<Equivalence.Wrapper<Method>, Collection<Method>> overridenMethodsNamed(String methodName) {
+    public Map<Equivalence.Wrapper<Method>, Collection<Method>> overriddenMethodsNamed(String methodName) {
         if (candidates.containsKey(methodName)) {
             Map<Equivalence.Wrapper<Method>, Collection<Method>> result = Maps.filterValues(candidates.get(methodName), new Predicate<Collection<Method>>() {
                 @Override

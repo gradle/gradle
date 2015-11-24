@@ -143,7 +143,7 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
         for (String methodName : candidateMethods.methodNames()) {
             Collection<Equivalence.Wrapper<Method>> handledOverridden = Lists.newArrayList();
             if (!MethodType.isPropertyMethodName(methodName)) {
-                Map<Equivalence.Wrapper<Method>, Collection<Method>> overridden = candidateMethods.overridenMethodsNamed(methodName);
+                Map<Equivalence.Wrapper<Method>, Collection<Method>> overridden = candidateMethods.overriddenMethodsNamed(methodName);
                 if (overridden != null) {
                     handleOverriddenMethods(context, overridden.values());
                     handledOverridden.addAll(overridden.keySet());
