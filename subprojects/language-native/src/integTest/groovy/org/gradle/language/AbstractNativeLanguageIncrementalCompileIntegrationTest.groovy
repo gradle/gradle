@@ -128,6 +128,25 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.recompiledFile sourceFile
     }
 
+    @NotYetImplemented
+    def "does not recompile when fallback mechanism is used and there are empty directories"() {
+        given:
+        file("src/main/headers/empty/directory").mkdirs()
+        sourceFile << """
+            #define MY_HEADER "${otherHeaderFile.name}"
+            #include MY_HEADER
+"""
+
+        and:
+        outputs.snapshot { run "mainExecutable" }
+
+        when:
+        executer.withArgument("--info")
+        run "mainExecutable"
+        then:
+        skipped compileTask
+    }
+
     def "source is always recompiled if it includes header via macro"() {
         given:
         def notIncluded = file("src/main/headers/notIncluded.h")
