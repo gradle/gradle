@@ -1349,6 +1349,26 @@
                 <sourcefile file="build.gradle" snippet="test-config"/>
             </sample>
         </section>
+
+        <section id="test_execution_order">
+            <title>Test execution order</tile>
+            <para>TestNG allows explicite control of the execution order of tests.</para>
+            <para>The <literal>preserveOrder</liertal> property controls whether tests are executed in the order defined by the source set or in unpredictable order. Preserving the order guarantees that the complete test (including @BeforeXXX and @AfterXXX) is run in a test thread before the next test is run. While preserving the order of tests is the default behavior when directly working with TestNG, Gradle&apos;s TestNG plug-in changes this default behaviour to executing tests in unpredictable order.
+                <footnote>
+                    <para>The TestNG documentation contains more details about test ordering:
+                        <ulink url='http://testng.org/doc/documentation-main.html#testng-xml'/>.
+                    </para>
+                </footnote>
+            </para>
+            <para>The <literal>groupByInstance</literal> property controls whether tests should be grouped by instances. Grouping by instances will result in resolving test method dependencies for each instance instead of running the dependees of all instances before running the dependants. The default behavior is not to group tests by instances.
+                <footnote>
+                    <para>The TestNG documentation contains more details about grouping tests by instances:
+                        <ulink url='http://testng.org/doc/documentation-main.html#dependencies-with-annotations'/>.
+                    </para>
+                </footnote>
+            </para>
+        </section>
+
         <section id="test_reporting">
             <title>Test reporting</title>
 

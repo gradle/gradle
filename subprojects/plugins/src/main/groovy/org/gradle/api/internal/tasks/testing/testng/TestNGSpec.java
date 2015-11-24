@@ -39,8 +39,8 @@ public class TestNGSpec implements Serializable {
     private final Set<String> listeners;
     private final Set<String> includedTests;
     private final String configFailurePolicy;
-    private final Boolean preserveOrder;
-    private final Boolean groupByInstances;
+    private final boolean preserveOrder;
+    private final boolean groupByInstances;
 
     public TestNGSpec(TestNGOptions options, DefaultTestFilter filter) {
         this.defaultSuiteName = options.getSuiteName();
@@ -112,11 +112,11 @@ public class TestNGSpec implements Serializable {
         return configFailurePolicy;
     }
 
-    public Boolean getPreserveOrder() {
+    public boolean getPreserveOrder() {
         return preserveOrder;
     }
 
-    public Boolean getGroupByInstances() {
+    public boolean getGroupByInstances() {
         return groupByInstances;
     }
 }

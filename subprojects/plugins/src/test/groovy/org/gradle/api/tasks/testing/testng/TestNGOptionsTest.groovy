@@ -63,9 +63,9 @@ public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTe
 
         assertEquals(TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY, testngOptions.configFailurePolicy)
 
-        assertNull(testngOptions.preserveOrder)
+        assertFalse(testngOptions.preserveOrder)
 
-        assertNull(testngOptions.groupByInstances)
+        assertFalse(testngOptions.groupByInstances)
     }
 
     @Test public void jdk14SourceCompatibilityAnnotationsDefaulting()

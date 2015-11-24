@@ -159,9 +159,10 @@ class TestNGOptions extends TestFrameworkOptions {
      *
      * Not required.
      *
-     * If not present, preserve order will not be specified, i.e., it defaults to TestNG's default value.
+     * If not present, the order will not be preserved.
      */
-    Boolean preserveOrder = null
+    @Incubating
+	boolean preserveOrder = false
 
     /**
      * Indicates whether the tests should be grouped by instances.
@@ -170,9 +171,10 @@ class TestNGOptions extends TestFrameworkOptions {
      *
      * Not required.
      *
-     * If not present, group by instances will not be specified, i.e., it defaults to TestNG's default value.
+     * If not present, the tests will not be grouped by instances.
      */
-    Boolean groupByInstances = null
+    @Incubating
+	boolean groupByInstances = false
 
     transient StringWriter suiteXmlWriter = null
     transient MarkupBuilder suiteXmlBuilder = null

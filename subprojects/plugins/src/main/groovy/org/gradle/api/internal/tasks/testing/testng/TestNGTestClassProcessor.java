@@ -134,11 +134,19 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         }
         testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator, timeProvider)));
 
-        if (options.getPreserveOrder() != null) {
-            testNg.setPreserveOrder(options.getPreserveOrder());
+        try {
+            JavaReflectionUtil.method(TestNG.class, void.class, "setPreserveOrder", boolean.class).invoke(testNg, options.getPreserveOrder());
+        } catch (NoSuchMethodException e) {
+            if (options.getPreserveOrder()) {
+                throw e;
+            }
         }
-        if (options.getGroupByInstances() != null) {
-            testNg.setGroupByInstances(options.getGroupByInstances());
+        try {
+            JavaReflectionUtil.method(TestNG.class, void.class, "setGroupByInstances", boolean.class).invoke(testNg, options.getGroupByInstances());
+        } catch (NoSuchMethodException e) {
+            if (options.getPreserveOrder()) {
+                throw e;
+            }
         }
 
         testNg.run();

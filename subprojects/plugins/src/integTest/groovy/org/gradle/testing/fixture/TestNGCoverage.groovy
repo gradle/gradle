@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.fixture;
+package org.gradle.testing.fixture
 
 import org.gradle.internal.jvm.Jvm;
 

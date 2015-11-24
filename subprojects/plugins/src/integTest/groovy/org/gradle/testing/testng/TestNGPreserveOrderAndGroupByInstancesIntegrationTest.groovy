@@ -19,146 +19,9 @@ package org.gradle.testing.testng
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
-import org.gradle.util.TextUtil
 
 @TargetCoverage({TestNGCoverage.STANDARD_COVERAGE})
 public class TestNGPreserveOrderAndGroupByInstancesIntegrationTest extends MultiVersionIntegrationSpec {
-
-    def "check defaults for options preserveOrder and groupByInstances"() {
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'org.testng:testng:$version' }
-            test { useTestNG() }
-        """
-
-        file("src/test/java/TestDefaultOptions.java") << """
-            import org.testng.Assert;
-            import org.testng.ITestContext;
-            import org.testng.annotations.Test;
-
-            public class TestDefaultOptions {
-                
-                @Test
-                public void test(ITestContext context) {
-                    Assert.assertEquals(context.getCurrentXmlTest().getPreserveOrder(), "false");
-                    Assert.assertEquals(context.getCurrentXmlTest().getGroupByInstances(), false);
-                }
-            }
-        """
-
-        when: run "test"
-
-        then: succeeds "test"
-    }
-
-    def "test setting preserveOrder to true"() {
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'org.testng:testng:$version' }
-            test { useTestNG { preserveOrder true } }
-        """
-
-        file("src/test/java/TestPreserveOrder.java") << """
-            import org.testng.Assert;
-            import org.testng.ITestContext;
-            import org.testng.annotations.Test;
-
-            public class TestPreserveOrder {
-                
-                @Test
-                public void test(ITestContext context) {
-                    Assert.assertEquals(context.getCurrentXmlTest().getPreserveOrder(), "true");
-                }
-            }
-        """
-
-        when: run "test"
-
-        then: succeeds "test"
-    }
-
-    def "test setting preserveOrder to false"() {
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'org.testng:testng:$version' }
-            test { useTestNG { preserveOrder false } }
-       """
-
-        file("src/test/java/TestPreserveOrder.java") << """
-            import org.testng.Assert;
-            import org.testng.ITestContext;
-            import org.testng.annotations.Test;
-
-            public class TestPreserveOrder {
-                
-                @Test
-                public void test(ITestContext context) {
-                    Assert.assertEquals(context.getCurrentXmlTest().getPreserveOrder(), "false");
-                }
-            }
-        """
-
-        when: run "test"
-
-        then: succeeds "test"
-    }
-
-    def "test setting groupByInstances to true"() {
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'org.testng:testng:$version' }
-            test { useTestNG { groupByInstances true } }
-        """
-
-        file("src/test/java/TestGroupByInstances.java") << """
-            import org.testng.Assert;
-            import org.testng.ITestContext;
-            import org.testng.annotations.Test;
-
-            public class TestGroupByInstances {
-                
-                @Test
-                public void test(ITestContext context) {
-                    Assert.assertEquals(context.getCurrentXmlTest().getGroupByInstances(), true);
-                }
-            }
-       """
-
-        when: run "test"
-
-        then: succeeds "test"
-    }
-
-    def "test setting groupByInstances to false"() {
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'org.testng:testng:$version' }
-            test { useTestNG { groupByInstances false } }
-        """
-
-        file("src/test/java/TestGroupByInstances.java") << """
-            import org.testng.Assert;
-            import org.testng.ITestContext;
-            import org.testng.annotations.Test;
-
-            public class TestGroupByInstances {
-                
-                @Test
-                public void test(ITestContext context) {
-                    Assert.assertEquals(context.getCurrentXmlTest().getGroupByInstances(), false);
-                }
-            }
-       """
-
-        when: run "test"
-
-        then: succeeds "test"
-    }
 
     def "run tests using preserveOrder"() {
         buildFile << """
@@ -238,18 +101,18 @@ public class TestNGPreserveOrderAndGroupByInstancesIntegrationTest extends Multi
         when: run "test"
 
         then:
-        result.output.contains(TextUtil.toPlatformLineSeparators("""
+        result.output.contains("""
 Test1.beforeClass()
 Test1.test1()
 Test1.test2()
 Test1.afterClass()
-"""))
-        result.output.contains(TextUtil.toPlatformLineSeparators("""
+""")
+        result.output.contains("""
 Test2.beforeClass()
 Test2.test1()
 Test2.test2()
 Test2.afterClass()
-"""))
+""")
     }
 
     def "run tests using groupByInstances"() {
@@ -267,85 +130,67 @@ Test2.afterClass()
             }
         """
 
-        file("src/test/java/Test1.java") << """
+        file("src/test/java/TestFactory.java") << """
             import org.testng.annotations.AfterClass;
             import org.testng.annotations.BeforeClass;
+            import org.testng.annotations.DataProvider;
+            import org.testng.annotations.Factory;
             import org.testng.annotations.Test;
 
-            public class Test1 {
-                
+            public class TestFactory {
+
+                @DataProvider(name = "data")
+                public static Object[][] provide() {
+                    return new Object[][] {
+                        { "data1" },
+                        { "data2" }
+                    };
+                }
+
+                private String data;
+
+                @Factory(dataProvider = "data")
+                public TestFactory(String data) {
+                    this.data = data;
+                }
+
                 @BeforeClass
                 public void beforeClass() {
-                    System.out.println("Test1.beforeClass()");
+                    System.out.println("TestFactory[" + data + "].beforeClass()");
                 }
 
                 @Test
                 public void test1() {
-                    System.out.println("Test1.test1()");
+                    System.out.println("TestFactory[" + data + "].test1()");
                 }
 
                 @Test(dependsOnMethods = {"test1"})
                 public void test2() {
-                    System.out.println("Test1.test2()");
+                    System.out.println("TestFactory[" + data + "].test2()");
                 }
-                
+
                 @AfterClass
                 public void afterClass() {
-                    System.out.println("Test1.afterClass()");
+                    System.out.println("TestFactory[" + data + "].afterClass()");
                 }
             }
         """
  
-        file("src/test/java/Test2.java") << """
-            import java.io.Serializable;
-
-            import org.testng.annotations.AfterClass;
-            import org.testng.annotations.BeforeClass;
-            import org.testng.annotations.Test;
-
-            public class Test2 {
-
-                public static class C implements Serializable {
-                    private static final long serialVersionUID = 1L;
-                }
-
-                @BeforeClass
-                public void beforeClass() {
-                    System.out.println("Test2.beforeClass()");
-                }
-
-                @Test
-                public void test1() {
-                    System.out.println("Test2.test1()");
-                }
-
-                @Test(dependsOnMethods = {"test1"})
-                public void test2() {
-                    System.out.println("Test2.test2()");
-                }
-                
-                @AfterClass
-                public void afterClass() {
-                    System.out.println("Test2.afterClass()");
-                }
-            }
-        """
-
         when: run "test"
 
         then:
-        result.output.contains(TextUtil.toPlatformLineSeparators("""
-Test1.beforeClass()
-Test1.test1()
-Test1.test2()
-Test1.afterClass()
-"""))
-        result.output.contains(TextUtil.toPlatformLineSeparators("""
-Test2.beforeClass()
-Test2.test1()
-Test2.test2()
-Test2.afterClass()
-"""))
+        result.output.contains("""
+TestFactory[data1].beforeClass()
+TestFactory[data1].test1()
+TestFactory[data1].test2()
+TestFactory[data1].afterClass()
+""")
+        result.output.contains("""
+TestFactory[data2].beforeClass()
+TestFactory[data2].test1()
+TestFactory[data2].test2()
+TestFactory[data2].afterClass()
+""")
     }
 
 }
