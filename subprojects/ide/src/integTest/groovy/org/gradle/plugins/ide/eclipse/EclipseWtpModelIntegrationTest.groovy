@@ -73,26 +73,26 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
             }
         """
 
+        settingsFile << "rootProject.name = 'root'"
+
         when:
         succeeds('eclipse')
-        def component = componentFile.text
-        def facet = facetFile.text
 
         then:
+        def component = componentFile.text
         component.contains('someExtraSourceDir')
         component.contains('foo-1.0.jar')
         component.contains('bar-1.0.jar')
         !component.contains('baz-1.0.jar')
         component.contains('someBetterDeployName')
-
         //contains('userHomeVariable') //TODO don't know how to test it at the moment
-
         component.contains('./src/foo/bar')
         component.contains('./deploy/foo/bar')
         component.contains('wbPropertyOne')
         component.contains('New York!')
         component.contains('killerApp')
 
+        def facet = facetFile.text
         facet.contains('gradleFacet')
         facet.contains('1.333')
     }
@@ -124,11 +124,13 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
             }
         """
 
+        settingsFile << "rootProject.name = 'root'"
+
         when:
         succeeds('eclipse')
-        def component =  componentFile.text
 
         then:
+        def component =  componentFile.text
         component.contains('foo-1.0.jar')
         component.contains('baz-2.0.jar') //forced version
         !component.contains('bar') //excluded
@@ -176,11 +178,13 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
             }
         """
 
+        settingsFile << "rootProject.name = 'root'"
+
         when:
         succeeds('eclipse')
-        def component = componentFile.text
 
         then:
+        def component = componentFile.text
         component.contains('betterDeployName')
         !component.contains('coolDeployName')
         component.contains('<be>cool</be>')
@@ -226,11 +230,13 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
             }
         """
 
+        settingsFile << "rootProject.name = 'root'"
+
         when:
         succeeds('eclipse')
-        def facet = facetFile.text
 
         then:
+        def facet = facetFile.text
         facet.contains('facet.one')
         facet.contains('facet.two')
         facet.contains('facet.three')
@@ -265,11 +271,13 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
             }
         """
 
+        settingsFile << "rootProject.name = 'root'"
+
         when:
         succeeds('eclipse')
-        def component = componentFile.text
 
         then:
+        def component = componentFile.text
         component.contains('foo.txt')
         component.contains('bar.txt')
         !component.contains('baz.txt')
@@ -279,7 +287,6 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
     @Issue("GRADLE-1881")
     def "uses eclipse project name for wtp module dependencies"() {
         given:
-        settingsFile << "include 'impl', 'contrib'"
         buildFile << """
             project(':impl') {
               apply plugin: 'java'
@@ -300,22 +307,23 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
             }
         """
 
+        settingsFile << "include 'impl', 'contrib'"
+
         when:
         succeeds('eclipse')
-        def implComponent = wtpComponent('impl')
-        def contribComponent = wtpComponent('contrib')
 
         then:
+        def implComponent = wtpComponent('impl')
         implComponent.deployName == 'cool-impl'
         implComponent.project('cool-contrib')
+
+        def contribComponent = wtpComponent('contrib')
         contribComponent.deployName == 'cool-contrib'
     }
 
     @Issue("GRADLE-1881")
     def "does not explode if dependent project does not have eclipse plugin"() {
         given:
-        settingsFile << "include 'impl', 'contrib'"
-
         buildFile << """
             project(':impl') {
               apply plugin: 'java'
@@ -331,6 +339,8 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
               apply plugin: 'java'
             }
         """
+
+        settingsFile << "include 'impl', 'contrib'"
 
         when:
         succeeds('eclipse')
@@ -358,14 +368,15 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
             }
         """
 
+        settingsFile << "rootProject.name = 'root'"
+
         when:
         succeeds('eclipse')
-        def component = componentFile.text
 
         then:
+        def component = componentFile.text
         component.contains('xxxSource')
         !component.contains('yyySource')
-
         component.contains('xxxResource')
         !component.contains('yyyResource')
     }
@@ -391,17 +402,17 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
           }
         """
 
+        settingsFile << "rootProject.name = 'root'"
+
         when:
         succeeds('eclipse')
-        def component = getComponentFile().text
 
         then:
+        def component = getComponentFile().text
         component.contains('xxxSource')
         !component.contains('yyySource')
-
         component.contains('xxxResource')
         !component.contains('yyyResource')
-
         !component.contains('nonExistingAppDir')
     }
 
@@ -417,6 +428,8 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
             appDirName = 'coolAppDir'
         """
 
+        settingsFile << "rootProject.name = 'root'"
+
         when:
         succeeds('eclipse')
 
@@ -429,7 +442,6 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
         given:
         //adding a little bit more stress with a subproject and some web resources:
         file("src/main/webapp/index.jsp") << "<html>Hey!</html>"
-        file("settings.gradle") << "include 'someCoolLib'"
 
         buildFile << """
             apply plugin: 'war'
@@ -448,6 +460,8 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
             }
         """
 
+        settingsFile << "include 'someCoolLib'"
+
         when:
         succeeds('eclipse')
 
@@ -462,6 +476,8 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
             apply plugin: 'java' //anything but not war
             apply plugin: 'eclipse-wtp'
         """
+
+        settingsFile << "rootProject.name = 'root'"
 
         when:
         succeeds('eclipse')
@@ -489,16 +505,18 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
             eclipse.pathVariables MY_LIBS: file('libs')
         """
 
+        settingsFile << "rootProject.name = 'root'"
+
         when:
         succeeds('eclipse')
-        def classpath = getClasspath()
-        def component = getWtpComponent()
 
         then:
         //the jar dependency is configured in the WTP component file and in the classpath
+        def classpath = getClasspath()
         classpath.lib('commons-io-1.4.jar').assertIsExcludedFromDeployment()
-        component.lib('commons-io-1.4.jar').assertDeployedAt('/WEB-INF/lib')
 
+        def component = getWtpComponent()
+        component.lib('commons-io-1.4.jar').assertDeployedAt('/WEB-INF/lib')
         classpath.lib('myFoo.jar').assertIsExcludedFromDeployment()
         component.lib('myFoo.jar').assertDeployedAt('/WEB-INF/lib')
     }
@@ -529,6 +547,8 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
             }
         """
 
+        settingsFile << "rootProject.name = 'root'"
+
         when:
         succeeds('eclipse')
 
@@ -540,7 +560,6 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
     def "dependent project's library and variable classpath entries contain necessary dependency attribute"() {
         given:
         file('libs/myFoo.jar').touch()
-        settingsFile << "include 'someLib'"
 
         buildFile << """
             apply plugin: 'war'
@@ -565,11 +584,13 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationSpec {
             }
         """
 
+        settingsFile << "include 'someLib'"
+
         when:
         succeeds('eclipse')
-        def classpath = classpath('someLib')
 
         then:
+        def classpath = classpath('someLib')
         classpath.lib('commons-io-1.4.jar').assertIsDeployedTo('../')
         classpath.lib('myFoo.jar').assertIsDeployedTo('../')
     }
