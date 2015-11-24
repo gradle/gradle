@@ -22,12 +22,18 @@ import java.io.Serializable;
 
 public class DefaultJavaSourceSettings implements Serializable {
     private final JavaVersion sourceLanguageLevel;
+    private final JavaVersion targetLanguageLevel;
 
-    public DefaultJavaSourceSettings(JavaVersion sourceLanguageLevel) {
+    public DefaultJavaSourceSettings(JavaVersion sourceLanguageLevel, JavaVersion targetLanguageLevel) {
         this.sourceLanguageLevel = sourceLanguageLevel;
+        this.targetLanguageLevel = targetLanguageLevel;
     }
 
     public JavaVersion getSourceLanguageLevel() {
         return sourceLanguageLevel;
+    }
+
+    public JavaVersion getTargetLanguageLevel() {
+        return targetLanguageLevel;
     }
 }

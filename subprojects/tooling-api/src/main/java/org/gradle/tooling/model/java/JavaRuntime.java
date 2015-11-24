@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.eclipse;
+package org.gradle.tooling.model.java;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.tooling.model.java.JavaRuntime;
-import org.gradle.tooling.model.java.JavaSourceSettings;
+import java.io.File;
 
-/**
- * Describes Java source settings for an Eclipse project.
- *
- * @since 2.10
- */
 @Incubating
-public interface EclipseJavaSourceSettings extends JavaSourceSettings {
-    JavaRuntime getTargetRuntime();
-    JavaVersion getTargetLanguageLevel();
+public interface JavaRuntime {
+    JavaVersion getJavaVersion();
+    File getHomeDirectory();
 }

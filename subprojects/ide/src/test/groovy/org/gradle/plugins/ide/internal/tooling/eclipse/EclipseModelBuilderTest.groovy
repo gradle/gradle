@@ -164,6 +164,20 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
     }
 
+    def "custom target language level from Java plugin convention"() {
+        given:
+        def modelBuilder = createEclipseModelBuilder()
+        project.plugins.apply(JavaPlugin)
+        project.sourceCompatibility = "1.2"
+
+        when:
+        def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
+
+        then:
+        eclipseModel.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
+    }
+
+
     def "multi-project build can have different source language level per project"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
