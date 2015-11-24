@@ -172,7 +172,6 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void configureAssemble(final ProjectInternal project) {
-        // TODO:REUSE Remove this note if irrelevant
         // Note, this is implicitly retaining the project instance which is a problem for reuse
         project.getModelRegistry().configure(ModelActionRole.Mutate, NoInputsModelAction.of(ModelReference.of("tasks.assemble", Task.class), new SimpleModelRuleDescriptor("BasePlugin#configureAssemble"), new Action<Task>() {
             @Override
