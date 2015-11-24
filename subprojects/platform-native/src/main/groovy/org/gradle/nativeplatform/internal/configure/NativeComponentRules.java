@@ -32,7 +32,6 @@ import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.platform.base.internal.*;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -88,7 +87,7 @@ public class NativeComponentRules extends RuleSource {
 
         for (NativePlatform platform : resolvedPlatforms) {
             BinaryNamingScheme namingScheme = DefaultBinaryNamingScheme.component(nativeComponent.getName());
-            namingScheme = maybeAddDimension(namingScheme, resolvedPlatforms, platform.getName());
+            namingScheme = namingScheme.withVariantDimension(platform, resolvedPlatforms);
             executeForEachBuildType(
                 nativeComponent,
                 (NativePlatformInternal) platform,
@@ -114,13 +113,6 @@ public class NativeComponentRules extends RuleSource {
         });
     }
 
-    private static BinaryNamingScheme maybeAddDimension(BinaryNamingScheme builder, Collection<?> variations, String name) {
-        if (variations.size() > 1) {
-            builder = builder.withVariantDimension(name);
-        }
-        return builder;
-    }
-
     private static void executeForEachBuildType(
         NativeComponentSpec projectNativeComponent,
         NativePlatformInternal platform,
@@ -131,7 +123,7 @@ public class NativeComponentRules extends RuleSource {
     ) {
         Set<BuildType> targetBuildTypes = ((TargetedNativeComponentInternal) projectNativeComponent).chooseBuildTypes(allBuildTypes);
         for (BuildType buildType : targetBuildTypes) {
-            BinaryNamingScheme namingSchemeWithBuildType = maybeAddDimension(namingScheme, targetBuildTypes, buildType.getName());
+            BinaryNamingScheme namingSchemeWithBuildType = namingScheme.withVariantDimension(buildType, targetBuildTypes);
             executeForEachFlavor(
                 projectNativeComponent,
                 platform,
@@ -153,7 +145,7 @@ public class NativeComponentRules extends RuleSource {
     ) {
         Set<Flavor> targetFlavors = ((TargetedNativeComponentInternal) projectNativeComponent).chooseFlavors(allFlavors);
         for (Flavor flavor : targetFlavors) {
-            BinaryNamingScheme namingSchemeWithFlavor = maybeAddDimension(namingScheme, targetFlavors, flavor.getName());
+            BinaryNamingScheme namingSchemeWithFlavor = namingScheme.withVariantDimension(flavor, targetFlavors);
             NativeBinaries.createNativeBinaries(
                 projectNativeComponent,
                 projectNativeComponent.getBinaries().withType(NativeBinarySpec.class),

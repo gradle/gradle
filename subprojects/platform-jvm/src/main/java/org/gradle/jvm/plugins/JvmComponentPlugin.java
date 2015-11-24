@@ -147,9 +147,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         private String buildBinaryName(JvmLibrarySpec jvmLibrary, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
             BinaryNamingScheme namingScheme = DefaultBinaryNamingScheme.component(jvmLibrary.getName()).withRole("jar");
-            if (selectedPlatforms.size() > 1) {
-                namingScheme = namingScheme.withVariantDimension(platform.getName());
-            }
+            namingScheme = namingScheme.withVariantDimension(platform, selectedPlatforms);
             return namingScheme.getBinaryName();
         }
 

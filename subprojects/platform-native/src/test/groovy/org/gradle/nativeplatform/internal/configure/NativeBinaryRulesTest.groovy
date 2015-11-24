@@ -17,11 +17,7 @@
 package org.gradle.nativeplatform.internal.configure
 
 import org.gradle.api.Project
-import org.gradle.nativeplatform.NativeComponentSpec
-import org.gradle.nativeplatform.NativeExecutableFileSpec
-import org.gradle.nativeplatform.NativeExecutableSpec
-import org.gradle.nativeplatform.NativeInstallationSpec
-import org.gradle.nativeplatform.NativeLibrarySpec
+import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
 import org.gradle.nativeplatform.internal.SharedLibraryBinarySpecInternal
@@ -30,7 +26,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.internal.BinaryNamingScheme
+import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -41,7 +37,6 @@ class NativeBinaryRulesTest extends Specification {
 
     def project = Mock(Project)
 
-    def namingScheme = Mock(BinaryNamingScheme)
     def toolProvider = Mock(PlatformToolProvider)
     def platform = Mock(NativePlatformInternal)
     def toolChains = Mock(NativeToolChainRegistryInternal) {
@@ -68,8 +63,8 @@ class NativeBinaryRulesTest extends Specification {
         NativeBinaryRules.assignTools(binary, toolChains, tmpDir.testDirectory)
 
         then:
-        executableFile.file == tmpDir.testDirectory.file("binaries", "output_dir", "exe_name")
-        installation.directory == tmpDir.testDirectory.file("install/output_dir")
+        executableFile.file == tmpDir.testDirectory.file("binaries/comp_name/exe_name")
+        installation.directory == tmpDir.testDirectory.file("install/comp_name")
     }
 
     def "test shared library"() {
@@ -83,8 +78,8 @@ class NativeBinaryRulesTest extends Specification {
         NativeBinaryRules.assignTools(binary, toolChains, tmpDir.testDirectory)
 
         then:
-        1 * binary.setSharedLibraryFile(tmpDir.testDirectory.file("binaries", "output_dir", "shared_library_name"))
-        1 * binary.setSharedLibraryLinkFile(tmpDir.testDirectory.file("binaries", "output_dir", "shared_library_link_name"))
+        1 * binary.setSharedLibraryFile(tmpDir.testDirectory.file("binaries/comp_name/shared_library_name"))
+        1 * binary.setSharedLibraryLinkFile(tmpDir.testDirectory.file("binaries/comp_name/shared_library_link_name"))
     }
 
     def "test static library"() {
@@ -97,7 +92,7 @@ class NativeBinaryRulesTest extends Specification {
         NativeBinaryRules.assignTools(binary, toolChains, tmpDir.testDirectory)
 
         then:
-        1 * binary.setStaticLibraryFile(tmpDir.testDirectory.file("binaries", "output_dir", "static_library_name"))
+        1 * binary.setStaticLibraryFile(tmpDir.testDirectory.file("binaries/comp_name/static_library_name"))
     }
 
     private <T extends NativeBinarySpecInternal> T initBinary(Class<T> type, Class<? extends NativeComponentSpec> componentType) {
@@ -105,11 +100,9 @@ class NativeBinaryRulesTest extends Specification {
         def component = Stub(componentType)
         binary.component >> component
         binary.platformToolProvider >> toolProvider
-        binary.namingScheme >> namingScheme
+        binary.namingScheme >> DefaultBinaryNamingScheme.component("comp_name")
         binary.targetPlatform >> platform
 
-
-        namingScheme.outputDirectoryBase >> "output_dir"
         component.baseName >> "base_name"
         return binary
     }

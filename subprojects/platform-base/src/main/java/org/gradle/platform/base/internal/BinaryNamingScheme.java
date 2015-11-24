@@ -16,8 +16,11 @@
 
 package org.gradle.platform.base.internal;
 
+import org.gradle.api.Named;
 import org.gradle.api.Nullable;
 
+import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 public interface BinaryNamingScheme {
@@ -30,6 +33,8 @@ public interface BinaryNamingScheme {
     String getTaskName(@Nullable String verb, @Nullable String target);
 
     String getOutputDirectoryBase();
+
+    File getOutputDirectory(File baseDir);
 
     String getDescription();
 
@@ -46,7 +51,17 @@ public interface BinaryNamingScheme {
     BinaryNamingScheme withRole(String role);
 
     /**
+     * Creates a copy of this scheme, replacing the output type.
+     */
+    BinaryNamingScheme withOutputType(String type);
+
+    /**
      * Creates a copy of this scheme, <em>adding</em> a variant dimension.
      */
     BinaryNamingScheme withVariantDimension(String dimension);
+
+    /**
+     * Creates a copy of this scheme, <em>adding</em> a variant dimension if required.
+     */
+    <T extends Named> BinaryNamingScheme withVariantDimension(T value, Collection<? extends T> allValuesForAxis);
 }

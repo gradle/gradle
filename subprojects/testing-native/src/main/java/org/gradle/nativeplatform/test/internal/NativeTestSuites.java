@@ -94,11 +94,11 @@ public class NativeTestSuites {
     }
 
     private static File binariesDir(File buildDir, BinaryNamingScheme namingScheme) {
-        return new File(new File(buildDir, "binaries"), namingScheme.getOutputDirectoryBase());
+        return namingScheme.withOutputType("binaries").getOutputDirectory(buildDir);
     }
 
     private static File installDir(File buildDir, BinaryNamingScheme namingScheme) {
-        return new File(new File(buildDir, "install"), namingScheme.getOutputDirectoryBase());
+        return namingScheme.withOutputType("install").getOutputDirectory(buildDir);
     }
 
     private static BinaryNamingScheme namingSchemeFor(NativeTestSuiteSpec testSuite, NativeBinarySpecInternal testedBinary, String typeString) {

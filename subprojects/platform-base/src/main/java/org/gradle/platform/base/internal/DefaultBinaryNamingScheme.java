@@ -16,10 +16,13 @@
 
 package org.gradle.platform.base.internal;
 
+import org.gradle.api.Named;
 import org.gradle.api.Nullable;
 import org.gradle.util.GUtil;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,16 +31,18 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     final String roleName;
     final String dimensionPrefix;
     final List<String> dimensions;
+    private final String outputType;
 
-    public DefaultBinaryNamingScheme(String parentName, String roleName, List<String> dimensions) {
+    public DefaultBinaryNamingScheme(String parentName, String roleName, List<String> dimensions, String outputType) {
         this.parentName = parentName;
         this.roleName = roleName;
         this.dimensions = dimensions;
+        this.outputType = outputType;
         this.dimensionPrefix = createPrefix(dimensions);
     }
 
     public static BinaryNamingScheme component(String componentName) {
-        return new DefaultBinaryNamingScheme(componentName, "", Collections.<String>emptyList());
+        return new DefaultBinaryNamingScheme(componentName, null, Collections.<String>emptyList(), null);
     }
 
     @Override
@@ -45,17 +50,30 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
         List<String> newDimensions = new ArrayList<String>(dimensions.size() + 1);
         newDimensions.addAll(dimensions);
         newDimensions.add(dimension);
-        return new DefaultBinaryNamingScheme(parentName, roleName, newDimensions);
+        return new DefaultBinaryNamingScheme(parentName, roleName, newDimensions, null);
+    }
+
+    @Override
+    public <T extends Named> BinaryNamingScheme withVariantDimension(T value, Collection<? extends T> allValuesForAxis) {
+        if (allValuesForAxis.size() == 1) {
+            return this;
+        }
+        return withVariantDimension(value.getName());
     }
 
     @Override
     public BinaryNamingScheme withRole(String role) {
-        return new DefaultBinaryNamingScheme(parentName, role, dimensions);
+        return new DefaultBinaryNamingScheme(parentName, role, dimensions, null);
     }
 
     @Override
     public BinaryNamingScheme withComponentName(String componentName) {
-        return new DefaultBinaryNamingScheme(componentName, roleName, dimensions);
+        return new DefaultBinaryNamingScheme(componentName, roleName, dimensions, null);
+    }
+
+    @Override
+    public BinaryNamingScheme withOutputType(String type) {
+        return new DefaultBinaryNamingScheme(parentName, roleName, dimensions, type);
     }
 
     private String createPrefix(List<String> dimensions) {
@@ -74,12 +92,22 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     public String getOutputDirectoryBase() {
-        StringBuilder builder = new StringBuilder(makeName(parentName, roleName));
+        StringBuilder builder = new StringBuilder();
+        if (outputType != null) {
+            builder.append(outputType);
+            builder.append('/');
+        }
+        builder.append(makeName(parentName, roleName));
         if (dimensionPrefix.length() > 0) {
             builder.append('/');
             builder.append(dimensionPrefix);
         }
         return builder.toString();
+    }
+
+    @Override
+    public File getOutputDirectory(File baseDir) {
+        return new File(baseDir, getOutputDirectoryBase());
     }
 
     public String getDescription() {

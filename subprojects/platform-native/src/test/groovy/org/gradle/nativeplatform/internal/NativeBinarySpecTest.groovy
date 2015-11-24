@@ -141,7 +141,7 @@ class NativeBinarySpecTest extends Specification {
     }
 
     def testBinary(MutableModelNode componentNode, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        TestNativeBinariesFactory.create(TestNativeBinarySpec, "test", Mock(ITaskFactory), componentNode, new DefaultBinaryNamingScheme("baseName", "", []), resolver
+        TestNativeBinariesFactory.create(TestNativeBinarySpec, "test", Mock(ITaskFactory), componentNode, DefaultBinaryNamingScheme.component("baseName"), resolver
             , platform1, buildType1, flavor)
     }
 

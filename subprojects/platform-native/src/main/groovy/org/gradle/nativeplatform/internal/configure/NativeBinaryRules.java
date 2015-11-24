@@ -18,13 +18,9 @@ package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeExecutableBinarySpec;
-import org.gradle.nativeplatform.SharedLibraryBinarySpec;
-import org.gradle.nativeplatform.StaticLibraryBinarySpec;
+import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.NativeExecutableFileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -104,7 +100,7 @@ public class NativeBinaryRules extends RuleSource {
     }
 
     private static File outputDirectoryFor(NativeBinarySpecInternal nativeBinary, File buildDir, String purpose) {
-        return new File(new File(buildDir, purpose), nativeBinary.getNamingScheme().getOutputDirectoryBase());
+        return nativeBinary.getNamingScheme().withOutputType(purpose).getOutputDirectory(buildDir);
     }
 
     private static String executableNameFor(NativeBinarySpecInternal nativeBinary) {

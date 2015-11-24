@@ -33,7 +33,7 @@ import spock.lang.Specification
 
 class DefaultNativeExecutableBinarySpecTest extends Specification {
     def registry = new ModelRegistryHelper()
-    def namingScheme = new DefaultBinaryNamingScheme("bigOne", "executable", [])
+    def namingScheme = DefaultBinaryNamingScheme.component("bigOne").withRole("executable")
     def taskFactory = Mock(ITaskFactory)
     def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, taskFactory))
 

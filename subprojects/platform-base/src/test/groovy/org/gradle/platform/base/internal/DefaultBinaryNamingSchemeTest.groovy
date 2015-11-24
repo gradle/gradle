@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.internal
 
+import org.gradle.api.Named
 import spock.lang.Specification
 
 class DefaultBinaryNamingSchemeTest extends Specification {
@@ -59,17 +60,21 @@ class DefaultBinaryNamingSchemeTest extends Specification {
     }
 
     def "generates output directory"() {
-        def namingScheme = createNamingScheme(parentName, "executable", dimensions)
+        def namingScheme = createNamingScheme(parentName, role, dimensions, outputType)
 
         expect:
         namingScheme.outputDirectoryBase == outputDir
 
         where:
-        parentName    | dimensions                                 | outputDir
-        "test"        | []                                         | "testExecutable"
-        "test"        | ["one", "two"]                             | "testExecutable/oneTwo"
-        "mainLibrary" | ["enterpriseEdition", "osx_x64", "static"] | "mainLibraryExecutable/enterpriseEditionOsx_x64Static"
-        "mainLibrary" | ["EnterpriseEdition", "Osx_x64", "Static"] | "mainLibraryExecutable/enterpriseEditionOsx_x64Static"
+        parentName    | role         | dimensions                                 | outputType | outputDir
+        "test"        | null         | []                                         | null       | "test"
+        "test"        | null         | ["one", "two"]                             | null       | "test/oneTwo"
+        "test"        | null         | []                                         | "jars"     | "jars/test"
+        "test"        | "executable" | []                                         | null       | "testExecutable"
+        "test"        | "executable" | ["one", "two"]                             | null       | "testExecutable/oneTwo"
+        "mainLibrary" | "executable" | ["enterpriseEdition", "osx_x64", "static"] | null       | "mainLibraryExecutable/enterpriseEditionOsx_x64Static"
+        "mainLibrary" | "executable" | ["EnterpriseEdition", "Osx_x64", "Static"] | null       | "mainLibraryExecutable/enterpriseEditionOsx_x64Static"
+        "mainLibrary" | "executable" | ["EnterpriseEdition", "Osx_x64", "Static"] | "exes"     | "exes/mainLibraryExecutable/enterpriseEditionOsx_x64Static"
     }
 
     def "generates description"() {
@@ -94,9 +99,27 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         original.withComponentName("other").outputDirectoryBase == "otherRole/dim1"
         original.withRole("other").outputDirectoryBase == "parentOther/dim1"
         original.withVariantDimension("dim2").outputDirectoryBase == "parentRole/dim1Dim2"
+        original.withOutputType("output").outputDirectoryBase == "output/parentRole/dim1"
     }
 
-    private BinaryNamingScheme createNamingScheme(def parentName, def role, def dimensions) {
-        return new DefaultBinaryNamingScheme(parentName, role, dimensions)
+    def "ignores variant dimension with only one value"() {
+        def original = createNamingScheme("parent", "role", [])
+        def a = named("a")
+        def b = named("b")
+        def c = named("c")
+
+        expect:
+        def scheme = original.withVariantDimension(a, [a, b]).withVariantDimension(c, [c])
+        scheme.variantDimensions == ["a"]
+    }
+
+    private BinaryNamingScheme createNamingScheme(def parentName, def role, def dimensions, def outputType = null) {
+        return new DefaultBinaryNamingScheme(parentName, role, dimensions, outputType)
+    }
+
+    private Named named(String name) {
+        return Stub(Named) {
+            getName() >> name
+        }
     }
 }

@@ -39,7 +39,7 @@ import spock.lang.Specification
 class DefaultSharedLibraryBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir
-    def namingScheme = new DefaultBinaryNamingScheme("main", "sharedLibrary", [])
+    def namingScheme = DefaultBinaryNamingScheme.component("main").withRole("sharedLibrary")
     final toolChain = Stub(NativeToolChainInternal)
     final platform = Stub(NativePlatform)
     final buildType = Stub(BuildType)
