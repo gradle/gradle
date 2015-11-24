@@ -99,7 +99,7 @@ class ModelSchemaUtilsTest extends Specification {
 
     def "gets overridden methods from single type"() {
         expect:
-        def overridden = ModelSchemaUtils.getCandidateMethods(TypeWithOverloadedMethods).overridenMethodsNamed("someOverloadedMethod")
+        def overridden = ModelSchemaUtils.getCandidateMethods(TypeWithOverloadedMethods).overriddenMethodsNamed("someOverloadedMethod")
         overridden == null
     }
 
@@ -119,7 +119,7 @@ class ModelSchemaUtilsTest extends Specification {
 
     def "gets overridden methods from type hierachy"() {
         expect:
-        def overridden = ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).overridenMethodsNamed("someOverloadedMethod")
+        def overridden = ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).overriddenMethodsNamed("someOverloadedMethod")
         overridden.size() == 2
         overridden.values()[0].size() == 2
         overridden.values()[0]*.name == ["someOverloadedMethod", "someOverloadedMethod"]
@@ -131,9 +131,9 @@ class ModelSchemaUtilsTest extends Specification {
         overridden.values()[1]*.returnType == [String, String]
     }
 
-    def "gets covariant return type overriden methods from type hierarchy"() {
+    def "gets covariant return type overridden methods from type hierarchy"() {
         expect:
-        def overridden = ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).overridenMethodsNamed("someOverriddenCovariantMethod")
+        def overridden = ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).overriddenMethodsNamed("someOverriddenCovariantMethod")
         overridden.size() == 1
         overridden.values()[0].size() == 2
         overridden.values()[0]*.name == ["someOverriddenCovariantMethod", "someOverriddenCovariantMethod"]

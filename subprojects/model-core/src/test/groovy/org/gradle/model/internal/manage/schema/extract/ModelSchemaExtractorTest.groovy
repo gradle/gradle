@@ -1529,7 +1529,7 @@ interface Managed${typeName} {
         @Override ByteArrayInputStream doSomething(Object param, Object other)
     }
 
-    def "reject overloaded non-property methods from managed supertype overriden in managed type"() {
+    def "reject overloaded non-property methods from managed supertype overridden in managed type"() {
         expect:
         fail ManagedTypeExtendingManagedTypeWithOverloadedMethod, "overridden methods not supported"
     }

@@ -194,7 +194,7 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
                 }
             }
             if (nonPropertyMethodsWithEqualSignature.size() > 1 && !isMethodDeclaredInManagedType(Iterables.getLast(nonPropertyMethodsWithEqualSignature))) {
-                // TODO:PM here we allows unmanaged non-property methods overriden in managed type as their implementation should be provided by an unmanaged super-type default implementation, not enough context to validate this here
+                // TODO:PM here we allows unmanaged non-property methods overridden in managed type as their implementation should be provided by an unmanaged super-type default implementation, not enough context to validate this here
                 return;
             }
             throw invalidMethods(context, "only paired getter/setter methods are supported", nonPropertyMethodsWithEqualSignature);
