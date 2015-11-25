@@ -99,8 +99,7 @@ class ModelSchemaUtilsTest extends Specification {
 
     def "gets overridden methods from single type"() {
         expect:
-        def overridden = ModelSchemaUtils.getCandidateMethods(TypeWithOverloadedMethods).overriddenMethodsNamed("someOverloadedMethod")
-        overridden == null
+        ModelSchemaUtils.getCandidateMethods(TypeWithOverloadedMethods).overriddenMethodsNamed("someOverloadedMethod").isEmpty()
     }
 
     def "gets overloaded methods from a single type"() {

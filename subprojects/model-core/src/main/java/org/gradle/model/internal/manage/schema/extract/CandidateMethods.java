@@ -20,10 +20,10 @@ import com.google.common.base.Equivalence;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.*;
-import org.gradle.api.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 public class CandidateMethods {
@@ -37,7 +37,7 @@ public class CandidateMethods {
     /**
      * @return TRUE if no candidate methods, FALSE otherwise
      */
-    public boolean isEmpty() {
+    boolean isEmpty() {
         return candidates.isEmpty();
     }
 
@@ -63,9 +63,11 @@ public class CandidateMethods {
      * @param methodName Method name
      * @return Candidate methods named {@literal methodName} or {@literal null} if none
      */
-    @Nullable
-    public Map<Equivalence.Wrapper<Method>, Collection<Method>> methodsNamed(String methodName) {
-        return candidates.get(methodName);
+    Map<Equivalence.Wrapper<Method>, Collection<Method>> methodsNamed(String methodName) {
+        if (candidates.containsKey(methodName)) {
+            return candidates.get(methodName);
+        }
+        return Collections.<Equivalence.Wrapper<Method>, Collection<Method>>emptyMap();
     }
 
     /**
@@ -73,36 +75,16 @@ public class CandidateMethods {
      * @return Overridden candidate methods named {@literal methodName} indexed by signature equivalence or
      * {@literal null} if none
      */
-    @Nullable
     public Map<Equivalence.Wrapper<Method>, Collection<Method>> overriddenMethodsNamed(String methodName) {
         if (candidates.containsKey(methodName)) {
-            Map<Equivalence.Wrapper<Method>, Collection<Method>> result = Maps.filterValues(candidates.get(methodName), new Predicate<Collection<Method>>() {
+            return Maps.filterValues(candidates.get(methodName), new Predicate<Collection<Method>>() {
                 @Override
                 public boolean apply(Collection<Method> equivalentMethods) {
                     return equivalentMethods.size() > 1;
                 }
             });
-            if (!result.isEmpty()) {
-                return result;
-            }
         }
-        return null;
-    }
-
-    /**
-     * @param methodName Method name
-     * @return Overloaded candidate methods named {@literal methodName} indexed by signature equivalence or
-     * {@literal null} if none
-     */
-    @Nullable
-    public Map<Equivalence.Wrapper<Method>, Collection<Method>> overloadedMethodsNamed(String methodName) {
-        if (candidates.containsKey(methodName)) {
-            Map<Equivalence.Wrapper<Method>, Collection<Method>> overloadeds = candidates.get(methodName);
-            if (overloadeds.size() > 1) {
-                return overloadeds;
-            }
-        }
-        return null;
+        return Collections.<Equivalence.Wrapper<Method>, Collection<Method>>emptyMap();
     }
 
     /**
@@ -111,15 +93,22 @@ public class CandidateMethods {
      * @return Overloaded candidate methods named {@literal methodName} indexed by signature equivalence except thoses
      * matching any of the signature equivalence provided in {@literal excludes} or {@literal null} if none
      */
-    @Nullable
     public Map<Equivalence.Wrapper<Method>, Collection<Method>> overloadedMethodsNamed(String methodName, Collection<Equivalence.Wrapper<Method>> excludes) {
-        Map<Equivalence.Wrapper<Method>, Collection<Method>> allOverloaded = overloadedMethodsNamed(methodName);
-        if (allOverloaded != null) {
-            Map<Equivalence.Wrapper<Method>, Collection<Method>> filteredOverloaded = Maps.filterKeys(allOverloaded, Predicates.not(Predicates.in(excludes)));
-            if (!filteredOverloaded.isEmpty()) {
-                return filteredOverloaded;
+        return Maps.filterKeys(overloadedMethodsNamed(methodName), Predicates.not(Predicates.in(excludes)));
+    }
+
+    /**
+     * @param methodName Method name
+     * @return Overloaded candidate methods named {@literal methodName} indexed by signature equivalence or
+     * {@literal null} if none
+     */
+    Map<Equivalence.Wrapper<Method>, Collection<Method>> overloadedMethodsNamed(String methodName) {
+        if (candidates.containsKey(methodName)) {
+            Map<Equivalence.Wrapper<Method>, Collection<Method>> overloadeds = candidates.get(methodName);
+            if (overloadeds.size() > 1) {
+                return overloadeds;
             }
         }
-        return null;
+        return Collections.<Equivalence.Wrapper<Method>, Collection<Method>>emptyMap();
     }
 }
