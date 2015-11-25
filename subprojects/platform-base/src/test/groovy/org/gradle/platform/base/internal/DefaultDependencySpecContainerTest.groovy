@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.internal
 
+import org.gradle.api.IllegalDependencyNotation
 import org.gradle.platform.base.ModuleDependencySpec
 import spock.lang.Specification
 import spock.lang.Subject
@@ -57,5 +58,21 @@ class DefaultDependencySpecContainerTest extends Specification {
         id          | group | name | version
         "g1:m1:1.0" | "g1"  | "m1" | "1.0"
         "g1:m1"     | "g1"  | "m1" | null    // version is optional
+    }
+
+    @Unroll
+    def "throws IllegalDependencyNotation when given shorthand notation containing #description"() {
+        when:
+        container.module(notation)
+
+        then:
+        IllegalDependencyNotation error = thrown()
+        error.message.contains("'$notation' is not a valid module dependency notation. Example notations: 'org.gradle:gradle-core:2.2', 'org.mockito:mockito-core'.")
+
+        where:
+        description           | notation
+        'missing group'       | ':foo'
+        'missing module name' | 'foo:'
+        'too many components' | 'foo:bar:baz:gazonk'
     }
 }
