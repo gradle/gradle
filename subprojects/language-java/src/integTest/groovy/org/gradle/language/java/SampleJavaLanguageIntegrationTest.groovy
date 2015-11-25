@@ -46,7 +46,7 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds("assemble")
 
         then:
-        new JarTestFixture(quickstart.dir.file("build/jars/mainJar/main.jar")).hasDescendants(
+        new JarTestFixture(quickstart.dir.file("build/jars/main/jar/main.jar")).hasDescendants(
                 "org/gradle/Person.class", "org/gradle/resource.xml"
         )
     }
@@ -59,17 +59,17 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds("assemble")
 
         then: "the Java 5 version of the jar doesn't include any Java 6 class"
-        new JarTestFixture(platformAware.dir.file("core/build/jars/mainJava5Jar/main.jar")).hasDescendants(
+        new JarTestFixture(platformAware.dir.file("core/build/jars/main/java5Jar/main.jar")).hasDescendants(
             "org/gradle/Person.class", "org/gradle/resource.xml"
         )
 
         and: "the Java 6 jar contains the Person6 class"
-        new JarTestFixture(platformAware.dir.file("core/build/jars/mainJava6Jar/main.jar")).hasDescendants(
+        new JarTestFixture(platformAware.dir.file("core/build/jars/main/java6Jar/main.jar")).hasDescendants(
             "org/gradle/Person.class", "org/gradle/Person6.class", "org/gradle/resource.xml"
         )
 
         and:
-        new JarTestFixture(platformAware.dir.file("server/build/jars/mainJava6Jar/main.jar")).hasDescendants(
+        new JarTestFixture(platformAware.dir.file("server/build/jars/main/java6Jar/main.jar")).hasDescendants(
             "org/gradle/Server.class"
         )
     }
@@ -82,22 +82,22 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds("assemble")
 
         then:
-        new JarTestFixture(multicomponent.dir.file("build/jars/clientJar/client.jar")).hasDescendants(
+        new JarTestFixture(multicomponent.dir.file("build/jars/client/jar/client.jar")).hasDescendants(
             "org/gradle/Client.class"
         )
 
         and:
-        new JarTestFixture(multicomponent.dir.file("build/jars/serverJar/server.jar")).hasDescendants(
+        new JarTestFixture(multicomponent.dir.file("build/jars/server/jar/server.jar")).hasDescendants(
             "org/gradle/PersonServer.class"
         )
 
         and:
-        new JarTestFixture(multicomponent.dir.file("build/jars/coreJar/core.jar")).hasDescendants(
+        new JarTestFixture(multicomponent.dir.file("build/jars/core/jar/core.jar")).hasDescendants(
             "org/gradle/Person.class", "org/gradle/resource.xml"
         )
 
         and:
-        new JarTestFixture(multicomponent.dir.file("util/build/jars/mainJar/main.jar")).hasDescendants(
+        new JarTestFixture(multicomponent.dir.file("util/build/jars/main/jar/main.jar")).hasDescendants(
             "org/gradle/Utils.class"
         )
     }
@@ -110,20 +110,20 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':mainJar', ':clientJar'
 
         then:
-        new JarTestFixture(apiSpec.dir.file("build/jars/mainJar/main.jar")).hasDescendants(
+        new JarTestFixture(apiSpec.dir.file("build/jars/main/jar/main.jar")).hasDescendants(
             "org/gradle/Person.class",
             "org/gradle/utils/StringUtils.class",
             "org/gradle/internal/PersonInternal.class",
             "org/gradle/resource.xml"
         )
 
-        new JarTestFixture(apiSpec.dir.file("build/jars/mainApiJar/main.jar")).hasDescendants(
+        new JarTestFixture(apiSpec.dir.file("build/jars/main/jar/api/main.jar")).hasDescendants(
             "org/gradle/Person.class",
             "org/gradle/utils/StringUtils.class"
         )
 
         and:
-        new JarTestFixture(apiSpec.dir.file("build/jars/clientJar/client.jar")).hasDescendants(
+        new JarTestFixture(apiSpec.dir.file("build/jars/client/jar/client.jar")).hasDescendants(
             "org/gradle/Client.class"
         )
 

@@ -36,6 +36,8 @@ public class JarBinaryRenderer extends AbstractJvmBinaryRenderer<JarBinarySpec> 
 
     @Override
     protected void renderOutputs(JarBinarySpec binary, TextReportBuilder builder) {
+        super.renderOutputs(binary, builder);
+        builder.item("API Jar file", binary.getApiJarFile());
         builder.item("Jar file", binary.getJarFile());
     }
 }

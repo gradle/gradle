@@ -119,7 +119,7 @@ model {
 
         then:
         executed ":lib1ApiJar", ":lib2ApiJar"
-        new JarTestFixture(file("build/jars/sampleLibJar/sampleLib.jar")).hasDescendants(
+        new JarTestFixture(file("build/jars/sampleLib/jar/sampleLib.jar")).hasDescendants(
             "Sample.class",
             "sample.properties",
 

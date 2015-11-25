@@ -30,4 +30,10 @@ public abstract class AbstractJvmBinaryRenderer<T extends JvmBinarySpec> extends
     protected void renderDetails(T binary, TextReportBuilder builder) {
         builder.item("tool chain", binary.getToolChain().getDisplayName());
     }
+
+    @Override
+    protected void renderOutputs(T binary, TextReportBuilder builder) {
+        builder.item("classes dir", binary.getClassesDir());
+        builder.item("resources dir", binary.getResourcesDir());
+    }
 }

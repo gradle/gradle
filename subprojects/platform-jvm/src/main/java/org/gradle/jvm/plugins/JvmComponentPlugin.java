@@ -104,11 +104,12 @@ public class JvmComponentPlugin implements Plugin<Project> {
             final Collection<DependencySpec> apiDependencies = apiDependenciesOf(jvmLibrary);
             final Collection<DependencySpec> dependencies = componentDependenciesOf(jvmLibrary);
             for (final JavaPlatform platform : selectedPlatforms) {
-                String binaryName = buildBinaryName(jvmLibrary, selectedPlatforms, platform);
-                binaries.create(binaryName, new Action<JarBinarySpec>() {
+                final BinaryNamingScheme namingScheme = namingSchemeFor(jvmLibrary, selectedPlatforms, platform);
+                binaries.create(namingScheme.getBinaryName(), new Action<JarBinarySpec>() {
                     @Override
                     public void execute(JarBinarySpec jarBinarySpec) {
                         JarBinarySpecInternal jarBinary = (JarBinarySpecInternal) jarBinarySpec;
+                        jarBinary.setNamingScheme(namingScheme);
                         jarBinary.setTargetPlatform(platform);
                         jarBinary.setExportedPackages(exportedPackages);
                         jarBinary.setApiDependencies(apiDependencies);
@@ -145,12 +146,11 @@ public class JvmComponentPlugin implements Plugin<Project> {
             return jvmLibrary.getDependencies().getDependencies();
         }
 
-        private String buildBinaryName(JvmLibrarySpec jvmLibrary, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
-            BinaryNamingScheme namingScheme = DefaultBinaryNamingScheme.component(jvmLibrary.getName())
+        private BinaryNamingScheme namingSchemeFor(JvmLibrarySpec jvmLibrary, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
+            return DefaultBinaryNamingScheme.component(jvmLibrary.getName())
                     .withBinaryType("Jar")
                     .withRole("jar", true)
                     .withVariantDimension(platform, selectedPlatforms);
-            return namingScheme.getBinaryName();
         }
 
         @BinaryTasks

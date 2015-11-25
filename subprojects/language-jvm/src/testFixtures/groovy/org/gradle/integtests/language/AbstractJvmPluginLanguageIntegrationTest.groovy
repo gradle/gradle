@@ -143,7 +143,7 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         executed ":createMyLibJar", ":myLibJar"
 
         and:
-        def jar = new JarTestFixture(file("build/jars/myLibJar/myLib.jar"))
+        def jar = new JarTestFixture(file("build/jars/myLib/jar/myLib.jar"))
         jar.hasDescendants()
     }
 
