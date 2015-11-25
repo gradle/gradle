@@ -56,6 +56,11 @@ class NativeScenarioPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(*tasks).useDaemon().disableDaemonLogging()
             }
         }
+        runner.buildSpec {
+            projectName("${size}ScenarioNative").displayName("with tooling api").invocation {
+                tasksToRun(*tasks).useToolingApi()
+            }
+        }
 
         then:
         runner.run()
