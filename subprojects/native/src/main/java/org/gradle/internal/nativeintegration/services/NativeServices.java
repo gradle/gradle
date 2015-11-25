@@ -61,29 +61,31 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     public static synchronized void initialize(File userHomeDir, boolean initializeJNA) {
-        String overrideProperty = System.getProperty(NATIVE_DIR_OVERRIDE);
-        File nativeDir;
-        if (overrideProperty == null) {
-            nativeDir = new File(userHomeDir, "native");
-        } else {
-            nativeDir = new File(overrideProperty);
-        }
-        if (useNativePlatform) {
-            try {
-                net.rubygrapefruit.platform.Native.init(nativeDir);
-            } catch (NativeIntegrationUnavailableException ex) {
-                LOGGER.debug("Native-platform is not available.");
-                useNativePlatform = false;
-            } catch (NativeException ex) {
-                LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
-                useNativePlatform = false;
+        if (!initialized) {
+            String overrideProperty = System.getProperty(NATIVE_DIR_OVERRIDE);
+            File nativeDir;
+            if (overrideProperty == null) {
+                nativeDir = new File(userHomeDir, "native");
+            } else {
+                nativeDir = new File(overrideProperty);
             }
+            if (useNativePlatform) {
+                try {
+                    net.rubygrapefruit.platform.Native.init(nativeDir);
+                } catch (NativeIntegrationUnavailableException ex) {
+                    LOGGER.debug("Native-platform is not available.");
+                    useNativePlatform = false;
+                } catch (NativeException ex) {
+                    LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
+                    useNativePlatform = false;
+                }
+            }
+            if (OperatingSystem.current().isWindows() && initializeJNA) {
+                // JNA is still being used by jansi
+                new JnaBootPathConfigurer().configure(nativeDir);
+            }
+            initialized = true;
         }
-        if (OperatingSystem.current().isWindows() && initializeJNA) {
-            // JNA is still being used by jansi
-            new JnaBootPathConfigurer().configure(nativeDir);
-        }
-        initialized = true;
     }
 
     public static synchronized NativeServices getInstance() {
