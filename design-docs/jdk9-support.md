@@ -150,7 +150,7 @@ If a component doesn't declare an API, produce a stubbed API jar like in the cas
 - API jar is a stubbed jar
 - Building the API jar should not trigger generation of the runtime jar
 
-As part of this story, we should check that the performance tests that prove that incremental builds are faster. In particular, the tests found in `JavaSoftwareModelCompileAvoidancePerformanceTest` should perform significantly faster for the `WithoutApi` cases.
+As part of this story, we should ensure that the performance tests that prove that incremental builds are faster, get even faster. In particular, the tests found in `JavaSoftwareModelCompileAvoidancePerformanceTest` should perform significantly faster for the `WithoutApi` cases.
 
 - because downstream dependencies are not recompiled when the API signature doesn't change
 - because it is done independently of the fact a component declares an API or not
