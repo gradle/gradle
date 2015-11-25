@@ -494,7 +494,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         """
         run "mainExecutable"
 
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/exe/main/main")
         executable.assertDebugFileExists()
 
         when:
