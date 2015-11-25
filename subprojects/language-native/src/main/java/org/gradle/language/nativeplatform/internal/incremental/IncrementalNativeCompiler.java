@@ -17,6 +17,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
@@ -80,7 +81,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
             logger.info("The path to some #include files could not be determined.  Falling back to slow path which includes all files in the include search path as inputs for {}.", task.getName());
             for (final File includeRoot : spec.getIncludeRoots()) {
                 logger.info("adding {} to discovered inputs for {}", includeRoot, task.getName());
-                spec.getIncrementalInputs().newInput(includeRoot);
+                ((IncrementalTaskInputsInternal)spec.getIncrementalInputs()).newInput(includeRoot);
             }
         }
 
