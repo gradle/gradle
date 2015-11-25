@@ -15,16 +15,23 @@
  */
 package org.gradle.internal.resource.transport.http
 
+import org.apache.http.HttpHeaders
 import org.apache.http.auth.AuthScope
-import org.apache.http.impl.client.DefaultHttpClient
-import org.apache.http.params.HttpProtocolParams
+import org.apache.http.auth.AuthState
+import org.apache.http.auth.AuthProtocolState
+import org.apache.http.client.CredentialsProvider
+import org.apache.http.client.HttpClient
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.client.protocol.HttpClientContext
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.authentication.AllSchemesAuthentication
 import org.gradle.internal.resource.UriResource
 import spock.lang.Specification
 
 public class HttpClientConfigurerTest extends Specification {
-    DefaultHttpClient httpClient = new DefaultHttpClient()
+    HttpClient httpClient = null
+    HttpClientContext context = null
+    HttpGet httpget = new HttpGet("http://localhost/stuff")
     PasswordCredentials credentials = Mock()
     AllSchemesAuthentication authentication = Mock() {
         getCredentials() >> credentials
@@ -38,7 +45,10 @@ public class HttpClientConfigurerTest extends Specification {
         httpSettings.proxySettings >> proxySettings
 
         when:
-        configurer.configure(httpClient)
+        httpClient = configurer.createAndConfigureClient()
+        context = HttpClientContext.create()
+        httpClient.execute(httpget, context)
+        CredentialsProvider credentialsProvider = (CredentialsProvider) context.getAttribute(HttpClientContext.CREDS_PROVIDER)
 
         then:
         !httpClient.getHttpRequestRetryHandler().retryRequest(new IOException(), 1, null)
@@ -47,19 +57,22 @@ public class HttpClientConfigurerTest extends Specification {
     def "configures http client with proxy credentials"() {
         httpSettings.authenticationSettings >> []
         httpSettings.proxySettings >> proxySettings
-        proxySettings.proxy >> new HttpProxySettings.HttpProxy("host", 1111, "domain/proxyUser", "proxyPass")
+        proxySettings.proxy >> new HttpProxySettings.HttpProxy("host", 1111, "DOMAIN\\proxyUser", "proxyPass")
 
         when:
-        configurer.configure(httpClient)
+        httpClient = configurer.createAndConfigureClient()
+        context = HttpClientContext.create()
+        httpClient.execute(httpget, context)
 
         then:
-        def proxyCredentials = httpClient.getCredentialsProvider().getCredentials(new AuthScope("host", 1111))
-        proxyCredentials.userPrincipal.name == "domain/proxyUser"
+        CredentialsProvider credentialsProvider = (CredentialsProvider) context.getAttribute(HttpClientContext.CREDS_PROVIDER)
+        def proxyCredentials = credentialsProvider.getCredentials(new AuthScope("host", 1111))
+        proxyCredentials.userPrincipal.name == "DOMAIN\\proxyUser"
         proxyCredentials.password == "proxyPass"
 
         and:
-        def ntlmCredentials = httpClient.getCredentialsProvider().getCredentials(new AuthScope("host", 1111, AuthScope.ANY_REALM, "ntlm"))
-        ntlmCredentials.userPrincipal.name == 'DOMAIN/proxyUser'
+        def ntlmCredentials = credentialsProvider.getCredentials(new AuthScope("host", 1111, AuthScope.ANY_REALM, "ntlm"))
+        ntlmCredentials.userPrincipal.name == 'DOMAIN\\proxyUser'
         ntlmCredentials.domain == 'DOMAIN'
         ntlmCredentials.userName == 'proxyUser'
         ntlmCredentials.password == 'proxyPass'
@@ -73,16 +86,19 @@ public class HttpClientConfigurerTest extends Specification {
         httpSettings.proxySettings >> proxySettings
 
         when:
-        configurer.configure(httpClient)
+        httpClient = configurer.createAndConfigureClient()
+        context = HttpClientContext.create();
+        httpClient.execute(httpget, context);
 
         then:
-        def basicCredentials = httpClient.getCredentialsProvider().getCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT))
-        basicCredentials.userPrincipal.name == "domain/user"
+        CredentialsProvider credentialsProvider = (CredentialsProvider) context.getAttribute(HttpClientContext.CREDS_PROVIDER);
+        def basicCredentials = credentialsProvider.getCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT))
+        basicCredentials.userPrincipal.name == "DOMAIN\\user"
         basicCredentials.password == "pass"
 
         and:
-        def ntlmCredentials = httpClient.getCredentialsProvider().getCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, AuthScope.ANY_REALM, "ntlm"))
-        ntlmCredentials.userPrincipal.name == 'DOMAIN/user'
+        def ntlmCredentials = credentialsProvider.getCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, AuthScope.ANY_REALM, "ntlm"))
+        ntlmCredentials.userPrincipal.name == 'DOMAIN\\user'
         ntlmCredentials.domain == 'DOMAIN'
         ntlmCredentials.userName == 'user'
         ntlmCredentials.password == 'pass'
@@ -97,9 +113,13 @@ public class HttpClientConfigurerTest extends Specification {
         httpSettings.proxySettings >> proxySettings
 
         when:
-        configurer.configure(httpClient)
+        httpClient = configurer.createAndConfigureClient()
+        context = HttpClientContext.create();
+        httpClient.execute(httpget, context);
 
         then:
-        HttpProtocolParams.getUserAgent(httpClient.params) == UriResource.userAgentString
+        AuthState authState = (AuthState) context.getAttribute(HttpClientContext.TARGET_AUTH_STATE);
+        authState.getState() == AuthProtocolState.UNCHALLENGED
+        context.getRequest().getFirstHeader(HttpHeaders.USER_AGENT).getValue() == UriResource.userAgentString
     }
 }
