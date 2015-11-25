@@ -165,6 +165,7 @@ ${globalExclusions(this.effectivePom)}
         if (buildFile.exists()) {
             buildFile.renameTo(new File("build.gradle.bak"))
         }
+        logger.debug("writing build.gradle file at ${buildFile.absolutePath}");
         buildFile.text = build
     }
 
