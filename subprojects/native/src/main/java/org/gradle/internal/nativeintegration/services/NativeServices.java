@@ -69,15 +69,15 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             nativeDir = new File(overrideProperty);
         }
         if (useNativePlatform) {
-//            try {
+            try {
                 net.rubygrapefruit.platform.Native.init(nativeDir);
-//            } catch (NativeIntegrationUnavailableException ex) {
-//                LOGGER.debug("Native-platform is not available.");
-//                useNativePlatform = false;
-//            } catch (NativeException ex) {
-//                LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
-//                useNativePlatform = false;
-//            }
+            } catch (NativeIntegrationUnavailableException ex) {
+                LOGGER.debug("Native-platform is not available.");
+                useNativePlatform = false;
+            } catch (NativeException ex) {
+                LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
+                useNativePlatform = false;
+            }
         }
         if (OperatingSystem.current().isWindows() && initializeJNA) {
             // JNA is still being used by jansi
