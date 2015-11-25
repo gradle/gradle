@@ -126,6 +126,7 @@ Root project 'webinar-parent'
 
     def "singleModule"() {
         when:
+        executer.withArgument("-d")
         run 'init'
 
         then:
