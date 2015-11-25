@@ -46,6 +46,7 @@ class BaseBinarySpecTest extends Specification {
         binary.name == "sampleBinary"
         binary.projectScopedName == "sampleBinary"
         binary.displayName == "SampleBinary 'sampleBinary'"
+        binary.namingScheme.description == "sample binary 'sampleBinary'"
     }
 
     def "qualifies project scoped named and display name using owners name"() {
@@ -56,6 +57,7 @@ class BaseBinarySpecTest extends Specification {
         binary.name == "unitTest"
         binary.projectScopedName == "sampleUnitTest"
         binary.displayName == "SampleBinary 'sample:unitTest'"
+        binary.namingScheme.description == "sample binary 'sample:unitTest'"
     }
 
     def "create fails if subtype does not have a public no-args constructor"() {

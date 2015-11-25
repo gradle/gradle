@@ -24,8 +24,6 @@ import java.util.Collection;
 import java.util.List;
 
 public interface BinaryNamingScheme {
-    String getBaseName();
-
     String getBinaryName();
 
     String getTaskName(@Nullable String verb);
@@ -59,6 +57,11 @@ public interface BinaryNamingScheme {
      * Creates a copy of this scheme, replacing the output type.
      */
     BinaryNamingScheme withOutputType(String type);
+
+    /**
+     * Creates a copy of this scheme, specifying a binary name. This overrides the default binary name that would be generated from the other attributes.
+     */
+    BinaryNamingScheme withBinaryName(String name);
 
     /**
      * Creates a copy of this scheme, <em>adding</em> a variant dimension.

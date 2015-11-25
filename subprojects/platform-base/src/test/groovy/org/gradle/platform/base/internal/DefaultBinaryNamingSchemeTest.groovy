@@ -20,17 +20,20 @@ import org.gradle.api.Named
 import spock.lang.Specification
 
 class DefaultBinaryNamingSchemeTest extends Specification {
-    def "generates task names for native binaries"() {
+    def "generates task names from type and dimension attributes"() {
         expect:
-        def namingScheme = createNamingScheme(parentName, role, dimensions)
+        def namingScheme = createNamingScheme(parentName, type, dimensions)
         namingScheme.getTaskName(verb, target) == taskName
 
         where:
-        parentName | role   | dimensions     | verb       | target    | taskName
-        "test"     | ""     | []             | null       | null      | "test"
+        parentName | type   | dimensions     | verb       | target    | taskName
+        null       | "type" | []             | null       | null      | "type"
+        null       | "type" | ["one", "two"] | null       | null      | "oneTwoType"
+        null       | "type" | ["one", "two"] | "send"     | null      | "sendOneTwoType"
+        "test"     | null   | []             | null       | null      | "test"
         "test"     | "type" | []             | null       | null      | "testType"
         "test"     | "type" | []             | null       | "classes" | "testTypeClasses"
-        "test"     | ""     | []             | null       | "classes" | "testClasses"
+        "test"     | null   | []             | null       | "classes" | "testClasses"
         "test"     | "type" | []             | "assemble" | null      | "assembleTestType"
         "test"     | "type" | []             | "compile"  | "java"    | "compileTestTypeJava"
         "test"     | "type" | ["one", "two"] | null       | null      | "testOneTwoType"
@@ -39,7 +42,22 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         "test"     | "type" | ["one", "two"] | "compile"  | "java"    | "compileTestOneTwoTypeJava"
     }
 
-    def "generates binary name"() {
+    def "generates task names from binary name attribute"() {
+        expect:
+        def namingScheme = DefaultBinaryNamingScheme.component(parentName).withBinaryName(binaryName)
+        namingScheme.getTaskName(verb, target) == taskName
+
+        where:
+        parentName | binaryName | verb      | target | taskName
+        null       | "binary"   | null      | null   | "binary"
+        null       | "binary"   | "compile" | null   | "compileBinary"
+        null       | "binary"   | "compile" | "java" | "compileBinaryJava"
+        "test"     | "binary"   | null      | null   | "testBinary"
+        "test"     | "binary"   | "compile" | null   | "compileTestBinary"
+        "test"     | "binary"   | "compile" | "java" | "compileTestBinaryJava"
+    }
+
+    def "generates binary name from type and dimension attributes"() {
         def namingScheme = createNamingScheme("parent", "executable", dimensions)
 
         expect:
@@ -53,7 +71,7 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         ["EnterpriseEdition", "Osx_x64", "Static"] | "enterpriseEditionOsx_x64StaticExecutable"
     }
 
-    def "generates output directory"() {
+    def "generates output directory from type and dimension attributes"() {
         def namingScheme = createNamingScheme(parentName, binaryType, dimensions, outputType)
 
         expect:
@@ -71,7 +89,22 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         "mainLibrary" | "executable" | ["EnterpriseEdition", "Osx_x64", "Static"] | "exes"     | "exes/mainLibrary/executable/enterpriseEdition/osx_x64/static"
     }
 
-    def "prefers role over binary type name in output directory names"() {
+    def "generates output directory from binary name"() {
+        def namingScheme = createNamingScheme(parentName, null, [], outputType).withBinaryName(binaryName)
+
+        expect:
+        namingScheme.outputDirectoryBase == outputDir
+
+        where:
+        parentName  | binaryName   | outputType     | outputDir
+        null        | "LinuxTest"  | null           | "linuxTest"
+        null        | "linux-test" | null           | "linux-test"
+        null        | "LinuxTest"  | "test-results" | "test-results/linuxTest"
+        "TestSuite" | "LinuxTest"  | null           | "testSuite/linuxTest"
+        "TestSuite" | "LinuxTest"  | "bin-files"    | "bin-files/testSuite/linuxTest"
+    }
+
+    def "prefers role over binary type in output directory names"() {
         def namingScheme = DefaultBinaryNamingScheme.component("testSuite").withBinaryType("GoogleTestExecutable").withVariantDimension("linux")
 
         expect:
@@ -80,7 +113,7 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         namingScheme.withRole("executable", true).outputDirectoryBase == "testSuite/linux"
     }
 
-    def "generates description"() {
+    def "generates description from type and dimension attributes"() {
         def namingScheme = createNamingScheme(parentName, typeName, dimensions)
 
         expect:
@@ -88,10 +121,39 @@ class DefaultBinaryNamingSchemeTest extends Specification {
 
         where:
         parentName | typeName        | dimensions     | lifecycleName
+        null       | "Executable"    | []             | "executable 'executable'"
         "parent"   | "Executable"    | []             | "executable 'parent:executable'"
+        null       | "SharedLibrary" | []             | "shared library 'sharedLibrary'"
         "parent"   | "SharedLibrary" | []             | "shared library 'parent:sharedLibrary'"
         "parent"   | "SharedLibrary" | ["one"]        | "shared library 'parent:one:sharedLibrary'"
         "parent"   | "SharedLibrary" | ["one", "two"] | "shared library 'parent:one:two:sharedLibrary'"
+    }
+
+    def "generates description from type and binary name attributes"() {
+        def namingScheme = createNamingScheme(parentName, typeName, []).withBinaryName(binaryName)
+
+        expect:
+        namingScheme.getDescription() == lifecycleName
+
+        where:
+        parentName | typeName        | binaryName  | lifecycleName
+        null       | "Executable"    | "LinuxTest" | "executable 'linuxTest'"
+        "parent"   | "Executable"    | "LinuxTest" | "executable 'parent:linuxTest'"
+        null       | "SharedLibrary" | "SomeLib64" | "shared library 'someLib64'"
+        "parent"   | "SharedLibrary" | "someLib64" | "shared library 'parent:someLib64'"
+    }
+
+    def "prefers declared binary name over default binary name"() {
+        def namingScheme = DefaultBinaryNamingScheme.component("testSuite")
+                .withBinaryType("GoogleTestExecutable")
+                .withVariantDimension("linux")
+                .withBinaryName("LinuxTest")
+
+        expect:
+        namingScheme.binaryName == "LinuxTest"
+        namingScheme.description == "google test executable 'testSuite:linuxTest'"
+        namingScheme.getTaskName("compile") == "compileTestSuiteLinuxTest"
+        namingScheme.outputDirectoryBase == "testSuite/linuxTest"
     }
 
     def "can create copies"() {
@@ -104,6 +166,7 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         original.withVariantDimension("dim2").outputDirectoryBase == "parent/type/dim1/dim2"
         original.withOutputType("output").outputDirectoryBase == "output/parent/type/dim1"
         original.withRole("role", false).outputDirectoryBase == "parent/role/dim1"
+        original.withBinaryName("binaryName").outputDirectoryBase == "parent/binaryName"
     }
 
     def "ignores variant dimension with only one value"() {
@@ -118,7 +181,9 @@ class DefaultBinaryNamingSchemeTest extends Specification {
     }
 
     private BinaryNamingScheme createNamingScheme(def parentName, def binaryType, def dimensions, def outputType = null) {
-        return new DefaultBinaryNamingScheme(parentName, binaryType, null, false, dimensions, outputType)
+        def scheme = DefaultBinaryNamingScheme.component(parentName).withBinaryType(binaryType).withOutputType(outputType)
+        dimensions.each { scheme = scheme.withVariantDimension(it) }
+        return scheme
     }
 
     private Named named(String name) {

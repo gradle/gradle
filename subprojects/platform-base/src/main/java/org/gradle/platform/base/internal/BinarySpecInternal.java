@@ -32,4 +32,7 @@ public interface BinarySpecInternal extends BinarySpec {
 
     boolean isLegacyBinary();
 
+    BinaryNamingScheme getNamingScheme();
+
+    void setNamingScheme(BinaryNamingScheme namingScheme);
 }
