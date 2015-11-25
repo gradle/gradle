@@ -27,9 +27,12 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 @TargetGradleVersion(">=2.11")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
+    def setup(){
+        settingsFile << "rootProject.name = 'root'"
+    }
+
     def "Java project has target language level"() {
         given:
-        settingsFile << "rootProject.name = 'root'"
         buildFile << "apply plugin: 'java'"
 
         when:
@@ -41,7 +44,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "target language level respects explicit targetCompatibility configuration"() {
         given:
-        settingsFile << "rootProject.name = 'root'"
         buildFile << """
         apply plugin:'java'
         targetCompatibility = 1.5
@@ -55,7 +57,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "target language level respects explicit configured eclipse config"() {
         given:
-        settingsFile << "rootProject.name = 'root'"
         buildFile << """
         apply plugin:'java'
         apply plugin:'eclipse'
@@ -77,9 +78,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion("=2.10")
     def "older Gradle versions throw exception when querying Java source settings"() {
-        given:
-        settingsFile << "rootProject.name = 'root'"
-
         when:
         EclipseProject rootProject = loadEclipseProjectModel()
         rootProject.javaSourceSettings.targetLanguageLevel
