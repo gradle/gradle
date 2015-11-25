@@ -19,7 +19,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 public interface ComponentResolutionState extends Versioned {
     ModuleVersionIdentifier getId();
@@ -30,7 +30,7 @@ public interface ComponentResolutionState extends Versioned {
      * @return null if the meta-data is not available due to some failure.
      */
     @Nullable
-    ComponentResolveMetaData getMetaData();
+    ComponentResolveMetadata getMetaData();
 
     ComponentSelectionReason getSelectionReason();
 

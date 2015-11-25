@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
+import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.util.GUtil;
@@ -42,7 +42,7 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
         ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision());
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
         // TODO:DAZ This indicates the IvyPublishMetaData should probably not be responsible for creating a ModuleDescriptor...
-        DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(moduleVersionIdentifier, "");
+        DefaultIvyModulePublishMetadata publishMetaData = new DefaultIvyModulePublishMetadata(moduleVersionIdentifier, "");
 
         try {
             for (IvyArtifact publishArtifact : publication.getArtifacts()) {

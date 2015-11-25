@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultComponentSelectionRules
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import spock.lang.Specification
 
 class ComponentSelectionRulesProcessorTest extends Specification {
@@ -52,11 +52,11 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         rule { ComponentSelection cs -> closureCalled << 0 }
         rule { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 1 }
         rule { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 2 }
-        rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closureCalled << 3 }
+        rule { ComponentSelection cs, ModuleComponentResolveMetadata mvm -> closureCalled << 3 }
         rule { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 4 }
         rule { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 5 }
-        rule { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetaData mvm -> closureCalled << 6 }
-        rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closureCalled << 7 }
+        rule { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetadata mvm -> closureCalled << 6 }
+        rule { ComponentSelection cs, ModuleComponentResolveMetadata mvm, ComponentMetadata cm -> closureCalled << 7 }
 
         and:
         apply(metadataProvider)
@@ -78,11 +78,11 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         targetedRule("group", "module") { ComponentSelection cs -> closureCalled << 0 }
         targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 1 }
         targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 2 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closureCalled << 3 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetadata mvm -> closureCalled << 3 }
         targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 4 }
         targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 5 }
-        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetaData mvm -> closureCalled << 6 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closureCalled << 7 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetadata mvm -> closureCalled << 6 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetadata mvm, ComponentMetadata cm -> closureCalled << 7 }
 
         and:
         apply(metadataProvider)
@@ -104,19 +104,19 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         rule { ComponentSelection cs -> closureCalled << 0 }
         rule { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 1 }
         rule { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 2 }
-        rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closureCalled << 3 }
+        rule { ComponentSelection cs, ModuleComponentResolveMetadata mvm -> closureCalled << 3 }
         rule { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 4 }
         rule { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 5 }
-        rule { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetaData mvm -> closureCalled << 6 }
-        rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closureCalled << 7 }
+        rule { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetadata mvm -> closureCalled << 6 }
+        rule { ComponentSelection cs, ModuleComponentResolveMetadata mvm, ComponentMetadata cm -> closureCalled << 7 }
         targetedRule("group", "module") { ComponentSelection cs -> closureCalled << 8 }
         targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 9 }
         targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 10 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closureCalled << 11 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetadata mvm -> closureCalled << 11 }
         targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 12 }
         targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 13 }
-        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetaData mvm -> closureCalled << 14 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closureCalled << 15 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetadata mvm -> closureCalled << 14 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetadata mvm, ComponentMetadata cm -> closureCalled << 15 }
 
         and:
         apply(metadataProvider)
@@ -137,7 +137,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         rule { ComponentSelection cs -> closuresCalled << 0 }
         rule { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 1 }
         rule { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 2 }
-        rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closuresCalled << 3 }
+        rule { ComponentSelection cs, ModuleComponentResolveMetadata mvm -> closuresCalled << 3 }
         rule { ComponentSelection cs -> closuresCalled << 4 }
         rule { ComponentSelection cs ->
             closuresCalled << 5
@@ -168,7 +168,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         targetedRule("group", "module") { ComponentSelection cs -> closuresCalled << 0 }
         targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 1 }
         targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 2 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closuresCalled << 3 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetadata mvm -> closuresCalled << 3 }
         targetedRule("group", "module") { ComponentSelection cs -> closuresCalled << 4 }
         targetedRule("group", "module") { ComponentSelection cs ->
             closuresCalled << 5
@@ -269,13 +269,13 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 2 }
         targetedRule("group", "module1") { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 3 }
         targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 4 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closuresCalled << 5 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetadata mvm -> closuresCalled << 5 }
         targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closuresCalled << 6 }
         targetedRule("group1", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closuresCalled << 7 }
         targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closuresCalled << 8 }
-        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetaData mvm -> closuresCalled << 9 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closuresCalled << 10 }
-        targetedRule("group", "module1") { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closuresCalled << 11 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetadata mvm -> closuresCalled << 9 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetadata mvm, ComponentMetadata cm -> closuresCalled << 10 }
+        targetedRule("group", "module1") { ComponentSelection cs, ModuleComponentResolveMetadata mvm, ComponentMetadata cm -> closuresCalled << 11 }
 
         and:
         apply(metadataProvider)

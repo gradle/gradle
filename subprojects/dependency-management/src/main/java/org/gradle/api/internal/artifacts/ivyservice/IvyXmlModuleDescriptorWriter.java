@@ -23,7 +23,7 @@ import org.apache.ivy.util.extendable.ExtendableItem;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
+import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.util.CollectionUtils;
 
@@ -51,10 +51,10 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     @Override
-    public void write(ModuleDescriptor md, Collection<IvyModuleArtifactPublishMetaData> artifacts, File output) {
-        List<Artifact> ivyArtifacts = CollectionUtils.collect(artifacts, new Transformer<Artifact, IvyModuleArtifactPublishMetaData>() {
+    public void write(ModuleDescriptor md, Collection<IvyModuleArtifactPublishMetadata> artifacts, File output) {
+        List<Artifact> ivyArtifacts = CollectionUtils.collect(artifacts, new Transformer<Artifact, IvyModuleArtifactPublishMetadata>() {
             @Override
-            public Artifact transform(IvyModuleArtifactPublishMetaData ivyModuleArtifactPublishMetaData) {
+            public Artifact transform(IvyModuleArtifactPublishMetadata ivyModuleArtifactPublishMetaData) {
                 return ivyModuleArtifactPublishMetaData.toIvyArtifact();
             }
         });

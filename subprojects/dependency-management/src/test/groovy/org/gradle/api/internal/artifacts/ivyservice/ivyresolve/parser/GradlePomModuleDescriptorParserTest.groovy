@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
-import org.gradle.internal.component.external.model.MavenModuleResolveMetaData
+import org.gradle.internal.component.external.model.MavenModuleResolveMetadata
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import spock.lang.Issue
@@ -51,7 +51,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def descriptor = metaData.descriptor
 
         then:
-        metaData instanceof MavenModuleResolveMetaData
+        metaData instanceof MavenModuleResolveMetadata
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
         descriptor.dependencies.length == 1
         descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
@@ -247,7 +247,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        Throwable t = thrown(MetaDataParseException)
+        Throwable t = thrown(MetadataParseException)
         t.cause instanceof UnresolvedDependencyVersionException
         t.cause.message == "Unable to resolve version for dependency 'group-two:artifact-two:jar'"
     }
@@ -1231,7 +1231,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parseMetaData()
 
         then:
-        def e = thrown(MetaDataParseException)
+        def e = thrown(MetadataParseException)
         e.message == "Could not parse POM ${pomFile.toURI()}"
         e.cause.message.contains('Element type "modelVersion"')
     }
@@ -1834,7 +1834,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        Throwable t = thrown(MetaDataParseException)
+        Throwable t = thrown(MetadataParseException)
         t.cause instanceof UnresolvedDependencyVersionException
         t.cause.message == "Unable to resolve version for dependency 'group-two:artifact-two:test-jar'"
     }

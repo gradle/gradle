@@ -21,13 +21,13 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.component.local.model.LocalComponentMetaData;
-import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData;
+import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
+import org.gradle.internal.resolve.resolver.ComponentMetadataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -48,7 +48,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class LocalLibraryDependencyResolver<T extends BinarySpec> implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+public class LocalLibraryDependencyResolver<T extends BinarySpec> implements DependencyToComponentIdResolver, ComponentMetadataResolver, ArtifactResolver {
     private final ProjectModelResolver projectModelResolver;
     private final VariantsMetaData variantsMetaData;
     private final VariantsMatcher matcher;
@@ -80,7 +80,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
     }
 
     @Override
-    public void resolve(DependencyMetaData dependency, final BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, final BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof LibraryComponentSelector) {
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
             final String selectorProjectPath = selector.getProjectPath();
@@ -97,7 +97,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
                     result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName, compatibleBinaries)));
                 } else {
                     BinarySpec selectedBinary = compatibleBinaries.iterator().next();
-                    LocalComponentMetaData metaData = libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary, selectorProjectPath);
+                    LocalComponentMetadata metaData = libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary, selectorProjectPath);
                     result.resolved(metaData);
                 }
             }
@@ -137,12 +137,12 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
     }
 
     @Override
-    public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentResolveMetadata component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
         ComponentIdentifier componentId = component.getComponentId();
         if (isLibrary(componentId)) {
-            ConfigurationMetaData configuration = component.getConfiguration(usage.getConfigurationName());
+            ConfigurationMetadata configuration = component.getConfiguration(usage.getConfigurationName());
             if (configuration != null) {
-                Set<ComponentArtifactMetaData> artifacts = configuration.getArtifacts();
+                Set<ComponentArtifactMetadata> artifacts = configuration.getArtifacts();
                 result.resolved(artifacts);
             }
             if (!result.hasResult()) {
@@ -152,17 +152,17 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
     }
 
     @Override
-    public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         if (isLibrary(component.getComponentId())) {
-            result.resolved(Collections.<ComponentArtifactMetaData>emptyList());
+            result.resolved(Collections.<ComponentArtifactMetadata>emptyList());
         }
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         if (isLibrary(artifact.getComponentId())) {
-            if (artifact instanceof PublishArtifactLocalArtifactMetaData) {
-                result.resolved(((PublishArtifactLocalArtifactMetaData) artifact).getFile());
+            if (artifact instanceof PublishArtifactLocalArtifactMetadata) {
+                result.resolved(((PublishArtifactLocalArtifactMetadata) artifact).getFile());
             } else {
                 result.failed(new ArtifactResolveException("Unsupported artifact metadata type: " + artifact));
             }

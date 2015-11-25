@@ -26,7 +26,7 @@ import java.io.File;
  * Provides synchronized access to the artifact cache.
  */
 @ThreadSafe
-public interface CacheLockingManager extends ArtifactCacheMetaData, CacheAccess {
+public interface CacheLockingManager extends ArtifactCacheMetadata, CacheAccess {
     /**
      * Creates a cache implementation that is managed by this locking manager. This method may be used at any time.
      *

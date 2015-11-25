@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionFilter;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -41,9 +41,9 @@ public class DefaultArtifactSet implements ArtifactSet {
     private final ArtifactResolver artifactResolver;
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
     private final long id;
-    private final Set<ComponentArtifactMetaData> artifacts;
+    private final Set<ComponentArtifactMetadata> artifacts;
 
-    public DefaultArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleResolutionFilter selector, Set<ComponentArtifactMetaData> artifacts,
+    public DefaultArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleResolutionFilter selector, Set<ComponentArtifactMetadata> artifacts,
                               ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id) {
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
@@ -60,7 +60,7 @@ public class DefaultArtifactSet implements ArtifactSet {
 
     public Set<ResolvedArtifact> getArtifacts() {
         Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(artifacts.size());
-        for (ComponentArtifactMetaData artifact : artifacts) {
+        for (ComponentArtifactMetadata artifact : artifacts) {
             IvyArtifactName artifactName = artifact.getName();
             if (!selector.acceptArtifact(moduleVersionIdentifier.getModule(), artifactName)) {
                 continue;
@@ -80,9 +80,9 @@ public class DefaultArtifactSet implements ArtifactSet {
     private static class LazyArtifactSource implements Factory<File> {
         private final ArtifactResolver artifactResolver;
         private final ModuleSource moduleSource;
-        private final ComponentArtifactMetaData artifact;
+        private final ComponentArtifactMetadata artifact;
 
-        private LazyArtifactSource(ComponentArtifactMetaData artifact, ModuleSource moduleSource, ArtifactResolver artifactResolver) {
+        private LazyArtifactSource(ComponentArtifactMetadata artifact, ModuleSource moduleSource, ArtifactResolver artifactResolver) {
             this.artifact = artifact;
             this.artifactResolver = artifactResolver;
             this.moduleSource = moduleSource;

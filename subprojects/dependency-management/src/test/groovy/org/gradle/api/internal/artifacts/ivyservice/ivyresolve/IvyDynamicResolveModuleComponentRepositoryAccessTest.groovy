@@ -17,18 +17,18 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
-import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
+import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetadataResolveResult
 import spock.lang.Specification
 
 class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification {
     final target = Mock(ModuleComponentRepositoryAccess)
-    final metaData = Mock(MutableModuleComponentResolveMetaData)
+    final metaData = Mock(MutableModuleComponentResolveMetadata)
     final requestedDependency = Mock(ComponentOverrideMetadata)
     final moduleComponentId = Mock(ModuleComponentIdentifier)
-    final result = Mock(BuildableModuleComponentMetaDataResolveResult)
+    final result = Mock(BuildableModuleComponentMetadataResolveResult)
     final ModuleComponentRepositoryAccess access = new IvyDynamicResolveModuleComponentRepositoryAccess(target)
 
     def "replaces each dependency version with revConstraint"() {
@@ -36,8 +36,8 @@ class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification
         def transformed = dependency()
 
         given:
-        result.state >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
-        result.metaData >> metaData
+        result.state >> BuildableModuleComponentMetadataResolveResult.State.Resolved
+        result.metadata >> metaData
 
         when:
         access.resolveComponentMetaData(moduleComponentId, requestedDependency, result)
@@ -57,12 +57,12 @@ class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification
 
         then:
         1 * target.resolveComponentMetaData(moduleComponentId, requestedDependency, result)
-        _ * result.state >> BuildableModuleComponentMetaDataResolveResult.State.Missing
+        _ * result.state >> BuildableModuleComponentMetadataResolveResult.State.Missing
         0 * result._
     }
 
     def dependency(String revConstraint = '1.0') {
-        def dep = Mock(DependencyMetaData)
+        def dep = Mock(DependencyMetadata)
         _ * dep.dynamicConstraintVersion >> revConstraint
         return dep
     }

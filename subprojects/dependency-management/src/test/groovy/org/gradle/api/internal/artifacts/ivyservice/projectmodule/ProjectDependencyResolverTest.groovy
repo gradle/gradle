@@ -18,10 +18,10 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
-import org.gradle.internal.component.local.model.LocalComponentMetaData
+import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
@@ -33,9 +33,9 @@ class ProjectDependencyResolverTest extends Specification {
 
     def "resolves project dependency"() {
         setup:
-        def componentMetaData = Mock(LocalComponentMetaData)
+        def componentMetaData = Mock(LocalComponentMetadata)
         def result = Mock(BuildableComponentIdResolveResult)
-        def dependencyMetaData = Stub(DependencyMetaData) {
+        def dependencyMetaData = Stub(DependencyMetadata) {
             getSelector() >> DefaultProjectComponentSelector.newSelector(":project")
         }
 
@@ -50,7 +50,7 @@ class ProjectDependencyResolverTest extends Specification {
 
     def "resolves project component"() {
         setup:
-        def componentMetaData = Mock(LocalComponentMetaData)
+        def componentMetaData = Mock(LocalComponentMetadata)
         def result = Mock(BuildableComponentResolveResult)
         def projectComponentId = new DefaultProjectComponentIdentifier(":projectPath")
 
@@ -66,7 +66,7 @@ class ProjectDependencyResolverTest extends Specification {
     def "doesn't try to resolve non-project dependency"() {
         def result = Mock(BuildableComponentIdResolveResult)
         def dependencyDescriptor = Stub(DependencyDescriptor)
-        def dependencyMetaData = Stub(DependencyMetaData) {
+        def dependencyMetaData = Stub(DependencyMetadata) {
             getDescriptor() >> dependencyDescriptor
         }
 

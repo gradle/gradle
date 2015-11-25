@@ -37,8 +37,8 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.component.external.model.BuildableIvyModuleResolveMetaData;
-import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
+import org.gradle.internal.component.external.model.BuildableIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -73,7 +73,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleR
 /**
  * Copied from org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser into Gradle codebase, and heavily modified.
  */
-public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser<DefaultIvyModuleResolveMetaData> {
+public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser<DefaultIvyModuleResolveMetadata> {
     static final String[] DEPENDENCY_REGULAR_ATTRIBUTES =
             new String[] {"org", "name", "branch", "branchConstraint", "rev", "revConstraint", "force", "transitive", "changing", "conf"};
 
@@ -86,7 +86,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         this.resolverStrategy = resolverStrategy;
     }
 
-    protected DefaultIvyModuleResolveMetaData doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
+    protected DefaultIvyModuleResolveMetadata doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = createParser(parseContext, resource, populateProperties(), resolverStrategy);
         return doParseDescriptorWithProvidedParser(parser, validate);
     }
@@ -95,7 +95,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         return new Parser(parseContext, resource, resource.getLocalResource().getFile().toURI().toURL(), properties, resolverStrategy);
     }
 
-    private DefaultIvyModuleResolveMetaData doParseDescriptorWithProvidedParser(Parser parser, boolean validate) throws ParseException {
+    private DefaultIvyModuleResolveMetadata doParseDescriptorWithProvidedParser(Parser parser, boolean validate) throws ParseException {
         parser.setValidate(validate);
         parser.parse();
         DefaultModuleDescriptor moduleDescriptor = parser.getModuleDescriptor();
@@ -146,7 +146,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private final List<String> errors = new ArrayList<String>();
 
         private final DefaultModuleDescriptor md;
-        protected BuildableIvyModuleResolveMetaData metaData;
+        protected BuildableIvyModuleResolveMetadata metaData;
 
         protected AbstractParser(ExternalResource resource) {
             this.res = resource; // used for log and date only
@@ -401,7 +401,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return md;
         }
 
-        public DefaultIvyModuleResolveMetaData getMetaData() {
+        public DefaultIvyModuleResolveMetadata getMetaData() {
             return metaData;
         }
 
@@ -491,7 +491,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                     try {
                         ParserHelper.parse(inSrc, schemaURL, Parser.this);
                     } catch (Exception e) {
-                        throw new MetaDataParseException("Ivy file", getResource(), e);
+                        throw new MetadataParseException("Ivy file", getResource(), e);
                     }
                 }
             });
@@ -1128,7 +1128,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             } else if ("dependencies".equals(qName) && state == State.DEPS) {
                 state = State.NONE;
             } else if (state == State.INFO && "info".equals(qName)) {
-                metaData = new BuildableIvyModuleResolveMetaData(getMd());
+                metaData = new BuildableIvyModuleResolveMetadata(getMd());
                 state = State.NONE;
             } else if (state == State.DESCRIPTION && "description".equals(qName)) {
                 getMd().setDescription(buffer == null ? "" : buffer.toString().trim());

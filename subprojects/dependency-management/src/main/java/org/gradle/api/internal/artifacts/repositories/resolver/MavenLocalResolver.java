@@ -17,11 +17,11 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
-import org.gradle.internal.component.external.model.MavenModuleResolveMetaData;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetadataParser;
+import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -36,16 +36,16 @@ public class MavenLocalResolver extends MavenResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
 
     public MavenLocalResolver(String name, URI rootUri, RepositoryTransport transport,
-                              LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
-                              FileStore<ModuleComponentArtifactMetaData> artifactFileStore,
-                              MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser) {
+                              LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+                              FileStore<ModuleComponentArtifactMetadata> artifactFileStore,
+                              MetadataParser<DefaultMavenModuleResolveMetadata> pomParser) {
         super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser);
     }
 
     @Override
     @Nullable
-    protected MutableModuleComponentResolveMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
-        MutableModuleComponentResolveMetaData metaData = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver, result);
+    protected MutableModuleComponentResolveMetadata parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
+        MutableModuleComponentResolveMetadata metaData = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver, result);
         if (metaData == null) {
             return null;
         }
@@ -56,13 +56,13 @@ public class MavenLocalResolver extends MavenResolver {
         return metaData;
     }
 
-    private boolean isOrphanedPom(MavenModuleResolveMetaData metaData, ExternalResourceArtifactResolver artifactResolver) {
+    private boolean isOrphanedPom(MavenModuleResolveMetadata metaData, ExternalResourceArtifactResolver artifactResolver) {
         if (metaData.isPomPackaging()) {
             return false;
         }
 
         // check custom packaging
-        ModuleComponentArtifactMetaData artifact;
+        ModuleComponentArtifactMetadata artifact;
         if (metaData.isKnownJarPackaging()) {
             artifact = metaData.artifact("jar", "jar", null);
         } else {

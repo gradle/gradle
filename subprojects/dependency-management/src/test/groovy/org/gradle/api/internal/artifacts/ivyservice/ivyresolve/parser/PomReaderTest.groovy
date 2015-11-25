@@ -38,7 +38,7 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader = new PomReader(locallyAvailableExternalResource)
 
         then:
-        thrown(MetaDataParseException)
+        thrown(MetadataParseException)
     }
 
     def "parse malformed POM"() {

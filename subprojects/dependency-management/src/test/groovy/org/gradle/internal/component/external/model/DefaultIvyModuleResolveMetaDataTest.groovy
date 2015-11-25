@@ -20,18 +20,18 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.DependencyMetadata
 
-class DefaultIvyModuleResolveMetaDataTest extends AbstractModuleComponentResolveMetaDataTest {
+class DefaultIvyModuleResolveMetaDataTest extends AbstractModuleComponentResolveMetadataTest {
 
     @Override
-    AbstractModuleComponentResolveMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
-        return new DefaultIvyModuleResolveMetaData(componentIdentifier, moduleDescriptor)
+    AbstractModuleComponentResolveMetadata createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
+        return new DefaultIvyModuleResolveMetadata(componentIdentifier, moduleDescriptor)
     }
 
     def "can make a copy"() {
-        def dependency1 = Stub(DependencyMetaData)
-        def dependency2 = Stub(DependencyMetaData)
+        def dependency1 = Stub(DependencyMetadata)
+        def dependency2 = Stub(DependencyMetadata)
 
         given:
         metaData.changing = true

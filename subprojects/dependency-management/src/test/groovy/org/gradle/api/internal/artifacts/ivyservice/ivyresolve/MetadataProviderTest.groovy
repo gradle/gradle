@@ -18,29 +18,29 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
-import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
+import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetadataResolveResult
 import spock.lang.Specification
 
 class MetadataProviderTest extends Specification {
-    def dep = Stub(DependencyMetaData)
+    def dep = Stub(DependencyMetadata)
     def id = Stub(ModuleComponentIdentifier) {
         getVersion() >> "1.2"
     }
-    def metaData = Stub(MutableModuleComponentResolveMetaData)
+    def metaData = Stub(MutableModuleComponentResolveMetadata)
     def resolveState = Mock(ModuleComponentResolveState)
     def metadataProvider = new MetadataProvider(resolveState)
 
     def "caches metadata result"() {
         when:
-        metadataProvider.getMetaData()
-        metadataProvider.getMetaData()
+        metadataProvider.getMetadata()
+        metadataProvider.getMetadata()
 
         then:
         1 * resolveState.resolve() >> {
-            def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
+            def result = new DefaultBuildableModuleComponentMetadataResolveResult()
             result.resolved(metaData)
             return result
         }
@@ -50,7 +50,7 @@ class MetadataProviderTest extends Specification {
     def "verifies that metadata was provided"() {
         given:
         resolveState.resolve() >> {
-            def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
+            def result = new DefaultBuildableModuleComponentMetadataResolveResult()
             result.resolved(metaData)
             return result
         }
@@ -58,13 +58,13 @@ class MetadataProviderTest extends Specification {
         expect:
         metadataProvider.resolve()
         metadataProvider.usable
-        metadataProvider.metaData
+        metadataProvider.metadata
     }
 
     def "verifies that metadata was not provided"() {
         given:
         resolveState.resolve() >> {
-            def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
+            def result = new DefaultBuildableModuleComponentMetadataResolveResult()
             result.missing()
             return result
         }
@@ -77,7 +77,7 @@ class MetadataProviderTest extends Specification {
     def "can provide component metadata" () {
         given:
         resolveState.resolve() >> {
-            def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
+            def result = new DefaultBuildableModuleComponentMetadataResolveResult()
             result.resolved(metaData)
             return result
         }
@@ -91,11 +91,11 @@ class MetadataProviderTest extends Specification {
 
     def "can provide Ivy descriptor" () {
         given:
-        def metaData = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor) {
+        def metaData = new DefaultIvyModuleResolveMetadata(Stub(ModuleDescriptor) {
             getStatus() >> "test"
         })
         resolveState.resolve() >> {
-            def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
+            def result = new DefaultBuildableModuleComponentMetadataResolveResult()
             result.resolved(metaData)
             return result
         }
@@ -110,7 +110,7 @@ class MetadataProviderTest extends Specification {
     def "returns null when not Ivy descriptor" () {
         given:
         resolveState.resolve() >> {
-            def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
+            def result = new DefaultBuildableModuleComponentMetadataResolveResult()
             result.resolved(metaData)
             return result
         }

@@ -19,15 +19,15 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentUsage
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
-import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetadataResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult
 import spock.lang.Specification
 
@@ -38,8 +38,8 @@ class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def stats = new InMemoryCacheStats()
     def localArtifactsCache = Mock(InMemoryArtifactsCache)
     def remoteArtifactsCache = Mock(InMemoryArtifactsCache)
-    def localMetaDataCache = Mock(InMemoryMetaDataCache)
-    def remoteMetaDataCache = Mock(InMemoryMetaDataCache)
+    def localMetaDataCache = Mock(InMemoryMetadataCache)
+    def remoteMetaDataCache = Mock(InMemoryMetadataCache)
     def caches = new InMemoryModuleComponentRepositoryCaches(localArtifactsCache, remoteArtifactsCache, localMetaDataCache, remoteMetaDataCache, stats);
     def localDelegate = Mock(ModuleComponentRepositoryAccess)
     def remoteDelegate = Mock(ModuleComponentRepositoryAccess)
@@ -50,12 +50,12 @@ class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def repo = new InMemoryCachedModuleComponentRepository(caches, delegate)
     def lib = Mock(ModuleComponentIdentifier)
     def selector = newSelector("org", "lib", "1.0")
-    def dep = Stub(DependencyMetaData) { getRequested() >> selector }
+    def dep = Stub(DependencyMetadata) { getRequested() >> selector }
     def componentRequestMetaData = Mock(ComponentOverrideMetadata)
 
 
     def listingResult = Mock(BuildableModuleVersionListingResolveResult)
-    def metaDataResult = Mock(BuildableModuleComponentMetaDataResolveResult)
+    def metaDataResult = Mock(BuildableModuleComponentMetadataResolveResult)
 
     def "delegates"() {
         when:
@@ -146,7 +146,7 @@ class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
     }
 
     def "delegates request for module artifacts by type"() {
-        def moduleMetaData = Stub(ModuleComponentResolveMetaData)
+        def moduleMetaData = Stub(ModuleComponentResolveMetadata)
         def artifactType = ArtifactType.JAVADOC
         def result = Mock(BuildableArtifactSetResolveResult)
 
@@ -166,7 +166,7 @@ class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
     }
 
     def "delegates request for module artifacts for usage"() {
-        def moduleMetaData = Stub(ModuleComponentResolveMetaData)
+        def moduleMetaData = Stub(ModuleComponentResolveMetadata)
         def componentUsage = Stub(ComponentUsage)
         def result = Mock(BuildableArtifactSetResolveResult)
 
@@ -188,7 +188,7 @@ class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def "retrieves and caches artifacts"() {
         def result = Mock(BuildableArtifactResolveResult)
         def artifactId = Stub(ModuleComponentArtifactIdentifier)
-        def artifact = Stub(ModuleComponentArtifactMetaData) {
+        def artifact = Stub(ModuleComponentArtifactMetadata) {
             getId() >> artifactId
         }
         def moduleSource = Mock(ModuleSource)
@@ -215,7 +215,7 @@ class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def "uses artifacts from cache"() {
         def result = Mock(BuildableArtifactResolveResult)
         def artifactId = Stub(ModuleComponentArtifactIdentifier)
-        def artifact = Stub(ModuleComponentArtifactMetaData) {
+        def artifact = Stub(ModuleComponentArtifactMetadata) {
             getId() >> artifactId
         }
         def moduleSource = Mock(ModuleSource)

@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData
+import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toDomainObjectSet
@@ -33,7 +33,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
     def converter = new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter)
 
     def descriptor = Mock(DefaultModuleDescriptor)
-    def metaData = Mock(BuildableLocalComponentMetaData)
+    def metaData = Mock(BuildableLocalComponentMetadata)
     def configuration = Mock(Configuration)
     def dependencySet = Mock(DependencySet.class);
 
@@ -49,7 +49,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
     }
 
     def "adds dependencies from configuration"() {
-        def dependencyDescriptor = Mock(DependencyMetaData)
+        def dependencyDescriptor = Mock(DependencyMetadata)
         def dependency = Mock(ModuleDependency)
 
         when:

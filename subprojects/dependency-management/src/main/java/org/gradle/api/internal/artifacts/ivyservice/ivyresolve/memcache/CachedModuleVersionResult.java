@@ -16,21 +16,21 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
-import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetadataResolveResult;
 
-import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Missing;
-import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Resolved;
+import static org.gradle.internal.resolve.result.BuildableModuleComponentMetadataResolveResult.State.Missing;
+import static org.gradle.internal.resolve.result.BuildableModuleComponentMetadataResolveResult.State.Resolved;
 
 class CachedModuleVersionResult {
-    private final BuildableModuleComponentMetaDataResolveResult.State state;
+    private final BuildableModuleComponentMetadataResolveResult.State state;
     private final boolean authoritative;
-    private final MutableModuleComponentResolveMetaData metaData;
+    private final MutableModuleComponentResolveMetadata metaData;
 
-    public CachedModuleVersionResult(BuildableModuleComponentMetaDataResolveResult result) {
+    public CachedModuleVersionResult(BuildableModuleComponentMetadataResolveResult result) {
         this.state = result.getState();
         if (state == Resolved) {
-            this.metaData = result.getMetaData().copy();
+            this.metaData = result.getMetadata().copy();
             this.authoritative = result.isAuthoritative();
         } else if (state == Missing) {
             this.metaData = null;
@@ -45,10 +45,10 @@ class CachedModuleVersionResult {
         return state == Missing || state == Resolved;
     }
 
-    public void supply(BuildableModuleComponentMetaDataResolveResult result) {
+    public void supply(BuildableModuleComponentMetadataResolveResult result) {
         assert isCacheable() : "Results are not cacheable, cannot supply the results.";
         if (state == Resolved) {
-            MutableModuleComponentResolveMetaData metaData = this.metaData.copy();
+            MutableModuleComponentResolveMetadata metaData = this.metaData.copy();
             result.resolved(metaData);
             result.setAuthoritative(authoritative);
         } else if (state == Missing) {

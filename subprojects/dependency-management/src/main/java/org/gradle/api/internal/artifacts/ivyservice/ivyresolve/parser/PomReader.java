@@ -97,7 +97,7 @@ public class PomReader implements PomParent {
                 try {
                     return parseToDom(inputStream, systemId);
                 } catch (Exception e) {
-                    throw new MetaDataParseException("POM", resource, e);
+                    throw new MetadataParseException("POM", resource, e);
                 }
             }
         });

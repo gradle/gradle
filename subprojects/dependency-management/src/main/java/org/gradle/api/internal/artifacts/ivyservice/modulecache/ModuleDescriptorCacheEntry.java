@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
-import org.gradle.internal.component.external.model.MavenModuleResolveMetaData;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.math.BigInteger;
@@ -48,12 +48,12 @@ abstract class ModuleDescriptorCacheEntry {
         return new MissingModuleCacheEntry(createTimestamp);
     }
 
-    public static ModuleDescriptorCacheEntry forMetaData(ModuleComponentResolveMetaData metaData, long createTimestamp, BigInteger moduleDescriptorHash) {
-        if (metaData instanceof IvyModuleResolveMetaData) {
+    public static ModuleDescriptorCacheEntry forMetaData(ModuleComponentResolveMetadata metaData, long createTimestamp, BigInteger moduleDescriptorHash) {
+        if (metaData instanceof IvyModuleResolveMetadata) {
             return new IvyModuleCacheEntry(metaData.isChanging(), createTimestamp, moduleDescriptorHash, metaData.getSource());
         }
-        if (metaData instanceof MavenModuleResolveMetaData) {
-            MavenModuleResolveMetaData mavenMetaData = (MavenModuleResolveMetaData) metaData;
+        if (metaData instanceof MavenModuleResolveMetadata) {
+            MavenModuleResolveMetadata mavenMetaData = (MavenModuleResolveMetadata) metaData;
             String packaging = mavenMetaData.getPackaging();
             String snapshotTimestamp = mavenMetaData.getSnapshotTimestamp();
             return new MavenModuleCacheEntry(metaData.isChanging(), packaging, snapshotTimestamp, createTimestamp, moduleDescriptorHash, metaData.getSource());
@@ -64,12 +64,12 @@ abstract class ModuleDescriptorCacheEntry {
     public boolean isMissing() {
         return type == TYPE_MISSING;
     }
-    
-    public MutableModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptor descriptor) {
+
+    public MutableModuleComponentResolveMetadata createMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptor descriptor) {
         throw new UnsupportedOperationException("Cannot create meta-data for entry " + this);
     }
 
-    protected MutableModuleComponentResolveMetaData configure(MutableModuleComponentResolveMetaData input) {
+    protected MutableModuleComponentResolveMetadata configure(MutableModuleComponentResolveMetadata input) {
         input.setChanging(isChanging);
         input.setSource(moduleSource);
         return input;

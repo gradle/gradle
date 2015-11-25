@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
@@ -24,28 +24,28 @@ import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
 
-public abstract class AbstractModuleDescriptorParser<T extends MutableModuleComponentResolveMetaData> implements MetaDataParser<T> {
-    public T parseMetaData(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException {
+public abstract class AbstractModuleDescriptorParser<T extends MutableModuleComponentResolveMetadata> implements MetadataParser<T> {
+    public T parseMetaData(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetadataParseException {
         LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(descriptorFile);
         LocallyAvailableExternalResource resource = new DefaultLocallyAvailableExternalResource(descriptorFile.toURI(), localResource);
         return parseDescriptor(ivySettings, resource, validate);
     }
 
-    public T parseMetaData(DescriptorParseContext ivySettings, File descriptorFile) throws MetaDataParseException {
+    public T parseMetaData(DescriptorParseContext ivySettings, File descriptorFile) throws MetadataParseException {
         return parseMetaData(ivySettings, descriptorFile, true);
     }
 
-    public T parseMetaData(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource) throws MetaDataParseException {
+    public T parseMetaData(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource) throws MetadataParseException {
         return parseDescriptor(ivySettings, resource, true);
     }
 
-    protected T parseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
+    protected T parseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetadataParseException {
         try {
             return doParseDescriptor(ivySettings, resource, validate);
-        } catch (MetaDataParseException e) {
+        } catch (MetadataParseException e) {
             throw e;
         } catch (Exception e) {
-            throw new MetaDataParseException(getTypeName(), resource, e);
+            throw new MetadataParseException(getTypeName(), resource, e);
         }
     }
 

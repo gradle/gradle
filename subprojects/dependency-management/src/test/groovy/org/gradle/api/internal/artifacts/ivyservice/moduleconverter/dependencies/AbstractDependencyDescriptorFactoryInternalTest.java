@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
@@ -78,15 +78,15 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
                 setTransitive(true);
     }
 
-    protected void assertDependencyDescriptorHasCommonFixtureValues(DependencyMetaData dependencyMetaData) {
-        assertEquals(TEST_IVY_EXCLUDE_RULE, dependencyMetaData.getExcludeRules(Collections.singleton(TEST_CONF))[0]);
-        assertThat(dependencyMetaData.getDependencyConfigurations(TEST_CONF, TEST_CONF), equalTo(WrapUtil.toArray(TEST_DEP_CONF)));
-        assertThat(dependencyMetaData.isTransitive(), equalTo(true));
-        assertDependencyDescriptorHasArtifacts(dependencyMetaData);
+    protected void assertDependencyDescriptorHasCommonFixtureValues(DependencyMetadata dependencyMetadata) {
+        assertEquals(TEST_IVY_EXCLUDE_RULE, dependencyMetadata.getExcludeRules(Collections.singleton(TEST_CONF))[0]);
+        assertThat(dependencyMetadata.getDependencyConfigurations(TEST_CONF, TEST_CONF), equalTo(WrapUtil.toArray(TEST_DEP_CONF)));
+        assertThat(dependencyMetadata.isTransitive(), equalTo(true));
+        assertDependencyDescriptorHasArtifacts(dependencyMetadata);
     }
 
-    private void assertDependencyDescriptorHasArtifacts(DependencyMetaData dependencyMetaData) {
-        List<IvyArtifactName> artifactDescriptors = WrapUtil.toList(dependencyMetaData.getArtifacts());
+    private void assertDependencyDescriptorHasArtifacts(DependencyMetadata dependencyMetadata) {
+        List<IvyArtifactName> artifactDescriptors = WrapUtil.toList(dependencyMetadata.getArtifacts());
         assertThat(artifactDescriptors.size(), equalTo(2));
 
         IvyArtifactName artifactDescriptorWithoutClassifier = findDescriptor(artifactDescriptors, artifact);

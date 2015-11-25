@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
+import org.gradle.internal.resolve.resolver.ComponentMetadataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -32,20 +32,20 @@ import java.util.List;
 
 public class ComponentResolversChain implements ComponentResolvers {
     private final DependencyToComponentIdResolverChain dependencyToComponentIdResolver;
-    private final ComponentMetaDataResolverChain componentMetaDataResolver;
+    private final ComponentMetadataResolverChain componentMetaDataResolver;
     private final ArtifactResolverChain artifactResolverChain;
 
     public ComponentResolversChain(List<ComponentResolvers> providers) {
         List<DependencyToComponentIdResolver> depToComponentIdResolvers = new ArrayList<DependencyToComponentIdResolver>(providers.size());
-        List<ComponentMetaDataResolver> componentMetaDataResolvers = new ArrayList<ComponentMetaDataResolver>(providers.size());
+        List<ComponentMetadataResolver> componentMetadataResolvers = new ArrayList<ComponentMetadataResolver>(providers.size());
         List<ArtifactResolver> artifactResolvers = new ArrayList<ArtifactResolver>(providers.size());
         for (ComponentResolvers provider : providers) {
             depToComponentIdResolvers.add(provider.getComponentIdResolver());
-            componentMetaDataResolvers.add(provider.getComponentResolver());
+            componentMetadataResolvers.add(provider.getComponentResolver());
             artifactResolvers.add(provider.getArtifactResolver());
         }
         dependencyToComponentIdResolver = new DependencyToComponentIdResolverChain(depToComponentIdResolvers);
-        componentMetaDataResolver = new ComponentMetaDataResolverChain(componentMetaDataResolvers);
+        componentMetaDataResolver = new ComponentMetadataResolverChain(componentMetadataResolvers);
         artifactResolverChain = new ArtifactResolverChain(artifactResolvers);
     }
 
@@ -55,7 +55,7 @@ public class ComponentResolversChain implements ComponentResolvers {
     }
 
     @Override
-    public ComponentMetaDataResolver getComponentResolver() {
+    public ComponentMetadataResolver getComponentResolver() {
         return componentMetaDataResolver;
     }
 
@@ -64,16 +64,16 @@ public class ComponentResolversChain implements ComponentResolvers {
         return artifactResolverChain;
     }
 
-    private static class ComponentMetaDataResolverChain implements ComponentMetaDataResolver {
-        private final List<ComponentMetaDataResolver> resolvers;
+    private static class ComponentMetadataResolverChain implements ComponentMetadataResolver {
+        private final List<ComponentMetadataResolver> resolvers;
 
-        public ComponentMetaDataResolverChain(List<ComponentMetaDataResolver> resolvers) {
+        public ComponentMetadataResolverChain(List<ComponentMetadataResolver> resolvers) {
             this.resolvers = resolvers;
         }
 
         @Override
         public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
-            for (ComponentMetaDataResolver resolver : resolvers) {
+            for (ComponentMetadataResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;
                 }
@@ -90,7 +90,7 @@ public class ComponentResolversChain implements ComponentResolvers {
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             for (ArtifactResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;
@@ -100,7 +100,7 @@ public class ComponentResolversChain implements ComponentResolvers {
         }
 
         @Override
-        public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentResolveMetadata component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
             for (ArtifactResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;
@@ -110,7 +110,7 @@ public class ComponentResolversChain implements ComponentResolvers {
         }
 
         @Override
-        public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             for (ArtifactResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;
@@ -128,7 +128,7 @@ public class ComponentResolversChain implements ComponentResolvers {
         }
 
         @Override
-        public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
+        public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
             for (DependencyToComponentIdResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;

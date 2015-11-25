@@ -19,8 +19,8 @@ package org.gradle.internal.resolve.result
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
-import org.gradle.internal.component.model.ComponentResolveMetaData
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
@@ -32,7 +32,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "can query id and meta-data when resolved"() {
         ModuleVersionIdentifier id = Stub()
-        ModuleComponentResolveMetaData metaData = Stub() {
+        ModuleComponentResolveMetadata metaData = Stub() {
             getId() >> id
         }
 
@@ -41,7 +41,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
         then:
         result.id == id
-        result.metaData == metaData
+        result.metadata == metaData
     }
 
     def "cannot get id when no result has been specified"() {
@@ -55,7 +55,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "cannot get meta-data when no result has been specified"() {
         when:
-        result.metaData
+        result.metadata
 
         then:
         IllegalStateException e = thrown()
@@ -88,7 +88,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
         when:
         result.failed(failure)
-        result.metaData
+        result.metadata
 
         then:
         ModuleVersionResolveException e = thrown()
@@ -97,7 +97,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "failure is null when successfully resolved"() {
         when:
-        result.resolved(Mock(ModuleComponentResolveMetaData))
+        result.resolved(Mock(ModuleComponentResolveMetadata))
 
         then:
         result.failure == null
@@ -119,7 +119,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "copies results to an id resolve result"() {
         def idResult = Mock(BuildableComponentIdResolveResult)
-        def metaData = Stub(ComponentResolveMetaData)
+        def metaData = Stub(ComponentResolveMetadata)
 
         given:
         result.attempted("a")

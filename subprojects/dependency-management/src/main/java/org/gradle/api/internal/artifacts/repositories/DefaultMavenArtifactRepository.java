@@ -21,13 +21,13 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetadataParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -43,15 +43,15 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final RepositoryTransportFactory transportFactory;
     private Object url;
     private List<Object> additionalUrls = new ArrayList<Object>();
-    private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder;
-    private final FileStore<ModuleComponentArtifactMetaData> artifactFileStore;
-    private final MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser;
+    private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
+    private final FileStore<ModuleComponentArtifactMetadata> artifactFileStore;
+    private final MetadataParser<DefaultMavenModuleResolveMetadata> pomParser;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
-                                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
+                                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                           Instantiator instantiator,
-                                          FileStore<ModuleComponentArtifactMetaData> artifactFileStore,
-                                          MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser,
+                                          FileStore<ModuleComponentArtifactMetadata> artifactFileStore,
+                                          MetadataParser<DefaultMavenModuleResolveMetadata> pomParser,
                                           AuthenticationContainer authenticationContainer) {
         super(instantiator, authenticationContainer);
         this.fileResolver = fileResolver;
@@ -112,11 +112,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser);
     }
 
-    public MetaDataParser<DefaultMavenModuleResolveMetaData> getPomParser() {
+    public MetadataParser<DefaultMavenModuleResolveMetadata> getPomParser() {
         return pomParser;
     }
 
-    protected FileStore<ModuleComponentArtifactMetaData> getArtifactFileStore() {
+    protected FileStore<ModuleComponentArtifactMetadata> getArtifactFileStore() {
         return artifactFileStore;
     }
 
@@ -124,7 +124,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return transportFactory.createTransport(scheme, getName(), getConfiguredAuthentication());
     }
 
-    protected LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> getLocallyAvailableResourceFinder() {
+    protected LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> getLocallyAvailableResourceFinder() {
         return locallyAvailableResourceFinder;
     }
 }

@@ -17,14 +17,14 @@
 package org.gradle.api.internal.filestore.ivy;
 
 import org.gradle.api.Transformer;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 
-public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleComponentArtifactMetaData> {
+public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleComponentArtifactMetadata> {
 
     private static final String GROUP_PATTERN = "[organisation]/[module](/[branch])/[revision]";
     private static final String NAME_PATTERN = "[artifact]-[revision](-[classifier])(.[ext])";
@@ -33,10 +33,10 @@ public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<
         super(pathKeyFileStore, temporaryFileProvider, toTransformer(GROUP_PATTERN), toTransformer(NAME_PATTERN));
     }
 
-    private static Transformer<String, ModuleComponentArtifactMetaData> toTransformer(final String pattern) {
+    private static Transformer<String, ModuleComponentArtifactMetadata> toTransformer(final String pattern) {
         final ResourcePattern resourcePattern = new IvyResourcePattern(pattern);
-        return new Transformer<String, ModuleComponentArtifactMetaData>() {
-             public String transform(ModuleComponentArtifactMetaData artifact) {
+        return new Transformer<String, ModuleComponentArtifactMetadata>() {
+             public String transform(ModuleComponentArtifactMetadata artifact) {
                  return resourcePattern.getLocation(artifact).getPath();
              }
          };

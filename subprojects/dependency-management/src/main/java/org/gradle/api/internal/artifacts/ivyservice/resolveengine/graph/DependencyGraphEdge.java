@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionFilter;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.ConfigurationMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.Set;
 
@@ -33,7 +33,7 @@ public interface DependencyGraphEdge extends InternalDependencyResult {
 
     ModuleResolutionFilter getSelector();
 
-    Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData metaData);
+    Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata metaData);
 
     ModuleDependency getModuleDependency();
 }

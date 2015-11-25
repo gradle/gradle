@@ -22,7 +22,7 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -43,7 +43,7 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
         parseMetaData().descriptor
     }
 
-    protected MutableModuleComponentResolveMetaData parseMetaData() {
+    protected MutableModuleComponentResolveMetadata parseMetaData() {
         parser.parseMetaData(parseContext, pomFile, true)
     }
 

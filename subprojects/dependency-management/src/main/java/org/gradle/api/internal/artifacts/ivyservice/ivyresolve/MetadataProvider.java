@@ -21,33 +21,33 @@ import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
-import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
-import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetadataResolveResult;
 
 public class MetadataProvider {
     private final ModuleComponentResolveState resolveState;
-    private BuildableModuleComponentMetaDataResolveResult cachedResult;
+    private BuildableModuleComponentMetadataResolveResult cachedResult;
 
     public MetadataProvider(ModuleComponentResolveState resolveState) {
         this.resolveState = resolveState;
     }
 
-    public MetadataProvider(BuildableModuleComponentMetaDataResolveResult result) {
+    public MetadataProvider(BuildableModuleComponentMetadataResolveResult result) {
         this.resolveState = null;
         cachedResult = result;
     }
 
     public ComponentMetadata getComponentMetadata() {
-        return new ComponentMetadataDetailsAdapter(getMetaData());
+        return new ComponentMetadataDetailsAdapter(getMetadata());
     }
 
     @Nullable
     public IvyModuleDescriptor getIvyModuleDescriptor() {
-        ModuleComponentResolveMetaData metaData = getMetaData();
-        if (metaData instanceof IvyModuleResolveMetaData) {
-            IvyModuleResolveMetaData ivyMetadata = (IvyModuleResolveMetaData) metaData;
+        ModuleComponentResolveMetadata metaData = getMetadata();
+        if (metaData instanceof IvyModuleResolveMetadata) {
+            IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metaData;
             return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
         }
         return null;
@@ -57,20 +57,20 @@ public class MetadataProvider {
         if (cachedResult == null) {
             cachedResult = resolveState.resolve();
         }
-        return cachedResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
+        return cachedResult.getState() == BuildableModuleComponentMetadataResolveResult.State.Resolved;
     }
 
-    public MutableModuleComponentResolveMetaData getMetaData() {
+    public MutableModuleComponentResolveMetadata getMetadata() {
         resolve();
-        return cachedResult.getMetaData();
+        return cachedResult.getMetadata();
     }
 
     public boolean isUsable() {
-        return cachedResult == null || cachedResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
+        return cachedResult == null || cachedResult.getState() == BuildableModuleComponentMetadataResolveResult.State.Resolved;
     }
 
     @Nullable
-    public BuildableModuleComponentMetaDataResolveResult getResult() {
+    public BuildableModuleComponentMetadataResolveResult getResult() {
         return cachedResult;
     }
 }
