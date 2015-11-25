@@ -39,22 +39,19 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     private final String role;
     private final boolean main;
     final List<String> dimensions;
-    @Nullable
-    private final String outputType;
 
-    DefaultBinaryNamingScheme(@Nullable String parentName, @Nullable String binaryName, @Nullable String binaryType, @Nullable String role, boolean main, List<String> dimensions, @Nullable String outputType) {
+    DefaultBinaryNamingScheme(@Nullable String parentName, @Nullable String binaryName, @Nullable String binaryType, @Nullable String role, boolean main, List<String> dimensions) {
         this.parentName = parentName;
         this.binaryName = binaryName;
         this.binaryType = binaryType;
         this.role = role;
         this.main = main;
         this.dimensions = dimensions;
-        this.outputType = outputType;
         this.dimensionPrefix = createPrefix(dimensions);
     }
 
     public static BinaryNamingScheme component(@Nullable String componentName) {
-        return new DefaultBinaryNamingScheme(componentName, null, null, null, false, Collections.<String>emptyList(), null);
+        return new DefaultBinaryNamingScheme(componentName, null, null, null, false, Collections.<String>emptyList());
     }
 
     @Override
@@ -62,7 +59,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
         List<String> newDimensions = new ArrayList<String>(dimensions.size() + 1);
         newDimensions.addAll(dimensions);
         newDimensions.add(dimension);
-        return new DefaultBinaryNamingScheme(parentName, binaryName, binaryType, role, main, newDimensions, outputType);
+        return new DefaultBinaryNamingScheme(parentName, binaryName, binaryType, role, main, newDimensions);
     }
 
     @Override
@@ -75,27 +72,22 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
 
     @Override
     public BinaryNamingScheme withRole(String role, boolean isMain) {
-        return new DefaultBinaryNamingScheme(parentName, binaryName, binaryType, role, isMain, dimensions, outputType);
+        return new DefaultBinaryNamingScheme(parentName, binaryName, binaryType, role, isMain, dimensions);
     }
 
     @Override
     public BinaryNamingScheme withBinaryType(@Nullable String type) {
-        return new DefaultBinaryNamingScheme(parentName, binaryName, type, role, main, dimensions, outputType);
+        return new DefaultBinaryNamingScheme(parentName, binaryName, type, role, main, dimensions);
     }
 
     @Override
     public BinaryNamingScheme withComponentName(@Nullable String componentName) {
-        return new DefaultBinaryNamingScheme(componentName, binaryName, binaryType, role, main, dimensions, outputType);
-    }
-
-    @Override
-    public BinaryNamingScheme withOutputType(@Nullable String type) {
-        return new DefaultBinaryNamingScheme(parentName, binaryName, binaryType, role, main, dimensions, type);
+        return new DefaultBinaryNamingScheme(componentName, binaryName, binaryType, role, main, dimensions);
     }
 
     @Override
     public BinaryNamingScheme withBinaryName(@Nullable String name) {
-        return new DefaultBinaryNamingScheme(parentName, name, binaryType, role, main, dimensions, outputType);
+        return new DefaultBinaryNamingScheme(parentName, name, binaryType, role, main, dimensions);
     }
 
     private String createPrefix(List<String> dimensions) {
@@ -113,7 +105,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
         return binaryName != null ? binaryName : makeName(dimensionPrefix, binaryType);
     }
 
-    public String getOutputDirectoryBase() {
+    private String getOutputDirectoryBase(@Nullable String outputType) {
         List<String> elements = Lists.newArrayList();
         elements.add(outputType);
         elements.add(parentName);
@@ -134,7 +126,12 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
 
     @Override
     public File getOutputDirectory(File baseDir) {
-        return new File(baseDir, getOutputDirectoryBase());
+        return getOutputDirectory(baseDir, null);
+    }
+
+    @Override
+    public File getOutputDirectory(File baseDir, @Nullable String outputType) {
+        return new File(baseDir, getOutputDirectoryBase(outputType));
     }
 
     public String getDescription() {
