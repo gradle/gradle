@@ -31,7 +31,7 @@ class DefaultDependencySpecContainerTest extends Specification {
         container.group("g2").module("m2")
 
         then:
-        container.dependencies*.displayName == ["g1:m1:*", "g2:m2:*"]
+        container.dependencies*.displayName == ["g1:m1:+", "g2:m2:+"]
     }
 
     def "dedupes module dependency specs"() {
@@ -40,7 +40,7 @@ class DefaultDependencySpecContainerTest extends Specification {
         container.group("g1").module("m1")
 
         then:
-        container.dependencies*.displayName == ["g1:m1:*"]
+        container.dependencies*.displayName == ["g1:m1:+"]
     }
 
     @Unroll
