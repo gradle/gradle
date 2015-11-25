@@ -37,7 +37,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private ModelNode.State state = ModelNode.State.Registered;
     private boolean hidden;
     private final List<ModelRuleDescriptor> executedRules = Lists.newArrayList();
-    private final List<RuleBinder> initializerRuleBinders = Lists.newArrayList();
+    private final List<RuleBinder> registrationActionBinders = Lists.newArrayList();
     private final List<ModelProjection> projections = Lists.newArrayList();
     private final ModelProjection projection;
 
@@ -50,12 +50,16 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return registration;
     }
 
-    public List<RuleBinder> getInitializerRuleBinders() {
-        return initializerRuleBinders;
+    /**
+     * Returns the binders of the rules created as part of the node's creation. These binders should not be considered
+     * unbound in case the node is removed.
+     */
+    public List<RuleBinder> getRegistrationActionBinders() {
+        return registrationActionBinders;
     }
 
-    public void addInitializerRuleBinder(RuleBinder binder) {
-        initializerRuleBinders.add(binder);
+    public void addRegistrationActionBinder(RuleBinder binder) {
+        registrationActionBinders.add(binder);
     }
 
     @Override

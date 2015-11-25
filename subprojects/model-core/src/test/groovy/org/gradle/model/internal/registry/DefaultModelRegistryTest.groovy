@@ -1184,9 +1184,13 @@ class DefaultModelRegistryTest extends Specification {
 '''
     }
 
-    def "does not report unbound creators of removed nodes"() {
+    def "does not report unbound actions applied at registration as unbound after the nodes is removed"() {
         given:
-        registry.register(ModelPath.path("unused")) { it.unmanaged(String, "unknown") {} }
+        def registration = ModelRegistrations.of(ModelPath.path("unused"))
+        ModelActionRole.values().each { role ->
+            registration.action(role, [ModelReference.of("unknown")], BiActions.doNothing())
+        }
+        registry.register(registration.build())
         registry.remove(ModelPath.path("unused"))
 
         when:

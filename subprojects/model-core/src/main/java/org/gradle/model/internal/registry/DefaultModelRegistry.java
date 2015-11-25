@@ -92,16 +92,12 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void addRuleBindings(ModelNodeInternal node) {
-        for(Map.Entry<ModelActionRole, ? extends ModelAction> entry : node.getRegistration().getActions().entries()) {
+        for (Map.Entry<ModelActionRole, ? extends ModelAction> entry : node.getRegistration().getActions().entries()) {
             ModelActionRole role = entry.getKey();
             ModelAction action = entry.getValue();
             checkNodePath(node, action);
-            boolean earlyAction = role.compareTo(ModelActionRole.Create) <= 0;
             RuleBinder binder = forceBind(action.getSubject(), role, action, ModelPath.ROOT);
-            if (earlyAction) {
-                // TODO:REUSE Do we need to keep track of these still?
-                node.addInitializerRuleBinder(binder);
-            }
+            node.addRegistrationActionBinder(binder);
         }
     }
 
@@ -221,7 +217,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         for (ModelNodeInternal nodeToRemove : nodesToRemove) {
             modelGraph.remove(nodeToRemove);
             ruleBindings.remove(nodeToRemove);
-            unboundRules.removeAll(nodeToRemove.getInitializerRuleBinders());
+            unboundRules.removeAll(nodeToRemove.getRegistrationActionBinders());
         }
     }
 
