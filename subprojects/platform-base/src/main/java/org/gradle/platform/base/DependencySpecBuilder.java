@@ -16,10 +16,13 @@
 
 package org.gradle.platform.base;
 
+import org.gradle.api.Incubating;
+
 /**
  * A builder of a {@link DependencySpec}. Implementations are required to return
  * immutable dependency specs.
  */
+@Incubating
 public interface DependencySpecBuilder {
     /**
      * Builds a concrete immutable {@link DependencySpec} instance.
