@@ -313,7 +313,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         }
         link.ensureUsable();
         if (viewState.isCanMutate()) {
-            return link.asMutable(elementType, sourceDescriptor, null).getInstance();
+            return link.asMutable(elementType, sourceDescriptor).getInstance();
         } else {
             return link.asImmutable(elementType, sourceDescriptor).getInstance();
         }

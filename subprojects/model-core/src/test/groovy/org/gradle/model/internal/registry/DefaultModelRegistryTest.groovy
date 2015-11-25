@@ -631,11 +631,60 @@ class DefaultModelRegistryTest extends Specification {
         registry.registerInstance("thing", new Bean(value: "old"))
         registry.configure(ModelActionRole.Mutate) { it.path("thing").action { it.value = "${it.value} path" } }
         registry.configure(ModelActionRole.Mutate) { it.type(Bean).action { it.value = "${it.value} type" } }
+        registry.realize("thing")
         registry.remove(ModelPath.path("thing"))
         registry.registerInstance("thing", new Bean(value: "new"))
 
         expect:
         registry.realize("thing", Bean).value == "new path type"
+    }
+
+    def "cannot remove an element that has already been used as input by a rule"() {
+        given:
+        def action = Mock(BiAction)
+        registry.registerInstance("foo", 12.toInteger())
+        registry.registerInstance("bar", new Bean())
+        registry.mutate { it.path("bar").type(Bean).action(Integer, action) }
+        registry.realize("bar", Bean).value == "[12]"
+
+        when:
+        registry.remove(ModelPath.path("foo"))
+
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "Tried to remove model 'foo' but it is depended on by: 'bar'"
+    }
+
+    def "can remove an element with children that has not been used as input by a rule"() {
+        given:
+        registry.register("parent") { it.unmanagedNode (Integer) { MutableModelNode node ->
+            node.addLink(registry.instanceRegistration("parent.foo", 12.toInteger()))
+        }}
+        registry.realize("parent")
+
+        when:
+        registry.remove(ModelPath.path("parent"))
+
+        then:
+        registry.atStateOrLater("parent", ModelNode.State.Registered) == null
+        registry.atStateOrLater("parent.foo", ModelNode.State.Registered) == null
+    }
+
+    def "cannot remove an element whose child has already been used as input by a rule"() {
+        given:
+        registry.register("parent") { it.unmanagedNode (Integer) { MutableModelNode node ->
+            node.addLink(registry.instanceRegistration("parent.foo", 12.toInteger()))
+        }}
+        registry.registerInstance("bar", new Bean())
+        registry.mutate { it.path("bar").action("parent.foo", Integer, BiActions.doNothing()) }
+        registry.realize("bar", Bean).value == "[12]"
+
+        when:
+        registry.remove(ModelPath.path("parent"))
+
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "Tried to remove model 'parent.foo' but it is depended on by: 'bar'"
     }
 
     @Unroll
@@ -1135,9 +1184,13 @@ class DefaultModelRegistryTest extends Specification {
 '''
     }
 
-    def "does not report unbound creators of removed nodes"() {
+    def "does not report unbound actions applied at registration as unbound after the nodes is removed"() {
         given:
-        registry.register(ModelPath.path("unused")) { it.unmanaged(String, "unknown") {} }
+        def registration = ModelRegistrations.of(ModelPath.path("unused"))
+        ModelActionRole.values().each { role ->
+            registration.action(role, [ModelReference.of("unknown")], BiActions.doNothing())
+        }
+        registry.register(registration.build())
         registry.remove(ModelPath.path("unused"))
 
         when:

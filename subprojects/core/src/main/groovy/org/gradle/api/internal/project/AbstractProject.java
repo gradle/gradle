@@ -234,16 +234,15 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     private <T> void registerFactoryOn(ModelRegistry modelRegistry, String path, Class<T> type, Factory<T> factory) {
-        modelRegistry.registerOrReplace(ModelRegistrations
+        modelRegistry.register(ModelRegistrations
             .unmanagedInstance(ModelReference.of(path, type), factory)
             .descriptor(instanceDescriptorFor(path))
-            .ephemeral(true)
             .hidden(true)
             .build());
     }
 
     private <T> void registerServiceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance, String descriptor) {
-        modelRegistry.registerOrReplace(ModelRegistrations.serviceInstance(ModelReference.of(path, type), instance)
+        modelRegistry.register(ModelRegistrations.serviceInstance(ModelReference.of(path, type), instance)
             .descriptor(descriptor)
             .build()
         );

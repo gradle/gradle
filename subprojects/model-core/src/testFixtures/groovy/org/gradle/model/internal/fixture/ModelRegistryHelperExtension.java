@@ -56,6 +56,10 @@ public class ModelRegistryHelperExtension {
         return (MutableModelNode) modelRegistry.atState(ModelPath.path(path), state);
     }
 
+    public static MutableModelNode atStateOrLater(ModelRegistry modelRegistry, String path, ModelNode.State state) {
+        return (MutableModelNode) modelRegistry.atStateOrLater(ModelPath.path(path), state);
+    }
+
     public static ModelNode.State state(ModelRegistry modelRegistry, String path) {
         return modelRegistry.state(ModelPath.path(path));
     }

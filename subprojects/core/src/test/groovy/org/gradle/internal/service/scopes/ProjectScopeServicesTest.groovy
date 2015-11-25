@@ -51,7 +51,6 @@ import org.gradle.logging.LoggingManagerInternal
 import org.gradle.model.internal.inspect.ModelRuleExtractor
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.model.internal.persist.ModelRegistryStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
@@ -71,9 +70,6 @@ class ProjectScopeServicesTest extends Specification {
         createChild(_) >> Mock(PluginRegistry)
     }
     ModelRegistry modelRegistry = Mock()
-    ModelRegistryStore modelRegistryStore = Mock() {
-        get(_) >> modelRegistry
-    }
     ModelRuleSourceDetector modelRuleSourceDetector = Mock()
     def classLoaderScope = Mock(ClassLoaderScope)
     DependencyResolutionServices dependencyResolutionServices = Stub()
@@ -97,7 +93,6 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
         parent.get(FileLookup) >> Stub(FileLookup)
-        parent.get(ModelRegistryStore) >> modelRegistryStore
         parent.get(ModelRuleSourceDetector) >> modelRuleSourceDetector
         parent.get(ModelRuleExtractor) >> Stub(ModelRuleExtractor)
         registry = new ProjectScopeServices(parent, project)

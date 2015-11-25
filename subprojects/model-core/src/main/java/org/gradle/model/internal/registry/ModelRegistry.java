@@ -99,10 +99,6 @@ public interface ModelRegistry {
 
     void remove(ModelPath path);
 
-    ModelRegistry replace(ModelRegistration newRegistration);
-
-    ModelRegistry registerOrReplace(ModelRegistration newRegistration);
-
     /**
      * Attempts to bind the references of all model rules known at this point in time.
      * <p>
@@ -133,14 +129,4 @@ public interface ModelRegistry {
 
     @Nullable
     MutableModelNode node(ModelPath path);
-
-    /**
-     * Resets the state of the model registry, discarding all ephemeral state.
-     *
-     * This method also allows rules that were already added to be added again.
-     * All nodes that are known at the time this method is called are effectively frozen WRT rules.
-     */
-    // TODO Better name for this method?
-    void prepareForReuse();
-
 }

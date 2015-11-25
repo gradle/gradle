@@ -120,6 +120,7 @@ These should be rationalised and ideally replaced with model rules.
 - Sugar for common types of external (volatile) inputs
 - Short circuit invalidation propagation downstream by stopping transitive invalidation when rebuilt element matches “previous” state
 - Model is reused when changing between different logical projects
+- `BasePlugin.configureAssemble()` implicitly retaining the project instance which is a problem for reuse
 
 ## Migration/Bridging
 

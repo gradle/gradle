@@ -113,7 +113,6 @@ abstract public class ModelRegistrations {
         private final NodeInitializer nodeInitializer;
         private final DescriptorReference descriptorReference = new DescriptorReference();
         private boolean service;
-        private boolean ephemeral;
         private boolean hidden;
 
         private Builder(ModelPath path) {
@@ -165,11 +164,6 @@ abstract public class ModelRegistrations {
             return this;
         }
 
-        public Builder ephemeral(boolean flag) {
-            this.ephemeral = flag;
-            return this;
-        }
-
         public Builder service(boolean flag) {
             this.service = flag;
             return this;
@@ -183,7 +177,7 @@ abstract public class ModelRegistrations {
             if (!projections.isEmpty()) {
                 action(ModelActionRole.Discover, AddProjectionsAction.of(reference, descriptor, projections));
             }
-            return new DefaultModelRegistration(reference.getPath(), descriptor, service, ephemeral || service, hidden || service, actions);
+            return new DefaultModelRegistration(reference.getPath(), descriptor, service, hidden || service, actions);
         }
 
         private static class DescriptorReference {

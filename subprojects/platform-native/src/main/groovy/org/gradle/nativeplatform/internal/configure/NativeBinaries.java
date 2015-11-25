@@ -58,6 +58,7 @@ public class NativeBinaries {
         final String name = namingScheme.getBinaryName();
         binaries.create(name, type);
 
+        // TODO:REUSE Refactor after removing reuse
         // This is horrendously bad.
         // We need to set the platform, _before_ the @Defaults rules of NativeBinaryRules assign the toolchain.
         // We can't just assign the toolchain here because the initializer would be closing over the toolchain which is not reusable, and this breaks model reuse.

@@ -21,7 +21,6 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
 import java.util.Set;
 
 public interface MutableModelNode extends ModelNode {
@@ -34,7 +33,7 @@ public interface MutableModelNode extends ModelNode {
      *
      * Throws if this node can't be expressed as a mutable view of the requested type.
      */
-    <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies);
+    <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor);
 
     /**
      * Adds a reference node to the graph. A reference node is a node that refers to some other node elsewhere in the graph, similar to a symbolic link.

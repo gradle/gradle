@@ -25,8 +25,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
-import java.util.List;
-
 public class ChainingModelProjection implements ModelProjection {
     private final Iterable<? extends ModelProjection> projections;
 
@@ -83,9 +81,9 @@ public class ChainingModelProjection implements ModelProjection {
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
+    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
         for (ModelProjection projection : projections) {
-            ModelView<? extends T> view = projection.asMutable(type, node, ruleDescriptor, inputs);
+            ModelView<? extends T> view = projection.asMutable(type, node, ruleDescriptor);
             if (view != null) {
                 return view;
             }

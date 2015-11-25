@@ -505,7 +505,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
-            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor)).instance
             thing.other = "changed"
         }
 
@@ -532,7 +532,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
-            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor)).instance
             thing.other = "changed"
         }
 
@@ -555,7 +555,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
-            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor)).instance
             thing.other = "changed"
         }
 
@@ -577,7 +577,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
-            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor)).instance
             thing.other = "changed"
         }
 
@@ -599,7 +599,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
-            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor)).instance
             thing.other = "default"
         }
 
@@ -621,7 +621,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
-            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor)).instance
             thing.other = "[$thing.other]"
         }
 

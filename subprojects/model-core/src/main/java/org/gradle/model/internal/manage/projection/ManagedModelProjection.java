@@ -31,7 +31,6 @@ import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -121,7 +120,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         }
                     }
                     if (writable) {
-                        modelView = propertyNode.asMutable(propertyType, ruleDescriptor, null);
+                        modelView = propertyNode.asMutable(propertyType, ruleDescriptor);
                         if (closed) {
                             modelView.close();
                         }
@@ -166,7 +165,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                             MutableModelNode targetNode = managedInstance.getBackingNode();
                             propertyNode.setTarget(targetNode);
                         } else if (propertySchema instanceof ScalarCollectionSchema && value instanceof Collection) {
-                            ModelView<? extends Collection<?>> modelView = propertyNode.asMutable(COLLECTION_MODEL_TYPE, ruleDescriptor, Collections.<ModelView<?>>emptyList());
+                            ModelView<? extends Collection<?>> modelView = propertyNode.asMutable(COLLECTION_MODEL_TYPE, ruleDescriptor);
                             Collection<Object> instance = Cast.uncheckedCast(modelView.getInstance());
                             Collection<Object> values = Cast.uncheckedCast(value);
                             instance.clear();

@@ -30,13 +30,13 @@ class BaseComponentFixtures {
 
     static <P extends ComponentSpec, T extends BaseComponentSpec> P create(Class<P> type, Class<T> implType, ModelRegistry modelRegistry, ComponentSpecIdentifier componentId) {
         def node = createNode(type, implType,  modelRegistry, componentId);
-        node.asMutable(ModelType.of(type), new SimpleModelRuleDescriptor(componentId.getName()), Collections.<ModelView<?>>emptyList()).getInstance()
+        return node.asMutable(ModelType.of(type), new SimpleModelRuleDescriptor(componentId.getName())).getInstance()
     }
 
     static <T extends BaseComponentSpec> MutableModelNode createNode(Class<? extends ComponentSpec> type, Class<T> implType,  ModelRegistry modelRegistry, ComponentSpecIdentifier componentId) {
         try {
             modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
-            modelRegistry.register(
+            return modelRegistry.register(
                 ModelRegistrations.unmanagedInstanceOf(ModelReference.of(componentId.name, type), {
                     def decorated = GENERATOR.generate(implType)
                     BaseComponentSpec.create(type, decorated, componentId, it)
@@ -48,5 +48,4 @@ class BaseComponentFixtures {
             throw e.cause
         }
     }
-
 }

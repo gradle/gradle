@@ -41,19 +41,11 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(task).useDaemon()
             }
         }
-        /*
-        TODO: enable after fixing model reuse
         runner.buildSpec {
-            projectName("${size}VariantsNewModel").displayName("new model (reuse)").invocation {
-                tasksToRun(task).useDaemon().enableModelReuse()
+            projectName("${size}VariantsNewModel").displayName("new model (tooling api)").invocation {
+                tasksToRun(task).useToolingApi()
             }
         }
-        runner.buildSpec {
-            projectName("${size}VariantsNewModel").displayName("new model (reuse + tooling api)").invocation {
-                tasksToRun(task).useToolingApi().enableModelReuse()
-            }
-        }
-        */
         runner.buildSpec {
             projectName("${size}VariantsNewModel").displayName("new model (no client logging)").invocation {
                 tasksToRun(task).useDaemon().disableDaemonLogging()
@@ -100,19 +92,11 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(*tasks).useDaemon()
             }
         }
-        /*
-        TODO: enable after fixing model reuse
         runner.buildSpec {
-            projectName("variantsNewModelMultiproject").displayName("new model (reuse)").invocation {
-                tasksToRun(*tasks).useDaemon().enableModelReuse()
+            projectName("variantsNewModelMultiproject").displayName("new model (tooling api)").invocation {
+                tasksToRun(*tasks).useToolingApi()
             }
         }
-        runner.buildSpec {
-            projectName("variantsNewModelMultiproject").displayName("new model (reuse + tooling api)").invocation {
-                tasksToRun(*tasks).useToolingApi().enableModelReuse()
-            }
-        }
-        */
         runner.buildSpec {
             projectName("variantsNewModelMultiproject").displayName("new model (no client logging)").invocation {
                 tasksToRun(*tasks).useDaemon().disableDaemonLogging()
