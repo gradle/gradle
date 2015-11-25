@@ -259,7 +259,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             SortedSet<RuleBinder> sortedBinders = new TreeSet<RuleBinder>(new Comparator<RuleBinder>() {
                 @Override
                 public int compare(RuleBinder o1, RuleBinder o2) {
-                    return o1.getDescriptor().toString().compareTo(o2.getDescriptor().toString());
+                    return String.valueOf(o1.getDescriptor()).compareTo(String.valueOf(o2.getDescriptor()));
                 }
             });
             sortedBinders.addAll(unboundRules);
