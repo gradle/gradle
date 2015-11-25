@@ -81,7 +81,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
     @Unroll("Project '#testProject' measuring incremental build when no API is declared")
     def "incremental build java software model project without API"() {
         given:
-        runner.testId = "clean build java project $testProject which doesn't declare any API"
+        runner.testId = "incremental build java project $testProject which doesn't declare any API"
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxTimeRegression
