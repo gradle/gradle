@@ -128,7 +128,6 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.recompiledFile sourceFile
     }
 
-    @NotYetImplemented
     def "does not recompile when fallback mechanism is used and there are empty directories"() {
         given:
         file("src/main/headers/empty/directory").mkdirs()
@@ -141,7 +140,6 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.snapshot { run "mainExecutable" }
 
         when:
-        executer.withArgument("--info")
         run "mainExecutable"
         then:
         skipped compileTask
