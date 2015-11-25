@@ -406,7 +406,18 @@ The following are the newly deprecated items in this Gradle release. If you have
 - Task names have changed for components with multiple variants. The library or executable name is now first.
 - `org.gradle.language.PreprocessingTool` has moved to `org.gradle.nativeplatform.PreprocessingTool`
 - Output directory names have changed.
-- TODO: Changes to discovered inputs/include paths
+
+### Native header files as inputs to compile task
+
+Previously, Gradle considered all files in all include path directories as inputs to a compile task. This had performance problems and could cause tasks to be out of date when they should not be. This has been fixed but may cause some subtle differences to the way changes are detected for compilation tasks.
+
+Gradle now considers a compile task to be out-of-date (and require full recompilation) when the include path is changed. In older releases, Gradle would only recompile source files if the resolved set of headers changed.  This means you could reorder the include path and not necessarily see any recompiled files.
+
+Gradle only checks header files that are included from source files during compilation, except when an included header file cannot be found because it is included via a macro. When a header file cannot be resolved during task execution, a fallback mechanism is used to follow the old behavior--all files are added as inputs to the compilation task from all include directories. Gradle emits a warning at `--info` level if this fallback mechanism is used.
+
+Gradle no longer detects changes where a new header file earlier in the include path that should replace an existing header file.  If a compilation task has an include path of `[ first/, second/ ]` and a source file includes `header.h` from `second/`, if a new file called `header.h` is added to `first/`, Gradle will not detect a change that requires recompilation of the source file.
+
+The recommended way for dealing with the ambiguity of which `header.h` should be included is to namespace your header files.  Source files should include `second/header.h` or `first/header.h` with the appropriate include path.
 
 ### Changes to incubating Java Software Model
 
