@@ -34,7 +34,6 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
     private M2Installation m2Installation
 
     def "setup"() {
-        dontOverrideMavenLocal()
         m2Installation = new M2Installation(testDirectory)
         localM2Repo = m2Installation.mavenRepo()
         executer.beforeExecute m2Installation

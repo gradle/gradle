@@ -22,10 +22,6 @@ import spock.lang.Issue
 class MavenMultiProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     def mavenModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
 
-    def setup() {
-        overrideMavenLocal()
-    }
-
     def "project dependency correctly reflected in POM if publication coordinates are unchanged"() {
         createBuildScripts("""
 project(":project1") {

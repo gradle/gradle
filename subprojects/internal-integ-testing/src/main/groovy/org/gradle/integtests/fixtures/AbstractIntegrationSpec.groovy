@@ -47,8 +47,6 @@ class AbstractIntegrationSpec extends Specification {
     ExecutionFailure failure
     private MavenFileRepository mavenRepo
     private IvyFileRepository ivyRepo
-    private File mavenLocalDirectory
-    private boolean overrideMavenLocal
 
     protected TestFile getBuildFile() {
         testDirectory.file('build.gradle')
@@ -220,34 +218,6 @@ class AbstractIntegrationSpec extends Specification {
 
     public MavenLocalRepository mavenLocal(Object repo) {
         return new MavenLocalRepository(file(repo))
-    }
-
-    void overrideMavenLocal() {
-        overrideMavenLocal(file(".m2/repository"))
-    }
-
-    void overrideMavenLocal(File dir) {
-        mavenLocalDirectory = dir
-        if (!overrideMavenLocal) {
-            overrideMavenLocal = true
-            executer.beforeExecute {
-                if (this.overrideMavenLocal) {
-                    executer.withArgument("-Dmaven.repo.local=${this.mavenLocalDirectory.getAbsolutePath()}")
-                }
-            }
-        }
-    }
-
-    void dontOverrideMavenLocal() {
-        overrideMavenLocal = false
-    }
-
-    boolean isOverrideMavenLocal() {
-        this.overrideMavenLocal
-    }
-
-    File getMavenLocalDirectory() {
-        this.mavenLocalDirectory
     }
 
     public MavenFileRepository getMavenRepo() {

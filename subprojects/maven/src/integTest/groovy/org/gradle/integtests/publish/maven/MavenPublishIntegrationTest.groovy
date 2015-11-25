@@ -31,10 +31,6 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 class MavenPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
-    def setup() {
-        overrideMavenLocal()
-    }
-
     def "can publish a project with dependency in mapped and unmapped configuration"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -354,7 +350,6 @@ uploadArchives {
         def localM2Repo = m2Installation.mavenRepo()
         def customLocalRepo = new MavenLocalRepository(file("custom-maven-local"))
         m2Installation.generateUserSettingsFile(customLocalRepo)
-        dontOverrideMavenLocal()
         executer.beforeExecute(m2Installation)
 
         and:
@@ -431,7 +426,6 @@ uploadArchives {
         def m2Installation = new M2Installation(testDirectory)
         def localM2Repo = m2Installation.mavenRepo()
         def customLocalRepo = mavenLocal("customMavenLocal")
-        dontOverrideMavenLocal()
         executer.beforeExecute(m2Installation)
 
         and:
@@ -445,7 +439,7 @@ uploadArchives {
         """
 
         when:
-        overrideMavenLocal(customLocalRepo.rootDir)
+        args "-Dmaven.repo.local=${customLocalRepo.rootDir.getAbsolutePath()}"
         succeeds 'install'
 
         then:

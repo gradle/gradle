@@ -20,9 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 
 class MavenPomConfigurationPublishIntegrationTest extends AbstractIntegrationSpec {
-    def setup() {
-        overrideMavenLocal()
-    }
 
     @Ignore
     def "project dependencies in pom respect renamed artifactId"() {
