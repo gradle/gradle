@@ -21,6 +21,7 @@ import org.gradle.internal.jvm.Jvm;
 class TestNGCoverage {
     final static String NEWEST = Jvm.current().javaVersion.java7Compatible ? '6.9.4' : '6.8.7'
     final static String[] STANDARD_COVERAGE = ['5.14.10', '6.2', '6.8.7', NEWEST]
+    final static String[] TEST_ORDERING = Jvm.current().javaVersion.java7Compatible ? ['6.9.4', NEWEST] : []
 
     /**
      * Adds java plugin and configures TestNG support in given build script file.
@@ -33,4 +34,5 @@ class TestNGCoverage {
             test.useTestNG()
         """
     }
+
 }
