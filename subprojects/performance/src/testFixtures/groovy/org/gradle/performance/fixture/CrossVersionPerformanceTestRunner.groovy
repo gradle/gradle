@@ -38,12 +38,11 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     List<String> tasksToRun = []
     List<String> args = []
-    List<String> gradleOpts = []
+    List<String> gradleOpts = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
 
     List<String> targetVersions = []
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
-    int maxLimitIncreasePercentage = 10
 
     BuildExperimentListener buildExperimentListener
 
@@ -85,7 +84,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             def baselineVersion = results.baseline(it)
             baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
             baselineVersion.maxMemoryRegression = maxMemoryRegression
-            baselineVersion.maxLimitIncreasePercentage = maxLimitIncreasePercentage
 
             runVersion(buildContext.distribution(baselineVersion.version), projectDir, baselineVersion.results)
         }

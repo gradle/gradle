@@ -40,9 +40,14 @@ Unordered and not all appropriately story sized.
     - Should include some information about the identity of the input, or its display name, and probably how it was referenced in the code
     - Should provide some information about what the mutation was.
 
+## Software model
+
+- Validate (or otherwise encode) the names of components, binaries, LSS, etc so that the result makes sense for file names and task names. 
+
 ## Reporting
 
 - Model report shows too much detail by default, should probably not include tasks and just show 'data'
+- Model report should be robust in the face of failures, as it will likely be used to diagnose such failures.
 - Values for properties with primitive and other scalar types do not show up in model report unless they have been set
 - Value for property with type collection of scalars is not shown in model report unless value has been set.
 - `null` value for mutable property with type collection of scalars is not shown in model report (but empty list is).
@@ -55,6 +60,8 @@ Unordered and not all appropriately story sized.
 - Allow helper (i.e. non rule) methods to be parameterized for types in rule source plugins (currently we do not allow any parameterized methods)
 
 ## Managed types
+
+### Scalar collections
 
 - Need reasonable `toString()` value for scalar collection implementations. Should match that of other managed types.
 - Documentation does not mention copy-on-write semantics for mutable properties of type scalar collection.
@@ -113,6 +120,7 @@ These should be rationalised and ideally replaced with model rules.
 - Sugar for common types of external (volatile) inputs
 - Short circuit invalidation propagation downstream by stopping transitive invalidation when rebuilt element matches “previous” state
 - Model is reused when changing between different logical projects
+- `BasePlugin.configureAssemble()` implicitly retaining the project instance which is a problem for reuse
 
 ## Migration/Bridging
 

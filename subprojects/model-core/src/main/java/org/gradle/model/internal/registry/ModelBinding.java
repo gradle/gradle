@@ -42,6 +42,10 @@ abstract class ModelBinding {
         this.writable = writable;
     }
 
+    /**
+     * Returns the reference to the <em>output</em> of the rule. The state returned from {@link BindingPredicate#getState()} should reflect
+     * the target state, not the input state. Implicitly, a rule accepts as input the subject in the state that is the predecessor of the target state.
+     */
     public BindingPredicate getPredicate() {
         return predicate;
     }

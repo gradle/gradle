@@ -18,8 +18,8 @@
 
     <para>Only the smallest of projects has a single build file and source tree, unless it happens to be a massive,
         monolithic application. It’s often much easier to digest and understand a project that has been split into
-        smaller, inter-dependent modules. That “inter-dependent” is important, though, and is why you typically want
-        to link the modules together through a single build.</para>
+        smaller, inter-dependent modules. The word “inter-dependent” is important, though, and is why you typically
+        want to link the modules together through a single build.</para>
 
     <para>Gradle supports this scenario through <firstterm>multi-project</firstterm> builds.</para>
 
@@ -27,11 +27,13 @@
         <title>Structure of a multi-project build</title>
         <para>Such builds come in all shapes and sizes, but they do have some common characteristics:
         <itemizedlist>
-            <listitem><para>A <filename>settings.gradle</filename> file in the root directory of the project</para>
+            <listitem><para>A <filename>settings.gradle</filename> file in the root or <literal>master</literal>
+                directory of the project</para>
             </listitem>
-            <listitem><para>A <filename>build.gradle</filename> file in the root directory (optional, but very
-                common)</para></listitem>
-            <listitem><para>Child directories that have their own <filename>*.gradle</filename> build files</para>
+            <listitem><para>A <filename>build.gradle</filename> file in the root or <literal>master</literal>
+                directory</para></listitem>
+            <listitem><para>Child directories that have their own <filename>*.gradle</filename> build files
+                (some multi-project builds may omit child project build scripts)</para>
             </listitem>
         </itemizedlist>
         </para>
@@ -59,7 +61,7 @@
 
         <para>The root <filename>build.gradle</filename> is often used to share common configuration between the
             child projects, for example by applying the same sets of plugins and dependencies to all the child
-            projects. It can also be used to configure individual subprojects when the build author wants to have
+            projects. It can also be used to configure individual subprojects when it is preferable to have
             all the configuration in one place. This means you should always check the root build file when
             discovering how a particular subproject is being configured.</para>
 
@@ -93,15 +95,15 @@
 
         <para>The first approach is similar to the single-project use case, but Gradle works slightly differently
             in the case of a multi-project build. The command <userinput>gradle test</userinput> will execute the
-            test task in any subprojects, relative to the current working directory, that have that task. So if you
-            run the command from the root project directory, you’ll run <literal>test</literal> in
-            <emphasis>api</emphasis>, <emphasis>shared</emphasis>, <emphasis>services:shared</emphasis> and
+            <literal>test</literal> task in any subprojects, relative to the current working directory, that have
+            that task. So if you run the command from the root project directory, you’ll run <literal>test</literal>
+            in <emphasis>api</emphasis>, <emphasis>shared</emphasis>, <emphasis>services:shared</emphasis> and
             <emphasis>services:webservice</emphasis>. If you run the command from the services project directory,
             you’ll only execute the task in <emphasis>services:shared</emphasis> and
             <emphasis>services:webservice</emphasis>.</para>
 
         <para>For more control over what gets executed, use qualified names (the second approach mentioned). These
-            are paths just like directory paths, but using ‘:’ instead of ‘/’ or ‘\’. If the path begins with a ‘:’,
+            are paths just like directory paths, but use ‘:’ instead of ‘/’ or ‘\’. If the path begins with a ‘:’,
             then the path is resolved relative to the root project. In other words, the leading ‘:’ represents the
             root project itself. All other colons are path separators.</para>
 
@@ -111,15 +113,15 @@
 
         <para>Regardless of which technique you use to execute tasks, Gradle will take care of building any
             subprojects that the target depends on. You don’t have to worry about the inter-project dependencies
-            yourself. If you’re interested in how this is configured, you can read about multi-project builds from
-            a build author perspective <link linkend="multi_project_builds">later in the user guide</link>.</para>
+            yourself. If you’re interested in how this is configured, you can read about writing multi-project builds
+            <link linkend="multi_project_builds">later in the user guide</link>.</para>
 
         <para>There’s one last thing to note. When you’re using the Gradle wrapper, the first approach doesn’t work
             well because you have to specify the path to the wrapper script if you’re not in the project root. For
             example, if you’re in the <emphasis>webservice</emphasis> subproject directory, you would have to run
             <userinput>../../gradlew build</userinput>.</para>
 
-        <para>That’s all you really need to know about multi-project builds as a build user. You can now see whether
+        <para>That’s all you really need to know about multi-project builds as a build user. You can now identify whether
             a build is a multi-project one and you can discover its structure. And finally, you can execute tasks
             within specific subprojects.</para>
     </section>

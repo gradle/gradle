@@ -119,7 +119,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def "unbound dsl rule by-path subject and inputs are reported"() {
         given:
-        buildScript """
+        buildScript '''
             @Managed interface Thing { }
 
             model {
@@ -127,14 +127,14 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
                     // Subject only
                 }
                 foo.bla {
-                    println \$('unknown.thing')
-                    println \$('unknown.thing2')
+                    println $.unknown.thing
+                    println $.unknown.thing2
                 }
                 thing1(Thing) {
-                    println \$('unknown.thing')
+                    println $.unknown.thing
                 }
             }
-        """
+        '''
 
         when:
         fails "tasks"

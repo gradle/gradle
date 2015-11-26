@@ -18,6 +18,7 @@ package org.gradle.tooling.model.java;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
 /**
  * An element which might have associated Java sources.
@@ -31,7 +32,8 @@ public interface JavaSourceAware {
      * Returns the settings for Java sources or {@code null} if not a Java element.
      *
      * @return The source settings.
+     * @throws UnsupportedMethodException For Gradle versions older than 2.10, where this method is not supported.
      */
     @Nullable
-    JavaSourceSettings getJavaSourceSettings();
+    JavaSourceSettings getJavaSourceSettings() throws UnsupportedMethodException;
 }

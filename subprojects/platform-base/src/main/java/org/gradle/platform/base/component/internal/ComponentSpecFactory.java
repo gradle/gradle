@@ -16,12 +16,42 @@
 
 package org.gradle.platform.base.component.internal;
 
+import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.BaseInstanceFactory;
+import org.gradle.model.internal.core.InstanceFactory;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.component.BaseComponentSpec;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
+
+import java.util.Set;
 
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
-    public ComponentSpecFactory(String displayName) {
+    private final ProjectIdentifier projectIdentifier;
+
+    public ComponentSpecFactory(String displayName, ProjectIdentifier projectIdentifier) {
         super(displayName, ComponentSpec.class, BaseComponentSpec.class);
+        this.projectIdentifier = projectIdentifier;
+    }
+
+    public <S extends ComponentSpec, T extends BaseComponentSpec> void register(final ModelType<S> publicType, final ModelType<T> implementationType,
+                                                                                Set<Class<?>> internalViews, ModelRuleDescriptor descriptor) {
+        InstanceFactory.TypeRegistrationBuilder<S> registration = register(publicType, descriptor);
+        if (implementationType != null) {
+            registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<S>() {
+                @Override
+                public S create(ModelType<? extends S> publicType, String name, MutableModelNode componentNode) {
+                    ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
+                    return Cast.uncheckedCast(BaseComponentSpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode));
+                }
+            });
+        }
+        for (Class<?> internalView : internalViews) {
+            registration.withInternalView(ModelType.of(internalView));
+        }
     }
 }

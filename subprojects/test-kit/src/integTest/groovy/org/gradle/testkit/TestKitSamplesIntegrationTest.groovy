@@ -18,12 +18,10 @@ package org.gradle.testkit
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-@LeaksFileHandles
 class TestKitSamplesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule Sample sample = new Sample(testDirectoryProvider)

@@ -60,18 +60,13 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
             return false;
         }
         DefaultResolvedArtifact other = (DefaultResolvedArtifact) obj;
-        if (!other.owner.getId().equals(owner.getId())) {
-            return false;
-        }
-        if (!other.artifact.equals(artifact)) {
-            return false;
-        }
-        return true;
+        return other.owner.getId().equals(owner.getId())
+                && other.artifactId.equals(artifactId);
     }
 
     @Override
     public int hashCode() {
-        return owner.getId().hashCode() ^ getName().hashCode() ^ getType().hashCode() ^ getExtension().hashCode() ^ artifact.hashCode();
+        return owner.getId().hashCode() ^ artifactId.hashCode();
     }
 
     public String getName() {

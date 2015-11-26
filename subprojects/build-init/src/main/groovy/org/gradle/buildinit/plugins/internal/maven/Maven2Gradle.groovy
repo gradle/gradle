@@ -19,6 +19,8 @@
 package org.gradle.buildinit.plugins.internal.maven
 
 import org.apache.maven.project.MavenProject
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 import org.gradle.util.GFileUtils
 
 /**
@@ -34,6 +36,7 @@ class Maven2Gradle {
     def workingDir
     def effectivePom
 
+    Logger logger = Logging.getLogger(getClass())
     private Set<MavenProject> mavenProjects
 
     Maven2Gradle(Set<MavenProject> mavenProjects) {
@@ -43,7 +46,6 @@ class Maven2Gradle {
 
     def convert() {
         workingDir = new File('.').canonicalFile
-
         //For now we're building the effective POM XML from the model
         //and then we parse the XML using slurper.
         //This way we don't have to rewrite the Maven2Gradle just yet.
@@ -86,6 +88,7 @@ subprojects {
                 boolean warPack = module.packaging.text().equals("war")
                 def hasDependencies = !(moduleDependencies == null || moduleDependencies.length() == 0)
                 File submoduleBuildFile = new File(projectDir(module), 'build.gradle')
+
                 def group = ''
                 if (module.groupId != allProjects[0].groupId) {
                     group = "group = '${module.groupId}'"
@@ -121,6 +124,8 @@ subprojects {
                 if (packageTests) {
                     moduleBuild += packageTests;
                 }
+
+                logger.debug("writing build.gradle file at ${submoduleBuildFile.absolutePath}");
                 submoduleBuildFile.text = moduleBuild
             }
             //TODO deployment
@@ -160,6 +165,7 @@ ${globalExclusions(this.effectivePom)}
         if (buildFile.exists()) {
             buildFile.renameTo(new File("build.gradle.bak"))
         }
+        logger.debug("writing build.gradle file at ${buildFile.absolutePath}");
         buildFile.text = build
     }
 

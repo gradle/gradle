@@ -25,10 +25,11 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ValueSchema;
+import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -75,7 +76,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     private <T> ModelRegistration buildRegistrationForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, final ModelPath modelPath) {
         final ModelSchema<T> modelSchema = getModelSchema(managedType, ruleDefinition);
 
-        if (modelSchema instanceof ValueSchema) {
+        if (modelSchema instanceof ScalarValueSchema) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.");
         }
 
@@ -86,7 +87,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         final ModelReference<T> reference = ModelReference.of(modelPath, managedType);
         return ModelRegistrations.of(modelPath)
             .descriptor(descriptor)
-            .action(ModelActionRole.Discover, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+            .action(ModelActionRole.Discover, Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class)), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                     NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();

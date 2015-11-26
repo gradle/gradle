@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
@@ -98,7 +97,6 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         result.taskPaths(FAILED).empty
     }
 
-    @LeaksFileHandles
     def "daemon process dedicated to test execution uses short idle timeout"() {
         when:
         runner().build()
@@ -107,7 +105,6 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         onlyDaemon().context.idleTimeout == 120000
     }
 
-    @LeaksFileHandles
     def "daemon process dedicated to test execution is reused if one already exists"() {
         when:
         runner().build()
@@ -125,7 +122,6 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         onlyDaemon().context.pid == pid
     }
 
-    @LeaksFileHandles
     def "user daemon process does not reuse existing daemon process intended for test execution even when using same gradle user home"() {
         given:
         def nonTestKitDaemons = daemons(testKitDir)

@@ -37,4 +37,6 @@ public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal
      * The component level dependencies of this binary.
      */
     Collection<DependencySpec> getDependencies();
+
+    JarFile getApiJar();
 }

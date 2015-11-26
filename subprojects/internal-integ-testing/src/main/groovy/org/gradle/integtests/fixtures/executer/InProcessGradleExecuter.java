@@ -171,11 +171,32 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         InputStream originalStdIn = System.in;
         Properties originalSysProperties = new Properties();
         originalSysProperties.putAll(System.getProperties());
-        File originalUserDir = new File(originalSysProperties.getProperty("user.dir"));
+        File originalUserDir = new File(originalSysProperties.getProperty("user.dir")).getAbsoluteFile();
         Map<String, String> originalEnv = new HashMap<String, String>(System.getenv());
 
         GradleInvocation invocation = buildInvocation();
+        Set<String> changedEnvVars = new HashSet<String>(invocation.environmentVars.keySet());
 
+        try {
+            return executeBuild(invocation, outputListener, errorListener, listener);
+        } finally {
+            // Restore the environment
+            System.setProperties(originalSysProperties);
+            processEnvironment.maybeSetProcessDir(originalUserDir);
+            for (String envVar : changedEnvVars) {
+                String oldValue = originalEnv.get(envVar);
+                if (oldValue != null) {
+                    processEnvironment.maybeSetEnvironmentVariable(envVar, oldValue);
+                } else {
+                    processEnvironment.maybeRemoveEnvironmentVariable(envVar);
+                }
+            }
+            System.setProperty("user.dir", originalSysProperties.getProperty("user.dir"));
+            System.setIn(originalStdIn);
+        }
+    }
+
+    private BuildResult executeBuild(GradleInvocation invocation, StandardOutputListener outputListener, StandardOutputListener errorListener, BuildListenerImpl listener) {
         // Augment the environment for the execution
         System.setIn(connectStdIn());
         processEnvironment.maybeSetProcessDir(getWorkingDir());
@@ -224,19 +245,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         } catch (ReportedException e) {
             return new BuildResult(null, e.getCause());
         } finally {
-            // Restore the environment
-            System.setProperties(originalSysProperties);
-            processEnvironment.maybeSetProcessDir(originalUserDir);
-            for (String envVar : invocation.environmentVars.keySet()) {
-                String oldValue = originalEnv.get(envVar);
-                if (oldValue != null) {
-                    processEnvironment.maybeSetEnvironmentVariable(envVar, oldValue);
-                } else {
-                    processEnvironment.maybeRemoveEnvironmentVariable(envVar);
-                }
-            }
             listenerManager.removeListener(listener);
-            System.setIn(originalStdIn);
         }
     }
 

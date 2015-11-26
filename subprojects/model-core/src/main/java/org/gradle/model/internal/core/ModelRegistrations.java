@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import net.jcip.annotations.NotThreadSafe;
 import net.jcip.annotations.ThreadSafe;
@@ -46,7 +47,7 @@ abstract public class ModelRegistrations {
         return unmanagedInstance(modelReference, Factories.constant(instance), Actions.doNothing());
     }
 
-    public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory) {
+    public static <T> Builder unmanagedInstance(ModelReference<T> modelReference, final Factory<? extends T> factory) {
         return unmanagedInstance(modelReference, factory, Actions.doNothing());
     }
 
@@ -106,43 +107,38 @@ abstract public class ModelRegistrations {
 
     @NotThreadSafe
     public static class Builder {
-        private final ModelPath path;
+        private final ModelReference<?> reference;
         private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
         private final ListMultimap<ModelActionRole, ModelAction> actions = ArrayListMultimap.create();
         private final NodeInitializer nodeInitializer;
+        private final DescriptorReference descriptorReference = new DescriptorReference();
         private boolean service;
-        private boolean ephemeral;
         private boolean hidden;
-
-        private ModelRuleDescriptor modelRuleDescriptor;
 
         private Builder(ModelPath path) {
             this(path, null);
         }
 
         private Builder(ModelPath path, NodeInitializer nodeInitializer) {
-            this.path = path;
+            this.reference = ModelReference.of(path);
             this.nodeInitializer = nodeInitializer;
         }
 
         public Builder descriptor(String descriptor) {
-            this.modelRuleDescriptor = new SimpleModelRuleDescriptor(descriptor);
-            return this;
+            return descriptor(new SimpleModelRuleDescriptor(descriptor));
         }
 
         public Builder descriptor(ModelRuleDescriptor descriptor) {
-            this.modelRuleDescriptor = descriptor;
+            this.descriptorReference.descriptor = descriptor;
             return this;
         }
 
         public Builder descriptor(ModelRuleDescriptor parent, ModelRuleDescriptor child) {
-            this.modelRuleDescriptor = new NestedModelRuleDescriptor(parent, child);
-            return this;
+            return descriptor(new NestedModelRuleDescriptor(parent, child));
         }
 
         public Builder descriptor(ModelRuleDescriptor parent, String child) {
-            this.modelRuleDescriptor = new NestedModelRuleDescriptor(parent, new SimpleModelRuleDescriptor(child));
-            return this;
+            return descriptor(new NestedModelRuleDescriptor(parent, new SimpleModelRuleDescriptor(child)));
         }
 
         public Builder action(ModelActionRole role, ModelAction action) {
@@ -150,42 +146,14 @@ abstract public class ModelRegistrations {
             return this;
         }
 
-        public Builder action(ModelActionRole role, final Action<? super MutableModelNode> initializer) {
-            this.action(role, new BuilderModelAction() {
-                @Override
-                public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                    initializer.execute(modelNode);
-                }
-
-                @Override
-                public List<? extends ModelReference<?>> getInputs() {
-                    return Collections.emptyList();
-                }
-            });
-            return this;
+        public Builder action(ModelActionRole role, Action<? super MutableModelNode> action) {
+            return action(role, new NoInputsBuilderAction(reference, descriptorReference, action));
         }
 
-        public Builder action(ModelActionRole role, ModelReference<?> input, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
-            this.action(role, Collections.singletonList(input), initializer);
-            return this;
+        public Builder action(ModelActionRole role, Iterable<? extends ModelReference<?>> inputs, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> action) {
+            return action(role, new InputsUsingBuilderAction(reference, descriptorReference, inputs, action));
         }
 
-        public Builder action(ModelActionRole role, final List<? extends ModelReference<?>> inputs, final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
-            this.action(role, new BuilderModelAction() {
-                @Override
-                public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                    initializer.execute(modelNode, inputs);
-                }
-
-                @Override
-                public List<? extends ModelReference<?>> getInputs() {
-                    return inputs;
-                }
-            });
-            return this;
-        }
-
-        // Callers must take care
         public Builder withProjection(ModelProjection projection) {
             projections.add(projection);
             return this;
@@ -196,49 +164,84 @@ abstract public class ModelRegistrations {
             return this;
         }
 
-        public Builder ephemeral(boolean flag) {
-            this.ephemeral = flag;
-            return this;
-        }
-
         public Builder service(boolean flag) {
             this.service = flag;
             return this;
         }
 
         public ModelRegistration build() {
+            ModelRuleDescriptor descriptor = descriptorReference.descriptor;
             if (nodeInitializer != null) {
-                actions.putAll(nodeInitializer.getActions(ModelReference.of(path), modelRuleDescriptor));
+                actions.putAll(nodeInitializer.getActions(reference, descriptor));
             }
             if (!projections.isEmpty()) {
-                action(ModelActionRole.Discover, new BuilderModelAction() {
-                    @Override
-                    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                        for (ModelProjection projection : projections) {
-                            modelNode.addProjection(projection);
-                        }
-                    }
-
-                    @Override
-                    public List<? extends ModelReference<?>> getInputs() {
-                        return Collections.emptyList();
-                    }
-                });
+                action(ModelActionRole.Discover, AddProjectionsAction.of(reference, descriptor, projections));
             }
-            return new DefaultModelRegistration(path, modelRuleDescriptor, service, ephemeral, hidden || service, actions);
+            return new DefaultModelRegistration(reference.getPath(), descriptor, service, hidden || service, actions);
         }
 
-        private abstract class BuilderModelAction implements ModelAction {
+        private static class DescriptorReference {
+            private ModelRuleDescriptor descriptor;
+        }
+
+        private static abstract class AbstractBuilderAction implements ModelAction {
+            private final ModelReference<?> subject;
+            private final DescriptorReference descriptorReference;
+
+            public AbstractBuilderAction(ModelReference<?> subject, DescriptorReference descriptorReference) {
+                this.subject = subject;
+                this.descriptorReference = descriptorReference;
+            }
+
             @Override
             public ModelReference<?> getSubject() {
-                return ModelReference.of(path);
+                return subject;
             }
 
             @Override
             public ModelRuleDescriptor getDescriptor() {
-                return modelRuleDescriptor;
+                return descriptorReference.descriptor;
+            }
+        }
+
+        private static class NoInputsBuilderAction extends AbstractBuilderAction {
+            private final Action<? super MutableModelNode> action;
+
+            public NoInputsBuilderAction(ModelReference<?> subject, DescriptorReference descriptorReference, Action<? super MutableModelNode> action) {
+                super(subject, descriptorReference);
+                this.action = action;
+            }
+
+            @Override
+            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                action.execute(modelNode);
+            }
+
+            @Override
+            public List<? extends ModelReference<?>> getInputs() {
+                return Collections.emptyList();
+            }
+        }
+
+        private static class InputsUsingBuilderAction extends AbstractBuilderAction {
+            private final List<ModelReference<?>> inputs;
+            private final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> action;
+
+            public InputsUsingBuilderAction(ModelReference<?> subject, DescriptorReference descriptorReference, Iterable<? extends ModelReference<?>> inputs, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> action) {
+                super(subject, descriptorReference);
+                this.inputs = ImmutableList.copyOf(inputs);
+                this.action = action;
+            }
+
+            @Override
+            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                action.execute(modelNode, inputs);
+            }
+
+            @Override
+            public List<? extends ModelReference<?>> getInputs() {
+                return inputs;
             }
         }
     }
-
 }

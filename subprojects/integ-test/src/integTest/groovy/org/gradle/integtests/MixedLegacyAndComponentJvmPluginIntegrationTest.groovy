@@ -33,8 +33,8 @@ public class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractInt
                 }
                 tasks {
                     checkModel(Task) {
-                        def components = $("components")
-                        def binaries = $("binaries")
+                        def components = $.components
+                        def binaries = $.binaries
                         doLast {
                             assert components.size() == 1
                             assert components.jvmLib instanceof JvmLibrarySpec

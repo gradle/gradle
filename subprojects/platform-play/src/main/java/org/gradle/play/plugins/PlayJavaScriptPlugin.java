@@ -77,7 +77,7 @@ public class PlayJavaScriptPlugin extends RuleSource {
         }
     }
 
-    void createJavaScriptMinifyTask(ModelMap<Task> tasks, final JavaScriptSourceSet javaScriptSourceSet, final PlayApplicationBinarySpecInternal binary, @Path("buildDir") final File buildDir) {
+    private void createJavaScriptMinifyTask(ModelMap<Task> tasks, final JavaScriptSourceSet javaScriptSourceSet, final PlayApplicationBinarySpecInternal binary, @Path("buildDir") final File buildDir) {
         final String minifyTaskName = binary.getTasks().taskName("minify", javaScriptSourceSet.getName());
         final File minifyOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getProjectScopedName(), minifyTaskName));
         tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {

@@ -35,15 +35,15 @@ class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
         succeeds "components"
         then:
         output.contains """
-DefaultDocumentationComponent 'docs'
-------------------------------------
+DocumentationComponent 'docs'
+-----------------------------
 
 Source sets
-    DefaultMarkdownSourceSet 'docs:userguide'
+    MarkdownSourceSet 'docs:userguide'
         srcDir: src${File.separator}docs${File.separator}userguide
 
 Binaries
-    DefaultDocumentationBinary 'docs:binary'
+    DocumentationBinary 'docs:binary'
         build using task: :docsBinary
 """
     }

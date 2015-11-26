@@ -16,9 +16,8 @@
 
 package org.gradle.platform.base.component;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
@@ -47,13 +46,13 @@ public class BaseComponentSpec implements ComponentSpecInternal {
     private final MutableModelNode sources;
     private final MutableModelNode modelNode;
 
-    public static <T extends BaseComponentSpec> T create(Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode, Instantiator instantiator) {
-        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, implementationType.getSimpleName(), instantiator));
+    public static <T extends BaseComponentSpec> T create(Class<? extends ComponentSpec> publicType, Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode) {
+        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, publicType.getSimpleName()));
         try {
             try {
-                return instantiator.newInstance(implementationType);
+                return DirectInstantiator.INSTANCE.newInstance(implementationType);
             } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create component of type %s", implementationType.getSimpleName()), e.getCause());
+                throw new ModelInstantiationException(String.format("Could not create component of type %s", publicType.getSimpleName()), e.getCause());
             }
         } finally {
             nextComponentInfo.set(null);
@@ -110,18 +109,8 @@ public class BaseComponentSpec implements ComponentSpecInternal {
     }
 
     @Override
-    public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
-        action.execute(getSources());
-    }
-
-    @Override
     public ModelMap<BinarySpec> getBinaries() {
         return ModelMaps.asMutableView(binaries, BinarySpec.class, modelNode.toString() + ".getBinaries()");
-    }
-
-    @Override
-    public void binaries(Action<? super ModelMap<BinarySpec>> action) {
-        action.execute(getBinaries());
     }
 
     public Set<? extends Class<? extends TransformationFileType>> getInputTypes() {
@@ -132,18 +121,15 @@ public class BaseComponentSpec implements ComponentSpecInternal {
         final ComponentSpecIdentifier componentIdentifier;
         final MutableModelNode modelNode;
         final String typeName;
-        final Instantiator instantiator;
 
         private ComponentInfo(
             ComponentSpecIdentifier componentIdentifier,
             MutableModelNode modelNode,
-            String typeName,
-            Instantiator instantiator
+            String typeName
         ) {
             this.componentIdentifier = componentIdentifier;
             this.modelNode = modelNode;
             this.typeName = typeName;
-            this.instantiator = instantiator;
         }
     }
 

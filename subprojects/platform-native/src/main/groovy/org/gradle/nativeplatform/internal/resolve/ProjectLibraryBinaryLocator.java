@@ -19,9 +19,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.NativeLibraryRequirement;
@@ -38,7 +36,7 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
     // Converts the binaries of a project library into regular binary instances
     public DomainObjectSet<NativeLibraryBinary> getBinaries(NativeLibraryRequirement requirement) {
         ModelRegistry projectModel = findProject(requirement);
-        ComponentSpecContainer components = projectModel.find(ModelPath.path("components"), ModelType.of(ComponentSpecContainer.class));
+        ComponentSpecContainer components = projectModel.find("components", ComponentSpecContainer.class);
         if (components == null) {
             return null;
         }

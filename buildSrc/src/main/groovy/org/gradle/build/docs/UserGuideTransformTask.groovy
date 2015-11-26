@@ -177,6 +177,9 @@ public class UserGuideTransformTask extends DefaultTask {
             samples()
         }
         Element samplesXml = samplesXmlProvider.root.documentElement
+        String lastTitle
+        String lastId
+        Element lastExampleElement
         doc.documentElement.depthFirst().findAll { it.name() == 'sample' }.each { Element element ->
             validator.validate(element)
             String sampleId = element.'@id'
@@ -191,11 +194,18 @@ public class UserGuideTransformTask extends DefaultTask {
 
             String title = element.'@title'
 
-            Element exampleElement = doc.createElement('example')
-            exampleElement.setAttribute('id', sampleId)
-            Element titleElement = doc.createElement('title')
-            titleElement.appendChild(doc.createTextNode(title))
-            exampleElement.appendChild(titleElement);
+            Element exampleElement = lastExampleElement
+
+            if (lastId!=sampleId || lastTitle!=title) {
+                Element titleElement = doc.createElement('title')
+                titleElement.appendChild(doc.createTextNode(title))
+                exampleElement = doc.createElement('example')
+                exampleElement.setAttribute('id', sampleId)
+                exampleElement.appendChild(titleElement)
+            }
+            lastId = sampleId
+            lastTitle = title
+            lastExampleElement = exampleElement
 
             element.children().each {Element child ->
                 if (child.name() == 'sourcefile') {
@@ -229,21 +239,24 @@ public class UserGuideTransformTask extends DefaultTask {
                     boolean ignoreExtraLines = child.'@ignoreExtraLines' ?: false
                     boolean ignoreLineOrder = child.'@ignoreLineOrder' ?: false
                     boolean expectFailure = child.'@expectFailure' ?: false
+                    boolean hidden = child.'@hidden' ?: false
 
                     samplesXml << { sample(id: sampleId, dir: srcDir, args: args, outputFile: outputFile,
                                            ignoreExtraLines: ignoreExtraLines, ignoreLineOrder: ignoreLineOrder, expectFailure: expectFailure) }
 
-                    Element outputTitle = doc.createElement("para")
-                    outputTitle.appendChild(doc.createTextNode("Output of "))
-                    Element commandElement = doc.createElement('userinput')
-                    commandElement.appendChild(doc.createTextNode("gradle $args"))
-                    outputTitle.appendChild(commandElement)
-                    exampleElement.appendChild(outputTitle)
+                    if (!hidden) {
+                        Element outputTitle = doc.createElement("para")
+                        outputTitle.appendChild(doc.createTextNode("Output of "))
+                        Element commandElement = doc.createElement('userinput')
+                        commandElement.appendChild(doc.createTextNode("gradle $args"))
+                        outputTitle.appendChild(commandElement)
+                        exampleElement.appendChild(outputTitle)
 
-                    Element screenElement = doc.createElement('screen')
-                    File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${outputFile}").canonicalFile
-                    screenElement.appendChild(doc.createTextNode("> gradle $args\n" + normalise(srcFile.text)))
-                    exampleElement.appendChild(screenElement)
+                        Element screenElement = doc.createElement('screen')
+                        File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${outputFile}").canonicalFile
+                        screenElement.appendChild(doc.createTextNode("> gradle $args\n" + normalise(srcFile.text)))
+                        exampleElement.appendChild(screenElement)
+                    }
                 } else if (child.name() == 'test') {
                     String args = child.'@args'
                     samplesXml << { sample(id: sampleId, dir: srcDir, args: args) }

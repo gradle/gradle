@@ -16,22 +16,86 @@
 
 package org.gradle.platform.base.internal;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.Named;
 import org.gradle.api.Nullable;
 import org.gradle.util.GUtil;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
+    @Nullable
     final String parentName;
-    final String typeString;
+    @Nullable
+    private final String binaryName;
+    @Nullable
+    final String binaryType;
     final String dimensionPrefix;
+    @Nullable
+    private final String role;
+    private final boolean main;
     final List<String> dimensions;
+    @Nullable
+    private final String outputType;
 
-    public DefaultBinaryNamingScheme(String parentName, String typeString, List<String> dimensions) {
+    DefaultBinaryNamingScheme(@Nullable String parentName, @Nullable String binaryName, @Nullable String binaryType, @Nullable String role, boolean main, List<String> dimensions, @Nullable String outputType) {
         this.parentName = parentName;
-        this.typeString = typeString;
+        this.binaryName = binaryName;
+        this.binaryType = binaryType;
+        this.role = role;
+        this.main = main;
         this.dimensions = dimensions;
+        this.outputType = outputType;
         this.dimensionPrefix = createPrefix(dimensions);
+    }
+
+    public static BinaryNamingScheme component(@Nullable String componentName) {
+        return new DefaultBinaryNamingScheme(componentName, null, null, null, false, Collections.<String>emptyList(), null);
+    }
+
+    @Override
+    public BinaryNamingScheme withVariantDimension(String dimension) {
+        List<String> newDimensions = new ArrayList<String>(dimensions.size() + 1);
+        newDimensions.addAll(dimensions);
+        newDimensions.add(dimension);
+        return new DefaultBinaryNamingScheme(parentName, binaryName, binaryType, role, main, newDimensions, outputType);
+    }
+
+    @Override
+    public <T extends Named> BinaryNamingScheme withVariantDimension(T value, Collection<? extends T> allValuesForAxis) {
+        if (allValuesForAxis.size() == 1) {
+            return this;
+        }
+        return withVariantDimension(value.getName());
+    }
+
+    @Override
+    public BinaryNamingScheme withRole(String role, boolean isMain) {
+        return new DefaultBinaryNamingScheme(parentName, binaryName, binaryType, role, isMain, dimensions, outputType);
+    }
+
+    @Override
+    public BinaryNamingScheme withBinaryType(@Nullable String type) {
+        return new DefaultBinaryNamingScheme(parentName, binaryName, type, role, main, dimensions, outputType);
+    }
+
+    @Override
+    public BinaryNamingScheme withComponentName(@Nullable String componentName) {
+        return new DefaultBinaryNamingScheme(componentName, binaryName, binaryType, role, main, dimensions, outputType);
+    }
+
+    @Override
+    public BinaryNamingScheme withOutputType(@Nullable String type) {
+        return new DefaultBinaryNamingScheme(parentName, binaryName, binaryType, role, main, dimensions, type);
+    }
+
+    @Override
+    public BinaryNamingScheme withBinaryName(@Nullable String name) {
+        return new DefaultBinaryNamingScheme(parentName, name, binaryType, role, main, dimensions, outputType);
     }
 
     private String createPrefix(List<String> dimensions) {
@@ -46,29 +110,46 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     public String getBinaryName() {
-        return makeName(dimensionPrefix, typeString);
+        return binaryName != null ? binaryName : makeName(dimensionPrefix, binaryType);
     }
 
     public String getOutputDirectoryBase() {
-        StringBuilder builder = new StringBuilder(makeName(parentName, typeString));
-        if (dimensionPrefix.length() > 0) {
-            builder.append('/');
-            builder.append(dimensionPrefix);
+        List<String> elements = Lists.newArrayList();
+        elements.add(outputType);
+        elements.add(parentName);
+        if (binaryName != null) {
+            elements.add(binaryName);
+        } else {
+            if (!main) {
+                if (role != null) {
+                    elements.add(role);
+                } else {
+                    elements.add(binaryType);
+                }
+            }
+            elements.addAll(dimensions);
         }
-        return builder.toString();
+        return makePath(elements);
+    }
+
+    @Override
+    public File getOutputDirectory(File baseDir) {
+        return new File(baseDir, getOutputDirectoryBase());
     }
 
     public String getDescription() {
         StringBuilder builder = new StringBuilder();
-        builder.append(GUtil.toWords(typeString));
+        builder.append(GUtil.toWords(binaryType));
         builder.append(" '");
-        builder.append(parentName);
-        for (String dimension : dimensions) {
-            builder.append(':');
-            builder.append(dimension);
+        List<String> elements = Lists.newArrayList();
+        elements.add(parentName);
+        if (binaryName != null) {
+            elements.add(binaryName);
+        } else {
+            elements.addAll(dimensions);
+            elements.add(binaryType);
         }
-        builder.append(':');
-        appendUncapitalized(builder, typeString);
+        builder.append(makeSeparated(elements));
         builder.append("'");
         return builder.toString();
     }
@@ -82,10 +163,13 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     public String getTaskName(@Nullable String verb, @Nullable String target) {
-        return makeName(verb, dimensionPrefix, parentName, typeString, target);
+        if (binaryName != null) {
+            return makeName(verb, parentName, binaryName, target);
+        }
+        return makeName(verb, parentName, dimensionPrefix, binaryType, target);
     }
 
-    public String makeName(String... words) {
+    private String makeName(String... words) {
         int expectedLength = 0;
         for (String word : words) {
             if (word != null) {
@@ -102,6 +186,46 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
             } else {
                 appendCapitalized(builder, word);
             }
+        }
+        return builder.toString();
+    }
+
+    private String makePath(Iterable<String> words) {
+        int expectedLength = 0;
+        for (String word : words) {
+            if (word != null) {
+                expectedLength += word.length() + 1;
+            }
+        }
+        StringBuilder builder = new StringBuilder(expectedLength);
+        for (String word : words) {
+            if (word == null || word.length() == 0) {
+                continue;
+            }
+            if (builder.length() > 0) {
+                builder.append('/');
+            }
+            appendUncapitalized(builder, word);
+        }
+        return builder.toString();
+    }
+
+    private String makeSeparated(Iterable<String> words) {
+        int expectedLength = 0;
+        for (String word : words) {
+            if (word != null) {
+                expectedLength += word.length() + 1;
+            }
+        }
+        StringBuilder builder = new StringBuilder(expectedLength);
+        for (String word : words) {
+            if (word == null || word.length() == 0) {
+                continue;
+            }
+            if (builder.length() > 0) {
+                builder.append(':');
+            }
+            appendUncapitalized(builder, word);
         }
         return builder.toString();
     }

@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.DependentSourceSetInternal
+import org.gradle.language.base.DependentSourceSet
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.platform.base.DependencySpecContainer
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer
@@ -131,5 +131,5 @@ dependencies:
 """)
     }
 
-    interface DependentLanguageSourceSet extends LanguageSourceSet, DependentSourceSetInternal {}
+    interface DependentLanguageSourceSet extends LanguageSourceSet, DependentSourceSet {}
 }

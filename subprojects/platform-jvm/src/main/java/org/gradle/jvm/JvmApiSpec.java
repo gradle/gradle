@@ -18,6 +18,7 @@ package org.gradle.jvm;
 
 import groovy.lang.Closure;
 import org.gradle.api.Incubating;
+import org.gradle.model.internal.core.UnmanagedStruct;
 import org.gradle.platform.base.DependencySpecContainer;
 
 import java.util.Set;
@@ -29,25 +30,29 @@ import java.util.Set;
  *
  * @since 2.10
  */
-@Incubating
+@Incubating @UnmanagedStruct
 public interface JvmApiSpec {
 
     /**
      * Specify a package to be exported as part of the library API.
      *
      * @param packageName the name of the package to be exported, e.g. "com.example.p1"
-     * @throws org.gradle.api.InvalidUserDataException if the package name is not valid or
-     * has already been exported
-     * @see JvmPackageName
+     * @throws org.gradle.api.InvalidUserDataException if the package name is not valid or has already been exported
      */
     void exports(String packageName);
 
     /**
-     * The packages exported in this API.
+     * The set of packages that comprise this library's public API.
      */
-    Set<JvmPackageName> getExports();
+    Set<String> getExports();
 
+    /**
+     * Specify the dependencies of this API.
+     */
     void dependencies(Closure<?> configureAction);
 
+    /**
+     * The dependencies of this API.
+     */
     DependencySpecContainer getDependencies();
 }

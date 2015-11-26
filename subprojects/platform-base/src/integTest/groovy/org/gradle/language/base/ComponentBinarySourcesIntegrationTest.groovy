@@ -57,7 +57,7 @@ model {
     tasks {
         verify(Task) {
             doLast {
-                def comp = $('components.mylib')
+                def comp = $.components.mylib
                 def binary = comp.binaries.main
                 assert comp.sources.size() == 1
                 assert binary.sources.size() == 1
@@ -92,7 +92,7 @@ model {
     tasks {
         verify(Task) {
             doLast {
-                def binaries = $('components.mylib.binaries')
+                def binaries = $.components.mylib.binaries
                 assert binaries.main.sources.size() == 1
                 assert binaries.main.sources.first() instanceof CustomLanguageSourceSet
                 assert binaries.main.inputs.size() == 1
@@ -125,7 +125,7 @@ model {
     tasks {
         verify(Task) {
             doLast {
-                def binaries = $('components.mylib.binaries')
+                def binaries = $.components.mylib.binaries
                 assert binaries.main.sources.size() == 1
                 assert binaries.main.sources.first() instanceof CustomLanguageSourceSet
                 assert binaries.main.inputs.size() == 1
@@ -155,7 +155,7 @@ model {
     }
     tasks {
         create("printSourceNames") {
-            def sources = $("components.mylib.binaries.main.sources")
+            def sources = $.components.mylib.binaries.main.sources
             doLast {
                 println "names: ${sources.values()*.name}"
             }
@@ -208,19 +208,19 @@ model {
                     binaries {
                         foo {
                             sources {
-                                bar(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'mylib:bar'")
+                                bar(type: "CustomLanguageSourceSet")
                             }
                             tasks()
                         }
                         main {
                             sources {
-                                someLang(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'mylib:someLang'")
+                                someLang(type: "CustomLanguageSourceSet")
                             }
                             tasks()
                         }
                         test {
                             sources {
-                                test(type: "CustomLanguageSourceSet", nodeValue: "DefaultCustomLanguageSourceSet 'mylib:test'")
+                                test(type: "CustomLanguageSourceSet")
                             }
                             tasks()
                         }
@@ -246,7 +246,7 @@ model {
                 }
                 tasks {
                     create("printSourceDisplayName") {
-                        def sources = $("components.mylib.binaries.main.sources.someLang")
+                        def sources = $.components.mylib.binaries.main.sources.someLang
                         doLast {
                             println "sources display name: ${sources.displayName}"
                         }
@@ -259,7 +259,7 @@ model {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: DefaultCustomLanguageSourceSet 'mylib:someLang'"
+        output.contains "sources display name: CustomLanguageSourceSet 'mylib:someLang'"
     }
 
     def "elements in binary.sources should not be created when defined"() {
@@ -325,16 +325,7 @@ model {
         fails "model"
 
         then:
-        failureCauseContains("""A model element of type: 'UnregisteredSourceSetType' can not be constructed.
-It must be one of:
-    - A managed type (annotated with @Managed)
-    - or a type which Gradle is capable of constructing:
-        - org.gradle.platform.base.BinarySpec
-        - org.gradle.platform.base.ComponentSpec
-        - CustomBinary
-        - CustomComponent
-        - CustomLanguageSourceSet""")
-
+        failure.assertHasCause("Cannot create a 'UnregisteredSourceSetType' because this type is not known to sourceSets. Known types are: CustomLanguageSourceSet")
     }
 
 }

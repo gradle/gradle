@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.PerformanceTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner

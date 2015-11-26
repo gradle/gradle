@@ -16,16 +16,31 @@
 
 package org.gradle.plugins.ide.internal.tooling.java;
 
+import org.gradle.api.JavaVersion;
+import org.gradle.tooling.model.java.JavaRuntime;
+
 import java.io.Serializable;
 
 public class DefaultJavaSourceSettings implements Serializable {
-    private final DefaultJavaLanguageLevel sourceLanguageLevel;
+    private final JavaVersion sourceLanguageLevel;
+    private final JavaVersion targetLanguageLevel;
+    private JavaRuntime javaRuntime;
 
-    public DefaultJavaSourceSettings(DefaultJavaLanguageLevel sourceLanguageLevel) {
+    public DefaultJavaSourceSettings(JavaVersion sourceLanguageLevel, JavaVersion targetLanguageLevel, JavaRuntime javaRuntime) {
         this.sourceLanguageLevel = sourceLanguageLevel;
+        this.targetLanguageLevel = targetLanguageLevel;
+        this.javaRuntime = javaRuntime;
     }
 
-    public DefaultJavaLanguageLevel getSourceLanguageLevel() {
+    public JavaVersion getSourceLanguageLevel() {
         return sourceLanguageLevel;
+    }
+
+    public JavaVersion getTargetLanguageLevel() {
+        return targetLanguageLevel;
+    }
+
+    public JavaRuntime getTargetRuntime() {
+        return javaRuntime;
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
+import org.gradle.model.internal.core.UnmanagedStruct;
 import org.gradle.platform.base.ToolChain;
 
 import java.io.File;
@@ -26,7 +27,7 @@ import java.io.File;
  *
  * <p>TODO:HH resolve naming conflict with existing NativeExecutableSpec</p>
  */
-@Incubating
+@Incubating @UnmanagedStruct
 public class NativeExecutableFileSpec {
 
     private File file;

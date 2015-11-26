@@ -37,7 +37,7 @@ import java.util.Set;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 // TODO - mix Groovy DSL support in
-public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements ManagedInstance {
+public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements ManagedInstance {
 
     private final ModelType<T> elementType;
     private final ModelRuleDescriptor sourceDescriptor;
@@ -313,7 +313,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyDecorator<T> implements
         }
         link.ensureUsable();
         if (viewState.isCanMutate()) {
-            return link.asMutable(elementType, sourceDescriptor, null).getInstance();
+            return link.asMutable(elementType, sourceDescriptor).getInstance();
         } else {
             return link.asImmutable(elementType, sourceDescriptor).getInstance();
         }

@@ -52,7 +52,7 @@ model {
     tasks {
         mainJar {
             doLast {
-                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdepJar)
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdepApiJar)
                 assert compileMainJarMainJava.classpath.files*.name == ['zdep.jar']
             }
         }
@@ -65,7 +65,7 @@ model {
         succeeds ':tasks', ':mainJar'
 
         then:
-        executedAndNotSkipped ':tasks', ':mainJar'
+        executedAndNotSkipped ':tasks', ':zdepApiJar', ':mainJar'
     }
 
     @Unroll
@@ -106,7 +106,7 @@ model {
     tasks {
         mainJar {
             doLast {
-                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.contains(':sub:zdepJar')
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.contains(':sub:zdepApiJar')
                 assert compileMainJarMainJava.classpath.files*.name == ['zdep.jar']
             }
         }
@@ -116,10 +116,10 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
-        succeeds ':tasks', ':mainJar'
+        succeeds ':mainJar'
 
         then:
-        executedAndNotSkipped ':tasks', ':mainJar'
+        executedAndNotSkipped ':sub:zdepApiJar', ':mainJar'
 
         where:
         dependency << ["project ':sub' library 'zdep'", "project ':sub'"]
@@ -150,13 +150,13 @@ model {
     tasks {
         mainJava6Jar {
             doLast {
-                assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(zdep6Jar)
+                assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(zdep6ApiJar)
                 assert compileMainJava6JarMainJava.classpath.files == [file("${buildDir}/jars/zdep6ApiJar/zdep.jar")] as Set
             }
         }
         mainJava7Jar {
             doLast {
-                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(zdep7Jar)
+                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(zdep7ApiJar)
                 assert compileMainJava7JarMainJava.classpath.files == [file("${buildDir}/jars/zdep7ApiJar/zdep.jar")] as Set
             }
         }
@@ -166,10 +166,16 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
-        succeeds ':tasks', ':mainJava6Jar', ':mainJava7Jar'
+        succeeds ':mainJava6Jar'
 
         then:
-        executedAndNotSkipped ':tasks', ':mainJava6Jar', ':mainJava7Jar'
+        executedAndNotSkipped ':zdep6ApiJar', ':mainJava6Jar'
+
+        when:
+        succeeds ':mainJava7Jar'
+
+        then:
+        executedAndNotSkipped ':zdep7ApiJar', ':mainJava7Jar'
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -197,7 +203,7 @@ model {
     tasks {
         mainJava7Jar {
             doLast {
-                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(zdepJar)
+                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(zdepApiJar)
                 assert compileMainJava7JarMainJava.classpath.files == [file("${buildDir}/jars/zdepApiJar/zdep.jar")] as Set
             }
         }
@@ -207,10 +213,10 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when: 'The Java 7 variant of the main jar can be built'
-        succeeds ':tasks', ':mainJava7Jar'
+        succeeds ':mainJava7Jar'
 
         then:
-        executedAndNotSkipped ':tasks', ':mainJava7Jar'
+        executedAndNotSkipped ':mainJava7Jar'
 
         and: 'the Java 6 variant fails'
         fails ':mainJava6Jar'
@@ -246,7 +252,7 @@ model {
     tasks {
         mainJar {
             doLast {
-                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdepJava7Jar)
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdepJava7ApiJar)
                 assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/zdepJava7ApiJar/zdep.jar")] as Set
             }
         }
@@ -256,10 +262,10 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
-        succeeds ':tasks', ':mainJar'
+        succeeds ':mainJar'
 
         then:
-        executedAndNotSkipped ':tasks', ':mainJar'
+        executedAndNotSkipped ':zdepJava7ApiJar', ':mainJar'
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -286,7 +292,7 @@ model {
     tasks {
         mainJar {
             doLast {
-                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdep7Jar)
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdep7ApiJar)
                 assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep7ApiJar/zdep.jar")] as Set
             }
         }
@@ -296,10 +302,10 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
-        succeeds ':tasks', ':mainJar'
+        succeeds ':mainJar'
 
         then:
-        executedAndNotSkipped ':tasks', ':mainJar'
+        executedAndNotSkipped ':zdep7ApiJar', ':mainJar'
     }
 
     def "custom component can consume a JVM library"() {
@@ -322,7 +328,7 @@ model {
     tasks {
         zdepJar {
             doLast {
-                assert compileZdepJarZdepJava.taskDependencies.getDependencies(compileZdepJarZdepJava).contains(mainJar)
+                assert compileZdepJarZdepJava.taskDependencies.getDependencies(compileZdepJarZdepJava).contains(mainApiJar)
                 assert compileZdepJarZdepJava.classpath.files == [file("${buildDir}/jars/mainApiJar/main.jar")] as Set
             }
         }
@@ -336,7 +342,7 @@ model {
         succeeds ':tasks', ':zdepJar'
 
         then:
-        executedAndNotSkipped ':tasks', ':zdepJar'
+        executedAndNotSkipped ':tasks', ':mainApiJar', ':zdepJar'
     }
 
     def "Java consumes custom component consuming Java component"() {
@@ -368,10 +374,10 @@ model {
     tasks {
         mainJar {
             doLast {
-                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(secondJar)
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(secondApiJar)
                 assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/secondApiJar/second.jar")] as Set
 
-                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdJar)
+                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdApiJar)
                 assert compileSecondJarSecondJava.classpath.files == [file("${buildDir}/jars/thirdApiJar/third.jar")] as Set
             }
         }
@@ -383,10 +389,10 @@ model {
         file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
 
         when:
-        succeeds ':tasks', ':mainJar'
+        succeeds ':mainJar'
 
         then:
-        executedAndNotSkipped ':tasks', ':mainJar'
+        executedAndNotSkipped ':secondApiJar', ':thirdApiJar', ':mainJar'
     }
 
     def "Custom consumes Java component consuming custom component"() {
@@ -422,10 +428,10 @@ model {
     tasks {
         mainJar {
             doLast {
-                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(secondJar)
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(secondApiJar)
                 assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/secondApiJar/second.jar")] as Set
 
-                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdJar)
+                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdApiJar)
                 assert compileSecondJarSecondJava.classpath.files == [file("${buildDir}/jars/thirdApiJar/third.jar")] as Set
             }
         }
@@ -437,10 +443,10 @@ model {
         file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
 
         when:
-        succeeds ':tasks', ':mainJar'
+        succeeds ':mainJar'
 
         then:
-        executedAndNotSkipped ':tasks', ':mainJar'
+        executedAndNotSkipped ':secondApiJar', ':thirdApiJar', ':mainJar'
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -478,8 +484,8 @@ model {
     tasks {
         mainJava7Jar {
             doLast {
-                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(secondJar)
-                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdJar)
+                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(secondApiJar)
+                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdApiJar)
             }
         }
     }
@@ -490,10 +496,10 @@ model {
         file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
 
         when: "Can resolve dependencies and compile the Java 7 variant of the main Jar"
-        succeeds ':tasks', ':mainJava7Jar'
+        succeeds ':mainJava7Jar'
 
         then:
-        executedAndNotSkipped ':tasks', ':mainJava7Jar'
+        executedAndNotSkipped ':secondApiJar', ':thirdApiJar', ':mainJava7Jar'
 
         and: "Can resolve dependencies and compile any of the dependencies"
         succeeds ':secondJar'
@@ -540,13 +546,13 @@ model {
     tasks {
         create('checkMainDependencies') {
             doLast {
-                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(second7Jar)
-                assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(second6Jar)
+                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(second7ApiJar)
+                assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(second6ApiJar)
             }
         }
         create('checkSecondJava7VariantDependencies') {
             doLast {
-                assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(thirdJar)
+                assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(thirdApiJar)
             }
         }
         create('checkSecondJava6VariantDependencies') {
@@ -619,25 +625,25 @@ model {
     tasks {
         mainJava6Jar {
             doLast {
-                assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(second6Jar)
+                assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(second6ApiJar)
                 assert compileMainJava6JarMainJava.classpath.files == [file("${buildDir}/jars/second6ApiJar/second.jar")] as Set
             }
         }
         mainJava7Jar {
             doLast {
-                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(second7Jar)
+                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(second7ApiJar)
                 assert compileMainJava7JarMainJava.classpath.files == [file("${buildDir}/jars/second7ApiJar/second.jar")] as Set
             }
         }
         second6Jar {
             doLast {
-                assert compileSecond6JarSecondJava.taskDependencies.getDependencies(compileSecond6JarSecondJava).contains(thirdJava6Jar)
+                assert compileSecond6JarSecondJava.taskDependencies.getDependencies(compileSecond6JarSecondJava).contains(thirdJava6ApiJar)
                 assert compileSecond6JarSecondJava.classpath.files == [file("${buildDir}/jars/thirdJava6ApiJar/third.jar")] as Set
             }
         }
         second7Jar {
             doLast {
-                assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(thirdJava7Jar)
+                assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(thirdJava7ApiJar)
                 assert compileSecond7JarSecondJava.classpath.files == [file("${buildDir}/jars/thirdJava7ApiJar/third.jar")] as Set
             }
         }
@@ -702,9 +708,9 @@ model {
     tasks {
         create('checkDependencies') {
             doLast {
-                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(secondJar)
-                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdJar)
-                assert compileThirdJarThirdJava.taskDependencies.getDependencies(compileThirdJarThirdJava).contains(mainJar)
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(secondApiJar)
+                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdApiJar)
+                assert compileThirdJarThirdJava.taskDependencies.getDependencies(compileThirdJarThirdJava).contains(mainApiJar)
             }
         }
     }
@@ -759,8 +765,8 @@ model {
     tasks {
         create('checkJava7Dependencies') {
             doLast {
-                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(second7Jar)
-                assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(thirdJava7Jar)
+                assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(second7ApiJar)
+                assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(thirdJava7ApiJar)
             }
         }
         create('checkMainJava6Dependencies') {
@@ -865,10 +871,10 @@ model {
     tasks {
         create('checkDependencies') {
             doLast {
-                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).containsAll([secondJar, thirdJar, fourthJar])
-                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(fifthJar)
-                assert compileThirdJarThirdJava.taskDependencies.getDependencies(compileThirdJarThirdJava).contains(fifthJar)
-                assert compileFourthJarFourthJava.taskDependencies.getDependencies(compileFourthJarFourthJava).contains(thirdJar)
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).containsAll([secondApiJar, thirdApiJar, fourthApiJar])
+                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(fifthApiJar)
+                assert compileThirdJarThirdJava.taskDependencies.getDependencies(compileThirdJarThirdJava).contains(fifthApiJar)
+                assert compileFourthJarFourthJava.taskDependencies.getDependencies(compileFourthJarFourthJava).contains(thirdApiJar)
             }
         }
     }

@@ -16,6 +16,10 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.BasicPerformanceTest
+import org.junit.experimental.categories.Category
+
+@Category(BasicPerformanceTest)
 class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     def "test"() {

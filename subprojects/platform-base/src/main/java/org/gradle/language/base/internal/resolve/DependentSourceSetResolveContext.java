@@ -21,27 +21,21 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
-import org.gradle.language.base.internal.DependentSourceSetInternal;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.platform.base.DependencySpec;
-
-import java.util.Iterator;
 
 import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData.newDefaultLibraryLocalComponentMetadata;
 
 public class DependentSourceSetResolveContext implements ResolveContext {
-    private final LibraryBinaryIdentifier binaryId;
-    private final DependentSourceSetInternal sourceSet;
+    private final LibraryBinaryIdentifier libraryBinaryIdentifier;
+    private final LanguageSourceSet sourceSet;
     private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy();
     private final VariantsMetaData variants;
     private final Iterable<DependencySpec> dependencies;
 
-    public DependentSourceSetResolveContext(LibraryBinaryIdentifier binaryId, final DependentSourceSetInternal sourceSet, VariantsMetaData variants) {
-        this(binaryId, sourceSet, variants, dependenciesOf(sourceSet));
-    }
-
-    public DependentSourceSetResolveContext(LibraryBinaryIdentifier binaryId, DependentSourceSetInternal sourceSet, VariantsMetaData variants, Iterable<DependencySpec> dependencies) {
-        this.binaryId = binaryId;
+    public DependentSourceSetResolveContext(LibraryBinaryIdentifier libraryBinaryIdentifier, LanguageSourceSet sourceSet, VariantsMetaData variants, Iterable<DependencySpec> dependencies) {
+        this.libraryBinaryIdentifier = libraryBinaryIdentifier;
         this.sourceSet = sourceSet;
         this.variants = variants;
         this.dependencies = dependencies;
@@ -57,14 +51,6 @@ public class DependentSourceSetResolveContext implements ResolveContext {
         return sourceSet.getDisplayName();
     }
 
-    public LibraryBinaryIdentifier getComponentId() {
-        return binaryId;
-    }
-
-    public DependentSourceSetInternal getSourceSet() {
-        return sourceSet;
-    }
-
     public VariantsMetaData getVariants() {
         return variants;
     }
@@ -76,17 +62,7 @@ public class DependentSourceSetResolveContext implements ResolveContext {
 
     @Override
     public ComponentResolveMetaData toRootComponentMetaData() {
-        LibraryBinaryIdentifier libraryBinaryIdentifier = getComponentId();
         return newDefaultLibraryLocalComponentMetadata(libraryBinaryIdentifier, sourceSet.getBuildDependencies(), dependencies, libraryBinaryIdentifier.getProjectPath());
-    }
-
-    private static Iterable<DependencySpec> dependenciesOf(final DependentSourceSetInternal sourceSet) {
-        return new Iterable<DependencySpec>() {
-            @Override
-            public Iterator<DependencySpec> iterator() {
-                return sourceSet.getDependencies().getDependencies().iterator();
-            }
-        };
     }
 
 }

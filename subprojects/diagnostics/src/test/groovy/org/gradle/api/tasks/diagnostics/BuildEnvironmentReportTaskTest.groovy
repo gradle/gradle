@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.diagnostics
 
-
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
@@ -31,7 +30,7 @@ class BuildEnvironmentReportTaskTest extends Specification {
     private Configuration conf2 = project.buildscript.configurations.create("conf2")
     private Configuration classpath = project.buildscript.configurations.getByName("classpath")
 
-    def "renders all build script configurations"() {
+    def "renders only classpath build script configuration"() {
         when:
         task.setRenderer(renderer)
         task.generate()
@@ -40,15 +39,12 @@ class BuildEnvironmentReportTaskTest extends Specification {
         then: 1 * renderer.render(classpath)
         then: 1 * renderer.completeConfiguration(classpath)
 
-        then: 1 * renderer.startConfiguration(conf1)
-        then: 1 * renderer.render(conf1)
-        then: 1 * renderer.completeConfiguration(conf1)
+        then: 0 * renderer.startConfiguration(conf1)
+        then: 0 * renderer.render(conf1)
+        then: 0 * renderer.completeConfiguration(conf1)
 
-
-        then: 1 * renderer.startConfiguration(conf2)
-        then: 1 * renderer.render(conf2)
-        then: 1 * renderer.completeConfiguration(conf2)
-
-
+        then: 0 * renderer.startConfiguration(conf2)
+        then: 0 * renderer.render(conf2)
+        then: 0 * renderer.completeConfiguration(conf2)
     }
 }

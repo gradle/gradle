@@ -15,8 +15,10 @@
  */
 
 package org.gradle.model.internal.inspect
+
 import org.gradle.api.credentials.Credentials
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.typeconversion.TypeConverter
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
 import org.gradle.model.Unmanaged
@@ -29,6 +31,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
+import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
@@ -49,15 +52,16 @@ class ManagedModelInitializerTest extends Specification {
         registerServiceInstance("schemaStore", ModelSchemaStore, DefaultModelSchemaStore.instance)
         registerServiceInstance("proxyFactory", ManagedProxyFactory, proxyFactory)
         registerServiceInstance("serviceRegistry", ServiceRegistry, Mock(ServiceRegistry))
+        registerServiceInstance("typeConverter", TypeConverter, Mock(TypeConverter))
         nodeInitializerRegistry = new TestNodeInitializerRegistry() //Not shared across tests as test may add constructable types only applying to that particular test
         registerServiceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry)
     }
 
-    private <T> ModelRegistryHelper registerServiceInstance(String path, Class<T> clazz, T instance) {
+    private <T> ModelRegistry registerServiceInstance(String path, Class<T> clazz, T instance) {
         registerServiceInstance(ModelReference.of(path, clazz), instance)
     }
 
-    private <T> ModelRegistryHelper registerServiceInstance(ModelReference<T> reference, T instance) {
+    private <T> ModelRegistry registerServiceInstance(ModelReference<T> reference, T instance) {
         r.register(ModelRegistrations.serviceInstance(reference, instance).build())
     }
 

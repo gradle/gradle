@@ -18,6 +18,9 @@ package org.gradle.model.internal.manage.schema;
 
 import org.gradle.model.internal.type.ModelType;
 
+/**
+ * Represents static information that is known about a particular model element.
+ */
 public interface ModelSchema<T> {
     ModelType<T> getType();
 }

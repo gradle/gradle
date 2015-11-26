@@ -100,7 +100,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == "12\n"
+        installation("build/install/main").exec().out == "12\n"
     }
 
     def "library dependency of 1 language source set is available to another when linking"() {
@@ -124,7 +124,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == "12\n"
+        installation("build/install/main").exec().out == "12\n"
     }
 
     def "dependencies of language source set added to binary are available when linking"() {
@@ -150,6 +150,6 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == "12\n"
+        installation("build/install/main").exec().out == "12\n"
     }
 }

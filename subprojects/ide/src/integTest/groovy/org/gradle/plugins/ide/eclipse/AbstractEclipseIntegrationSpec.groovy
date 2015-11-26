@@ -20,34 +20,34 @@ import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
 
 class AbstractEclipseIntegrationSpec extends AbstractIdeIntegrationSpec {
     protected EclipseClasspathFixture getClasspath() {
-        return new EclipseClasspathFixture(testDirectory, executer.gradleUserHomeDir)
+        EclipseClasspathFixture.create(testDirectory, executer.gradleUserHomeDir)
     }
 
     protected EclipseClasspathFixture classpath(String project) {
-        return new EclipseClasspathFixture(testDirectory.file(project), executer.gradleUserHomeDir)
+        EclipseClasspathFixture.create(testDirectory.file(project), executer.gradleUserHomeDir)
     }
 
     protected EclipseWtpComponentFixture getWtpComponent() {
-        return new EclipseWtpComponentFixture(testDirectory)
+        EclipseWtpComponentFixture.create(testDirectory)
     }
 
     protected EclipseWtpComponentFixture wtpComponent(String project) {
-        return new EclipseWtpComponentFixture(testDirectory.file(project))
+        EclipseWtpComponentFixture.create(testDirectory.file(project))
     }
 
     protected EclipseWtpFacetsFixture getWtpFacets() {
-        return new EclipseWtpFacetsFixture(testDirectory)
+        EclipseWtpFacetsFixture.create(testDirectory)
     }
 
     protected EclipseWtpFacetsFixture wtpFacets(String project) {
-        return new EclipseWtpFacetsFixture(testDirectory.file(project))
+        EclipseWtpFacetsFixture.create(testDirectory.file(project))
     }
 
     protected EclipseProjectFixture getProject() {
-        return new EclipseProjectFixture(testDirectory)
+        EclipseProjectFixture.create(testDirectory)
     }
 
     protected EclipseProjectFixture project(String project) {
-        return new EclipseProjectFixture(testDirectory.file(project))
+        EclipseProjectFixture.create(testDirectory.file(project))
     }
 }

@@ -29,6 +29,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ResolutionResultsStoreFactory implements Closeable {
     private final static Logger LOG = Logging.getLogger(ResolutionResultsStoreFactory.class);
@@ -40,7 +41,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private CachedStoreFactory oldModelCache;
     private CachedStoreFactory newModelCache;
 
-    private int storeSetBaseId;
+    private AtomicInteger storeSetBaseId = new AtomicInteger(0);
 
     public ResolutionResultsStoreFactory(TemporaryFileProvider temp) {
         this(temp, DEFAULT_MAX_SIZE);
@@ -58,7 +59,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private final Map<String, DefaultBinaryStore> stores = new HashMap<String, DefaultBinaryStore>();
     private final CompositeStoppable cleanUpLater = new CompositeStoppable();
 
-    private DefaultBinaryStore createBinaryStore(String storeKey) {
+    private synchronized DefaultBinaryStore createBinaryStore(String storeKey) {
         DefaultBinaryStore store = stores.get(storeKey);
         if (store == null || isFull(store)) {
             File storeFile = temp.createTemporaryFile("gradle", ".bin");
@@ -70,9 +71,25 @@ public class ResolutionResultsStoreFactory implements Closeable {
         return store;
     }
 
+    private synchronized CachedStoreFactory getOldModelCache() {
+        if (oldModelCache == null) {
+            oldModelCache = new CachedStoreFactory("Resolution result");
+            cleanUpLater.add(oldModelCache);
+        }
+        return oldModelCache;
+    }
+
+    private synchronized CachedStoreFactory getNewModelCache() {
+        if (newModelCache == null) {
+            newModelCache = new CachedStoreFactory("Resolution result");
+            cleanUpLater.add(newModelCache);
+        }
+        return newModelCache;
+    }
+
     public StoreSet createStoreSet() {
         return new StoreSet() {
-            int storeSetId = storeSetBaseId++;
+            int storeSetId = storeSetBaseId.getAndIncrement();
             int binaryStoreId;
             public DefaultBinaryStore nextBinaryStore() {
                 //one binary store per id+threadId
@@ -81,19 +98,11 @@ public class ResolutionResultsStoreFactory implements Closeable {
             }
 
             public Store<ResolvedComponentResult> newModelCache() {
-                if (oldModelCache == null) {
-                    oldModelCache = new CachedStoreFactory("Resolution result");
-                    cleanUpLater.add(oldModelCache);
-                }
-                return oldModelCache.createCachedStore(storeSetId);
+                return getOldModelCache().createCachedStore(storeSetId);
             }
 
             public Store<TransientConfigurationResults> oldModelCache() {
-                if (newModelCache == null) {
-                    newModelCache = new CachedStoreFactory("Resolved configuration");
-                    cleanUpLater.add(newModelCache);
-                }
-                return newModelCache.createCachedStore(storeSetId);
+                return getNewModelCache().createCachedStore(storeSetId);
             }
         };
     }
@@ -115,6 +124,29 @@ public class ResolutionResultsStoreFactory implements Closeable {
             oldModelCache = null;
             newModelCache = null;
             stores.clear();
+        }
+    }
+
+    private class DefaultStoreSet implements StoreSet {
+        final int storeSetId;
+        int binaryStoreId;
+
+        public DefaultStoreSet(int storeSetId) {
+            this.storeSetId = storeSetId;
+        }
+
+        public DefaultBinaryStore nextBinaryStore() {
+            //one binary store per id+threadId
+            String storeKey = Thread.currentThread().getId() + "-" + binaryStoreId++;
+            return createBinaryStore(storeKey);
+        }
+
+        public Store<ResolvedComponentResult> newModelCache() {
+            return getOldModelCache().createCachedStore(storeSetId);
+        }
+
+        public Store<TransientConfigurationResults> oldModelCache() {
+            return getNewModelCache().createCachedStore(storeSetId);
         }
     }
 }

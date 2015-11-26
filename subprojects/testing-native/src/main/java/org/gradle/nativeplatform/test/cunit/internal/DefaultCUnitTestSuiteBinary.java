@@ -22,12 +22,12 @@ import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
 
 public class DefaultCUnitTestSuiteBinary extends DefaultNativeTestSuiteBinarySpec implements CUnitTestSuiteBinarySpec {
     @Override
+    public CUnitTestSuiteSpec getComponent() {
+        return getComponentAs(CUnitTestSuiteSpec.class);
+    }
+    
+    @Override
     public CUnitTestSuiteSpec getTestSuite() {
         return getComponent();
-    }
-
-    @Override
-    public CUnitTestSuiteSpec getComponent() {
-        return (CUnitTestSuiteSpec) super.getComponent();
     }
 }

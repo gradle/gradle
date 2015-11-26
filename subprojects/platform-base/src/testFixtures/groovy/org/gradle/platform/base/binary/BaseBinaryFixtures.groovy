@@ -15,34 +15,26 @@
  */
 
 package org.gradle.platform.base.binary
+
+import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.model.internal.core.ModelNode
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.ModelRegistrations
-import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
-import org.gradle.platform.base.internal.ComponentSpecInternal
+import org.gradle.platform.base.BinarySpec
 
 class BaseBinaryFixtures {
+    static final def GENERATOR = new AsmBackedClassGenerator()
 
-    private final modelRegistry
-
-    BaseBinaryFixtures() {
-        modelRegistry = new ModelRegistryHelper()
-        modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
-    }
-
-    static <T extends BaseBinarySpec> T create(Class<T> type, String name, ComponentSpecInternal componentSpecInternal, ITaskFactory taskFactory) {
-        new BaseBinaryFixtures().createBinary(type, name, componentSpecInternal, taskFactory);
-    }
-
-    public <T extends BaseBinarySpec> T createBinary(Class<T> type, String name, ComponentSpecInternal componentSpecInternal, ITaskFactory taskFactory) {
+    static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> type, String name, MutableModelNode componentNode, ITaskFactory taskFactory) {
         try {
+            def modelRegistry = new ModelRegistryHelper()
+            modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
             modelRegistry.register(
                 ModelRegistrations.unmanagedInstanceOf(ModelReference.of(name, type), {
-                    BaseBinarySpec.create(type, type, name, it, componentSpecInternal, DirectInstantiator.INSTANCE, taskFactory)
+                    def generated = GENERATOR.generate(type)
+                    BaseBinarySpec.create(publicType, generated, name, it, componentNode, DirectInstantiator.INSTANCE, taskFactory)
                 })
                     .descriptor(name)
                     .build()

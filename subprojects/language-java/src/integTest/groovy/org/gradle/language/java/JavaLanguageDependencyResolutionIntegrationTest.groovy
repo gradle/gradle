@@ -47,7 +47,7 @@ model {
         succeeds ':tasks', ':mainJar'
 
         then:
-        executedAndNotSkipped ':tasks', ':compileZdepJarZdepJava', ':createZdepJar', ':zdepJar', ':compileMainJarMainJava'
+        executedAndNotSkipped ':tasks', ':compileZdepJarZdepJava', ':zdepApiJar', ':compileMainJarMainJava', ':mainApiJar', ':mainJar'
 
         where:
         scope << DependencyScope.values()
@@ -175,7 +175,7 @@ model {
     tasks {
         mainJar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.contains(':dep:mainJar')
+            assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.contains(':dep:mainApiJar')
         }
     }
 }
@@ -376,7 +376,7 @@ model {
         mainJar.finalizedBy('checkDependencies')
         create('checkDependencies') {
             assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.containsAll(
-            [':otherJar',':dep:mainJar'])
+            [':otherApiJar',':dep:mainApiJar'])
         }
     }
 }
@@ -561,8 +561,8 @@ model {
                     create('checkClasspath') {
                         doLast {
                             def cp = compileMainJarMainJava.classpath.files
-                            assert cp.contains(new File(project(':b').createMainApiJar.destinationDir, "main.jar"))
-                            def cJar = new File(project(':c').createMainApiJar.destinationDir, 'main.jar')
+                            assert cp.contains(new File(project(':b').mainApiJar.destinationDir, "main.jar"))
+                            def cJar = new File(project(':c').mainApiJar.destinationDir, 'main.jar')
                             assert ${excludesOrIncludes == 'excludes' ? '!' : ''}cp.contains(cJar)
                         }
                     }
@@ -640,7 +640,7 @@ class DependencyResolutionObserver extends RuleSource {
             doLast {
                 def task = tasks.get('compileMainJarMainJava')
                 def cp = task.classpath.files
-                assert cp == [new File(task.project.project(':b').modelRegistry.find(ModelPath.path('tasks.createMainApiJar'), ModelType.of(Task)).destinationDir, 'main.jar')] as Set
+                assert cp == [new File(task.project.project(':b').modelRegistry.find(ModelPath.path('tasks.mainApiJar'), ModelType.of(Task)).destinationDir, 'main.jar')] as Set
             }
         }
     }
@@ -743,8 +743,8 @@ model {
         create('checkClasspath') {
             doLast {
                 def cp = compileMainJarMainJava.classpath.files
-                assert cp.contains(new File(project(':b').createMainApiJar.destinationDir, 'main.jar'))
-                assert !cp.contains(new File(project(':c').createMainApiJar.destinationDir, 'main.jar'))
+                assert cp.contains(new File(project(':b').mainApiJar.destinationDir, 'main.jar'))
+                assert !cp.contains(new File(project(':c').mainApiJar.destinationDir, 'main.jar'))
             }
         }
         mainJar.finalizedBy('checkClasspath')
@@ -916,8 +916,8 @@ model {
         mainJava6Jar.finalizedBy('checkDependencies')
         mainJava7Jar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depJar)
-            assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depJar)
+            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depApiJar)
+            assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depApiJar)
         }
     }
 }
@@ -1107,8 +1107,8 @@ model {
         mainJava6Jar.finalizedBy('checkDependencies')
         mainJava7Jar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depJava6Jar)
-            assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depJava7Jar)
+            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depJava6ApiJar)
+            assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depJava7ApiJar)
         }
     }
 }
@@ -1159,8 +1159,8 @@ model {
         mainJava6Jar.finalizedBy('checkDependencies')
         mainJava7Jar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depJava6Jar)
-            assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depJava7Jar)
+            assert compileMainJava6JarMainJava.taskDependencies.getDependencies(compileMainJava6JarMainJava).contains(depJava6ApiJar)
+            assert compileMainJava7JarMainJava.taskDependencies.getDependencies(compileMainJava7JarMainJava).contains(depJava7ApiJar)
         }
     }
 }
@@ -1271,14 +1271,11 @@ model {
 
     void addCustomLibraryType(File buildFile) {
         buildFile << """
-            interface CustomLibrary extends LibrarySpec {}
-            class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {}
+            @Managed interface CustomLibrary extends LibrarySpec {}
 
             class ComponentTypeRules extends RuleSource {
                 @ComponentType
-                void registerCustomComponentType(ComponentTypeBuilder<CustomLibrary> builder) {
-                    builder.defaultImplementation(DefaultCustomLibrary)
-                }
+                void registerCustomComponentType(ComponentTypeBuilder<CustomLibrary> builder) {}
             }
 
             apply type: ComponentTypeRules

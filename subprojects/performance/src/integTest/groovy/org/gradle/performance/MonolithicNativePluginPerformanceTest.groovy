@@ -15,8 +15,8 @@
  */
 
 package org.gradle.performance
-
 import org.apache.commons.io.FileUtils
+import org.gradle.performance.categories.NativePerformanceTest
 import org.gradle.performance.fixture.*
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.MeasuredOperation
@@ -25,7 +25,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(Experiment)
+@Category(NativePerformanceTest)
 class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' measuring incremental build speed")
     def "build monolithic native project"() {
@@ -36,7 +36,7 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = [] // TODO: Add '2.10', 'last' once 2.10 is released.
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
 
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
@@ -66,9 +66,9 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         runner.tasksToRun = ['build']
         runner.args = ["--parallel", "--max-workers=4"]
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.8', 'last']
+        runner.targetVersions = ['2.8', '2.9', 'last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
         runner.warmUpRuns = 2
         runner.runs = 10
         String fileName = changedFile
@@ -140,11 +140,8 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
 
         where:
         buildSize | changeType              | maxExecutionTimeRegression | changedFile                       | changeClosure
-        "small"   | 'source file change'    | millis(1000)               | 'modules/project1/src/src45_c.c'  | this.&changeCSource
-        "medium"  | 'source file change'    | millis(5000)               | 'modules/project5/src/src100_c.c' | this.&changeCSource
-        "small"   | 'header file change'    | millis(1000)               | 'common/common/include/header8.h' | this.&changeHeader
+        "medium"  | 'source file change'    | millis(200)                | 'modules/project5/src/src100_c.c' | this.&changeCSource
         "medium"  | 'header file change'    | millis(5000)               | 'common/common/include/header8.h' | this.&changeHeader
-        "small"   | 'recompile all sources' | millis(1000)               | null                              | null
         "medium"  | 'recompile all sources' | millis(5000)               | null                              | null
     }
 

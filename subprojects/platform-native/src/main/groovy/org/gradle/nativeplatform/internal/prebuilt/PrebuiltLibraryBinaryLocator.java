@@ -19,9 +19,7 @@ package org.gradle.nativeplatform.internal.prebuilt;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.LibraryBinaryLocator;
 
@@ -34,7 +32,7 @@ public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
 
     public DomainObjectSet<NativeLibraryBinary> getBinaries(NativeLibraryRequirement requirement) {
         ModelRegistry projectModel = projectModelResolver.resolveProjectModel(requirement.getProjectPath());
-        NamedDomainObjectSet<PrebuiltLibraries> repositories = projectModel.realize(ModelPath.path("repositories"), ModelType.of(Repositories.class)).withType(PrebuiltLibraries.class);
+        NamedDomainObjectSet<PrebuiltLibraries> repositories = projectModel.realize("repositories", Repositories.class).withType(PrebuiltLibraries.class);
         if (repositories.isEmpty()) {
             return null;
         }

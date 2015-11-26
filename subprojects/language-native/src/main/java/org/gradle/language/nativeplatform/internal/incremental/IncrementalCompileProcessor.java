@@ -15,6 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.PersistentStateCache;
@@ -110,7 +111,8 @@ public class IncrementalCompileProcessor {
                     LOGGER.info(String.format("Cannot determine changed state of included '%s' in source file '%s'. Assuming changed.", dep.getInclude(), file.getName()));
                     changed = true;
                 } else {
-                    taskInputs.newInput(dep.getFile());
+                    ((IncrementalTaskInputsInternal)taskInputs).newInput(dep.getFile());
+
                     boolean depChanged = checkChangedAndUpdateState(dep.getFile());
                     changed = changed || depChanged;
                 }

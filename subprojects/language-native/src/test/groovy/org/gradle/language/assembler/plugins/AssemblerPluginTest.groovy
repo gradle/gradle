@@ -15,15 +15,13 @@
  */
 
 package org.gradle.language.assembler.plugins
+
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.tasks.Assemble
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.type.ModelType
-import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.*
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpec
@@ -31,19 +29,21 @@ import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import static org.gradle.model.internal.type.ModelTypes.modelMap
+
 class AssemblerPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
     ModelMap<ComponentSpec> realizeComponents() {
-        project.modelRegistry.realize(ModelPath.path("components"), ModelTypes.modelMap(ComponentSpec))
+        project.modelRegistry.realize("components", modelMap(ComponentSpec))
     }
 
     ProjectSourceSet realizeSourceSets() {
-        project.modelRegistry.find(ModelPath.path("sources"), ModelType.of(ProjectSourceSet))
+        project.modelRegistry.find("sources", ProjectSourceSet)
     }
 
     ModelMap<BinarySpec> realizeBinaries() {
-        project.modelRegistry.find(ModelPath.path("binaries"), ModelTypes.modelMap(BinarySpec))
+        project.modelRegistry.find("binaries", modelMap(BinarySpec))
     }
 
     def "creates asm source set with conventional locations for components"() {

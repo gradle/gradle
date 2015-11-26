@@ -16,11 +16,9 @@
 
 package org.gradle.performance.fixture;
 
-import org.apache.commons.io.FileUtils;
 import org.gradle.performance.measure.MeasuredOperation;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -54,17 +52,9 @@ public class CompilationLoggingCollector implements DataCollector {
         if (HOTSPOT_LOGGING_ENABLED) {
             File hotspotLog = new File(invocationInfo.getProjectDir(), "hotspot.log");
             if (hotspotLog.exists()) {
-                String fileName = ("hotspot_" + invocationInfo.getBuildExperimentSpec().getDisplayName() + "_"
-                    + invocationInfo.getBuildExperimentSpec().getProjectName() + "_"
-                    + invocationInfo.getPhase().name().toLowerCase() + "_"
-                    + invocationInfo.getIterationNumber() + "_"
-                    + invocationInfo.getIterationMax() + ".log").replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("[_]+", "_");
-                try {
-                    FileUtils.copyFile(hotspotLog, new File(invocationInfo.getProjectDir(), fileName));
-                } catch (IOException e) {
-                    // ignore
-                }
+                LogFiles.copyLogFile(hotspotLog, invocationInfo, "hotspot_", ".log");
             }
         }
     }
+
 }

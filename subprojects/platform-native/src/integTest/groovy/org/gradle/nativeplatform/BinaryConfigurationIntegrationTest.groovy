@@ -63,7 +63,7 @@ model {
         run "mainExecutable"
 
         then:
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/exe/main/main")
         executable.exec().out == "Hello!"
     }
 
@@ -103,7 +103,7 @@ model {
         run "mainExecutable"
 
         then:
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/exe/main/main")
         executable.exec().out == "Hello!"
         executable.assertDebugFileExists()
         // TODO - need to verify that the debug info ended up in the binary
@@ -163,8 +163,8 @@ model {
         run "installMainExecutable"
 
         then:
-        staticLibrary("build/binaries/helloStaticLibrary/hello").assertExists()
-        installation("build/install/mainExecutable").exec().out == "Hello!"
+        staticLibrary("build/libs/hello/static/hello").assertExists()
+        installation("build/install/main").exec().out == "Hello!"
     }
 
     def "can customize binaries before and after linking"() {
@@ -178,7 +178,7 @@ model {
         main(NativeExecutableSpec)
     }
     tasks { t ->
-        $("components.main").binaries { binaries ->
+        $.components.main.binaries { binaries ->
             binaries.values().each { binary ->
                 def preLinkTask = binary.tasks.taskName("preLink")
                 t.create(preLinkTask) {
@@ -278,9 +278,9 @@ model {
 
         then:
         def modPath = {TestFile file -> new TestFile("${file.parentFile}/new_output/_${file.name}")}
-        modPath(executable("build/binaries/mainExecutable/main").file).assertExists()
-        modPath(sharedLibrary("build/binaries/helloSharedLibrary/hello").file).assertExists()
-        modPath(staticLibrary("build/binaries/helloStaticLibrary/hello").file).assertExists()
+        modPath(executable("build/exe/main/main").file).assertExists()
+        modPath(sharedLibrary("build/libs/hello/shared/hello").file).assertExists()
+        modPath(staticLibrary("build/libs/hello/static/hello").file).assertExists()
     }
 
     @Unroll
@@ -320,7 +320,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.englishOutput
+        installation("build/install/main").exec().out == app.englishOutput
 
         where:
         linkage << ["static", "shared"]

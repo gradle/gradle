@@ -24,8 +24,8 @@ import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.PrebuiltLibrary;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
-import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.DefaultBinaryNamingScheme;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -70,12 +70,11 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
     }
 
     private <T extends NativeLibraryBinary> String getName(Class<T> type, PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor) {
-        BinaryNamingSchemeBuilder namingScheme = new DefaultBinaryNamingSchemeBuilder()
-                .withComponentName(library.getName())
-                .withTypeString(type.getSimpleName())
+        BinaryNamingScheme namingScheme = DefaultBinaryNamingScheme.component(library.getName())
+                .withBinaryType(type.getSimpleName())
                 .withVariantDimension(platform.getName())
                 .withVariantDimension(buildType.getName())
                 .withVariantDimension(flavor.getName());
-        return namingScheme.build().getBinaryName();
+        return namingScheme.getBinaryName();
     }
 }

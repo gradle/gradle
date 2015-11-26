@@ -21,12 +21,12 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.PreprocessingTool;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.language.rc.tasks.WindowsResourceCompile;
+import org.gradle.nativeplatform.PreprocessingTool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.StaticLibraryBinarySpecInternal;
 import org.gradle.platform.base.BinarySpec;
@@ -62,7 +62,7 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
         task.source(sourceSet.getSource());
 
         final Project project = task.getProject();
-        task.setOutputDir(project.file(String.valueOf(project.getBuildDir()) + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + ((LanguageSourceSetInternal) sourceSet).getProjectScopedName()));
+        task.setOutputDir(new File(binary.getNamingScheme().withOutputType("objs").getOutputDirectory(project.getBuildDir()), ((LanguageSourceSetInternal) sourceSet).getProjectScopedName()));
 
         PreprocessingTool rcCompiler = (PreprocessingTool) binary.getToolByName("rcCompiler");
         task.setMacros(rcCompiler.getMacros());

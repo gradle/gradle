@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.jvm;
 
-import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
@@ -31,11 +30,7 @@ import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.BinaryTasksCollection;
-import org.gradle.platform.base.internal.BinaryBuildAbility;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
-import org.gradle.platform.base.internal.FixedBuildAbility;
-import org.gradle.platform.base.internal.ToolSearchBuildAbility;
+import org.gradle.platform.base.internal.*;
 
 import java.io.File;
 
@@ -74,18 +69,8 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         return ClassDirectoryBinarySpec.class;
     }
 
-    @Override
-    public void setPublicType(Class<? extends BinarySpec> publicType) {
-        throw new UnsupportedOperationException();
-    }
-
     public JvmBinaryTasks getTasks() {
         return tasks;
-    }
-
-    @Override
-    public void tasks(Action<? super BinaryTasksCollection> action) {
-        action.execute(tasks);
     }
 
     public JavaToolChain getToolChain() {
@@ -137,17 +122,22 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     @Override
-    public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public DomainObjectSet<LanguageSourceSet> getSource() {
         return getInputs();
     }
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public BinaryNamingScheme getNamingScheme() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setNamingScheme(BinaryNamingScheme namingScheme) {
         throw new UnsupportedOperationException();
     }
 

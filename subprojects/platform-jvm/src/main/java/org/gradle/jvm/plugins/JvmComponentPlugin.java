@@ -17,6 +17,7 @@
 package org.gradle.jvm.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.tasks.Copy;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
@@ -29,9 +30,8 @@ import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
-import org.gradle.language.base.internal.BuildDirHolder;
+import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.Service;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
@@ -81,11 +81,6 @@ public class JvmComponentPlugin implements Plugin<Project> {
             builder.internalView(JarBinarySpecInternal.class);
         }
 
-        @Service
-        public BinaryNamingSchemeBuilder binaryNamingSchemeBuilder() {
-            return new DefaultBinaryNamingSchemeBuilder();
-        }
-
         @Model
         public JavaToolChainRegistry javaToolChain(ServiceRegistry serviceRegistry) {
             JavaToolChainInternal toolChain = serviceRegistry.get(JavaToolChainInternal.class);
@@ -93,8 +88,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Model
-        public BuildDirHolder buildDirHolder(@Path("buildDir") File buildDir) {
-            return new BuildDirHolder(buildDir);
+        public ProjectLayout projectLayout(ProjectIdentifier projectIdentifier, @Path("buildDir") File buildDir) {
+            return new ProjectLayout(projectIdentifier, buildDir);
         }
 
         @Mutate
@@ -103,14 +98,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @ComponentBinaries
-        public void createBinaries(ModelMap<JarBinarySpec> binaries, BinaryNamingSchemeBuilder namingSchemeBuilder,
-                                   PlatformResolvers platforms, final JvmLibrarySpecInternal jvmLibrary) {
+        public void createBinaries(ModelMap<JarBinarySpec> binaries, PlatformResolvers platforms, final JvmLibrarySpecInternal jvmLibrary) {
             List<JavaPlatform> selectedPlatforms = resolvePlatforms(platforms, jvmLibrary);
-            final Set<String> exportedPackages = jvmLibrary.getExportedPackages();
-            final Collection<DependencySpec> apiDependencies = jvmLibrary.getApiDependencies();
-            final Collection<DependencySpec> dependencies = jvmLibrary.getDependencies();
+            final Set<String> exportedPackages = exportedPackagesOf(jvmLibrary);
+            final Collection<DependencySpec> apiDependencies = apiDependenciesOf(jvmLibrary);
+            final Collection<DependencySpec> dependencies = componentDependenciesOf(jvmLibrary);
             for (final JavaPlatform platform : selectedPlatforms) {
-                String binaryName = buildBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
+                String binaryName = buildBinaryName(jvmLibrary, selectedPlatforms, platform);
                 binaries.create(binaryName, new Action<JarBinarySpec>() {
                     @Override
                     public void execute(JarBinarySpec jarBinarySpec) {
@@ -139,20 +133,30 @@ public class JvmComponentPlugin implements Plugin<Project> {
             });
         }
 
-        private String buildBinaryName(JvmLibrarySpec jvmLibrary, BinaryNamingSchemeBuilder namingSchemeBuilder,
-                                       List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
-            BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
-                .withComponentName(jvmLibrary.getName())
-                .withTypeString("jar");
-            if (selectedPlatforms.size() > 1) {
-                componentBuilder = componentBuilder.withVariantDimension(platform.getName());
-            }
-            return componentBuilder.build().getBinaryName();
+        private static Set<String> exportedPackagesOf(JvmLibrarySpecInternal jvmLibrary) {
+            return jvmLibrary.getApi().getExports();
+        }
+
+        private static Collection<DependencySpec> apiDependenciesOf(JvmLibrarySpecInternal jvmLibrary) {
+            return jvmLibrary.getApi().getDependencies().getDependencies();
+        }
+
+        private static Collection<DependencySpec> componentDependenciesOf(JvmLibrarySpecInternal jvmLibrary) {
+            return jvmLibrary.getDependencies().getDependencies();
+        }
+
+        private String buildBinaryName(JvmLibrarySpec jvmLibrary, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
+            BinaryNamingScheme namingScheme = DefaultBinaryNamingScheme.component(jvmLibrary.getName())
+                    .withBinaryType("Jar")
+                    .withRole("jar", true)
+                    .withVariantDimension(platform, selectedPlatforms);
+            return namingScheme.getBinaryName();
         }
 
         @BinaryTasks
         public void createTasks(ModelMap<Task> tasks, final JarBinarySpecInternal binary, final @Path("buildDir") File buildDir) {
-           final File runtimeClassesDir = binary.getClassesDir();
+            final File runtimeClassesDir = binary.getClassesDir();
+            final File resourcesDir = binary.getResourcesDir();
             final File runtimeJarDestDir = binary.getJarFile().getParentFile();
             final String runtimeJarArchiveName = binary.getJarFile().getName();
             final String createRuntimeJar = "create" + capitalize(binary.getProjectScopedName());
@@ -161,32 +165,28 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 public void execute(Jar jar) {
                     jar.setDescription(String.format("Creates the binary file for %s.", binary));
                     jar.from(runtimeClassesDir);
-                    jar.from(binary.getResourcesDir());
+                    jar.from(resourcesDir);
                     jar.setDestinationDir(runtimeJarDestDir);
                     jar.setArchiveName(runtimeJarArchiveName);
                 }
             });
 
-            String binaryName = binary.getProjectScopedName();
-            if (!binaryName.endsWith("Jar")) {
-                return;
-            }
-
-            String libName = binaryName.substring(0, binaryName.lastIndexOf("Jar"));
-            String createApiJar = "create" + capitalize(libName + "ApiJar");
+            final JarFile apiJar = binary.getApiJar();
             final Set<String> exportedPackages = binary.getExportedPackages();
+            String apiJarTaskName = apiJarTaskName(binary);
             if (exportedPackages.isEmpty()) {
-                tasks.create(createApiJar, Copy.class, new Action<Copy>() {
+                tasks.create(apiJarTaskName, Copy.class, new Action<Copy>() {
                     @Override
                     public void execute(Copy copy) {
                         copy.setDescription(String.format("Creates the API binary file for %s.", binary));
                         copy.from(new File(runtimeJarDestDir, runtimeJarArchiveName));
-                        copy.setDestinationDir(binary.getApiJarFile().getParentFile());
+                        copy.setDestinationDir(apiJar.getFile().getParentFile());
                         copy.dependsOn(createRuntimeJar);
+                        apiJar.setBuildTask(copy);
                     }
                 });
             } else {
-                tasks.create(createApiJar, ApiJar.class, new Action<ApiJar>() {
+                tasks.create(apiJarTaskName, ApiJar.class, new Action<ApiJar>() {
                     @Override
                     public void execute(ApiJar jar) {
                         final File apiClassesDir = new File(new File(buildDir, "apiClasses"), runtimeClassesDir.getName());
@@ -194,12 +194,20 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         jar.setRuntimeClassesDir(runtimeClassesDir);
                         jar.setExportedPackages(exportedPackages);
                         jar.setApiClassesDir(apiClassesDir);
-                        jar.setDestinationDir(binary.getApiJarFile().getParentFile());
-                        jar.setArchiveName(binary.getApiJarFile().getName());
-                        jar.dependsOn(createRuntimeJar);
+                        jar.setDestinationDir(apiJar.getFile().getParentFile());
+                        jar.setArchiveName(apiJar.getFile().getName());
+                        apiJar.setBuildTask(jar);
                     }
                 });
             }
+        }
+
+        private String apiJarTaskName(JarBinarySpecInternal binary) {
+            String binaryName = binary.getProjectScopedName();
+            String libName = binaryName.endsWith("Jar")
+                    ? binaryName.substring(0, binaryName.length() - 3)
+                    : binaryName;
+            return libName + "ApiJar";
         }
     }
 }

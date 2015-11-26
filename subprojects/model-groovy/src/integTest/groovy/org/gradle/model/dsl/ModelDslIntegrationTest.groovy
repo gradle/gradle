@@ -85,12 +85,12 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
                   doLast {
                     // Being in doLast is significant here.
                     // This is not going to execute until much later, so we are testing that we can still access the input
-                    println "strings: " + $("strings")
+                    println "strings: " + $.strings
                   }
                 }
               }
               strings {
-                add $("foo")
+                add $.foo
               }
             }
         '''
@@ -116,7 +116,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("printStrings") {
                   doLast {
-                    println "strings: " + $("strings")
+                    println "strings: " + $.strings
                   }
                 }
               }
@@ -246,12 +246,12 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("printStrings") {
                   doLast {
-                    println it.project.name + ": " + $("strings")
+                    println it.project.name + ": " + $.strings
                   }
                 }
               }
               strings {
-                add $("foo")
+                add $.foo
               }
             }
         '''

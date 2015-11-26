@@ -459,7 +459,7 @@ model {
 
     def executableBuilt(def app) {
         succeeds "mainExecutable"
-        assert executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        assert executable("build/exe/main/main").exec().out == app.englishOutput
         true
     }
 }

@@ -29,18 +29,21 @@ public class Path implements Comparable<Path> {
     private final String[] segments;
     private final boolean absolute;
     public static final Path ROOT = new Path(Project.PATH_SEPARATOR);
+    private final String fullPath;
 
     public Path(String path) {
-        assert path.length() > 0;
-        segments = StringUtils.split(path, Project.PATH_SEPARATOR);
-        absolute = path.startsWith(Project.PATH_SEPARATOR);
-        prefix = path.endsWith(Project.PATH_SEPARATOR) ? path : path + Project.PATH_SEPARATOR;
+        this(StringUtils.split(path, Project.PATH_SEPARATOR), path.startsWith(Project.PATH_SEPARATOR), path.length() > 1 && path.endsWith(Project.PATH_SEPARATOR) ? path.substring(0, path.length() - 1) : path);
     }
 
     private Path(String[] segments, boolean absolute) {
+        this(segments, absolute, createFullPath(segments, absolute));
+    }
+
+    private Path(String[] segments, boolean absolute, String fullPath) {
         this.segments = segments;
         this.absolute = absolute;
-        this.prefix = getPath() + Project.PATH_SEPARATOR;
+        this.fullPath = fullPath;
+        this.prefix = fullPath.endsWith(Project.PATH_SEPARATOR) ? fullPath : fullPath + Project.PATH_SEPARATOR;
     }
 
     public static Path path(String path) {
@@ -53,6 +56,10 @@ public class Path implements Comparable<Path> {
     }
 
     public String getPath() {
+        return fullPath;
+    }
+
+    private static String createFullPath(String[] segments, boolean absolute) {
         StringBuilder path = new StringBuilder();
         if (absolute) {
             path.append(Project.PATH_SEPARATOR);

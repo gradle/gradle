@@ -19,7 +19,6 @@ package org.gradle.jvm.internal;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.jvm.JvmApiSpec;
-import org.gradle.jvm.JvmPackageName;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
 import org.gradle.util.ConfigureUtil;
@@ -31,31 +30,38 @@ import static java.lang.String.format;
 
 public class DefaultJvmApiSpec implements JvmApiSpec {
 
-    private final Set<JvmPackageName> exports = new HashSet<JvmPackageName>();
+    private final Set<String> exports = new HashSet<String>();
     private final DefaultDependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
+    @Override
     public void exports(String value) {
-        final JvmPackageName packageName;
+        validatePackageName(value);
+        if (!exports.add(value)) {
+            throw new InvalidUserDataException(
+                format("Invalid public API specification: package '%s' has already been exported", value));
+        }
+    }
+
+    private void validatePackageName(String value) {
         try {
-            packageName = JvmPackageName.of(value);
+            JvmPackageName.of(value);
         } catch (IllegalArgumentException cause) {
             throw new InvalidUserDataException(
                 format("Invalid public API specification: %s", cause.getMessage()), cause);
         }
-        if (!exports.add(packageName)) {
-            throw new InvalidUserDataException(
-                format("Invalid public API specification: package '%s' has already been exported", packageName));
-        }
     }
 
-    public Set<JvmPackageName> getExports() {
+    @Override
+    public Set<String> getExports() {
         return exports;
     }
 
+    @Override
     public DependencySpecContainer getDependencies() {
         return dependencies;
     }
 
+    @Override
     public void dependencies(Closure<?> configureAction) {
         ConfigureUtil.configure(configureAction, dependencies);
     }

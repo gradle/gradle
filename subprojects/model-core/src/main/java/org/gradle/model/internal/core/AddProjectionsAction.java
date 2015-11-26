@@ -30,7 +30,11 @@ public class AddProjectionsAction<T> extends AbstractModelAction<T> {
     }
 
     public static <T> AddProjectionsAction<T> of(ModelReference<T> subject, ModelRuleDescriptor descriptor, ModelProjection... projections) {
-        return new AddProjectionsAction<T>(subject, descriptor, Arrays.asList(projections));
+        return of(subject, descriptor, Arrays.asList(projections));
+    }
+
+    public static <T> AddProjectionsAction<T> of(ModelReference<T> subject, ModelRuleDescriptor descriptor, Iterable<ModelProjection> projections) {
+        return new AddProjectionsAction<T>(subject, descriptor, projections);
     }
 
     @Override

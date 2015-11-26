@@ -16,9 +16,13 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -77,9 +81,20 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         spec.setSourceFileIncludes(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
 
         if (sourceFilesUseMacroIncludes(spec.getSourceFiles(), compilation.getFinalState())) {
-            logger.info("Some #include files could not be determined.  Falling back to slow path which includes all files in the include search path as inputs.");
+            logger.info("The path to some #include files could not be determined.  Falling back to slow path which includes all files in the include search path as inputs for {}.", task.getName());
             for (final File includeRoot : spec.getIncludeRoots()) {
-                spec.getIncrementalInputs().newInput(includeRoot);
+                logger.info("adding files in {} to discovered inputs for {}", includeRoot, task.getName());
+                new DirectoryFileTree(includeRoot).visit(new FileVisitor() {
+                    @Override
+                    public void visitDir(FileVisitDetails dirDetails) {
+                        // ignore
+                    }
+
+                    @Override
+                    public void visitFile(FileVisitDetails fileDetails) {
+                        ((IncrementalTaskInputsInternal)spec.getIncrementalInputs()).newInput(fileDetails.getFile());
+                    }
+                });
             }
         }
 

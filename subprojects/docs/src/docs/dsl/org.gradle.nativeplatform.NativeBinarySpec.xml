@@ -24,6 +24,15 @@
                 </tr>
             </thead>
             <tr>
+                <td>buildType</td>
+            </tr>
+            <tr>
+                <td>flavor</td>
+            </tr>
+            <tr>
+                <td>targetPlatform</td>
+            </tr>
+            <tr>
                 <td>component</td>
             </tr>
             <tr>
@@ -37,6 +46,24 @@
             </tr>
             <tr>
                 <td>staticLibArchiver</td>
+            </tr>
+            <tr>
+                <td>assembler</td>
+            </tr>
+            <tr>
+                <td>cCompiler</td>
+            </tr>
+            <tr>
+                <td>cppCompiler</td>
+            </tr>
+            <tr>
+                <td>objcCompiler</td>
+            </tr>
+            <tr>
+                <td>objcppCompiler</td>
+            </tr>
+            <tr>
+                <td>rcCompiler</td>
             </tr>
         </table>
     </section>

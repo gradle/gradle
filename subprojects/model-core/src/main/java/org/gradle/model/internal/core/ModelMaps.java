@@ -24,7 +24,6 @@ import org.gradle.model.internal.registry.RuleContext;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
-import java.util.Collections;
 import java.util.List;
 
 public class ModelMaps {
@@ -57,8 +56,7 @@ public class ModelMaps {
         mapNode.ensureUsable();
         return mapNode.asMutable(
                 ModelTypes.modelMap(elementModelType),
-                RuleContext.nest(ruleContext),
-                Collections.<ModelView<?>>emptyList()
+                RuleContext.nest(ruleContext)
         ).getInstance();
 
     }

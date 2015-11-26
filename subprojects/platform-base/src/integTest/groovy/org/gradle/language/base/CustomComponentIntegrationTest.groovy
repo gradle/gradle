@@ -70,6 +70,43 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         componentSpecType << [ComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
     }
 
+    def "presents a public view for custom managed ApplicationSpec"() {
+        buildFile << """
+            @Managed
+            interface SampleComponentSpec extends ApplicationSpec {
+                String getPublicData()
+                void setPublicData(String publicData)
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void register(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    sampleLib(SampleComponentSpec) {
+                        assert it instanceof SampleComponentSpec
+                        assert it.displayName == "SampleComponentSpec 'sampleLib'"
+                        assert it.toString() == "SampleComponentSpec 'sampleLib'"
+                        publicData = "public"
+                    }
+                    sampleLib {
+                        assert it instanceof SampleComponentSpec
+                        assert it.displayName == "SampleComponentSpec 'sampleLib'"
+                        assert it.toString() == "SampleComponentSpec 'sampleLib'"
+                        publicData = "modified"
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "model"
+    }
+
     @Unroll
     def "can add binaries to custom managed #componentSpecType"() {
         buildFile << """
@@ -154,6 +191,47 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "validate"
+    }
+
+    def "presents a public view for custom unmanaged ComponentSpec"() {
+        buildFile << """
+            interface UnmanagedComponentSpec extends ComponentSpec {
+                String getUnmanagedData()
+                void setUnmanagedData(String unmanagedData)
+            }
+
+            class DefaultUnmanagedComponentSpec extends BaseComponentSpec implements UnmanagedComponentSpec {
+                String unmanagedData
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void registerUnmanaged(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                    builder.defaultImplementation(DefaultUnmanagedComponentSpec)
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    sampleLib(UnmanagedComponentSpec) {
+                        assert it instanceof UnmanagedComponentSpec
+                        assert it.displayName == "UnmanagedComponentSpec 'sampleLib'"
+                        assert it.toString() == "UnmanagedComponentSpec 'sampleLib'"
+                        unmanagedData = "unmanaged"
+                    }
+                    sampleLib {
+                        assert it instanceof UnmanagedComponentSpec
+                        assert it.displayName == "UnmanagedComponentSpec 'sampleLib'"
+                        assert it.toString() == "UnmanagedComponentSpec 'sampleLib'"
+                        unmanagedData = "modified"
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "model"
     }
 
     def "can declare custom managed component based on custom unmanaged component"() {
@@ -345,7 +423,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                         spec.publicData
                         assert false
                     } catch(MissingPropertyException e) {
-                        assert e.message == "Could not find property 'publicData' on InternalSampleSpec 'components.sample'."
+                        assert e.message == "No such property: publicData for class: InternalSampleSpec"
                     }
                 }
 
@@ -353,20 +431,19 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                 void validateInternal(@Path('components.sample') ComponentSpecInternal spec) {
 //                    assert !(spec instanceof UnmanagedComponentSpec)
                     assert !(spec instanceof SampleComponentSpec)
-                    // TODO:LPTR This should not be true once we stop returning raw unmanaged instances
-                    assert spec instanceof DefaultUnmanagedComponentSpec
+                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
                     assert !(spec instanceof InternalSampleSpec)
                     try {
                         spec.publicData
                         assert false
                     } catch(MissingPropertyException e) {
-                        assert e.message == "Could not find property 'publicData' on DefaultUnmanagedComponentSpec 'sample'."
+                        assert e.message == "No such property: publicData for class: org.gradle.platform.base.internal.ComponentSpecInternal"
                     }
                     try {
                         spec.internalData
                         assert false
                     } catch (MissingPropertyException e) {
-                        assert e.message == "Could not find property 'internalData' on DefaultUnmanagedComponentSpec 'sample'."
+                        assert e.message == "No such property: internalData for class: org.gradle.platform.base.internal.ComponentSpecInternal"
                     }
                 }
 
@@ -380,7 +457,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                         spec.internalData
                         assert false
                     } catch (MissingPropertyException e) {
-                        assert e.message == "Could not find property 'internalData' on SampleComponentSpec 'components.sample'."
+                        assert e.message == "No such property: internalData for class: SampleComponentSpec"
                     }
                 }
 
@@ -396,7 +473,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                         spec.internalData
                         assert false
                     } catch (MissingPropertyException e) {
-                        assert e.message == "Could not find property 'internalData' on SampleComponentSpec 'components.sample'."
+                        assert e.message == "No such property: internalData for class: SampleComponentSpec"
                     }
                 }
 
@@ -413,7 +490,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                         spec.internalData
                         assert false
                     } catch (MissingPropertyException e) {
-                        assert e.message == "Could not find property 'internalData' on SampleComponentSpec 'components.sample'."
+                        assert e.message == "No such property: internalData for class: SampleComponentSpec"
                     }
                 }
 

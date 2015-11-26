@@ -59,13 +59,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         fails "model"
 
         then:
-        failureCauseContains("""A model element of type: '$type' can not be constructed.
-It must be one of:
-    - A managed type (annotated with @Managed)
-    - or a type which Gradle is capable of constructing:
-        - org.gradle.platform.base.BinarySpec
-        - org.gradle.platform.base.ComponentSpec
-        - org.gradle.language.java.JavaSourceSet""")
+        failure.assertHasCause("Cannot create a '$type' because this type is not known to sourceSets. Known types are: org.gradle.language.java.JavaSourceSet")
 
         where:
         type << ['org.gradle.api.internal.java.DefaultJavaSourceSet', 'org.gradle.language.base.LanguageSourceSet']
@@ -107,7 +101,6 @@ It must be one of:
         def modelNode = ModelReportOutput.from(output).modelNode
         modelNode.lss.@creator[0] == "lss(org.gradle.language.java.JavaSourceSet) @ build.gradle line 18, column 13"
         modelNode.lss.@type[0] == "org.gradle.language.java.JavaSourceSet"
-        modelNode.lss.@nodeValue[0] == "Java source ':lss'"
     }
 
 
@@ -177,13 +170,11 @@ It must be one of:
         buildType.componentSources.@type[0] == 'org.gradle.model.ModelMap<org.gradle.language.java.JavaSourceSet>'
         buildType.componentSources.@creator[0] == 'Rules#buildType'
         buildType.componentSources.componentA.@type[0] == 'org.gradle.language.java.JavaSourceSet'
-        buildType.componentSources.componentA.@nodeValue[0] == "Java source 'componentSources:componentA'"
         buildType.componentSources.componentA.@creator[0] == 'Rules#addSources > create(componentA)'
 
         buildType.testSources.@type[0] == 'org.gradle.model.ModelSet<org.gradle.language.java.JavaSourceSet>'
         buildType.testSources.@creator[0] == 'Rules#buildType'
         buildType.testSources."0".@type[0] == 'org.gradle.language.java.JavaSourceSet'
-        buildType.testSources."0".@nodeValue[0] == "Java source 'testSources:0'"
         buildType.testSources."0".@creator[0] == 'Rules#addSources > create()'
     }
 

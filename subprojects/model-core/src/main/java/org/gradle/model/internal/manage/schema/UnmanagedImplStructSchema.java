@@ -20,8 +20,15 @@ import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import org.gradle.model.internal.type.ModelType;
 
 public class UnmanagedImplStructSchema<T> extends AbstractStructSchema<T> {
-    public UnmanagedImplStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
+    private final boolean annotated;
+
+    public UnmanagedImplStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects, boolean annotated) {
         super(type, properties, aspects);
+        this.annotated = annotated;
+    }
+
+    public boolean isAnnotated() {
+        return annotated;
     }
 
     @Override

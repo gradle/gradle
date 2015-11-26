@@ -19,8 +19,13 @@ package org.gradle.platform.base.binary
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.sources.BaseLanguageSourceSet
+import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ModelInstantiationException
-import org.gradle.platform.base.internal.ComponentSpecInternal
+import org.gradle.platform.base.component.BaseComponentFixtures
+import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class BaseBinarySpecTest extends Specification {
@@ -34,24 +39,25 @@ class BaseBinarySpecTest extends Specification {
     }
 
     def "binary has name and sensible display name"() {
-        def binary = create(MySampleBinary, "sampleBinary")
+        def binary = create(SampleBinary, MySampleBinary, "sampleBinary")
 
         expect:
-        binary.class == MySampleBinary
+        binary instanceof MySampleBinary
         binary.name == "sampleBinary"
         binary.projectScopedName == "sampleBinary"
-        binary.displayName == "MySampleBinary 'sampleBinary'"
+        binary.displayName == "SampleBinary 'sampleBinary'"
+        binary.namingScheme.description == "sample binary 'sampleBinary'"
     }
 
     def "qualifies project scoped named and display name using owners name"() {
-        def component = Stub(ComponentSpecInternal)
-        component.name >> "sample"
-        def binary = create(MySampleBinary, "unitTest", component)
+        def component = BaseComponentFixtures.createNode(MySampleComponent, MySampleComponent, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "sample"))
+        def binary = create(SampleBinary, MySampleBinary, "unitTest", component)
 
         expect:
         binary.name == "unitTest"
         binary.projectScopedName == "sampleUnitTest"
-        binary.displayName == "MySampleBinary 'sample:unitTest'"
+        binary.displayName == "SampleBinary 'sample:unitTest'"
+        binary.namingScheme.description == "sample binary 'sample:unitTest'"
     }
 
     def "create fails if subtype does not have a public no-args constructor"() {
@@ -96,11 +102,15 @@ class BaseBinarySpecTest extends Specification {
         binary.source == binary.inputs
     }
 
-    private <T extends BaseBinarySpec> T create(Class<T> type, String name, ComponentSpecInternal owner = null) {
-        BaseBinaryFixtures.create(type, name, owner, Mock(ITaskFactory))
+    private <T extends BaseBinarySpec> T create(Class<T> type, Class<T> implType = type, String name, MutableModelNode componentNode = null) {
+        BaseBinaryFixtures.create(type, implType, name, componentNode, Mock(ITaskFactory))
     }
+    
+    static class MySampleComponent extends BaseComponentSpec {}
 
-    static class MySampleBinary extends BaseBinarySpec {
+    interface SampleBinary extends BinarySpec {}
+
+    static class MySampleBinary extends BaseBinarySpec implements SampleBinary {
     }
     static class MyConstructedBinary extends BaseBinarySpec {
         MyConstructedBinary(String arg) {}

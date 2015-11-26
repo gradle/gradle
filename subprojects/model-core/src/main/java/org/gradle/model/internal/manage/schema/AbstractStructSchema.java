@@ -25,6 +25,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.SortedSet;
 
 public abstract class AbstractStructSchema<T> extends AbstractModelSchema<T> implements StructSchema<T> {
     private final ImmutableSortedMap<String, ModelProperty<?>> properties;
@@ -43,6 +44,10 @@ public abstract class AbstractStructSchema<T> extends AbstractModelSchema<T> imp
                 return aspect.getClass();
             }
         });
+    }
+
+    public SortedSet<String> getPropertyNames() {
+        return properties.keySet();
     }
 
     @Override

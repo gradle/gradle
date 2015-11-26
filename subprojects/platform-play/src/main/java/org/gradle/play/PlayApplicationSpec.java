@@ -18,13 +18,15 @@ package org.gradle.play;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.platform.base.PlatformAwareComponentSpec;
+import org.gradle.model.Managed;
 
 /**
  * Definition of a Play Framework software component that is built by Gradle.
  */
-@Incubating @HasInternalProtocol
-public interface PlayApplicationSpec extends PlatformAwareComponentSpec {
+@Managed
+@Incubating
+@HasInternalProtocol
+public interface PlayApplicationSpec extends PlayPlatformAwareComponentSpec {
 
     /**
      * Specifies a {@link org.gradle.play.platform.PlayPlatform} with a given set of requirements that this
@@ -44,6 +46,7 @@ public interface PlayApplicationSpec extends PlatformAwareComponentSpec {
      * </pre>
      * @param platformRequirements Map of Play requirements or the name of an Play platform.
      */
+    @Override
     void platform(Object platformRequirements);
 
     /**

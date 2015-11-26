@@ -1,6 +1,5 @@
-
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +14,29 @@
  * limitations under the License.
  */
 
+@Managed
 interface ImageComponent extends LibrarySpec {
-    String title
-    List<String> sizes
+    String getTitle()
+    void setTitle(String title)
+    List<String> getSizes()
+    void setSizes(List<String> sizes)
 }
 
-class DefaultImageComponent extends BaseComponentSpec implements ImageComponent {
-    List<String> sizes
-    String title
-}
-
+@Managed
 interface ImageBinary extends BinarySpec {
     String getTitle()
+    void setTitle(String title)
     String getSize()
-}
-
-class DefaultImageBinary extends BaseBinarySpec implements ImageBinary {
-    String title
-    String size
+    void setSize(String size)
 }
 
 class MyImageRenderingPlugin extends RuleSource {
     @ComponentType
     void register(ComponentTypeBuilder<ImageComponent> builder) {
-        builder.defaultImplementation(DefaultImageComponent)
     }
 
     @BinaryType
     void register(BinaryTypeBuilder<ImageBinary> builder) {
-        builder.defaultImplementation(DefaultImageBinary)
     }
 
     @ComponentBinaries

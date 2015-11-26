@@ -29,9 +29,7 @@ import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.internal.DependencyResolvingClasspath;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
-import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
@@ -123,16 +121,16 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(javaSourceSet.getSource());
-                    DependencyResolvingClasspath classpath = new DependencyResolvingClasspath(binary, (DependentSourceSetInternal) javaSourceSet, dependencyResolver, schemaStore, resolutionAwareRepositories);
+                    DependencyResolvingClasspath classpath = new DependencyResolvingClasspath(binary, javaSourceSet, dependencyResolver, schemaStore, resolutionAwareRepositories);
                     compile.setClasspath(classpath);
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
 
                     compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
                     compile.dependsOn(javaSourceSet);
-                    for (Task jarTask : binary.getTasks().withType(Jar.class)) {
-                        jarTask.dependsOn(compile);
-                    }
+
+                    binary.getTasks().getJar().dependsOn(compile);
+                    binary.getApiJar().builtBy(compile);
                 }
             };
         }

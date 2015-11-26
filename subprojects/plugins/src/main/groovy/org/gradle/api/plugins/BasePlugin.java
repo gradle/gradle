@@ -37,9 +37,9 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.internal.core.NoInputsModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.NoInputsModelAction;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 import javax.inject.Inject;

@@ -18,8 +18,6 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.InvalidPluginException
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.type.ModelType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.CustomRuleSource
 import org.gradle.testfixtures.ProjectBuilder
@@ -41,7 +39,7 @@ class RuleSourceApplicationTest extends Specification {
         project.apply plugin: 'custom-rule-source'
 
         then:
-        project.modelRegistry.realize(ModelPath.path("foo"), ModelType.of(String)) == "bar"
+        project.modelRegistry.realize("foo", String) == "bar"
     }
 
     def "can apply a rule source by type"() {
@@ -50,7 +48,7 @@ class RuleSourceApplicationTest extends Specification {
         project.apply type: CustomRuleSource
 
         then:
-        project.modelRegistry.realize(ModelPath.path("foo"), ModelType.of(String)) == "bar"
+        project.modelRegistry.realize("foo", String) == "bar"
     }
 
     def "cannot apply a type that is neither a plugin nor a rule source"() {
@@ -81,7 +79,7 @@ class RuleSourceApplicationTest extends Specification {
         project.apply plugin: CustomRuleSource
 
         then:
-        project.modelRegistry.realize(ModelPath.path("foo"), ModelType.of(String)) == "bar"
+        project.modelRegistry.realize("foo", String) == "bar"
     }
 
     def "can use id to check for applied plugins and rule sources"() {

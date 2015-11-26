@@ -66,7 +66,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         otherHeaderFile = file("src/main/headers/other.h") << """
             // Dummy header file
 """
-        objectFileDir = file("build/objs/mainExecutable")
+        objectFileDir = file("build/objs/main")
         outputs = new CompilationOutputsFixture(objectFileDir)
     }
 
@@ -126,6 +126,23 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
 
         and:
         outputs.recompiledFile sourceFile
+    }
+
+    def "does not recompile when fallback mechanism is used and there are empty directories"() {
+        given:
+        file("src/main/headers/empty/directory").mkdirs()
+        sourceFile << """
+            #define MY_HEADER "${otherHeaderFile.name}"
+            #include MY_HEADER
+"""
+
+        and:
+        outputs.snapshot { run "mainExecutable" }
+
+        when:
+        run "mainExecutable"
+        then:
+        skipped compileTask
     }
 
     def "source is always recompiled if it includes header via macro"() {
@@ -531,7 +548,7 @@ model {
         given:
         run "mainExecutable"
 
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/exe/main/main")
         executable.assertExists()
 
         when:

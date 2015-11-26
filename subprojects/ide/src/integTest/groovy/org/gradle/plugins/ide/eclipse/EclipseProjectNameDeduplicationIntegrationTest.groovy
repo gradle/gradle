@@ -21,7 +21,7 @@ import org.gradle.plugins.ide.AbstractIdeDeduplicationIntegrationTest
 class EclipseProjectNameDeduplicationIntegrationTest extends AbstractIdeDeduplicationIntegrationTest {
     @Override
     protected String projectName(String project) {
-        new EclipseProjectFixture(testDirectory.file(project)).getProjectName()
+        EclipseProjectFixture.create(testDirectory.file(project)).getProjectName()
     }
 
     @Override

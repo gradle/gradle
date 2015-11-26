@@ -33,9 +33,9 @@ model {
     }
     tasks {
         create("validate") {
-            def components = $("components")
-            def sources = $("sources")
-            def binaries = $("binaries")
+            def components = $.components
+            def sources = $.sources
+            def binaries = $.binaries
             doLast {
                 def myLib = components.myLib
                 assert myLib instanceof JvmLibrarySpec

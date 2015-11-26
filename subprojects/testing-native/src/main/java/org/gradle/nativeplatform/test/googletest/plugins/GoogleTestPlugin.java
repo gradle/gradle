@@ -62,8 +62,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
                 testSuites.create(suiteName, GoogleTestTestSuiteSpec.class, new Action<GoogleTestTestSuiteSpec>() {
                     @Override
                     public void execute(GoogleTestTestSuiteSpec testSuite) {
-                        DefaultGoogleTestTestSuiteSpec googleTestSuite = (DefaultGoogleTestTestSuiteSpec) testSuite;
-                        googleTestSuite.setTestedComponent(component);
+                        testSuite.setTestedComponent(component);
                     }
                 });
             }

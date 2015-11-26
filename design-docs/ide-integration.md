@@ -9,124 +9,6 @@ Tooling API stories that are not related directly to the IDE experience should g
 
 ## Feature - Expose source and target platforms of JVM language projects
 
-### Story - Expose natures and builders for projects
-
-The Motiviation here is to model java projects better within the EclipseProject model. Therefore we want to provide
-the Eclipse Model with information about natures and builders. A Java Project is identified
-by having an EclipseModel providing a java nature. IDEs should not guess which natures and builders to add but get the information
-from the TAPI.
-
-#### Estimate
-
-- 3 days
-
-#### The API
-
-    interface EclipseProject {
-        ...
-        ...
-        DomainObjectSet<? extends EclipseProjectNature> getProjectNatures();
-
-        DomainObjectSet<? extends BuildCommand> getBuildCommands()
-        ...
-    }
-
-    interface EclipseBuildCommand{
-        String getName()
-        Map<String,String> getArguments()
-    }
-
-    public interface EclipseProjectNature {
-
-        /**
-         * Returns the unique identifier of the project nature.
-         */
-        String getId();
-    }
-
-
-#### Implementation
-
-- Add `DomainObjectSet<? extends EclipseProjectNature> getProjectNatures()` to the EclipseProject interface.
-- Add `List<DefaultEclipseProjectNature> projectNatures` property (setter + getter) to `DefaultEclipseProject`
-- Change EclipseModelBuilder to
-    - Add `org.eclipse.jdt.core.javanature` nature for all java projects in the multiproject build to EclipseProject.
-    - Add all natures declared via `eclipse.project.natures` to EclipseProject model.
-
-- Add `DomainObjectSet<? extends BuildCommand> getBuildCommands()` to the EclipseProject interface.
-- Add `List<BuildCommand> buildCommands` property to `DefaultEclipseProject`
-- Change EclipseModelBuilder to
-    - Add build command with name `org.eclipse.jdt.core.javabuilder` and no arguments for all java projects in multiproject build
-    - Apply custom added build commands (via `eclipse.project.buildCommand`)
-
-#### Test coverage
-
-- `EclipseProject#getProjectNatures()` of a Java project contains java nature (`org.eclipse.jdt.core.javanature`)
-- `EclipseProject#getProjectNatures()` respects custom added natures (via `eclipse.eclipse.project.natures`)
-- older Gradle versions throw decent error when calling `EclipseProject#getProjectNatures() `
-
-- `EclipseProject#getBuildCommands()` of a Java project contains java builder (`org.eclipse.jdt.core.javabuilder`)
-- `EclipseProject#getBuildCommands()` respects custom added build commands.
-- older Gradle versions throw decent error when calling `EclipseProject#getBuildCommands()`
-
-
-### Story - Expose Java source level for Java projects to Eclipse
-
-The IDE models should provide the java source compatibility level. To model java language specific information
-we want to have a dedicated model for eclipse specific java information and gradle specific java information.
-
-#### Estimate
-
-- 3 days
-
-#### The API
-
-    enum JavaVersion {
-    }
-
-    interface JavaLanguageLevel {
-        JavaVersion getVersion()
-    }
-
-    interface JavaSourceSettings {
-        JavaLanguageLevel getSourceLanguageLevel()
-    }
-
-    interface JavaSourceAware {
-        JavaSourceSettings getJavaSourceSettings()
-    }
-
-    interface EclipseProject extends JavaSourceAware {
-    }
-
-
-- The `JavaSourceSettings` interface describes Java-specific details for a model.
-  It initially defines only one attribute, describing the `sourceLanguageLevel`.
-- The `getSourceLanguageLevel()` returns the `eclipse.jdt.sourceCompatibility` level that is configurable within the `build.gradle` or per default uses
-similar version as `JavaConvention.sourceCompatibility` configuration.
-- For a no Java Project `JavaSourceAware.getJavaSourceSettings()` returns null
-- For older Gradle version the `JavaSourceAware.getJavaSourceSettings()` throws `UnsupportedMethodException`.
-
-#### Implementation
-- Introduce tooling api JavaVersion enum representing java versions.
-- Introduce `JavaLanguageLevel` which contains an enum representation of the java language level via `getVersion()`.
-- Add a `JavaSourceSettings` implementation with `JavaLanguageLevel getSourceLanguageLevel()`.
-- Introduce `JavaSourceAware` interface abstracting a common `JavaSourceSettings getJavaSourceSettings()` method.
-- Update `EclipseProject` to extend `JavaSourceAware`.
-- Update DefaultEclipseProject to implement new `.getJavaSourceSettings()` method
-- Update `EclipseModelBuilder` to set values for the `JavaSourceSettings`
-    - return `null` if the project doesn't apply the `java-base` plug-in.
-    - otherwise `JavaSourceSettings.getSourceLanguageLevel()` returns the value of `eclipse.jdt.sourceCompatibility`.
-
-#### Test coverage
-
-- throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetLanguageLevel()
-- `EclipseProject.getJavaSourceSettings().getSourceLanguageLevel()` throws `UnsupportedMethodException`for older target Gradle version.
-- `EclipseProject.getJavaSourceSettings()` returns null if no java project.
-- Java project, with 'eclipse' plugin not defining custom source compatibility via `eclipse.jdt.sourceCompatibility`
-- Java project, with 'eclipse' plugin defining custom source compatibility via `eclipse.jdt.sourceCompatibility`
-- Multiproject java project build with different source levels per subproject
-
 ### Story - Expose Java source level for Java projects to IDEA
 
 This is the IDEA-counterpart of the _Expose Java source level for Java projects to Eclipse_ story. The goal is to expose the source
@@ -138,47 +20,55 @@ language levels for each module in a project.
 
 #### The API
 
-    interface IdeaJavaLanguageLevel extends JavaLanguageLevel {
+    interface IdeaModuleJavaSourceSettings extends JavaSourceSettings {
         boolean isInherited()
-    }
-    interface IdeaJavaSourceSettings extends JavaSourceSettings {
-        IdeaJavaLanguageLevel getSourceLanguageLevel()
     }
 
     interface IdeaModule extends JavaSourceAware {
-        IdeaJavaSourceSettings getJavaSourceSettings()
+        IdeaModuleJavaSourceSettings getJavaSourceSettings()
+    }
+
+    interface IdeaProjectJavaSourceSettings extends JavaSourceSettings {
     }
 
     interface IdeaProject extends JavaSourceAware {
+        IdeaProjectJavaSourceSettings getJavaSourceSettings()
     }
 
+TBD: It looks like in IDEA a project always has some Java source settings, which means that `IdeaProject.getJavaSourceSettings()` should always return non-null.
+TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that tooling model and generated files are consistent in module type, and project and module language level.
+
 #### Implementation
-- Introduce `IdeaJavaLanguageLevel` extending `JavaLanguageLevel`
-- Introduce `IdeaJavaSourceSettings` extending `JavaSourceSettings`.
-- Let the `IdeaModule` model extend `JavaSourceAware` and expose specialized `IdeaJavaSourceSettings`.
-- Let the `IdeaProject` model extend `JavaSourceAware` to expose `JavaSourceSettings`
-- Update `DefaultIdeaProject` to implement new `getJavaSourceSettings()` method
-- Update `DefaultIdeaModule` to implement new `getJavaSourceSettings()` method
+- Introduce `IdeaModuleJavaSourceSettings` extending `JavaSourceSettings`.
+- Introduce `IdeaProjectJavaSourceSettings` extending `JavaSourceSettings`.
+- Let the `IdeaModule` model extend `JavaSourceAware` and expose specialized `IdeaModuleJavaSourceSettings`.
+- Let the `IdeaProject` model extend `JavaSourceAware` to expose specialized `IdeaProjectJavaSourceSettings`
+- Update `DefaultIdeaProject` to implement new `getJavaSourceSettings()` method.
+- Update `DefaultIdeaModule` to implement new `getJavaSourceSettings()` method.
 - Update `IdeaModelBuilder` to set values for `getJavaSourceSettings()` for `IdeaProject` and `IdeaModule`
     - return `null` if not a Java project
     - otherwise configure it as follows
-        - `IdeaProject.getJavaSourceSettings().getSourceLanguageLevel().getVersion()` is calculated from `org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`.
-        - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel().getVersion()` returns same value as root `IdeaProject.getLanguageLevel().getLevel()`
-        - `IdeaModule.getSourceLanguageLevel().isInherited` returns true
+        - `IdeaProject.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`.
+        - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `project.sourceCompatibility`
+        - `IdeaModule.getSourceLanguageLevel().isInherited` returns `false` if different from the IDEA project, `true` if the same.
+- Add a comment on `IdeaProject.getLanguageLevel()` that `getJavaSourceSettings()` should be preferred.
+- For older Gradle versions value for `javaSourceSettings.sourceLanguageLevel` for IdeaModule and IdeaProject is inferred from `languageLevel`
+    - Use an Action<SourceObjectMapping> to wire IdeaProject.languageLevel and the javaSourceSettings.sourceLanguageLevel.
+        ( see `TaskPropertyHandlerFactory` as an example for this)
 
 #### Test coverage
+
+- `IdeaProject.languageLevel` always has the same value as `IdeaProject.javaSourceSettings.javaVersion`
 - `IdeaModule.getJavaSourceSettings()` returns null for non java projects
-- `IdeaProject.getJavaSourceSettings()` returns null for non java projects
-- `IdeaModule.getJavaSourceSettings().isInherited()` returns true.
-- `IdeaProject.getJavaSourceSettings()` throws `UnsupportedMethodException`for older target Gradle version.
-- `IdeaModule.getJavaSourceSettings()` throws `UnsupportedMethodException`for older target Gradle version.
+- `IdeaModule.getJavaSourceSettings().isInherited()` returns true when the same as project's version, false when different.
+- `IdeaProject.getJavaSourceSettings()` returns inferred value from `languageLevel` for older target Gradle version.
+- `IdeaModule.getJavaSourceSettings()` returns inferred value from idea project `languageLevel` for older target Gradle version.
 - `IdeaProject.getJavaSourceSettings().getSourceLanguageLevel()` matches language level information obtained from `project.sourceCompatibility`.
-- `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` matches custom `idea.project.languageLevel`.
+- `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` matches language level information obtained from `project.sourceCompatibility`.
 - Can handle multi project builds with different source levels per subproject.
-
-#### Open questions
-- configuring per-module source level is currently not supported Idea plugin?
-
+- Can handle multi project builds where some projects are not a Java project and some are.
+- Can handle multi project builds where root project is not a Java project, but some of its children are.
+- Can handle multi project builds where no projects are Java projects.
 
 ### Story - Expose target JDK for Java projects to Eclipse
 
@@ -193,26 +83,31 @@ language levels for each module in a project.
         File getHomeDirectory()
     }
 
-    interface JavaSourceSettings {
-        JavaRuntimeEnvironment getTargetRuntime()
-        JavaLanguageLevel getTargetLanguageLevel()
+    interface EclipseJavaSourceSettings {
+        JavaRuntime getTargetRuntime()
+        JavaVersion getTargetLanguageLevel()
     }
 
     interface EclipseProject extends JavaSourceAware {
         JavaSourceSettings getJavaSourceSettings()
     }
 
+
+- A Java runtime can be used for projects that don't have any Java source. In eclipse this projects are is modelled as java projects.
+
+TBD: 'targetLanguageLevel' really refers to the target bytecode version.
+
 #### Implementation
 
-- Add `JavaRuntimeEnvironment getTargetRuntime()` to `JavaSourceSettings`.
-- `JavaRuntimeEnvironment` should expose
+- Add `JavaRuntime getTargetRuntime()` to `EclipseJavaSourceSettings`.
+- `JavaRuntime` should expose
     - `JavaVersion getJavaVersion()` - the version of the JRE
     - `File getHomeDirectory()` - the directory of the JRE in use
-- Add `JavaLanguageLevel getTargetLanguageLevel()` to `JavaSourceSettings to expose the java target combatibility level.
+- Add `JavaLanguageLevel getTargetLanguageLevel()` to `EclipseJavaSourceSettings` to expose the java target combatibility level.
 - Update `DefaultJavaSourceSettings` to expose JRE and target language level information based on current JVM in use
 - Update `EclipseModelBuilder` to set values for the target language level and target runtime
-    - return `null` if the project doesn't apply the `java-base` plug-in.
-    - otherwise `JavaSourceSettings.getTargetLanguageLevel()` returns the value of `eclipse.jdt.targetCompatibility`.
+    - `EclipseJavaSourceSettings.getTargetLanguageLevel()` returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.
+- Update `.classpath` and `.settings/...` generation, so that tooling model and generated files are consistent.
 
 #### Test coverage
 
@@ -223,6 +118,7 @@ language levels for each module in a project.
 - Java project, with 'eclipse' plugin not defining custom target compatibility via `eclipse.jdt.targetCompatibility`
 - Java project, with 'eclipse' plugin defining custom target compatibility via `eclipse.jdt.targetCompatibility`
 - Multiproject java project build with different target levels per subproject.
+- Project that is not a Java project.
 - throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetRuntime()
 - throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetLanguageLevel()
 
@@ -232,9 +128,15 @@ language levels for each module in a project.
 
 - 2 days
 
+TBD: Apply to `.ipr` and `.iml` generation, so that the tooling model and the generated files are consistent.
+
 #### Implementation
 
-- Update IdeaModelBuilder to
+#### Test cases
+
+- Multiproject build with mix of target Java versions
+- Multiproject build with mix of Java and non-Java projects
+- Multiproject build with no Java projects
 
 ### Story - Introduce JavaProject
 

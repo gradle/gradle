@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.internal.manage.schema.ValueSchema;
+import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.type.ModelType;
 
 public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
@@ -24,7 +24,7 @@ public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
     public <R> void extract(ModelSchemaExtractionContext<R> extractionContext) {
         ModelType<R> type = extractionContext.getType();
         if (ScalarTypes.TYPES.contains(type)) {
-            extractionContext.found(new ValueSchema<R>(type));
+            extractionContext.found(new ScalarValueSchema<R>(type));
         } else {
             for (ModelType<?> nonFinalType : ScalarTypes.NON_FINAL_TYPES) {
                 if (nonFinalType.isAssignableFrom(type)) {

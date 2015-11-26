@@ -364,11 +364,8 @@ Investigate the `BinarySpec` type hierarchy to find what types could benefit fro
 ### Implementation notes
 
 - Introduce internal views all along the type hierarchy and remove as much casts as possible, mostly from rules.
+- Make types `@Managed` in tests and samples
 - Make types `@Managed` starting from leafs of the `BinarySpec` hierarchy.
-
-#### Identified candidates
-
-- TBD
 
 ### Tests
 

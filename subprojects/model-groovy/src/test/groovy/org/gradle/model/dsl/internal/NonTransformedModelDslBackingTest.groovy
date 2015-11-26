@@ -15,10 +15,14 @@
  */
 
 package org.gradle.model.dsl.internal
+
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
 import org.gradle.model.ModelSet
-import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelRegistrations
+import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.core.ModelTypeInitializationException
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.type.ModelType
 
@@ -46,7 +50,7 @@ class NonTransformedModelDslBackingTest extends ProjectRegistrySpec {
         }
 
         then:
-        registry.realize(ModelPath.path("foo"), ModelType.of(List)) == [1]
+        registry.realize("foo", List) == [1]
     }
 
     @Managed
@@ -119,7 +123,7 @@ class NonTransformedModelDslBackingTest extends ProjectRegistrySpec {
         }
 
         then:
-        registry.realize(ModelPath.path("foo"), ModelType.of(Foo)).bar*.name == ["foo"]
+        registry.realize("foo", Foo).bar*.name == ["foo"]
     }
 
     def "does not add rules when not configuring"() {
@@ -135,7 +139,7 @@ class NonTransformedModelDslBackingTest extends ProjectRegistrySpec {
                 }
             }
         }
-        registry.realize(ModelPath.path("foo"), ModelType.UNTYPED)
+        registry.realize("foo", ModelType.UNTYPED)
 
         then:
         def e = thrown(ModelRuleExecutionException)
@@ -151,7 +155,7 @@ class NonTransformedModelDslBackingTest extends ProjectRegistrySpec {
                 }
             }
         }
-        registry.realize(ModelPath.path("bah"), ModelType.UNTYPED)
+        registry.realize("bah", ModelType.UNTYPED)
 
         then:
         e = thrown(ModelRuleExecutionException)

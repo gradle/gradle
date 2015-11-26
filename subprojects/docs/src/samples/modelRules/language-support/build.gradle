@@ -1,7 +1,7 @@
 // START SNIPPET model-language-support
 apply plugin: 'java-lang'
 
-//Creating LanguageSourceSet's via rules
+//Creating LanguageSourceSets via rules
 class LanguageSourceSetRules extends RuleSource {
     @Model
     void mySourceSet(JavaSourceSet javaSource) {
@@ -10,7 +10,7 @@ class LanguageSourceSetRules extends RuleSource {
 }
 apply plugin: LanguageSourceSetRules
 
-//Creating LanguageSourceSet's via the model DSL
+//Creating LanguageSourceSets via the model DSL
 model {
     another(JavaSourceSet) {
         source {
@@ -19,7 +19,7 @@ model {
     }
 }
 
-//Using FunctionalSourceSet's
+//Using FunctionalSourceSets
 @Managed
 interface SourceBundle {
     FunctionalSourceSet getFreeSources()

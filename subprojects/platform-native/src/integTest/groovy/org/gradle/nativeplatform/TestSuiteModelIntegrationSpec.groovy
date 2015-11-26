@@ -119,7 +119,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
             model {
                 tasks {
                     create("printSourceNames") {
-                        def sources = $("testSuites.main.sources")
+                        def sources = $.testSuites.main.sources
                         doLast {
                             println "names: ${sources.values()*.name}"
                         }
@@ -169,26 +169,24 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
                 foo {
                     binaries()
                     sources {
-                        bar(nodeValue: "DefaultCustomLanguageSourceSet 'foo:bar'")
+                        bar(type: "CustomLanguageSourceSet")
                     }
                 }
                 main {
                     binaries()
                     sources {
-                        main(nodeValue: "DefaultCustomLanguageSourceSet 'main:main'")
-                        test(nodeValue: "DefaultCustomLanguageSourceSet 'main:test'")
+                        main(type: "CustomLanguageSourceSet")
+                        test(type: "CustomLanguageSourceSet")
                     }
                 }
                 secondary {
                     binaries()
                     sources {
-                        test(nodeValue: "DefaultCustomLanguageSourceSet 'secondary:test'")
-
+                        test(type: "CustomLanguageSourceSet")
                     }
                 }
             }
         }
-
     }
 
     def "can reference sources container elements in a rule"() {
@@ -198,7 +196,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
             model {
                 tasks {
                     create("printSourceDisplayName") {
-                        def sources = $("testSuites.main.sources.main")
+                        def sources = $.testSuites.main.sources.main
                         doLast {
                             println "sources display name: ${sources.displayName}"
                         }
@@ -211,7 +209,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: DefaultCustomLanguageSourceSet 'main:main'"
+        output.contains "sources display name: CustomLanguageSourceSet 'main:main'"
     }
 
     def "can reference sources container elements using specialized type in a rule"() {
@@ -296,7 +294,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
                 }
                 tasks {
                     create("printBinaryNames") {
-                        def binaries = $("testSuites.main.binaries")
+                        def binaries = $.testSuites.main.binaries
                         doLast {
                             println "names: ${binaries.values().name}"
                         }

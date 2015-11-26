@@ -100,9 +100,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureCompileDefaults(project, javaConvention);
         BridgedBinaries binaries = configureSourceSetDefaults(javaConvention);
 
-        modelRegistry.registerOrReplace(ModelRegistrations.bridgedInstance(ModelReference.of("bridgedBinaries", BridgedBinaries.class), binaries)
+        modelRegistry.register(ModelRegistrations.bridgedInstance(ModelReference.of("bridgedBinaries", BridgedBinaries.class), binaries)
             .descriptor("JavaBasePlugin.apply()")
-            .ephemeral(true)
             .hidden(true)
             .build());
 

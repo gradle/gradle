@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.registry
 
-import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.Nullable
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.*
@@ -25,7 +24,7 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
-class RegistrySpec extends Specification {
+abstract class RegistrySpec extends Specification {
     protected static class TestNode extends ModelNodeInternal {
         def links = []
 
@@ -54,7 +53,7 @@ class RegistrySpec extends Specification {
         }
 
         @Override
-        def <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
+        def <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
             return null
         }
 
@@ -159,10 +158,6 @@ class RegistrySpec extends Specification {
 
         }
 
-        @Override
-        protected void resetPrivateData() {
-
-        }
 
         @Override
         def <T> T getPrivateData(ModelType<T> type) {
@@ -258,14 +253,8 @@ class RegistrySpec extends Specification {
         }
 
         RuleBinder build() {
-            def binder
-            if (subjectReference == null) {
-                def action = new DefaultModelRegistration(null, descriptor, false, false, false, ImmutableMultimap.of())
-                binder = new RegistrationRuleBinder(action, new BindingPredicate(), inputReferences, [])
-            } else {
-                def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})
-                binder = new ModelActionBinder(subjectReference, inputReferences, action, [])
-            }
+            def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})
+            def binder = new RuleBinder(subjectReference, inputReferences, action, [])
             if (subjectReferenceBindingPath) {
                 binder.subjectBinding.boundTo = new TestNode(subjectReferenceBindingPath, Object)
             }

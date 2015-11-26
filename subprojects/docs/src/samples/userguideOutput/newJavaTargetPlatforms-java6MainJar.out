@@ -4,7 +4,7 @@
 :core:compileMainJava6JarMainJava6
 :core:processMainJava6JarMainResources
 :core:createMainJava6Jar
-:core:createMainJava6ApiJar
+:core:mainJava6ApiJar
 :core:mainJava6Jar
 
 BUILD SUCCESSFUL

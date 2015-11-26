@@ -228,11 +228,11 @@ model {
         succeeds "tasks"
 
         and:
-        output.contains """beforeEach DefaultCustomComponent 'main'
-afterEach DefaultCustomComponent 'main'
-beforeEach DefaultCustomComponent 'newComponent'
-creating DefaultCustomComponent 'newComponent'
-afterEach DefaultCustomComponent 'newComponent'"""
+        output.contains """beforeEach CustomComponent 'main'
+afterEach CustomComponent 'main'
+beforeEach CustomComponent 'newComponent'
+creating CustomComponent 'newComponent'
+afterEach CustomComponent 'newComponent'"""
 
     }
 
@@ -353,11 +353,11 @@ afterEach DefaultCustomComponent 'newComponent'"""
         succeeds "tasks"
 
         and:
-        output.contains """beforeEach DefaultCustomComponent 'main'
-afterEach DefaultCustomComponent 'main'
-beforeEach DefaultCustomComponent 'newComponent'
-creating DefaultCustomComponent 'newComponent'
-afterEach DefaultCustomComponent 'newComponent'"""
+        output.contains """beforeEach CustomComponent 'main'
+afterEach CustomComponent 'main'
+beforeEach CustomComponent 'newComponent'
+creating CustomComponent 'newComponent'
+afterEach CustomComponent 'newComponent'"""
 
     }
 
@@ -384,19 +384,27 @@ afterEach DefaultCustomComponent 'newComponent'"""
             main {
                 binaries()
                 sources {
-                    bar(nodeValue: "DefaultCustomLanguageSourceSet 'main:bar'")
-                    someLang(nodeValue: "DefaultCustomLanguageSourceSet 'main:someLang'")
+                    bar(type: "CustomLanguageSourceSet")
+                    someLang(type: "CustomLanguageSourceSet")
                 }
             }
         }
     }
 
-    def "reasonable error message when creating component with default implementation"() {
+    def "reasonable error message when creating unmanaged component with default implementation"() {
         when:
         buildFile << """
+        interface UnmanagedComponent extends ComponentSpec {}
+        class DefaultUnmanagedComponent extends BaseComponentSpec implements UnmanagedComponent {}
+        class MyRules extends RuleSource {
+            @ComponentType
+            public void register(ComponentTypeBuilder<UnmanagedComponent> builder) {
+                builder.defaultImplementation(DefaultUnmanagedComponent)
+            }
+        }
         model {
             components {
-                another(DefaultCustomComponent)
+                another(DefaultUnmanagedComponent)
             }
         }
 
@@ -405,7 +413,7 @@ afterEach DefaultCustomComponent 'newComponent'"""
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("Cannot create a 'DefaultCustomComponent' because this type is not known to components. Known types are: CustomComponent"))
+        failure.assertThatCause(containsText("Cannot create a 'DefaultUnmanagedComponent' because this type is not known to components. Known types are: CustomComponent"))
     }
 
     def "reasonable error message when creating component with no implementation"() {
@@ -586,7 +594,7 @@ afterEach DefaultCustomComponent 'newComponent'"""
             model {
                 tasks {
                     create("printBinaryNames") {
-                        def binaries = $("components.main.binaries")
+                        def binaries = $.components.main.binaries
                         doLast {
                             println "names: ${binaries.keySet().toList()}"
                         }
@@ -635,7 +643,7 @@ afterEach DefaultCustomComponent 'newComponent'"""
             model {
                 tasks {
                     create("printBinaryTaskNames") {
-                        def tasks = $("components.main.binaries.b1.tasks")
+                        def tasks = $.components.main.binaries.b1.tasks
                         doLast {
                             println "names: ${tasks*.name}"
                         }
@@ -697,8 +705,7 @@ afterEach DefaultCustomComponent 'newComponent'"""
             interface SampleBinarySpec extends BinarySpec {}
             class DefaultSampleBinary extends BaseBinarySpec implements SampleBinarySpec {}
 
-            interface SampleComponent extends ComponentSpec{}
-            class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
+            @Managed interface SampleComponent extends ComponentSpec{}
 
             class MyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
@@ -707,15 +714,10 @@ afterEach DefaultCustomComponent 'newComponent'"""
 
                 static class Rules extends RuleSource {
                     @Model
-                    void createManagedModel(MyModel value) {
-                        println "createManagedModel"
-                    }
+                    void createManagedModel(MyModel value) {}
 
                     @ComponentType
-                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {
-                        println "registerComponent"
-                        builder.defaultImplementation(DefaultSampleComponent)
-                    }
+                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {}
                 }
 
             }
@@ -738,8 +740,7 @@ afterEach DefaultCustomComponent 'newComponent'"""
             interface SampleBinarySpec extends BinarySpec {}
             class DefaultSampleBinary extends BaseBinarySpec implements SampleBinarySpec {}
 
-            interface SampleComponent extends ComponentSpec{}
-            class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
+            @Managed interface SampleComponent extends ComponentSpec{}
 
             class MyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
@@ -749,15 +750,10 @@ afterEach DefaultCustomComponent 'newComponent'"""
 
                 static class Rules extends RuleSource {
                     @Model("android")
-                    public void createManagedModel(MyModel value) {
-                        println "createManagedModel"
-                    }
+                    public void createManagedModel(MyModel value) {}
 
                     @ComponentType
-                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {
-                        println "registerComponent"
-                        builder.defaultImplementation(DefaultSampleComponent)
-                    }
+                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {}
                 }
 
             }
