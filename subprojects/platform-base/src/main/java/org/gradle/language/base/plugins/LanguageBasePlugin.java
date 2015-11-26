@@ -78,13 +78,12 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTasks"), new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode binariesNode) {
-                binariesNode.applyToAllLinks(ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpec.class),
-                                new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTask"), ModelReference.of(ITaskFactory.class), new BiAction<BinarySpec, ITaskFactory>() {
+                binariesNode.applyToAllLinks(ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpecInternal.class),
+                                new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTask"), ModelReference.of(ITaskFactory.class), new BiAction<BinarySpecInternal, ITaskFactory>() {
                     @Override
-                    public void execute(BinarySpec binary, ITaskFactory taskFactory) {
-                        BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binary;
-                        if (!binarySpecInternal.isLegacyBinary()) {
-                            TaskInternal binaryLifecycleTask = taskFactory.create(binarySpecInternal.getProjectScopedName(), DefaultTask.class);
+                    public void execute(BinarySpecInternal binary, ITaskFactory taskFactory) {
+                        if (!binary.isLegacyBinary()) {
+                            TaskInternal binaryLifecycleTask = taskFactory.create(binary.getProjectScopedName(), DefaultTask.class);
                             binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                             binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
                             binary.setBuildTask(binaryLifecycleTask);
