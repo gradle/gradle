@@ -72,6 +72,7 @@ public class ProfileReportRenderer {
                             .startElement("li").startElement("a").attribute("href", "#tab1").characters("Configuration").endElement().endElement()
                             .startElement("li").startElement("a").attribute("href", "#tab2").characters("Dependency Resolution").endElement().endElement()
                             .startElement("li").startElement("a").attribute("href", "#tab3").characters("Task Execution").endElement().endElement()
+                            .startElement("li").startElement("a").attribute("href", "#tab4").characters("Task Totals").endElement().endElement()
                         .endElement();
                         htmlWriter.startElement("div").attribute("class", "tab").attribute("id", "tab0");
                             htmlWriter.startElement("h2").characters("Summary").endElement();
@@ -176,8 +177,26 @@ public class ProfileReportRenderer {
                                     }
                                 }
                             htmlWriter.endElement()
-                        .endElement()
-                    .endElement();
+                        .endElement();
+                        htmlWriter.startElement("div").attribute("class", "tab").attribute("id", "tab4");
+                            htmlWriter.startElement("h2").characters("Task Totals").endElement()
+                            .startElement("table")
+                                .startElement("thead")
+                                    .startElement("tr")
+                                    .startElement("th").characters("Task").endElement()
+                                        .startElement("th").attribute("class", "numeric").characters("Duration").endElement()
+                                    .endElement()
+                                    .endElement();
+                            for (TaskTotals taskTotals : model.getTaskTypes()) {
+                                htmlWriter.startElement("tr")
+                                    .startElement("td").characters(taskTotals.getTaskType()).endElement()
+                                    .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(taskTotals.getElapsedTime())).endElement()
+                                .endElement();
+
+                            }
+                        htmlWriter.endElement()
+                    .endElement()
+                .endElement();
                 }
             };
         }

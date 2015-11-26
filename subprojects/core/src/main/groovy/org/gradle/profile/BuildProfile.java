@@ -20,10 +20,7 @@ import org.gradle.util.CollectionUtils;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Root container for profile information about a build.  This includes summary
@@ -46,6 +43,7 @@ public class BuildProfile {
 
     private final Map<String, ProjectProfile> projects = new LinkedHashMap<String, ProjectProfile>();
     private final Map<String, ContinuousOperation> dependencySets = new LinkedHashMap<String, ContinuousOperation>();
+    private final Map<String, TaskTotals> taskTypes = new LinkedHashMap<String, TaskTotals>();
     private long profilingStarted;
     private long buildStarted;
     private long settingsEvaluated;
@@ -103,6 +101,30 @@ public class BuildProfile {
             projects.put(projectPath, result);
         }
         return result;
+    }
+
+    /**
+     * Get the profile for a specified task by name across projects
+     * @param task the task name
+     */
+    public TaskTotals getTaskTypeProfile(String task) {
+        TaskTotals result = taskTypes.get(task);
+        if(result == null) {
+            Collection<TaskExecution> tasks = new HashSet<TaskExecution>();
+            result = new TaskTotals(task, tasks);
+            taskTypes.put(task, result);
+        }
+        return result;
+    }
+
+    /**
+     * Get a list of profiles for all types of tasks determined by the task names across projects
+     * @return list
+     */
+
+    public Collection<TaskTotals> getTaskTypes() {
+        List<TaskTotals> taskTotalses = CollectionUtils.sort(taskTypes.values(), Operation.slowestFirst());
+        return taskTotalses;
     }
 
     /**

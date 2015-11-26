@@ -56,6 +56,11 @@ class ProfileReportRendererTest extends Specification {
         model.getProjectProfile("b").getTaskProfile("b:foo").completed(Stub(TaskState)).setStart(time(12, 27, 0)).setFinish(time(12, 29, 30))
         model.getProjectProfile("b").getTaskProfile("b:bar").completed(Stub(TaskState)).setStart(time(12, 27, 0)).setFinish(time(12, 29, 0))
 
+        model.getTaskTypeProfile("foo").addTask(model.getProjectProfile("a").getTaskProfile("a:foo"));
+        model.getTaskTypeProfile("foo").addTask(model.getProjectProfile("b").getTaskProfile("b:foo"));
+        model.getTaskTypeProfile("bar").addTask(model.getProjectProfile("a").getTaskProfile("a:bar"));
+        model.getTaskTypeProfile("bar").addTask(model.getProjectProfile("b").getTaskProfile("b:bar"));
+
         when:
         new ProfileReportRenderer().writeTo(model, file)
 
@@ -90,6 +95,9 @@ class ProfileReportRendererTest extends Specification {
 </li>
 <li>
 <a href="#tab3">Task Execution</a>
+</li>
+<li>
+<a href="#tab4">Task Totals</a>
 </li>
 </ul>
 <div class="tab" id="tab0">
@@ -212,6 +220,25 @@ class ProfileReportRendererTest extends Specification {
 <td class="indentPath">a:bar</td>
 <td class="numeric">30.000s</td>
 <td>Did No Work</td>
+</tr>
+</table>
+</div>
+<div class="tab" id="tab4">
+<h2>Task Totals</h2>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th class="numeric">Duration</th>
+</tr>
+</thead>
+<tr>
+<td>foo</td>
+<td class="numeric">4m0.00s</td>
+</tr>
+<tr>
+<td>bar</td>
+<td class="numeric">2m30.00s</td>
 </tr>
 </table>
 </div>
