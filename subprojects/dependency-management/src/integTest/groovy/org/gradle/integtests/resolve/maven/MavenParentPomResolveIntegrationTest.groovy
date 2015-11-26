@@ -78,6 +78,8 @@ task retrieve(type: Sync) {
     def "uses dependencyManagement from parent pom"() {
         given:
         mavenRepo.module("org", "child_dep", "1.7").publish()
+        mavenRepo.module("org", "typed_dep", "1.8").artifact(type: 'bar').publish()
+        mavenRepo.module("org", "classified_dep", "1.9").artifact(classifier: 'classy').publish()
 
         def parent = mavenRepo.module("org", "parent", "1.0")
         parent.hasPackaging('pom')
@@ -91,6 +93,18 @@ task retrieve(type: Sync) {
             <artifactId>child_dep</artifactId>
             <version>1.7</version>
         </dependency>
+        <dependency>
+            <groupId>org</groupId>
+            <artifactId>typed_dep</artifactId>
+            <type>bar</type>
+            <version>1.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org</groupId>
+            <artifactId>classified_dep</artifactId>
+            <classifier>classy</classifier>
+            <version>1.9</version>
+        </dependency>
     </dependencies>
 </dependencyManagement>
 </project>
@@ -99,6 +113,8 @@ task retrieve(type: Sync) {
         def child = mavenRepo.module("org", "child", "1.0")
         child.parent("org", "parent", "1.0")
         child.dependsOn("org", "child_dep", null)
+        child.dependsOn("org", "typed_dep", null, "bar", null, null)
+        child.dependsOn("org", "classified_dep", null, null, null, "classy")
         child.publish()
 
         buildFile << """
@@ -107,7 +123,7 @@ repositories {
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
-task libs << { assert configurations.compile.files*.name == ['child-1.0.jar', 'child_dep-1.7.jar'] }
+task libs << { assert configurations.compile.files*.name == ['child-1.0.jar', 'child_dep-1.7.jar', 'typed_dep-1.8.bar', 'classified_dep-1.9-classy.jar'] }
 """
 
         expect:
