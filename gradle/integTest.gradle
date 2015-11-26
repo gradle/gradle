@@ -210,7 +210,8 @@ allprojects {
 
 integTestTasks.all { Test task ->
     dependsOn ':intTestImage'
-    finalizedBy(':cleanUpDaemons', ':cleanUpCaches')
+    dependsOn ':cleanUpCaches'
+    finalizedBy ':cleanUpDaemons'
     shouldRunAfter 'test'
 
     testClassesDir = sourceSets.integTest.output.classesDir
