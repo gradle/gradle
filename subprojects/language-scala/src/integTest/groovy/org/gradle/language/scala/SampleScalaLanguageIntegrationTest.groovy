@@ -34,7 +34,7 @@ class SampleScalaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds("assemble")
 
         then:
-        new JarTestFixture(sample.dir.file("build/jars/mainJar/main.jar")).hasDescendants(
+        new JarTestFixture(sample.dir.file("build/jars/main/jar/main.jar")).hasDescendants(
                 "org/gradle/samples/HelloWorld.class",
                 "org/gradle/samples/HelloWorld\$.class",
                 "org/gradle/samples/Greeter.class",

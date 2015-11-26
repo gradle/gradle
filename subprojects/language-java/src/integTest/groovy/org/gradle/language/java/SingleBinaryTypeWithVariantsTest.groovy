@@ -206,14 +206,14 @@ model {
         [6]    | []                   | []               | [6]    | [:]                                     | [:]
         [6]    | ['debug']            | ['free']         | [6, 7] | [firstFreeDebugJar: 'second/java6Jar']   | [:]
         [6, 7] | ['debug']            | ['free']         | [6, 7] | [firstFreeDebug6Jar: 'second/java6Jar',
-                                                                     firstFreeDebug7Jar: 'second/Java7Jar']  | [:]
+                                                                     firstFreeDebug7Jar: 'second/java7Jar']  | [:]
         [5, 6] | ['debug']            | ['free']         | [6, 7] | [firstFreeDebug6Jar: 'second/java6Jar']  | [firstFreeDebug5Jar: ["Cannot find a compatible variant for library 'second'",
                                                                                                                                     "Required platform 'java5', available: 'java6', 'java7'",
                                                                                                                                     "Required flavor 'free' but no compatible variant was found",
                                                                                                                                     "Required buildType 'debug' but no compatible variant was found"]]
-        [6]    | ['debug', 'release'] | ['free', 'paid'] | [6, 7] | [firstFreeDebugJar  : 'second/Java6Jar',
-                                                                     firstFreeReleaseJar: 'second/Java6Jar',
-                                                                     firstPaidDebugJar  : 'second/Java6Jar',
+        [6]    | ['debug', 'release'] | ['free', 'paid'] | [6, 7] | [firstFreeDebugJar  : 'second/java6Jar',
+                                                                     firstFreeReleaseJar: 'second/java6Jar',
+                                                                     firstPaidDebugJar  : 'second/java6Jar',
                                                                      firstPaidReleaseJar: 'second/java6Jar'] | [:]
 
         and:
