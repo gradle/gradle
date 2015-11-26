@@ -82,7 +82,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.alternateLibraryOutput
+        installation("build/install/main").exec().out == app.alternateLibraryOutput
     }
 
     def "can link to a prebuilt library with static and shared linkage"() {
@@ -99,11 +99,11 @@ model {
                 headers.srcDir "libs/src/hello/headers"
                 binaries.withType(StaticLibraryBinary) {
                     def libName = targetPlatform.operatingSystem.windows ? 'hello.lib' : 'libhello.a'
-                    staticLibraryFile = file("libs/build/binaries/helloStaticLibrary/english/\${libName}")
+                    staticLibraryFile = file("libs/build/libs/hello/static/english/\${libName}")
                 }
                 binaries.withType(SharedLibraryBinary) {
                     def os = targetPlatform.operatingSystem
-                    def baseDir = "libs/build/binaries/helloSharedLibrary/french"
+                    def baseDir = "libs/build/libs/hello/shared/french"
                     if (os.windows) {
                         // Windows uses a .dll file, and a different link file if it exists (not Cygwin or MinGW)
                         sharedLibraryFile = file("\${baseDir}/hello.dll")
@@ -141,8 +141,8 @@ model {
         succeeds "installMainExecutable", "installMainStaticExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.frenchOutput
-        installation("build/install/mainStaticExecutable").exec().out == app.englishOutput
+        installation("build/install/main").exec().out == app.frenchOutput
+        installation("build/install/mainStatic").exec().out == app.englishOutput
     }
 
     def "searches all prebuilt library repositories"() {
@@ -164,7 +164,7 @@ model {
                 headers.srcDir "libs/src/hello/headers"
                 binaries.withType(StaticLibraryBinary) {
                     def libName = targetPlatform.operatingSystem.windows ? 'hello.lib' : 'libhello.a'
-                    staticLibraryFile = file("libs/build/binaries/helloStaticLibrary/french/\${libName}")
+                    staticLibraryFile = file("libs/build/libs/hello/static/french/\${libName}")
                 }
             }
         }
@@ -183,7 +183,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.frenchOutput
+        installation("build/install/main").exec().out == app.frenchOutput
     }
 
     def "locates prebuilt library in another project"() {
@@ -227,7 +227,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("projectA/build/install/mainExecutable").exec().out == app.englishOutput
+        installation("projectA/build/install/main").exec().out == app.englishOutput
     }
 
     def "produces reasonable error message when no output file is defined for binary"() {

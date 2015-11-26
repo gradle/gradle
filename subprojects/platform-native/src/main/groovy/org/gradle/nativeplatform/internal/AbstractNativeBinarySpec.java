@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.internal;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
-import org.gradle.nativeplatform.PreprocessingTool;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
@@ -33,7 +32,6 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
@@ -61,7 +59,6 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
             .build();
 
     private PlatformToolProvider toolProvider;
-    private BinaryNamingScheme namingScheme;
     private Flavor flavor;
     private NativeToolChain toolChain;
     private NativePlatform targetPlatform;
@@ -71,7 +68,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     @Override
     public String getDisplayName() {
-        return namingScheme.getDescription();
+        return getNamingScheme().getDescription();
     }
 
     @Override
@@ -145,14 +142,6 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     public Tool getToolByName(String name) {
         return toolsByName.get(name);
-    }
-
-    public BinaryNamingScheme getNamingScheme() {
-        return namingScheme;
-    }
-
-    public void setNamingScheme(BinaryNamingScheme namingScheme) {
-        this.namingScheme = namingScheme;
     }
 
     public Collection<NativeDependencySet> getLibs() {

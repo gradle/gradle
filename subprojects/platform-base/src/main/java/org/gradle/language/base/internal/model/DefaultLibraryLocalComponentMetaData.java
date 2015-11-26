@@ -41,6 +41,7 @@ import java.util.Collections;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
 import static org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier.CONFIGURATION_API;
+import static org.gradle.platform.base.internal.DefaultModuleDependencySpec.effectiveVersionFor;
 
 public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentMetaData {
     private static final String VERSION = "<local component>";
@@ -109,7 +110,7 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
     }
 
     private ModuleVersionSelector moduleVersionSelectorFrom(ModuleDependencySpec module) {
-        return new DefaultModuleVersionSelector(module.getGroup(), module.getName(), module.getVersion());
+        return new DefaultModuleVersionSelector(module.getGroup(), module.getName(), effectiveVersionFor(module.getVersion()));
     }
 
     private DependencyMetaData dependencyMetadataFor(ComponentSelector selector, ModuleVersionSelector requested, String configuration) {

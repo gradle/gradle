@@ -62,7 +62,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
 
         run "installMainExecutable"
 
-        install = installation("build/install/mainExecutable")
+        install = installation("build/install/main")
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
@@ -118,8 +118,8 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
 
     @IgnoreIf({GradleContextualExecuter.parallel})
     def "cleans up stale object files when source file renamed"() {
-        def oldObjFile = objectFileFor(asmSourceFile, "build/objs/helloSharedLibrary/helloAsm")
-        def newObjFile = objectFileFor(file('src/hello/asm/changed_sum.s'), "build/objs/helloSharedLibrary/helloAsm")
+        def oldObjFile = objectFileFor(asmSourceFile, "build/objs/hello/shared/helloAsm")
+        def newObjFile = objectFileFor(file('src/hello/asm/changed_sum.s'), "build/objs/hello/shared/helloAsm")
         assert oldObjFile.file
         assert !newObjFile.file
 

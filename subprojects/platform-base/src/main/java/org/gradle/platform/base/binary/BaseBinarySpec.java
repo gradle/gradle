@@ -35,10 +35,7 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
-import org.gradle.platform.base.internal.BinaryBuildAbility;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
-import org.gradle.platform.base.internal.FixedBuildAbility;
+import org.gradle.platform.base.internal.*;
 import org.gradle.util.DeprecationLogger;
 
 /**
@@ -62,7 +59,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     private final MutableModelNode componentNode;
     private final MutableModelNode sources;
     private final Class<? extends BinarySpec> publicType;
-
+    private BinaryNamingScheme namingScheme;
     private boolean disabled;
 
     public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
@@ -95,6 +92,8 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
 
         sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
+        ComponentSpec component = getComponent();
+        namingScheme = DefaultBinaryNamingScheme.component(component == null ? null :component.getName()).withBinaryName(name).withBinaryType(getTypeName());
     }
 
     @Override
@@ -169,6 +168,14 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     public boolean isLegacyBinary() {
         return false;
+    }
+
+    public BinaryNamingScheme getNamingScheme() {
+        return namingScheme;
+    }
+
+    public void setNamingScheme(BinaryNamingScheme namingScheme) {
+        this.namingScheme = namingScheme;
     }
 
     private static class BinaryInfo {

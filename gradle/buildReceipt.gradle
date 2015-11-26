@@ -40,6 +40,11 @@ task determineCommitId {
 
         def env = System.getenv()
 
+        // For promotion builds use the commitId passed in as a project property
+        strategies << {
+            project.hasProperty('promotionCommitId') ? project.property('promotionCommitId') : null
+        }
+
         // Builds of Gradle happening on the CI server
         strategies << {
             env["BUILD_VCS_NUMBER"]

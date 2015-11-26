@@ -16,13 +16,14 @@
 
 package org.gradle.platform.base.internal;
 
+import org.gradle.api.Named;
 import org.gradle.api.Nullable;
 
+import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 public interface BinaryNamingScheme {
-    String getBaseName();
-
     String getBinaryName();
 
     String getTaskName(@Nullable String verb);
@@ -31,7 +32,44 @@ public interface BinaryNamingScheme {
 
     String getOutputDirectoryBase();
 
+    File getOutputDirectory(File baseDir);
+
     String getDescription();
 
     List<String> getVariantDimensions();
+
+    /**
+     * Creates a copy of this scheme, replacing the component name.
+     */
+    BinaryNamingScheme withComponentName(String componentName);
+
+    /**
+     * Creates a copy of this scheme, replacing the role. The 'role' refers to the role that the binary plays within its component.
+     */
+    BinaryNamingScheme withRole(String role, boolean isMain);
+
+    /**
+     * Creates a copy of this scheme, replacing the binary type.
+     */
+    BinaryNamingScheme withBinaryType(String type);
+
+    /**
+     * Creates a copy of this scheme, replacing the output type.
+     */
+    BinaryNamingScheme withOutputType(String type);
+
+    /**
+     * Creates a copy of this scheme, specifying a binary name. This overrides the default binary name that would be generated from the other attributes.
+     */
+    BinaryNamingScheme withBinaryName(String name);
+
+    /**
+     * Creates a copy of this scheme, <em>adding</em> a variant dimension.
+     */
+    BinaryNamingScheme withVariantDimension(String dimension);
+
+    /**
+     * Creates a copy of this scheme, <em>adding</em> a variant dimension if required.
+     */
+    <T extends Named> BinaryNamingScheme withVariantDimension(T value, Collection<? extends T> allValuesForAxis);
 }

@@ -60,7 +60,7 @@ Binaries
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeExecutable/someExe
+        executable file: build/exe/someExe/someExe
 
 GoogleTest test suite 'someExeTest'
 -----------------------------------
@@ -77,7 +77,7 @@ Binaries
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeTestGoogleTestExe/someExeTest
+        executable file: build/exe/someExeTest/someExeTest
 """
     }
 }

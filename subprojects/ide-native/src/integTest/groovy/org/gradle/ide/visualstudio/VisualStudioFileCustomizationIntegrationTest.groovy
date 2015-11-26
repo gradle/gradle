@@ -77,8 +77,8 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         assert projectFile.headerFiles == app.headerFiles*.withPath("../../../src/main").sort()
         assert projectFile.sourceFiles == ['../../../build.gradle'] + app.sourceFiles*.withPath("../../../src/main").sort()
         projectFile.projectConfigurations.values().each {
-            assert it.buildCommand == "../../../gradlew.bat -p \"../../..\" :install${it.name.capitalize()}MainExecutable"
-            assert it.outputFile == OperatingSystem.current().getExecutableName("../../../build/install/mainExecutable/${it.name}/lib/main")
+            assert it.buildCommand == "../../../gradlew.bat -p \"../../..\" :installMain${it.name.capitalize()}Executable"
+            assert it.outputFile == OperatingSystem.current().getExecutableName("../../../build/install/main/${it.name}/lib/main")
         }
         def filtersFile = filtersFile("other/filters.vcxproj.filters")
 
@@ -186,7 +186,7 @@ tasks.withType(GenerateProjectFileTask) {
         then:
         final projectFile = projectFile("mainExe.vcxproj")
         projectFile.projectConfigurations.values().each {
-            assert it.buildCommand == "myCustomGradleExe --configure-on-demand --another :install${it.name.capitalize()}MainExecutable"
+            assert it.buildCommand == "myCustomGradleExe --configure-on-demand --another :installMain${it.name.capitalize()}Executable"
         }
     }
 

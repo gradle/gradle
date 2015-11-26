@@ -135,7 +135,7 @@ model {
         executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
                 ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
 
-        def testResults = new GoogleTestTestResults(file("build/test-results/helloTestGoogleTestExe/test_detail.xml"))
+        def testResults = new GoogleTestTestResults(file("build/test-results/helloTest/test_detail.xml"))
         testResults.suiteNames == ['HelloTest']
         testResults.suites['HelloTest'].passingTests == ['test_sum']
         testResults.suites['HelloTest'].failingTests == []
@@ -192,7 +192,7 @@ tasks.withType(RunTestExecutable) {
         executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
                 ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
 
-        def testResults = new GoogleTestTestResults(file("build/test-results/helloTestGoogleTestExe/test_detail.xml"))
+        def testResults = new GoogleTestTestResults(file("build/test-results/helloTest/test_detail.xml"))
         testResults.suiteNames == ['HelloTest']
         testResults.suites['HelloTest'].passingTests == ['test_sum']
         testResults.suites['HelloTest'].failingTests == []
@@ -218,7 +218,7 @@ model {
         run "runHelloTestGoogleTestExe"
 
         then:
-        def testResults = new GoogleTestTestResults(file("build/test-results/helloTestGoogleTestExe/test_detail.xml"))
+        def testResults = new GoogleTestTestResults(file("build/test-results/helloTest/test_detail.xml"))
         testResults.checkTestCases(1, 1, 0)
     }
 
@@ -335,6 +335,7 @@ model {
         useStandardConfig()
         useConventionalSourceLocations()
         run "runHelloTestGoogleTestExe"
+        executed ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
 
         when:
         run "runHelloTestGoogleTestExe"
@@ -358,7 +359,7 @@ model {
                 ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
         output.contains "[  FAILED  ]"
         and:
-        def testResults = new GoogleTestTestResults(file("build/test-results/helloTestGoogleTestExe/test_detail.xml"))
+        def testResults = new GoogleTestTestResults(file("build/test-results/helloTest/test_detail.xml"))
         testResults.suiteNames == ['HelloTest']
         testResults.suites['HelloTest'].passingTests == []
         testResults.suites['HelloTest'].failingTests == ['test_sum']
@@ -381,7 +382,7 @@ tasks.withType(RunTestExecutable) {
         output.contains "There were failing tests. See the results at: "
 
         and:
-        file("build/test-results/helloTestGoogleTestExe/test_detail.xml").assertExists()
+        file("build/test-results/helloTest/test_detail.xml").assertExists()
     }
 
     def "test suite not skipped after failing run"() {

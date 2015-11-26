@@ -78,9 +78,9 @@ model {
         succeeds 'mainI386Executable', 'mainSparcExecutable'
 
         and:
-        def i386Exe = x86ToolChain.executable(file("build/binaries/mainExecutable/i386/main"))
+        def i386Exe = x86ToolChain.executable(file("build/exe/main/i386/main"))
         assert i386Exe.exec().out == helloWorld.expectedOutput(x86ToolChain)
-        def sparcExe = sparcToolChain.executable(file("build/binaries/mainExecutable/sparc/main"))
+        def sparcExe = sparcToolChain.executable(file("build/exe/main/sparc/main"))
         assert sparcExe.exec().out == helloWorld.expectedOutput(sparcToolChain)
     }
 

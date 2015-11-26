@@ -18,10 +18,6 @@ package org.gradle.integtests.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MavenNonUniqueSnapshotPublishIntegrationTest extends AbstractIntegrationSpec {
-    def setup() {
-        overrideMavenLocal()
-    }
-
     public void "can publish a non-unique snapshot version"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

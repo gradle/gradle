@@ -32,7 +32,6 @@ import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
 import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.Service;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
@@ -82,11 +81,6 @@ public class JvmComponentPlugin implements Plugin<Project> {
             builder.internalView(JarBinarySpecInternal.class);
         }
 
-        @Service
-        public BinaryNamingSchemeBuilder binaryNamingSchemeBuilder() {
-            return new DefaultBinaryNamingSchemeBuilder();
-        }
-
         @Model
         public JavaToolChainRegistry javaToolChain(ServiceRegistry serviceRegistry) {
             JavaToolChainInternal toolChain = serviceRegistry.get(JavaToolChainInternal.class);
@@ -104,14 +98,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @ComponentBinaries
-        public void createBinaries(ModelMap<JarBinarySpec> binaries, BinaryNamingSchemeBuilder namingSchemeBuilder,
-                                   PlatformResolvers platforms, final JvmLibrarySpecInternal jvmLibrary) {
+        public void createBinaries(ModelMap<JarBinarySpec> binaries, PlatformResolvers platforms, final JvmLibrarySpecInternal jvmLibrary) {
             List<JavaPlatform> selectedPlatforms = resolvePlatforms(platforms, jvmLibrary);
             final Set<String> exportedPackages = exportedPackagesOf(jvmLibrary);
             final Collection<DependencySpec> apiDependencies = apiDependenciesOf(jvmLibrary);
             final Collection<DependencySpec> dependencies = componentDependenciesOf(jvmLibrary);
             for (final JavaPlatform platform : selectedPlatforms) {
-                String binaryName = buildBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
+                String binaryName = buildBinaryName(jvmLibrary, selectedPlatforms, platform);
                 binaries.create(binaryName, new Action<JarBinarySpec>() {
                     @Override
                     public void execute(JarBinarySpec jarBinarySpec) {
@@ -152,15 +145,12 @@ public class JvmComponentPlugin implements Plugin<Project> {
             return jvmLibrary.getDependencies().getDependencies();
         }
 
-        private String buildBinaryName(JvmLibrarySpec jvmLibrary, BinaryNamingSchemeBuilder namingSchemeBuilder,
-                                       List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
-            BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
-                .withComponentName(jvmLibrary.getName())
-                .withTypeString("jar");
-            if (selectedPlatforms.size() > 1) {
-                componentBuilder = componentBuilder.withVariantDimension(platform.getName());
-            }
-            return componentBuilder.build().getBinaryName();
+        private String buildBinaryName(JvmLibrarySpec jvmLibrary, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
+            BinaryNamingScheme namingScheme = DefaultBinaryNamingScheme.component(jvmLibrary.getName())
+                    .withBinaryType("Jar")
+                    .withRole("jar", true)
+                    .withVariantDimension(platform, selectedPlatforms);
+            return namingScheme.getBinaryName();
         }
 
         @BinaryTasks

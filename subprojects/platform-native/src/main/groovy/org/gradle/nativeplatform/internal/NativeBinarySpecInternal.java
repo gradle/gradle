@@ -24,7 +24,6 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
@@ -42,10 +41,6 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
     void setBuildType(BuildType buildType);
 
     Tool getToolByName(String name);
-
-    BinaryNamingScheme getNamingScheme();
-
-    void setNamingScheme(BinaryNamingScheme namingScheme);
 
     PlatformToolProvider getPlatformToolProvider();
 

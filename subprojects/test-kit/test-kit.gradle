@@ -26,6 +26,8 @@ task jar(type: JarJarJar) {
         details.file.name.endsWith('-classpath.properties') &&
         details.file.name != 'gradle-test-kit-classpath.properties'
     }
+    exclude 'net/rubygrapefruit/platform/**'
+    exclude 'com/sun/jna/**'
 
     rule('org.gradle.testkit.**', '@0')
     rule('org.gradle.tooling.**', '@0')
@@ -37,6 +39,8 @@ task jar(type: JarJarJar) {
 
     keep('org.gradle.testkit.**')
     keep('org.gradle.tooling.**')
+    keep('net.rubygrapefruit.platform.**')
+    keep('com.sun.jna.**')
 }
 
 artifacts {

@@ -97,9 +97,9 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        staticLibrary("build/binaries/helloStaticStaticLibrary/helloStatic").assertExistsAndDelete()
-        sharedLibrary("build/binaries/helloSharedSharedLibrary/helloShared").assertExistsAndDelete()
-        installation("build/install/mainExecutable")
+        staticLibrary("build/libs/helloStatic/static/helloStatic").assertExistsAndDelete()
+        sharedLibrary("build/libs/helloShared/shared/helloShared").assertExistsAndDelete()
+        installation("build/install/main")
                 .assertIncludesLibraries("helloShared")
                 .exec().out == "Hello staticHello shared"
     }
@@ -119,8 +119,6 @@ project('lib') {
     }
 }
 project('exe') {
-// TODO:DAZ Remove this
-    evaluationDependsOn(":lib")
     apply plugin: "cpp"
     model {
         components {
@@ -196,9 +194,9 @@ project('exe') {
         succeeds "exe:installMainExecutable"
 
         then:
-        sharedLibrary("lib/build/binaries/helloLibSharedLibrary/helloLib").assertExistsAndDelete()
-        sharedLibrary("exe/build/binaries/helloMainSharedLibrary/helloMain").assertExistsAndDelete()
-        installation("exe/build/install/mainExecutable")
+        sharedLibrary("lib/build/libs/helloLib/shared/helloLib").assertExistsAndDelete()
+        sharedLibrary("exe/build/libs/helloMain/shared/helloMain").assertExistsAndDelete()
+        installation("exe/build/install/main")
                 .assertIncludesLibraries("helloLib", "helloMain")
                 .exec().out == "Hello main\nHello lib"
     }
@@ -275,7 +273,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == "CPP_C"
+        installation("build/install/main").exec().out == "CPP_C"
     }
 
     @Issue("GRADLE-2925")
@@ -314,6 +312,6 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.englishOutput
+        installation("build/install/main").exec().out == app.englishOutput
     }
 }

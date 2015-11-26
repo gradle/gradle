@@ -24,7 +24,6 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
     MavenLocalRepository m2Repo
 
     def "setup"() {
-        dontOverrideMavenLocal()
         def m2Installation = new M2Installation(testDirectory)
         m2Repo = m2Installation.mavenRepo()
         executer.beforeExecute m2Installation

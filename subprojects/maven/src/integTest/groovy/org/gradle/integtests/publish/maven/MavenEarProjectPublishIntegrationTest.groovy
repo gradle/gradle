@@ -18,10 +18,6 @@ package org.gradle.integtests.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MavenEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
-    def setup() {
-        overrideMavenLocal()
-    }
-
     public void "publishes EAR only for mixed java and WAR and EAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

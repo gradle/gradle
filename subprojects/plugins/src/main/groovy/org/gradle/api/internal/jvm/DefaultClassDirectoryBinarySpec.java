@@ -30,10 +30,7 @@ import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.internal.BinaryBuildAbility;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
-import org.gradle.platform.base.internal.FixedBuildAbility;
-import org.gradle.platform.base.internal.ToolSearchBuildAbility;
+import org.gradle.platform.base.internal.*;
 
 import java.io.File;
 
@@ -131,6 +128,16 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public BinaryNamingScheme getNamingScheme() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setNamingScheme(BinaryNamingScheme namingScheme) {
         throw new UnsupportedOperationException();
     }
 

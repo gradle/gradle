@@ -15,9 +15,13 @@
  */
 
 package org.gradle.api.tasks
+
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
+    def discoveredDir = file('discoveredDir')
+
     def "setup"() {
         buildFile << buildFileBase
         buildFile << """
@@ -70,7 +74,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
 
             // register discovered inputs
-            [ 'discovered/file0.txt', 'discovered/file1.txt', 'discovered/file2.txt' ].each { fileName ->
+            [ 'discovered/file0.txt', 'discovered/file1.txt', 'discovered/file2.txt', 'discoveredDir' ].each { fileName ->
                 def discoveredInput = project.file(fileName)
                 if (discoveredInput.exists()) {
                     inputs.newInput(discoveredInput)
@@ -132,6 +136,20 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "incremental task is skipped when run with no changes since last execution"() {
+        given:
+        previousExecution()
+
+        when:
+        run "incremental"
+
+        then:
+        ":incremental" in skippedTasks
+    }
+
+    @NotYetImplemented
+    def "incremental task is skipped when run with no changes with discovered empty directory"() {
+        discoveredDir.file('empty/dir').mkdirs()
+
         given:
         previousExecution()
 

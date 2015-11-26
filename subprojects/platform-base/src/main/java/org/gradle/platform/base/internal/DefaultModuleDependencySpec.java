@@ -21,7 +21,16 @@ import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;
 import org.gradle.platform.base.ModuleDependencySpecBuilder;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
+
+    /**
+     * Maps an omitted version number to "+", "the latest available version".
+     */
+    public static String effectiveVersionFor(String version) {
+        return isNullOrEmpty(version) ? "+" : version;
+    }
 
     private final String group;
     private final String name;
@@ -53,11 +62,7 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
 
     @Override
     public String getDisplayName() {
-        return String.format("%s:%s:%s", optional(getGroup()), optional(getName()), optional(getVersion()));
-    }
-
-    private String optional(String s) {
-        return s != null ? s : "*";
+        return String.format("%s:%s:%s", getGroup(), getName(), effectiveVersionFor(getVersion()));
     }
 
    public static class Builder implements ModuleDependencySpecBuilder {
