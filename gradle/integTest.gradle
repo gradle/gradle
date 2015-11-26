@@ -27,6 +27,9 @@ dependencies {
 
 ext.integTestTasks = tasks.withType(Test).matching { !['test', 'java9Test'].contains(it.name) }
 
+/**
+ * Clean up cache files for older versions that aren't multi-process safe.
+ */
 def removeDodgyCacheFiles(File dir) {
     if (dir.directory) {
         for (File cacheDir : dir.listFiles()) {
@@ -44,6 +47,9 @@ def removeDodgyCacheFiles(File dir) {
     }
 }
 
+/**
+ * Removes state for versions that we're unlikely to ever need again, such as old snapshot versions.
+ */
 def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
     if (dir.directory) {
 
@@ -104,6 +110,9 @@ project(":") {
             // Remove old distributions used by wrapper that we're unlikely to ever require again
             removeOldVersionsFromDir(file("intTestHomeDir/worker-1/wrapper/dists"), expireIntegTestCache, "gradle-", "-bin")
             delete(file("intTestHomeDir/worker-1/wrapper/dists/dist"))
+
+            // Remove native-platform versions that may be corrupted
+            delete(file("intTestHomeDir/worker-1/test-fixtures/native"))
 
             // Remove caches that weren't multi-process safe and may be corrupt
             removeDodgyCacheFiles(file("intTestHomeDir/worker-1/caches"))
