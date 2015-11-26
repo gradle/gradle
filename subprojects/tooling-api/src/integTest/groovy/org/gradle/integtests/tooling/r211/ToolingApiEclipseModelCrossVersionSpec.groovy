@@ -15,12 +15,10 @@
  */
 
 package org.gradle.integtests.tooling.r211
-
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.internal.jvm.Jvm
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
@@ -28,7 +26,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 @TargetGradleVersion(">=2.11")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
-    def setup(){
+    def setup() {
         settingsFile << "rootProject.name = 'root'"
     }
 
@@ -45,15 +43,18 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "Java project has target runtime"() {
         given:
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+apply plugin: 'java'
 
+description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
+"""
         when:
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
         rootProject.javaSourceSettings.targetRuntime != null
         rootProject.javaSourceSettings.targetRuntime.javaVersion == JavaVersion.current()
-        rootProject.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().getJavaHome()
+        rootProject.javaSourceSettings.targetRuntime.homeDirectory.toString() == rootProject.gradleProject.description
     }
 
     def "target language level respects explicit targetCompatibility configuration"() {

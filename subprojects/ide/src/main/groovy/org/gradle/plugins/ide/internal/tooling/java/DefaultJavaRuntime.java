@@ -17,13 +17,19 @@
 package org.gradle.plugins.ide.internal.tooling.java;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.tooling.model.java.JavaRuntime;
 
 import java.io.File;
 import java.io.Serializable;
 
 public class DefaultJavaRuntime implements JavaRuntime, Serializable {
+
+    private File homeDirectory;
+
+    public DefaultJavaRuntime(File homeDirectory){
+        this.homeDirectory = homeDirectory;
+    }
+
     @Override
     public JavaVersion getJavaVersion() {
         return JavaVersion.current();
@@ -31,6 +37,6 @@ public class DefaultJavaRuntime implements JavaRuntime, Serializable {
 
     @Override
     public File getHomeDirectory() {
-        return Jvm.current().getJavaHome();
+        return homeDirectory;
     }
 }
