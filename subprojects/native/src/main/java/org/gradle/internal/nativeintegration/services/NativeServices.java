@@ -18,7 +18,13 @@ package org.gradle.internal.nativeintegration.services;
 import net.rubygrapefruit.platform.*;
 import net.rubygrapefruit.platform.Process;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
+import net.rubygrapefruit.platform.internal.LibraryDef;
+import net.rubygrapefruit.platform.internal.NativeLibraryLocator;
+import net.rubygrapefruit.platform.internal.Platform;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
@@ -37,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -80,7 +87,17 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                         LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
                         useNativePlatform = false;
                     } else {
-                        throw ex;
+                        Platform platform = Platform.current();
+                        try {
+                            File lib = new NativeLibraryLocator(nativeDir).find(new LibraryDef(platform.getLibraryName(), platform.getId()));
+                            HashValue libHash = HashUtil.createHash(lib, "md5");
+                            File copy = new NativeLibraryLocator(null).find(new LibraryDef(platform.getLibraryName(), platform.getId()));
+                            HashValue copyHash = HashUtil.createHash(copy, "md5");
+                            throw new RuntimeException(String.format("Could not load native integration.%nlib: %s (%s)%ncopy: %s (%s)", lib, libHash.asHexString(), copy, copyHash.asHexString()), ex);
+                        } catch (IOException e) {
+                            throw UncheckedException.throwAsUncheckedException(e);
+                        }
+//                        throw ex;
                     }
                 }
             }
