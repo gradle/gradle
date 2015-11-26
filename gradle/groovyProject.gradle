@@ -42,7 +42,8 @@ if (!javaVersion.java7Compatible) {
 }
 
 testTasks.all { task ->
-    maxParallelForks = rootProject.maxParallelForks
+    maxParallelForks = 1
+//    maxParallelForks = rootProject.maxParallelForks
     if (isCiServer) {
         systemProperties['org.gradle.test.maxParallelForks'] = maxParallelForks
         systemProperties['org.gradle.ci.agentCount'] = 2

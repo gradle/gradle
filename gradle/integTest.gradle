@@ -112,7 +112,7 @@ project(":") {
             delete(file("intTestHomeDir/worker-1/wrapper/dists/dist"))
 
             // Remove native-platform versions that may be corrupted
-            delete(file("intTestHomeDir/worker-1/test-fixtures/native"))
+            delete(file("intTestHomeDir/worker-1/test-fixtures"))
 
             // Remove caches that weren't multi-process safe and may be corrupt
             removeDodgyCacheFiles(file("intTestHomeDir/worker-1/caches"))
