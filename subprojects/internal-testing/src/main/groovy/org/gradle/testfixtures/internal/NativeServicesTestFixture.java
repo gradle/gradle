@@ -19,17 +19,14 @@ package org.gradle.testfixtures.internal;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
 import java.io.File;
-import java.util.Random;
 
 public class NativeServicesTestFixture {
-    private static final Random RANDOM = new Random();
     static NativeServices nativeServices;
     static boolean initialized;
 
     public static synchronized void initialize() {
         if (!initialized) {
-            // The randomization is an experiment to isolate problems in native services initializing from multiple processes concurrently
-            File nativeDir = new File(System.getProperty("integTest.gradleUserHomeDir", "build/user-home"), "worker-1/test-fixtures/" + Integer.toHexString(RANDOM.nextInt()));
+            File nativeDir = new File("build/native-libs");
             NativeServices.initialize(nativeDir);
             initialized = true;
         }
