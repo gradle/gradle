@@ -625,7 +625,7 @@ Running `gradle assemble` should build all of these binaries.
   ClassDirectoryBinarySpec.
 - Change NativeLibrarySpec to have `sharedLibs` and `staticLibs` properties of the appropriate types.
 - Change NativeExecutableSpec to have `executables` property of the appropriate type.
-- Change component report to present this meta-data.
+- Change component report to present this metadata.
 
 ### Story: Plugin statically declares roles for the source sets of a component
 
@@ -646,7 +646,7 @@ Running `gradle assemble` should build all of these binaries.
 
 - Rename 'sources' to more general 'inputs'? This allows source sets to be produced as outputs.
 - Change NativeComponentSpec to have `api` property and remove HeaderExportingSourceSet.
-- Change component report to present this meta-data.
+- Change component report to present this metadata.
 
 ## Feature: Component model improvements
 
@@ -1097,8 +1097,8 @@ Should be possible to declare stand-alone test suite with custom variants.
 ## Component model
 
 - Should use rules mechanism, so that this DSL lives under `model { ... }`
-- Reuse the local component and binary meta-data for publication.
-    - Version the meta-data schemas.
+- Reuse the local component and binary metadata for publication.
+    - Version the metadata schemas.
     - Source and javadoc artifacts.
 - Test suites.
 - Libraries declare an API that is used at compile time.

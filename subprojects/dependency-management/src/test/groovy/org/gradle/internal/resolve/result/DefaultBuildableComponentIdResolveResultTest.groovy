@@ -55,7 +55,7 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         result.selectionReason == VersionSelectionReasons.CONFLICT_RESOLUTION
     }
 
-    def "can resolve using meta-data"() {
+    def "can resolve using metadata"() {
         def id = Stub(ComponentIdentifier)
         def mvId = Stub(ModuleVersionIdentifier)
         def metaData = Stub(ComponentResolveMetadata) {

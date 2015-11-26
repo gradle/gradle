@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import java.util.Map;
 
 /**
- * Meta-data for a module version resolved from an Ivy repository.
+ * Metadata for a module version resolved from an Ivy repository.
  */
 public interface IvyModuleResolveMetadata extends ModuleComponentResolveMetadata {
     /***

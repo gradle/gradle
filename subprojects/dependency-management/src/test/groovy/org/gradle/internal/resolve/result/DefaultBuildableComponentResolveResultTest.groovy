@@ -30,7 +30,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class DefaultBuildableComponentResolveResultTest extends Specification {
     def result = new DefaultBuildableComponentResolveResult()
 
-    def "can query id and meta-data when resolved"() {
+    def "can query id and metadata when resolved"() {
         ModuleVersionIdentifier id = Stub()
         ModuleComponentResolveMetadata metaData = Stub() {
             getId() >> id
@@ -53,7 +53,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         e.message == 'No result has been specified.'
     }
 
-    def "cannot get meta-data when no result has been specified"() {
+    def "cannot get metadata when no result has been specified"() {
         when:
         result.metadata
 
@@ -83,7 +83,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         e == failure
     }
 
-    def "cannot get meta-data when resolve failed"() {
+    def "cannot get metadata when resolve failed"() {
         def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
 
         when:

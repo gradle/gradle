@@ -104,7 +104,7 @@ public interface MavenPublication extends Publication {
      *
      * <ul>
      *     <li>Any artifacts declared by the component will be included in the publication.</li>
-     *     <li>The dependencies declared by the component will be included in the published meta-data.</li>
+     *     <li>The dependencies declared by the component will be included in the published metadata.</li>
      * </ul>
      *
      * Currently 2 types of component are supported: 'components.java' (added by the JavaPlugin) and 'components.web' (added by the WarPlugin).

@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
- * Meta-data for an artifact that belongs to some component.
+ * Metadata for an artifact that belongs to some component.
  */
 public interface ComponentArtifactMetadata {
     /**

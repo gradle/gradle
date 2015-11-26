@@ -22,7 +22,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public interface BuildableComponentResolveResult extends ComponentResolveResult, ResourceAwareResolveResult {
     /**
-     * Marks the component as resolved, with the given meta-data.
+     * Marks the component as resolved, with the given metadata.
      */
     void resolved(ComponentResolveMetadata metaData);
 
@@ -37,7 +37,7 @@ public interface BuildableComponentResolveResult extends ComponentResolveResult,
     void notFound(ModuleComponentIdentifier versionIdentifier);
 
     /**
-     * Replaces the meta-data in the result. Result must already be resolved.
+     * Replaces the metadata in the result. Result must already be resolved.
      */
     void setMetaData(ComponentResolveMetadata metaData);
 }

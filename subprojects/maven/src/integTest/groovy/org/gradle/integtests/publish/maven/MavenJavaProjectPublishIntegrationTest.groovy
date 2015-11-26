@@ -18,8 +18,11 @@ package org.gradle.integtests.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MavenJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        overrideMavenLocal()
+    }
 
-    public void "can publish jar and meta-data to maven repository"() {
+    public void "can publish jar and metadata to maven repository"() {
         given:
         using m2
 

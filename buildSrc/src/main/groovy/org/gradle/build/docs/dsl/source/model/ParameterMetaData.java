@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import java.io.Serializable;
 
 /**
- * Static meta-data about a method parameter extracted from the source for the method.
+ * Static metadata about a method parameter extracted from the source for the method.
  */
 public class ParameterMetaData implements Serializable, TypeContainer {
     private final String name;

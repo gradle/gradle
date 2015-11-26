@@ -23,7 +23,7 @@ import java.util.List;
 
 public interface MutableModuleComponentResolveMetadata extends ModuleComponentResolveMetadata {
     /**
-     * Creates a deep copy of this meta-data.
+     * Creates a deep copy of this metadata.
      */
     MutableModuleComponentResolveMetadata copy();
 

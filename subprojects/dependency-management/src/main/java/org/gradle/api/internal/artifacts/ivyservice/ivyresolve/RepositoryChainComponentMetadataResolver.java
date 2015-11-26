@@ -53,7 +53,7 @@ public class RepositoryChainComponentMetadataResolver implements ComponentMetada
 
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         if (!(identifier instanceof ModuleComponentIdentifier)) {
-            throw new UnsupportedOperationException("Can resolve meta-data for module components only.");
+            throw new UnsupportedOperationException("Can resolve metadata for module components only.");
         }
 
         resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata, result);

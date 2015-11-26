@@ -77,7 +77,7 @@ class DslDocModel {
             ClassMetaData classMetaData = classMetaData.find(className)
             if (!classMetaData) {
                 if (!className.contains('.internal.')) {
-                    throw new RuntimeException("No meta-data found for class '$className'.")
+                    throw new RuntimeException("No metadata found for class '$className'.")
                 }
                 classMetaData = new ClassMetaData(className)
             }

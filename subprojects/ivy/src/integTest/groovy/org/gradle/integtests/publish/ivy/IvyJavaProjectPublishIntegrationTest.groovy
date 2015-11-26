@@ -18,7 +18,7 @@ package org.gradle.integtests.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class IvyJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
-    public void "can publish jar and meta-data to ivy repository"() {
+    public void "can publish jar and metadata to ivy repository"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "
 

@@ -34,7 +34,7 @@ public interface ComponentResolveResult extends ResolveResult {
     ModuleVersionIdentifier getId() throws ModuleVersionResolveException;
 
     /**
-     * Returns the meta-data for the component.
+     * Returns the metadata for the component.
      *
      * @throws ModuleVersionResolveException If resolution was unsuccessful and the descriptor is not available.
      */

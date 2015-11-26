@@ -55,7 +55,7 @@ class DefaultBuildableModuleComponentMetadataResolveResultTest extends Specifica
         descriptor.hasResult()
     }
 
-    def "can mark as resolved using meta-data"() {
+    def "can mark as resolved using metadata"() {
         def metaData = Stub(MutableModuleComponentResolveMetadata)
 
         when:
@@ -77,7 +77,7 @@ class DefaultBuildableModuleComponentMetadataResolveResultTest extends Specifica
         thrown(IllegalStateException)
     }
 
-    def "cannot get meta-data when has no result"() {
+    def "cannot get metadata when has no result"() {
         when:
         descriptor.metadata
 
@@ -93,7 +93,7 @@ class DefaultBuildableModuleComponentMetadataResolveResultTest extends Specifica
         thrown(IllegalStateException)
     }
 
-    def "cannot get meta-data when failed"() {
+    def "cannot get metadata when failed"() {
         given:
         def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
         descriptor.failed(failure)

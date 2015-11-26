@@ -16,7 +16,7 @@
 package org.gradle.cache.internal;
 
 /**
- * Provides meta-data about the current process. Generally used for logging and error messages.
+ * Provides metadata about the current process. Generally used for logging and error messages.
  */
 public interface ProcessMetaDataProvider {
     /**

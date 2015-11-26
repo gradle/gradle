@@ -149,12 +149,12 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
         MutableModuleComponentResolveMetadata metaDataFromDefaultArtifact = createMetaDataFromDefaultArtifact(moduleVersionIdentifier, prescribedMetaData, artifactResolver, result);
         if (metaDataFromDefaultArtifact != null) {
-            LOGGER.debug("Found artifact but no meta-data for module '{}' in repository '{}', using default meta-data.", moduleVersionIdentifier, getName());
+            LOGGER.debug("Found artifact but no metadata for module '{}' in repository '{}', using default metadata.", moduleVersionIdentifier, getName());
             result.resolved(metaDataFromDefaultArtifact);
             return;
         }
 
-        LOGGER.debug("No meta-data file or artifact found for module '{}' in repository '{}'.", moduleVersionIdentifier, getName());
+        LOGGER.debug("No metadata file or artifact found for module '{}' in repository '{}'.", moduleVersionIdentifier, getName());
         result.missing();
     }
 
@@ -429,7 +429,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
 
         protected final void resolveMetaDataArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
-            // Meta data  artifacts are determined locally
+            // Metadata  artifacts are determined locally
         }
 
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {

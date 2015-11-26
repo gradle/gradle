@@ -21,7 +21,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-// TODO:ADAM - This is actually Ivy artifact publish meta data
+// TODO:ADAM - This is actually Ivy artifact publish metadata
 public interface IvyModuleArtifactPublishMetadata {
     ModuleComponentArtifactIdentifier getId();
 

@@ -30,7 +30,7 @@ class BuildableIvyModuleResolveMetaDataTest extends Specification {
     def md = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "foo", "1.0"), "release", null)
     def meta = new BuildableIvyModuleResolveMetadata(md)
 
-    def "adds correct artifact to meta-data"() {
+    def "adds correct artifact to metadata"() {
         def a = ivyArtifact("foo", "jar", "ext", [a: 'b'])
         md.addConfiguration(new Configuration("runtime"))
 

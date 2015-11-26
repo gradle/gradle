@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 /**
- * Resolves a context to the meta-data for the provided {@link ResolveContext}.
+ * Resolves a context to the metadata for the provided {@link ResolveContext}.
  */
 public interface ResolveContextToComponentResolver {
     void resolve(ResolveContext resolveContext, BuildableComponentResolveResult result);

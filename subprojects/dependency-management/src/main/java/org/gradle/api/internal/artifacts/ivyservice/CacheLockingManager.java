@@ -45,7 +45,7 @@ public interface CacheLockingManager extends ArtifactCacheMetadata, CacheAccess 
     File getFileStoreDirectory();
 
     /**
-     * Returns the root directory for the meta-data file store.
+     * Returns the root directory for the metadata file store.
      *
      * @return Metadata store location
      */

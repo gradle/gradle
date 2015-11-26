@@ -41,7 +41,7 @@ public class ClassDocExtensionsBuilder {
     }
 
     /**
-     * Builds the extension meta-data for the given class.
+     * Builds the extension metadata for the given class.
      */
     public void build(ClassDoc classDoc) {
         Map<String, ClassExtensionDoc> plugins = new HashMap<String, ClassExtensionDoc>();

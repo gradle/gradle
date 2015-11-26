@@ -285,7 +285,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         closuresCalled.sort() == [0, 2, 4, 5, 6, 8, 9, 10]
     }
 
-    def "does not invoke rules that require meta-data when it cannot be resolved" () {
+    def "does not invoke rules that require metadata when it cannot be resolved" () {
         def metadataProvider = Stub(MetadataProvider) {
             resolve() >> false
         }

@@ -43,7 +43,7 @@ class ClientModuleResolverTest extends Specification {
     def componentRequestMetaData = Mock(ComponentOverrideMetadata)
     def dependency = Mock(DslOriginDependencyMetadata)
 
-    def "replaces meta-data for a client module dependency"() {
+    def "replaces metadata for a client module dependency"() {
         def clientModule = Mock(ClientModule)
         def dep = Mock(ModuleDependency)
         def dependencyMetaData = Mock(DependencyMetadata)
@@ -70,7 +70,7 @@ class ClientModuleResolverTest extends Specification {
         0 * _
     }
 
-    def "does not replace meta-data when not client module"() {
+    def "does not replace metadata when not client module"() {
         when:
         resolver.resolve(id, componentRequestMetaData, result)
 
@@ -81,7 +81,7 @@ class ClientModuleResolverTest extends Specification {
         0 * _
     }
 
-    def "does not replace meta-data for broken module version"() {
+    def "does not replace metadata for broken module version"() {
         when:
         resolver.resolve(id, componentRequestMetaData, result)
 

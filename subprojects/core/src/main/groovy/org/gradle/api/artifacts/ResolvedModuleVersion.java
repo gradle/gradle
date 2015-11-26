@@ -16,7 +16,7 @@
 package org.gradle.api.artifacts;
 
 /**
- * Represents meta-data about a resolved module version.
+ * Represents metadata about a resolved module version.
  */
 public interface ResolvedModuleVersion {
     /**

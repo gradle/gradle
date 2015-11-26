@@ -27,7 +27,7 @@ import java.util.Set;
 public class DefaultDependencyToConfigurationResolver implements DependencyToConfigurationResolver {
     // TODO - don't pass in 'from' configuration - the dependency should have whatever context it needs
     public Set<ConfigurationMetadata> resolveTargetConfigurations(DependencyMetadata dependencyMetadata, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
-        // TODO - resolve directly to config meta data
+        // TODO - resolve directly to config metadata
         Set<String> targetConfigurationNames = new LinkedHashSet<String>();
         for (String config : dependencyMetadata.getModuleConfigurations()) {
             if (config.equals("*") || config.equals("%")) {

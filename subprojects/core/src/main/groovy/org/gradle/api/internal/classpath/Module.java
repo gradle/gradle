@@ -20,7 +20,7 @@ import org.gradle.internal.classpath.ClassPath;
 import java.util.Set;
 
 /**
- * Meta-data about a dynamically loadable module.
+ * Metadata about a dynamically loadable module.
  */
 public interface Module {
     /**

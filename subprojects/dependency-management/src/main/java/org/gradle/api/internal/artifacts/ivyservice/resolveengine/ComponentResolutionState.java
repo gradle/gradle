@@ -25,9 +25,9 @@ public interface ComponentResolutionState extends Versioned {
     ModuleVersionIdentifier getId();
 
     /**
-     * Returns the meta-data for the component. Resolves if not already resolved.
+     * Returns the metadata for the component. Resolves if not already resolved.
      *
-     * @return null if the meta-data is not available due to some failure.
+     * @return null if the metadata is not available due to some failure.
      */
     @Nullable
     ComponentResolveMetadata getMetaData();

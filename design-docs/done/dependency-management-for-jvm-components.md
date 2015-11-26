@@ -82,23 +82,23 @@ The implementation *must* make use of the dependency resolution engine, and refa
         - Some information about the usage, that is, what is the consumer going to do with the result?
     - Pass in an implementation that represents the consuming Java source set. Can ignore dependencies at this stage.
     - Can pass in an empty set of repositories for this feature.
-- Create the resolve meta-data for the consuming library
-    - `DependencyGraphBuilder` currently converts parts of `ConfigurationInternal` into resolve meta-data using a `ModuleToComponentResolver`.
+- Create the resolve metadata for the consuming library
+    - `DependencyGraphBuilder` currently converts parts of `ConfigurationInternal` into resolve metadata using a `ModuleToComponentResolver`.
       Change the signature of this resolver so that it accepts the type introduced above, rather than a `ModuleInternal` and set of `ConfigurationInternal` instances.
     - Use some composite converter that can build a `ComponentResolveMetaData` for the consuming Java library.
       Should be able to make use of `DefaultLocalComponentMetaData` to assemble this.
-    - Introduce a new public subtype of `ComponentIdentifier` to represent a library component. Use this as the id in the meta-data.
-    - Currently the meta-data includes a `ModuleVersionIdentifier`, used for conflict resolution. Given that there are currently no external dependencies referenced
+    - Introduce a new public subtype of `ComponentIdentifier` to represent a library component. Use this as the id in the metadata.
+    - Currently the metadata includes a `ModuleVersionIdentifier`, used for conflict resolution. Given that there are currently no external dependencies referenced
       in the graph, can use something like (project-path, library-name, project-version).
-    - For now, don't attach any dependencies or artifacts to the resolve meta-data. It should be possible at this point to perform the resolve (but receive an empty result).
+    - For now, don't attach any dependencies or artifacts to the resolve metadata. It should be possible at this point to perform the resolve (but receive an empty result).
 - Provide a way to resolve project dependencies
     - Introduce a new public subtype of `ComponentSelector` to represent a library selector.
-    - For each dependency declared by the source set include a library selector in the component resolve meta-data.
+    - For each dependency declared by the source set include a library selector in the component resolve metadata.
     - Add a library resolver that implements `DependencyToComponentIdResolver` and `ComponentMetaDataResolver`. This would be used where `ProjectDependencyResolver`
       currently is used (can also use this as an example). Can include both resolvers in the chain created by `DefaultDependencyResolver`, so don't need to make
       this configurable.
     - Library resolver should close the `components` for the target project, then select a matching component. Fail as described above if no match.
-      Can return empty meta-data for the matching component for this story.
+      Can return empty metadata for the matching component for this story.
 
 Avoid adding specific knowledge about Java libraries to the `dependencyManagement` project. Instead, the `platformJvm` project should inject this knowledge.
 Can use the service discovery mechanism to do this.
@@ -135,7 +135,7 @@ Out of scope:
 
 The implementation should continue to build on the dependency resolution engine.
 
-- When the meta-data for a Java library is assembled, attach the Jar
+- When the metadata for a Java library is assembled, attach the Jar
     - Select the `JarBinarySpec` to use from the Java library's set of binaries. Fail if there isn't exactly one such binary.
     - Add a `PublishArtifact` implementation for this `JarBinarySpec`.
 

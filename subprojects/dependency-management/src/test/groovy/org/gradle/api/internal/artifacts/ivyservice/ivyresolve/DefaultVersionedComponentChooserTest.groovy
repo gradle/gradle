@@ -45,7 +45,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def chooser = new DefaultVersionedComponentChooser(versionComparator, versionSelectorScheme, componentSelectionRules)
 
-    def "chooses latest version for component meta data"() {
+    def "chooses latest version for component metadata"() {
         def one = Stub(ComponentResolveMetadata) {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }

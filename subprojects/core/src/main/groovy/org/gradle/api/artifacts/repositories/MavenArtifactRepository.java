@@ -19,7 +19,7 @@ import java.net.URI;
 import java.util.Set;
 
 /**
- * An artifact repository which uses a Maven format to store artifacts and meta-data.
+ * An artifact repository which uses a Maven format to store artifacts and metadata.
  * <p>
  * Repositories of this type are created by the {@link org.gradle.api.artifacts.dsl.RepositoryHandler#maven(org.gradle.api.Action)} group of methods.
  */

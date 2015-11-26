@@ -120,7 +120,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 result.failed(metaDataResult.getFailure());
                 break;
             default:
-                throw new IllegalStateException("Unexpected meta-data resolution result.");
+                throw new IllegalStateException("Unexpected metadata resolution result.");
         }
     }
 

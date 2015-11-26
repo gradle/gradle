@@ -276,8 +276,8 @@
                 <td>
                     <link linkend="sub:client_module_dependencies">Client module dependency</link>
                 </td>
-                <td>A dependency on an external module, where the artifacts are located in some repository but the module meta-data
-                    is specified by the local build. You use this kind of dependency when you want to override the meta-data for the module.
+                <td>A dependency on an external module, where the artifacts are located in some repository but the module metadata
+                    is specified by the local build. You use this kind of dependency when you want to override the metadata for the module.
                 </td>
             </tr>
             <tr>
@@ -631,8 +631,8 @@
         </para>
         <para>You may configure any number of repositories, each of which is treated independently by Gradle. If Gradle finds a module descriptor in a
             particular repository, it will attempt to download all of the artifacts for that module from <emphasis>the same repository</emphasis>.
-            Although module meta-data and module artifacts must be located in the same repository, it is possible to compose a single repository of multiple
-            URLs, giving multiple locations to search for meta-data files and jar files.
+            Although module metadata and module artifacts must be located in the same repository, it is possible to compose a single repository of multiple
+            URLs, giving multiple locations to search for metadata files and jar files.
         </para>
 
         <para>There are several different types of repositories you can declare:</para>
@@ -678,7 +678,7 @@
                 <td>
                     <link linkend="sec:flat_dir_resolver">Flat directory repository</link>
                 </td>
-                <td>A simple repository on the local filesystem. Does not support any meta-data formats.</td>
+                <td>A simple repository on the local filesystem. Does not support any metadata formats.</td>
             </tr>
         </table>
 
@@ -762,13 +762,13 @@
                 <sourcefile file="build.gradle" snippet="flat-dir-multi"/>
             </sample>
             <para>This adds repositories which look into one or more directories for finding dependencies. Note that
-                this type of repository does not support any meta-data formats like Ivy XML or Maven POM files. Instead,
+                this type of repository does not support any metadata formats like Ivy XML or Maven POM files. Instead,
                 Gradle will dynamically generate a module descriptor (without any dependency information) based on the
                 presence of artifacts. However, as Gradle prefers to use modules whose descriptor has been created from
-                real meta-data rather than being generated, flat directory repositories cannot be used to override
-                artifacts with real meta-data from other repositories. So, for example, if Gradle finds only
+                real metadata rather than being generated, flat directory repositories cannot be used to override
+                artifacts with real metadata from other repositories. So, for example, if Gradle finds only
                 <filename>jmxri-1.2.1.jar</filename> in a flat directory repository, but <filename>jmxri-1.2.1.pom</filename>
-                in another repository that supports meta-data, it will use the second repository to provide the module.
+                in another repository that supports metadata, it will use the second repository to provide the module.
                 For the use case of overriding remote artifacts with local ones consider using an Ivy or Maven repository
                 instead whose URL points to a local directory.
                 If you only work with flat directory repositories you don't need to set all attributes of a dependency.
@@ -1530,12 +1530,12 @@ someroot/[artifact]-[revision].[ext]
         </para>
         <itemizedlist>
             <listitem>
-                <para>A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded meta-data like POM files and Ivy files.
+                <para>A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded metadata like POM files and Ivy files.
                     The storage path for a downloaded artifact includes the SHA1 checksum, meaning that 2 artifacts with the same name but different content can easily be cached.
                 </para>
             </listitem>
             <listitem>
-                <para>A binary store of resolved module meta-data, including the results of resolving dynamic versions, module descriptors, and artifacts.</para>
+                <para>A binary store of resolved module metadata, including the results of resolving dynamic versions, module descriptors, and artifacts.</para>
             </listitem>
         </itemizedlist>
         <para>Separating the storage of downloaded artifacts from the cache metadata permits us to do some very powerful things with our cache that would be difficult with a transparent,
@@ -1602,7 +1602,7 @@ someroot/[artifact]-[revision].[ext]
                 <title>Cache Locking</title>
                 <para>
                     The Gradle dependency cache uses file-based locking to ensure that it can safely be used by multiple Gradle processes concurrently. The lock is held whenever the binary
-                    meta-data store is being read or written, but is released for slow operations such as downloading remote artifacts.
+                    metadata store is being read or written, but is released for slow operations such as downloading remote artifacts.
                 </para>
             </section>
         </section>
@@ -1640,7 +1640,7 @@ someroot/[artifact]-[revision].[ext]
             <sample id="dynamic-version-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Dynamic version cache control">
                 <sourcefile file="build.gradle" snippet="dynamic-version-cache-control"/>
             </sample>
-            <para>By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
+            <para>By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the metadata and artifacts for a changing module, use:
             </para>
             <sample id="changing-module-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Changing module cache control">
                 <sourcefile file="build.gradle" snippet="changing-module-cache-control"/>

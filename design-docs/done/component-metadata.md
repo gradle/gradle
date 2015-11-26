@@ -62,14 +62,14 @@ Note: For this story, the metadata rules do not apply to components resolved fro
 * Use a "latest" version selector with a status that is not contained in the module's status scheme. A meaningful error should occur.
 * Publish a module version with a status that is not contained in the module's status scheme. A meaningful error should occur.
 * If a module version's descriptor does not declare a status, its status defaults to the least mature status for the module's status scheme. (Matches Ivy's behavior.)
-    * Verify that the status exposed in meta-data tracks changes in the status scheme.
+    * Verify that the status exposed in metadata tracks changes in the status scheme.
 * If a module version has no descriptor, its status defaults to the least mature status for the module's status scheme.
-    * Verify that the status exposed in meta-data tracks changes in the status scheme.
+    * Verify that the status exposed in metadata tracks changes in the status scheme.
 * Override the status of a module in the build script, and verify that it affects "latest" resolution in the expected way.
 * Verify that the original metadata is cached, not the mutated metadata:
     * Publish 2 versions of a module to an HTTP repository
-    * Use a meta-data rule to set the statuses of each version so that version 1 is selected.
-    * Change the meta-data rule so that version 2 is selected instead.
+    * Use a metadata rule to set the statuses of each version so that version 1 is selected.
+    * Change the metadata rule so that version 2 is selected instead.
 
 ## Declare a module as "changing" via rule
 
@@ -82,7 +82,7 @@ The `componentMetadata` rule should allow to declare a component as "changing". 
     }
 
 Out-of-scope for this story is to deal with changes to the rule logic and caching. This is dealt with by the next story. Implementation-wise, this means it
-is sufficient for this story to execute the meta-data rules where they currently are (in the ExternalResourceResolver) and to store the result in the
+is sufficient for this story to execute the metadata rules where they currently are (in the ExternalResourceResolver) and to store the result in the
 cache.
 
 ### User visible changes
@@ -94,7 +94,7 @@ Add a "changing" property to `ComponentMetadataDetails`.
 * Add a rule that forces a static component to changing and verify that the component is treated as changing (cf. the existing concept of changing dependency).
     * Verify that the `changing` flag defaults to `false`.
     * Verify that the component is treated as changing.
-    * When expired, HTTP requests are made to verify the component meta-data and artifacts have changed, and artifacts downloaded if they have changed.
+    * When expired, HTTP requests are made to verify the component metadata and artifacts have changed, and artifacts downloaded if they have changed.
 * Add a rule that forces a changing component to not changing and verify that the component is treated as static.
     * Verify that the `changing` flag defaults to `true`.
     * Verify that the component is treated as not changing.
@@ -155,7 +155,7 @@ simply attempt to introduce a DSL to declare such rules.
 
 ## GRADLE-2903 - Component metadata respects changes to metadata rule implementation
 
-It should be possible to change the implementation of a metadata rule and have those changes reflected in the meta-data components, regardless of
+It should be possible to change the implementation of a metadata rule and have those changes reflected in the metadata components, regardless of
 whether the component is cached or not, as if the rule is evaluated on each resolution (and this is certainly one possible implementation).
 
 ### Implementation
@@ -354,7 +354,7 @@ Something like...
 
 ## Story: Version selection rule takes ComponentMetadataDetails and/or IvyModuleMetadata as input (DONE)
 
-This story makes available the component and Ivy meta-data as optional read only inputs to a version selection rule:
+This story makes available the component and Ivy metadata as optional read only inputs to a version selection rule:
 
 ### User visible changes
 

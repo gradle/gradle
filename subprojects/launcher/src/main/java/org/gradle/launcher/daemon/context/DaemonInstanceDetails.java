@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.context;
 import org.gradle.messaging.remote.Address;
 
 /**
- * Some basic meta-data required to identify and connect to a daemon.
+ * Some basic metadata required to identify and connect to a daemon.
  */
 public interface DaemonInstanceDetails {
     String getUid();

@@ -24,7 +24,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 /**
- * The result of resolving a module version selector to a particular component id. The result may optionally include the meta-data for the selected component, if it
+ * The result of resolving a module version selector to a particular component id. The result may optionally include the metadata for the selected component, if it
  * is cheaply available (for example, it was used to select the component).
  */
 public interface ComponentIdResolveResult extends ResolveResult {
@@ -38,7 +38,7 @@ public interface ComponentIdResolveResult extends ResolveResult {
     ComponentSelectionReason getSelectionReason();
 
     /**
-     * Returns the meta-data for the component, if it was available at resolve time.
+     * Returns the metadata for the component, if it was available at resolve time.
      */
     @Nullable
     ComponentResolveMetadata getMetadata();

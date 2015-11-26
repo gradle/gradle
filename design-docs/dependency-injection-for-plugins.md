@@ -312,7 +312,7 @@ here (an internal concept; we don't necessarily want to expose this):
     * A managed object may use services from its container (and so a container may use the services from its enclosing container).
 * How to inject into scripts?
 * Should we scan the full runtime classpath for a plugin when looking for service implementations?
-* Should there be an associated plugin meta-data file, as an alternative to annotations?
+* Should there be an associated plugin metadata file, as an alternative to annotations?
 * Should there be an API for contributing services.
 * Cleaning up services at the end of the build.
 * Shared services and project decoupling. There are a few types of services here:

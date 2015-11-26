@@ -79,7 +79,7 @@ public class ModelRuleSourceDetector {
                 }
             });
 
-    // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
+    // TODO return a richer data structure that provides metadata about how the source was found, for use is diagnostics
     public Iterable<Class<? extends RuleSource>> getDeclaredSources(Class<?> container) {
         try {
             return FluentIterable.from(cache.get(container))

@@ -55,12 +55,12 @@ public interface ConnectionVersion4 {
     void stop();
 
     /**
-     * <p>Returns the meta-data for this connection. The implementation of this method should be fast, and should continue to work after the connection has been stopped.
+     * <p>Returns the metadata for this connection. The implementation of this method should be fast, and should continue to work after the connection has been stopped.
      *
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.0-milestone-3.</p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3.</p>
      *
-     * @return The meta-data.
+     * @return The metadata.
      * @since 1.0-milestone-3
      */
     ConnectionMetaDataVersion1 getMetaData();

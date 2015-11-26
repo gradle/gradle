@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes that provide meta-data about software components.
+ * Classes that provide metadata about software components.
  */
 package org.gradle.api.artifacts.component;

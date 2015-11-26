@@ -33,7 +33,7 @@ import spock.lang.Specification
 class DefaultDependencyMetadataTest extends Specification {
     final requestedModuleId = IvyUtil.createModuleRevisionId("org", "module", "1.2+")
 
-    def "constructs meta-data from ivy descriptor"() {
+    def "constructs metadata from ivy descriptor"() {
         def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false)
         def metaData = new DefaultDependencyMetadata(descriptor)
 
@@ -41,7 +41,7 @@ class DefaultDependencyMetadataTest extends Specification {
         metaData.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.2+")
     }
 
-    def "constructs meta-data from component id"() {
+    def "constructs metadata from component id"() {
         def id = new DefaultModuleComponentIdentifier("org", "module", "1.1")
         def metaData = new DefaultDependencyMetadata(id)
 
@@ -50,7 +50,7 @@ class DefaultDependencyMetadataTest extends Specification {
         metaData.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.1")
     }
 
-    def "constructs meta-data from module version id"() {
+    def "constructs metadata from module version id"() {
         def id = new DefaultModuleVersionIdentifier("org", "module", "1.1")
         def metaData = new DefaultDependencyMetadata(id)
 

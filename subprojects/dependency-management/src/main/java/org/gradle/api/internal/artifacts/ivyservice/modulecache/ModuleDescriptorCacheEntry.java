@@ -66,7 +66,7 @@ abstract class ModuleDescriptorCacheEntry {
     }
 
     public MutableModuleComponentResolveMetadata createMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptor descriptor) {
-        throw new UnsupportedOperationException("Cannot create meta-data for entry " + this);
+        throw new UnsupportedOperationException("Cannot create metadata for entry " + this);
     }
 
     protected MutableModuleComponentResolveMetadata configure(MutableModuleComponentResolveMetadata input) {

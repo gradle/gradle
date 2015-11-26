@@ -71,7 +71,7 @@ public class ComponentSelectionRulesProcessor {
         List<Object> inputValues = getInputValues(rule.getAction().getInputTypes(), metadataProvider);
 
         if (inputValues == null) {
-            // Broken meta-data, bail
+            // Broken metadata, bail
             return;
         }
 

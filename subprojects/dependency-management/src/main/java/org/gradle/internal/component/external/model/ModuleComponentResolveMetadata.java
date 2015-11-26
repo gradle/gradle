@@ -22,7 +22,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 /**
- * The meta-data for a module version that is required during dependency resolution.
+ * The metadata for a module version that is required during dependency resolution.
  */
 public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata {
     ModuleComponentIdentifier getComponentId();

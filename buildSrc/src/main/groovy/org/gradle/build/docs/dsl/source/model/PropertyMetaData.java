@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import java.io.Serializable;
 
 /**
- * Static meta-data about a property extracted from the source for the class.
+ * Static metadata about a property extracted from the source for the class.
  */
 public class PropertyMetaData extends AbstractLanguageElement implements Serializable, TypeContainer {
     private TypeMetaData type;

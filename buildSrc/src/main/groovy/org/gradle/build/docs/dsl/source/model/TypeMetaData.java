@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Static meta-data about a type reference extracted from source.
+ * Static metadata about a type reference extracted from source.
  */
 public class TypeMetaData implements Serializable, TypeContainer {
     public static final TypeMetaData VOID = new TypeMetaData("void");

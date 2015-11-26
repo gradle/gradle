@@ -230,7 +230,7 @@ dependencies {
         checkResolve "group:projectA:latest.milestone": "group:projectA:2.1"
     }
 
-    def "reuses cached meta-data when resolving latest.status"() {
+    def "reuses cached metadata when resolving latest.status"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
 
@@ -1059,7 +1059,7 @@ dependencies {
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
-    def "reports and recovers from missing module for dynamic version that requires meta-data"() {
+    def "reports and recovers from missing module for dynamic version that requires metadata"() {
         given:
         useRepository ivyHttpRepo
         buildFile << """
@@ -1095,7 +1095,7 @@ Required by:
         checkResolve "group:projectA:latest.release": "group:projectA:1.2"
     }
 
-    def "reports and recovers from broken module for dynamic version that requires meta-data"() {
+    def "reports and recovers from broken module for dynamic version that requires metadata"() {
         given:
         useRepository ivyHttpRepo
         buildFile << """

@@ -24,7 +24,7 @@ that matched the specified version selector, together with the reason each was r
 
 # Later milestones
 
-## Don't apply component meta-data rules to parent pom references
+## Don't apply component metadata rules to parent pom references
 
 Also pom import, ivy extends and so on.
 

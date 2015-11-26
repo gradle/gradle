@@ -23,7 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Static meta-data about a method extracted from the source for the class.
+ * Static metadata about a method extracted from the source for the class.
  */
 public class MethodMetaData extends AbstractLanguageElement implements Serializable, TypeContainer {
     private final String name;

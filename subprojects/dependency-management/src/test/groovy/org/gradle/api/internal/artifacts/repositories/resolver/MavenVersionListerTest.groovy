@@ -153,7 +153,7 @@ class MavenVersionListerTest extends Specification {
 
         then:
         ResourceNotFoundException e = thrown()
-        e.message == "Maven meta-data not available: $metaDataResource"
+        e.message == "Maven metadata not available: $metaDataResource"
 
         and:
         result.attempted == [metaDataResource.toString()]
@@ -172,7 +172,7 @@ class MavenVersionListerTest extends Specification {
 
         then:
         ResourceException e = thrown()
-        e.message == "Unable to load Maven meta-data from $metaDataResource."
+        e.message == "Unable to load Maven metadata from $metaDataResource."
         e.cause instanceof UncheckedException
         e.cause.cause instanceof SAXParseException
 
@@ -195,7 +195,7 @@ class MavenVersionListerTest extends Specification {
 
         then:
         ResourceException e = thrown()
-        e.message == "Unable to load Maven meta-data from $metaDataResource."
+        e.message == "Unable to load Maven metadata from $metaDataResource."
         e.cause == failure
 
         and:

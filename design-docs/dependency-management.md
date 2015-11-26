@@ -257,9 +257,9 @@ This story introduces a new cache control DSL that can apply to both dependency 
 
 * New DSL can be used to control caching for all types of cached dependency resolution state:
     - version list
-    - module version meta-data
+    - module version metadata
     - downloaded artifacts
-    - resolved artifact meta-data
+    - resolved artifact metadata
     - Maven snapshot timestamp
 
 Some test cases that are not directly related, but require this feature to be implemented:
@@ -366,7 +366,7 @@ Handle the following reasons why no matching component cannot be found for a sel
     - Inform that the module version was not found, if not. Present some candidates which might match the selector, by listing the groups and modules.
 - Typo in repository configuration:
     - Inform which URLs were used to locate the module and versions
-    - Inform about a missing meta-data artifact
+    - Inform about a missing metadata artifact
 - ~~No repositories declared~~
 
 Handle the following reasons why a given artifact cannot be found:
@@ -404,8 +404,8 @@ TBD
 ## Feature: Expose APIs for additional questions that can be asked about components
 
 - List versions of a component
-- Get meta-data of a component
-- Get certain artifacts of a component. Includes meta-data artifacts
+- Get metadata of a component
+- Get certain artifacts of a component. Includes metadata artifacts
 
 # Open issues
 

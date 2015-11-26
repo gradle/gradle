@@ -55,7 +55,7 @@ task retrieve(type: Copy) {
         then: "Version 1.1 jar is downloaded"
         file('build').assertHasDescendants('projectA-1.1.jar')
 
-        when: "Module meta-data is changed (new artifact)"
+        when: "Module metadata is changed (new artifact)"
         module.artifact([name: 'other'])
         module.dependsOn("group", "projectB", "2.0")
         module.publish()
@@ -226,15 +226,15 @@ task retrieve(type: Copy) {
         jarFile.assertIsCopyOf(module.jarFile)
         def snapshot = jarFile.snapshot()
 
-        when: "Module meta-data is changed and artifacts are modified"
+        when: "Module metadata is changed and artifacts are modified"
         server.resetExpectations()
         module.artifact([name: 'other'])
         module.publishWithChangedContent()
 
-        and: "We request 1.1 (changing), with module meta-data cached. No server requests."
+        and: "We request 1.1 (changing), with module metadata cached. No server requests."
         run 'retrieve'
 
-        then: "Original module meta-data and artifacts are used"
+        then: "Original module metadata and artifacts are used"
         file('build').assertHasDescendants('projectA-1.1.jar')
         jarFile.assertHasNotChangedSince(snapshot)
 
@@ -253,7 +253,7 @@ task retrieve(type: Copy) {
         executer.withArguments("-PdoNotCacheChangingModules")
         run 'retrieve'
 
-        then: "We get new artifacts based on the new meta-data"
+        then: "We get new artifacts based on the new metadata"
         file('build').assertHasDescendants('projectA-1.1.jar', 'other-1.1.jar')
         jarFile.assertHasChangedSince(snapshot)
         jarFile.assertIsCopyOf(module.jarFile)
@@ -311,7 +311,7 @@ task retrieve(type: Copy) {
         jarFile.assertIsCopyOf(module.jarFile)
         def snapshot = jarFile.snapshot()
 
-        when: "Module meta-data is changed and artifacts are modified"
+        when: "Module metadata is changed and artifacts are modified"
         module.artifact([name: 'other'])
         module.publishWithChangedContent()
 
@@ -330,7 +330,7 @@ task retrieve(type: Copy) {
         executer.withArguments()
         run 'retrieve'
 
-        then: "We get new artifacts based on the new meta-data"
+        then: "We get new artifacts based on the new metadata"
         file('build').assertHasDescendants('projectA-1-CHANGING.jar', 'other-1-CHANGING.jar')
         jarFile.assertHasChangedSince(snapshot)
         jarFile.assertIsCopyOf(module.jarFile)

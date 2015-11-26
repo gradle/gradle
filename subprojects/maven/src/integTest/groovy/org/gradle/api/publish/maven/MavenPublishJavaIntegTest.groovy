@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
-    public void "can publish jar and meta-data to maven repository"() {
+    public void "can publish jar and metadata to maven repository"() {
         given:
         createBuildScripts("""
             publishing {

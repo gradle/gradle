@@ -28,7 +28,7 @@ import java.net.URI;
  * </ul>
  *
  * Following the Maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
- * Note that the resolver will follow the layout only, but will <em>not</em> use .pom files for meta data. Ivy metadata files are required/published.
+ * Note that the resolver will follow the layout only, but will <em>not</em> use .pom files for metadata. Ivy metadata files are required/published.
  */
 public class MavenRepositoryLayout extends AbstractRepositoryLayout {
 

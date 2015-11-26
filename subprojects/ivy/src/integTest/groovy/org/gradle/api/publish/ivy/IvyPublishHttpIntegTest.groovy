@@ -332,7 +332,7 @@ credentials {
         module.jarFile.assertIsCopyOf(new TestFile(toolsJar))
     }
 
-    public void "does not upload meta-data file if artifact upload fails"() {
+    public void "does not upload metadata file if artifact upload fails"() {
         given:
         server.start()
 

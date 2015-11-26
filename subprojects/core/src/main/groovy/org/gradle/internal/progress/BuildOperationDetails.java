@@ -19,7 +19,7 @@ package org.gradle.internal.progress;
 import org.gradle.api.Nullable;
 
 /**
- * Meta-data about a build operation.
+ * Metadata about a build operation.
  */
 public class BuildOperationDetails {
     private final String displayName;

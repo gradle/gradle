@@ -211,7 +211,7 @@ task samplesDocs(type: Docbook2Xhtml) {
 
 task dslMetaData(type: ExtractDslMetaDataTask) {
     source { groovydocAll.source }
-    destFile = new File(docbookSrc, 'dsl-meta-data.bin')
+    destFile = new File(docbookSrc, 'dsl-metadata.bin')
 }
 
 task dslDocbook(type: AssembleDslDocTask, dependsOn: [dslMetaData]) {

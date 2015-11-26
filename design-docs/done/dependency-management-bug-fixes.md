@@ -17,7 +17,7 @@ This leads to a couple of issues:
 
 ### Implementation approach
 
-The goal is to never remove information from the meta-data stores, but instead to replace out-of-date information with its newer equivalent. To achieve
+The goal is to never remove information from the metadata stores, but instead to replace out-of-date information with its newer equivalent. To achieve
 this, we will introduce a synthetic version for changing modules.
 
 1. Increment the cache layout version in `DefaultCacheLockingManager`. Will need to update `LocallyAvailableResourceFinderFactory` for this change.
@@ -91,7 +91,7 @@ In theory, the `timestamp` property added in `getDependency()` will travel back 
 Some additional refactoring will be done to continue to move away from the Ivy contracts and domain objects:
 
 6. Increment the cache layout version in `DefaultCacheLockingManager`.
-7. Change `CachingModuleVersionRepository` so that when resolving the module meta-data, it takes the "module source" returned by
+7. Change `CachingModuleVersionRepository` so that when resolving the module metadata, it takes the "module source" returned by
    its delegate repository and stores it in the cached module descriptor entry.
 8. Change `CachingModuleVersionRepository` so that when resolving an artifact, it passes the "module source" to its delegate repository.
 9. Change `ExternalResourceResolver` to add `getDependency()` and `resolve()` methods that match those of `ModuleVersionRepository`. Change
@@ -346,7 +346,7 @@ See [GRADLE-2861](https://issues.gradle.org/browse/GRADLE-2861)
 Currently, the POM parser (inherited from Ivy) attaches special extra attributes to the `ModuleDescriptor` for a POM. These are later used by the POM parser
 when it parses a child POM. Sometimes these attributes cause badly formed XML to be generated, hence the failure listed in the jira issue.
 
-The solution is to have the parser request the parent POM artifact directly, rather than indirectly via the module meta-data:
+The solution is to have the parser request the parent POM artifact directly, rather than indirectly via the module metadata:
 
 1. Add a `LocallyAvailableExternalResource getArtifact(Artifact)` method to `DescriptorParseContext`.
     - Implementation can reuse the `ModuleVersionResolveResult` from the existing `getModuleDescriptor()` method. This result includes an `ArtifactResolver` which
@@ -413,15 +413,15 @@ Change ExternalResourceResolver.getDependency() to use the following algorithm:
         * Fail if directory listing is not available.
 2. For each candidate version:
     1. If the version matcher does not accept the module version, continue.
-    2. Fetch the module version meta-data, as described below. If not found, continue.
-    3. If the version matcher requires the module meta-data and it does not accept the meta-data, continue.
+    2. Fetch the module version metadata, as described below. If not found, continue.
+    3. If the version matcher requires the module metadata and it does not accept the metadata, continue.
     4. Use the module version.
 3. Return not found.
 
-To fetch the meta-data for a module version:
-1. Download the meta data descriptor resource, via the resource cache. If found, parse.
-    1. Validate module version in meta-data == the expected module version.
-2. Check for a jar artifact, via the resource cache. If found, use default meta-data. The meta-data must have `default` set to `true` and `status` set to `integration`.
+To fetch the metadata for a module version:
+1. Download the metadata descriptor resource, via the resource cache. If found, parse.
+    1. Validate module version in metadata == the expected module version.
+2. Check for a jar artifact, via the resource cache. If found, use default metadata. The metadata must have `default` set to `true` and `status` set to `integration`.
 3. Return not found.
 
 # Correct handling of packaging and dependency type declared in poms (DONE)

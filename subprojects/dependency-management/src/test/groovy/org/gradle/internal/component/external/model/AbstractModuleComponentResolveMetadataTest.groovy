@@ -59,7 +59,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         metaData.id.version == "version"
     }
 
-    def "builds and caches the dependency meta-data from the module descriptor"() {
+    def "builds and caches the dependency metadata from the module descriptor"() {
         def dependency1 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
         def dependency2 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
 
@@ -84,7 +84,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         0 * moduleDescriptor._
     }
 
-    def "builds and caches the configuration meta-data from the module descriptor"() {
+    def "builds and caches the configuration metadata from the module descriptor"() {
         when:
         def config = metaData.getConfiguration("conf")
 

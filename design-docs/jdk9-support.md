@@ -527,7 +527,7 @@ In no particular order:
 - Build multiple variants of a Java component
     - Any combination of (modular) jar, multi-version jar, runtime image
 - Publish multiple variants of a Java component
-- Capture module identifier and dependencies in publication meta-data
+- Capture module identifier and dependencies in publication metadata
 - Improve JVM platform definition and toolchains to understand and invoke modular JVMs
 - Use module layers rather than filtering when running under Java 9 to enforce isolation.
 

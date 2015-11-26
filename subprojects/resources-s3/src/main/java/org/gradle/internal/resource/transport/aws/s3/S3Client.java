@@ -123,7 +123,7 @@ public class S3Client {
     }
 
     public S3Object getMetaData(URI uri) {
-        LOGGER.debug("Attempting to get s3 meta-data: [{}]", uri.toString());
+        LOGGER.debug("Attempting to get s3 metadata: [{}]", uri.toString());
         //Would typically use GetObjectMetadataRequest but it does not work with v4 signatures
         return doGetS3Object(uri, true);
     }

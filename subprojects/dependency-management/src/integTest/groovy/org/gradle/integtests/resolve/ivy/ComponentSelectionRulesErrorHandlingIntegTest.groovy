@@ -194,7 +194,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasCause("java.lang.Exception: thrown from rule")
     }
 
-    def "reports missing module when component selection rule requires meta-data"() {
+    def "reports missing module when component selection rule requires metadata"() {
         buildFile << """
 ${httpBaseBuildFile}
 configurations {
@@ -236,7 +236,7 @@ Required by:
         succeeds "resolveConf"
     }
 
-    def "reports broken module when component selection rule requires meta-data"() {
+    def "reports broken module when component selection rule requires metadata"() {
         buildFile << """
 ${httpBaseBuildFile}
 configurations {

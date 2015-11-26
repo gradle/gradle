@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The meta-data for a component instance that is required during dependency resolution.
+ * The metadata for a component instance that is required during dependency resolution.
  */
 public interface ComponentResolveMetadata {
     List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
@@ -38,7 +38,7 @@ public interface ComponentResolveMetadata {
     /**
      * Returns the module version identifier for this component. Currently this reflects the (group, module, version) that was used to request this component.
      *
-     * <p>This is a legacy identifier and is here while we transition the meta-data away from ivy-like
+     * <p>This is a legacy identifier and is here while we transition the metadata away from ivy-like
      * module versions to the more general component instances. Currently, the module version and component identifiers are used interchangeably. However, over
      * time more things will use the component identifier. At some point, the module version identifier will become optional for a component.
      */
@@ -50,7 +50,7 @@ public interface ComponentResolveMetadata {
     ModuleSource getSource();
 
     /**
-     * Makes a copy of this meta-data with the given source.
+     * Makes a copy of this metadata with the given source.
      */
     ComponentResolveMetadata withSource(ModuleSource source);
 
