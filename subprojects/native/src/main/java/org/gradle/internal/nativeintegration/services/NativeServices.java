@@ -22,7 +22,6 @@ import net.rubygrapefruit.platform.internal.LibraryDef;
 import net.rubygrapefruit.platform.internal.NativeLibraryLocator;
 import net.rubygrapefruit.platform.internal.Platform;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.jvm.Jvm;
@@ -44,9 +43,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.URL;
 
 /**
  * Provides various native platform integration services.
@@ -93,11 +94,21 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                             HashValue libHash = HashUtil.createHash(lib, "md5");
                             File copy = new NativeLibraryLocator(null).find(new LibraryDef(platform.getLibraryName(), platform.getId()));
                             HashValue copyHash = HashUtil.createHash(copy, "md5");
-                            throw new RuntimeException(String.format("Could not load native integration.%nlib: %s (%s)%ncopy: %s (%s)", lib, libHash.asHexString(), copy, copyHash.asHexString()), ex);
+                            String resourceName = String.format("net/rubygrapefruit/platform/%s/%s", platform.getId(), platform.getLibraryName());
+                            URL resource = NativeServices.class.getClassLoader().getResource(resourceName);
+                            InputStream inputStream = resource.openConnection().getInputStream();
+                            HashValue resourceHash;
+                            try {
+                                resourceHash = HashUtil.createHash(inputStream, "md5");
+                            } finally {
+                                inputStream.close();
+                            }
+                            throw new RuntimeException(String.format("Could not load native integration.%nlib: %s (%s)%ncopy: %s (%s)%nresources: %s (%s)",
+                                    lib, libHash.asHexString(), copy, copyHash.asHexString(), resource, resourceHash.asHexString()));
                         } catch (IOException e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
+                            e.printStackTrace();
                         }
-//                        throw ex;
+                        throw ex;
                     }
                 }
             }
