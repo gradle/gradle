@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.eclipse;
+package org.gradle.plugins.ide.internal.tooling.java;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.tooling.model.java.JavaRuntime;
-import org.gradle.tooling.model.java.JavaSourceSettings;
 
-/**
- * Describes Java source settings for an Eclipse project.
- *
- * @since 2.10
- */
-@Incubating
-public interface EclipseJavaSourceSettings extends JavaSourceSettings {
+import java.io.File;
+import java.io.Serializable;
 
-    // TODO come up with better name for this
-    JavaVersion getTargetLanguageLevel();
-    JavaRuntime getTargetRuntime();
+public class DefaultJavaRuntime implements JavaRuntime, Serializable {
+    @Override
+    public JavaVersion getJavaVersion() {
+        return JavaVersion.current();
+    }
+
+    @Override
+    public File getHomeDirectory() {
+        return Jvm.current().getJavaHome();
+    }
 }

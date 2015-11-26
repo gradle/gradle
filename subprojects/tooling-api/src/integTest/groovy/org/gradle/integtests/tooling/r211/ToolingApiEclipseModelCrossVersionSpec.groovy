@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.internal.jvm.Jvm
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
@@ -40,6 +41,19 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         rootProject.javaSourceSettings.targetLanguageLevel == JavaVersion.current()
+    }
+
+    def "Java project has target runtime"() {
+        given:
+        buildFile << "apply plugin: 'java'"
+
+        when:
+        EclipseProject rootProject = loadEclipseProjectModel()
+
+        then:
+        rootProject.javaSourceSettings.targetRuntime != null
+        rootProject.javaSourceSettings.targetRuntime.javaVersion == JavaVersion.current()
+        rootProject.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().getJavaHome()
     }
 
     def "target language level respects explicit targetCompatibility configuration"() {
@@ -77,10 +91,20 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion("=2.10")
-    def "older Gradle versions throw exception when querying Java source settings"() {
+    def "older Gradle versions throw exception when querying target language level"() {
         when:
         EclipseProject rootProject = loadEclipseProjectModel()
         rootProject.javaSourceSettings.targetLanguageLevel
+
+        then:
+        thrown(UnsupportedMethodException)
+    }
+
+    @TargetGradleVersion("=2.10")
+    def "older Gradle versions throw exception when querying target runtime"() {
+        when:
+        EclipseProject rootProject = loadEclipseProjectModel()
+        rootProject.javaSourceSettings.targetRuntime
 
         then:
         thrown(UnsupportedMethodException)

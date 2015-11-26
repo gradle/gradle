@@ -99,8 +99,8 @@ TBD: 'targetLanguageLevel' really refers to the target bytecode version.
 
 #### Implementation
 
-- Add `JavaRuntimeEnvironment getTargetRuntime()` to `JavaSourceSettings`.
-- `JavaRuntimeEnvironment` should expose
+- Add `JavaRuntime getTargetRuntime()` to `EclipseJavaSourceSettings`.
+- `JavaRuntime` should expose
     - `JavaVersion getJavaVersion()` - the version of the JRE
     - `File getHomeDirectory()` - the directory of the JRE in use
 - Add `JavaLanguageLevel getTargetLanguageLevel()` to `EclipseJavaSourceSettings` to expose the java target combatibility level.

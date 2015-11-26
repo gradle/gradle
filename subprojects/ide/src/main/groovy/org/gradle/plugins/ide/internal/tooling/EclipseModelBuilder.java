@@ -23,6 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaRuntime;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaSourceSettings;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -144,8 +145,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             // hence we have to read the value only from there
             JavaVersion sourceCompatibility = jdt.getSourceCompatibility();
             JavaVersion targetCompatibility = jdt.getTargetCompatibility();
-            DefaultJavaSourceSettings sourceSettings = new DefaultJavaSourceSettings(sourceCompatibility, targetCompatibility);
-            eclipseProject.setJavaSourceSettings(sourceSettings);
+            DefaultJavaSourceSettings sourceSettings = new DefaultJavaSourceSettings(sourceCompatibility, targetCompatibility, new DefaultJavaRuntime());
             eclipseProject.setJavaSourceSettings(sourceSettings);
         }
 
