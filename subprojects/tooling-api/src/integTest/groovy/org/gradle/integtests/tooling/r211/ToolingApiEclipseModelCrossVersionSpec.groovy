@@ -111,6 +111,50 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         thrown(UnsupportedMethodException)
     }
 
+    def "Multi-project build can define different target language level for subprojects"() {
+        given:
+        settingsFile << """
+            include 'subproject-a', 'subproject-b', 'subproject-c'
+        """
+
+        buildFile << """
+            project(':subproject-a') {
+                apply plugin: 'java'
+                targetCompatibility = 1.1
+            }
+            project(':subproject-b') {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
+                eclipse {
+                    jdt {
+                        targetCompatibility = 1.2
+                    }
+                }
+            }
+            project(':subproject-c') {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
+                targetCompatibility = 1.6
+                eclipse {
+                    jdt {
+                        targetCompatibility = 1.3
+                    }
+                }
+            }
+        """
+
+        when:
+        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject subprojectA = rootProject.children.find { it.name == 'subproject-a' }
+        EclipseProject subprojectB = rootProject.children.find { it.name == 'subproject-b' }
+        EclipseProject subprojectC = rootProject.children.find { it.name == 'subproject-c' }
+
+        then:
+        subprojectA.javaSourceSettings.targetLanguageLevel == JavaVersion.VERSION_1_1
+        subprojectB.javaSourceSettings.targetLanguageLevel == JavaVersion.VERSION_1_2
+        subprojectC.javaSourceSettings.targetLanguageLevel == JavaVersion.VERSION_1_3
+    }
+
     private EclipseProject loadEclipseProjectModel() {
         withConnection { connection -> connection.getModel(EclipseProject) }
     }
