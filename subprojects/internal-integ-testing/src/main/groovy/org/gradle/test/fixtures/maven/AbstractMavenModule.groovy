@@ -272,7 +272,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                             dependency {
                                 groupId(dep.groupId)
                                 artifactId(dep.artifactId)
-                                version(dep.version)
+                                if (dep.version) {
+                                    version(dep.version)
+                                }
                                 if (dep.type) {
                                     type(dep.type)
                                 }
