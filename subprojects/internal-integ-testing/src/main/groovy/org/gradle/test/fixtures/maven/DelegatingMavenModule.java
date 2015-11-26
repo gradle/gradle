@@ -41,8 +41,8 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
-    public T dependsOn(String group, String artifactId, String version, String type, String scope) {
-        backingModule.dependsOn(group, artifactId, version, type, scope);
+    public T dependsOn(String group, String artifactId, String version, String type, String scope, String classifier) {
+        backingModule.dependsOn(group, artifactId, version, type, scope, classifier);
         return t();
     }
 

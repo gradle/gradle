@@ -52,12 +52,12 @@ class MavenLocalModuleTest extends Specification {
 
     def "Add single dependency"() {
         when:
-        List dependencies = mavenLocalModule.dependsOn('my-company', 'dep1', 'jar', '1.0', 'compile').dependencies
+        List dependencies = mavenLocalModule.dependsOn('my-company', 'dep1', 'jar', '1.0', 'compile', null).dependencies
 
         then:
         dependencies != null
         dependencies.size() == 1
-        dependencies.get(0) == [groupId: 'my-company', artifactId: 'dep1', version: 'jar', type: '1.0', scope: 'compile']
+        dependencies.get(0) == [groupId: 'my-company', artifactId: 'dep1', version: 'jar', type: '1.0', scope: 'compile', classifier: null]
     }
 
     def "Check packaging for set packaging"() {

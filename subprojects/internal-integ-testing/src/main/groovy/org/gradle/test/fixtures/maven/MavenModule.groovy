@@ -44,7 +44,7 @@ interface MavenModule extends Module {
 
     MavenModule dependsOn(String group, String artifactId, String version)
 
-    MavenModule dependsOn(String group, String artifactId, String version, String type, String scope)
+    MavenModule dependsOn(String group, String artifactId, String version, String type, String scope, String classifier)
 
     MavenModule hasPackaging(String packaging)
 
