@@ -15,13 +15,12 @@
  */
 
 package org.gradle.api.publish
-
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class PublishIssuesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Ignore("Regression in 2.10")
+    @NotYetImplemented
     def "can apply 'publishing' in subproject after use of assemble.dependsOn"() {
         when:
         settingsFile << "include 'subproject'"
