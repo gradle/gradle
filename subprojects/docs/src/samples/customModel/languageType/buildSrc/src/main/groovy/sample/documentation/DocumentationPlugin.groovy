@@ -30,7 +30,6 @@ class DocumentationPlugin extends RuleSource {
 
     @BinaryType
     void register(BinaryTypeBuilder<DocumentationBinary> builder) {
-        builder.defaultImplementation(DefaultDocumentationBinary)
     }
 
     @ComponentBinaries
