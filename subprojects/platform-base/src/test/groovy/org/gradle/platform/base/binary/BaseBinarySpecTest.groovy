@@ -22,8 +22,6 @@ import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.MutableModelNode
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
-import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.component.BaseComponentFixtures
@@ -53,7 +51,7 @@ class BaseBinarySpecTest extends Specification {
     }
 
     def "qualifies project scoped named and display name using owners name"() {
-        def component = BaseComponentFixtures.createNode(SampleComponent, MySampleComponent, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "sample"), new SimpleModelRuleDescriptor("<create component>"))
+        def component = BaseComponentFixtures.createNode(SampleComponent, MySampleComponent, new DefaultComponentSpecIdentifier("path", "sample"))
         def binary = create(SampleBinary, MySampleBinary, "unitTest", component)
 
         expect:

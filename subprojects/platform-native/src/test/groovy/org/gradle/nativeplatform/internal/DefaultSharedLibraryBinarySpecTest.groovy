@@ -21,7 +21,6 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.language.nativeplatform.NativeResourceSet
-import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.SharedLibraryBinarySpec
@@ -147,7 +146,7 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
     }
 
     private def getSharedLibrary() {
-        def library = BaseComponentFixtures.createNode(NativeLibrarySpec, DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "libName"));
+        def library = BaseComponentFixtures.createNode(NativeLibrarySpec, DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"));
         TestNativeBinariesFactory.create(SharedLibraryBinarySpec, DefaultSharedLibraryBinarySpec, "test", Mock(ITaskFactory), library, namingScheme, resolver,
                                          platform, buildType, new DefaultFlavor("flavorOne"))
     }

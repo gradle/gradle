@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.internal
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
@@ -33,14 +32,13 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultNativeExecutableBinarySpecTest extends Specification {
-    def registry = new ModelRegistryHelper()
     def namingScheme = DefaultBinaryNamingScheme.component("bigOne").withBinaryType("executable")
     def taskFactory = Mock(ITaskFactory)
     def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, taskFactory))
 
     def "has useful string representation"() {
         given:
-        def executable = BaseComponentFixtures.createNode(NativeExecutableSpec, DefaultNativeExecutableSpec, registry, new DefaultComponentSpecIdentifier("path", "name"))
+        def executable = BaseComponentFixtures.createNode(NativeExecutableSpec, DefaultNativeExecutableSpec, new DefaultComponentSpecIdentifier("path", "name"))
 
         when:
         def binary = TestNativeBinariesFactory.create(NativeExecutableBinarySpec, DefaultNativeExecutableBinarySpec, namingScheme.getBinaryName(), taskFactory, executable, namingScheme,

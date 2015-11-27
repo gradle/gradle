@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
-import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.StaticLibraryBinarySpec
@@ -42,7 +41,7 @@ import spock.lang.Specification
 class DefaultStaticLibraryBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir
-    final library = BaseComponentFixtures.createNode(NativeLibrarySpec, DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "libName"))
+    final library = BaseComponentFixtures.createNode(NativeLibrarySpec, DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"))
     def namingScheme = DefaultBinaryNamingScheme.component("main").withBinaryType("staticLibrary")
     def toolChain = Stub(NativeToolChainInternal)
     def platform = Stub(NativePlatform)

@@ -18,7 +18,6 @@ package org.gradle.platform.base.component
 
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
@@ -26,7 +25,6 @@ import spock.lang.Specification
 
 class BaseComponentSpecTest extends Specification {
     def componentId = new DefaultComponentSpecIdentifier("p", "c")
-    def modelRegistry = new ModelRegistryHelper()
 
     def "cannot instantiate directly"() {
         when:
@@ -38,7 +36,7 @@ class BaseComponentSpecTest extends Specification {
     }
 
     private <T extends ComponentSpec, I extends BaseComponentSpec> T create(Class<T> publicType, Class<I> implType) {
-        return BaseComponentFixtures.create(publicType, implType, modelRegistry, componentId)
+        return BaseComponentFixtures.create(publicType, implType, componentId)
     }
 
     def "library has name, path and sensible display name"() {
