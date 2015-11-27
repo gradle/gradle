@@ -426,9 +426,7 @@ configure([smallJavaSwModelProject, largeJavaSwModelProject,
 
     templateArgs = [projectDependencies: true, generatedDependencies: dependencyGenerator.createDependencies(), testMethodCount: 1, useApiDependencies: false]
     if (tinyProjectType) {
-        println templateArgs.generatedDependencies
         templateArgs.generatedDependencies[3] = [1]
-        println templateArgs.generatedDependencies
     }
     testDependencies = files()
 
