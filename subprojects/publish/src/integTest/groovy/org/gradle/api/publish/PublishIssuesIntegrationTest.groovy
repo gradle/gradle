@@ -40,7 +40,7 @@ apply plugin: 'publishing'
 """
 
         then:
-        fails 'assemble'
+        succeeds 'assemble'
     }
 
 }
