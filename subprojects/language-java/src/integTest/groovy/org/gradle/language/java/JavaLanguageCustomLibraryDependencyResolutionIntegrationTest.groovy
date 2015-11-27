@@ -37,7 +37,12 @@ class JavaLanguageCustomLibraryDependencyResolutionIntegrationTest extends Abstr
         theModel '''
 model {
     components {
-        zdep(CustomLibrary)
+        zdep(CustomLibrary) {
+           sources {
+              java(JavaSourceSet) {
+              }
+           }
+        }
         main(JvmLibrarySpec) {
             sources {
                 java {
@@ -59,6 +64,7 @@ model {
     }
 }
 '''
+        file('src/zdep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
@@ -78,13 +84,19 @@ model {
         subBuildFile << '''
 plugins {
     id 'jvm-component'
+    id 'java-lang'
 }
 '''
         addCustomLibraryType(subBuildFile)
         subBuildFile << '''
 model {
     components {
-        zdep(CustomLibrary)
+        zdep(CustomLibrary) {
+           sources {
+              java(JavaSourceSet) {
+              }
+           }
+        }
     }
 }
 '''
@@ -113,6 +125,7 @@ model {
     }
 }
 """
+        file('sub/src/zdep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
@@ -133,6 +146,10 @@ model {
     components {
         zdep(CustomLibrary) {
             javaVersions 6,7
+            sources {
+               java(JavaSourceSet) {
+               }
+            }
         }
         main(JvmLibrarySpec) {
             targetPlatform 'java6'
@@ -163,6 +180,7 @@ model {
     }
 }
 '''
+        file('src/zdep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
@@ -186,6 +204,10 @@ model {
     components {
         zdep(CustomLibrary) {
             javaVersions 7
+            sources {
+               java(JavaSourceSet) {
+               }
+            }
         }
         main(JvmLibrarySpec) {
             targetPlatform 'java6'
@@ -210,6 +232,7 @@ model {
     }
 }
 '''
+        file('src/zdep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when: 'The Java 7 variant of the main jar can be built'
@@ -259,6 +282,7 @@ model {
     }
 }
 '''
+        file('src/zdep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
@@ -276,6 +300,10 @@ model {
     components {
         zdep(CustomLibrary) {
             javaVersions 6,7,8
+            sources {
+               java(JavaSourceSet) {
+               }
+            }
         }
         main(JvmLibrarySpec) {
             targetPlatform 'java7'
@@ -299,6 +327,7 @@ model {
     }
 }
 '''
+        file('src/zdep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
