@@ -35,5 +35,4 @@ class TestNGCoverage {
             test.useTestNG()
         """
     }
-
 }
