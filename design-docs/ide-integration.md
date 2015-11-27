@@ -21,7 +21,7 @@ language levels for each module in a project.
 #### The API
 
     interface IdeaModuleJavaSourceSettings extends JavaSourceSettings {
-        boolean isInherited()
+        boolean isSourceLanguageLevelInherited()
     }
 
     interface IdeaModule extends JavaSourceAware {
@@ -122,6 +122,22 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 
 ### Story - Expose target JDK for Java projects to IDEA
 
+
+#### the API
+
+    interface IdeaModuleJavaSourceSettings extends JavaSourceSettings {
+        boolean isTargetRuntimeInherited()
+        boolean isTargetCompatibilityLevelInherited()
+    }
+
+    interface IdeaProjectJavaSourceSettings extends JavaSourceSettings {
+    }
+
+    interface JavaSourceSettings {
+        JavaRuntime getTargetRuntime()
+        JavaVersion getTargetCompatibilityLevel()
+    }
+
 #### Estimate
 
 - 2 days
@@ -130,8 +146,21 @@ TBD: Apply to `.ipr` and `.iml` generation, so that the tooling model and the ge
 
 #### Implementation
 
+- move EclipseJavaSourceSettings.getTargetRuntime() into JavaSourceSettings
+- move EclipseJavaSourceSettings.getTargetCompatibilityLevel() into JavaSourceSettings
+- for each module set `IdeaModuleJavaSourceSettings.targetRuntime` to current runtime in use and `IdeaModuleJavaSourceSettings.TargetRuntimeInherited = true`
+- set `IdeaProjectJavaSourceSettings.targetRuntime` to current runtime
+- for each module set `IdeaModuleJavaSourceSettings.targetCompatibilityLevel` to `JavaConvention.targetCompatibilityLevel`
+- set `IdeaProjectJavaSourceSettings.targetCompatibilityLevel`
+        - all modules same `IdeaModuleJavaSourceSettings.targetCompatibilityLevel` -> set to this value
+        - modules differ in `IdeaModuleJavaSourceSettings.targetCompatibilityLevel` -> set to highest value
+- for modules having same `targetCompatibilityLevel` as `IdeaProjectJavaSourceSettings.targetCompatibilityLevel` set `IdeaModuleJavaSourceSettings.targetCompatibilityLevelInherited = true`
+
+-  returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.~~
+
 #### Test cases
 
+- Multiproject build with same target Java versions
 - Multiproject build with mix of target Java versions
 - Multiproject build with mix of Java and non-Java projects
 - Multiproject build with no Java projects
