@@ -2,9 +2,9 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Software Model DSL for declaring dependencies on external module
+### Software Model DSL for declaring external dependencies
 
-It is now possible to declare dependencies on external modules via a strongly typed DSL:
+It is now possible to declare dependencies on external modules via the Software Model DSL:
 
     model {
         components {
@@ -20,6 +20,8 @@ It is now possible to declare dependencies on external modules via a strongly ty
             }
         }
     }
+
+Module dependencies declared this way will be resolved against the configured repositories as usual.
 
 ### Performance improvements
 
