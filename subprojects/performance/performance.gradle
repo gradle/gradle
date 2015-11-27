@@ -403,9 +403,15 @@ task largeJavaSwModelCompileAvoidanceWithoutApi(type: JvmProjectGeneratorTask) {
     sourceFiles = 1000
 }
 
+task tinyJavaSwApiJarStubbingWithoutApi(type: JvmProjectGeneratorTask) {
+    projects = 3
+    sourceFiles = 1000
+}
+
 configure([smallJavaSwModelProject, largeJavaSwModelProject,
            smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi,
-           smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi]) {
+           smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi,
+           tinyJavaSwApiJarStubbingWithoutApi]) {
     linesOfCodePerSourceFile = 50
     filesPerPackage = 10
     useSubProjectNumberInSourceFileNames = true
@@ -413,11 +419,17 @@ configure([smallJavaSwModelProject, largeJavaSwModelProject,
 
     def dependencyGenerator = DependencyGenerator.newInstance(numberOfProjects: it.projectCount)
     boolean smallProjectType = (name.startsWith('small'))
+    boolean tinyProjectType = (name.startsWith('tiny'))
     dependencyGenerator.numberOfDependencies = smallProjectType ? 3 : 10
-    dependencyGenerator.numberOfLayers = smallProjectType ? 3 : 5
+    dependencyGenerator.numberOfLayers = tinyProjectType? 1 : smallProjectType ? 3 : 5
     dependencyGenerator.layerRatio = smallProjectType ? 1 : 2
 
     templateArgs = [projectDependencies: true, generatedDependencies: dependencyGenerator.createDependencies(), testMethodCount: 1, useApiDependencies: false]
+    if (tinyProjectType) {
+        println templateArgs.generatedDependencies
+        templateArgs.generatedDependencies[3] = [1]
+        println templateArgs.generatedDependencies
+    }
     testDependencies = files()
 
     dependencyGraph {
@@ -433,7 +445,11 @@ configure([smallJavaSwModelProject, largeJavaSwModelProject,
     numberOfExternalDependencies = smallProjectType ? 5 : 50
 }
 
-configure([smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi, smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi]) {
+configure([smallJavaSwModelCompileAvoidanceWithApi,
+           largeJavaSwModelCompileAvoidanceWithApi,
+           smallJavaSwModelCompileAvoidanceWithoutApi,
+           largeJavaSwModelCompileAvoidanceWithoutApi,
+           tinyJavaSwApiJarStubbingWithoutApi]) {
     templateArgs.apiExports = [].withDefault { name.contains('Without') ? [] : ['org.gradle.test.performance'] }
     templateArgs.useApiDependencies = true
     numberOfExternalDependencies = 0
@@ -538,7 +554,8 @@ task prepareSamples {
         smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
         bigOldJavaMoreSource, lotProjectDependencies, smallJavaSwModelProject, largeJavaSwModelProject,
         nativeMonolithic, nativeMonolithicOverlapping, smallNativeMonolithic, mediumNativeMonolithic,
-        smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi, smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi
+        smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi, smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi,
+        tinyJavaSwApiJarStubbingWithoutApi
     group = "Project Setup"
     description = "Generates all sample projects for automated performance tests"
 }

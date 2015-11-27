@@ -10,6 +10,16 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Java software model compile avoidance
+
+This version of Gradle now creates a "[stubbed API jar](userguide/java_software.html)" instead of a copy of the runtime jar when a JVM library doesn't declare any API, just like libraries that do declare an API. As a consequence, libraries that do not declare APIs can also now benefit from compile avoidance in case the application binary interface (ABI) doesn't change. That is to say that libraries that depend on another library that does not declare an API will not need to be recompiled in the following cases:
+
+* a private method is added
+* a method body is changed
+* order of methods is changed
+
+More information about compile avoidance can be found in the [userguide](userguide/java_software.html).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

@@ -37,11 +37,13 @@ class JavaSoftwareModelSourceFileUpdater extends BuildExperimentListenerAdapter 
     private final int nonApiChanges
     private final int abiCompatibleChanges
     private final int abiBreakingChanges
+    private final boolean updateAllFiles
 
-    JavaSoftwareModelSourceFileUpdater(int nonApiChanges, int abiCompatibleChanges, int abiBreakingChanges) {
+    JavaSoftwareModelSourceFileUpdater(int nonApiChanges, int abiCompatibleChanges, int abiBreakingChanges, boolean updateAllFiles = false) {
         this.abiBreakingChanges = abiBreakingChanges
         this.nonApiChanges = nonApiChanges
         this.abiCompatibleChanges = abiCompatibleChanges
+        this.updateAllFiles = updateAllFiles
     }
 
     private static int perc(int perc, int total) {
@@ -118,46 +120,49 @@ class JavaSoftwareModelSourceFileUpdater extends BuildExperimentListenerAdapter 
         } else if (invocationInfo.phase != BuildExperimentRunner.Phase.WARMUP) {
             projectsWithDependencies.take(nonApiChangesCount()).each { subproject ->
                 def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/internal'.replace((char) '/', File.separatorChar))
-                def updatedFile = pickFirstJavaSource(internalDir)
-                println "Updating non-API source file $updatedFile"
-                Set<Integer> dependents = affectedProjects(subproject)
-                createBackupFor(updatedFile)
-                updatedFile.text = updatedFile.text.replace('private final String property;', '''
+                pickJavaSources(internalDir).each { updatedFile ->
+                    println "Updating non-API source file $updatedFile"
+                    Set<Integer> dependents = affectedProjects(subproject)
+                    createBackupFor(updatedFile)
+                    updatedFile.text = updatedFile.text.replace('private final String property;', '''
 private final String property;
 public String addedProperty;
 ''')
+                }
             }
 
             projectsWithDependencies.take(abiCompatibleApiChangesCount()).each { subproject ->
                 def srcDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
-                def updatedFile = pickFirstJavaSource(srcDir)
-                println "Updating API source file $updatedFile in ABI compatible way"
-                Set<Integer> dependents = affectedProjects(subproject)
-                createBackupFor(updatedFile)
-                updatedFile.text = updatedFile.text.replace('return property;', 'return property.toUpperCase();')
+                pickJavaSources(srcDir).each { updatedFile ->
+                    println "Updating API source file $updatedFile in ABI compatible way"
+                    Set<Integer> dependents = affectedProjects(subproject)
+                    createBackupFor(updatedFile)
+                    updatedFile.text = updatedFile.text.replace('return property;', 'return property.toUpperCase();')
+                }
             }
 
             projectsWithDependencies.take(abiBreakingApiChangesCount()).each { subproject ->
                 def srcDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
-                def updatedFile = pickFirstJavaSource(srcDir)
-                println "Updating API source file $updatedFile in ABI breaking way"
-                createBackupFor(updatedFile)
-                updatedFile.text = updatedFile.text.replace('one() {', 'two() {')
-                // need to locate all affected classes
-                def updatedClass = updatedFile.name - '.java'
-                affectedProjects(subproject).each {
-                    def subDir = new File(projectDir, "project$it")
-                    if (subDir.exists()) {
-                        // need to check for existence because dependency
-                        // generation strategy may be generating dependencies
-                        // outside what is really declared
-                        subDir.eachFileRecurse { f ->
-                            if (f.name.endsWith('.java')) {
-                                def txt = f.text
-                                if (txt.contains("${updatedClass}.one()")) {
-                                    createBackupFor(f)
-                                    println "Updating consuming source $f"
-                                    f.text = txt.replaceAll(Pattern.quote("${updatedClass}.one()"), "${updatedClass}.two()")
+                pickJavaSources(srcDir).each { updatedFile ->
+                    println "Updating API source file $updatedFile in ABI breaking way"
+                    createBackupFor(updatedFile)
+                    updatedFile.text = updatedFile.text.replace('one() {', 'two() {')
+                    // need to locate all affected classes
+                    def updatedClass = updatedFile.name - '.java'
+                    affectedProjects(subproject).each {
+                        def subDir = new File(projectDir, "project$it")
+                        if (subDir.exists()) {
+                            // need to check for existence because dependency
+                            // generation strategy may be generating dependencies
+                            // outside what is really declared
+                            subDir.eachFileRecurse { f ->
+                                if (f.name.endsWith('.java')) {
+                                    def txt = f.text
+                                    if (txt.contains("${updatedClass}.one()")) {
+                                        createBackupFor(f)
+                                        println "Updating consuming source $f"
+                                        f.text = txt.replaceAll(Pattern.quote("${updatedClass}.one()"), "${updatedClass}.two()")
+                                    }
                                 }
                             }
                         }
@@ -204,7 +209,11 @@ public String addedProperty;
         Integer.valueOf(pDir.name - 'project')
     }
 
-    private static File pickFirstJavaSource(File internalDir) {
-        internalDir.listFiles().find { it.name.endsWith('.java') }
+    private List<File> pickJavaSources(File dir) {
+        if (updateAllFiles) {
+            dir.listFiles().findAll { it.name.endsWith('.java') }
+        } else {
+            [dir.listFiles().find { it.name.endsWith('.java') }]
+        }
     }
 }
