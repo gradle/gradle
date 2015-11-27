@@ -217,6 +217,8 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
             }
         """
 
+        file('src/other/java/Other.java') << 'public class Other {}'
+
         when:
         succeeds ':copyDeps'
 
