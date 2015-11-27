@@ -189,7 +189,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 tasks.create(apiJarTaskName, ApiJar.class, new Action<ApiJar>() {
                     @Override
                     public void execute(ApiJar jar) {
-                        final File apiClassesDir = new File(new File(buildDir, "apiClasses"), runtimeClassesDir.getName());
+                        final File apiClassesDir = binary.getNamingScheme().getOutputDirectory(buildDir, "apiClasses");
                         jar.setDescription(String.format("Creates the API binary file for %s.", binary));
                         jar.setRuntimeClassesDir(runtimeClassesDir);
                         jar.setExportedPackages(exportedPackages);
