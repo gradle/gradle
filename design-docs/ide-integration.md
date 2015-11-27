@@ -85,7 +85,7 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 
     interface EclipseJavaSourceSettings {
         JavaRuntime getTargetRuntime()
-        JavaVersion getTargetLanguageLevel()
+        JavaVersion getTargetCompatibilityLevel()
     }
 
     interface EclipseProject extends JavaSourceAware {
@@ -101,10 +101,10 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 - ~~`JavaRuntime` should expose~~
     - ~~`JavaVersion getJavaVersion()` - the version of the JRE~~
     - ~~`File getHomeDirectory()` - the directory of the JRE in use~~
-- ~~Add `JavaVersion getTargetLanguageLevel()` to `EclipseJavaSourceSettings` to expose the java target combatibility level.~~
+- ~~Add `JavaVersion getTargetCompatibilityLevel()` to `EclipseJavaSourceSettings` to expose the java target combatibility level.~~
 - ~~Update `DefaultJavaSourceSettings` to expose JRE and target language level information based on current JVM in use~~
 - ~~Update `EclipseModelBuilder` to set values for the target language level and target runtime~~
-    - ~~`EclipseJavaSourceSettings.getTargetLanguageLevel()` returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.~~
+    - ~~`EclipseJavaSourceSettings.getTargetCompatibilityLevel()` returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.~~
 - Update `.classpath` and `.settings/...` generation, so that tooling model and generated files are consistent.
 
 #### Test coverage
@@ -118,7 +118,7 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 - ~~Multiproject java project build with different target levels per subproject.~~
 - Project that is not a Java project.
 - ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetRuntime()~~
-- ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetLanguageLevel()~~
+- ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetCompatibilityLevel()~~
 
 
 #### Open Issues

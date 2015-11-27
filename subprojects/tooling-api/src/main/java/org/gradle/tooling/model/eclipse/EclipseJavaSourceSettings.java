@@ -30,6 +30,6 @@ import org.gradle.tooling.model.java.JavaSourceSettings;
 public interface EclipseJavaSourceSettings extends JavaSourceSettings {
 
     // TODO come up with better name for this
-    JavaVersion getTargetLanguageLevel();
+    JavaVersion getTargetCompatibilityLevel();
     JavaRuntime getTargetRuntime();
 }

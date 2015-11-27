@@ -15,6 +15,7 @@
  */
 
 package org.gradle.plugins.ide.internal.tooling.eclipse
+
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyBasePlugin
@@ -136,13 +137,13 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.javaSourceSettings."$languageLevelProperty" == JavaVersion.current()
 
         where:
-        type     | compatibilityProperty | languageLevelProperty | projectType | pluginType
-        "source" | "sourceCompatibility" | "sourceLanguageLevel" | "java"      | JavaBasePlugin
-        "target" | "targetCompatibility" | "targetLanguageLevel" | "java"      | JavaBasePlugin
-        "source" | "sourceCompatibility" | "sourceLanguageLevel" | "scala"     | ScalaBasePlugin
-        "target" | "targetCompatibility" | "targetLanguageLevel" | "scala"     | ScalaBasePlugin
-        "source" | "sourceCompatibility" | "sourceLanguageLevel" | "groovy"    | GroovyBasePlugin
-        "target" | "targetCompatibility" | "targetLanguageLevel" | "groovy"    | GroovyBasePlugin
+        type     | compatibilityProperty | languageLevelProperty     | projectType | pluginType
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"     | "java"      | JavaBasePlugin
+        "target" | "targetCompatibility" | "targetCompatiblityLevel" | "java"      | JavaBasePlugin
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"     | "scala"     | ScalaBasePlugin
+        "target" | "targetCompatibility" | "targetCompatiblityLevel" | "scala"     | ScalaBasePlugin
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"     | "groovy"    | GroovyBasePlugin
+        "target" | "targetCompatibility" | "targetCompatiblityLevel" | "groovy"    | GroovyBasePlugin
     }
 
     def "default language levels are set for JVM projects if compatibility is set to null"() {
@@ -157,7 +158,7 @@ class EclipseModelBuilderTest extends Specification {
 
         then:
         eclipseModel.javaSourceSettings.sourceLanguageLevel == org.gradle.api.JavaVersion.current()
-        eclipseModel.javaSourceSettings.targetLanguageLevel == org.gradle.api.JavaVersion.current()
+        eclipseModel.javaSourceSettings.targetCompatiblityLevel == org.gradle.api.JavaVersion.current()
 
         where:
         pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
@@ -179,7 +180,7 @@ class EclipseModelBuilderTest extends Specification {
         where:
         type     | compatibilityProperty | languageLevelProperty
         "source" | "sourceCompatibility" | "sourceLanguageLevel"
-        "target" | "targetCompatibility" | "targetLanguageLevel"
+        "target" | "targetCompatibility" | "targetCompatiblityLevel"
     }
 
     @Unroll
@@ -200,7 +201,7 @@ class EclipseModelBuilderTest extends Specification {
         where:
         type     | compatibilityProperty | languageLevelProperty
         "source" | "sourceCompatibility" | "sourceLanguageLevel"
-        "target" | "targetCompatibility" | "targetLanguageLevel"
+        "target" | "targetCompatibility" | "targetCompatiblityLevel"
     }
 
 
@@ -226,7 +227,7 @@ class EclipseModelBuilderTest extends Specification {
         where:
         type     | compatibilityProperty | languageLevelProperty
         "source" | "sourceCompatibility" | "sourceLanguageLevel"
-        "target" | "targetCompatibility" | "targetLanguageLevel"
+        "target" | "targetCompatibility" | "targetCompatiblityLevel"
     }
 
     private def createEclipseModelBuilder() {

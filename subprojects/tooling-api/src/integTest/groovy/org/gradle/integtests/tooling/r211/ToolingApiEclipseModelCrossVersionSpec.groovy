@@ -38,7 +38,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.targetLanguageLevel == JavaVersion.current()
+        rootProject.javaSourceSettings.targetCompatibilityLevel== JavaVersion.current()
     }
 
     def "Java project has target runtime"() {
@@ -67,7 +67,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.targetLanguageLevel == JavaVersion.VERSION_1_5
+        rootProject.javaSourceSettings.targetCompatibilityLevel == JavaVersion.VERSION_1_5
     }
 
     def "target language level respects explicit configured eclipse config"() {
@@ -88,14 +88,14 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.targetLanguageLevel == JavaVersion.VERSION_1_5
+        rootProject.javaSourceSettings.targetCompatibilityLevel == JavaVersion.VERSION_1_5
     }
 
     @TargetGradleVersion("=2.10")
     def "older Gradle versions throw exception when querying target language level"() {
         when:
         EclipseProject rootProject = loadEclipseProjectModel()
-        rootProject.javaSourceSettings.targetLanguageLevel
+        rootProject.javaSourceSettings.targetCompatibilityLevel
 
         then:
         thrown(UnsupportedMethodException)
@@ -150,9 +150,9 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         EclipseProject subprojectC = rootProject.children.find { it.name == 'subproject-c' }
 
         then:
-        subprojectA.javaSourceSettings.targetLanguageLevel == JavaVersion.VERSION_1_1
-        subprojectB.javaSourceSettings.targetLanguageLevel == JavaVersion.VERSION_1_2
-        subprojectC.javaSourceSettings.targetLanguageLevel == JavaVersion.VERSION_1_3
+        subprojectA.javaSourceSettings.targetCompatibilityLevel == JavaVersion.VERSION_1_1
+        subprojectB.javaSourceSettings.targetCompatibilityLevel == JavaVersion.VERSION_1_2
+        subprojectC.javaSourceSettings.targetCompatibilityLevel == JavaVersion.VERSION_1_3
     }
 
     private EclipseProject loadEclipseProjectModel() {
