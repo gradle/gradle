@@ -59,7 +59,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         given:
         runner.testId = "clean build java project $testProject which doesn't declare any API"
         runner.testProject = testProject
-        runner.tasksToRun = ['clean', 'build']
+        runner.tasksToRun = ['clean', 'assemble']
         runner.maxExecutionTimeRegression = maxTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = ['2.9', 'last']
@@ -83,7 +83,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         given:
         runner.testId = "incremental build java project $testProject which doesn't declare any API"
         runner.testProject = testProject
-        runner.tasksToRun = ['build']
+        runner.tasksToRun = ['assemble']
         runner.maxExecutionTimeRegression = maxTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = ['2.9', 'last']
