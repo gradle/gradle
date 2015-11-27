@@ -30,7 +30,7 @@ class JarJarJar extends Jar {
 
     public JarJarJar() {
         doLast {
-            executeJarJar();
+            executeJarJar()
         }
         doLast {
             fixEmptyFoldersWithJarJar()
@@ -45,6 +45,7 @@ class JarJarJar extends Jar {
 
     void fixEmptyFoldersWithJarJar() {
         def withNoEmptyDirs = "${getTemporaryDir()}/withNoEmptyDirs"
+        project.delete(withNoEmptyDirs)
         project.copy{
             from project.zipTree(getArchivePath().absolutePath)
             into withNoEmptyDirs

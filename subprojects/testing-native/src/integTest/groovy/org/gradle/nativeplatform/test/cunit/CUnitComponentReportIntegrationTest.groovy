@@ -74,6 +74,7 @@ Source sets
 Binaries
     C unit exe 'someExeTest:cUnitExe'
         build using task: :someExeTestCUnitExe
+        install using task: :installSomeExeTestCUnitExe
         run using task: :runSomeExeTestCUnitExe
         buildType: build type 'debug'
         flavor: flavor 'default'

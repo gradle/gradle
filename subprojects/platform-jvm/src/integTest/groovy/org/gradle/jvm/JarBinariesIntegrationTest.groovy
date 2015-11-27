@@ -52,8 +52,8 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
         notExecuted(":myJvmLib1Jar")
 
         and:
-        file("build/jars/myJvmLib2Jar/myJvmLib2.jar").assertExists()
-        file("build/jars/myJvmLib1Jar/myJvmLib1.jar").assertDoesNotExist()
+        file("build/jars/myJvmLib2/jar/myJvmLib2.jar").assertExists()
+        file("build/jars/myJvmLib1/jar/myJvmLib1.jar").assertDoesNotExist()
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)

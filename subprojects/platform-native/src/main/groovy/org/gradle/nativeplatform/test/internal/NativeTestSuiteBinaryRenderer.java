@@ -36,6 +36,7 @@ public class NativeTestSuiteBinaryRenderer extends AbstractNativeBinaryRenderer<
 
     @Override
     protected void renderTasks(NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
+        builder.item("install using task", binary.getTasks().getInstall().getPath());
         builder.item("run using task", binary.getTasks().getRun().getPath());
     }
 

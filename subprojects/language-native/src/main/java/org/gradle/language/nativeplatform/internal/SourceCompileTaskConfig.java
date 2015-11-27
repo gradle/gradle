@@ -43,7 +43,7 @@ public class SourceCompileTaskConfig extends CompileTaskConfig {
         task.source(sourceSet.getSource());
 
         final Project project = task.getProject();
-        task.setObjectFileDir(new File(binary.getNamingScheme().withOutputType("objs").getOutputDirectory(project.getBuildDir()), sourceSet.getProjectScopedName()));
+        task.setObjectFileDir(new File(binary.getNamingScheme().getOutputDirectory(project.getBuildDir(), "objs"), sourceSet.getProjectScopedName()));
 
         // If this task uses a pre-compiled header
         if (sourceSet instanceof DependentSourceSetInternal && ((DependentSourceSetInternal) sourceSet).getPreCompiledHeader() != null) {

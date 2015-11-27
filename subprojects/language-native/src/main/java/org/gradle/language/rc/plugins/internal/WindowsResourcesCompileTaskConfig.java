@@ -62,7 +62,7 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
         task.source(sourceSet.getSource());
 
         final Project project = task.getProject();
-        task.setOutputDir(new File(binary.getNamingScheme().withOutputType("objs").getOutputDirectory(project.getBuildDir()), ((LanguageSourceSetInternal) sourceSet).getProjectScopedName()));
+        task.setOutputDir(new File(binary.getNamingScheme().getOutputDirectory(project.getBuildDir(), "objs"), ((LanguageSourceSetInternal) sourceSet).getProjectScopedName()));
 
         PreprocessingTool rcCompiler = (PreprocessingTool) binary.getToolByName("rcCompiler");
         task.setMacros(rcCompiler.getMacros());

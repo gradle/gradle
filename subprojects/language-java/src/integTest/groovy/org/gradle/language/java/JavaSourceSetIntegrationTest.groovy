@@ -258,9 +258,9 @@ model {
         succeeds "assemble"
 
         then:
-        new JarTestFixture(file("build/jars/mainJava6Jar/main.jar")).hasDescendants(
+        new JarTestFixture(file("build/jars/main/java6Jar/main.jar")).hasDescendants(
             "Main.class", "main.properties");
-        new JarTestFixture(file("build/jars/mainJava7Jar/main.jar")).hasDescendants(
+        new JarTestFixture(file("build/jars/main/java7Jar/main.jar")).hasDescendants(
             "Main.class", "main.properties", "Java7.class", "java7.properties");
     }
 

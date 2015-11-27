@@ -59,3 +59,30 @@ model {
 // END SNIPPET dependency-other-project
     }
 }
+
+model {
+    components {
+// START SNIPPET dependency-onto-maven-library
+        verifier(JvmLibrarySpec) {
+            dependencies {
+                module 'asm'          group 'org.ow2.asm' version '5.0.4'
+                module 'asm-analysis' group 'org.ow2.asm'
+            }
+        }
+// END SNIPPET dependency-onto-maven-library
+        verifier {
+// START SNIPPET shorthand-dependency-onto-maven-library
+            dependencies {
+                module 'org.ow2.asm:asm:5.0.4'
+                module 'org.ow2.asm:asm-analysis'
+            }
+// END SNIPPET shorthand-dependency-onto-maven-library
+        }
+    }
+}
+
+// START SNIPPET configuring-repositories
+repositories {
+    mavenCentral()
+}
+// END SNIPPET configuring-repositories
