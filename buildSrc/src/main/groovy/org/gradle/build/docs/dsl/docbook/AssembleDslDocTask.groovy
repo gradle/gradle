@@ -86,11 +86,14 @@ class AssembleDslDocTask extends DefaultTask {
             linkRepository.put(name, new ClassLinkMetaData(metaData))
         }
 
+        // workaround to IBM JDK bug
+        def createDslDocModelClosure = this.&createDslDocModel
+
         Document document = mainDocbookTemplate
         use(DOMCategory) {
             use(BuildableDOMCategory) {
                 Map<String, ClassExtensionMetaData> extensions = loadPluginsMetaData()
-                DslDocModel model = this.createDslDocModel(classDocbookDir, document, classRepository, extensions)
+                DslDocModel model = createDslDocModelClosure(classDocbookDir, document, classRepository, extensions)
                 def root = document.documentElement
                 root.section.table.each { Element table ->
                     mergeContent(table, model)
