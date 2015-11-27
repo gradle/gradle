@@ -120,11 +120,6 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 - ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetRuntime()~~
 - ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetCompatibilityLevel()~~
 
-
-#### Open Issues
-
-- find better name for 'targetLanguageLevel' as it refers to the target bytecode version.'
-
 ### Story - Expose target JDK for Java projects to IDEA
 
 #### Estimate
