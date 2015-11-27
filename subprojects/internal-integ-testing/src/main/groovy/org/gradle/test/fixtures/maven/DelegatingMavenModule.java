@@ -35,6 +35,12 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
+    public MavenModule dependsOnModules(String... dependencyArtifactIds) {
+        backingModule.dependsOnModules(dependencyArtifactIds);
+        return t();
+    }
+
+    @Override
     public T dependsOn(String group, String artifactId, String version) {
         backingModule.dependsOn(group, artifactId, version);
         return t();

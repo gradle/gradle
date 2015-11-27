@@ -181,10 +181,10 @@ project(':b') {
         repo.module('org', 'leaf3').publish()
         repo.module('org', 'leaf4').publish()
 
-        repo.module('org', 'middle1').dependsOn("leaf1", "leaf2").publish()
-        repo.module('org', 'middle2').dependsOn("leaf3", "leaf4").publish()
+        repo.module('org', 'middle1').dependsOnModules("leaf1", "leaf2").publish()
+        repo.module('org', 'middle2').dependsOnModules("leaf3", "leaf4").publish()
 
-        repo.module('org', 'top').dependsOn("middle1", "middle2").publish()
+        repo.module('org', 'top').dependsOnModules("middle1", "middle2").publish()
 
         testFile('build.gradle') << """
             repositories {

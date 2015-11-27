@@ -35,7 +35,7 @@ class MavenLocalModuleTest extends Specification {
 
     def "Add multiple dependencies without type"() {
         when:
-        List dependencies = mavenLocalModule.dependsOn("dep1", "dep2").dependencies
+        List dependencies = mavenLocalModule.dependsOnModules("dep1", "dep2").dependencies
 
         then:
         dependencies != null

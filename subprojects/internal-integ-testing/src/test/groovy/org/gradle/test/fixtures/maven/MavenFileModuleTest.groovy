@@ -35,7 +35,7 @@ class MavenFileModuleTest extends Specification {
 
     def "Add multiple dependencies without type"() {
         when:
-        List dependencies = mavenFileModule.dependsOn("dep1", "dep2").dependencies
+        List dependencies = mavenFileModule.dependsOnModules("dep1", "dep2").dependencies
 
         then:
         dependencies != null

@@ -49,8 +49,8 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         given:
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
-        mavenRepo.module("org", "middle").dependsOn("leaf1", "leaf2").publish()
-        mavenRepo.module("org", "top").dependsOn("middle", "leaf2").publish()
+        mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
+        mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
         file("build.gradle") << """
             apply plugin: 'java'
@@ -79,8 +79,8 @@ No dependencies matching given input were found in configuration ':compile'
         given:
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
-        mavenRepo.module("org", "middle").dependsOn("leaf1", "leaf2").publish()
-        mavenRepo.module("org", "top").dependsOn("middle", "leaf2").publish()
+        mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
+        mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
         file("build.gradle") << """
             apply plugin: 'java'
@@ -110,9 +110,9 @@ No dependencies matching given input were found in configuration ':conf'
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
 
-        mavenRepo.module("org", "middle").dependsOn("leaf1", "leaf2").publish()
+        mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
 
-        mavenRepo.module("org", "top").dependsOn("middle", "leaf2").publish()
+        mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
         file("build.gradle") << """
             repositories {
@@ -154,16 +154,16 @@ org:leaf2:1.0
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
-        mavenRepo.module("org", "middle1").dependsOn('leaf1', 'leaf2').publish()
-        mavenRepo.module("org", "middle2").dependsOn('leaf3', 'leaf4').publish()
-        mavenRepo.module("org", "middle3").dependsOn('leaf2').publish()
+        mavenRepo.module("org", "middle1").dependsOnModules('leaf1', 'leaf2').publish()
+        mavenRepo.module("org", "middle2").dependsOnModules('leaf3', 'leaf4').publish()
+        mavenRepo.module("org", "middle3").dependsOnModules('leaf2').publish()
 
-        mavenRepo.module("org", "toplevel").dependsOn("middle1", "middle2").publish()
+        mavenRepo.module("org", "toplevel").dependsOnModules("middle1", "middle2").publish()
 
         mavenRepo.module("org", "toplevel2").dependsOn("org", "leaf2", "1.5").publish()
         mavenRepo.module("org", "toplevel3").dependsOn("org", "leaf2", "2.5").publish()
 
-        mavenRepo.module("org", "toplevel4").dependsOn("middle3").publish()
+        mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
 
         file("build.gradle") << """
             repositories {
@@ -616,7 +616,7 @@ org:leaf:2.0 -> 1.0
 
     def "marks modules that can't be resolved as 'FAILED'"() {
         given:
-        mavenRepo.module("org", "top").dependsOn("middle").publish()
+        mavenRepo.module("org", "top").dependsOnModules("middle").publish()
 
         file("build.gradle") << """
             repositories {
@@ -849,8 +849,8 @@ org:leaf:[1.5,2.0] FAILED
 
     def "deals with dependency cycles"() {
         given:
-        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
-        mavenRepo.module("org", "leaf2").dependsOn("leaf1").publish()
+        mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOnModules("leaf1").publish()
 
         file("build.gradle") << """
             repositories {
@@ -918,8 +918,8 @@ project :
 
     def "selects a module component dependency with a given name"() {
         given:
-        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
-        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
         file("settings.gradle") << "include 'impl'; rootProject.name='root'"
@@ -961,8 +961,8 @@ org:leaf2:1.0
 
     def "selects a project component dependency with a given project path"() {
         given:
-        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
-        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
         file("settings.gradle") << "include 'impl'; rootProject.name='root'"
@@ -1002,8 +1002,8 @@ project :impl
 
     def "selects a module component dependency with a given name with dependency command line option"() {
         given:
-        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
-        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
@@ -1047,8 +1047,8 @@ org:leaf4:1.0
 
     def "selects a project component dependency with a given name with dependency command line option"() {
         given:
-        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
-        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
@@ -1092,8 +1092,8 @@ project :api
 
     def "renders tree with a mix of project and external dependencies"() {
         given:
-        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
-        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
         file("settings.gradle") << "include 'api', 'impl'; rootProject.name='root'"
