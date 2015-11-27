@@ -142,15 +142,7 @@ creation of a static initializer that we want to avoid).
 ## Story: Java source is not recompiled when signature of the undeclared API of a dependent library has not changed
 
 If a component doesn't declare an API, produce a stubbed API jar like in the case an API is declared. Consider all packages as belonging to the API.
-
-### Test cases
-
-- An API jar is created when no API is declared
-- API jar contains all classes, but no resources
-- API jar is a stubbed jar
-- Building the API jar should not trigger generation of the runtime jar
-
-As part of this story, we should ensure that the performance tests that prove that incremental builds are faster, get even faster. In particular, the tests found in `JavaSoftwareModelCompileAvoidancePerformanceTest` should perform significantly faster for the `WithoutApi` cases.
+This story should include performance tests that prove that incremental builds are faster:
 
 - because downstream dependencies are not recompiled when the API signature doesn't change
 - because it is done independently of the fact a component declares an API or not
