@@ -24,7 +24,6 @@ import org.gradle.model.ModelMap
 import org.gradle.model.Unmanaged
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.fixture.TestManagedProxyFactory
 import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
@@ -45,7 +44,7 @@ class ManagedModelInitializerTest extends Specification {
     def nodeInitializerRegistry
     def r = new ModelRegistryHelper()
     def classLoader = new GroovyClassLoader(getClass().classLoader)
-    def proxyFactory = TestManagedProxyFactory.INSTANCE
+    def proxyFactory = ManagedProxyFactory.INSTANCE
     static final List<Class<?>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
     def setup() {
