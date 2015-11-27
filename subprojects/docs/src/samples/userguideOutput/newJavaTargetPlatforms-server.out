@@ -1,8 +1,6 @@
 :core:clean
 :server:clean UP-TO-DATE
 :core:compileMainJava5JarMainJava
-:core:processMainJava5JarMainResources
-:core:createMainJava5Jar
 :core:mainJava5ApiJar
 :server:compileMainJava5JarMainJava
 :server:createMainJava5Jar
@@ -10,8 +8,6 @@
 :server:mainJava5Jar
 :core:compileMainJava6JarMainJava
 :core:compileMainJava6JarMainJava6
-:core:processMainJava6JarMainResources
-:core:createMainJava6Jar
 :core:mainJava6ApiJar
 :server:compileMainJava6JarMainJava
 :server:createMainJava6Jar

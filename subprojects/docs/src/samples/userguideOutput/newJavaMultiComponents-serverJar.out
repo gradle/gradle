@@ -1,10 +1,8 @@
-:createCollectionsJar
+:compileCollectionsJarCollectionsJava
 :collectionsApiJar
-:createCommonsJar
+:compileCommonsJarCommonsJava
 :commonsApiJar
 :compileCoreJarCoreJava
-:processCoreJarCoreResources
-:createCoreJar
 :coreApiJar
 :compileServerJarServerJava
 :createServerJar
