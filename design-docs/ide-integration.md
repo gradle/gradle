@@ -142,8 +142,6 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 
 - 2 days
 
-TBD: Apply to `.ipr` and `.iml` generation, so that the tooling model and the generated files are consistent.
-
 #### Implementation
 
 - move EclipseJavaSourceSettings.getTargetRuntime() into JavaSourceSettings
@@ -164,6 +162,35 @@ TBD: Apply to `.ipr` and `.iml` generation, so that the tooling model and the ge
 - Multiproject build with mix of target Java versions
 - Multiproject build with mix of Java and non-Java projects
 - Multiproject build with no Java projects
+
+
+### Story - Expose target compatibility level in Idea Plugin
+
+#### the API
+
+    idea {
+        project {
+          // project default target bytecode level
+          targetCompatiblityLevel = '1.7'
+        }
+
+        module {
+            // module specific target bytecode level
+          targetCompatiblityLevel = '1.6'
+        }
+    }
+
+#### Test cases
+
+- Multiproject build with same target Java versions
+- Multiproject build with mix of target Java versions
+- Multiproject build with mix of Java and non-Java projects
+- Multiproject build with no Java projects
+
+#### Open issues
+
+- module specific target bytecode levels are stored as list in the ipr file instead of being in the module. Do we want to model it similar
+in the gradle idea project model of the Idea Plugin?
 
 ### Story - Introduce JavaProject
 
