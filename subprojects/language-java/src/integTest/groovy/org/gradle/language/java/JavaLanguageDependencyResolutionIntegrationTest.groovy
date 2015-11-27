@@ -204,7 +204,7 @@ model {
         succeeds ':mainJar'
 
         then:
-        executedAndNotSkipped ':dep:createMainJar'
+        executedAndNotSkipped ':dep:mainApiJar'
 
         where:
         scope << DependencyScope.values()
@@ -408,7 +408,7 @@ model {
         succeeds ':mainJar'
 
         then:
-        executedAndNotSkipped ':dep:createMainJar', ':createOtherJar'
+        executedAndNotSkipped ':dep:mainApiJar', ':otherApiJar'
 
         where:
         scope << DependencyScope.values()
@@ -610,7 +610,7 @@ model {
         succeeds ':mainJar'
 
         then:
-        executedAndNotSkipped ':c:createMainJar', ':b:createMainJar'
+        executedAndNotSkipped ':c:mainApiJar', ':b:mainApiJar'
 
         where:
         mainScope                 | libScope
@@ -799,7 +799,7 @@ model {
         succeeds ':mainJar'
 
         then:
-        executedAndNotSkipped ':c:createMainJar', ':b:createMainJar'
+        executedAndNotSkipped ':c:mainApiJar', ':b:mainApiJar'
     }
 
     def "fails if a dependency does not provide any JarBinarySpec"() {
@@ -888,7 +888,7 @@ model {
         succeeds ':mainJar'
 
         then:
-        executedAndNotSkipped(':b:createMainJar')
+        executedAndNotSkipped(':b:mainApiJar')
     }
 
     @Unroll
