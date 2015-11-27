@@ -26,29 +26,19 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
-interface SampleBinary extends BinarySpec {}
-interface OtherSampleBinary extends SampleBinary {}
+    @Managed interface SampleLibrary extends ComponentSpec {}
+    @Managed interface SampleBinary extends BinarySpec {}
+    @Managed interface OtherSampleBinary extends SampleBinary {}
 
-interface LibrarySourceSet extends LanguageSourceSet {}
-
-class DefaultLibrarySourceSet extends BaseLanguageSourceSet implements LibrarySourceSet { }
-
-class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
-
-class OtherSampleBinaryImpl extends BaseBinarySpec implements OtherSampleBinary {}
-
-interface SampleLibrary extends ComponentSpec {}
-
-class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
+    interface LibrarySourceSet extends LanguageSourceSet {}
+    class DefaultLibrarySourceSet extends BaseLanguageSourceSet implements LibrarySourceSet { }
 
     class MyBinaryDeclarationModel implements Plugin<Project> {
         void apply(final Project project) {}
 
         static class ComponentModel extends RuleSource {
             @ComponentType
-            void register(ComponentTypeBuilder<SampleLibrary> builder) {
-                builder.defaultImplementation(DefaultSampleLibrary)
-            }
+            void register(ComponentTypeBuilder<SampleLibrary> builder) {}
 
             @Mutate
             void createSampleComponentComponents(ModelMap<SampleLibrary> componentSpecs) {
@@ -60,14 +50,10 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
             }
 
             @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {
-                builder.defaultImplementation(DefaultSampleBinary)
-            }
+            void register(BinaryTypeBuilder<SampleBinary> builder) {}
 
             @BinaryType
-            void registerOther(BinaryTypeBuilder<OtherSampleBinary> builder) {
-                builder.defaultImplementation(OtherSampleBinaryImpl)
-            }
+            void registerOther(BinaryTypeBuilder<OtherSampleBinary> builder) {}
 
             @LanguageType
             void registerSourceSet(LanguageTypeBuilder<LibrarySourceSet> builder) {

@@ -23,10 +23,8 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
-        interface SampleBinary extends BinarySpec {}
-        class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
-        interface SampleLibrary extends ComponentSpec {}
-        class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
+        @Managed interface SampleLibrary extends ComponentSpec {}
+        @Managed interface SampleBinary extends BinarySpec {}
 
         class MyComponentBasePlugin implements Plugin<Project> {
             void apply(final Project project) {}
@@ -34,12 +32,10 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
             static class Rules extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleLibrary> builder) {
-                    builder.defaultImplementation(DefaultSampleLibrary)
                 }
 
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.defaultImplementation(DefaultSampleBinary)
                 }
 
                 @Mutate
@@ -173,8 +169,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
     def "rule applies only to specified binary type"() {
         given:
         buildFile << """
-        interface OtherBinary extends SampleBinary {}
-        class DefaultOtherBinary extends DefaultSampleBinary implements OtherBinary {}
+        @Managed interface OtherBinary extends SampleBinary {}
 
         class MyOtherBinariesPlugin implements Plugin<Project> {
             void apply(final Project project) {}
@@ -182,7 +177,6 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
             static class Rules extends RuleSource {
                 @BinaryType
                 void register(BinaryTypeBuilder<OtherBinary> builder) {
-                    builder.defaultImplementation(DefaultOtherBinary)
                 }
 
                 @ComponentBinaries
