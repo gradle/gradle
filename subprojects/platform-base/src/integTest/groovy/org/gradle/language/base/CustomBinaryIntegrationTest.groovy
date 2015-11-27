@@ -173,8 +173,7 @@ model {
     def "can define and create multiple binary types in the same plugin"() {
         when:
         buildFile << '''
-        interface AnotherSampleBinary extends BinarySpec {}
-        class DefaultAnotherSampleBinary extends BaseBinarySpec implements AnotherSampleBinary {}
+        @Managed interface AnotherSampleBinary extends BinarySpec {}
 
         class MySamplePlugin implements Plugin<Project> {
             void apply(final Project project) {}
@@ -190,9 +189,7 @@ model {
                 }
 
                 @BinaryType
-                void registerAnother(BinaryTypeBuilder<AnotherSampleBinary> builder) {
-                    builder.defaultImplementation(DefaultAnotherSampleBinary)
-                }
+                void registerAnother(BinaryTypeBuilder<AnotherSampleBinary> builder) {}
 
                 @Mutate
                 void createAnotherSampleBinaryInstances(ModelMap<AnotherSampleBinary> anotherBinaries) {
