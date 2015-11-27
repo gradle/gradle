@@ -85,7 +85,7 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         mavenRepo.module("org.gradle", "runtimeDep").publish()
         def module = mavenRepo.module("org.gradle", "test")
                 .dependsOn("org.gradle", "compileDep", "1.0")
-                .dependsOn("org.gradle", "runtimeDep", "1.0", null, "runtime")
+                .dependsOn("org.gradle", "runtimeDep", "1.0", null, "runtime", null)
                 .publish()
 
         theModel """
@@ -177,8 +177,8 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         mavenRepo.module("org.gradle", "transitiveDep").publish()
         mavenRepo.module("org.gradle", "transitiveApiDep").publish()
         mavenRepo.module("org.gradle", "apiDep")
-                .dependsOn("org.gradle", "transitiveApiDep", "1.0", null, "compile")
-                .dependsOn("org.gradle", "transitiveDep", "1.0", null, "runtime")
+                .dependsOn("org.gradle", "transitiveApiDep", "1.0", null, "compile", null)
+                .dependsOn("org.gradle", "transitiveDep", "1.0", null, "runtime", null)
                 .publish()
 
         theModel """

@@ -165,11 +165,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
             <groupId>group-two</groupId>
             <artifactId>artifact-two</artifactId>
         </dependency>
-        <dependency>
-            <groupId>group-two</groupId>
-            <artifactId>artifact-two</artifactId>
-            <classifier>other</classifier>
-        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -194,15 +189,13 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def descriptor = parsePom()
 
         then:
-        def deps = descriptor.dependencies as List
-        deps.size() == 2
-        deps.each { dep ->
-            assert dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
-            assert dep.allExcludeRules.length == 1
-            assert dep.allExcludeRules.first().id.moduleId == createModuleId('group-three', 'artifact-three')
-        }
-        hasDefaultDependencyArtifact(deps[0])
-        hasDependencyArtifact(deps[1], 'artifact-two', 'jar', 'jar', 'other')
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['test']
+        dep.allExcludeRules.length == 1
+        dep.allExcludeRules.first().id.moduleId == createModuleId('group-three', 'artifact-three')
+        hasDefaultDependencyArtifact(dep)
     }
 
     def "throws exception if parent pom dependency management section does not provide default values for dependency"() {

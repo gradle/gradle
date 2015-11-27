@@ -53,7 +53,7 @@ project(":project2") {
 
     @Test
     void "transitive external dependency substituted with project dependency"() {
-        mavenRepo.module("org.gradle", "module1").dependsOn("module2").publish()
+        mavenRepo.module("org.gradle", "module1").dependsOnModules("module2").publish()
         mavenRepo.module("org.gradle", "module2").publish()
 
         runTask("idea", "include 'project1', 'project2'", """
