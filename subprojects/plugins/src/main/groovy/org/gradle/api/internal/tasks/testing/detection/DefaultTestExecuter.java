@@ -37,11 +37,11 @@ import org.gradle.process.internal.WorkerProcessBuilder;
  */
 public class DefaultTestExecuter implements TestExecuter {
     private final Factory<WorkerProcessBuilder> workerFactory;
-    private final ActorFactory actorFactor;
+    private final ActorFactory actorFactory;
 
-    public DefaultTestExecuter(Factory<WorkerProcessBuilder> workerFactory, ActorFactory actorFactor) {
+    public DefaultTestExecuter(Factory<WorkerProcessBuilder> workerFactory, ActorFactory actorFactory) {
         this.workerFactory = workerFactory;
-        this.actorFactor = actorFactor;
+        this.actorFactory = actorFactory;
     }
 
     public void execute(final Test testTask, TestResultProcessor testResultProcessor) {
@@ -60,7 +60,7 @@ public class DefaultTestExecuter implements TestExecuter {
         };
 
         TestClassProcessor processor = new MaxNParallelTestClassProcessor(testTask.getMaxParallelForks(),
-            reforkingProcessorFactory, actorFactor);
+            reforkingProcessorFactory, actorFactory);
 
         final FileTree testClassFiles = testTask.getCandidateClassFiles();
 
