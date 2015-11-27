@@ -72,7 +72,10 @@ Binaries
         build using task: :someLibJar
         targetPlatform: $currentJava
         tool chain: $currentJdk
-        Jar file: build/jars/someLibJar/someLib.jar
+        classes dir: build/classes/someLib/jar
+        resources dir: build/resources/someLib/jar
+        API Jar file: build/jars/someLib/jar/api/someLib.jar
+        Jar file: build/jars/someLib/jar/someLib.jar
 """
     }
 
@@ -112,17 +115,26 @@ Binaries
         build using task: :myLibJava5Jar
         targetPlatform: Java SE 5
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJava5Jar/myLib.jar
+        classes dir: build/classes/myLib/java5Jar
+        resources dir: build/resources/myLib/java5Jar
+        API Jar file: build/jars/myLib/java5Jar/api/myLib.jar
+        Jar file: build/jars/myLib/java5Jar/myLib.jar
     Jar 'myLib:java6Jar'
         build using task: :myLibJava6Jar
         targetPlatform: Java SE 6
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJava6Jar/myLib.jar
+        classes dir: build/classes/myLib/java6Jar
+        resources dir: build/resources/myLib/java6Jar
+        API Jar file: build/jars/myLib/java6Jar/api/myLib.jar
+        Jar file: build/jars/myLib/java6Jar/myLib.jar
     Jar 'myLib:java7Jar'
         build using task: :myLibJava7Jar
         targetPlatform: Java SE 7
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJava7Jar/myLib.jar
+        classes dir: build/classes/myLib/java7Jar
+        resources dir: build/resources/myLib/java7Jar
+        API Jar file: build/jars/myLib/java7Jar/api/myLib.jar
+        Jar file: build/jars/myLib/java7Jar/myLib.jar
 """
     }
 
@@ -166,17 +178,26 @@ Binaries
         build using task: :myLibJava5Jar
         targetPlatform: Java SE 5
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJava5Jar/myLib.jar
+        classes dir: build/classes/myLib/java5Jar
+        resources dir: build/resources/myLib/java5Jar
+        API Jar file: build/jars/myLib/java5Jar/api/myLib.jar
+        Jar file: build/jars/myLib/java5Jar/myLib.jar
     Jar 'myLib:java6Jar'
         build using task: :myLibJava6Jar
         targetPlatform: Java SE 6
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJava6Jar/myLib.jar
+        classes dir: build/classes/myLib/java6Jar
+        resources dir: build/resources/myLib/java6Jar
+        API Jar file: build/jars/myLib/java6Jar/api/myLib.jar
+        Jar file: build/jars/myLib/java6Jar/myLib.jar
     Jar 'myLib:java9Jar' (not buildable)
         build using task: :myLibJava9Jar
         targetPlatform: Java SE 9
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJava9Jar/myLib.jar
+        classes dir: build/classes/myLib/java9Jar
+        resources dir: build/resources/myLib/java9Jar
+        API Jar file: build/jars/myLib/java9Jar/api/myLib.jar
+        Jar file: build/jars/myLib/java9Jar/myLib.jar
         Could not target platform: 'Java SE 9' using tool chain: '${currentJdk}'.
 
 JVM library 'myLib2'
@@ -193,7 +214,10 @@ Binaries
         build using task: :myLib2Jar
         targetPlatform: Java SE 6
         tool chain: $currentJdk
-        Jar file: build/jars/myLib2Jar/myLib2.jar
+        classes dir: build/classes/myLib2/jar
+        resources dir: build/resources/myLib2/jar
+        API Jar file: build/jars/myLib2/jar/api/myLib2.jar
+        Jar file: build/jars/myLib2/jar/myLib2.jar
         Disabled by user
 """
     }
@@ -248,7 +272,10 @@ Binaries
         build using task: :someLibJava5Jar
         targetPlatform: Java SE 5
         tool chain: $currentJdk
-        Jar file: build/jars/someLibJava5Jar/someLib.jar
+        classes dir: build/classes/someLib/java5Jar
+        resources dir: build/resources/someLib/java5Jar
+        API Jar file: build/jars/someLib/java5Jar/api/someLib.jar
+        Jar file: build/jars/someLib/java5Jar/someLib.jar
         source sets:
             Java source 'someLib:java2'
                 srcDir: src/main/java2
@@ -258,7 +285,10 @@ Binaries
         build using task: :someLibJava6Jar
         targetPlatform: Java SE 6
         tool chain: $currentJdk
-        Jar file: build/jars/someLibJava6Jar/someLib.jar
+        classes dir: build/classes/someLib/java6Jar
+        resources dir: build/resources/someLib/java6Jar
+        API Jar file: build/jars/someLib/java6Jar/api/someLib.jar
+        Jar file: build/jars/someLib/java6Jar/someLib.jar
 """
     }
 
@@ -337,12 +367,18 @@ Binaries
         flavor: free
         targetPlatform: $currentJava
         tool chain: $currentJdk
-        Jar file: build/jars/someLibCustomJar/someLib.jar
+        classes dir: build/classes/someLib/customJar
+        resources dir: build/resources/someLib/customJar
+        API Jar file: build/jars/someLib/customJar/api/someLib.jar
+        Jar file: build/jars/someLib/customJar/someLib.jar
     Jar 'someLib:jar'
         build using task: :someLibJar
         targetPlatform: $currentJava
         tool chain: $currentJdk
-        Jar file: build/jars/someLibJar/someLib.jar
+        classes dir: build/classes/someLib/jar
+        resources dir: build/resources/someLib/jar
+        API Jar file: build/jars/someLib/jar/api/someLib.jar
+        Jar file: build/jars/someLib/jar/someLib.jar
 """
     }
 }

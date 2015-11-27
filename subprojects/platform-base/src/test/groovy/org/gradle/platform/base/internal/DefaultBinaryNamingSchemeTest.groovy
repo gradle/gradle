@@ -72,10 +72,10 @@ class DefaultBinaryNamingSchemeTest extends Specification {
     }
 
     def "generates output directory from type and dimension attributes"() {
-        def namingScheme = createNamingScheme(parentName, binaryType, dimensions, outputType)
+        def namingScheme = createNamingScheme(parentName, binaryType, dimensions)
 
         expect:
-        namingScheme.outputDirectoryBase == outputDir
+        namingScheme.getOutputDirectory(new File("."), outputType) == new File(".", outputDir)
 
         where:
         parentName    | binaryType   | dimensions                                 | outputType | outputDir
@@ -90,10 +90,10 @@ class DefaultBinaryNamingSchemeTest extends Specification {
     }
 
     def "generates output directory from binary name"() {
-        def namingScheme = createNamingScheme(parentName, null, [], outputType).withBinaryName(binaryName)
+        def namingScheme = createNamingScheme(parentName, null, []).withBinaryName(binaryName)
 
         expect:
-        namingScheme.outputDirectoryBase == outputDir
+        namingScheme.getOutputDirectory(new File("."), outputType) == new File(".", outputDir)
 
         where:
         parentName  | binaryName   | outputType     | outputDir
@@ -108,9 +108,9 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         def namingScheme = DefaultBinaryNamingScheme.component("testSuite").withBinaryType("GoogleTestExecutable").withVariantDimension("linux")
 
         expect:
-        namingScheme.outputDirectoryBase == "testSuite/googleTestExecutable/linux"
-        namingScheme.withRole("executable", false).outputDirectoryBase == "testSuite/executable/linux"
-        namingScheme.withRole("executable", true).outputDirectoryBase == "testSuite/linux"
+        namingScheme.getOutputDirectory(new File(".")) == new File(".", "testSuite/googleTestExecutable/linux")
+        namingScheme.withRole("executable", false).getOutputDirectory(new File(".")) == new File(".", "testSuite/executable/linux")
+        namingScheme.withRole("executable", true).getOutputDirectory(new File(".")) == new File(".", "testSuite/linux")
     }
 
     def "generates description from type and dimension attributes"() {
@@ -153,20 +153,20 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         namingScheme.binaryName == "LinuxTest"
         namingScheme.description == "google test executable 'testSuite:linuxTest'"
         namingScheme.getTaskName("compile") == "compileTestSuiteLinuxTest"
-        namingScheme.outputDirectoryBase == "testSuite/linuxTest"
+        namingScheme.getOutputDirectory(new File(".")) == new File(".", "testSuite/linuxTest")
     }
 
     def "can create copies"() {
         def original = createNamingScheme("parent", "type", ["dim1"])
 
         expect:
-        original.outputDirectoryBase == "parent/type/dim1"
-        original.withComponentName("other").outputDirectoryBase == "other/type/dim1"
-        original.withBinaryType("other").outputDirectoryBase == "parent/other/dim1"
-        original.withVariantDimension("dim2").outputDirectoryBase == "parent/type/dim1/dim2"
-        original.withOutputType("output").outputDirectoryBase == "output/parent/type/dim1"
-        original.withRole("role", false).outputDirectoryBase == "parent/role/dim1"
-        original.withBinaryName("binaryName").outputDirectoryBase == "parent/binaryName"
+        original.getOutputDirectory(new File(".")) == new File(".", "parent/type/dim1")
+        original.withComponentName("other").getOutputDirectory(new File(".")) == new File(".", "other/type/dim1")
+        original.withBinaryType("other").getOutputDirectory(new File(".")) == new File(".", "parent/other/dim1")
+        original.withVariantDimension("dim2").getOutputDirectory(new File(".")) == new File(".", "parent/type/dim1/dim2")
+        original.withRole("role", false).getOutputDirectory(new File(".")) == new File(".", "parent/role/dim1")
+        original.withRole("role", true).getOutputDirectory(new File(".")) == new File(".", "parent/dim1")
+        original.withBinaryName("binaryName").getOutputDirectory(new File(".")) == new File(".", "parent/binaryName")
     }
 
     def "ignores variant dimension with only one value"() {
@@ -180,8 +180,8 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         scheme.variantDimensions == ["a"]
     }
 
-    private BinaryNamingScheme createNamingScheme(def parentName, def binaryType, def dimensions, def outputType = null) {
-        def scheme = DefaultBinaryNamingScheme.component(parentName).withBinaryType(binaryType).withOutputType(outputType)
+    private BinaryNamingScheme createNamingScheme(def parentName, def binaryType, def dimensions) {
+        def scheme = DefaultBinaryNamingScheme.component(parentName).withBinaryType(binaryType)
         dimensions.each { scheme = scheme.withVariantDimension(it) }
         return scheme
     }

@@ -30,9 +30,15 @@ public interface BinaryNamingScheme {
 
     String getTaskName(@Nullable String verb, @Nullable String target);
 
-    String getOutputDirectoryBase();
-
+    /**
+     * Returns a directory that can be used for outputs for this binary.
+     */
     File getOutputDirectory(File baseDir);
+
+    /**
+     * Returns a directory that can be used for outputs of the given type for this binary.
+     */
+    File getOutputDirectory(File baseDir, String outputType);
 
     String getDescription();
 
@@ -52,11 +58,6 @@ public interface BinaryNamingScheme {
      * Creates a copy of this scheme, replacing the binary type.
      */
     BinaryNamingScheme withBinaryType(String type);
-
-    /**
-     * Creates a copy of this scheme, replacing the output type.
-     */
-    BinaryNamingScheme withOutputType(String type);
 
     /**
      * Creates a copy of this scheme, specifying a binary name. This overrides the default binary name that would be generated from the other attributes.

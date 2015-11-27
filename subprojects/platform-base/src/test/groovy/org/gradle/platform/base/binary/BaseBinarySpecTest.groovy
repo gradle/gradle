@@ -18,9 +18,10 @@ package org.gradle.platform.base.binary
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.language.base.sources.BaseLanguageSourceSet
+import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.MutableModelNode
-import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.component.BaseComponentFixtures
@@ -42,7 +43,7 @@ class BaseBinarySpecTest extends Specification {
         def binary = create(SampleBinary, MySampleBinary, "sampleBinary")
 
         expect:
-        binary instanceof MySampleBinary
+        binary instanceof SampleBinary
         binary.name == "sampleBinary"
         binary.projectScopedName == "sampleBinary"
         binary.displayName == "SampleBinary 'sampleBinary'"
@@ -50,7 +51,7 @@ class BaseBinarySpecTest extends Specification {
     }
 
     def "qualifies project scoped named and display name using owners name"() {
-        def component = BaseComponentFixtures.createNode(MySampleComponent, MySampleComponent, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "sample"))
+        def component = BaseComponentFixtures.createNode(SampleComponent, MySampleComponent, new DefaultComponentSpecIdentifier("path", "sample"))
         def binary = create(SampleBinary, MySampleBinary, "unitTest", component)
 
         expect:
@@ -62,17 +63,18 @@ class BaseBinarySpecTest extends Specification {
 
     def "create fails if subtype does not have a public no-args constructor"() {
         when:
-        create(MyConstructedBinary, "sampleBinary")
+        create(MyConstructedBinary, MyConstructedBinary, "sampleBinary")
 
         then:
-        def e = thrown ModelInstantiationException
-        e.message == "Could not create binary of type MyConstructedBinary"
-        e.cause instanceof IllegalArgumentException
-        e.cause.message.startsWith "Could not find any public constructor for class"
+        def e = thrown ModelRuleExecutionException
+        e.cause instanceof ModelInstantiationException
+        e.cause.message == "Could not create binary of type MyConstructedBinary"
+        e.cause.cause instanceof IllegalArgumentException
+        e.cause.cause.message.startsWith "Could not find any public constructor for class"
     }
 
     def "can own source sets"() {
-        def binary = create(MySampleBinary, "sampleBinary")
+        def binary = create(SampleBinary, MySampleBinary, "sampleBinary")
         def customSourceSet = Stub(LanguageSourceSet) {
             getName() >> "custom"
         }
@@ -96,17 +98,19 @@ class BaseBinarySpecTest extends Specification {
 
     def "source property is the same as inputs property"() {
         given:
-        def binary = create(MySampleBinary, "sampleBinary")
+        def binary = create(SampleBinary, MySampleBinary, "sampleBinary")
 
         expect:
         binary.source == binary.inputs
     }
 
-    private <T extends BaseBinarySpec> T create(Class<T> type, Class<T> implType = type, String name, MutableModelNode componentNode = null) {
+    private <T extends BinarySpec, I extends BaseBinarySpec> T create(Class<T> type, Class<I> implType, String name, MutableModelNode componentNode = null) {
         BaseBinaryFixtures.create(type, implType, name, componentNode, Mock(ITaskFactory))
     }
-    
-    static class MySampleComponent extends BaseComponentSpec {}
+
+    interface SampleComponent extends CompileSpec {}
+
+    static class MySampleComponent extends BaseComponentSpec implements SampleComponent {}
 
     interface SampleBinary extends BinarySpec {}
 

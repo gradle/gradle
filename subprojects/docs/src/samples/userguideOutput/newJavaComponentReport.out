@@ -20,7 +20,10 @@ Binaries
         build using task: :mainJar
         targetPlatform: java7
         tool chain: JDK 7 (1.7)
-        Jar file: build/jars/mainJar/main.jar
+        classes dir: build/classes/main/jar
+        resources dir: build/resources/main/jar
+        API Jar file: build/jars/main/jar/api/main.jar
+        Jar file: build/jars/main/jar/main.jar
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 

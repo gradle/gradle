@@ -69,7 +69,7 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         return tasks;
     }
 
-    private static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements StaticLibraryBinarySpec.TasksCollection {
+    static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements StaticLibraryBinarySpec.TasksCollection {
         public DefaultTasksCollection(BinaryTasksCollection delegate) {
             super(delegate);
         }

@@ -28,7 +28,7 @@ import spock.lang.Specification
 class ProjectRegistrySpec extends Specification {
     def registry = new ModelRegistryHelper()
     def schemaStore = DefaultModelSchemaStore.instance
-    def proxyFactory = TestManagedProxyFactory.INSTANCE
+    def proxyFactory = ManagedProxyFactory.INSTANCE
     def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
 
     def setup() {

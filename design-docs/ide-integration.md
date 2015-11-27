@@ -95,32 +95,35 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 
 - A Java runtime can be used for projects that don't have any Java source. In eclipse this projects are is modelled as java projects.
 
-TBD: 'targetLanguageLevel' really refers to the target bytecode version.
-
 #### Implementation
 
-- Add `JavaRuntime getTargetRuntime()` to `EclipseJavaSourceSettings`.
-- `JavaRuntime` should expose
-    - `JavaVersion getJavaVersion()` - the version of the JRE
-    - `File getHomeDirectory()` - the directory of the JRE in use
-- Add `JavaLanguageLevel getTargetLanguageLevel()` to `EclipseJavaSourceSettings` to expose the java target combatibility level.
-- Update `DefaultJavaSourceSettings` to expose JRE and target language level information based on current JVM in use
-- Update `EclipseModelBuilder` to set values for the target language level and target runtime
-    - `EclipseJavaSourceSettings.getTargetLanguageLevel()` returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.
+- ~~Add `JavaRuntime getTargetRuntime()` to `EclipseJavaSourceSettings`.~~
+- ~~`JavaRuntime` should expose~~
+    - ~~`JavaVersion getJavaVersion()` - the version of the JRE~~
+    - ~~`File getHomeDirectory()` - the directory of the JRE in use~~
+- ~~Add `JavaVersion getTargetLanguageLevel()` to `EclipseJavaSourceSettings` to expose the java target combatibility level.~~
+- ~~Update `DefaultJavaSourceSettings` to expose JRE and target language level information based on current JVM in use~~
+- ~~Update `EclipseModelBuilder` to set values for the target language level and target runtime~~
+    - ~~`EclipseJavaSourceSettings.getTargetLanguageLevel()` returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.~~
 - Update `.classpath` and `.settings/...` generation, so that tooling model and generated files are consistent.
 
 #### Test coverage
 
-- `EclipseProject.getJavaSourceSettings().getTargetRuntime()` points to JVM in use
-    - `homeDirectory` pointing to the java home of the jvm in use
-    - `javaVersion` reflecting the java version of the jvm in use
+- ~~`EclipseProject.getJavaSourceSettings().getTargetRuntime()` points to JVM in use~~
+    - ~~`homeDirectory` pointing to the java home of the jvm in use~~
+    - ~~`javaVersion` reflecting the java version of the jvm in use~~
 
-- Java project, with 'eclipse' plugin not defining custom target compatibility via `eclipse.jdt.targetCompatibility`
-- Java project, with 'eclipse' plugin defining custom target compatibility via `eclipse.jdt.targetCompatibility`
-- Multiproject java project build with different target levels per subproject.
+- ~~Java project defining custom target compatibility via `project.targetCompatibility`~~
+- ~~Java project, with 'eclipse' plugin defining eclipse specific target compatibility via `eclipse.jdt.targetCompatibility`~~
+- ~~Multiproject java project build with different target levels per subproject.~~
 - Project that is not a Java project.
-- throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetRuntime()
-- throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetLanguageLevel()
+- ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetRuntime()~~
+- ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetLanguageLevel()~~
+
+
+#### Open Issues
+
+- find better name for 'targetLanguageLevel' as it refers to the target bytecode version.'
 
 ### Story - Expose target JDK for Java projects to IDEA
 

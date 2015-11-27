@@ -16,19 +16,17 @@
 
 package org.gradle.nativeplatform.internal
 
-import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.NativeComponentSpec
 import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultNativeComponentTest extends Specification {
-    def registry = new ModelRegistryHelper()
     def id = new DefaultComponentSpecIdentifier("project", "name")
     def component
 
     def setup(){
-        component = BaseComponentFixtures.create(NativeComponentSpec, TestNativeComponentSpec, registry, id)
+        component = BaseComponentFixtures.create(NativeComponentSpec, TestNativeComponentSpec, id)
     }
 
     def "flavors can be chosen and will replace default flavor"() {

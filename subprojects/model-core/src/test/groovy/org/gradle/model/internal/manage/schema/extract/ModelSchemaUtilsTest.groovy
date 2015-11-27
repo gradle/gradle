@@ -116,7 +116,7 @@ class ModelSchemaUtilsTest extends Specification {
         @Override String someOverriddenCovariantMethod(Object param)
     }
 
-    def "gets overridden methods from type hierachy"() {
+    def "gets overridden methods from type hierarchy"() {
         expect:
         def overridden = ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).overriddenMethodsNamed("someOverloadedMethod")
         overridden.size() == 2

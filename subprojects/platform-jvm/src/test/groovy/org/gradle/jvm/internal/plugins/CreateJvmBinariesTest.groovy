@@ -27,14 +27,12 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.jvm.plugins.JvmComponentPlugin
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.PlatformResolvers
 import spock.lang.Specification
 
 class CreateJvmBinariesTest extends Specification {
-    def registry = new ModelRegistryHelper()
     def toolChain = Mock(JavaToolChainInternal)
     def rule = new JvmComponentPlugin.Rules()
     def platforms = Mock(PlatformResolvers)
@@ -42,7 +40,7 @@ class CreateJvmBinariesTest extends Specification {
     def instantiator = Mock(Instantiator)
 
     def "adds a binary for each jvm library"() {
-        def library = BaseComponentFixtures.create(JvmLibrarySpec, DefaultJvmLibrarySpec, registry, componentId("jvmLibOne", ":project-path"))
+        def library = BaseComponentFixtures.create(JvmLibrarySpec, DefaultJvmLibrarySpec, componentId("jvmLibOne", ":project-path"))
         def platform = DefaultJavaPlatform.current()
         def source1 = sourceSet("ss1")
         def source2 = sourceSet("ss2")

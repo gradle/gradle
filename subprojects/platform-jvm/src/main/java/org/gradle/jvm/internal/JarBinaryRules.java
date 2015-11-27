@@ -28,22 +28,17 @@ import java.io.File;
 @SuppressWarnings("UnusedDeclaration")
 public class JarBinaryRules extends RuleSource {
     @Defaults
-    void configureJarBinaries(final ComponentSpec jvmLibrary, ProjectLayout projectLayout, final JavaToolChainRegistry toolChains) {
-        final File binariesDir = new File(projectLayout.getBuildDir(), "jars");
-        final File classesDir = new File(projectLayout.getBuildDir(), "classes");
-        final File resourcesDir = new File(projectLayout.getBuildDir(), "resources");
+    void configureJarBinaries(final ComponentSpec jvmLibrary, final ProjectLayout projectLayout, final JavaToolChainRegistry toolChains) {
         jvmLibrary.getBinaries().withType(JarBinarySpecInternal.class).beforeEach(new Action<JarBinarySpecInternal>() {
             @Override
             public void execute(JarBinarySpecInternal jarBinary) {
-                String jarBinaryName = jarBinary.getProjectScopedName();
-                int idx = jarBinaryName.lastIndexOf("Jar");
-                String apiJarBinaryName = idx>0?jarBinaryName.substring(0, idx) + "ApiJar" : jarBinaryName + "ApiJar";
                 String libraryName = jarBinary.getId().getLibraryName();
 
-                jarBinary.setClassesDir(new File(classesDir, jarBinaryName));
-                jarBinary.setResourcesDir(new File(resourcesDir, jarBinaryName));
-                jarBinary.setJarFile(new File(binariesDir, String.format("%s%s%s.jar", jarBinaryName, File.separator, libraryName)));
-                jarBinary.setApiJarFile(new File(binariesDir, String.format("%s%s%s.jar", apiJarBinaryName, File.separator, libraryName)));
+                jarBinary.setClassesDir(jarBinary.getNamingScheme().getOutputDirectory(projectLayout.getBuildDir(), "classes"));
+                jarBinary.setResourcesDir(jarBinary.getNamingScheme().getOutputDirectory(projectLayout.getBuildDir(), "resources"));
+                File jarsDir = jarBinary.getNamingScheme().getOutputDirectory(projectLayout.getBuildDir(), "jars");
+                jarBinary.setJarFile(new File(jarsDir, String.format("%s.jar", libraryName)));
+                jarBinary.setApiJarFile(new File(jarsDir, String.format("api/%s.jar", libraryName)));
                 jarBinary.setToolChain(toolChains.getForPlatform(jarBinary.getTargetPlatform()));
             }
         });

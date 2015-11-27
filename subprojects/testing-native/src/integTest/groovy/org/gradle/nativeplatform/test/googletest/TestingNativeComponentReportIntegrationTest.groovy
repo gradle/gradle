@@ -72,6 +72,7 @@ Source sets
 Binaries
     Google test exe 'someExeTest:googleTestExe'
         build using task: :someExeTestGoogleTestExe
+        install using task: :installSomeExeTestGoogleTestExe
         run using task: :runSomeExeTestGoogleTestExe
         buildType: build type 'debug'
         flavor: flavor 'default'

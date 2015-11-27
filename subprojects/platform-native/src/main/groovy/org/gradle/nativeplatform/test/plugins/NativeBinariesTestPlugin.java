@@ -75,7 +75,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
                 final InstallExecutable installTask = binary.getTasks().withType(InstallExecutable.class).iterator().next();
                 runTask.getInputs().files(installTask.getOutputs().getFiles());
                 runTask.setExecutable(installTask.getRunScript().getPath());
-                runTask.setOutputDir(namingScheme.withOutputType("test-results").getOutputDirectory(project.getBuildDir()));
+                runTask.setOutputDir(namingScheme.getOutputDirectory(project.getBuildDir(), "test-results"));
 
                 testBinary.getTasks().add(runTask);
             }

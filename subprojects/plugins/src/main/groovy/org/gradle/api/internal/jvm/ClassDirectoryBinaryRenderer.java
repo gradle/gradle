@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.jvm;
 
-import org.gradle.jvm.internal.AbstractJvmBinaryRenderer;
-import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
+import org.gradle.jvm.internal.AbstractJvmBinaryRenderer;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 import javax.inject.Inject;
@@ -32,11 +31,5 @@ public class ClassDirectoryBinaryRenderer extends AbstractJvmBinaryRenderer<Clas
     @Override
     public Class<ClassDirectoryBinarySpec> getTargetType() {
         return ClassDirectoryBinarySpec.class;
-    }
-
-    @Override
-    protected void renderOutputs(ClassDirectoryBinarySpec binary, TextReportBuilder builder) {
-        builder.item("classes dir", binary.getClassesDir());
-        builder.item("resources dir", binary.getResourcesDir());
     }
 }

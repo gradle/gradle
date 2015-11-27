@@ -64,7 +64,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         executedAndNotSkipped mainCompileTaskName, ":processMainJarMainResources", ":createMainJar", ":mainJar"
 
         and:
-        jarFile("build/jars/mainJar/main.jar").hasDescendants(testComponent.expectedOutputs*.fullPath as String[])
+        jarFile("build/jars/main/jar/main.jar").hasDescendants(testComponent.expectedOutputs*.fullPath as String[])
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
@@ -147,8 +147,8 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         executedAndNotSkipped mainCompileTaskName, ":createMainJar", ":mainJar"
 
         and:
-        file("build/classes/mainJar/Extra.class").assertExists()
-        jarFile("build/jars/mainJar/main.jar").assertContainsFile("Extra.class")
+        file("build/classes/main/jar/Extra.class").assertExists()
+        jarFile("build/jars/main/jar/main.jar").assertContainsFile("Extra.class")
     }
 
     def "rebuilds jar when resource file added"() {
@@ -163,8 +163,8 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         executedAndNotSkipped ":processMainJarMainResources", ":createMainJar", ":mainJar"
 
         and:
-        file("build/resources/mainJar/Extra.txt").assertExists()
-        jarFile("build/jars/mainJar/main.jar").assertContainsFile("Extra.txt")
+        file("build/resources/main/jar/Extra.txt").assertExists()
+        jarFile("build/jars/main/jar/main.jar").assertContainsFile("Extra.txt")
     }
 
     def "recompiles but does not rebuild jar when source file changed such that bytecode is the same"() {
@@ -183,9 +183,9 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
     def assertOutputs(List<JvmSourceFile> expectedClasses, List<JvmSourceFile> expectedResources) {
         String[] classes = expectedClasses.collect { it.fullPath }
         String[] resources = expectedResources.collect { it.fullPath }
-        file("build/classes/mainJar").assertHasDescendants(classes)
-        file("build/resources/mainJar").assertHasDescendants(resources)
-        jarFile("build/jars/mainJar/main.jar").hasDescendants(classes + resources as String[])
+        file("build/classes/main/jar").assertHasDescendants(classes)
+        file("build/resources/main/jar").assertHasDescendants(resources)
+        jarFile("build/jars/main/jar/main.jar").hasDescendants(classes + resources as String[])
         return true
     }
 

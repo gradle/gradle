@@ -17,6 +17,7 @@
 package org.gradle.platform.base.internal;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.platform.base.*;
 
 import java.util.Collection;
@@ -24,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.emptySet;
 
 public class DefaultDependencySpecContainer implements DependencySpecContainer {
@@ -79,12 +81,21 @@ public class DefaultDependencySpecContainer implements DependencySpecContainer {
     }
 
     private ModuleDependencySpecBuilder moduleDependencyFromModuleId(String moduleId) {
-        //TODO:RBO: validate module id syntax here
         String[] components = moduleId.split(":");
+        if (components.length < 2 || components.length > 3 || isNullOrEmpty(components[0]) || isNullOrEmpty(components[1])) {
+            throw illegalNotation(moduleId);
+        }
         return moduleDependency()
             .group(components[0])
             .module(components[1])
             .version(components.length < 3 ? null : components[2]);
+    }
+
+    private IllegalDependencyNotation illegalNotation(String moduleId) {
+        return new IllegalDependencyNotation(
+            String.format(
+                "'%s' is not a valid module dependency notation. Example notations: 'org.gradle:gradle-core:2.2', 'org.mockito:mockito-core'.",
+                moduleId));
     }
 
     private Set<DependencySpec> dependencySpecSet() {

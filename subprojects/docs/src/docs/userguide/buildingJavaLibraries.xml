@@ -304,6 +304,20 @@
             <sample id="newJavaMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a project with an implicit library">
                 <sourcefile file="build.gradle" snippet="dependency-other-project-implicit-lib"/>
             </sample>
+    	    <para>Dependencies onto libraries published to Maven repositories can be declared via <literal>module identifiers</literal> consisting of a <literal>group name</literal>,
+            a <literal>module name</literal> plus an optional <literal>version selector</literal>:</para>
+            <sample id="newJavaMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a library published to a Maven repository">
+                <sourcefile file="build.gradle" snippet="dependency-onto-maven-library"/>
+                <output args="verifierJar" outputFile="newJavaMultiComponents-verifierJar.out" ignoreExtraLines="true"/>
+            </sample>
+            <para>A shorthand notation for module identifiers can also be used:</para>
+            <sample id="newJavaMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a module dependency using shorthand notation">
+                <sourcefile file="build.gradle" snippet="shorthand-dependency-onto-maven-library"/>
+            </sample>
+            <para>Module dependencies will be resolved against the configured repositories as usual:</para>
+            <sample id="newJavaMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Configuring repositories for dependency resolution">
+                <sourcefile file="build.gradle" snippet="configuring-repositories"/>
+            </sample>
             <para>The <apilink class="org.gradle.platform.base.DependencySpecContainer"/> class provides a complete reference of the dependencies DSL.</para>
         </section>
     </section>

@@ -151,7 +151,7 @@ model {
         executed ":jvmLibJar", ":nativeAppExecutable"
 
         and:
-        new JarTestFixture(file("build/jars/jvmLibJar/jvmLib.jar")).hasDescendants("org/gradle/test/Test.class", "test.txt");
+        new JarTestFixture(file("build/jars/jvmLib/jar/jvmLib.jar")).hasDescendants("org/gradle/test/Test.class", "test.txt");
         def nativeExeName = OperatingSystem.current().getExecutableName("nativeApp")
         file("build/exe/nativeApp/${nativeExeName}").assertExists()
     }

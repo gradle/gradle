@@ -96,7 +96,10 @@ Binaries
         build using task: :libJar
         targetPlatform: $currentJava
         tool chain: $currentJdk
-        Jar file: build/jars/libJar/lib.jar
+        classes dir: build/classes/lib/jar
+        resources dir: build/resources/lib/jar
+        API Jar file: build/jars/lib/jar/api/lib.jar
+        Jar file: build/jars/lib/jar/lib.jar
 
 Additional source sets
 ----------------------
