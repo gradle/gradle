@@ -15,19 +15,19 @@
  */
 
 package org.gradle.api.publish.maven
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.M2Installation
+import org.junit.Rule
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
-
 /**
  * Tests for bugfixes to maven publishing scenarios
  */
 class MavenPublishIssuesIntegTest extends AbstractIntegrationSpec {
+
+    @Rule M2Installation m2Installation = new M2Installation(executer, testDirectory)
 
     @Issue("GRADLE-2456")
     def "generates SHA1 file with leading zeros"() {
@@ -70,9 +70,6 @@ class MavenPublishIssuesIntegTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-2681")
     def "gradle ignores maven mirror configuration for uploading archives"() {
         given:
-        TestFile m2Home = temporaryFolder.createDir("m2_home");
-        M2Installation m2Installation = new M2Installation(m2Home)
-
         m2Installation.globalSettingsFile << """
 <settings>
   <mirrors>

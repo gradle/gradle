@@ -31,6 +31,8 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 class MavenPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
+    @Rule M2Installation m2Installation = new M2Installation(executer, testDirectory)
+
     def "can publish a project with dependency in mapped and unmapped configuration"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -346,11 +348,9 @@ uploadArchives {
 
     def "can publish to custom maven local repo defined in settings.xml"() {
         given:
-        def m2Installation = new M2Installation(testDirectory)
         def localM2Repo = m2Installation.mavenRepo()
         def customLocalRepo = new MavenLocalRepository(file("custom-maven-local"))
         m2Installation.generateUserSettingsFile(customLocalRepo)
-        executer.beforeExecute(m2Installation)
 
         and:
         settingsFile << "rootProject.name = 'root'"
@@ -423,7 +423,6 @@ uploadArchives {
     @Issue('GRADLE-3272')
     def "can publish to custom maven local repo defined with system property"() {
         given:
-        def m2Installation = new M2Installation(testDirectory)
         def localM2Repo = m2Installation.mavenRepo()
         def customLocalRepo = mavenLocal("customMavenLocal")
         executer.beforeExecute(m2Installation)

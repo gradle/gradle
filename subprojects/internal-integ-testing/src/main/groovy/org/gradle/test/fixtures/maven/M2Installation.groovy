@@ -24,6 +24,8 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
+import static org.junit.Assert.fail
+
 class M2Installation implements Action<GradleExecuter>, TestRule {
     final TestFile userHomeDir
     final TestFile userM2Directory
@@ -31,10 +33,6 @@ class M2Installation implements Action<GradleExecuter>, TestRule {
     final TestFile globalMavenDirectory
     final TestFile globalSettingsFile
     private GradleExecuter executer
-
-    public M2Installation(TestFile m2Directory) {
-        this(null, m2Directory)
-    }
 
     public M2Installation(GradleExecuter executer, TestFile m2Directory) {
         this.executer = executer
@@ -66,11 +64,9 @@ class M2Installation implements Action<GradleExecuter>, TestRule {
     }
 
     void execute(GradleExecuter executer) {
-        if (executer != null) {
-            executer.withUserHomeDir(userHomeDir)
-            if (globalMavenDirectory?.exists()) {
-                executer.withEnvironmentVars(M2_HOME: globalMavenDirectory.absolutePath)
-            }
+        executer.withUserHomeDir(userHomeDir)
+        if (globalMavenDirectory?.exists()) {
+            executer.withEnvironmentVars(M2_HOME: globalMavenDirectory.absolutePath)
         }
     }
 
@@ -80,9 +76,17 @@ class M2Installation implements Action<GradleExecuter>, TestRule {
             @Override
             public void evaluate() throws Throwable {
                 execute(executer)
-                base.evaluate();
 
-                //TODO add check if ~/.m2 folder has changed during test
+                def m2RepositoryFolder = new File("~/.m2/repository")
+                boolean existsBefore = m2RepositoryFolder.exists()
+                try {
+                    base.evaluate()
+                } finally {
+                    def existsAfter = m2RepositoryFolder.exists()
+                    if (!existsBefore && existsAfter) {
+                        fail()
+                    }
+                }
             }
         }
     }

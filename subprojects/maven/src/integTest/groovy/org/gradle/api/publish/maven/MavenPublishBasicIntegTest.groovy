@@ -31,12 +31,11 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
     SetSystemProperties sysProp = new SetSystemProperties()
 
     MavenLocalRepository localM2Repo
-    private M2Installation m2Installation
+
+    @Rule M2Installation m2Installation = new M2Installation(executer, testDirectory)
 
     def "setup"() {
-        m2Installation = new M2Installation(testDirectory)
         localM2Repo = m2Installation.mavenRepo()
-        executer.beforeExecute m2Installation
     }
 
     def "publishes nothing without defined publication"() {
