@@ -13,8 +13,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='play_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>The Play Plugin</title>
+<chapter id='play_plugin'>
+    <title>Building Play applications</title>
+
     <note>
         <para>
             Support for building Play applications is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.

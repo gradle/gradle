@@ -81,7 +81,6 @@
         <xi:include href='organizeBuildLogic.xml'/>
         <xi:include href='initscripts.xml'/>
         <xi:include href='testKit.xml' />
-        <xi:include href='softwareModel.xml'/>
     </part>
     <part>
         <title>Building JVM projects</title>
@@ -93,11 +92,9 @@
         <xi:include href='jettyPlugin.xml'/>
         <xi:include href='applicationPlugin.xml'/>
         <xi:include href='javaLibraryDistributionPlugin.xml'/>
-        <xi:include href='buildingJavaLibraries.xml'/>
         <xi:include href='groovyTutorial.xml'/>
         <xi:include href='groovyPlugin.xml'/>
         <xi:include href='scalaPlugin.xml'/>
-        <xi:include href='playPlugin.xml'/>
         <xi:include href='antlrPlugin.xml'/>
         <xi:include href='checkstylePlugin.xml'/>
         <xi:include href='codeNarcPlugin.xml'/>
@@ -112,7 +109,10 @@
         <xi:include href='ideaPlugin.xml'/>
     </part>
     <part>
-        <title>Building native projects</title>
+        <title>The Software model - Next generation Gradle builds</title>
+        <xi:include href='softwareModel.xml'/>
+        <xi:include href='buildingJavaLibraries.xml'/>
+        <xi:include href='playPlugin.xml'/>
         <xi:include href='nativeBinaries.xml'/>
     </part>
     <part>
