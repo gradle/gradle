@@ -22,7 +22,7 @@ import org.gradle.tooling.model.java.JavaRuntime;
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultJavaRuntime implements JavaRuntime, Serializable {
+public class DefaultJavaRuntime implements Serializable {
 
     private File homeDirectory;
 
@@ -30,12 +30,10 @@ public class DefaultJavaRuntime implements JavaRuntime, Serializable {
         this.homeDirectory = homeDirectory;
     }
 
-    @Override
     public JavaVersion getJavaVersion() {
         return JavaVersion.current();
     }
 
-    @Override
     public File getHomeDirectory() {
         return homeDirectory;
     }
