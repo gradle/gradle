@@ -37,13 +37,13 @@ class JavaSoftwareModelSourceFileUpdater extends BuildExperimentListenerAdapter 
     private final int nonApiChanges
     private final int abiCompatibleChanges
     private final int abiBreakingChanges
-    private final boolean updateAllFiles
+    private final SourceUpdateCardinality cardinality
 
-    JavaSoftwareModelSourceFileUpdater(int nonApiChanges, int abiCompatibleChanges, int abiBreakingChanges, boolean updateAllFiles = false) {
+    JavaSoftwareModelSourceFileUpdater(int nonApiChanges, int abiCompatibleChanges, int abiBreakingChanges, SourceUpdateCardinality cardinality = SourceUpdateCardinality.ONE_FILE) {
         this.abiBreakingChanges = abiBreakingChanges
         this.nonApiChanges = nonApiChanges
         this.abiCompatibleChanges = abiCompatibleChanges
-        this.updateAllFiles = updateAllFiles
+        this.cardinality = cardinality
     }
 
     private static int perc(int perc, int total) {
@@ -120,7 +120,7 @@ class JavaSoftwareModelSourceFileUpdater extends BuildExperimentListenerAdapter 
         } else if (invocationInfo.phase != BuildExperimentRunner.Phase.WARMUP) {
             projectsWithDependencies.take(nonApiChangesCount()).each { subproject ->
                 def internalDir = new File(subproject, 'src/main/java/org/gradle/test/performance/internal'.replace((char) '/', File.separatorChar))
-                pickJavaSources(internalDir).each { updatedFile ->
+                cardinality.onSourceFile(internalDir, '.java') { updatedFile ->
                     println "Updating non-API source file $updatedFile"
                     Set<Integer> dependents = affectedProjects(subproject)
                     createBackupFor(updatedFile)
@@ -133,7 +133,7 @@ public String addedProperty;
 
             projectsWithDependencies.take(abiCompatibleApiChangesCount()).each { subproject ->
                 def srcDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
-                pickJavaSources(srcDir).each { updatedFile ->
+                cardinality.onSourceFile(srcDir, '.java') { updatedFile ->
                     println "Updating API source file $updatedFile in ABI compatible way"
                     Set<Integer> dependents = affectedProjects(subproject)
                     createBackupFor(updatedFile)
@@ -143,7 +143,7 @@ public String addedProperty;
 
             projectsWithDependencies.take(abiBreakingApiChangesCount()).each { subproject ->
                 def srcDir = new File(subproject, 'src/main/java/org/gradle/test/performance/'.replace((char) '/', File.separatorChar))
-                pickJavaSources(srcDir).each { updatedFile ->
+                cardinality.onSourceFile(srcDir, '.java') { updatedFile ->
                     println "Updating API source file $updatedFile in ABI breaking way"
                     createBackupFor(updatedFile)
                     updatedFile.text = updatedFile.text.replace('one() {', 'two() {')
@@ -207,13 +207,5 @@ public String addedProperty;
 
     private int projectId(File pDir) {
         Integer.valueOf(pDir.name - 'project')
-    }
-
-    private List<File> pickJavaSources(File dir) {
-        if (updateAllFiles) {
-            dir.listFiles().findAll { it.name.endsWith('.java') }
-        } else {
-            [dir.listFiles().find { it.name.endsWith('.java') }]
-        }
     }
 }

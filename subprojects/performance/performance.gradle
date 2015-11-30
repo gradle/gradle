@@ -426,7 +426,9 @@ configure([smallJavaSwModelProject, largeJavaSwModelProject,
 
     templateArgs = [projectDependencies: true, generatedDependencies: dependencyGenerator.createDependencies(), testMethodCount: 1, useApiDependencies: false]
     if (tinyProjectType) {
-        templateArgs.generatedDependencies[3] = [1]
+        // make sure that subproject 2, that we use in a test, API depends on subproject 1
+        // so that when we execute performance tests, source file updater can see subproject 1 as been a candidate for file changes
+        templateArgs.generatedDependencies[2] = [1]
     }
     testDependencies = files()
 

@@ -103,10 +103,10 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(14000)     | mbytes(50)
     }
 
-    @Unroll("Checking overhead of API stubbing when #amount files are updated")
+    @Unroll("Checking overhead of API stubbing when #cardinality.description")
     def "checks overhead of API stubbing when some files are updated"() {
         given:
-        runner.testId = "overhead of API jar generation when $amount files are updated"
+        runner.testId = "overhead of API jar generation when ${cardinality.description}"
         runner.testProject = 'tinyJavaSwApiJarStubbingWithoutApi'
         runner.tasksToRun = ['project1:mainApiJar']
         runner.maxExecutionTimeRegression = maxTimeRegression
@@ -114,7 +114,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         runner.targetVersions = []
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
-        def updater = new JavaSoftwareModelSourceFileUpdater(100, 0, 0, all)
+        def updater = new JavaSoftwareModelSourceFileUpdater(100, 0, 0, cardinality)
         runner.buildExperimentListener = updater
 
         when:
@@ -125,8 +125,8 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
 
 
         where:
-        all   | amount | maxTimeRegression | maxMemoryRegression
-        false | 'some' | millis(500)       | mbytes(5)
-        true  | 'all'  | millis(1000)      | mbytes(10)
+        cardinality                       | maxTimeRegression | maxMemoryRegression
+        SourceUpdateCardinality.ONE_FILE  | millis(500)       | mbytes(5)
+        SourceUpdateCardinality.ALL_FILES | millis(1000)      | mbytes(10)
     }
 }
