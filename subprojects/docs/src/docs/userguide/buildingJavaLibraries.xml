@@ -24,8 +24,7 @@
     </note>
 
     <para>The Java software plugins are intended to replace the <link linkend="java_plugin">Java plugin</link>, and
-        leverage the new <link linkend="software_model">rule based model configuration</link>
-        to achieve the best performance, improved expressiveness
+        leverage the Gradle <link linkend="software_model">software model</link> to achieve the best performance, improved expressiveness
         and support for variant-aware dependency management.
     </para>
 
@@ -44,41 +43,10 @@
 
     <section>
         <title>Java Software Model</title>
-        <para>The Java software plugins provide a software model which describes how an application is built and how components
-            of the model relate to each other. The software model is organized around key concepts:
-        </para>
-        <para>
-            <itemizedlist>
-                <listitem>A
-                    <firstterm>component</firstterm>
-                    is a general concept for a piece of software that might be deliverable. Examples of components are a standalone
-                    application, a web application, a library, etc.  A component is often composed of other components.
-                </listitem>
-                <listitem>A
-                    <firstterm>library</firstterm>
-                    is a buildable component. In the Java world, a library is often assimilated to a Jar file, but while a Jar file
-                    represents an output, a library is the description of how the output is built. A library is defined by the combination of its source sets and variants.
-                </listitem>
-                <listitem>A
-                    <firstterm>source set</firstterm>
-                    represents a logical group of source files in a component. As such, a source set is often an input to a single
-                    compilation task, which will produce an output (classes, compiled CSS, etc). A library may consist of multiple <firstterm>source sets</firstterm>.
-                </listitem>
-                <listitem>A
-                    <firstterm>variant</firstterm>
-                    represents a modulation of a component. A library, for example, might target Java 6 and Java 7, effectively producing two
-                    distinct outputs: a Java 6 jar and a Java 7 jar. In this case, the target platform is an example of a <firstterm>variant dimension</firstterm>.
-                    Custom library types may define their own <firstterm>variant dimensions</firstterm>, which will participate in dependency resolution.
-                </listitem>
-                <listitem>A <firstterm>binary</firstterm>
-                    represents the output of a library. Given a combination of variants, a library may produce multiple binaries. A binary is often
-                    a consumable artifact of other components.
-                </listitem>
-                <listitem>The <firstterm>API</firstterm>
-                    of a library variant represents the artifacts and dependencies that are required to compile against that variant.
-                    The API typically consists of binary file together with a set of dependencies.
-                </listitem>
-            </itemizedlist>
+        <para>The Java software plugins provide a <firstterm>software model</firstterm> that describes Java based software and how it should be built.
+            This Java software model extends the base Gradle <link linkend="software_model_concepts">software model</link>, to add support for building JVM libraries.
+            A <firstterm>JVM library</firstterm> is a kind of <link linkend="library_definition">library</link> that is built for and runs on the JVM.
+            It may be built from Java source, or from various other languages. All JVM libraries provide an API of some kind.
         </para>
     </section>
 

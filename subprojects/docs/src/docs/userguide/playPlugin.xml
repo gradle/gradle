@@ -28,7 +28,7 @@
     </para>
 
     <para>
-        The Play plugin makes use of the new <link linkend="software_model">rule based model configuration</link>.
+        The Play plugin makes use of the Gradle <link linkend="software_model">software model</link>.
     </para>
 
     <section>
@@ -72,11 +72,9 @@
         <title>Software Model</title>
 
         <para>
-            The Play plugin uses a <emphasis>software model</emphasis> to describe a Play application.  The software model is comprised of
-            "components" and "binaries".  Components are abstract software elements that are built to produce binaries and
-            a Play application is represented by a <apilink class="org.gradle.play.PlayApplicationSpec"/> component type.  The plugin automatically
-            creates a single <apilink class="org.gradle.play.PlayApplicationBinarySpec"/> when it is applied.  Additional Play components
-            cannot be added.
+            The Play plugin uses a <firstterm>software model</firstterm> to describe a Play application and how to build it.  The Play software model extends the base Gradle <link linkend="software_model_concepts">software model</link>
+            to add support for building Play applications. A Play application is represented by a <apilink class="org.gradle.play.PlayApplicationSpec"/> component type.  The plugin automatically
+            creates a single <apilink class="org.gradle.play.PlayApplicationBinarySpec"/> instance when it is applied.  Additional Play components cannot be added to a project.
         </para>
 
         <figure>
@@ -139,7 +137,7 @@
                 These source sets can be configured or additional source sets can be added to the Play component.  See <link linkend="configuring_play">Configuring Play</link> for further information.
             </para>
             <para>
-                Another element of configuring a Play application is the <literal>platform</literal>.  To build a Play application, Gradle needs to understand which versions of Play, Scala and Java to use.
+                Another element of configuring a Play application is the <firstterm>platform</firstterm>.  To build a Play application, Gradle needs to understand which versions of Play, Scala and Java to use.
                 The Play component specifies this requirement as a <apilink class="org.gradle.play.platform.PlayPlatform"/>.  If these values are not configured, a default version of Play, Scala and Java
                 will be used.  See <link linkend="configuring_play_platform">Targeting a certain version of Play</link> for information on configuring the Play platform.
             </para>
