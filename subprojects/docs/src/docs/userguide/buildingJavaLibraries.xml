@@ -24,8 +24,7 @@
     </note>
 
     <para>The Java software plugins are intended to replace the <link linkend="java_plugin">Java plugin</link>, and
-        leverage the new <link linkend="software_model">rule based model configuration</link>
-        to achieve the best performance, improved expressiveness
+        leverage the Gradle <link linkend="software_model">software model</link> to achieve the best performance, improved expressiveness
         and support for variant-aware dependency management.
     </para>
 
@@ -44,41 +43,10 @@
 
     <section>
         <title>Java Software Model</title>
-        <para>The Java software plugins provide a software model which describes how an application is built and how components
-            of the model relate to each other. The software model is organized around key concepts:
-        </para>
-        <para>
-            <itemizedlist>
-                <listitem>A
-                    <firstterm>component</firstterm>
-                    is a general concept for a piece of software that might be deliverable. Examples of components are a standalone
-                    application, a web application, a library, etc.  A component is often composed of other components.
-                </listitem>
-                <listitem>A
-                    <firstterm>library</firstterm>
-                    is a buildable component. In the Java world, a library is often assimilated to a Jar file, but while a Jar file
-                    represents an output, a library is the description of how the output is built. A library is defined by the combination of its source sets and variants.
-                </listitem>
-                <listitem>A
-                    <firstterm>source set</firstterm>
-                    represents a logical group of source files in a component. As such, a source set is often an input to a single
-                    compilation task, which will produce an output (classes, compiled CSS, etc). A library may consist of multiple <firstterm>source sets</firstterm>.
-                </listitem>
-                <listitem>A
-                    <firstterm>variant</firstterm>
-                    represents a modulation of a component. A library, for example, might target Java 6 and Java 7, effectively producing two
-                    distinct outputs: a Java 6 jar and a Java 7 jar. In this case, the target platform is an example of a <firstterm>variant dimension</firstterm>.
-                    Custom library types may define their own <firstterm>variant dimensions</firstterm>, which will participate in dependency resolution.
-                </listitem>
-                <listitem>A <firstterm>binary</firstterm>
-                    represents the output of a library. Given a combination of variants, a library may produce multiple binaries. A binary is often
-                    a consumable artifact of other components.
-                </listitem>
-                <listitem>The <firstterm>API</firstterm>
-                    of a library variant represents the artifacts and dependencies that are required to compile against that variant.
-                    The API typically consists of binary file together with a set of dependencies.
-                </listitem>
-            </itemizedlist>
+        <para>The Java software plugins provide a <firstterm>software model</firstterm> that describes Java based software and how it should be built.
+            This Java software model extends the base Gradle <link linkend="software_model_concepts">software model</link>, to add support for building JVM libraries.
+            A <firstterm>JVM library</firstterm> is a kind of <link linkend="library_definition">library</link> that is built for and runs on the JVM.
+            It may be built from Java source, or from various other languages. All JVM libraries provide an API of some kind.
         </para>
     </section>
 
@@ -166,7 +134,7 @@
             <tr>
                 <td><apilink class="org.gradle.jvm.JvmLibrarySpec"/></td>
                 <td><apilink class="org.gradle.jvm.JvmBinarySpec"/></td>
-                <td>${binary.name}</td>
+                <td>${library.name}${binary.name}</td>
             </tr>
         </table>
 
@@ -183,13 +151,13 @@
             </thead>
             <tr>
                 <td><apilink class="org.gradle.language.java.JavaSourceSet"/></td>
-                <td>compile${binary.name}${library.name}${sourceset.name}</td>
+                <td>compile${library.name}${binary.name}${library.name}${sourceset.name}</td>
                 <td><apilink class="org.gradle.language.java.tasks.PlatformJavaCompile" /></td>
                 <td>Compiles the sources of a given source set.</td>
             </tr>
             <tr>
                 <td><apilink class="org.gradle.language.jvm.JvmResourceSet"/></td>
-                <td>process${binary.name}${library.name}${sourceset.name}</td>
+                <td>process${library.name}${binary.name}${library.name}${sourceset.name}</td>
                 <td><apilink class="org.gradle.language.jvm.tasks.ProcessResources" /></td>
                 <td>Copies the resources in the given source set to the classes output directory.</td>
             </tr>
@@ -209,7 +177,7 @@
             </thead>
             <tr>
                 <td><apilink class="org.gradle.jvm.JvmBinarySpec"/></td>
-                <td>create${binary.name}</td>
+                <td>create${library.name}${binary.name}</td>
                 <td>all <apilink class="org.gradle.language.java.tasks.PlatformJavaCompile" /> and <apilink class="org.gradle.language.jvm.tasks.ProcessResources" />
                 tasks associated with the binary</td>
                 <td><apilink class="org.gradle.jvm.tasks.Jar" /></td>
@@ -288,19 +256,18 @@
             </para>
             <para>
                 Dependencies declared for the component <literal>api</literal> are used for compiling all source sets for the component,
-                and are also exported as part of the consuming component's API.
+                and are also exported as part of the component's API.
                 See <link linkend="enforcing_api_boundaries">Enforcing API boundaries at compile time</link> for more details.
             </para>
             <para>
-                The following example declares a dependency for the <literal>java</literal> source set of the <literal>server</literal> library
+                The previous example declares a dependency for the <literal>java</literal> source set of the <literal>server</literal> library
             onto the <literal>core</literal> library of the same project. However, it is possible to create a dependency on a library in a different
             project as well:</para>
             <sample id="newJavaMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a project with an explicit library">
                 <sourcefile file="build.gradle" snippet="dependency-other-project"/>
                 <output args="clientJar" outputFile="newJavaMultiComponents-clientJar.out" ignoreExtraLines="true"/>
             </sample>
-            <para>When the target project only defines a single library, the <literal>library</literal> selector can be omitted
-            altogether:</para>
+            <para>When the target project defines a single library, the <literal>library</literal> selector can be omitted altogether:</para>
             <sample id="newJavaMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a project with an implicit library">
                 <sourcefile file="build.gradle" snippet="dependency-other-project-implicit-lib"/>
             </sample>
@@ -329,11 +296,11 @@
             The library may be explicitly declared for a component, or may be implied based on other component metadata.
         </para>
         <para>
-            By default, all <literal>public</literal> types of a library are considered to be part of it's API. In many cases this is not ideal; a library will contain many public types that intended for internal use  within that library.
+            By default, all <literal>public</literal> types of a library are considered to be part of its API. In many cases this is not ideal; a library will contain many public types that intended for internal use  within that library.
             By explicitly declaring an API for a Java library, Gradle can provide compile-time encapsulation of these internal-but-public types. The types to include in a library API are declared at the package level. Packages containing API types are considered to be <emphasis>exported</emphasis>.
         </para>
         <para>
-            By default, dependencies of a library are <emphasis>not</emphasis> considered to be part of it's API. By explicitly declaring a dependency as part of the library API, this dependency will then be made available to consumers when compiling. Dependencies declared this way are considered to be <emphasis>exported</emphasis>, and are known as 'API dependencies'.
+            By default, dependencies of a library are <emphasis>not</emphasis> considered to be part of its API. By explicitly declaring a dependency as part of the library API, this dependency will then be made available to consumers when compiling. Dependencies declared this way are considered to be <emphasis>exported</emphasis>, and are known as 'API dependencies'.
         </para>
         <note>
             <para>
