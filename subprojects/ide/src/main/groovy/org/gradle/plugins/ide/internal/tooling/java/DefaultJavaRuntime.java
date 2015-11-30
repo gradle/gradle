@@ -17,14 +17,13 @@
 package org.gradle.plugins.ide.internal.tooling.java;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.tooling.model.java.JavaRuntime;
 
 import java.io.File;
 import java.io.Serializable;
 
 public class DefaultJavaRuntime implements Serializable {
 
-    private File homeDirectory;
+    private final File homeDirectory;
 
     public DefaultJavaRuntime(File homeDirectory){
         this.homeDirectory = homeDirectory;
