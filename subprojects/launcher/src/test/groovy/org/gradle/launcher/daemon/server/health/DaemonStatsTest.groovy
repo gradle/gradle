@@ -87,6 +87,6 @@ class DaemonStatsTest extends Specification {
         stats.buildFinished()
 
         then:
-        stats.healthInfo == String.format("Starting 2nd build in daemon [uptime: 0.001 secs, performance: 98%%, memory: 50%% of %.1f MB]", 10.0)
+        stats.healthInfo == String.format("Starting 2nd build in daemon [uptime: %s, performance: 98%%, memory: 50%% of %.1f MB]", Clock.prettyTime(1), 10.0)
     }
 }
