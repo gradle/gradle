@@ -35,7 +35,6 @@ language levels for each module in a project.
         IdeaProjectJavaSourceSettings getJavaSourceSettings()
     }
 
-TBD: It looks like in IDEA a project always has some Java source settings, which means that `IdeaProject.getJavaSourceSettings()` should always return non-null.
 TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that tooling model and generated files are consistent in module type, and project and module language level.
 
 #### Implementation
@@ -46,7 +45,7 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 - Update `DefaultIdeaProject` to implement new `getJavaSourceSettings()` method.
 - Update `DefaultIdeaModule` to implement new `getJavaSourceSettings()` method.
 - Update `IdeaModelBuilder` to set values for `getJavaSourceSettings()` for `IdeaProject` and `IdeaModule`
-    - return `null` if not a Java project
+    - not a Java project, then `IdeaProject.getLanguageLevel()` should be returned
     - otherwise configure it as follows
         - `IdeaProject.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`.
         - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `project.sourceCompatibility`
@@ -59,7 +58,7 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 #### Test coverage
 
 - `IdeaProject.languageLevel` always has the same value as `IdeaProject.javaSourceSettings.javaVersion`
-- `IdeaModule.getJavaSourceSettings()` returns null for non java projects
+- `IdeaModule.getJavaSourceSettings()` returns `languageLevel` for non java projects
 - `IdeaModule.getJavaSourceSettings().isInherited()` returns true when the same as project's version, false when different.
 - `IdeaProject.getJavaSourceSettings()` returns inferred value from `languageLevel` for older target Gradle version.
 - `IdeaModule.getJavaSourceSettings()` returns inferred value from idea project `languageLevel` for older target Gradle version.
