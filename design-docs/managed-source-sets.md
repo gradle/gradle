@@ -271,5 +271,8 @@ Update user guide and samples to show how to implement a custom unmanaged `Langu
 - user can declare a custom unmanaged `LanguageSourceSet` default implementation
 - user can attach unmanaged internal views to custom `LanguageSourceSet`
 - fails on registration when:
-  - implementation type does not extend `BaseLanguageSourceSet`
   - model type extends `LanguageSourceSet` without a default implementation
+  - default implementation is not a non-abstract class
+  - default implementation does not extend `BaseLanguageSourceSet`
+  - default implementation does not implement internal views
+  - an internal view is not an interface
