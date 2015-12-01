@@ -818,12 +818,7 @@ $type
         expect:
         fail ConstructorWithArguments, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(ConstructorWithArguments).takes(String)})")
         fail AdditionalConstructorWithArguments, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(AdditionalConstructorWithArguments).takes(String)})")
-    }
-
-    def "default constructors calling custom super constructors are allowed"() {
-        expect:
-        extract(ConstructorCallingSuperConstructorWithArgs) instanceof ManagedImplSchema
-        extract(CustomConstructorInSuperClass) instanceof ManagedImplSchema
+        fail CustomConstructorInSuperClass, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(SuperConstructorWithArguments).takes(String)})")
     }
 
     @Managed

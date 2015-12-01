@@ -66,16 +66,34 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
             throw new InvalidManagedModelElementTypeException(extractionContext, "cannot be a parameterized type.");
         }
 
-        ensureNoCustomConstructor(extractionContext, typeClass);
+        Constructor<?> customConstructor = findCustomConstructor(typeClass);
+        if (customConstructor != null) {
+            throw invalidMethod(extractionContext, "custom constructors are not allowed", customConstructor);
+        }
+
         ensureNoInstanceScopedFields(extractionContext, typeClass);
         ensureNoProtectedOrPrivateMethods(extractionContext, typeClass);
     }
 
-    private void ensureNoCustomConstructor(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {
-        for (Constructor<?> constructor : typeClass.getConstructors()) {
-            if (constructor.getParameterTypes().length > 0) {
-                throw invalidMethod(extractionContext, "custom constructors are not allowed", constructor);
+    private Constructor<?> findCustomConstructor(Class<?> typeClass) {
+        Class<?> superClass = typeClass.getSuperclass();
+        if (superClass != null && !superClass.equals(Object.class)) {
+            Constructor<?> customSuperConstructor = findCustomConstructor(typeClass.getSuperclass());
+            if (customSuperConstructor != null) {
+                return customSuperConstructor;
             }
+        }
+        Constructor<?>[] constructors = typeClass.getConstructors();
+        if (constructors.length == 0 || (constructors.length == 1 && constructors[0].getParameterTypes().length == 0)) {
+            return null;
+        } else {
+            for (Constructor<?> constructor : constructors) {
+                if (constructor.getParameterTypes().length > 0) {
+                    return constructor;
+                }
+            }
+            //this should never happen
+            throw new RuntimeException(String.format("Expected a constructor taking at least one argument in %s but no such constructors were found", typeClass.getName()));
         }
     }
 
