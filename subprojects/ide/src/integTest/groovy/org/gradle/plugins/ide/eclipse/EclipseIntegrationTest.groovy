@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 import org.junit.ComparisonFailure
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -37,6 +38,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
+    @Ignore // FIXME Rene
     void canCreateAndDeleteMetaData() {
         when:
         File buildFile = testFile("master/build.gradle")
