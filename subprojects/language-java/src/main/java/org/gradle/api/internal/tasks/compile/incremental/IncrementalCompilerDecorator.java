@@ -64,7 +64,7 @@ public class IncrementalCompilerDecorator {
             LOG.lifecycle("{} - is not incremental (e.g. outputs have changed, no previous execution, etc.).", displayName);
             return cleaningCompiler;
         }
-        if (!sourceDirs.areSourceDirsKnown()) {
+        if (!sourceDirs.canInferSourceDirectories()) {
             LOG.lifecycle("{} - is not incremental. Unable to infer the source directories.", displayName);
             return cleaningCompiler;
         }
