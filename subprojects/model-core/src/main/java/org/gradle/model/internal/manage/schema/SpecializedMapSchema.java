@@ -20,7 +20,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.ref.WeakReference;
 
-public class SpecializedMapSchema<T, E> extends CollectionSchema<T, E> {
+public class SpecializedMapSchema<T, E> extends ModelMapSchema<T, E> {
     private final WeakReference<Class<?>> implementationType;
 
     public SpecializedMapSchema(ModelType<T> type, ModelType<E> elementType, Class<?> implementationType) {

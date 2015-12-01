@@ -48,8 +48,8 @@ model {
     tasks {
         firstDefaultDefaultJar {
             doLast {
-                assert compileFirstDefaultDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstDefaultDefaultJarFirstJava).contains(secondDefaultDefaultJar)
-                assert compileFirstDefaultDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondDefaultDefaultApiJar/second.jar")] as Set
+                assert compileFirstDefaultDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstDefaultDefaultJarFirstJava).contains(secondDefaultDefaultApiJar)
+                assert compileFirstDefaultDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/second/defaultDefaultJar/api/second.jar")] as Set
             }
         }
     }
@@ -93,14 +93,14 @@ model {
     tasks {
         firstPaidDefaultJar {
             doLast {
-                assert compileFirstPaidDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstPaidDefaultJarFirstJava).contains(secondPaidDefaultJar)
-                assert compileFirstPaidDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondPaidDefaultApiJar/second.jar")] as Set
+                assert compileFirstPaidDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstPaidDefaultJarFirstJava).contains(secondPaidDefaultApiJar)
+                assert compileFirstPaidDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/second/paidDefaultJar/api/second.jar")] as Set
             }
         }
         firstFreeDefaultJar {
             doLast {
-                assert compileFirstFreeDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstFreeDefaultJarFirstJava).contains(secondFreeDefaultJar)
-                assert compileFirstFreeDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondFreeDefaultApiJar/second.jar")] as Set
+                assert compileFirstFreeDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstFreeDefaultJarFirstJava).contains(secondFreeDefaultApiJar)
+                assert compileFirstFreeDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/second/freeDefaultJar/api/second.jar")] as Set
             }
         }
     }

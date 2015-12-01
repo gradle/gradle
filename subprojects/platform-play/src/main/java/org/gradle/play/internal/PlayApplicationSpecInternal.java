@@ -16,8 +16,9 @@
 
 package org.gradle.play.internal;
 
-import org.gradle.platform.base.internal.PlatformAwareComponentSpecInternal;
+import org.gradle.model.Managed;
 import org.gradle.play.PlayApplicationSpec;
 
-public interface PlayApplicationSpecInternal extends PlayApplicationSpec, PlatformAwareComponentSpecInternal {
+@Managed
+public interface PlayApplicationSpecInternal extends PlayApplicationSpec, PlayPlatformAwareComponentSpecInternal {
 }

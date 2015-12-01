@@ -40,6 +40,7 @@ allprojects {
                             }
                         }
                     }
+                    jdt.javaRuntimeName = "JavaSE-1.7"
                 }
             }
             cleanEclipse.doLast {

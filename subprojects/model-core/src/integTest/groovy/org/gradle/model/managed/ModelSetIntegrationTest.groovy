@@ -62,7 +62,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("printPeople") {
                   doLast {
-                    def people = $("people")
+                    def people = $.people
                     def names = people*.name.sort().join(", ")
                     println "people: ${people.toString()}"
                     println "names: $names"
@@ -101,7 +101,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
-                def people = $('people')
+                def people = $.people
                 create("printPeople") {
                   doLast {
                     def names = people*.name.sort().join(", ")
@@ -151,7 +151,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
-                def g = $('group')
+                def g = $.group
                 create("printGroup") {
                   doLast {
                     def members = g.members*.name.sort().join(", ")
@@ -239,7 +239,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("printPeople") {
                   doLast {
-                    def people = $("people")
+                    def people = $.people
                     println "people: $people"
                   }
                 }
@@ -303,7 +303,7 @@ finalize
               tasks {
                 create("printPeople") {
                   doLast {
-                    def names = $("people")*.name.sort().join(", ")
+                    def names = $.people*.name.sort().join(", ")
                     println "people: $names"
                   }
                 }
@@ -503,7 +503,7 @@ configure p3
 
             model {
                 tasks {
-                    $("people").create {}
+                    $.people.create {}
                 }
             }
         '''

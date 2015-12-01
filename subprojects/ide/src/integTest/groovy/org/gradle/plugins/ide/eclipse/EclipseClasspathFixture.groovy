@@ -21,42 +21,38 @@ import org.gradle.test.fixtures.file.TestFile
 import java.util.regex.Pattern
 
 class EclipseClasspathFixture {
-    final TestFile projectDir
     final TestFile userHomeDir
-    private Node classpath
+    final Node classpath
 
-    EclipseClasspathFixture(TestFile projectDir, TestFile userHomeDir) {
-        this.projectDir = projectDir
+    private EclipseClasspathFixture(TestFile userHomeDir, Node classpath) {
         this.userHomeDir = userHomeDir
+        this.classpath = classpath
     }
 
-    Node getClasspath() {
-        if (classpath == null) {
-            TestFile file = projectDir.file('.classpath')
-            file.assertExists()
-            classpath = new XmlParser().parse(file)
-        }
-        return classpath
+    static EclipseClasspathFixture create(TestFile projectDir, TestFile userHomeDir) {
+        TestFile file = projectDir.file('.classpath')
+        file.assertExists()
+        return new EclipseClasspathFixture(userHomeDir, new XmlParser().parse(file))
     }
 
     List<Node> getEntries() {
-        return getClasspath().classpathentry as List
+        return this.classpath.classpathentry as List
     }
 
     String getOutput() {
-        return getClasspath().classpathentry.find { it.@kind == 'output' }.@path
+        return this.classpath.classpathentry.find { it.@kind == 'output' }.@path
     }
 
     List<String> getContainers() {
-        return getClasspath().classpathentry.findAll { it.@kind == 'con' }.collect { it.@path }
+        return this.classpath.classpathentry.findAll { it.@kind == 'con' }.collect { it.@path }
     }
 
     List<String> getSources() {
-        return getClasspath().classpathentry.findAll{ it.@kind == 'src' && !it.@path.startsWith('/') }.collect { it.@path }
+        return this.classpath.classpathentry.findAll{ it.@kind == 'src' && !it.@path.startsWith('/') }.collect { it.@path }
     }
 
     List<String> getProjects() {
-        return getClasspath().classpathentry.findAll { it.@kind == 'src' && it.@path.startsWith('/') }.collect { it.@path }
+        return this.classpath.classpathentry.findAll { it.@kind == 'src' && it.@path.startsWith('/') }.collect { it.@path }
     }
 
     void assertHasLibs(String... jarNames) {
@@ -70,11 +66,11 @@ class EclipseClasspathFixture {
     }
 
     List<EclipseLibrary> getLibs() {
-        return getClasspath().classpathentry.findAll { it.@kind == 'lib' }.collect { new EclipseLibrary(it) }
+        return this.classpath.classpathentry.findAll { it.@kind == 'lib' }.collect { new EclipseLibrary(it) }
     }
 
     List<EclipseLibrary> getVars() {
-        return getClasspath().classpathentry.findAll { it.@kind == 'var' }.collect { new EclipseLibrary(it) }
+        return this.classpath.classpathentry.findAll { it.@kind == 'var' }.collect { new EclipseLibrary(it) }
     }
 
     class EclipseLibrary {

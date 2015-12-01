@@ -88,7 +88,7 @@ model {
                 def deps = $('components.main.sources.java').dependencies.dependencies
                 assert deps.size() == 1
                 assert deps[0].libraryName == 'someLib'
-                assert deps[0] instanceof org.gradle.platform.base.internal.DefaultDependencySpec // this guy is immutable
+                assert deps[0] instanceof org.gradle.platform.base.internal.DefaultProjectDependencySpec // this guy is immutable
                 try {
                     deps[0].project('foo')
                     assert false
@@ -137,7 +137,7 @@ model {
         fails "checkDependencies"
 
         then:
-        failure.assertHasCause('A dependency spec must have at least one of project or library name not null')
+        failure.assertHasCause('A project dependency spec must have at least one of project or library name not null')
     }
 
     def "cannot create a dependency with all null values with project"() {
@@ -170,7 +170,7 @@ model {
         fails "checkDependencies"
 
         then:
-        failure.assertHasCause('A dependency spec must have at least one of project or library name not null')
+        failure.assertHasCause('A project dependency spec must have at least one of project or library name not null')
     }
 
     def "filters duplicate dependencies"() {
@@ -258,9 +258,9 @@ model {
         succeeds "assemble"
 
         then:
-        new JarTestFixture(file("build/jars/mainJava6Jar/main.jar")).hasDescendants(
+        new JarTestFixture(file("build/jars/main/java6Jar/main.jar")).hasDescendants(
             "Main.class", "main.properties");
-        new JarTestFixture(file("build/jars/mainJava7Jar/main.jar")).hasDescendants(
+        new JarTestFixture(file("build/jars/main/java7Jar/main.jar")).hasDescendants(
             "Main.class", "main.properties", "Java7.class", "java7.properties");
     }
 

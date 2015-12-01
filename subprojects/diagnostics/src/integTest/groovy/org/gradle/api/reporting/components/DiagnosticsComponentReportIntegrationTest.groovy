@@ -80,7 +80,10 @@ Binaries
         build using task: :jvmLibJar
         targetPlatform: $currentJava
         tool chain: $currentJdk
-        Jar file: build/jars/jvmLibJar/jvmLib.jar
+        classes dir: build/classes/jvmLib/jar
+        resources dir: build/resources/jvmLib/jar
+        API Jar file: build/jars/jvmLib/jar/api/jvmLib.jar
+        Jar file: build/jars/jvmLib/jar/jvmLib.jar
 
 Native library 'nativeLib'
 --------------------------
@@ -98,14 +101,14 @@ Binaries
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/nativeLibSharedLibrary/libnativeLib.dylib
+        shared library file: build/libs/nativeLib/shared/libnativeLib.dylib
     Static library 'nativeLib:staticLibrary'
         build using task: :nativeLibStaticLibrary
         buildType: build type 'debug'
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/nativeLibStaticLibrary/libnativeLib.a
+        static library file: build/libs/nativeLib/static/libnativeLib.a
 """
     }
 

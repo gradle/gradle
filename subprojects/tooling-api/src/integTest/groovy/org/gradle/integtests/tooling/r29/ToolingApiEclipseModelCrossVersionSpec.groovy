@@ -28,7 +28,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=1.0-milestone-8 <2.9")
     def "older Gradle versions throw exception when querying natures"() {
         given:
-        file('settings.gradle') << "rootProject.name = 'root'"
+        settingsFile << "rootProject.name = 'root'"
 
         when:
         EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
@@ -41,8 +41,8 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.9")
     def "applying plugins configure appropriate project natures"() {
         given:
-        plugins.each { plugin -> file('build.gradle') << "apply plugin: '${plugin}'\n" }
-        file('settings.gradle') << "rootProject.name = 'root'"
+        plugins.each { plugin -> buildFile << "apply plugin: '${plugin}'\n" }
+        settingsFile << "rootProject.name = 'root'"
 
         when:
         EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
@@ -65,12 +65,12 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.9")
     def "multi-module build defines different natures for each modules"() {
         given:
-        file('build.gradle') << """
+        buildFile << """
             project(':java-project') { apply plugin: 'java' }
             project(':groovy-project') { apply plugin: 'groovy' }
             project(':scala-project') { apply plugin: 'scala' }
         """
-        file('settings.gradle') << """
+        settingsFile << """
             rootProject.name = 'root'
             include 'java-project', 'groovy-project', 'scala-project'
         """
@@ -91,7 +91,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.9")
     def "custom added natures are returned"() {
         given:
-        file('build.gradle') << """
+        buildFile << """
             apply plugin: 'eclipse'
             eclipse {
                 project {
@@ -99,7 +99,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
-        file('settings.gradle') << "rootProject.name = 'root'"
+        settingsFile << "rootProject.name = 'root'"
 
         when:
         EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
@@ -111,7 +111,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.9")
     def "Java project returns Java nature along with custom natures"() {
         given:
-        file('build.gradle') << """
+        buildFile << """
             apply plugin: 'java'
             apply plugin: 'eclipse'
             eclipse {
@@ -121,7 +121,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
-        file('settings.gradle') << "rootProject.name = 'root'"
+        settingsFile << "rootProject.name = 'root'"
 
         when:
         EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
@@ -133,7 +133,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=1.0-milestone-8 <2.9")
     def "older Gradle versions throw exception when querying build commands"() {
         given:
-        file('settings.gradle') << "rootProject.name = 'root'"
+        settingsFile << "rootProject.name = 'root'"
 
         when:
         EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
@@ -146,8 +146,8 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.9")
     def "applying plugins configure appropriate build commands"() {
         given:
-        plugins.each { plugin -> file('build.gradle') << "apply plugin: '${plugin}'\n" }
-        file('settings.gradle') << "rootProject.name = 'root'"
+        plugins.each { plugin -> buildFile << "apply plugin: '${plugin}'\n" }
+        settingsFile << "rootProject.name = 'root'"
 
         when:
         EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
@@ -170,11 +170,11 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.9")
     def "multi-module build defines different build commands for each modules"(){
         given:
-        file('build.gradle') << """
+        buildFile << """
             project(':java-project') { apply plugin: 'java' }
             project(':scala-project') { apply plugin: 'scala' }
         """
-        file('settings.gradle') << """
+        settingsFile << """
             rootProject.name = 'root'
             include 'java-project', 'scala-project'
         """
@@ -193,7 +193,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.9")
     def "custom added build commands are returned"() {
         given:
-        file('build.gradle') << """
+        buildFile << """
             apply plugin: 'eclipse'
             eclipse {
                 project {
@@ -202,7 +202,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
-        file('settings.gradle') << "rootProject.name = 'root'"
+        settingsFile << "rootProject.name = 'root'"
 
         when:
         EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }
@@ -221,7 +221,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.9")
     def "Java project returns Java build command along with custom ones"() {
         given:
-        file('build.gradle') << """
+        buildFile << """
             apply plugin: 'java'
             apply plugin: 'eclipse'
             eclipse {
@@ -230,7 +230,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
-        file('settings.gradle') << "rootProject.name = 'root'"
+        settingsFile << "rootProject.name = 'root'"
 
         when:
         EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject) }

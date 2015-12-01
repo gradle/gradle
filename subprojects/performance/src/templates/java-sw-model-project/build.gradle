@@ -1,20 +1,19 @@
 import org.gradle.api.plugins.quality.Checkstyle
-import org.gradle.jvm.JvmLibrarySpec
-import org.gradle.model.*
-import org.gradle.platform.base.BinaryContainer
-import org.gradle.platform.base.BinarySpec
 
 plugins {
     id 'jvm-component'
     id 'java-lang'
 }
 
+repositories {
+    jcenter()
+}
+
 <% if (repository) { %>
 repositories {
     maven {
-        url new File(rootDir, "${repository.rootDir.name}").toURL()
+        url rootProject.file("${repository.rootDir.name}").toURI().toURL()
     }
-    mavenCentral()
 }
 <% } %>
 
@@ -39,18 +38,41 @@ model {
             def projectDependencies = generatedDependencies.get(subprojectNumber)
             if(projectDependencies) {
             %> {
+            <% if(binding.hasVariable('useApiDependencies') && useApiDependencies) { %>
+            api {
+            <% } else { %>
             sources {
                 java {
-                    dependencies {<%
-                        projectDependencies.each {
-%>
-                        project ':project${it}' library 'main'<%
-                        } %>
-                    }
+            <% } %>
+                dependencies {
+                    <%
+                    projectDependencies.each {
+%>                  project ':project${it}' library 'main'
+                    <% } %>
                 }
+            <% if(binding.hasVariable('useApiDependencies') && useApiDependencies) { %>
+            }
+            <% } else { %>
+               }
+            }
+            <% } %>
+        }
+<% } } %>
+        <% if (binding.hasVariable("apiExports")) {
+            def apiExports = apiExports.get(subprojectNumber)
+            if(apiExports) {
+            %>
+        main {
+            api {
+                <%
+                apiExports.each {
+                    %>
+                    exports '${it}'
+                <% } %>
             }
         }
 <% } } %>
+        <% if (binding.hasVariable('testComponent') && testComponent) { %>
         test(JvmLibrarySpec) {
             sources {
                 java {
@@ -60,6 +82,7 @@ model {
                 }
             }
         }
+        <% } %>
     }
 }
 
@@ -78,6 +101,7 @@ class ClasspathWiring extends RuleSource {
     }
 }
 
+<% if (binding.hasVariable('testComponent') && testComponent) { %>
 class TestTaskWiring extends RuleSource {
     @Mutate
     void createTestTask(ModelMap<Task> tasks, ModelMap<BinarySpec> binaries, ModelMap<JvmLibrarySpec> libraries) {
@@ -109,6 +133,7 @@ class TestTaskWiring extends RuleSource {
         new File(new File(project.buildDir, 'reports'), testReportDirName)
     }
 }
+<% } %>
 
 class CheckstyleWiring extends RuleSource {
     @Mutate
@@ -137,5 +162,7 @@ class CheckstyleWiring extends RuleSource {
 }
 
 apply plugin: ClasspathWiring
-apply plugin: TestTaskWiring
 apply plugin: CheckstyleWiring
+<% if (binding.hasVariable('testComponent') && testComponent) { %>
+apply plugin: TestTaskWiring
+<% } %>

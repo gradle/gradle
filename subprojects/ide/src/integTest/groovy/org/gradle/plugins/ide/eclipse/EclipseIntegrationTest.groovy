@@ -18,6 +18,7 @@ import junit.framework.AssertionFailedError
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
@@ -152,6 +153,26 @@ dependencies {
         """
 
         libEntriesInClasspathFileHaveFilenames(artifact1.name, artifact2.name)
+    }
+
+    @Test
+    void canConfigureTargetRuntimeName() {
+
+        runEclipseTask """
+apply plugin: "java"
+apply plugin: "eclipse"
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+eclipse {
+    jdt {
+        javaRuntimeName = "Jigsaw-1.9"
+    }
+}"""
+
+        assert classpath.containers == ["org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/Jigsaw-1.9/"]
     }
 
     @Test
@@ -332,6 +353,49 @@ eclipse.jdt {
         def jdt = parseJdtFile()
         assert jdt.contains('source=1.4')
         assert jdt.contains('targetPlatform=1.3')
+    }
+
+    @Test
+    void sourceAndTargetCompatibilityDefaultIsCurrentJavaVersion() {
+        runEclipseTask '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+'''
+        def jdt = parseJdtFile()
+        assert jdt.contains('source=' + JavaVersion.current().toString())
+        assert jdt.contains('targetPlatform=' + JavaVersion.current().toString())
+    }
+
+    @Test
+    void sourceAndTargetCompatibilityDefinedInPluginConvention() {
+        runEclipseTask '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+    sourceCompatibility = 1.4
+    targetCompatibility = 1.3
+'''
+        def jdt = parseJdtFile()
+        assert jdt.contains('source=1.4')
+        assert jdt.contains('targetPlatform=1.3')
+    }
+
+    @Test
+    void jdtSettingsHasPrecedenceOverJavaPluginConvention() {
+        runEclipseTask '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+sourceCompatibility = 1.4
+targetCompatibility = 1.5
+eclipse {
+    jdt {
+        sourceCompatibility = 1.3
+        targetCompatibility = 1.4
+    }
+}
+'''
+        def jdt = parseJdtFile()
+        assert jdt.contains('source=1.3')
+        assert jdt.contains('targetPlatform=1.4')
     }
 
     @Test

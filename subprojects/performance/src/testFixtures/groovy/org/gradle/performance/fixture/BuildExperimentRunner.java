@@ -41,7 +41,7 @@ public class BuildExperimentRunner {
         MemoryInfoCollector memoryInfoCollector = new MemoryInfoCollector();
         memoryInfoCollector.setOutputFileName("build/totalMemoryUsed.txt");
         BuildEventTimestampCollector buildEventTimestampCollector = new BuildEventTimestampCollector("build/buildEventTimestamps.txt");
-        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector);
+        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector, new CompilationLoggingCollector());
     }
 
     public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
@@ -53,6 +53,9 @@ public class BuildExperimentRunner {
         final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
         final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
         additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
+        if (System.getProperty("org.gradle.performance.heapdump") != null) {
+            additionalArgs.add("-Pheapdump");
+        }
 
         GradleInvocationSpec buildSpec = experiment.getInvocation().withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
         File projectDir = buildSpec.getWorkingDirectory();
@@ -157,7 +160,7 @@ public class BuildExperimentRunner {
 
         if (!omitMeasurement.get()) {
             if (operation.getException() == null) {
-                dataCollector.collect(session.getInvocation().getWorkingDirectory(), operation);
+                dataCollector.collect(invocationInfo, operation);
             }
 
             results.add(operation);

@@ -73,10 +73,12 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                 return true;
             }
 
-            Properties currentProperties = GUtil.loadProperties(propertiesFile);
+            Properties cachedProperties = GUtil.loadProperties(propertiesFile);
             for (Map.Entry<?, ?> entry : properties.entrySet()) {
-                if (!entry.getValue().toString().equals(currentProperties.getProperty(entry.getKey().toString()))) {
-                    LOGGER.debug("Invalidating {} as cache property {} has changed value.", this, entry.getKey());
+                String previousValue = cachedProperties.getProperty(entry.getKey().toString());
+                String currentValue = entry.getValue().toString();
+                if (!previousValue.equals(currentValue)) {
+                    LOGGER.debug("Invalidating {} as cache property {} has changed from {} to {}.", this, entry.getKey(), previousValue, currentValue);
                     return true;
                 }
             }

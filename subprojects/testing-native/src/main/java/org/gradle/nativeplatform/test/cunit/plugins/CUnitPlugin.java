@@ -68,15 +68,14 @@ public class CUnitPlugin implements Plugin<Project> {
                 testSuites.create(suiteName, CUnitTestSuiteSpec.class, new Action<CUnitTestSuiteSpec>() {
                     @Override
                     public void execute(CUnitTestSuiteSpec testSuite) {
-                        DefaultCUnitTestSuiteSpec cunitTestSuite = (DefaultCUnitTestSuiteSpec) testSuite;
-                        cunitTestSuite.setTestedComponent(component);
+                        testSuite.setTestedComponent(component);
                     }
                 });
             }
         }
-
+        
         @ComponentType
-        public  void registerCUnitTestSuiteSpecType(ComponentTypeBuilder<CUnitTestSuiteSpec> builder) {
+        public void registerCUnitTestSuiteSpecType(ComponentTypeBuilder<CUnitTestSuiteSpec> builder) {
             builder.defaultImplementation(DefaultCUnitTestSuiteSpec.class);
         }
 

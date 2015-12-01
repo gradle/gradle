@@ -43,7 +43,7 @@ public class WatchServiceFileWatcherBacking {
     private final AtomicBoolean stopped = new AtomicBoolean();
 
     private final Action<? super Throwable> onError;
-    private final FileWatcherListener listener;
+    private final WatchServiceRegistrar watchServiceRegistrar;
     private final WatchService watchService;
     private final WatchServicePoller poller;
 
@@ -54,14 +54,19 @@ public class WatchServiceFileWatcherBacking {
         }
 
         @Override
+        public void watch(FileSystemSubset fileSystemSubset) throws IOException {
+            WatchServiceFileWatcherBacking.this.watchServiceRegistrar.watch(fileSystemSubset);
+        }
+
+        @Override
         public void stop() {
             WatchServiceFileWatcherBacking.this.stop();
         }
     };
 
-    WatchServiceFileWatcherBacking(FileSystemSubset fileSystemSubset, Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService) throws IOException {
+    WatchServiceFileWatcherBacking(Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService) throws IOException {
         this.onError = onError;
-        this.listener = new WatchServiceRegistrar(watchService, fileSystemSubset, listener);
+        this.watchServiceRegistrar = new WatchServiceRegistrar(watchService, listener);
         this.watchService = watchService;
         this.poller = new WatchServicePoller(watchService);
     }
@@ -128,7 +133,7 @@ public class WatchServiceFileWatcherBacking {
             if (!isRunning()) {
                 break;
             }
-            listener.onChange(fileWatcher, event);
+            watchServiceRegistrar.onChange(fileWatcher, event);
         }
     }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.core
 
-import org.gradle.internal.util.BiFunction
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType
@@ -49,7 +48,7 @@ class BaseInstanceFactoryTest extends Specification {
 
     def instanceFactory = new BaseInstanceFactory<ThingSpec>("things", ThingSpec, BaseThingSpec)
     def node = Mock(MutableModelNode)
-    def factoryMock = Mock(BiFunction)
+    def factoryMock = Mock(InstanceFactory.ImplementationFactory)
 
     def "can register public type"() {
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
@@ -119,15 +118,17 @@ class BaseInstanceFactoryTest extends Specification {
 
     def "can create instance"() {
         def thingMock = Mock(ThingSpec)
-        def nodeMOck = Mock(MutableModelNode)
+        def nodeMock = Mock(MutableModelNode)
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
             .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
 
         when:
-        def instance = instanceFactory.create(ModelType.of(ThingSpec), nodeMOck, "test")
+        def instance = instanceFactory.getImplementationInfo(ModelType.of(ThingSpec)).create(nodeMock)
+
         then:
         instance == thingMock
-        1 * factoryMock.apply("test", nodeMOck) >> { thingMock }
+        _ * nodeMock.path >> ModelPath.path("node.test")
+        1 * factoryMock.create(ModelType.of(ThingSpec), "test", nodeMock) >> { thingMock }
         0 * _
     }
 
@@ -136,7 +137,7 @@ class BaseInstanceFactoryTest extends Specification {
             .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
 
         when:
-        instanceFactory.create(ModelType.of(OtherThingSpec), Mock(MutableModelNode), "test")
+        instanceFactory.getImplementationInfo(ModelType.of(OtherThingSpec))
         then:
         def ex = thrown IllegalArgumentException
         ex.message == "Cannot create a '$OtherThingSpec.name' because this type is not known to things. Known types are: $ThingSpec.name"

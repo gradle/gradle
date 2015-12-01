@@ -19,13 +19,12 @@ package org.gradle.model.internal.inspect;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.projection.ManagedModelProjection;
 import org.gradle.model.internal.manage.schema.ManagedImplStructSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,36 +40,32 @@ public class ManagedModelInitializer<T> extends AbstractManagedModelInitializer<
         return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
             .put(ModelActionRole.Discover, DirectNodeInputUsingModelAction.of(subject, descriptor,
                 Arrays.<ModelReference<?>>asList(
-                    ModelReference.of(ModelSchemaStore.class),
                     ModelReference.of(ManagedProxyFactory.class),
-                    ModelReference.of(ServiceRegistry.class)
+                    ModelReference.of(TypeConverter.class)
                 ),
                 new BiAction<MutableModelNode, List<ModelView<?>>>() {
                     @Override
                     public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> modelViews) {
-                        ModelSchemaStore schemaStore = ModelViews.getInstance(modelViews.get(0), ModelSchemaStore.class);
-                        ManagedProxyFactory proxyFactory = ModelViews.getInstance(modelViews.get(1), ManagedProxyFactory.class);
-                        ServiceRegistry serviceRegistry = ModelViews.getInstance(modelViews.get(2), ServiceRegistry.class);
-                        mutableModelNode.addProjection(new ManagedModelProjection<T>(schema, null, schemaStore, proxyFactory, serviceRegistry));
+                        ManagedProxyFactory proxyFactory = ModelViews.getInstance(modelViews.get(0), ManagedProxyFactory.class);
+                        TypeConverter typeConverter = ModelViews.getInstance(modelViews, 1, TypeConverter.class);
+                        mutableModelNode.addProjection(new ManagedModelProjection<T>(schema, null, proxyFactory, typeConverter));
                     }
                 }
             ))
             .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
                 Arrays.<ModelReference<?>>asList(
                     ModelReference.of(NodeInitializerRegistry.class),
-                    ModelReference.of(ModelSchemaStore.class),
                     ModelReference.of(ManagedProxyFactory.class),
-                    ModelReference.of(ServiceRegistry.class)
+                    ModelReference.of(TypeConverter.class)
                 ),
                 new BiAction<MutableModelNode, List<ModelView<?>>>() {
                     @Override
                     public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
                         NodeInitializerRegistry nodeInitializerRegistry = ModelViews.getInstance(modelViews, 0, NodeInitializerRegistry.class);
-                        ModelSchemaStore schemaStore = ModelViews.getInstance(modelViews, 1, ModelSchemaStore.class);
-                        ManagedProxyFactory proxyFactory = ModelViews.getInstance(modelViews, 2, ManagedProxyFactory.class);
-                        ServiceRegistry serviceRegistry = ModelViews.getInstance(modelViews, 3, ServiceRegistry.class);
+                        ManagedProxyFactory proxyFactory = ModelViews.getInstance(modelViews, 1, ManagedProxyFactory.class);
+                        TypeConverter typeConverter = ModelViews.getInstance(modelViews, 2, TypeConverter.class);
 
-                        addPropertyLinks(modelNode, nodeInitializerRegistry, schemaStore, proxyFactory, serviceRegistry, schema.getProperties());
+                        addPropertyLinks(modelNode, nodeInitializerRegistry, proxyFactory, schema.getProperties(), typeConverter);
                     }
                 }
             ))

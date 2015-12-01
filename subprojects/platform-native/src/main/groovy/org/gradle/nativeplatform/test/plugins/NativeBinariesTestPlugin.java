@@ -33,8 +33,6 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
-import java.io.File;
-
 /**
  * A plugin that sets up the infrastructure for testing native binaries.
  */
@@ -77,7 +75,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
                 final InstallExecutable installTask = binary.getTasks().withType(InstallExecutable.class).iterator().next();
                 runTask.getInputs().files(installTask.getOutputs().getFiles());
                 runTask.setExecutable(installTask.getRunScript().getPath());
-                runTask.setOutputDir(new File(project.getBuildDir(), "/test-results/" + namingScheme.getOutputDirectoryBase()));
+                runTask.setOutputDir(namingScheme.getOutputDirectory(project.getBuildDir(), "test-results"));
 
                 testBinary.getTasks().add(runTask);
             }
@@ -86,8 +84,8 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         @Defaults
         public void copyTestBinariesToGlobalContainer(ModelMap<BinarySpec> binaries, TestSuiteContainer testSuites) {
             for (TestSuiteSpec testSuite : testSuites.withType(TestSuiteSpec.class).values()) {
-                for (BinarySpec binary : testSuite.getBinaries().values()) {
-                    binaries.put(((BinarySpecInternal) binary).getProjectScopedName(), binary);
+                for (BinarySpecInternal binary : testSuite.getBinaries().withType(BinarySpecInternal.class).values()) {
+                    binaries.put(binary.getProjectScopedName(), binary);
                 }
             }
         }

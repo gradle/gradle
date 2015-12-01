@@ -71,7 +71,7 @@ public class ModelRuleExtractor {
     }
 
     private static RuntimeException invalid(Class<?> source, String reason, Throwable throwable) {
-        return new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid model rule source: " + reason, throwable);
+        return new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid rule source: " + reason, throwable);
     }
 
     private static RuntimeException invalidMethod(Method method, String reason) {
@@ -90,7 +90,7 @@ public class ModelRuleExtractor {
 
     private static RuntimeException invalid(String ruleDescription, String reason) {
         StringBuilder sb = new StringBuilder();
-        sb.append(ruleDescription).append(" is not a valid model rule method").append(": ").append(reason);
+        sb.append(ruleDescription).append(" is not a valid rule method").append(": ").append(reason);
         return new InvalidModelRuleDeclarationException(sb.toString());
     }
 
@@ -118,18 +118,16 @@ public class ModelRuleExtractor {
         ImmutableList.Builder<ExtractedModelRule> registrations = ImmutableList.builder();
 
         for (Method method : methods) {
-            if (method.getTypeParameters().length > 0) {
-                throw invalidMethod(method, "cannot have type variables (i.e. cannot be a generic method)");
-            }
-
             MethodRuleDefinition<?, ?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
             MethodModelRuleExtractor handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
-                validateMethod(method);
+                validateRuleMethod(method);
                 ExtractedModelRule registration = handler.registration(ruleDefinition);
                 if (registration != null) {
                     registrations.add(registration);
                 }
+            } else {
+                validateNonRuleMethod(method);
             }
         }
         return registrations.build();
@@ -209,7 +207,15 @@ public class ModelRuleExtractor {
         }
     }
 
-    private void validateMethod(Method ruleMethod) {
+    private void validateRuleMethod(Method ruleMethod) {
+        if (Modifier.isPrivate(ruleMethod.getModifiers())) {
+            throw invalidMethod(ruleMethod, "a rule method cannot be private");
+        }
+
+        if (ruleMethod.getTypeParameters().length > 0) {
+            throw invalidMethod(ruleMethod, "cannot have type variables (i.e. cannot be a generic method)");
+        }
+
         // TODO validations on method: synthetic, bridge methods, varargs, abstract, native
         ModelType<?> returnType = ModelType.returnType(ruleMethod);
         if (returnType.isRawClassOfParameterizedType()) {
@@ -223,6 +229,12 @@ public class ModelRuleExtractor {
             if (modelType.isRawClassOfParameterizedType()) {
                 throw invalidMethod(ruleMethod, "raw type " + modelType + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
             }
+        }
+    }
+
+    private void validateNonRuleMethod(Method method) {
+        if (!Modifier.isPrivate(method.getModifiers()) && !Modifier.isStatic(method.getModifiers()) && !method.isSynthetic()) {
+            throw invalidMethod(method, "a method that is not annotated as a rule must be private");
         }
     }
 

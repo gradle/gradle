@@ -13,20 +13,25 @@
 - Replace `$('path')` with `$.path`
 - Update user guide to mention syntax
 - Update samples to use this syntax
-- TBD: Handle case where path traverses an unmanaged element, eg `$.tasks.compileJava.destinationDir`
 
 ### Test cases
 
 - Cannot use `$` expressions in non-transformed closure.
 
+### Backlog
+
+- Handle case where path traverses an unmanaged element, eg `$.tasks.compileJava.destinationDir`
+- Improve error message when `$.p` expression is used outside a `model { }` block.
+
 ## Story: DSL rule configures elements of ModelMap
 
 - Apply to creation, configure by name, configure all, configure all with type, before each, after each, etc.
-- Apply to chained withType and rule method calls
+- Apply to chained `withType()` and rule method calls
 - Allow arbitrary code to do:
     - for each in collection, apply a rule
     - if some condition is true, apply a rule
     - TBD: handle `each { ... }`, `with { ... }` etc
+    - TBD: handle `{ binaries.all { ... } }` etc
 - Allow configuration of an element to take the configuration of a sibling as input.
 - Prevent unqualified access to owner closure
 - Out-of-scope: allow configuration of an element to take the configuration of siblings with type as input.
@@ -65,11 +70,19 @@ For example:
         }
     }
 
-## Story: DSL rule configures child of a structure
+### Test cases
 
-- Defer configuration, apply only to rule targets, eg nested structured or nested model containers.
+- Works with `ModelMap<T>` and specialized subtypes such as `ComponentSpecContainer`.
+
+## Story: DSL rule configures children of a `@Managed` type
+
+- Allow deferred configuration of any property of any non-scalar type of a `@Managed` type, by mixing in configuration methods that accept a Groovy closure.
+- When used from Groovy, these methods attach the closure as a rule action.
+- When used from the model DSL, these methods define a nested rule.
 - Allow configuration for a nested structure to take configuration for a sibling as input.
 - Allow arbitrary code to conditionally configure a nested target.
+- TBD: Apply to properties of non-managed software model types and views, and remove ad-hoc configure methods.
+- TBD: Apply only to mutable views?
 
 For example:
 
@@ -77,14 +90,52 @@ For example:
         components {
             main {
                 sources {
-                    baseDir = $.project.projectDir('src')
+                    java {
+                        baseDir = $.project.projectDir('src')
+                    }
                 }
                 binaries {
-                    outputDir = $.sources.baseDir
+                    jar {
+                        outputDir = $.sources.java.baseDir
+                    }
                 }
             }
         }
     }
+
+### Test cases
+
+- Configuration is deferred when applied to property.
+- Works for properties with `@Managed` type, software model type, `ModelMap`, `ModelSet`, `List`, `Set`, unmanaged type.
+- Works for subject that is a `@Managed` model elements.
+- Works for subject that is a `@Managed` subtype of software model type.
+- Works for subject that is a `@Managed` internal view of software model type.
+- Does not work for properties with scalar type.
+
+## Story: DSL rule configures children of a `ModelSet`
+
+- Apply to creation, before each, after each, etc.
+- Apply to chained `withType()` and rule method calls
+
+For example:
+
+    model {
+        someSet {
+            create {
+                // ...
+            }
+            beforeEach {
+                // ...
+            }
+            afterEach {
+                // ...
+            }
+        }
+    }
+
+### Backlog
+
+- Apply some builder pattern, so that dependencies can be backed by a `ModelSet`.
 
 ## Story: DSL rule references input relative to subject
 
@@ -115,17 +166,6 @@ For example:
 ### Test cases
 
 - Can configure a component using a sibling component as input.
-
-## Story: DSL rule references input relative to another input reference
-
-    model {
-        thing {
-            def c = $.a.b.c
-            all {
-                value = c.d.e // reference to a.b.c.d.e
-            }
-        }
-    }
 
 ## Story: DSL rule configures task action
 
@@ -202,4 +242,6 @@ For example:
 - Property references instead of nesting for simple configuration
 - Nice error reporting
 - Possibly use `?.` to allow optional references?
+- Possibly use `['name']` expressions in input references?
+- Support DSL rule references input relative to another input reference
 - Etc

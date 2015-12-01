@@ -18,8 +18,11 @@ package org.gradle.plugins.ide.internal.tooling.eclipse
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.GroovyPlugin
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
@@ -28,6 +31,7 @@ import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.tooling.internal.gradle.DefaultGradleProject
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class EclipseModelBuilderTest extends Specification {
 
@@ -39,7 +43,7 @@ class EclipseModelBuilderTest extends Specification {
         project = TestUtil.builder().withName("project").build()
         child1 = TestUtil.builder().withName("child1").withParent(project).build()
         child2 = TestUtil.builder().withName("child2").withParent(project).build()
-        [project, child1, child2].each{ it.pluginManager.apply(EclipsePlugin.class) }
+        [project, child1, child2].each { it.pluginManager.apply(EclipsePlugin.class) }
     }
 
     def "can read natures"() {
@@ -51,7 +55,7 @@ class EclipseModelBuilderTest extends Specification {
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.projectNatures.collect{ it.id } == ['nature.a', 'nature.b']
+        eclipseModel.projectNatures.collect { it.id } == ['nature.a', 'nature.b']
     }
 
     def "nature list independent from project hierarchy"() {
@@ -65,11 +69,11 @@ class EclipseModelBuilderTest extends Specification {
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.projectNatures.collect{ it.id } == ['nature.for.root']
+        eclipseModel.projectNatures.collect { it.id } == ['nature.for.root']
         eclipseModel.children[0].name == 'child1'
-        eclipseModel.children[0].projectNatures.collect{ it.id } == ['nature.for.child1']
+        eclipseModel.children[0].projectNatures.collect { it.id } == ['nature.for.child1']
         eclipseModel.children[1].name == 'child2'
-        eclipseModel.children[1].projectNatures.collect{ it.id } == ['nature.for.child2']
+        eclipseModel.children[1].projectNatures.collect { it.id } == ['nature.for.child2']
     }
 
     def "can read build commands"() {
@@ -84,8 +88,8 @@ class EclipseModelBuilderTest extends Specification {
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.buildCommands.collect{ it.name } == ['buildCommandWithoutArguments', 'buildCommandWithArguments']
-        eclipseModel.buildCommands.collect{ it.arguments } == [[:], ['argumentOneKey': 'argumentOneValue', 'argumentTwoKey': 'argumentTwoValue']]
+        eclipseModel.buildCommands.collect { it.name } == ['buildCommandWithoutArguments', 'buildCommandWithArguments']
+        eclipseModel.buildCommands.collect { it.arguments } == [[:], ['argumentOneKey': 'argumentOneValue', 'argumentTwoKey': 'argumentTwoValue']]
     }
 
     def "build command list independent from project hierarchy"() {
@@ -99,17 +103,17 @@ class EclipseModelBuilderTest extends Specification {
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.buildCommands.collect{ it.name } == ['rootBuildCommand']
-        eclipseModel.buildCommands.collect{ it.arguments } == [ ['rootKey': 'rootValue'] ]
+        eclipseModel.buildCommands.collect { it.name } == ['rootBuildCommand']
+        eclipseModel.buildCommands.collect { it.arguments } == [['rootKey': 'rootValue']]
         eclipseModel.children[0].name == 'child1'
-        eclipseModel.children[0].buildCommands.collect{ it.name } == ['child1BuildCommand']
-        eclipseModel.children[0].buildCommands.collect{ it.arguments } == [['child1Key': 'child1Value']]
+        eclipseModel.children[0].buildCommands.collect { it.name } == ['child1BuildCommand']
+        eclipseModel.children[0].buildCommands.collect { it.arguments } == [['child1Key': 'child1Value']]
         eclipseModel.children[1].name == 'child2'
-        eclipseModel.children[1].buildCommands.collect{ it.name } == ['child2BuildCommand']
-        eclipseModel.children[1].buildCommands.collect{ it.arguments } == [['child2Key': 'child2Value']]
+        eclipseModel.children[1].buildCommands.collect { it.name } == ['child2BuildCommand']
+        eclipseModel.children[1].buildCommands.collect { it.arguments } == [['child2Key': 'child2Value']]
     }
 
-    def "no source language level set for non-Java projects"() {
+    def "no java source settings set for non-JVM projects"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
 
@@ -120,97 +124,110 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.javaSourceSettings == null
     }
 
-    def "default source language level is set for Java projects if source compatibility is not specified"() {
+    @Unroll
+    def "default #type language level are set for #projectType projects if compatibility setting not specified"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
-        project.plugins.apply(plugin)
+        project.plugins.apply(pluginType)
 
         when:
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.javaSourceSettings.languageLevel.level == JavaVersion.current().toString()
+        eclipseModel.javaSourceSettings."$languageLevelProperty" == JavaVersion.current()
 
         where:
-        plugin << [JavaPlugin, GroovyPlugin, ScalaPlugin]
+        type     | compatibilityProperty | languageLevelProperty     | projectType | pluginType
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"     | "java"      | JavaBasePlugin
+        "target" | "targetCompatibility" | "targetBytecodeLevel" | "java"      | JavaBasePlugin
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"     | "scala"     | ScalaBasePlugin
+        "target" | "targetCompatibility" | "targetBytecodeLevel" | "scala"     | ScalaBasePlugin
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"     | "groovy"    | GroovyBasePlugin
+        "target" | "targetCompatibility" | "targetBytecodeLevel" | "groovy"    | GroovyBasePlugin
     }
 
-    def "default source language level is set for Java projects if source compatibility is set to null"() {
+    def "default language levels are set for JVM projects if compatibility is set to null"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
-        project.plugins.apply(plugin)
+        project.plugins.apply(pluginType)
         project.sourceCompatibility = null
+        project.targetCompatibility = null
 
         when:
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.javaSourceSettings.languageLevel.level == JavaVersion.current().toString()
+        eclipseModel.javaSourceSettings.sourceLanguageLevel == org.gradle.api.JavaVersion.current()
+        eclipseModel.javaSourceSettings.targetBytecodeLevel == org.gradle.api.JavaVersion.current()
 
         where:
-        plugin << [JavaPlugin, GroovyPlugin, ScalaPlugin]
+        pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
     }
 
-    def "custom source language level from Java plugin convention"() {
+    @Unroll
+    def "custom #type language level derived Java plugin convention"() {
         given:
-
         def modelBuilder = createEclipseModelBuilder()
         project.plugins.apply(JavaPlugin)
-        project.sourceCompatibility = "1.2"
+        project."$compatibilityProperty" = "1.2"
 
         when:
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.javaSourceSettings.languageLevel.level == "1.2"
+        eclipseModel.javaSourceSettings."$languageLevelProperty" == JavaVersion.VERSION_1_2
+
+        where:
+        type     | compatibilityProperty | languageLevelProperty
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"
+        "target" | "targetCompatibility" | "targetBytecodeLevel"
     }
 
-    def "custom source language level from Eclipse JDT"() {
-        given:
-        def modelBuilder = createEclipseModelBuilder()
-        project.plugins.apply(JavaPlugin)
-        project.plugins.apply(EclipsePlugin)
-        project.eclipse.jdt.sourceCompatibility = "1.2"
-
-        when:
-        def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
-
-        then:
-        eclipseModel.javaSourceSettings.languageLevel.level == "1.2"
-    }
-
-    def "Eclipse JDT configuration takes precedence over Java plugin convention"() {
+    @Unroll
+    def "#type language level derived from eclipse jdt overrules java plugin convention configuration"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
         project.plugins.apply(JavaPlugin)
         project.plugins.apply(EclipsePlugin)
-        project.sourceCompatibility = "1.3"
-        project.eclipse.jdt.sourceCompatibility = "1.2"
+        project."$compatibilityProperty" = "1.2"
+        project.eclipse.jdt."$compatibilityProperty" = "1.3"
 
         when:
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.javaSourceSettings.languageLevel.level == "1.2"
+        eclipseModel.javaSourceSettings."$languageLevelProperty" == JavaVersion.VERSION_1_3
+
+        where:
+        type     | compatibilityProperty | languageLevelProperty
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"
+        "target" | "targetCompatibility" | "targetBytecodeLevel"
     }
 
-    def "multi-project build can have different source language level per project"() {
+
+    @Unroll
+    def "multi-project build can have different #type language level per project"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
         child1.plugins.apply(JavaPlugin)
         child1.plugins.apply(EclipsePlugin)
-        child1.eclipse.jdt.sourceCompatibility = "1.2"
+        child1.eclipse.jdt."$compatibilityProperty" = "1.2"
         child2.plugins.apply(JavaPlugin)
         child2.plugins.apply(EclipsePlugin)
-        child2.sourceCompatibility = "1.3"
-        child2.eclipse.jdt.sourceCompatibility = "1.1"
+        child2."$compatibilityProperty" = "1.3"
+        child2.eclipse.jdt."$compatibilityProperty" = "1.1"
 
         when:
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
-        eclipseModel.children.find{ it.name == "child1" }.javaSourceSettings.languageLevel.level == "1.2"
-        eclipseModel.children.find{ it.name == "child2" }.javaSourceSettings.languageLevel.level == "1.1"
+        eclipseModel.children.find { it.name == "child1" }.javaSourceSettings."$languageLevelProperty" == JavaVersion.VERSION_1_2
+        eclipseModel.children.find { it.name == "child2" }.javaSourceSettings."$languageLevelProperty" == JavaVersion.VERSION_1_1
+
+        where:
+        type     | compatibilityProperty | languageLevelProperty
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"
+        "target" | "targetCompatibility" | "targetBytecodeLevel"
     }
 
     private def createEclipseModelBuilder() {

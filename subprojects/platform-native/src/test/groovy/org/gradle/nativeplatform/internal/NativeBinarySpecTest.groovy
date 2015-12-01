@@ -17,11 +17,9 @@
 package org.gradle.nativeplatform.internal
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.nativeplatform.DependentSourceSet
-import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.nativeplatform.*
-import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
@@ -34,10 +32,9 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class NativeBinarySpecTest extends Specification {
-    def instantiator = DirectInstantiator.INSTANCE
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def component = BaseComponentFixtures.create(TestNativeComponentSpec, new ModelRegistryHelper(), id, instantiator)
+    def component = BaseComponentFixtures.createNode(NativeComponentSpec, TestNativeComponentSpec, id)
 
     def platform1 = Stub(NativePlatform) {
         getArchitecture() >> Architectures.forInput("i386")
@@ -142,9 +139,11 @@ class NativeBinarySpecTest extends Specification {
         binary.libs as List == [dep1, dep2, sourceDep]
     }
 
-    def testBinary(NativeComponentSpec owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        TestNativeBinariesFactory.create(TestNativeBinarySpec, "test", instantiator, Mock(ITaskFactory), owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver
-            , platform1, buildType1, flavor)
+    def testBinary(MutableModelNode componentNode, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
+        TestNativeBinariesFactory.create(
+            NativeBinarySpec, TestNativeBinarySpec, "test", Mock(ITaskFactory), componentNode,
+            DefaultBinaryNamingScheme.component("baseName"), resolver, platform1, buildType1, flavor
+        )
     }
 
     static class TestNativeComponentSpec extends AbstractNativeComponentSpec {

@@ -16,14 +16,9 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 
 public interface BinarySpecInternal extends BinarySpec {
-    ModelType<BinarySpec> PUBLIC_MODEL_TYPE = ModelType.of(BinarySpec.class);
-
     /**
      * Returns a name for this binary that is unique for all binaries in the current project.
      */
@@ -31,13 +26,13 @@ public interface BinarySpecInternal extends BinarySpec {
 
     Class<? extends BinarySpec> getPublicType();
 
-    void setPublicType(Class<? extends BinarySpec> publicType);
-
     void setBuildable(boolean buildable);
 
     BinaryBuildAbility getBuildAbility();
 
     boolean isLegacyBinary();
 
-    NamedDomainObjectFactoryRegistry<LanguageSourceSet> getEntityInstantiator();
+    BinaryNamingScheme getNamingScheme();
+
+    void setNamingScheme(BinaryNamingScheme namingScheme);
 }

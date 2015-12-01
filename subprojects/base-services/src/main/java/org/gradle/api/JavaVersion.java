@@ -26,7 +26,7 @@ public enum JavaVersion {
 
     private final boolean hasMajorVersion;
 
-    private JavaVersion(boolean hasMajorVersion) {
+    JavaVersion(boolean hasMajorVersion) {
         this.hasMajorVersion = hasMajorVersion;
     }
 

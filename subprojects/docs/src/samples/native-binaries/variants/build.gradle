@@ -74,10 +74,10 @@ model {
     // Tasks to build all binaries for a tool chain
     tasks {
         gccExecutables(Task) {
-            dependsOn $('binaries').findAll { it.toolChain in Gcc }
+            dependsOn $.binaries.findAll { it.toolChain in Gcc }
         }
         visualCppExecutables(Task) {
-            dependsOn $('binaries').findAll { it.toolChain in VisualCpp }
+            dependsOn $.binaries.findAll { it.toolChain in VisualCpp }
         }
     }
 }

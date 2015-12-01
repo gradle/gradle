@@ -50,7 +50,7 @@ public class Clock {
     }
 
     public long getTimeInMs() {
-        return timeProvider.getCurrentTime() - start;
+        return Math.max(timeProvider.getCurrentTime() - start, 0);
     }
 
     public void reset() {

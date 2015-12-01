@@ -16,6 +16,7 @@
 
 package org.gradle.language.base
 
+import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.ModelMap
 import org.gradle.model.collection.CollectionBuilder
@@ -25,29 +26,19 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
-interface SampleBinary extends BinarySpec {}
-interface OtherSampleBinary extends SampleBinary {}
+    @Managed interface SampleLibrary extends ComponentSpec {}
+    @Managed interface SampleBinary extends BinarySpec {}
+    @Managed interface OtherSampleBinary extends SampleBinary {}
 
-interface LibrarySourceSet extends LanguageSourceSet {}
-
-class DefaultLibrarySourceSet extends BaseLanguageSourceSet implements LibrarySourceSet { }
-
-class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
-
-class OtherSampleBinaryImpl extends BaseBinarySpec implements OtherSampleBinary {}
-
-interface SampleLibrary extends ComponentSpec {}
-
-class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
+    interface LibrarySourceSet extends LanguageSourceSet {}
+    class DefaultLibrarySourceSet extends BaseLanguageSourceSet implements LibrarySourceSet { }
 
     class MyBinaryDeclarationModel implements Plugin<Project> {
         void apply(final Project project) {}
 
         static class ComponentModel extends RuleSource {
             @ComponentType
-            void register(ComponentTypeBuilder<SampleLibrary> builder) {
-                builder.defaultImplementation(DefaultSampleLibrary)
-            }
+            void register(ComponentTypeBuilder<SampleLibrary> builder) {}
 
             @Mutate
             void createSampleComponentComponents(ModelMap<SampleLibrary> componentSpecs) {
@@ -59,14 +50,10 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
             }
 
             @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {
-                builder.defaultImplementation(DefaultSampleBinary)
-            }
+            void register(BinaryTypeBuilder<SampleBinary> builder) {}
 
             @BinaryType
-            void registerOther(BinaryTypeBuilder<OtherSampleBinary> builder) {
-                builder.defaultImplementation(OtherSampleBinaryImpl)
-            }
+            void registerOther(BinaryTypeBuilder<OtherSampleBinary> builder) {}
 
             @LanguageType
             void registerSourceSet(LanguageTypeBuilder<LibrarySourceSet> builder) {
@@ -90,14 +77,14 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
             tasks {
                 checkModel(Task) {
                     doLast {
-                        def binaries = $('binaries')
+                        def binaries = $.binaries
                         assert binaries.size() == 2
                         def sampleBinary = binaries.sampleLibBinary
                         def othersSampleBinary = binaries.sampleLibOtherBinary
                         assert sampleBinary instanceof SampleBinary
-                        assert sampleBinary.displayName == "DefaultSampleBinary 'sampleLib:binary'"
+                        assert sampleBinary.displayName == "SampleBinary 'sampleLib:binary'"
                         assert othersSampleBinary instanceof OtherSampleBinary
-                        assert othersSampleBinary.displayName == "OtherSampleBinaryImpl 'sampleLib:otherBinary'"
+                        assert othersSampleBinary.displayName == "OtherSampleBinary 'sampleLib:otherBinary'"
                     }
                 }
             }
@@ -117,18 +104,18 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
         when:
         succeeds "components"
         then:
-        output.contains(
-"""DefaultSampleLibrary 'sampleLib'
---------------------------------
+        output.contains("""
+SampleLibrary 'sampleLib'
+-------------------------
 
 Source sets
-    DefaultLibrarySourceSet 'sampleLib:librarySource'
+    LibrarySourceSet 'sampleLib:librarySource'
         srcDir: src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
-    DefaultSampleBinary 'sampleLib:binary'
+    SampleBinary 'sampleLib:binary'
         build using task: :sampleLibBinary
-    OtherSampleBinaryImpl 'sampleLib:otherBinary'
+    OtherSampleBinary 'sampleLib:otherBinary'
         build using task: :sampleLibOtherBinary
 """)
     }
@@ -141,13 +128,13 @@ Binaries
                 tasks {
                     checkSourceSets(Task) {
                         doLast {
-                            def binaries = $('binaries')
+                            def binaries = $.binaries
                             def sampleBinarySourceSet = binaries.sampleLibBinary.inputs.toList()[0]
                             def othersSampleBinarySourceSet = binaries.sampleLibOtherBinary.inputs.toList()[0]
-                            assert sampleBinarySourceSet instanceof DefaultLibrarySourceSet
-                            assert sampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
-                            assert othersSampleBinarySourceSet instanceof DefaultLibrarySourceSet
-                            assert othersSampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
+                            assert sampleBinarySourceSet instanceof LibrarySourceSet
+                            assert sampleBinarySourceSet.displayName == "LibrarySourceSet 'sampleLib:librarySource'"
+                            assert othersSampleBinarySourceSet instanceof LibrarySourceSet
+                            assert othersSampleBinarySourceSet.displayName == "LibrarySourceSet 'sampleLib:librarySource'"
                         }
                     }
                 }
@@ -179,7 +166,7 @@ Binaries
                 tasks {
                     tellTaskName(Task) {
                         doLast {
-                            def binaries = $('binaries')
+                            def binaries = $.binaries
                             assert binaries.sampleLibBinary.buildTask instanceof Task
                             assert binaries.sampleLibBinary.buildTask.name == "sampleLibBinary"
                         }
@@ -229,21 +216,92 @@ Binaries
         succeeds "components"
         then:
         output.contains("""
-DefaultSampleLibrary 'sampleLib'
---------------------------------
+SampleLibrary 'sampleLib'
+-------------------------
 
 Source sets
-    DefaultLibrarySourceSet 'sampleLib:librarySource'
+    LibrarySourceSet 'sampleLib:librarySource'
         srcDir: src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
-    DefaultSampleBinary 'sampleLib:1stBinary'
+    SampleBinary 'sampleLib:1stBinary'
         build using task: :sampleLib1stBinary
-    DefaultSampleBinary 'sampleLib:2ndBinary'
+    SampleBinary 'sampleLib:2ndBinary'
         build using task: :sampleLib2ndBinary
 """)
         where:
-        ruleInputs << ["SampleLibrary library, CustomModel myModel"]//,  "CustomModel myModel, SampleLibrary library"]
+        ruleInputs << ["SampleLibrary library, CustomModel myModel",  "CustomModel myModel, SampleLibrary library"]
+    }
+
+    def "ComponentBinaries rule operates with fully configured component"() {
+        given:
+        buildFile << """
+@Managed
+trait BinaryWithValue implements BinarySpec {
+    String valueFromComponent
+}
+@Managed
+trait ComponentWithValue implements ComponentSpec {
+    String valueForBinary
+}
+
+class MyComponentBinariesPlugin implements Plugin<Project> {
+    void apply(final Project project) {}
+
+    static class Rules extends RuleSource {
+        @ComponentType
+        void register(ComponentTypeBuilder<ComponentWithValue> builder) {}
+
+        @BinaryType
+        void register(BinaryTypeBuilder<BinaryWithValue> builder) {}
+        
+        @ComponentBinaries
+        void createBinaries(ModelMap<BinaryWithValue> binaries, ComponentWithValue component) {
+            assert component.valueForBinary == "configured-value"
+            binaries.create("myBinary") {
+                assert component.valueForBinary == "configured-value"
+                valueFromComponent = component.valueForBinary
+            }
+        }
+    }
+}
+
+apply plugin: MyComponentBinariesPlugin
+
+model {
+    components {
+        custom(ComponentWithValue) {
+            valueForBinary = "create-value"
+        }
+    }
+    components {
+        custom {
+            valueForBinary = "configured-value"
+        }
+    }
+    tasks {
+        checkModel(Task) {
+            doLast {
+                def component = \$.components.custom
+                assert component.binaries.size() == 1
+                def binary = component.binaries.myBinary
+
+                assert component.valueForBinary == "configured-value"
+                assert binary.valueFromComponent == "configured-value"
+            }
+        }
+    }
+}
+
+"""
+
+        when:
+        succeeds "model"
+
+        then:
+        def modelReport = ModelReportOutput.from(output).modelNode
+        assert modelReport.components.custom.valueForBinary.@nodeValue[0] == 'configured-value'
+        assert modelReport.components.custom.binaries.myBinary.valueFromComponent.@nodeValue[0] == 'configured-value'
     }
 
     String withSimpleComponentBinaries(Class<? extends CollectionBuilder> binariesContainerType = ModelMap) {
@@ -281,7 +339,7 @@ Binaries
         then:
         output.contains("""
 Binaries
-    DefaultSampleBinary 'sampleLib:derivedFromMethodName'
+    SampleBinary 'sampleLib:derivedFromMethodName'
         build using task: :sampleLibDerivedFromMethodName
 """)
     }

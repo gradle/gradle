@@ -27,6 +27,9 @@ dependencies {
 
 ext.integTestTasks = tasks.withType(Test).matching { !['test', 'java9Test'].contains(it.name) }
 
+/**
+ * Clean up cache files for older versions that aren't multi-process safe.
+ */
 def removeDodgyCacheFiles(File dir) {
     if (dir.directory) {
         for (File cacheDir : dir.listFiles()) {
@@ -44,6 +47,9 @@ def removeDodgyCacheFiles(File dir) {
     }
 }
 
+/**
+ * Removes state for versions that we're unlikely to ever need again, such as old snapshot versions.
+ */
 def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
     if (dir.directory) {
 
@@ -201,7 +207,8 @@ allprojects {
 
 integTestTasks.all { Test task ->
     dependsOn ':intTestImage'
-    finalizedBy(':cleanUpDaemons', ':cleanUpCaches')
+    dependsOn ':cleanUpCaches'
+    finalizedBy ':cleanUpDaemons'
     shouldRunAfter 'test'
 
     testClassesDir = sourceSets.integTest.output.classesDir

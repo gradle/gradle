@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import com.google.common.io.Files;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
@@ -28,13 +29,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.util.CollectionUtils;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -137,7 +133,7 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     private class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
         private final RelativePath path;
         private final Action<OutputStream> generator;
-        private final long lastModified;
+        private long lastModified;
         private final AtomicBoolean stopFlag;
         private File file;
 
@@ -161,7 +157,36 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         public File getFile() {
             if (file == null) {
                 file = createFileInstance(path);
-                copyTo(file);
+                if (!file.exists()) {
+                    copyTo(file);
+                } else if (!isDirectory()) {
+                    ByteArrayOutputStream buffer = new ByteArrayOutputStream(Math.max(((int) file.length()) + 64, 256));
+                    copyTo(buffer);
+                    byte[] newContent = buffer.toByteArray();
+                    boolean changed = false;
+                    if (newContent.length == file.length()) {
+                        try {
+                            byte[] oldContent = Files.toByteArray(file);
+                            if (!Arrays.equals(newContent, oldContent)) {
+                                changed = true;
+                            }
+                        } catch (IOException e) {
+                            // attempt to write new file if reading old file fails
+                            changed = true;
+                        }
+                    } else {
+                        changed = true;
+                    }
+                    if (changed) {
+                        try {
+                            Files.write(newContent, file);
+                        } catch (IOException e) {
+                            throw new org.gradle.api.UncheckedIOException(e);
+                        }
+                    }
+                }
+                // round to nearest second
+                lastModified = file.lastModified() / 1000 * 1000;
             }
             return file;
         }
@@ -171,6 +196,7 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         public long getLastModified() {
+            getFile();
             return lastModified;
         }
 

@@ -27,6 +27,7 @@ import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
@@ -82,9 +83,9 @@ public class ComponentRules extends RuleSource {
         // If there is a transform for the language into one of the component inputs, add a default source set
         void registerLanguageTypes(final ComponentSpecInternal component) {
             for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
-                if (languageTransform.getSourceSetType().equals(languageRegistration.getSourceSetType())
+                if (ModelType.of(languageTransform.getSourceSetType()).equals(languageRegistration.getSourceSetType())
                     && component.getInputTypes().contains(languageTransform.getOutputType())) {
-                    component.getSources().create(languageRegistration.getName(), languageRegistration.getSourceSetType());
+                    component.getSources().create(languageRegistration.getName(), languageRegistration.getSourceSetType().getConcreteClass());
                     return;
                 }
             }

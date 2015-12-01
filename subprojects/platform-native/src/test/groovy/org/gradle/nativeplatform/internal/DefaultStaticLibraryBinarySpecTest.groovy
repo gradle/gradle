@@ -20,11 +20,10 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
-import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.BuildType
-import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
+import org.gradle.nativeplatform.NativeLibrarySpec
+import org.gradle.nativeplatform.StaticLibraryBinarySpec
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary
@@ -42,9 +41,8 @@ import spock.lang.Specification
 class DefaultStaticLibraryBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir
-    def instantiator = DirectInstantiator.INSTANCE
-    final library = BaseComponentFixtures.create(DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "libName"), instantiator)
-    def namingScheme = new DefaultBinaryNamingScheme("main", "staticLibrary", [])
+    final library = BaseComponentFixtures.createNode(NativeLibrarySpec, DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"))
+    def namingScheme = DefaultBinaryNamingScheme.component("main").withBinaryType("staticLibrary")
     def toolChain = Stub(NativeToolChainInternal)
     def platform = Stub(NativePlatform)
     def buildType = Stub(BuildType)
@@ -58,7 +56,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
     }
 
     def getStaticLibrary() {
-        TestNativeBinariesFactory.create(DefaultStaticLibraryBinarySpec, "test", instantiator, Mock(ITaskFactory), library, namingScheme, resolver, platform,
+        TestNativeBinariesFactory.create(StaticLibraryBinarySpec, DefaultStaticLibraryBinarySpec, "test", Mock(ITaskFactory), library, namingScheme, resolver, platform,
             buildType, new DefaultFlavor("flavorOne"))
     }
 
@@ -135,7 +133,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
         tasks.createStaticLib == createTask
     }
 
-    private TestFile addSources(DefaultStaticLibraryBinarySpec binary, def headerDir) {
+    private TestFile addSources(StaticLibraryBinarySpec binary, def headerDir) {
         def headerDirSet = Stub(SourceDirectorySet) {
             getSrcDirs() >> [headerDir]
         }

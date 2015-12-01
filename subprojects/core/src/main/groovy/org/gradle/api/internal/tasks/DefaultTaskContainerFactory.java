@@ -63,7 +63,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
             new Namer()
         );
 
-        modelRegistry.registerOrReplace(
+        modelRegistry.register(
             registrationBuilder
                 .withProjection(ModelMapModelProjection.unmanaged(Task.class, ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>, MutableModelNode>() {
                     @Override

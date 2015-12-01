@@ -18,27 +18,26 @@ package org.gradle.language.base.plugins;
 import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
+import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
-import org.gradle.language.base.internal.model.LanguageSourceSetNodeInitializer;
 import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
 import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
-import org.gradle.model.internal.manage.schema.extract.ConstructableTypesRegistry;
-import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry;
+import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
@@ -73,18 +72,18 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     private void applyRules(ModelRegistry modelRegistry) {
-        final String descriptor = LanguageBasePlugin.class.getSimpleName() + ".apply()";
-        final ModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(descriptor);
+        final String baseDescriptor = LanguageBasePlugin.class.getSimpleName() + "#";
 
-        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(ModelReference.of("binaries"), ruleDescriptor, new Action<MutableModelNode>() {
+        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(ModelReference.of("binaries"),
+                new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTasks"), new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode binariesNode) {
-                binariesNode.applyToAllLinks(ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpec.class), ruleDescriptor, ModelReference.of(ITaskFactory.class), new BiAction<BinarySpec, ITaskFactory>() {
+                binariesNode.applyToAllLinks(ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpecInternal.class),
+                                new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTask"), ModelReference.of(ITaskFactory.class), new BiAction<BinarySpecInternal, ITaskFactory>() {
                     @Override
-                    public void execute(BinarySpec binary, ITaskFactory taskFactory) {
-                        BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binary;
-                        if (!binarySpecInternal.isLegacyBinary()) {
-                            TaskInternal binaryLifecycleTask = taskFactory.create(binarySpecInternal.getProjectScopedName(), DefaultTask.class);
+                    public void execute(BinarySpecInternal binary, ITaskFactory taskFactory) {
+                        if (!binary.isLegacyBinary()) {
+                            TaskInternal binaryLifecycleTask = taskFactory.create(binary.getProjectScopedName(), DefaultTask.class);
                             binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                             binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
                             binary.setBuildTask(binaryLifecycleTask);
@@ -97,15 +96,15 @@ public class LanguageBasePlugin implements Plugin<Project> {
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
             DirectNodeNoInputsModelAction.of(
                 ModelReference.of(BinarySpec.class),
-                new SimpleModelRuleDescriptor(descriptor),
+                new SimpleModelRuleDescriptor(baseDescriptor + ComponentSpecInitializer.class.getSimpleName() + ".binaryAction()"),
                 ComponentSpecInitializer.binaryAction()));
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @Service
-        ConstructableTypesRegistry constructableTypesRegistry() {
-            return new DefaultConstructableTypesRegistry();
+        LanguageSourceSetFactory languageSourceSetFactory(ServiceRegistry serviceRegistry) {
+            return new LanguageSourceSetFactory("sourceSets", serviceRegistry.get(FileResolver.class));
         }
 
         @Model
@@ -118,21 +117,19 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
-        void registerSourceSetNodeInitializers(ConstructableTypesRegistry constructableTypesRegistry, ServiceRegistry serviceRegistry, LanguageRegistry languageRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-
+        void registerSourceSetTypes(LanguageSourceSetFactory languageSourceSetFactory, LanguageRegistry languageRegistry) {
             for (LanguageRegistration<?> languageRegistration : languageRegistry) {
-                ModelType<?> sourceSetType = ModelType.of(languageRegistration.getSourceSetType());
-                LanguageSourceSetNodeInitializer languageSourceSetNodeInitializer = new LanguageSourceSetNodeInitializer(sourceSetType);
-                constructableTypesRegistry.registerConstructableType(sourceSetType, languageSourceSetNodeInitializer);
+                register(languageSourceSetFactory, languageRegistration);
             }
         }
 
+        private <T extends LanguageSourceSet> void register(LanguageSourceSetFactory lssFactory, LanguageRegistration<T> languageRegistration) {
+            lssFactory.register(languageRegistration.getSourceSetType(), languageRegistration.getSourceSetImplementationType(), languageRegistration.getRuleDescriptor());
+        }
+
         @Mutate
-        // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
-        void registerNodeInitializerExtractionStrategies(NodeInitializerRegistry nodeInitializerRegistry, ConstructableTypesRegistry constructableTypesRegistry) {
-            nodeInitializerRegistry.registerStrategy(constructableTypesRegistry);
+        void registerSourceSetNodeInitializer(NodeInitializerRegistry nodeInitializerRegistry, LanguageSourceSetFactory languageSourceSetFactory) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<LanguageSourceSet>(languageSourceSetFactory));
         }
 
         @Model

@@ -45,8 +45,3 @@ model {
         }
     }
 }
-
-task updateMainComponent(type: Copy) {
-    from 'update'
-    into 'src'
-}

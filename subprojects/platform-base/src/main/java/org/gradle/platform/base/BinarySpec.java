@@ -16,7 +16,10 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.*;
+import org.gradle.api.BuildableModelElement;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
@@ -60,18 +63,7 @@ public interface BinarySpec extends BuildableModelElement, Named {
     DomainObjectSet<LanguageSourceSet> getInputs();
 
     /**
-     * Configures the source sets used to build this binary.
-     * @param action The configuration action to execute for each owned source set.
-     */
-    void sources(Action<? super ModelMap<LanguageSourceSet>> action);
-
-    /**
      * The set of tasks associated with this binary.
      */
     BinaryTasksCollection getTasks();
-
-    /**
-     * Configures the tasks that build this binary.
-     */
-    void tasks(Action<? super BinaryTasksCollection> action);
 }

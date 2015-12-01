@@ -124,7 +124,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 tasks {
                     fromScript(Task) {
                         doLast {
-                            println "script name: " + $("platform.operatingSystem.name")
+                            println "script name: " + $.platform.operatingSystem.name
                         }
                     }
                 }
@@ -441,7 +441,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 tasks {
                     fromScript(Task) {
                         doLast {
-                            println "script name: " + $("platform.name")
+                            println "script name: " + $.platform.name
                         }
                     }
                 }
@@ -492,7 +492,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 }
                 tasks {
                     fromScript(Task) {
-                        doLast { println "fromScript: " + $("platform.operatingSystem.name") }
+                        doLast { println "fromScript: " + $.platform.operatingSystem.name }
                     }
                 }
             }

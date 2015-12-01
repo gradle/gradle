@@ -17,7 +17,10 @@
 package org.gradle.internal.filewatch;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.concurrent.Stoppable;
+
+import java.io.IOException;
 
 @ThreadSafe
 public interface FileWatcher extends Stoppable {
@@ -34,4 +37,6 @@ public interface FileWatcher extends Stoppable {
      * @return is the watcher running.
      */
     boolean isRunning();
+
+    void watch(FileSystemSubset fileSystemSubset) throws IOException;
 }

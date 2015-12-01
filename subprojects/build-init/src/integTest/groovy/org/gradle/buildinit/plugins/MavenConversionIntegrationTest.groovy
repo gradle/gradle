@@ -41,6 +41,9 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
 
+    @Rule
+    M2Installation m2Installation = new M2Installation(executer, testDirectory)
+
     def setup() {
         withLocalM2Installation()
     }
@@ -126,6 +129,7 @@ Root project 'webinar-parent'
 
     def "singleModule"() {
         when:
+        executer.withArgument("-d")
         run 'init'
 
         then:
@@ -323,9 +327,7 @@ Root project 'webinar-parent'
     }
 
     M2Installation withLocalM2Installation() {
-        M2Installation m2Installation = new M2Installation(testDirectory)
         m2Installation.generateUserSettingsFile(mavenLocal("local_m2"))
-        using m2Installation
         m2Installation
     }
 

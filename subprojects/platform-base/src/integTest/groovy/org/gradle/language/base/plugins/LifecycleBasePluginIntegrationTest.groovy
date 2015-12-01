@@ -61,19 +61,11 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "binaries are built when build task execution is requested"() {
         buildFile << """
-            import org.gradle.model.ModelMap
-
-            interface SampleBinary extends BinarySpec {
-            }
-
-            class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
-            }
+            @Managed interface SampleBinary extends BinarySpec {}
 
             class SampleBinaryPlugin extends RuleSource {
                 @BinaryType
-                void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.defaultImplementation(DefaultSampleBinary)
-                }
+                void register(BinaryTypeBuilder<SampleBinary> builder) {}
 
                 @Mutate
                 void createSampleBinary(ModelMap<SampleBinary> binarySpecs) {

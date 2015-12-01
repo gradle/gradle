@@ -33,8 +33,8 @@ public class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractInt
                 }
                 tasks {
                     checkModel(Task) {
-                        def components = $("components")
-                        def binaries = $("binaries")
+                        def components = $.components
+                        def binaries = $.binaries
                         doLast {
                             assert components.size() == 1
                             assert components.jvmLib instanceof JvmLibrarySpec
@@ -89,7 +89,7 @@ public class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractInt
                 ':compileJvmLibJarJvmLibJava', ':processJvmLibJarJvmLibResources', ':createJvmLibJar', ':jvmLibJar'
 
         and:
-        new JarTestFixture(file("build/jars/jvmLibJar/jvmLib.jar")).hasDescendants("org/gradle/test/Component.class", "component.txt");
+        new JarTestFixture(file("build/jars/jvmLib/jar/jvmLib.jar")).hasDescendants("org/gradle/test/Component.class", "component.txt");
         new JarTestFixture(file("build/libs/test.jar")).hasDescendants("org/gradle/test/Legacy.class", "legacy.txt");
     }
 }

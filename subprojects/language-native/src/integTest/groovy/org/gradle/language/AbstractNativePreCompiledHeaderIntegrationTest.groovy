@@ -405,7 +405,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         libAndPCHTasksExecuted()
 
         and:
-        def install = installation("build/install/mainExecutable")
+        def install = installation("build/install/main")
         install.assertInstalled()
         install.exec().out == app.englishOutput
     }
@@ -591,6 +591,6 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     String getPCHHeaderDirName(String lib="hello", String linkage="shared", String sourceSet=app.sourceType) {
-        return "build/objs/${lib}${StringUtils.capitalize(linkage)}Library/${lib}${StringUtils.capitalize(sourceSet)}PCH"
+        return "build/objs/${lib}/${linkage}/${lib}${StringUtils.capitalize(sourceSet)}PCH"
     }
 }

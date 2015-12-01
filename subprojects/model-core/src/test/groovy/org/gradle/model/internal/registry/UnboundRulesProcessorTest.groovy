@@ -85,14 +85,17 @@ class UnboundRulesProcessorTest extends RegistrySpec {
 
     def "creates unbound rules for unfulfilled binders with unbound input references"() {
         binder {
+            subjectReference("subject", Boolean)
             descriptor("ruleWithUnboundInputReferences")
             inputReference("reference.first", String)
             inputReference("reference.second", Number)
+            bindSubjectReference("subject")
         }
 
         expect:
         reportForProcessedBinders == reportFor(
                 UnboundRule.descriptor("ruleWithUnboundInputReferences")
+                        .mutableInput(UnboundRuleInput.type(Boolean).path("subject").bound())
                         .immutableInput(UnboundRuleInput.type(String).path("reference.first"))
                         .immutableInput(UnboundRuleInput.type(Number).path("reference.second"))
         )

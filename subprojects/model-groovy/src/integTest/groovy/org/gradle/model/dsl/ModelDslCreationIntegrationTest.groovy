@@ -36,7 +36,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
                 tasks {
                     create("echo") {
                         doLast {
-                            println "thing1.name: " + $("thing1.name")
+                            println "thing1.name: " + $.thing1.name
                         }
                     }
                 }
@@ -62,12 +62,12 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
                     name = "foo"
                 }
                 thing2(Thing) {
-                    name = $("thing1.name") + " bar"
+                    name = $.thing1.name + " bar"
                 }
                 tasks {
                     create("echo") {
                         doLast {
-                            println "thing2.name: " + $("thing2.name")
+                            println "thing2.name: " + $.thing2.name
                         }
                     }
                 }
@@ -95,7 +95,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
                 tasks {
                     create("echo") {
                         doLast {
-                            println "thing1.name: " + $("thing1.name")
+                            println "thing1.name: " + $.thing1.name
                         }
                     }
                 }
@@ -122,7 +122,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
                 tasks {
                     create("echo") {
                         doLast {
-                            println "thing1.name: " + $("thing1.name")
+                            println "thing1.name: " + $.thing1.name
                         }
                     }
                 }
@@ -159,7 +159,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
                 tasks {
                     create("echo") {
                         doLast {
-                            println "thing1.name: " + $("thing1.name")
+                            println "thing1.name: " + $.thing1.name
                         }
                     }
                 }
@@ -185,7 +185,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
                 tasks {
                     create("echo") {
                         doLast {
-                            println "thing1.name: " + $("thing1.name")
+                            println "thing1.name: " + $.thing1.name
                         }
                     }
                 }
@@ -216,7 +216,7 @@ It must be one of:
                 tasks {
                     create("echo") {
                         doLast {
-                            println "thing1.name: " + $("thing1.name")
+                            println "thing1.name: " + $.thing1.name
                         }
                     }
                 }

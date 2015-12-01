@@ -38,8 +38,8 @@
         <xi:include href='commandLineTutorial.xml'/>
         <xi:include href='gradleWrapper.xml'/>
         <xi:include href='gradleDaemon.xml'/>
-        <xi:include href='introMultiProjectBuilds.xml'/>
         <xi:include href='artifactDependenciesTutorial.xml'/>
+        <xi:include href='introMultiProjectBuilds.xml'/>
         <xi:include href='continuousBuild.xml'/>
         <xi:include href='guiTutorial.xml'/>
         <xi:include href='buildEnvironment.xml'/>
@@ -47,7 +47,7 @@
         <xi:include href='embedding.xml'/>
     </part>
     <part>
-        <title>Core build development</title>
+        <title>Writing Gradle build scripts</title>
         <xi:include href='buildScriptsTutorial.xml'/>
         <xi:include href='buildInitPlugin.xml'/>
         <xi:include href='writingBuildScripts.xml'/>
@@ -81,7 +81,6 @@
         <xi:include href='organizeBuildLogic.xml'/>
         <xi:include href='initscripts.xml'/>
         <xi:include href='testKit.xml' />
-        <xi:include href='newModel.xml'/>
     </part>
     <part>
         <title>Building JVM projects</title>
@@ -93,11 +92,9 @@
         <xi:include href='jettyPlugin.xml'/>
         <xi:include href='applicationPlugin.xml'/>
         <xi:include href='javaLibraryDistributionPlugin.xml'/>
-        <xi:include href='buildingJavaLibraries.xml'/>
         <xi:include href='groovyTutorial.xml'/>
         <xi:include href='groovyPlugin.xml'/>
         <xi:include href='scalaPlugin.xml'/>
-        <xi:include href='playPlugin.xml'/>
         <xi:include href='antlrPlugin.xml'/>
         <xi:include href='checkstylePlugin.xml'/>
         <xi:include href='codeNarcPlugin.xml'/>
@@ -112,7 +109,11 @@
         <xi:include href='ideaPlugin.xml'/>
     </part>
     <part>
-        <title>Building native projects</title>
+        <title>The Software model - Next generation Gradle builds</title>
+        <xi:include href='softwareModel.xml'/>
+        <xi:include href='softwareModelConcepts.xml'/>
+        <xi:include href='buildingJavaLibraries.xml'/>
+        <xi:include href='playPlugin.xml'/>
         <xi:include href='nativeBinaries.xml'/>
     </part>
     <part>
@@ -122,7 +123,6 @@
         <xi:include href='potentialTraps.xml'/>
         <xi:include href='featureLifecycle.xml'/>
         <xi:include href='commandLine.xml'/>
-        <xi:include href='ideSupport.xml'/>
         <xi:include href='glossary.xml'/>
     </part>
 </book>

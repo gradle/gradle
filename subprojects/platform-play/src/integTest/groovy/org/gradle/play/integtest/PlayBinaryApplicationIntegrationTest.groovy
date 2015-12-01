@@ -77,7 +77,8 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
                 "views/html/index.class",
                 "views/html/main.class",
                 "controllers/Application.class",
-                "application.conf")
+                "application.conf",
+                "logback.xml")
         jar("build/playBinary/lib/${playApp.name}-assets.jar").containsDescendants(
                 "public/images/favicon.svg",
                 "public/stylesheets/main.css",

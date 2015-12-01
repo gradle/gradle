@@ -95,6 +95,7 @@ model {
                 unitTests {
                     binaries {
                         tests {
+                            sources()
                             tasks()
                         }
                     }
@@ -143,6 +144,7 @@ model {
                 functional {
                     binaries {
                         tests {
+                            sources()
                             tasks()
                         }
                     }
@@ -153,6 +155,7 @@ model {
                 unit {
                     binaries {
                         tests {
+                            sources()
                             tasks()
                         }
                     }

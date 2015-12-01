@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
@@ -33,9 +34,6 @@ import org.gradle.logging.StyledTextOutputFactory;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * Provides information about the build environment for the project that the task is associated with.
@@ -78,17 +76,10 @@ public class BuildEnvironmentReportTask extends DefaultTask {
         ProjectReportGenerator projectReportGenerator = new ProjectReportGenerator() {
             @Override
             public void generateReport(Project project) throws IOException {
-                SortedSet<Configuration> sortedConfigurations = new TreeSet<Configuration>(new Comparator<Configuration>() {
-                    public int compare(Configuration conf1, Configuration conf2) {
-                        return conf1.getName().compareTo(conf2.getName());
-                    }
-                });
-                sortedConfigurations.addAll(getProject().getBuildscript().getConfigurations());
-                for (Configuration configuration : sortedConfigurations) {
-                    renderer.startConfiguration(configuration);
-                    renderer.render(configuration);
-                    renderer.completeConfiguration(configuration);
-                }
+                Configuration configuration = getProject().getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
+                renderer.startConfiguration(configuration);
+                renderer.render(configuration);
+                renderer.completeConfiguration(configuration);
             }
         };
 

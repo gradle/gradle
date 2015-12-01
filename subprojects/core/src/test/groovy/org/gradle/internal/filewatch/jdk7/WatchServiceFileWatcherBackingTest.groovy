@@ -38,13 +38,14 @@ class WatchServiceFileWatcherBackingTest extends Specification {
         def onError = Mock(Action)
         def listener = Mock(FileWatcherListener)
         def watchService = Mock(WatchService)
-        def fileWatcher = new WatchServiceFileWatcherBacking(fileSystemSubset, onError, listener, watchService)
+        def fileWatcher = new WatchServiceFileWatcherBacking(onError, listener, watchService)
         def listenerExecutorService = MoreExecutors.listeningDecorator(executorService)
         def mockExecutorService = Mock(ListeningExecutorService)
         def submitLatch = new CountDownLatch(1)
 
         when:
         def fileWatch = fileWatcher.start(mockExecutorService)
+        fileWatch.watch(fileSystemSubset)
         fileWatch.stop()
         submitLatch.countDown()
         sleep(1000)

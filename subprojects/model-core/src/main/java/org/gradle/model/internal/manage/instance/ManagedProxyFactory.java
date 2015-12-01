@@ -22,12 +22,18 @@ import com.google.common.cache.LoadingCache;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.manage.schema.extract.ManagedProxyClassGenerator;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 public class ManagedProxyFactory {
+
+    // Used for testing
+    public static final ManagedProxyFactory INSTANCE = new ManagedProxyFactory();
 
     private final ManagedProxyClassGenerator proxyClassGenerator = new ManagedProxyClassGenerator();
     private final LoadingCache<CacheKey<?>, Class<?>> generatedImplementationTypes = CacheBuilder.newBuilder()
@@ -38,25 +44,24 @@ public class ManagedProxyFactory {
                 return proxyClassGenerator.generate(key.schema, key.delegateSchema);
             }
         });
-    private final Instantiator instantiator;
 
-    public ManagedProxyFactory(Instantiator instantiator) {
-        this.instantiator = instantiator;
-    }
-
-    public <T> T createProxy(ModelElementState state, StructSchema<T> schema, StructSchema<? extends T> delegateSchema) {
+    public <T> T createProxy(ModelElementState state, StructSchema<T> viewSchema, @Nullable StructSchema<? extends T> delegateSchema, TypeConverter typeConverter) {
         try {
-            Class<? extends T> generatedClass = getGeneratedImplementation(schema, delegateSchema);
+            Class<? extends T> generatedClass = getGeneratedImplementation(viewSchema, delegateSchema);
             if (generatedClass == null) {
-                throw new IllegalStateException("No managed implementation class available for: " + schema.getType());
+                throw new IllegalStateException("No managed implementation class available for: " + viewSchema.getType());
             }
             if (delegateSchema == null) {
-                return instantiator.newInstance(generatedClass, state);
+                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class, TypeConverter.class);
+                return constructor.newInstance(state, typeConverter);
             } else {
                 ModelType<? extends T> delegateType = delegateSchema.getType();
                 Object delegate = state.getBackingNode().getPrivateData(delegateType);
-                return instantiator.newInstance(generatedClass, state, delegate);
+                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class, TypeConverter.class, delegateType.getConcreteClass());
+                return constructor.newInstance(state, typeConverter, delegate);
             }
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getTargetException());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -68,7 +73,7 @@ public class ManagedProxyFactory {
 
     private static class CacheKey<T> {
         private final StructSchema<T> schema;
-        private final StructSchema<? extends T> delegateSchema;
+        private final @Nullable StructSchema<? extends T> delegateSchema;
 
         private CacheKey(StructSchema<T> schema, @Nullable StructSchema<? extends T> delegateSchema) {
             this.schema = schema;

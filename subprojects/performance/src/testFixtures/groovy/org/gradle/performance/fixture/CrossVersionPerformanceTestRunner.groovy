@@ -38,7 +38,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     List<String> tasksToRun = []
     List<String> args = []
-    List<String> gradleOpts = []
+    List<String> gradleOpts = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
 
     List<String> targetVersions = []
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
@@ -53,10 +53,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     CrossVersionPerformanceResults run() {
         assert testId
-
-        if (System.getProperty("org.gradle.performance.heapdump")) {
-            args.add("-Pheapdump")
-        }
 
         def results = new CrossVersionPerformanceResults(
                 testId: testId,

@@ -68,40 +68,50 @@ Later work:
 
 ## Story: Java library sources are compiled against library Jar resolved from Maven repository
 
-- Extend the dependency DSL to reference external libraries:
-    ```
+- Extend the dependency DSL to reference external modules:
+
+    ```groovy
     model {
         components {
             main(JvmLibrarySpec) {
-                // TODO This is just a placeholder DSL: define a reasonable one.
                 dependencies {
-                    library group: 'com.acme', name: 'artifact', version: '1.0'
-                    library 'com.acme:artifact:1.0'
+                    // external module spec can start with either group or module
+                    group 'com.acme' module 'artifact' version '1.0'
+                    module 'artifact' group 'com.acme' version '1.0'
+
+                    // shorthand module id syntax
+                    module 'com.acme:collections:1.42'
+
+                    // passing a module id to library should fail
+                    library 'com.acme:collections:1.42'
+
+                    // existing usage remains
+                    project ':foo' library 'bar'
+                    library 'bar' project ':foo'
                 }
             }
         }
     }
-```
+    ```
 
 - Reuse existing repositories DSL, bridging into model space.
 - Main Jar artifact of maven module is included in compile classpath.
 - Main Jar artifact of any compile-scoped dependencies are included transitively in the compile classpath.
-
 - Assume external library is compatible with all target platforms.
 - Assume external library declares only one variant.
-
 - Update samples and user guide
 - Update newJavaModel performance test?
 
 ### Test cases
 
 - For maven module dependencies
-    - Main Jar artifact of module is included in compile classpath.
-    - Main Jar artifact of compile-scoped transitive dependencies are included in the compile classpath.
-    - Artifacts from runtime-scoped (and other scoped) transitive dependencies are _not_ included in the compile classpath.
+    - ~~Main Jar artifact of module is included in compile classpath.~~
+    - ~~Main Jar artifact of compile-scoped transitive dependencies are included in the compile classpath.~~
+    - ~~Artifacts from runtime-scoped (and other scoped) transitive dependencies are _not_ included in the compile classpath.~~
 - For local component dependencies:
-    - Artifacts from transitive external dependencies that are non part of component API are _not_ included in the compile classpath.
-- Displays a reasonable error message if the external dependency cannot be found in a declared repository
+    - ~~Artifacts from transitive external dependencies that are non part of component API are _not_ included in the compile classpath.~~
+- ~~Displays a reasonable error message if the external dependency cannot be found in a declared repository~~
+- ~~Displays a reasonable error message if a module id is given to `library`~~
 
 ### Out of scope
 
@@ -111,7 +121,7 @@ Later work:
 ## Story: Dependencies report shows compile time dependency graph of a Java library
 
 - Dependency report shows all JVM components for the project, and the resolved compile time graphs for each variant.
-- Dependency report implementation should not have any knowledge of the Java ecosystem. It may understand the abstract software model. 
+- Dependency report implementation should not have any knowledge of the Java ecosystem. It may understand the abstract software model.
 
 ## Story: Build author defines repositories using model rules
 

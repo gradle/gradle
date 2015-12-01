@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.Action
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
@@ -39,7 +40,6 @@ import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagem
 
 @SuppressWarnings("GroovyPointlessBoolean")
 class ModelSchemaExtractorTest extends Specification {
-
     @Shared
     def store = DefaultModelSchemaStore.getInstance()
     def classLoader = new GroovyClassLoader(getClass().classLoader)
@@ -163,6 +163,19 @@ class ModelSchemaExtractorTest extends Specification {
         fail SetterOnly, "only paired getter/setter methods are supported"
     }
 
+    interface SetterOnlyUnmanaged {
+        void setName(String name);
+    }
+
+    def "setter only unmanaged"() {
+        when:
+        def schema = extract(SetterOnlyUnmanaged)
+
+        then:
+        assert schema instanceof UnmanagedImplStructSchema
+        schema.getProperty("name") == null
+    }
+
     @Unroll
     def "primitive types are supported - #primitiveType"() {
         when:
@@ -264,6 +277,118 @@ class ModelSchemaExtractorTest extends Specification {
     def "can extract self referencing type"() {
         expect:
         extract(SelfReferencing).getProperty("self").type == ModelType.of(SelfReferencing)
+    }
+
+    @Managed
+    interface HasSingleCharGetter {
+        String getA()
+        void setA(String a)
+    }
+
+    def "allow single char getters"() {
+        when:
+        def schema = store.getSchema(HasSingleCharGetter)
+
+        then:
+        schema instanceof ManagedImplSchema
+        def a = schema.properties[0]
+        assert a instanceof ModelProperty
+        a.name == "a"
+    }
+
+    @Managed
+    interface HasSingleCharFirstPartGetter {
+        String getcCompiler()
+        void setcCompiler(String cCompiler)
+    }
+
+    @NotYetImplemented
+    def "single char first camel-case part getters extraction is javabeans compliant"() {
+        when:
+        def schema = store.getSchema(HasSingleCharFirstPartGetter)
+
+        then:
+        schema instanceof ManagedImplSchema
+        def cCompiler = schema.properties[0]
+        assert cCompiler instanceof ModelProperty
+        cCompiler.name == "cCompiler"
+    }
+
+    @Managed
+    interface HasDoubleCapsStartingGetter {
+        String getCFlags()
+        void setCFlags(String cflags)
+    }
+
+    @NotYetImplemented
+    def "double uppercase char first getters extraction is javabeans compliant"() {
+        when:
+        def schema = store.getSchema(HasDoubleCapsStartingGetter)
+
+        then:
+        schema instanceof ManagedImplSchema
+        def cflags = schema.properties[0]
+        assert cflags instanceof ModelProperty
+        cflags.name == "CFlags"
+    }
+
+    @Managed
+    interface HasFullCapsGetter {
+        String getURL()
+        void setURL(String url)
+    }
+
+    @NotYetImplemented
+    def "full caps getters extraction is javabeans compliant"() {
+        when:
+        def schema = store.getSchema(HasFullCapsGetter)
+
+        then:
+        schema instanceof ManagedImplSchema
+        def url = schema.properties[0]
+        assert url instanceof ModelProperty
+        url.name == "URL"
+    }
+
+    @Managed
+    interface HasTwoFirstsCharLowercaseGetter {
+        String getccCompiler()
+        void setccCompiler(String ccCompiler)
+    }
+
+    def "reject two firsts char lowercase getters"() {
+        expect:
+        fail HasTwoFirstsCharLowercaseGetter, "only paired getter/setter methods are supported"
+    }
+
+    @Managed
+    interface HasGetGetterLikeMethod {
+        String gettingStarted()
+    }
+
+    def "get-getters-like methods not considered as getters"() {
+        expect:
+        fail HasGetGetterLikeMethod, "only paired getter/setter methods are supported"
+    }
+
+    @Managed
+    interface HasIsGetterLikeMethod {
+        boolean isidore()
+    }
+
+    def "is-getters-like methods not considered as getters"() {
+        expect:
+        fail HasIsGetterLikeMethod, "only paired getter/setter methods are supported"
+    }
+
+    @Managed
+    interface HasSetterLikeMethod {
+        void settings(String settings)
+    }
+
+    def "setters-like methods not considered as setters"() {
+        expect:
+        fail HasSetterLikeMethod, "only paired getter/setter methods are supported"
     }
 
     @Managed
@@ -588,7 +713,7 @@ $type
 
     def "can extract enum"() {
         expect:
-        extract(MyEnum) instanceof ValueSchema
+        extract(MyEnum) instanceof ScalarValueSchema
     }
 
     @Managed
@@ -820,7 +945,7 @@ interface Managed${typeName} {
         def strategy = Mock(ModelSchemaExtractionStrategy) {
             extract(_) >> { ModelSchemaExtractionContext extractionContext ->
                 if (extractionContext.type.rawClass == CustomThing) {
-                    extractionContext.found(new ValueSchema<CustomThing>(extractionContext.type))
+                    extractionContext.found(new ScalarValueSchema<CustomThing>(extractionContext.type))
                 }
             }
         }
@@ -828,7 +953,7 @@ interface Managed${typeName} {
         def store = new DefaultModelSchemaStore(extractor)
 
         then:
-        store.getSchema(CustomThing) instanceof ValueSchema
+        store.getSchema(CustomThing) instanceof ScalarValueSchema
         store.getSchema(UnmanagedThing) instanceof UnmanagedImplStructSchema
     }
 
@@ -844,14 +969,14 @@ interface Managed${typeName} {
         1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(CustomThing)
             extractionContext.child(ModelType.of(UnmanagedThing), "child")
-            extractionContext.found(new ValueSchema<CustomThing>(extractionContext.type))
+            extractionContext.found(new ScalarValueSchema<CustomThing>(extractionContext.type))
         }
         1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)
         }
 
         and:
-        customSchema instanceof ValueSchema
+        customSchema instanceof ScalarValueSchema
     }
 
     def "validator is invoked after all dependencies have been visited"() {
@@ -868,7 +993,7 @@ interface Managed${typeName} {
             assert extractionContext.type == ModelType.of(CustomThing)
             extractionContext.addValidator(validator)
             extractionContext.child(ModelType.of(UnmanagedThing), "child")
-            extractionContext.found(new ValueSchema<CustomThing>(extractionContext.type))
+            extractionContext.found(new ScalarValueSchema<CustomThing>(extractionContext.type))
         }
         1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)
@@ -1325,6 +1450,88 @@ interface Managed${typeName} {
         then:
         schema.properties*.name == ["nice", "thing"]
         schema.properties*.type*.rawClass == [boolean, Integer]
+    }
+
+    interface UnmanagedSuperTypeWithMethod {
+        InputStream doSomething(Object param)
+    }
+
+    @Managed
+    interface ManagedTypeWithOverriddenMethodExtendingUnmanagedTypeWithMethod extends UnmanagedSuperTypeWithMethod {
+        @Override InputStream doSomething(Object param)
+    }
+
+    def "accept non-property methods from unmanaged supertype overridden in managed type"() {
+        expect:
+        extract(ManagedTypeWithOverriddenMethodExtendingUnmanagedTypeWithMethod) instanceof ManagedImplStructSchema
+    }
+
+    @Managed
+    interface ManagedTypeWithCovarianceOverriddenMethodExtendingUnamangedTypeWithMethod extends UnmanagedSuperTypeWithMethod {
+        @Override ByteArrayInputStream doSomething(Object param)
+    }
+
+    def "accept non-property methods from unmanaged supertype with covariance overridden in managed type"() {
+        expect:
+        extract(ManagedTypeWithCovarianceOverriddenMethodExtendingUnamangedTypeWithMethod) instanceof ManagedImplStructSchema
+    }
+
+    interface UnmanagedSuperTypeWithOverloadedMethod {
+        InputStream doSomething(Object param)
+        InputStream doSomething(Object param, Object other)
+    }
+
+    @Managed
+    interface ManagedTypeExtendingUnmanagedTypeWithOverloadedMethod extends UnmanagedSuperTypeWithOverloadedMethod {
+        @Override ByteArrayInputStream doSomething(Object param)
+        @Override ByteArrayInputStream doSomething(Object param, Object other)
+    }
+
+    def "accept non-property overloaded methods from unmanaged supertype overridden in managed type"() {
+        expect:
+        extract(ManagedTypeExtendingUnmanagedTypeWithOverloadedMethod) instanceof ManagedImplStructSchema
+    }
+
+    @Managed
+    interface ManagedSuperTypeWithMethod {
+        InputStream doSomething(Object param)
+    }
+
+    @Managed
+    interface ManagedTypeWithOverriddenMethodExtendingManagedTypeWithMethod extends ManagedSuperTypeWithMethod {
+        @Override InputStream doSomething(Object param)
+    }
+
+    def "reject non-property methods from managed supertype overridden in managed type"() {
+        expect:
+        fail ManagedTypeWithOverriddenMethodExtendingManagedTypeWithMethod, "overridden methods not supported"
+    }
+
+    @Managed
+    interface ManagedTypeWithCovarianceOverriddenMethodExtendingMangedTypeWithMethod extends ManagedSuperTypeWithMethod {
+        @Override ByteArrayInputStream doSomething(Object param)
+    }
+
+    def "reject non-property methods from managed supertype with covariance overridden in managed type"() {
+        expect:
+        fail ManagedTypeWithCovarianceOverriddenMethodExtendingMangedTypeWithMethod, "overridden methods not supported"
+    }
+
+    @Managed
+    interface ManagedSuperTypeWithOverloadedMethod {
+        InputStream doSomething(Object param)
+        InputStream doSomething(Object param, Object other)
+    }
+
+    @Managed
+    interface ManagedTypeExtendingManagedTypeWithOverloadedMethod extends ManagedSuperTypeWithOverloadedMethod {
+        @Override ByteArrayInputStream doSomething(Object param)
+        @Override ByteArrayInputStream doSomething(Object param, Object other)
+    }
+
+    def "reject overloaded non-property methods from managed supertype overridden in managed type"() {
+        expect:
+        fail ManagedTypeExtendingManagedTypeWithOverloadedMethod, "overridden methods not supported"
     }
 
     String getName(ModelType<?> modelType) {

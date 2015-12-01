@@ -49,19 +49,21 @@ class EclipsePlugin extends IdePlugin {
         this.instantiator = instantiator
     }
 
-    @Override protected String getLifecycleTaskName() {
+    @Override
+    protected String getLifecycleTaskName() {
         return ECLIPSE_TASK_NAME
     }
 
-    @Override protected void onApply(Project project) {
+    @Override
+    protected void onApply(Project project) {
         lifecycleTask.description = 'Generates all Eclipse files.'
         cleanTask.description = 'Cleans all Eclipse files.'
 
         def model = project.extensions.create("eclipse", EclipseModel)
 
         configureEclipseProject(project, model)
-        configureEclipseClasspath(project, model)
         configureEclipseJdt(project, model)
+        configureEclipseClasspath(project, model)
 
         hookDeduplicationToTheRoot(project)
     }
@@ -107,7 +109,7 @@ class EclipsePlugin extends IdePlugin {
 
             project.plugins.withType(ScalaBasePlugin) {
                 projectModel.buildCommands.set(projectModel.buildCommands.findIndexOf { it.name == "org.eclipse.jdt.core.javabuilder" },
-                        new BuildCommand("org.scala-ide.sdt.core.scalabuilder"))
+                    new BuildCommand("org.scala-ide.sdt.core.scalabuilder"))
                 projectModel.natures.add(projectModel.natures.indexOf("org.eclipse.jdt.core.javanature"), "org.scala-ide.sdt.core.scalanature")
             }
         }
@@ -130,7 +132,14 @@ class EclipsePlugin extends IdePlugin {
 
                 classpath.sourceSets = project.sourceSets
 
-                classpath.containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
+//                classpath.conventionMapping.containers = { ["org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/${model.jdt.getJavaRuntimeName()}/"] as LinkedHashSet }
+                project.afterEvaluate {
+                    // keep the ordering we had in earlier gradle versions
+                    Set<String> containers = new LinkedHashSet<String>()
+                    containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/${model.jdt.getJavaRuntimeName()}/")
+                    containers.addAll(classpath.containers)
+                    classpath.containers = containers
+                }
 
                 project.plugins.withType(JavaPlugin) {
                     classpath.plusConfigurations = [project.configurations.testRuntime]
@@ -169,12 +178,15 @@ class EclipsePlugin extends IdePlugin {
                 model.jdt = jdt
                 jdt.conventionMapping.sourceCompatibility = { project.sourceCompatibility }
                 jdt.conventionMapping.targetCompatibility = { project.targetCompatibility }
+                jdt.conventionMapping.javaRuntimeName = { String.format("JavaSE-%s", project.targetCompatibility) }
             }
         }
     }
 
     private void maybeAddTask(Project project, IdePlugin plugin, String taskName, Class taskType, Closure action) {
-        if (project.tasks.findByName(taskName)) { return }
+        if (project.tasks.findByName(taskName)) {
+            return
+        }
         def task = project.tasks.create(taskName, taskType)
         project.configure(task, action)
         plugin.addWorker(task)

@@ -30,7 +30,6 @@ public class DefaultModelRegistration implements ModelRegistration {
     private final ModelPath path;
     private final ModelRuleDescriptor descriptor;
     private final boolean service;
-    private final boolean ephemeral;
     private final boolean hidden;
     private final ListMultimap<ModelActionRole, ? extends ModelAction> actions;
 
@@ -38,13 +37,11 @@ public class DefaultModelRegistration implements ModelRegistration {
         ModelPath path,
         ModelRuleDescriptor descriptor,
         boolean service,
-        boolean ephemeral,
         boolean hidden,
         Multimap<ModelActionRole, ? extends ModelAction> actions) {
         this.path = path;
         this.descriptor = descriptor;
         this.service = service;
-        this.ephemeral = ephemeral;
         this.hidden = hidden;
         this.actions = ImmutableListMultimap.copyOf(actions);
     }
@@ -65,11 +62,6 @@ public class DefaultModelRegistration implements ModelRegistration {
             builder.addAll(action.getInputs());
         }
         return builder.build();
-    }
-
-    @Override
-    public boolean isEphemeral() {
-        return ephemeral;
     }
 
     @Override

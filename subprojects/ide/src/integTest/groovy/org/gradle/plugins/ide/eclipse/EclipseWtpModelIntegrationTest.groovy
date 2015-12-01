@@ -129,7 +129,7 @@ dependencies {
   compile 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
 }
 
-configurations.compile {
+configurations.all {
   exclude module: 'bar' //an exclusion
   resolutionStrategy.force 'gradle:baz:2.0' //forced module
 }
@@ -139,9 +139,9 @@ configurations.compile {
         component = getFile([:], '.settings/org.eclipse.wst.common.component').text
 
         //then
-        component.contains('foo-1.0.jar')
-        component.contains('baz-2.0.jar') //forced version
-        !component.contains('bar') //excluded
+        assert component.contains('foo-1.0.jar')
+        assert component.contains('baz-2.0.jar') //forced version
+        assert !component.contains('bar') //excluded
     }
 
     @Test
@@ -364,7 +364,7 @@ project(':contrib') {
           apply plugin: 'java'
           apply plugin: 'war'
           apply plugin: 'eclipse-wtp'
-          
+
           sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
 
           eclipse.wtp.component {
@@ -412,7 +412,7 @@ project(':contrib') {
 
         assert component.contains('xxxResource')
         assert !component.contains('yyyResource')
-        
+
         assert !component.contains('nonExistingAppDir')
     }
 
@@ -571,7 +571,7 @@ project(':contrib') {
             project(':someLib') {
                 apply plugin: 'java'
                 apply plugin: 'eclipse-wtp'
-                
+
                 repositories { mavenCentral() }
 
                 dependencies {

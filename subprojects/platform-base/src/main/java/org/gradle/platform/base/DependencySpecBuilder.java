@@ -13,31 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.platform.base;
 
+import org.gradle.api.Incubating;
+
 /**
- * Interface for a dependency spec builder. Implementations are required to return
+ * A builder of a {@link DependencySpec}. Implementations are required to return
  * immutable dependency specs.
  */
-public interface DependencySpecBuilder extends DependencySpec {
-    /**
-     * Narrows this dependency specification down to a specific project.
-     *
-     * @param path the project path
-     *
-     * @return this instance
-     */
-    DependencySpecBuilder project(String path);
-
-    /**
-     * Narrows this dependency specification down to a specific library.
-     *
-     * @param name the library name
-     *
-     * @return this instance
-     */
-    DependencySpecBuilder library(String name);
-
+@Incubating
+public interface DependencySpecBuilder {
     /**
      * Builds a concrete immutable {@link DependencySpec} instance.
      *

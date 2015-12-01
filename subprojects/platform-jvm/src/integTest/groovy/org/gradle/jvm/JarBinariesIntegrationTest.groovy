@@ -52,8 +52,8 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
         notExecuted(":myJvmLib1Jar")
 
         and:
-        file("build/jars/myJvmLib2Jar/myJvmLib2.jar").assertExists()
-        file("build/jars/myJvmLib1Jar/myJvmLib1.jar").assertDoesNotExist()
+        file("build/jars/myJvmLib2/jar/myJvmLib2.jar").assertExists()
+        file("build/jars/myJvmLib1/jar/myJvmLib1.jar").assertDoesNotExist()
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
@@ -87,7 +87,7 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
         ))
     }
 
-    def "model report should display configured components"() {
+    def "model report should display configured components and binaries"() {
         given:
         buildFile << """
             plugins {
@@ -98,6 +98,13 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
                     jvmLibrary(JvmLibrarySpec) {
                         sources {
                             other(JavaSourceSet)
+                        }
+                        binaries {
+                            jar {
+                                sources {
+                                    binarySources(JavaSourceSet)
+                                }
+                            }
                         }
                     }
                 }
@@ -112,13 +119,16 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
                 jvmLibrary {
                     binaries {
                         jar(type: "org.gradle.jvm.JarBinarySpec") {
+                            sources {
+                                binarySources(type: "org.gradle.language.java.JavaSourceSet")
+                            }
                             tasks()
                         }
                     }
                     sources {
-                        java(type: "org.gradle.language.java.JavaSourceSet", nodeValue: "Java source 'jvmLibrary:java'")
-                        other(type: "org.gradle.language.java.JavaSourceSet", nodeValue: "Java source 'jvmLibrary:other'")
-                        resources(type: "org.gradle.language.jvm.JvmResourceSet", nodeValue: "JVM resources 'jvmLibrary:resources'")
+                        java(type: "org.gradle.language.java.JavaSourceSet")
+                        other(type: "org.gradle.language.java.JavaSourceSet")
+                        resources(type: "org.gradle.language.jvm.JvmResourceSet")
                     }
                 }
             }

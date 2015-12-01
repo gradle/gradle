@@ -19,6 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.type.ModelType;
 
+// TODO:DAZ Remove this: it's only used for testing
 public interface ConstructableTypesRegistry extends NodeInitializerExtractionStrategy {
     <T> void registerConstructableType(ModelType<T> type, NodeInitializer nodeInitializer);
 }

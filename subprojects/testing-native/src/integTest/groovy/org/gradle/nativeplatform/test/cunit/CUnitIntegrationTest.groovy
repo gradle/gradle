@@ -118,9 +118,9 @@ model {
         then:
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
             ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
 
-        def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
+        def testResults = new CUnitTestResults(file("build/test-results/helloTest/CUnitAutomated-Results.xml"))
         testResults.suiteNames == ['hello test']
         testResults.suites['hello test'].passingTests == ['test_sum']
         testResults.suites['hello test'].failingTests == []
@@ -171,9 +171,9 @@ model {
         then:
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
             ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
 
-        def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
+        def testResults = new CUnitTestResults(file("build/test-results/helloTest/CUnitAutomated-Results.xml"))
         testResults.suiteNames == ['hello test']
         testResults.suites['hello test'].passingTests == ['test_sum']
         testResults.suites['hello test'].failingTests == []
@@ -201,8 +201,8 @@ model {
                     binaries {
                         nativeComponentOneTestCUnitExe {
                             tasks()
+                            sources()
                         }
-
                     }
                     sources {
                         c()
@@ -214,6 +214,7 @@ model {
                     binaries {
                         nativeComponentTwoTestCUnitExe {
                             tasks()
+                            sources()
                         }
                     }
                     sources {
@@ -245,7 +246,7 @@ model {
         run "runHelloTestCUnitExe"
 
         then:
-        def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
+        def testResults = new CUnitTestResults(file("build/test-results/helloTest/CUnitAutomated-Results.xml"))
         testResults.checkAssertions(1, 1, 0)
     }
 
@@ -272,7 +273,7 @@ model {
 
         then:
         succeeds "check"
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
     def "can configure location of cunit test sources before component is declared"() {
@@ -298,7 +299,7 @@ model {
 
         then:
         succeeds "check"
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
     def "variant-dependent sources are included in test binary"() {
@@ -333,7 +334,7 @@ model {
 
         then:
         succeeds "check"
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
     def "can configure variant-dependent test sources"() {
@@ -363,7 +364,7 @@ model {
 
         then:
         succeeds "check"
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
     def "test suite skipped after successful run"() {
@@ -371,6 +372,7 @@ model {
         useStandardConfig()
         useConventionalSourceLocations()
         run "runHelloTestCUnitExe"
+        executed ":helloTestCUnitExe", ":runHelloTestCUnitExe"
 
         when:
         run "runHelloTestCUnitExe"
@@ -395,13 +397,13 @@ model {
         contains "There were test failures:"
 
         and:
-        def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
+        def testResults = new CUnitTestResults(file("build/test-results/helloTest/CUnitAutomated-Results.xml"))
         testResults.suiteNames == ['hello test']
         testResults.suites['hello test'].passingTests == []
         testResults.suites['hello test'].failingTests == ['test_sum']
         testResults.checkTestCases(1, 0, 1)
         testResults.checkAssertions(3, 1, 2)
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
     def "build does not break for failing tests if ignoreFailures is true"() {
@@ -420,8 +422,8 @@ tasks.withType(RunTestExecutable) {
         contains "There were failing tests. See the results at: "
 
         and:
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml").assertExists()
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        file("build/test-results/helloTest/CUnitAutomated-Results.xml").assertExists()
+        file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
     def "test suite not skipped after failing run"() {

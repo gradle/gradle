@@ -17,8 +17,8 @@
 package org.gradle.internal.filewatch;
 
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.initialization.BuildCancellationToken;
 
 public interface FileSystemChangeWaiter {
-    void wait(FileSystemSubset taskFileSystemInputs, BuildCancellationToken cancellationToken, Runnable notifier);
+    void watch(FileSystemSubset fileSystemSubset);
+    void wait(Runnable notifier);
 }

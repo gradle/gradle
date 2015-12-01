@@ -52,9 +52,9 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         }
         tasks {
             validate(Task) {
-                def components = \$("components")
-                def sources = \$("sources")
-                def binaries = \$("binaries")
+                def components = \$.components
+                def sources = \$.sources
+                def binaries = \$.binaries
                 doLast {
                     def myLib = components.myLib
                     assert myLib instanceof JvmLibrarySpec
@@ -94,9 +94,9 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         }
         tasks {
             validate(Task) {
-                def components = \$("components")
-                def sources = \$("sources")
-                def binaries = \$("binaries")
+                def components = \$.components
+                def sources = \$.sources
+                def binaries = \$.binaries
                 doLast {
                     def myLib = components.myLib
                     assert myLib instanceof JvmLibrarySpec
@@ -143,7 +143,7 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         executed ":createMyLibJar", ":myLibJar"
 
         and:
-        def jar = new JarTestFixture(file("build/jars/myLibJar/myLib.jar"))
+        def jar = new JarTestFixture(file("build/jars/myLib/jar/myLib.jar"))
         jar.hasDescendants()
     }
 

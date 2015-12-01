@@ -22,7 +22,7 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.PreprocessingTool
+import org.gradle.nativeplatform.PreprocessingTool
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.NativeDependencySet

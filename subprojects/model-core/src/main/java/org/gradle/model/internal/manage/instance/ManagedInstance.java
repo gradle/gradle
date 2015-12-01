@@ -20,7 +20,7 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 
 /**
- * A marker interface that is implemented by instances of managed model types
+ * A marker interface that is implemented by views of managed elements.
  */
 public interface ManagedInstance {
     /**

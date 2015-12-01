@@ -72,7 +72,8 @@ class DefaultFileWatcherFactoryTest extends Specification {
         def listener = Mock(FileWatcherListener)
         def listenerCalledLatch = new CountDownLatch(1)
         when:
-        fileWatcher = fileWatcherFactory.watch(fileSystemSubset, onError, listener)
+        fileWatcher = fileWatcherFactory.watch(onError, listener)
+        fileWatcher.watch(fileSystemSubset)
         File createdFile = testDir.file("newfile.txt")
         createdFile.text = "Hello world"
         waitOn(listenerCalledLatch)
@@ -89,7 +90,8 @@ class DefaultFileWatcherFactoryTest extends Specification {
         def listenerCalledLatch = new CountDownLatch(1)
         def listenerCalledLatch2 = new CountDownLatch(1)
         when:
-        fileWatcher = fileWatcherFactory.watch(fileSystemSubset, onError, listener)
+        fileWatcher = fileWatcherFactory.watch(onError, listener)
+        fileWatcher.watch(fileSystemSubset)
         def subdir = testDir.createDir("subdir")
         subdir.createFile("somefile").text = "Hello world"
         waitOn(listenerCalledLatch)
@@ -119,7 +121,8 @@ class DefaultFileWatcherFactoryTest extends Specification {
         def subdir = testDir.createDir("subdir")
         def listenerCalledLatch = new CountDownLatch(1)
         when:
-        fileWatcher = fileWatcherFactory.watch(fileSystemSubset, onError, listener)
+        fileWatcher = fileWatcherFactory.watch(onError, listener)
+        fileWatcher.watch(fileSystemSubset)
         subdir.createFile("somefile").text = "Hello world"
         waitOn(listenerCalledLatch)
         then:
@@ -133,11 +136,12 @@ class DefaultFileWatcherFactoryTest extends Specification {
         def block = this.<List<Boolean>> blockingVar()
 
         when:
-        fileWatcher = fileWatcherFactory.watch(fileSystemSubset, onError) { watcher, event ->
+        fileWatcher = fileWatcherFactory.watch(onError) { watcher, event ->
             def vals = [watcher.running]
             watcher.stop()
             block.set(vals << watcher.running)
         }
+        fileWatcher.watch(fileSystemSubset)
 
         and:
         testDir.file("new") << "new"
@@ -154,11 +158,12 @@ class DefaultFileWatcherFactoryTest extends Specification {
         def result = this.<Boolean> blockingVar()
 
         when:
-        fileWatcher = fileWatcherFactory.watch(fileSystemSubset, onError) { watcher, event ->
+        fileWatcher = fileWatcherFactory.watch(onError) { watcher, event ->
             eventLatch.countDown()
             waitOn(stopLatch)
             result.set(watcher.running)
         }
+        fileWatcher.watch(fileSystemSubset)
 
         and:
         testDir.file("new") << "new"
@@ -175,9 +180,10 @@ class DefaultFileWatcherFactoryTest extends Specification {
         def watcherThread = this.<Thread> blockingVar()
 
         when:
-        fileWatcher = fileWatcherFactory.watch(fileSystemSubset, onError) { watcher, event ->
+        fileWatcher = fileWatcherFactory.watch(onError) { watcher, event ->
             watcherThread.set(Thread.currentThread())
         }
+        fileWatcher.watch(fileSystemSubset)
 
         and:
         testDir.file("new") << "new"
@@ -193,11 +199,12 @@ class DefaultFileWatcherFactoryTest extends Specification {
         def filesAddedLatch = new CountDownLatch(1)
         def totalLatch = new CountDownLatch(10)
 
-        fileWatcher = fileWatcherFactory.watch(fileSystemSubset, onError) { watcher, event ->
+        fileWatcher = fileWatcherFactory.watch(onError) { watcher, event ->
             eventReceivedLatch.countDown()
             filesAddedLatch.await()
             totalLatch.countDown()
         }
+        fileWatcher.watch(fileSystemSubset)
 
         testDir.file("1").createDir()
         eventReceivedLatch.await()
@@ -212,10 +219,11 @@ class DefaultFileWatcherFactoryTest extends Specification {
     def "watcher doesn't add directories that have been deleted after change detection"() {
         when:
         def eventReceivedLatch = new CountDownLatch(1)
-        fileWatcher = fileWatcherFactory.watch(fileSystemSubset, onError) { watcher, event ->
+        fileWatcher = fileWatcherFactory.watch(onError) { watcher, event ->
             eventReceivedLatch.countDown()
             event.file.delete()
         }
+        fileWatcher.watch(fileSystemSubset)
 
         testDir.file("testdir").createDir()
         eventReceivedLatch.await()
@@ -230,10 +238,11 @@ class DefaultFileWatcherFactoryTest extends Specification {
     def "watcher will stop if listener throws and error is forwarded"() {
         when:
         def onErrorStatus = this.<Pair<Boolean, Throwable>> blockingVar()
-        fileWatcher = fileWatcherFactory.watch(fileSystemSubset,
+        fileWatcher = fileWatcherFactory.watch(
             { onErrorStatus.set(Pair.of(fileWatcher.running, it)) },
             { watcher, event -> throw new RuntimeException("!!") }
         )
+        fileWatcher.watch(fileSystemSubset)
 
         and:
         testDir.file("new") << "new"

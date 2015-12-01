@@ -44,7 +44,7 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
     private final WeaklyTypeReferencingMethod<T, R> method;
 
     private DefaultMethodRuleDefinition(Method method, ModelType<T> instanceType, ModelType<R> returnType) {
-        this.method = new WeaklyTypeReferencingMethod<T, R>(instanceType, returnType, method);
+        this.method = WeaklyTypeReferencingMethod.of(instanceType, returnType, method);
 
         ImmutableList.Builder<ModelReference<?>> referencesBuilder = ImmutableList.builder();
         for (int i = 0; i < method.getGenericParameterTypes().length; i++) {
@@ -62,7 +62,6 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
         ModelType<R> returnType = ModelType.returnType(method);
         return new DefaultMethodRuleDefinition<T, R, S>(method, ModelType.of(source), returnType);
     }
-
 
     public String getMethodName() {
         return method.getName();

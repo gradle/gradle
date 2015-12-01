@@ -67,14 +67,14 @@ Binaries
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/libsomeLib.dylib
+        shared library file: build/libs/someLib/shared/libsomeLib.dylib
     Static library 'someLib:staticLibrary'
         build using task: :someLibStaticLibrary
         buildType: build type 'debug'
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/libsomeLib.a
+        static library file: build/libs/someLib/static/libsomeLib.a
         source sets:
             C++ source 'someLib:moreCpp'
                 No source directories
@@ -125,14 +125,14 @@ Binaries
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/anotherLibSharedLibrary/libanotherLib.dylib
+        shared library file: build/libs/anotherLib/shared/libanotherLib.dylib
     Static library 'anotherLib:staticLibrary' (not buildable)
         build using task: :anotherLibStaticLibrary
         buildType: build type 'debug'
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/anotherLibStaticLibrary/libanotherLib.a
+        static library file: build/libs/anotherLib/static/libanotherLib.a
         Disabled by user
 
 Native library 'someLib'
@@ -149,7 +149,7 @@ Binaries
         flavor: flavor 'default'
         targetPlatform: platform 'windows'
         tool chain: unavailable
-        shared library file: build/binaries/someLibSharedLibrary/someLib.dll
+        shared library file: build/libs/someLib/shared/someLib.dll
         No tool chain is available to build for platform 'windows':
           - ${toolChain.instanceDisplayName}: Don't know how to build for platform 'windows'.
     Static library 'someLib:staticLibrary' (not buildable)
@@ -158,7 +158,7 @@ Binaries
         flavor: flavor 'default'
         targetPlatform: platform 'windows'
         tool chain: unavailable
-        static library file: build/binaries/someLibStaticLibrary/someLib.lib
+        static library file: build/libs/someLib/static/someLib.lib
         No tool chain is available to build for platform 'windows':
           - ${toolChain.instanceDisplayName}: Don't know how to build for platform 'windows'.
 """
@@ -217,56 +217,56 @@ Binaries
         flavor: flavor 'free'
         targetPlatform: platform 'amd64'
         tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/amd64Free/libsomeLib.dylib
+        shared library file: build/libs/someLib/shared/amd64/free/libsomeLib.dylib
     Static library 'someLib:amd64:free:staticLibrary'
         build using task: :someLibAmd64FreeStaticLibrary
         buildType: build type 'debug'
         flavor: flavor 'free'
         targetPlatform: platform 'amd64'
         tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/amd64Free/libsomeLib.a
+        static library file: build/libs/someLib/static/amd64/free/libsomeLib.a
     Shared library 'someLib:amd64:paid:sharedLibrary'
         build using task: :someLibAmd64PaidSharedLibrary
         buildType: build type 'debug'
         flavor: flavor 'paid'
         targetPlatform: platform 'amd64'
         tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/amd64Paid/libsomeLib.dylib
+        shared library file: build/libs/someLib/shared/amd64/paid/libsomeLib.dylib
     Static library 'someLib:amd64:paid:staticLibrary'
         build using task: :someLibAmd64PaidStaticLibrary
         buildType: build type 'debug'
         flavor: flavor 'paid'
         targetPlatform: platform 'amd64'
         tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/amd64Paid/libsomeLib.a
+        static library file: build/libs/someLib/static/amd64/paid/libsomeLib.a
     Shared library 'someLib:i386:free:sharedLibrary'
         build using task: :someLibI386FreeSharedLibrary
         buildType: build type 'debug'
         flavor: flavor 'free'
         targetPlatform: platform 'i386'
         tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/i386Free/libsomeLib.dylib
+        shared library file: build/libs/someLib/shared/i386/free/libsomeLib.dylib
     Static library 'someLib:i386:free:staticLibrary'
         build using task: :someLibI386FreeStaticLibrary
         buildType: build type 'debug'
         flavor: flavor 'free'
         targetPlatform: platform 'i386'
         tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/i386Free/libsomeLib.a
+        static library file: build/libs/someLib/static/i386/free/libsomeLib.a
     Shared library 'someLib:i386:paid:sharedLibrary'
         build using task: :someLibI386PaidSharedLibrary
         buildType: build type 'debug'
         flavor: flavor 'paid'
         targetPlatform: platform 'i386'
         tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/i386Paid/libsomeLib.dylib
+        shared library file: build/libs/someLib/shared/i386/paid/libsomeLib.dylib
     Static library 'someLib:i386:paid:staticLibrary'
         build using task: :someLibI386PaidStaticLibrary
         buildType: build type 'debug'
         flavor: flavor 'paid'
         targetPlatform: platform 'i386'
         tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/i386Paid/libsomeLib.a
+        static library file: build/libs/someLib/static/i386/paid/libsomeLib.a
 """
     }
 }

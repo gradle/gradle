@@ -32,7 +32,7 @@ class ModelNodeInternalTest extends RegistrySpec {
     def "should record executed rules when notify fired #fireCount time(s)"() {
         def descriptor = Mock(ModelRuleDescriptor)
         ModelNodeInternal modelNode = new TestNode(registration)
-        def executionBinder = Mock(ModelActionBinder)
+        def executionBinder = Mock(RuleBinder)
         executionBinder.isBound() >> true
         executionBinder.getInputBindings() >> []
         executionBinder.getDescriptor() >> descriptor
@@ -53,7 +53,7 @@ class ModelNodeInternalTest extends RegistrySpec {
     def "should not fire for unbound binders"() {
         setup:
         ModelNodeInternal modelNode = new TestNode(registration)
-        def executionBinder = Mock(ModelActionBinder)
+        def executionBinder = Mock(RuleBinder)
         executionBinder.isBound() >> false
 
         when:

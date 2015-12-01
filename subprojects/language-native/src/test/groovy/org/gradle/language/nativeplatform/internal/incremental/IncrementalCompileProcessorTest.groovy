@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.language.nativeplatform.internal.incremental
-
+import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal
 import org.gradle.api.internal.changedetection.state.FileSnapshot
 import org.gradle.api.internal.changedetection.state.FileSnapshotter
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.hash.HashUtil
 import org.gradle.language.nativeplatform.internal.SourceIncludes
@@ -32,7 +31,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def includesParser = Mock(SourceIncludesParser)
     def dependencyParser = Mock(SourceIncludesResolver)
-    def taskInputs = Mock(IncrementalTaskInputs)
+    def taskInputs = Mock(IncrementalTaskInputsInternal)
     def fileSnapshotter = Stub(FileSnapshotter)
     def stateCache = new DummyPersistentStateCache()
     def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, dependencyParser, includesParser, fileSnapshotter, taskInputs)

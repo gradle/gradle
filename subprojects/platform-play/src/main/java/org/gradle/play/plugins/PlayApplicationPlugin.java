@@ -50,6 +50,7 @@ import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
+import org.gradle.play.PlayPlatformAwareComponentSpec;
 import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.*;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
@@ -105,10 +106,15 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         FileResolver fileResolver(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(FileResolver.class);
         }
+        
+        @ComponentType
+        void registerPlayPlatformAwareComponentSpecType(ComponentTypeBuilder<PlayPlatformAwareComponentSpec> builder) {
+            builder.defaultImplementation(DefaultPlayPlatformAwareComponentSpec.class);
+            builder.internalView(PlayPlatformAwareComponentSpecInternal.class);
+        }
 
         @ComponentType
-        void register(ComponentTypeBuilder<PlayApplicationSpec> builder) {
-            builder.defaultImplementation(DefaultPlayApplicationSpec.class);
+        void registerPlayApplicationSpecType(ComponentTypeBuilder<PlayApplicationSpec> builder) {
             builder.internalView(PlayApplicationSpecInternal.class);
         }
 
@@ -149,8 +155,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         @Validate
         void failOnMultipleTargetPlatforms(ModelMap<PlayApplicationSpec> playApplications) {
-            playApplications.withType(PlayApplicationSpecInternal.class).afterEach(new Action<PlayApplicationSpecInternal>() {
-                public void execute(PlayApplicationSpecInternal playApplication) {
+            playApplications.withType(PlayPlatformAwareComponentSpecInternal.class).afterEach(new Action<PlayPlatformAwareComponentSpecInternal>() {
+                public void execute(PlayPlatformAwareComponentSpecInternal playApplication) {
                     if (playApplication.getTargetPlatforms().size() > 1) {
                         throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
                     }
@@ -204,7 +210,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
                     ModelMap<JvmResourceSet> jvmResourceSets = componentSpec.getSources().withType(JvmResourceSet.class);
                     for (JvmResourceSet jvmResourceSet : jvmResourceSets.values()) {
-                        for (File resourceDir : jvmResourceSet.getSource()) {
+                        for (File resourceDir : jvmResourceSet.getSource().getSrcDirs()) {
                             classes.addResourceDir(resourceDir);
                         }
                     }
@@ -253,7 +259,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             createGeneratedScalaSourceSetsForType(RoutesSourceSet.class, binaries, serviceRegistry);
         }
 
-        void createGeneratedScalaSourceSetsForType(final Class<? extends LanguageSourceSet> languageSourceSetType, ModelMap<PlayApplicationBinarySpec> binaries, ServiceRegistry serviceRegistry) {
+        private void createGeneratedScalaSourceSetsForType(final Class<? extends LanguageSourceSet> languageSourceSetType, ModelMap<PlayApplicationBinarySpec> binaries, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             binaries.all(new Action<PlayApplicationBinarySpec>() {
@@ -261,7 +267,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                 public void execute(PlayApplicationBinarySpec playApplicationBinarySpec) {
                     for (LanguageSourceSet languageSourceSet : playApplicationBinarySpec.getInputs().withType(languageSourceSetType)) {
                         String name = String.format("%sScalaSources", languageSourceSet.getName());
-                        ScalaLanguageSourceSet twirlScalaSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, name, playApplicationBinarySpec.getName(), fileResolver, instantiator);
+                        ScalaLanguageSourceSet twirlScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, name, playApplicationBinarySpec.getName(), fileResolver);
                         playApplicationBinarySpec.getGeneratedScala().put(languageSourceSet, twirlScalaSources);
                     }
                 }
@@ -269,7 +275,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createTwirlCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
+        void createTwirlCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary, @Path("buildDir") final File buildDir) {
             for (final TwirlSourceSet twirlSourceSet : binary.getInputs().withType(TwirlSourceSet.class)) {
                 final String twirlCompileTaskName = binary.getTasks().taskName("compile", twirlSourceSet.getName());
                 final File twirlCompileOutputDirectory = srcOutputDirectory(buildDir, binary, twirlCompileTaskName);
@@ -290,7 +296,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createRoutesCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
+        void createRoutesCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary, @Path("buildDir") final File buildDir) {
             for (final RoutesSourceSet routesSourceSet : binary.getInputs().withType(RoutesSourceSet.class)) {
                 final String routesCompileTaskName = binary.getTasks().taskName("compile", routesSourceSet.getName());
                 final File routesCompilerOutputDirectory = srcOutputDirectory(buildDir, binary, routesCompileTaskName);

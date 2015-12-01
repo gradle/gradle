@@ -48,13 +48,13 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.typeconversion.DefaultTypeConverters;
-import org.gradle.internal.typeconversion.TypeConverters;
+import org.gradle.internal.typeconversion.DefaultTypeConverter;
+import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.persist.ModelRegistryStore;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -152,8 +152,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         };
     }
 
-    protected ModelRegistry createModelRegistry(ModelRegistryStore modelRegistryStore) {
-        return modelRegistryStore.get(project);
+    protected ModelRegistry createModelRegistry(ModelRuleExtractor ruleExtractor) {
+        return new DefaultModelRegistry(ruleExtractor);
     }
 
     protected ScriptHandler createScriptHandler() {
@@ -183,8 +183,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new ComponentRegistry();
     }
 
-    protected TypeConverters createTypeConverters() {
-        return new DefaultTypeConverters();
+    protected TypeConverter createTypeConverter(FileResolver fileResolver) {
+        return new DefaultTypeConverter(fileResolver);
     }
 
     private class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {

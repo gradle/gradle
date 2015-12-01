@@ -480,7 +480,7 @@ class RuleBindingsTest extends RegistrySpec {
     }
 
     private void addNodeWithoutProjections(TestNode node) {
-        graph.get(node.path.parent).addLink(node)
+        ((TestNode) graph.get(node.path.parent)).addLink(node)
         graph.add(node)
         bindings.nodeCreated(node)
     }

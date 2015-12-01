@@ -19,11 +19,11 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.BiAction;
-import org.gradle.internal.BiActions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
@@ -38,7 +38,6 @@ import org.gradle.model.*;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.core.Service;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -78,9 +77,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
+        // TODO The 'path' is required to here to avoid a rule cycle being reported
         @Service
-        ComponentSpecFactory componentSpecFactory() {
-            return new ComponentSpecFactory("components");
+        ComponentSpecFactory componentSpecFactory(@Path("projectIdentifier") ProjectIdentifier projectIdentifier) {
+            return new ComponentSpecFactory("components", projectIdentifier);
         }
 
         @ComponentType
@@ -90,8 +90,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Service
-        BinarySpecFactory binarySpecFactory() {
-            return new BinarySpecFactory("binaries");
+        BinarySpecFactory binarySpecFactory(ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
+            return new BinarySpecFactory("binaries", serviceRegistry.get(Instantiator.class), taskFactory);
         }
 
         @Model
@@ -99,16 +99,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         @Mutate
         void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, BinarySpecFactory binarySpecFactory, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, BiActions.doNothing()));
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, new BiAction<BinarySpec, ModelSchema<? extends BinarySpec>>() {
-                @Override
-                public void execute(BinarySpec binarySpec, ModelSchema<? extends BinarySpec> schema) {
-                    BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binarySpec;
-                    if (!binarySpecInternal.isLegacyBinary()) {
-                        binarySpecInternal.setPublicType(schema.getType().getConcreteClass());
-                    }
-                }
-            }));
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory));
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory));
         }
 
         @Service

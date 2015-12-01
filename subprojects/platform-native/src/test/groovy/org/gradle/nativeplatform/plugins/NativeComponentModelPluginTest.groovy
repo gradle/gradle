@@ -15,14 +15,12 @@
  */
 
 package org.gradle.nativeplatform.plugins
+
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
-import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
@@ -35,9 +33,11 @@ import org.gradle.platform.base.PlatformContainer
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import static org.gradle.model.internal.type.ModelTypes.modelMap
+
 class NativeComponentModelPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
-    def modelRegistryHelper = new ModelRegistryHelper(project)
+    def registry = project.modelRegistry
 
     def setup() {
         project.pluginManager.apply(NativeComponentModelPlugin)
@@ -48,11 +48,11 @@ class NativeComponentModelPluginTest extends Specification {
     }
 
     public <T> T realizeModelElement(String path, ModelType<T> type) {
-        project.modelRegistry.realize(ModelPath.path(path), type)
+        project.modelRegistry.realize(path, type)
     }
 
     ModelMap<BinarySpec> getBinaries() {
-        realizeModelElement("binaries", ModelTypes.modelMap(BinarySpec))
+        realizeModelElement("binaries", modelMap(BinarySpec))
     }
 
     NativeToolChainRegistry getToolChains() {
@@ -104,7 +104,7 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "behaves correctly for defaults when domain is explicitly configured"() {
         when:
-        modelRegistryHelper
+        registry
                 .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
                 .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
                 .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
@@ -120,7 +120,7 @@ class NativeComponentModelPluginTest extends Specification {
     def "creates binaries for executable"() {
         when:
         project.pluginManager.apply(NativeComponentModelPlugin)
-        modelRegistryHelper
+        registry
                 .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
                 .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
                 .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
@@ -153,7 +153,7 @@ class NativeComponentModelPluginTest extends Specification {
     def "creates binaries for library"() {
         when:
         project.pluginManager.apply(NativeComponentModelPlugin)
-        modelRegistryHelper
+        registry
                 .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
                 .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
                 .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }

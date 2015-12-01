@@ -60,7 +60,7 @@ Binaries
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeExecutable/someExe
+        executable file: build/exe/someExe/someExe
 
 Cunit test suite 'someExeTest'
 ------------------------------
@@ -74,12 +74,13 @@ Source sets
 Binaries
     C unit exe 'someExeTest:cUnitExe'
         build using task: :someExeTestCUnitExe
+        install using task: :installSomeExeTestCUnitExe
         run using task: :runSomeExeTestCUnitExe
         buildType: build type 'debug'
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeTestCUnitExe/someExeTest
+        executable file: build/exe/someExeTest/someExeTest
 """
     }
 }

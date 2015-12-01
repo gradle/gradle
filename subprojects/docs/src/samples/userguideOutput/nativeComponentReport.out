@@ -18,14 +18,14 @@ Binaries
         flavor: flavor 'default'
         targetPlatform: platform 'current'
         tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/helloSharedLibrary/libhello.dylib
+        shared library file: build/libs/hello/shared/libhello.dylib
     Static library 'hello:staticLibrary'
         build using task: :helloStaticLibrary
         buildType: build type 'debug'
         flavor: flavor 'default'
         targetPlatform: platform 'current'
         tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/helloStaticLibrary/libhello.a
+        static library file: build/libs/hello/static/libhello.a
 
 Native executable 'main'
 ------------------------
@@ -42,7 +42,7 @@ Binaries
         flavor: flavor 'default'
         targetPlatform: platform 'current'
         tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/mainExecutable/main
+        executable file: build/exe/main/main
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 

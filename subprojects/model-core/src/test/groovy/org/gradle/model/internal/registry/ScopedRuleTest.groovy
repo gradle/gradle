@@ -33,7 +33,7 @@ import spock.lang.Specification
 class ScopedRuleTest extends Specification {
 
     def extractors = [new DependencyAddingModelRuleExtractor()] + MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance())
-    def registry = new ModelRegistryHelper(new DefaultModelRegistry(new ModelRuleExtractor(extractors)))
+    def registry = new ModelRegistryHelper(new ModelRuleExtractor(extractors))
 
     static class RuleSourceUsingRuleWithDependencies extends RuleSource {
         @HasDependencies

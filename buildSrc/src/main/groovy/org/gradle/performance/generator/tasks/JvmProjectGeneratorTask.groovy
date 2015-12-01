@@ -16,25 +16,32 @@
 
 package org.gradle.performance.generator.tasks
 
-import org.gradle.performance.generator.*
-
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFiles
+import org.gradle.performance.generator.*
 
 class JvmProjectGeneratorTask extends ProjectGeneratorTask {
     boolean groovyProject
     boolean scalaProject
+    boolean createTestComponent = true
+    Closure createPackageName = { testProject, fileNumber ->
+        def pkg = "org.gradle.test.performance${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${(int) (fileNumber / filesPerPackage) + 1}"
+        pkg.toString()
+    }
+    Closure createFileName = { testProject, prefix, fileNumber -> "${prefix}${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${fileNumber + 1}".toString() }
+    Closure createExtendsAndImplementsClause = { testProject, prefix, fileNumber -> '' }
+    Closure<List<Map<String, String>>> createExtraFields = { testProject, prefix, fileNumber -> [] }
 
     @InputFiles
     FileCollection testDependencies
 
     Map getTaskArgs() {
-        [ groovyProject: groovyProject, scalaProject: scalaProject ]
+        [ groovyProject: groovyProject, scalaProject: scalaProject, testComponent: createTestComponent ]
     }
 
     def generateRootProject() {
         super.generateRootProject()
-
+        generateProjectDependenciesDescriptor()
         project.copy {
             into(getDestDir())
             into('lib/test') {
@@ -75,19 +82,42 @@ class JvmProjectGeneratorTask extends ProjectGeneratorTask {
             testFilePrefix = "Test"
             testFileTemplate = "Test.java"
         }
-
-        def createPackageName = { fileNumber -> "org.gradle.test.performance${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${(int) (fileNumber / filesPerPackage) + 1}".toString() }
-        def createFileName = { prefix, fileNumber -> "${prefix}${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${fileNumber + 1}".toString() }
-
+        def createPackageName = this.createPackageName.rehydrate(this, this, this).curry(testProject)
+        def createFileName = this.createFileName.rehydrate(this, this, this).curry(testProject)
+        def createExtendsAndImplementsClause = this.createExtendsAndImplementsClause.rehydrate(this, this, this).curry(testProject)
+        def extraFields = this.createExtraFields.rehydrate(this, this, this).curry(testProject)
         testProject.sourceFiles.times {
             String packageName = createPackageName(it)
-            Map classArgs = args + [packageName: packageName, productionClassName: createFileName(classFilePrefix, it)]
+            Map classArgs = args + [
+                packageName: packageName,
+                productionClassName: createFileName(classFilePrefix, it),
+                extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it),
+                extraFields: extraFields(classFilePrefix, it)
+            ]
             generateWithTemplate(projectDir, "src/main/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.productionClassName}.${sourceLang}", classFileTemplate, classArgs)
         }
-        testProject.testSourceFiles.times {
-            String packageName = createPackageName(it)
-            Map classArgs = args + [packageName: packageName, productionClassName: createFileName(classFilePrefix, it), testClassName: createFileName(testFilePrefix, it)]
-            generateWithTemplate(projectDir, "src/test/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.testClassName}.${sourceLang}", testFileTemplate, classArgs)
+        if (createTestComponent) {
+            testProject.testSourceFiles.times {
+                String packageName = createPackageName(it)
+                Map classArgs = args + [
+                    packageName               : packageName,
+                    productionClassName       : createFileName(classFilePrefix, it),
+                    testClassName             : createFileName(testFilePrefix, it),
+                    extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it),
+                    extraFields               : extraFields(classFilePrefix, it)]
+                generateWithTemplate(projectDir, "src/test/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.testClassName}.${sourceLang}", testFileTemplate, classArgs)
+            }
+        }
+    }
+
+    // generates a descriptor which can be used in integration tests to find out easily
+    // what are the dependencies between projects
+    void generateProjectDependenciesDescriptor() {
+        def dependencies = templateArgs.generatedDependencies
+        if (dependencies) {
+            new File(destDir, "generated-deps.groovy") << """[
+   ${dependencies.collect {"($it.key): ${it.value}"}.join(',\n   ') }
+]"""
         }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.fixture
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.typeconversion.TypeConverter
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRegistrations
@@ -27,13 +28,14 @@ import spock.lang.Specification
 class ProjectRegistrySpec extends Specification {
     def registry = new ModelRegistryHelper()
     def schemaStore = DefaultModelSchemaStore.instance
-    def proxyFactory = TestManagedProxyFactory.INSTANCE
+    def proxyFactory = ManagedProxyFactory.INSTANCE
     def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
 
     def setup() {
         registry.register(ModelRegistrations.serviceInstance(ModelReference.of("schemaStore", ModelSchemaStore), DefaultModelSchemaStore.instance).build())
         registry.register(ModelRegistrations.serviceInstance(ModelReference.of("proxyFactory", ManagedProxyFactory), proxyFactory).build())
         registry.register(ModelRegistrations.serviceInstance(ModelReference.of("serviceRegistry", ServiceRegistry), Mock(ServiceRegistry)).build())
+        registry.register(ModelRegistrations.serviceInstance(ModelReference.of("typeConverter", TypeConverter), Mock(TypeConverter)).build())
         registry.register(ModelRegistrations.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
     }
 }

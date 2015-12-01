@@ -29,13 +29,13 @@ model {
     tasks {
         verify(Task) {
             doLast {
-                def binaries = $('binaries')
+                def binaries = $.binaries
                 assert binaries.size() == 2
                 assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
                 assert binaries.mainClasses.buildTask.name == 'classes'
                 assert binaries.testClasses instanceof ClassDirectoryBinarySpec
                 assert binaries.testClasses.buildTask.name == 'testClasses'
-                def sources = $('sources')
+                def sources = $.sources
                 assert sources.size() == 4
                 assert sources.withType(JavaSourceSet).size() == 2
                 assert sources.withType(JvmResourceSet).size() == 2

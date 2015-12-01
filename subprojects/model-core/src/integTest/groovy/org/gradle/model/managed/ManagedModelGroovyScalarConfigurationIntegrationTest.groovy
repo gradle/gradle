@@ -19,7 +19,7 @@ package org.gradle.model.managed
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.Matchers.containsString
 
 class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -133,7 +133,7 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         '''
 
     @Unroll
-    void 'only CharSequence input values are supported'() {
+    void 'only CharSequence input values are supported - #varname'() {
         when:
         buildFile << CLASSES
         buildFile << """
@@ -211,12 +211,20 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         fails 'printResolvedValues'
 
         and:
-        failure.assertThatCause(containsString('Cannot convert null to a primitive type'))
+        failure.assertThatCause(containsString("Cannot assign null value to primitive type $type"))
         failure.assertThatCause(containsString('The following types/formats are supported:'))
         failure.assertThatCause(containsString('CharSequence instances'))
 
         where:
-        varname << ['bool1', 'thedouble', 'thefloat', 'theint', 'thelong', 'theshort', 'thebyte', 'thechar']
+        varname     | type
+        'bool1'     | boolean
+        'thedouble' | double
+        'thefloat'  | float
+        'theint'    | int
+        'thelong'   | long
+        'theshort'  | short
+        'thebyte'   | byte
+        'thechar'   | char
     }
 
     @Unroll
@@ -359,5 +367,192 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         output.contains 'prop theCharacter : g'
         output.contains 'prop theString    : bar/foo'
         output.contains 'prop theThing     : NOT_A_TOASTER'
+    }
+
+    void 'can convert CharSequence to File'() {
+        when:
+        buildFile << '''
+            @Managed
+            interface Props {
+                File getTheFile1()
+                void setTheFile1(File f)
+
+                File getTheFile2()
+                void setTheFile2(File f)
+
+                File getTheFile3()
+                void setTheFile3(File f)
+
+                File getTheFile4()
+                void setTheFile4(File f)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void props(Props p) {}
+
+                @Mutate
+                void addTask(ModelMap<Task> tasks, Props p) {
+                    tasks.create('printResolvedValues') {
+                        doLast {
+                            String projectDirPath = project.projectDir.absolutePath
+                            String relative
+                            String relativeExpected
+
+                            assert p.theFile1
+                            relative = p.theFile1.absolutePath - projectDirPath
+                            relativeExpected = project.file('foo.txt').absolutePath - projectDirPath
+                            println "1: ${relative == relativeExpected}"
+                            assert relative == relativeExpected
+
+                            assert p.theFile2
+                            relative = p.theFile2.absolutePath - projectDirPath
+                            relativeExpected = project.file('path/to/Thing.java').absolutePath - projectDirPath
+                            println "2: ${relative == relativeExpected}"
+                            assert relative == relativeExpected
+
+                            assert p.theFile3
+                            relative = p.theFile3.absolutePath - projectDirPath
+                            relativeExpected = project.file('/path/to/Thing.groovy').absolutePath - projectDirPath
+                            println "3: ${relative == relativeExpected}"
+                            assert relative == relativeExpected
+
+                            assert p.theFile4
+                            relative = p.theFile4.absolutePath - projectDirPath
+                            relativeExpected = project.file('file:/foo/bar/baz.sh').absolutePath - projectDirPath
+                            println "4: ${relative == relativeExpected}"
+                            assert relative == relativeExpected
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+
+            model {
+                props {
+                    theFile1 = 'foo.txt'
+                    theFile2 = 'path/to/Thing.java'
+                    theFile3 = "${'/' + 'path.to.Thing'.replace('.', '/') + '.groovy'}"
+                    theFile4 = 'file:/foo/bar/baz.sh'
+                }
+            }
+        '''
+
+        then:
+        succeeds 'printResolvedValues'
+
+        and:
+        output.contains '1: true'
+        output.contains '2: true'
+        output.contains '3: true'
+        output.contains '4: true'
+    }
+
+    void 'CharSequence to File error cases'() {
+        given:
+        String model = '''
+            @Managed
+            interface Props {
+                File getTheFile()
+                void setTheFile(File f)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void props(Props p) {}
+            }
+
+            apply type: RulePlugin
+        '''
+
+        when:
+        buildFile.text = model + '''
+            model {
+                props {
+                    theFile = 'http://gradle.org'
+                }
+            }
+        '''
+
+        then:
+        fails 'model'
+
+        and:
+        failure.assertThatCause(containsString("Cannot convert URL 'http://gradle.org' to a file."))
+
+        when:
+        buildFile.text = model + '''
+            model {
+                props {
+                    theFile = new Object()
+                }
+            }
+        '''
+
+        then:
+        fails 'model'
+
+        and:
+        failure.assertThatCause(containsString('Cannot convert the provided notation to an object of type File'))
+        failure.assertThatCause(containsString('The following types/formats are supported:'))
+        failure.assertThatCause(containsString('CharSequence instances'))
+    }
+
+    void 'can convert CharSequence to File for multi-project build'() {
+
+        given:
+        String model = '''
+            model {
+                props {
+                    theFile = 'path/to/Thing.java'
+                }
+            }
+        '''
+
+        when:
+        settingsFile << "include 'p1', 'p2'"
+
+        buildFile << '''
+            @Managed
+            interface Props {
+                File getTheFile()
+                void setTheFile(File f)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void props(Props p) {}
+
+                @Mutate
+                void addTask(ModelMap<Task> tasks, Props p) {
+                    tasks.create('printResolvedValues') {
+                        doLast {
+                            String projectDirPath = project.projectDir.absolutePath
+
+                            assert p.theFile
+                            String relative = p.theFile.absolutePath - projectDirPath
+                            String relativeExpected = project.file('path/to/Thing.java').absolutePath - projectDirPath
+                            println "$project.name file: $relative ${relative == relativeExpected}"
+                            assert relative == relativeExpected
+                        }
+                    }
+                }
+            }
+
+            subprojects {
+                apply type: RulePlugin
+            }
+        '''
+
+        file('p1/build.gradle') << model
+        file('p2/build.gradle') << model
+
+        then:
+        succeeds ':p1:printResolvedValues', ':p2:printResolvedValues'
+
+        and:
+        output.contains 'p1 file: /path/to/Thing.java true'.replace('/' as char, File.separatorChar)
+        output.contains 'p2 file: /path/to/Thing.java true'.replace('/' as char, File.separatorChar)
     }
 }

@@ -20,12 +20,12 @@ import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
 class CLangPluginTest extends AbstractLanguagePluginSpec {
     @Override
-    def getPluginClass() {
+    Class getPluginClass() {
         return CLangPlugin
     }
 
     @Override
-    def getLanguageSourceSet() {
+    Class getLanguageSourceSet() {
         return CSourceSet
     }
 

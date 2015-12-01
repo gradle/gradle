@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.language.PreprocessingTool;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -25,7 +24,6 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
@@ -43,10 +41,6 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
     void setBuildType(BuildType buildType);
 
     Tool getToolByName(String name);
-
-    BinaryNamingScheme getNamingScheme();
-
-    void setNamingScheme(BinaryNamingScheme namingScheme);
 
     PlatformToolProvider getPlatformToolProvider();
 
@@ -67,16 +61,4 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
 
     Map<File, PreCompiledHeader> getPrefixFileToPCH();
 
-    // TODO It would be better if these were added via a separate managed view, rather than hard coded.
-    Tool getAssembler();
-
-    PreprocessingTool getcCompiler();
-
-    PreprocessingTool getCppCompiler();
-
-    PreprocessingTool getObjcCompiler();
-
-    PreprocessingTool getObjcppCompiler();
-
-    PreprocessingTool getRcCompiler();
 }

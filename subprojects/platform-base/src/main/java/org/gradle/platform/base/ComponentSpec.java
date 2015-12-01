@@ -16,7 +16,8 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.*;
+import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
@@ -28,7 +29,7 @@ import org.gradle.model.ModelMap;
 @HasInternalProtocol
 public interface ComponentSpec extends Named {
     /**
-     * The path the the project containing this component.
+     * The path to the project containing this component.
      */
     String getProjectPath();
 
@@ -51,17 +52,7 @@ public interface ComponentSpec extends Named {
     ModelMap<LanguageSourceSet> getSources();
 
     /**
-     * Configures the source sets used to build this component.
-     */
-    void sources(Action<? super ModelMap<LanguageSourceSet>> action);
-
-    /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */
     ModelMap<BinarySpec> getBinaries();
-
-    /**
-     * Configures the binaries that are produced for this component.
-     */
-    void binaries(Action<? super ModelMap<BinarySpec>> action);
 }

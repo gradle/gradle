@@ -36,11 +36,6 @@ public interface LanguageSourceSet extends Named, BuildableModelElement {
      */
     SourceDirectorySet getSource();
 
-    /**
-     * Configure the sources
-     */
-    void source(Action<? super SourceDirectorySet> config);
-
     void generatedBy(Task generatorTask);
 
     @Nullable

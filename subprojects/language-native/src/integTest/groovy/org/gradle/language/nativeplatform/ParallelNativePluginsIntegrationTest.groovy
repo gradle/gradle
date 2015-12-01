@@ -67,7 +67,7 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
 
         then:
         Map<ExecutableFixture, HelloWorldApp> executables = apps.collectEntries { name, app ->
-            def executable = executable("build/binaries/${name}Executable/$name")
+            def executable = executable("build/exe/$name/$name")
             executable.assertExists()
             [executable, app]
         }
@@ -132,7 +132,7 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
 
         then:
         Map<NativeInstallationFixture, HelloWorldApp> installations = apps.collectEntries { name, app ->
-            def installation = installation("build/install/${name}MainExecutable")
+            def installation = installation("build/install/${name}Main")
             [installation, app]
         }
         installations.every { installation, app ->

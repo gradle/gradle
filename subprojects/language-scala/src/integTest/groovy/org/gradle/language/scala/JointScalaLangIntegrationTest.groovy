@@ -34,7 +34,6 @@ class JointScalaLangIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         when:
         app.writeSources(file("src/myLib"))
         app.writeResources(file("src/myLib/resources"))
-        def expectedOutputs = app.expectedOutputs*.fullPath as String[]
 
         and:
         buildFile << """
@@ -51,7 +50,7 @@ class JointScalaLangIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         executedAndNotSkipped ":processMyLibJarMyLibResources", ":compileMyLibJarMyLib${StringUtils.capitalize(app.languageName)}"
 
         and:
-        file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
+        file("build/classes/myLib/jar").assertHasDescendants(app.expectedClasses*.fullPath as String[])
     }
 
     def getJava8SpecificClassFile() {

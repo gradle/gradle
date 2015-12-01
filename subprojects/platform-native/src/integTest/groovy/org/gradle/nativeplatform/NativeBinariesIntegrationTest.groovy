@@ -87,8 +87,8 @@ model {
         notExecuted ":mainUnknownExecutable"
 
         and:
-        executable("build/binaries/mainExecutable/${NativePlatformsTestFixture.defaultPlatformName}/main").assertExists()
-        executable("build/binaries/mainExecutable/unknown/main").assertDoesNotExist()
+        executable("build/exe/main/${NativePlatformsTestFixture.defaultPlatformName}/main").assertExists()
+        executable("build/exe/main/unknown/main").assertDoesNotExist()
     }
 
     def "assemble task produces sensible error when there are no buildable binaries" () {
@@ -162,7 +162,7 @@ model {
         succeeds "mainExecutable"
 
         and:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
+        executable("build/exe/main/main").exec().out == helloWorldApp.englishOutput
     }
 
     // TODO:DAZ Should not need a component here
@@ -178,17 +178,19 @@ apply plugin: "cpp"
 model {
     components {
         main(NativeExecutableSpec)
-    }
-    binaries {
         all {
-            sources {
-                testCpp(CppSourceSet) {
-                    source.srcDir "src/test/cpp"
-                    exportedHeaders.srcDir "src/test/headers"
-                }
-                testC(CSourceSet) {
-                    source.srcDir "src/test/c"
-                    exportedHeaders.srcDir "src/test/headers"
+            binaries {
+                all {
+                    sources {
+                        testCpp(CppSourceSet) {
+                            source.srcDir "src/test/cpp"
+                            exportedHeaders.srcDir "src/test/headers"
+                        }
+                        testC(CSourceSet) {
+                            source.srcDir "src/test/c"
+                            exportedHeaders.srcDir "src/test/headers"
+                        }
+                    }
                 }
             }
         }
@@ -200,7 +202,7 @@ model {
         succeeds "mainExecutable"
 
         and:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
+        executable("build/exe/main/main").exec().out == helloWorldApp.englishOutput
     }
 
     def "cannot add java sources to native binary"() {
@@ -232,8 +234,8 @@ model {
         then:
         fails "mainExecutable"
         failure.assertHasCause("Exception thrown while executing model rule: main(org.gradle.nativeplatform.NativeExecutableSpec) { ... } @ build.gradle line 8, column 9");
-        failure.assertHasCause("A model element of type: 'org.gradle.language.java.JavaSourceSet' can not be constructed.")
-        failure.assertThatCause(containsText("- org.gradle.language.c.CSourceSet"));
+        failure.assertHasCause("Cannot create a 'org.gradle.language.java.JavaSourceSet' because this type is not known to sourceSets. " +
+                "Known types are: org.gradle.language.c.CSourceSet, org.gradle.language.cpp.CppSourceSet")
     }
 
     private def useMixedSources() {
@@ -361,7 +363,7 @@ int main (int argc, char *argv[]) {
         succeeds "installEchoExecutable"
 
         then:
-        def installation = installation("build/install/echoExecutable")
+        def installation = installation("build/install/echo")
         installation.exec().out == "\n"
         installation.exec("foo", "bar").out == "[foo] [bar] \n"
     }
@@ -373,7 +375,15 @@ int main (int argc, char *argv[]) {
             apply plugin: "cpp"
             model {
                 components {
-                    exe(NativeExecutableSpec)
+                    exe(NativeExecutableSpec) {
+                        binaries {
+                            all {
+                                sources {
+                                    other(CSourceSet)
+                                }
+                            }
+                        }
+                    }
                     lib(NativeLibrarySpec)
                 }
             }
@@ -387,26 +397,31 @@ int main (int argc, char *argv[]) {
                 exe {
                     binaries {
                         executable(type: "org.gradle.nativeplatform.NativeExecutableBinarySpec") {
+                            sources {
+                                other(type: "org.gradle.language.c.CSourceSet")
+                            }
                             tasks()
                         }
                     }
                     sources {
-                        c(type: "org.gradle.language.c.CSourceSet", nodeValue: "C source 'exe:c'")
-                        cpp(type: "org.gradle.language.cpp.CppSourceSet", nodeValue: "C++ source 'exe:cpp'")
+                        c(type: "org.gradle.language.c.CSourceSet")
+                        cpp(type: "org.gradle.language.cpp.CppSourceSet")
                     }
                 }
                 lib {
                     binaries {
                         sharedLibrary(type: "org.gradle.nativeplatform.SharedLibraryBinarySpec") {
+                            sources()
                             tasks()
                         }
                         staticLibrary(type: "org.gradle.nativeplatform.StaticLibraryBinarySpec") {
+                            sources()
                             tasks()
                         }
                     }
                     sources {
-                        c(type: "org.gradle.language.c.CSourceSet", nodeValue: "C source 'lib:c'")
-                        cpp(type: "org.gradle.language.cpp.CppSourceSet", nodeValue: "C++ source 'lib:cpp'")
+                        c(type: "org.gradle.language.c.CSourceSet")
+                        cpp(type: "org.gradle.language.cpp.CppSourceSet")
                     }
                 }
             }

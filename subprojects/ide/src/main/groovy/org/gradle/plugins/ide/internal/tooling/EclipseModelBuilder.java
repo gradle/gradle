@@ -20,10 +20,12 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.plugins.JavaBasePlugin;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaRuntime;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaSourceSettings;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.util.GUtil;
@@ -138,16 +140,14 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             buildCommands.add(new DefaultEclipseBuildCommand(b.getName(), b.getArguments()));
         }
         eclipseProject.setBuildCommands(buildCommands);
-
-        if (project.getPlugins().hasPlugin(JavaBasePlugin.class)) {
+        EclipseJdt jdt = eclipseModel.getJdt();
+        if (jdt != null) {
             // the default value for eclipse.jdt.sourceCompatibility is project.sourceCompatibility
             // hence we have to read the value only from there
-            JavaVersion sourceCompatibility = eclipseModel.getJdt().getSourceCompatibility();
-            if (sourceCompatibility != null) {
-                DefaultJavaSourceLevel languageLevel = new DefaultJavaSourceLevel(sourceCompatibility.toString());
-                DefaultJavaSourceSettings sourceSettings = new DefaultJavaSourceSettings(languageLevel);
-                eclipseProject.setJavaSourceSettings(sourceSettings);
-            }
+            JavaVersion sourceCompatibility = jdt.getSourceCompatibility();
+            JavaVersion targetCompatibility = jdt.getTargetCompatibility();
+            DefaultJavaSourceSettings sourceSettings = new DefaultJavaSourceSettings(sourceCompatibility, targetCompatibility, new DefaultJavaRuntime(Jvm.current().getJavaHome()));
+            eclipseProject.setJavaSourceSettings(sourceSettings);
         }
 
         for (Project childProject : project.getChildProjects().values()) {

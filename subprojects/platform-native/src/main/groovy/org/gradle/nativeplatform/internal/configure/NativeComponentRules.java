@@ -32,7 +32,6 @@ import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.platform.base.internal.*;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -69,7 +68,7 @@ public class NativeComponentRules extends RuleSource {
         final NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
         final NativeDependencyResolver nativeDependencyResolver = serviceRegistry.get(NativeDependencyResolver.class);
 
-        createBinariesImpl(nativeComponent, platforms, buildTypes, flavors, nativePlatforms, nativeDependencyResolver, new DefaultBinaryNamingSchemeBuilder());
+        createBinariesImpl(nativeComponent, platforms, buildTypes, flavors, nativePlatforms, nativeDependencyResolver);
     }
 
     static void createBinariesImpl(
@@ -78,8 +77,7 @@ public class NativeComponentRules extends RuleSource {
         Set<? extends BuildType> buildTypes,
         Set<? extends Flavor> flavors,
         NativePlatforms nativePlatforms,
-        NativeDependencyResolver nativeDependencyResolver,
-        BinaryNamingSchemeBuilder namingSchemeBuilder
+        NativeDependencyResolver nativeDependencyResolver
     ) {
         if (!(nativeComponent instanceof TargetedNativeComponentInternal)) {
             return;
@@ -88,12 +86,12 @@ public class NativeComponentRules extends RuleSource {
         List<NativePlatform> resolvedPlatforms = resolvePlatforms(targetedComponent, nativePlatforms, platforms);
 
         for (NativePlatform platform : resolvedPlatforms) {
-            BinaryNamingSchemeBuilder builder = namingSchemeBuilder.withComponentName(nativeComponent.getName());
-            builder = maybeAddDimension(builder, resolvedPlatforms, platform.getName());
+            BinaryNamingScheme namingScheme = DefaultBinaryNamingScheme.component(nativeComponent.getName());
+            namingScheme = namingScheme.withVariantDimension(platform, resolvedPlatforms);
             executeForEachBuildType(
                 nativeComponent,
                 (NativePlatformInternal) platform,
-                builder,
+                namingScheme,
                 buildTypes,
                 flavors,
                 nativeDependencyResolver
@@ -115,29 +113,22 @@ public class NativeComponentRules extends RuleSource {
         });
     }
 
-    private static BinaryNamingSchemeBuilder maybeAddDimension(BinaryNamingSchemeBuilder builder, Collection<?> variations, String name) {
-        if (variations.size() > 1) {
-            builder = builder.withVariantDimension(name);
-        }
-        return builder;
-    }
-
     private static void executeForEachBuildType(
         NativeComponentSpec projectNativeComponent,
         NativePlatformInternal platform,
-        BinaryNamingSchemeBuilder builder,
+        BinaryNamingScheme namingScheme,
         Set<? extends BuildType> allBuildTypes,
         Set<? extends Flavor> allFlavors,
         NativeDependencyResolver nativeDependencyResolver
     ) {
         Set<BuildType> targetBuildTypes = ((TargetedNativeComponentInternal) projectNativeComponent).chooseBuildTypes(allBuildTypes);
         for (BuildType buildType : targetBuildTypes) {
-            BinaryNamingSchemeBuilder nameBuilder = maybeAddDimension(builder, targetBuildTypes, buildType.getName());
+            BinaryNamingScheme namingSchemeWithBuildType = namingScheme.withVariantDimension(buildType, targetBuildTypes);
             executeForEachFlavor(
                 projectNativeComponent,
                 platform,
                 buildType,
-                nameBuilder,
+                namingSchemeWithBuildType,
                 allFlavors,
                 nativeDependencyResolver
             );
@@ -148,18 +139,18 @@ public class NativeComponentRules extends RuleSource {
         NativeComponentSpec projectNativeComponent,
         NativePlatform platform,
         BuildType buildType,
-        BinaryNamingSchemeBuilder buildTypedNameBuilder,
+        BinaryNamingScheme namingScheme,
         Set<? extends Flavor> allFlavors,
         NativeDependencyResolver nativeDependencyResolver
     ) {
         Set<Flavor> targetFlavors = ((TargetedNativeComponentInternal) projectNativeComponent).chooseFlavors(allFlavors);
         for (Flavor flavor : targetFlavors) {
-            BinaryNamingSchemeBuilder flavoredNameBuilder = maybeAddDimension(buildTypedNameBuilder, targetFlavors, flavor.getName());
+            BinaryNamingScheme namingSchemeWithFlavor = namingScheme.withVariantDimension(flavor, targetFlavors);
             NativeBinaries.createNativeBinaries(
                 projectNativeComponent,
                 projectNativeComponent.getBinaries().withType(NativeBinarySpec.class),
                 nativeDependencyResolver,
-                flavoredNameBuilder,
+                namingSchemeWithFlavor,
                 platform,
                 buildType,
                 flavor

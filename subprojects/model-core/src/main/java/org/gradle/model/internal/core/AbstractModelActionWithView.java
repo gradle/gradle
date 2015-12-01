@@ -37,7 +37,7 @@ public abstract class AbstractModelActionWithView<T> extends AbstractModelAction
             throw new IllegalStateException("Cannot get view for node " + node.getPath() + " in state " + node.getState());
         }
         ModelType<T> type = getSubject().getType();
-        ModelView<? extends T> view = node.asMutable(type, getDescriptor(), inputs);
+        ModelView<? extends T> view = node.asMutable(type, getDescriptor());
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException(String.format("Cannot project model element %s to writable type '%s' for rule %s", node.getPath(), type, getDescriptor()));

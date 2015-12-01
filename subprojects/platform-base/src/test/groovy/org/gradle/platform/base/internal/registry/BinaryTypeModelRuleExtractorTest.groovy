@@ -38,9 +38,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
     def aspectExtractor = new ModelSchemaAspectExtractor()
     BinaryTypeModelRuleExtractor ruleHandler = new BinaryTypeModelRuleExtractor(
         new DefaultModelSchemaStore(
-            new ModelSchemaExtractor([
-                new BinarySpecSpecializationSchemaExtractionStrategy(aspectExtractor)
-            ], aspectExtractor)
+            new ModelSchemaExtractor([], aspectExtractor)
         )
     )
 
@@ -94,7 +92,6 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         "implementationSetForManagedType"  | "Method annotated with @BinaryType cannot set default implementation for managed type ${ManagedBinarySpec.name}."                    | "implementation set for managed type"
         "noTypeParam"                      | "Parameter of type '${BinaryTypeBuilder.name}' must declare a type parameter."                                                       | "missing type parameter"
         "notBinarySpec"                    | "Binary type '${NotBinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                                      | "type not extending BinarySpec"
-        "notCustomBinary"                  | "Binary type '${BinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                                         | "type is BinarySpec"
         "wildcardType"                     | "Binary type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                                               | "wildcard type parameter"
         "extendsType"                      | "Binary type '? extends ${BinarySpec.getName()}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."               | "extends type parameter"
         "superType"                        | "Binary type '? super ${BinarySpec.getName()}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                 | "super type parameter"

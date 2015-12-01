@@ -53,14 +53,17 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
+import org.gradle.model.RuleSource;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.*;
@@ -185,51 +188,62 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         populateModelRegistry(services.get(ModelRegistry.class));
     }
 
+    static class BasicServicesRules extends RuleSource {
+        @Service
+        ITaskFactory taskFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ITaskFactory.class);
+        }
+
+        @Service
+        ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ModelSchemaStore.class);
+        }
+
+        @Service
+        ManagedProxyFactory proxyFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ManagedProxyFactory.class);
+        }
+
+        @Service
+        NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore) {
+            return new DefaultNodeInitializerRegistry(schemaStore);
+        }
+
+        @Service
+        TypeConverter typeConverter(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(TypeConverter.class);
+        }
+    }
+
     private void populateModelRegistry(ModelRegistry modelRegistry) {
-        registerEphemeralServiceOn(modelRegistry, "taskFactory", ITaskFactory.class);
-        registerEphemeralServiceOn(modelRegistry, "serviceRegistry", ServiceRegistry.class, services);
-        registerEphemeralServiceOn(modelRegistry, "schemaStore", ModelSchemaStore.class);
-        registerEphemeralServiceOn(modelRegistry, "proxyFactory", ManagedProxyFactory.class);
-        registerEphemeralServiceOn(modelRegistry, "nodeInitializerRegistry", NodeInitializerRegistry.class, new DefaultNodeInitializerRegistry(services.get(ModelSchemaStore.class)));
-        registerEphemeralUnmanagedInstanceOn(modelRegistry, "buildDir", File.class, new Factory<File>() {
+        registerServiceOn(modelRegistry, "serviceRegistry", ServiceRegistry.class, services, instanceDescriptorFor("serviceRegistry"));
+        // TODO:LPTR This ignores changes to Project.buildDir after model node has been created
+        registerFactoryOn(modelRegistry, "buildDir", File.class, new Factory<File>() {
+            @Override
             public File create() {
                 return getBuildDir();
             }
         });
-        registerEphemeralBridgedInstanceOn(modelRegistry, "projectIdentifier", ProjectIdentifier.class, this);
-        registerEphemeralBridgedInstanceOn(modelRegistry, "extensionContainer", ExtensionContainer.class, getExtensions());
+        registerInstanceOn(modelRegistry, "projectIdentifier", ProjectIdentifier.class, this);
+        registerInstanceOn(modelRegistry, "extensionContainer", ExtensionContainer.class, getExtensions());
+        modelRegistry.apply(BasicServicesRules.class);
     }
 
-    private <T> void registerEphemeralUnmanagedInstanceOn(ModelRegistry modelRegistry, String path, Class<T> type, Factory<T> factory) {
-        registerEphemeralHiddenInstanceOn(modelRegistry,
-            ModelRegistrations
-                .unmanagedInstance(ModelReference.of(path, type), factory)
-                .descriptor(instanceDescriptorFor(path)));
+    private <T> void registerInstanceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance) {
+        registerFactoryOn(modelRegistry, path, type, Factories.constant(instance));
     }
 
-    private <T> void registerEphemeralBridgedInstanceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance) {
-        registerEphemeralHiddenInstanceOn(modelRegistry,
-            ModelRegistrations
-                .bridgedInstance(ModelReference.of(path, type), instance)
-                .descriptor(instanceDescriptorFor(path)));
+    private <T> void registerFactoryOn(ModelRegistry modelRegistry, String path, Class<T> type, Factory<T> factory) {
+        modelRegistry.register(ModelRegistrations
+            .unmanagedInstance(ModelReference.of(path, type), factory)
+            .descriptor(instanceDescriptorFor(path))
+            .hidden(true)
+            .build());
     }
 
-    private void registerEphemeralHiddenInstanceOn(ModelRegistry modelRegistry, ModelRegistrations.Builder builder) {
-        modelRegistry.registerOrReplace(builder.ephemeral(true).hidden(true).build());
-    }
-
-    private <T> void registerEphemeralServiceOn(ModelRegistry modelRegistry, String path, Class<T> serviceType) {
-        registerEphemeralServiceOn(modelRegistry, path, serviceType, services.get(serviceType));
-    }
-
-    private <T> void registerEphemeralServiceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance) {
-        registerEphemeralServiceOn(modelRegistry, path, type, instance, instanceDescriptorFor(path));
-    }
-
-    private <T> void registerEphemeralServiceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance, String descriptor) {
-        modelRegistry.registerOrReplace(ModelRegistrations.serviceInstance(ModelReference.of(path, type), instance)
+    private <T> void registerServiceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance, String descriptor) {
+        modelRegistry.register(ModelRegistrations.serviceInstance(ModelReference.of(path, type), instance)
             .descriptor(descriptor)
-            .ephemeral(true)
             .build()
         );
     }

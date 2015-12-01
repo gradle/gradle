@@ -16,18 +16,15 @@
 
 package org.gradle.platform.base.component
 
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
 class BaseComponentSpecTest extends Specification {
-    def instantiator = DirectInstantiator.INSTANCE
     def componentId = new DefaultComponentSpecIdentifier("p", "c")
-    def modelRegistry = new ModelRegistryHelper()
 
     def "cannot instantiate directly"() {
         when:
@@ -38,46 +35,38 @@ class BaseComponentSpecTest extends Specification {
         e.message == "Direct instantiation of a BaseComponentSpec is not permitted. Use a ComponentTypeBuilder instead."
     }
 
-    def "cannot create instance of base class"() {
-        when:
-        create(BaseComponentSpec)
-
-        then:
-        def e = thrown ModelInstantiationException
-        e.message == "Cannot create instance of abstract class BaseComponentSpec."
-    }
-
-    private <T extends BaseComponentSpec> T create(Class<T> type) {
-        def file = new TestFile(".")
-        BaseComponentFixtures.create(type, modelRegistry, componentId, instantiator, file)
+    private <T extends ComponentSpec, I extends BaseComponentSpec> T create(Class<T> publicType, Class<I> implType) {
+        return BaseComponentFixtures.create(publicType, implType, componentId)
     }
 
     def "library has name, path and sensible display name"() {
         when:
-        def component = create(MySampleComponent)
+        def component = create(SampleComponent, MySampleComponent)
 
         then:
-        component.class == MySampleComponent
+        component instanceof SampleComponent
         component.name == componentId.name
         component.projectPath == componentId.projectPath
-        component.displayName == "MySampleComponent '$componentId.name'"
+        component.displayName == "SampleComponent '$componentId.name'"
+        component.toString() == component.displayName
     }
 
     def "create fails if subtype does not have a public no-args constructor"() {
 
         when:
-        create(MyConstructedComponent)
+        create(ConstructedComponent, MyConstructedComponent)
 
         then:
-        def e = thrown ModelInstantiationException
-        e.message == "Could not create component of type MyConstructedComponent"
-        e.cause instanceof IllegalArgumentException
-        e.cause.message.startsWith "Could not find any public constructor for class"
+        def e = thrown ModelRuleExecutionException
+        e.cause instanceof ModelInstantiationException
+        e.cause.message == "Could not create component of type ConstructedComponent"
+        e.cause.cause instanceof IllegalArgumentException
+        e.cause.cause.message.startsWith "Could not find any public constructor for class"
     }
 
     def "contains sources of associated main sourceSet"() {
         when:
-        def component = create(MySampleComponent)
+        def component = create(SampleComponent, MySampleComponent)
         def lss1 = languageSourceSet("lss1")
         def lss2 = languageSourceSet("lss2")
         component.sources.put("lss1", lss1)
@@ -89,7 +78,7 @@ class BaseComponentSpecTest extends Specification {
 
     def "source property is the same as sources property"() {
         when:
-        def component = create(MySampleComponent)
+        def component = create(SampleComponent, MySampleComponent)
         def lss1 = languageSourceSet("lss1")
         component.sources.put("lss1", lss1)
 
@@ -104,9 +93,13 @@ class BaseComponentSpecTest extends Specification {
         }
     }
 
-    static class MySampleComponent extends BaseComponentSpec {}
+    interface SampleComponent extends ComponentSpec {}
 
-    static class MyConstructedComponent extends BaseComponentSpec {
+    static class MySampleComponent extends BaseComponentSpec implements SampleComponent {}
+
+    interface ConstructedComponent extends ComponentSpec {}
+
+    static class MyConstructedComponent extends BaseComponentSpec implements ConstructedComponent {
         MyConstructedComponent(String arg) {}
     }
 }

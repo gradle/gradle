@@ -41,7 +41,8 @@ class PlayBinaryAdvancedAppIntegrationTest extends PlayBinaryApplicationIntegrat
                 "models/DataType.class",
                 "models/ScalaClass.class",
                 "controllers/scala/MixedJava.class",
-                "controllers/jva/PureJava.class"
+                "controllers/jva/PureJava.class",
+                "evolutions/default/1.sql"
         )
 
         jar("build/playBinary/lib/${playApp.name}-assets.jar").containsDescendants(

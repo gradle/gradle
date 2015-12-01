@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.archive.JarTestFixture
 
-abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpec{
+abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     abstract TestJvmComponent getApp()
 
@@ -42,7 +42,9 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         when:
         app.writeSources(file("src/myLib"))
         app.writeResources(file("src/myLib/resources"))
-        def expectedOutputs = app.expectedOutputs*.fullPath as String[]
+        def expectedClasses = app.expectedClasses*.fullPath as String[]
+        def expectedResources = app.resources*.fullPath as String[]
+        def expectedOutputs = expectedClasses + expectedResources as String[]
 
         and:
         buildFile << """
@@ -54,14 +56,15 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
 
 """
         and:
-        succeeds "assemble"
+        succeeds "createMyLibJar"
 
         then:
-        executedAndNotSkipped ":processMyLibJarMyLibResources", ":compileMyLibJarMyLib${StringUtils.capitalize(app.languageName)}", ":createMyLibJar", ":myLibJar"
+        executedAndNotSkipped ":processMyLibJarMyLibResources", ":compileMyLibJarMyLib${StringUtils.capitalize(app.languageName)}", ":createMyLibJar"
 
         and:
-        file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
-        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
+        file("build/classes/myLib/jar").assertHasDescendants(expectedClasses)
+        file("build/resources/myLib/jar").assertHasDescendants(expectedResources)
+        jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(expectedOutputs)
     }
 
     def "generated binary includes compiled classes from all language source sets"() {
@@ -93,10 +96,10 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         executedAndNotSkipped ":compileMyLibJarMyLib${StringUtils.capitalize(app.languageName)}", ":compileMyLibJarMyLib${StringUtils.capitalize(extraSourceSetName)}", ":createMyLibJar", ":myLibJar"
 
         and:
-        file("build/classes/myLibJar").assertHasDescendants(source1.classFile.fullPath, source2.classFile.fullPath)
+        file("build/classes/myLib/jar").assertHasDescendants(source1.classFile.fullPath, source2.classFile.fullPath)
 
         and:
-        def jar = jarFile("build/jars/myLibJar/myLib.jar")
+        def jar = jarFile("build/jars/myLib/jar/myLib.jar")
         jar.hasDescendants(source1.classFile.fullPath, source2.classFile.fullPath)
     }
 
@@ -130,16 +133,15 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         succeeds "assemble"
 
         then:
-        file("build/classes/myLibJar").assertHasDescendants(app.expectedOutputs*.fullPath as String[])
-        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(app.expectedOutputs*.fullPath as String[])
+        file("build/classes/myLib/jar").assertHasDescendants(app.expectedClasses*.fullPath as String[])
+        file("build/resources/myLib/jar").assertHasDescendants(app.resources*.fullPath as String[])
+        jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(app.expectedOutputs*.fullPath as String[])
     }
 
     def "can combine resources and sources in a single source directory"() {
         when:
         app.writeSources(file("src/myLib"))
         app.writeResources(file("src/myLib"))
-
-        String[] expectedOutputs = [app.sources[0].classFile.fullPath, app.sources[1].classFile.fullPath, app.resources[0].fullPath, app.resources[1].fullPath]
 
         buildFile << """
     model {
@@ -163,8 +165,9 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         succeeds "assemble"
 
         then:
-        file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
-        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
+        file("build/classes/myLib/jar").assertHasDescendants(app.expectedClasses*.fullPath as String[])
+        file("build/resources/myLib/jar").assertHasDescendants(app.resources*.fullPath as String[])
+        jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(app.expectedOutputs*.fullPath as String[])
     }
 
     def excludeStatementFor(List<String> fileExtensions) {
@@ -203,7 +206,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         file("build/custom-resources").assertHasDescendants(app.resources*.fullPath as String[])
 
         and:
-        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
+        jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(expectedOutputs)
     }
 
     protected JarTestFixture jarFile(String s) {

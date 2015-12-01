@@ -1,12 +1,8 @@
-:updateMainComponent
 :compileMainJarMainJava
-:processMainJarMainResources UP-TO-DATE
-:createMainJar
-:createMainApiJar
-:mainJar
+:mainApiJar
 :compileClientJarClientJava UP-TO-DATE
+:clientApiJar UP-TO-DATE
 :createClientJar UP-TO-DATE
-:createClientApiJar UP-TO-DATE
 :clientJar UP-TO-DATE
 
 BUILD SUCCESSFUL

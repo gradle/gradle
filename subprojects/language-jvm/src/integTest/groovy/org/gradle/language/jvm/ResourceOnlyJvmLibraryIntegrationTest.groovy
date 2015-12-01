@@ -33,9 +33,9 @@ model {
     }
     tasks {
         create("validate") {
-            def components = $("components")
-            def sources = $("sources")
-            def binaries = $("binaries")
+            def components = $.components
+            def sources = $.sources
+            def binaries = $.binaries
             doLast {
                 def myLib = components.myLib
                 assert myLib instanceof JvmLibrarySpec
@@ -77,7 +77,7 @@ model {
         run 'assemble'
 
         then:
-        def jar = jarFile('build/jars/myLibJar/myLib.jar')
+        def jar = jarFile('build/jars/myLib/jar/myLib.jar')
         jar.hasDescendants("org/gradle/thing.txt")
         jar.assertFilePresent("org/gradle/thing.txt", "hi")
     }
@@ -106,7 +106,7 @@ model {
         run 'assemble'
 
         then:
-        def jar = jarFile('build/jars/myLibJar/myLib.jar')
+        def jar = jarFile('build/jars/myLib/jar/myLib.jar')
         jar.hasDescendants("thing.txt", "org/gradle/thing.txt")
         jar.assertFilePresent("thing.txt", "hi")
         jar.assertFilePresent("org/gradle/thing.txt", "hi")

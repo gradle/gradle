@@ -24,14 +24,11 @@ abstract class AbstractComponentModelIntegrationTest extends AbstractIntegration
      */
     void withCustomComponentType() {
         buildFile << """
-            interface CustomComponent extends ComponentSpec {}
-            class DefaultCustomComponent extends BaseComponentSpec implements CustomComponent {}
+            @Managed interface CustomComponent extends ComponentSpec {}
 
             class ComponentTypeRules extends RuleSource {
                 @ComponentType
-                void registerCustomComponentType(ComponentTypeBuilder<CustomComponent> builder) {
-                    builder.defaultImplementation(DefaultCustomComponent)
-                }
+                void registerCustomComponentType(ComponentTypeBuilder<CustomComponent> builder) {}
             }
 
             apply type: ComponentTypeRules

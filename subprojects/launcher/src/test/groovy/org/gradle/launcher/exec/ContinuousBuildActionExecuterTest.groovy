@@ -20,21 +20,18 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.initialization.BuildRequestMetaData
-import org.gradle.initialization.DefaultBuildCancellationToken
-import org.gradle.initialization.DefaultBuildRequestContext
-import org.gradle.initialization.NoOpBuildEventConsumer
-import org.gradle.initialization.ReportedException
+import org.gradle.initialization.*
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
+import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory
 import org.gradle.internal.invocation.BuildAction
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.PluginServiceRegistry
 import org.gradle.logging.TestStyledTextOutputFactory
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Clock
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
@@ -53,6 +50,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def requestMetadata = Stub(BuildRequestMetaData)
     def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
     def actionParameters = Stub(BuildActionParameters)
+    def waiterFactory = Mock(FileSystemChangeWaiterFactory)
     def waiter = Mock(FileSystemChangeWaiter)
     def listenerManager = new DefaultListenerManager()
     @AutoCleanup("stop")
@@ -72,6 +70,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
                     }
                 }
         ]
+        waiterFactory.createChangeWaiter(_) >> waiter
     }
 
     def "uses underlying executer when continuous build is not enabled"() {
@@ -81,7 +80,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(action, requestContext, actionParameters, _)
-        0 * waiter._
+        0 * waiterFactory._
     }
 
     def "allows exceptions to propagate for single builds"() {
@@ -105,7 +104,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * waiter.wait(_, _, _) >> {
+        1 * waiter.wait(_) >> {
             cancellationToken.cancel()
         }
     }
@@ -117,7 +116,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        0 * waiter.wait(_, _, _)
+        0 * waiter.wait(_)
     }
 
     def "throws exception if last build fails in continous mode"() {
@@ -130,7 +129,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * waiter.wait(_, _, _) >> {
+        1 * waiter.wait(_) >> {
             cancellationToken.cancel()
         }
         thrown(ReportedException)
@@ -147,7 +146,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_, _, _)
+        1 * waiter.wait(_)
 
         and:
         1 * delegate.execute(action, requestContext, actionParameters, _) >> {
@@ -156,7 +155,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_, _, _)
+        1 * waiter.wait(_)
 
         and:
         1 * delegate.execute(action, requestContext, actionParameters, _) >> {
@@ -164,7 +163,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_, _, _) >> {
+        1 * waiter.wait(_) >> {
             cancellationToken.cancel()
         }
     }
@@ -250,7 +249,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private ContinuousBuildActionExecuter executer(JavaVersion javaVersion = JavaVersion.VERSION_1_7) {
-        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, OperatingSystem.current(), executorFactory, waiter)
+        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, OperatingSystem.current(), executorFactory, waiterFactory)
     }
 
 }

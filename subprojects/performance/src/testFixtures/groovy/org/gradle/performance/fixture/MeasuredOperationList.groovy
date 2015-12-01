@@ -63,7 +63,7 @@ public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
 
     private String format(DataSeries<?> measurement) {
         """  ${name} avg: ${measurement.average.format()} ${measurement.collect { it.format() }}
-  > min: ${measurement.min.format()}, max: ${measurement.max.format()}
+  > min: ${measurement.min.format()}, max: ${measurement.max.format()}, stddev: ${measurement.stddev.format()}
 """
 
     }

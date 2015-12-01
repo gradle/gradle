@@ -31,9 +31,9 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
                 tasks {
                     create("validate") {
                         doLast {
-                            assert $("components").size() == 0
-                            assert $("binaries").size() == 0
-                            assert $("sources").size() == 0
+                            assert $.components.size() == 0
+                            assert $.binaries.size() == 0
+                            assert $.sources.size() == 0
                         }
                     }
                 }
@@ -60,8 +60,8 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
                 tasks {
                     create("validate") {
                         doLast {
-                            def components = $("components")
-                            def binaries = $("binaries")
+                            def components = $.components
+                            def binaries = $.binaries
                             assert components.size() == 1
                             def myLib = components.myLib
                             assert myLib.name == 'myLib'
@@ -115,7 +115,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         executed ":createMyJvmLibJar", ":myJvmLibJar"
 
         and:
-        def jar = new JarTestFixture(file("build/jars/myJvmLibJar/myJvmLib.jar"))
+        def jar = new JarTestFixture(file("build/jars/myJvmLib/jar/myJvmLib.jar"))
         jar.hasDescendants()
     }
 
@@ -182,7 +182,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
                     myJvmLib(JvmLibrarySpec)
                 }
                 tasks {
-                    $("binaries").values().each { binary ->
+                    $.binaries.values().each { binary ->
                         def taskName = binary.tasks.taskName('log')
                         create(taskName) { task ->
                             task.doLast {
@@ -206,7 +206,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "can define multiple jvm libraries in single project"() {
         when:
-        buildFile << """
+        buildFile << '''
             plugins {
                 id 'jvm-component'
             }
@@ -218,8 +218,8 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
                 }
                 tasks {
                     create("validate") {
-                        def components = \$("components")
-                        def binaries = \$("binaries")
+                        def components = $.components
+                        def binaries = $.binaries
                         doLast {
                             assert components.size() == 2
                             assert components.myLibOne instanceof JvmLibrarySpec
@@ -232,7 +232,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-        """
+        '''
         then:
         succeeds "validate"
     }

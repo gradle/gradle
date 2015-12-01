@@ -34,7 +34,7 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationSpe
     def "resolves leniently"() {
         settingsFile << "include 'child'"
         mavenRepo.module('org.foo', 'hiphop').publish()
-        mavenRepo.module('org.foo', 'rock').dependsOn("some unresolved dependency").publish()
+        mavenRepo.module('org.foo', 'rock').dependsOnModules("some unresolved dependency").publish()
 
         buildFile << """
             dependencies {
@@ -68,7 +68,7 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationSpe
 
     def "resolves leniently from mixed confs"() {
         mavenRepo.module('org.foo', 'hiphop').publish()
-        mavenRepo.module('org.foo', 'rock').dependsOn("some unresolved dependency").publish()
+        mavenRepo.module('org.foo', 'rock').dependsOnModules("some unresolved dependency").publish()
 
         buildFile << """
             configurations {

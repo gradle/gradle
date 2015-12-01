@@ -303,7 +303,7 @@ model {
 
 ### Test cases
 
-- A `@Managed` subtype of `ComponentSpec` can be used to declare a component
+- A `@Managed` subtype of `ComponentSpec`, `LibrarySpec` and `ApplicationSpec` can be used to declare a component
     - it should be possible to attach binaries to the `@Managed` component
 - A `@Managed` subtype of `BinarySpec` can be used to declare a binary
     - `isBuildable()` should return `true`
@@ -357,7 +357,19 @@ Investigate the `ComponentSpec` type hierarchy to find what types could benefit 
 
 ## Convert our plugins to use internal views and managed subtypes of BinarySpec
 
-- TBD
+Investigate the `BinarySpec` type hierarchy to find what types could benefit from the following new features, and apply them:
+- internal views, they now work for both unmanaged and managed types
+- managed subtypes of unmanaged types
+
+### Implementation notes
+
+- Introduce internal views all along the type hierarchy and remove as much casts as possible, mostly from rules.
+- Make types `@Managed` in tests and samples
+- Make types `@Managed` starting from leafs of the `BinarySpec` hierarchy.
+
+### Tests
+
+- No existing test should break
 
 ## Convert our plugins to use internal views and managed subtypes of LanguageSourceSet
 
@@ -547,13 +559,18 @@ For all theses tests, assert that the reported constructible types list contains
 
 ### Open Issues
 
-`ModelSet` contrat does not allow to specify the type of element when adding one. The `elementType` is always used.
+`ModelSet` contract does not allow to specify the type of element when adding one. The `elementType` is always used.
 In other words, there's no way to add an element of a different type that the `ModelSet` parameterized one.
 
 So, this test has not been implemented:
 
 - Add `ModelSetIntegrationTest.reasonable error message when creating a non-constructible type`.
 
+## Backlog
+
+- `ModelMap` Does not fail when type not within bounds is created or added.
+- There are inconsistent error messages when a 'schema' vs 'node-initialization' problem is found with a `@Managed` type
+    - For example, adding a read-only property of type `boolean` and `Boolean` fail in completely different ways
 
 ## Story: Validate model types more eagerly
 

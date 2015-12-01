@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.manage.instance;
 
-import org.gradle.internal.service.ServiceRegistry;
+import groovy.lang.Closure;
 import org.gradle.model.internal.core.MutableModelNode;
 
 public interface ModelElementState {
@@ -28,5 +28,6 @@ public interface ModelElementState {
 
     void set(String name, Object value);
 
-    ServiceRegistry getServices();
+    void apply(String name, Closure<?> action);
+
 }

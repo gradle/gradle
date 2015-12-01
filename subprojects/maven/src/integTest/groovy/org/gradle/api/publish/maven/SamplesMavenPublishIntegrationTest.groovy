@@ -16,7 +16,6 @@
 
 
 package org.gradle.api.publish.maven
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.maven.M2Installation
@@ -29,6 +28,7 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
     @Rule public final Sample javaProject = new Sample(temporaryFolder, "maven-publish/javaProject")
     @Rule public final Sample pomCustomization = new Sample(temporaryFolder, "maven-publish/pomCustomization")
     @Rule public final Sample multiPublish = new Sample(temporaryFolder, "maven-publish/multiple-publications")
+    @Rule M2Installation m2Installation = new M2Installation(executer, testDirectory)
 
     def quickstartPublish() {
         given:
@@ -49,7 +49,6 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
 
     def quickstartPublishLocal() {
         given:
-        def m2Installation = new M2Installation(testDirectory)
         executer.beforeExecute m2Installation
         def localModule = m2Installation.mavenRepo().module("org.gradle.sample", "quickstart", "1.0")
 

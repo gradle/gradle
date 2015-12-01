@@ -36,12 +36,14 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
     def "can wait for filesystem change"() {
         when:
-        def w = new DefaultFileSystemChangeWaiter(executorFactory, new DefaultFileWatcherFactory(executorFactory))
+        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, new DefaultFileWatcherFactory(executorFactory))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
+        def w = wf.createChangeWaiter(c)
 
         start {
-            w.wait(f, c) {
+            w.watch(f)
+            w.wait {
                 instant.notified
             }
             instant.done
@@ -59,12 +61,14 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
     def "escapes on cancel"() {
         when:
-        def w = new DefaultFileSystemChangeWaiter(executorFactory, new DefaultFileWatcherFactory(executorFactory))
+        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, new DefaultFileWatcherFactory(executorFactory))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
+        def w = wf.createChangeWaiter(c)
 
         start {
-            w.wait(f, c) {
+            w.watch(f)
+            w.wait {
                 instant.notified
             }
             instant.done
@@ -84,20 +88,22 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         given:
         def onErrorReference = new AtomicReference<Action>()
         def fileWatcherFactory = Mock(FileWatcherFactory) {
-            watch(_, _, _) >> { FileSystemSubset systemSubset, Action onError, FileWatcherListener listener ->
+            watch(_, _) >> { Action onError, FileWatcherListener listener ->
                 onErrorReference.set(onError)
                 Mock(FileWatcher)
             }
 
         }
         when:
-        def w = new DefaultFileSystemChangeWaiter(executorFactory, fileWatcherFactory)
+        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, fileWatcherFactory)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
+        def w = wf.createChangeWaiter(c)
 
         start {
             try {
-                w.wait(f, c) {
+                w.watch(f)
+                w.wait {
                     instant.notified
                 }
             } catch (Exception e) {
@@ -119,13 +125,15 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
     def "waits until there is a quiet period - #description"(String description, Closure fileChanger) {
         when:
         def quietPeriod = 1000L
-        def w = new DefaultFileSystemChangeWaiter(executorFactory, new DefaultFileWatcherFactory(executorFactory), quietPeriod)
+        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, new DefaultFileWatcherFactory(executorFactory), quietPeriod)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
+        def w = wf.createChangeWaiter(c)
         def testfile = testDirectory.file("testfile")
 
         start {
-            w.wait(f, c) {
+            w.watch(f)
+            w.wait {
                 instant.notified
             }
             instant.done

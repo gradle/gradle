@@ -98,13 +98,17 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         outputDir.file("A").text == "original"
 
         when:
-        packDir.file("A") << "-changed"
+        // adding a new file to the archive instead of modifying 'A' because
+        // zipTo won't update the zip file if Ant's zip task thinks the files
+        // have not changed.
+        packDir.file("B").text = "new-file"
         packDir."$packType"(sourceFile, readonly)
 
         then:
         succeeds()
         executedAndNotSkipped(":unpack")
-        outputDir.file("A").text == "original-changed"
+        outputDir.file("A").text == "original"
+        outputDir.file("B").text == "new-file"
 
         where:
         type      | packType | source        | readonly

@@ -26,7 +26,7 @@ public class NativeServicesTestFixture {
 
     public static synchronized void initialize() {
         if (!initialized) {
-            File nativeDir = new File(System.getProperty("integTest.gradleUserHomeDir", "build/user-home"), "worker-1/test-fixtures");
+            File nativeDir = new File("build/native-libs");
             NativeServices.initialize(nativeDir);
             initialized = true;
         }

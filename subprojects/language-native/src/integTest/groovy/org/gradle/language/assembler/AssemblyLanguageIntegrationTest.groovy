@@ -86,11 +86,10 @@ model {
         run "mainExecutable"
 
         then:
-        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        def mainExecutable = executable("build/exe/main/main")
         mainExecutable.assertExists()
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }
-
 
     static class AssemblerWithCHelloWorldApp extends MixedLanguageHelloWorldApp {
         AssemblerWithCHelloWorldApp(AvailableToolChains.InstalledToolChain toolChain) {

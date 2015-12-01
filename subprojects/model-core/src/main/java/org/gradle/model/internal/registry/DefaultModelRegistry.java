@@ -49,9 +49,6 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final ModelRuleExtractor ruleExtractor;
     private final Set<RuleBinder> unboundRules = Sets.newIdentityHashSet();
 
-    private boolean reset;
-    private boolean replace;
-
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
         ModelRegistration rootRegistration = ModelRegistrations.of(ModelPath.ROOT).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
@@ -78,11 +75,6 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private ModelNodeInternal registerNode(ModelNodeInternal node) {
-        if (reset) {
-            unboundRules.removeAll(node.getInitializerRuleBinders());
-            return node;
-        }
-
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
         // ModelPath.validateName(name);
 
@@ -100,18 +92,12 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void addRuleBindings(ModelNodeInternal node) {
-        for(Map.Entry<ModelActionRole, ? extends ModelAction> entry : node.getRegistration().getActions().entries()) {
+        for (Map.Entry<ModelActionRole, ? extends ModelAction> entry : node.getRegistration().getActions().entries()) {
             ModelActionRole role = entry.getKey();
             ModelAction action = entry.getValue();
             checkNodePath(node, action);
-            // We need to re-bind early actions like projections and creators even when reusing
-            boolean earlyAction = role.compareTo(ModelActionRole.Create) <= 0;
-            if (!reset || earlyAction) {
-                ModelActionBinder binder = forceBind(action.getSubject(), role, action, ModelPath.ROOT);
-                if (earlyAction) {
-                    node.addInitializerRuleBinder(binder);
-                }
-            }
+            RuleBinder binder = forceBind(action.getSubject(), role, action, ModelPath.ROOT);
+            node.addRegistrationActionBinder(binder);
         }
     }
 
@@ -140,20 +126,28 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction mutator, ModelPath scope) {
-        if (reset) {
-            return;
-        }
         forceBind(subject, role, mutator, scope);
     }
 
-    private <T> ModelActionBinder forceBind(ModelReference<T> subject, ModelActionRole role, ModelAction mutator, ModelPath scope) {
+    private <T> RuleBinder forceBind(ModelReference<T> subject, ModelActionRole role, ModelAction mutator, ModelPath scope) {
         BindingPredicate mappedSubject = mapSubject(subject, role, scope);
         List<BindingPredicate> mappedInputs = mapInputs(mutator.getInputs(), scope);
-        ModelActionBinder binder = new ModelActionBinder(mappedSubject, mappedInputs, mutator, unboundRules);
+        RuleBinder binder = new RuleBinder(mappedSubject, mappedInputs, mutator, unboundRules);
         ruleBindings.add(binder);
         return binder;
     }
 
+    @Override
+    public <T> T realize(String path, Class<T> type) {
+        return realize(path, ModelType.of(type));
+    }
+
+    @Override
+    public <T> T realize(String path, ModelType<T> type) {
+        return realize(ModelPath.path(path), type);
+    }
+
+    @Override
     public <T> T realize(ModelPath path, ModelType<T> type) {
         return toType(type, require(path), "get(ModelPath, ModelType)");
     }
@@ -177,6 +171,17 @@ public class DefaultModelRegistry implements ModelRegistry {
         return node;
     }
 
+    @Override
+    public <T> T find(String path, Class<T> type) {
+        return find(path, ModelType.of(type));
+    }
+
+    @Override
+    public <T> T find(String path, ModelType<T> type) {
+        return find(ModelPath.path(path), type);
+    }
+
+    @Override
     public <T> T find(ModelPath path, ModelType<T> type) {
         return toType(type, get(path), "find(ModelPath, ModelType)");
     }
@@ -198,69 +203,37 @@ public class DefaultModelRegistry implements ModelRegistry {
         modelGraph.addListener(listener);
     }
 
+    @Override
     public void remove(ModelPath path) {
         ModelNodeInternal node = modelGraph.find(path);
         if (node == null) {
             return;
         }
 
-        Iterable<? extends ModelNode> dependents = node.getDependents();
-        if (Iterables.isEmpty(dependents)) {
-            modelGraph.remove(node);
-            ruleBindings.remove(node);
-            unboundRules.removeAll(node.getInitializerRuleBinders());
-        } else {
-            throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: " + Joiner.on(", ").join(dependents));
+        List<ModelNodeInternal> nodesToRemove = Lists.newArrayList();
+        ensureCanRemove(node, nodesToRemove);
+        Collections.reverse(nodesToRemove);
+
+        for (ModelNodeInternal nodeToRemove : nodesToRemove) {
+            modelGraph.remove(nodeToRemove);
+            ruleBindings.remove(nodeToRemove);
+            unboundRules.removeAll(nodeToRemove.getRegistrationActionBinders());
         }
+    }
+
+    private void ensureCanRemove(ModelNodeInternal node, List<ModelNodeInternal> nodesToRemove) {
+        if (!(node instanceof ModelReferenceNode)) {
+            for (ModelNodeInternal childNode : node.getLinks()) {
+                ensureCanRemove(childNode, nodesToRemove);
+            }
+        }
+        if (!Iterables.isEmpty(node.getDependents())) {
+            throw new IllegalStateException(String.format("Tried to remove model '%s' but it is depended on by: '%s'",  node.getPath(), Joiner.on(", ").join(node.getDependents())));
+        }
+        nodesToRemove.add(node);
     }
 
     @Override
-    public ModelRegistry registerOrReplace(ModelRegistration newRegistration) {
-        ModelPath path = newRegistration.getPath();
-        ModelNodeInternal node = modelGraph.find(path);
-        if (node == null) {
-            ModelNodeInternal parent = modelGraph.find(path.getParent());
-            if (parent == null) {
-                throw new IllegalStateException("Cannot create '" + path + "' as its parent node does not exist");
-            }
-
-            parent.addLink(newRegistration);
-        } else {
-            replace(newRegistration);
-        }
-
-        return this;
-    }
-
-    @Override
-    public ModelRegistry replace(ModelRegistration newRegistration) {
-        ModelNodeInternal node = modelGraph.find(newRegistration.getPath());
-        if (node == null) {
-            throw new IllegalStateException("can not replace node " + newRegistration.getPath() + " as it does not exist");
-        }
-
-        replace = true;
-        try {
-            boolean wasDiscovered = node.isAtLeast(Discovered);
-
-            for (RuleBinder ruleBinder : node.getInitializerRuleBinders()) {
-                ruleBindings.remove(node, ruleBinder);
-            }
-            node.getInitializerRuleBinders().clear();
-
-            // Will internally verify that this is valid
-            node.replaceRegistration(newRegistration);
-            node.setState(Registered);
-            addRuleBindings(node);
-            if (wasDiscovered) {
-                transition(node, Discovered, false);
-            }
-        } finally {
-            replace = false;
-        }
-        return this;
-    }
-
     public void bindAllReferences() throws UnboundModelRulesException {
         GoalGraph graph = new GoalGraph();
         for (ModelNodeInternal node : modelGraph.getFlattened().values()) {
@@ -286,7 +259,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             SortedSet<RuleBinder> sortedBinders = new TreeSet<RuleBinder>(new Comparator<RuleBinder>() {
                 @Override
                 public int compare(RuleBinder o1, RuleBinder o2) {
-                    return o1.getDescriptor().toString().compareTo(o2.getDescriptor().toString());
+                    return String.valueOf(o1.getDescriptor()).compareTo(String.valueOf(o2.getDescriptor()));
                 }
             });
             sortedBinders.addAll(unboundRules);
@@ -441,12 +414,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private void fireAction(ModelActionBinder boundMutator) {
+    private void fireAction(RuleBinder boundMutator) {
         final List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction().getDescriptor());
         ModelBinding subjectBinding = boundMutator.getSubjectBinding();
-        if (subjectBinding == null) {
-            throw new IllegalStateException("Subject binding must not be null");
-        }
         final ModelNodeInternal node = subjectBinding.getNode();
         final ModelAction mutator = boundMutator.getAction();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
@@ -487,34 +457,6 @@ public class DefaultModelRegistry implements ModelRegistry {
     @Override
     public MutableModelNode node(ModelPath path) {
         return modelGraph.find(path);
-    }
-
-    @Override
-    public void prepareForReuse() {
-        reset = true;
-        List<ModelNodeInternal> ephemerals = Lists.newLinkedList();
-        collectEphemeralChildren(modelGraph.getRoot(), ephemerals);
-        if (ephemerals.isEmpty()) {
-            LOGGER.info("No ephemeral model nodes found to reset");
-        } else {
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Resetting ephemeral model nodes: " + Joiner.on(", ").join(ephemerals));
-            }
-
-            for (ModelNodeInternal ephemeral : ephemerals) {
-                ephemeral.reset();
-            }
-        }
-    }
-
-    private void collectEphemeralChildren(ModelNodeInternal node, Collection<ModelNodeInternal> ephemerals) {
-        for (ModelNodeInternal child : node.getLinks()) {
-            if (child.isEphemeral()) {
-                ephemerals.add(child);
-            } else {
-                collectEphemeralChildren(child, ephemerals);
-            }
-        }
     }
 
     private BindingPredicate mapSubject(ModelReference<?> subjectReference, ModelActionRole role, ModelPath scope) {
@@ -576,8 +518,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
-            ModelView<? extends T> modelView = getAdapter().asMutable(type, this, ruleDescriptor, inputs);
+        public <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
+            ModelView<? extends T> modelView = getAdapter().asMutable(type, this, ruleDescriptor);
             if (modelView == null) {
                 throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);
             }
@@ -616,12 +558,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
             this.privateDataType = type;
             this.privateData = object;
-        }
-
-        @Override
-        protected void resetPrivateData() {
-            this.privateDataType = null;
-            this.privateData = null;
         }
 
         public boolean hasLink(String name) {
@@ -831,12 +767,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             ModelPath childPath = child.getPath();
             if (!getPath().isDirectChild(childPath)) {
                 throw new IllegalArgumentException(String.format("Element registration has a path (%s) which is not a child of this node (%s).", childPath, getPath()));
-            }
-
-            if (reset) {
-                // Reuse child node
-                registerNode(child);
-                return;
             }
 
             ModelNodeInternal currentChild = links.get(childPath.getName());
@@ -1131,15 +1061,18 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             for (RuleBinder rule : ruleBindings.getRulesWithInput(input)) {
-                if (rule.getSubjectBinding() == null || !rule.getSubjectBinding().isBound() || rule.getSubjectReference().getState() == null) {
+                ModelBinding subjectBinding = rule.getSubjectBinding();
+                if (!subjectBinding.isBound()) {
                     // TODO - implement these cases
                     continue;
                 }
-                if (rule.getSubjectBinding().getNode().getPath().equals(input.path)) {
+                ModelPath targetPath = subjectBinding.getNode().getPath();
+                if (targetPath.equals(input.path)) {
                     // Ignore future states of the input node
                     continue;
                 }
-                dependencies.add(graph.nodeAtState(new NodeAtState(rule.getSubjectBinding().getNode().getPath(), rule.getSubjectReference().getState())));
+                ModelNode.State targetState = subjectBinding.getPredicate().getState();
+                dependencies.add(graph.nodeAtState(new NodeAtState(targetPath, targetState)));
             }
             return true;
         }
@@ -1201,9 +1134,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             for (RuleBinder binder : ruleBindings.getRulesWithSubject(target)) {
                 if (seenRules.add(binder)) {
                     noActionsAdded = false;
-                    if (binder instanceof ModelActionBinder) {
-                        dependencies.add(new RunModelAction(getPath(), (ModelActionBinder) binder));
-                    }
+                    dependencies.add(new RunModelAction(getPath(), binder));
                 }
             }
             return noActionsAdded;
@@ -1416,10 +1347,8 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            if (binder.getSubjectBinding() != null) {
-                // Shouldn't really be here. Currently this goal is used by {@link #bindAllReferences} which also expects the subject to be bound
-                maybeBind(binder.getSubjectBinding(), dependencies);
-            }
+            // Shouldn't really be here. Currently this goal is used by {@link #bindAllReferences} which also expects the subject to be bound
+            maybeBind(binder.getSubjectBinding(), dependencies);
             for (ModelBinding binding : binder.getInputBindings()) {
                 maybeBind(binding, dependencies);
             }
@@ -1476,9 +1405,9 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private class RunModelAction extends RunAction {
-        private final ModelActionBinder binder;
+        private final RuleBinder binder;
 
-        public RunModelAction(ModelPath path, ModelActionBinder binder) {
+        public RunModelAction(ModelPath path, RuleBinder binder) {
             super(path, binder);
             this.binder = binder;
         }
@@ -1499,9 +1428,6 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         void apply() {
-            if (replace) {
-                return;
-            }
             ruleBindings.nodeDiscovered(node);
             modelGraph.nodeDiscovered(node);
         }

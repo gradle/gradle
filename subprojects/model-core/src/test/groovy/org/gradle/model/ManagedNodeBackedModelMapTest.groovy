@@ -15,11 +15,12 @@
  */
 
 package org.gradle.model
+
 import org.gradle.api.Named
 import org.gradle.api.internal.ClosureBackedAction
-import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.UnboundModelRulesException
@@ -504,7 +505,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
-            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor)).instance
             thing.other = "changed"
         }
 
@@ -531,7 +532,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
-            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor)).instance
             thing.other = "changed"
         }
 
@@ -554,7 +555,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
-            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor)).instance
             thing.other = "changed"
         }
 
@@ -576,7 +577,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
-            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor)).instance
             thing.other = "changed"
         }
 
@@ -598,7 +599,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
-            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor)).instance
             thing.other = "default"
         }
 
@@ -620,7 +621,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
-            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor), []).instance
+            def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor)).instance
             thing.other = "[$thing.other]"
         }
 
@@ -662,12 +663,12 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         }
 
         when:
-        registry.realize(ModelPath.path("values"), ModelType.UNTYPED)
+        registry.realize("values", ModelType.UNTYPED)
 
         then:
         ModelRuleExecutionException e = thrown()
         e.cause.class == InvalidModelRuleDeclarationException
-        e.cause.message == "Type java.lang.Object is not a valid model rule source: rule source classes must directly extend org.gradle.model.RuleSource"
+        e.cause.message == "Type java.lang.Object is not a valid rule source: rule source classes must directly extend org.gradle.model.RuleSource"
     }
 
     static class ElementRules extends RuleSource {

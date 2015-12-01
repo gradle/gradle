@@ -16,8 +16,13 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.maven.M2Installation
+import org.junit.Rule
 
 class MavenNonUniqueSnapshotPublishIntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule M2Installation m2Installation = new M2Installation(executer, testDirectory)
+
     public void "can publish a non-unique snapshot version"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

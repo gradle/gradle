@@ -16,14 +16,18 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.Experiment
+import org.gradle.performance.categories.JavaPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentSpec
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+@Category([Experiment, JavaPerformanceTest])
 class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-        builder.invocation.gradleOpts("-Xmx1024m", "-XX:MaxPermSize=256m")
+        builder.invocation.gradleOpts("-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m")
         super.defaultSpec(builder)
     }
 
@@ -32,24 +36,19 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         when:
         runner.testGroup = "old vs new java plugin"
         runner.testId = "$size project old vs new java plugin $scenario build"
-        runner.buildSpec {
+        runner.baseline {
             projectName("${size}NewJava").displayName("new plugin").invocation {
                 tasksToRun(*tasks).useDaemon()
             }
         }
-        runner.buildSpec {
-            projectName("${size}NewJava").displayName("new plugin (reuse)").invocation {
-                tasksToRun(*tasks).useDaemon().enableModelReuse()
-            }
-        }
-        runner.buildSpec {
-            projectName("${size}NewJava").displayName("new plugin (reuse + tooling api)").invocation {
-                tasksToRun(*tasks).useToolingApi().enableModelReuse()
-            }
-        }
-        runner.buildSpec {
+        runner.baseline {
             projectName("${size}NewJava").displayName("new plugin (no client logging)").invocation {
                 tasksToRun(*tasks).useDaemon().disableDaemonLogging()
+            }
+        }
+        runner.buildSpec {
+            projectName("${size}NewJava").displayName("new plugin (tooling api)").invocation {
+                tasksToRun(*tasks).useToolingApi()
             }
         }
         runner.baseline {

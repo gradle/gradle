@@ -63,9 +63,6 @@ import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
-import org.gradle.model.internal.persist.AlwaysNewModelRegistryStore;
-import org.gradle.model.internal.persist.ModelRegistryStore;
-import org.gradle.model.internal.persist.ReusingModelRegistryStore;
 
 import java.util.List;
 
@@ -225,8 +222,8 @@ public class GlobalScopeServices {
         return new ModelSchemaAspectExtractor(strategies);
     }
 
-    protected ManagedProxyFactory createManagedProxyFactory(Instantiator instantiator) {
-        return new ManagedProxyFactory(instantiator);
+    protected ManagedProxyFactory createManagedProxyFactory() {
+        return new ManagedProxyFactory();
     }
 
     protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, ServiceRegistry serviceRegistry) {
@@ -240,15 +237,6 @@ public class GlobalScopeServices {
 
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {
         return new ModelRuleSourceDetector();
-    }
-
-    protected ModelRegistryStore createModelRegistryStore(GradleBuildEnvironment buildEnvironment, ModelRuleExtractor ruleExtractor) {
-        ModelRegistryStore registryStore = new AlwaysNewModelRegistryStore(ruleExtractor);
-        if (buildEnvironment.isLongLivingProcess() && Boolean.getBoolean(ReusingModelRegistryStore.TOGGLE)) {
-            LOGGER.warn(ReusingModelRegistryStore.BANNER);
-            registryStore = new ReusingModelRegistryStore(registryStore);
-        }
-        return registryStore;
     }
 
     protected ImportsReader createImportsReader() {

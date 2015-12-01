@@ -28,6 +28,8 @@ import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 
+import java.io.File;
+
 public class SourceCompileTaskConfig extends CompileTaskConfig {
     public SourceCompileTaskConfig(LanguageTransform<? extends LanguageSourceSet, ObjectFile> languageTransform, Class<? extends DefaultTask> taskType) {
         super(languageTransform, taskType);
@@ -41,7 +43,7 @@ public class SourceCompileTaskConfig extends CompileTaskConfig {
         task.source(sourceSet.getSource());
 
         final Project project = task.getProject();
-        task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + sourceSet.getProjectScopedName()));
+        task.setObjectFileDir(new File(binary.getNamingScheme().getOutputDirectory(project.getBuildDir(), "objs"), sourceSet.getProjectScopedName()));
 
         // If this task uses a pre-compiled header
         if (sourceSet instanceof DependentSourceSetInternal && ((DependentSourceSetInternal) sourceSet).getPreCompiledHeader() != null) {

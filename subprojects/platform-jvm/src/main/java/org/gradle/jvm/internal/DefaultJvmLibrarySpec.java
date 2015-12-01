@@ -16,16 +16,10 @@
 
 package org.gradle.jvm.internal;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
-import org.gradle.jvm.ApiSpec;
+import org.gradle.jvm.JvmApiSpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.JvmResources;
-import org.gradle.jvm.PackageName;
-import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.component.BaseComponentSpec;
@@ -33,12 +27,15 @@ import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibrarySpecInternal {
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
     private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
-    private final ApiSpec apiSpec = new DefaultApiSpec();
+    private final JvmApiSpec apiSpec = new DefaultJvmApiSpec();
     private final DependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
     public DefaultJvmLibrarySpec() {
@@ -67,34 +64,12 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
     }
 
     @Override
-    public void api(Action<? super ApiSpec> configureAction) {
-        configureAction.execute(apiSpec);
+    public JvmApiSpec getApi() {
+        return apiSpec;
     }
 
     @Override
-    public Set<String> getExportedPackages() {
-        Iterable<String> transform = Iterables.transform(apiSpec.getExports(), new Function<PackageName, String>() {
-            @Override
-            public String apply(PackageName packageName) {
-                return packageName.getValue();
-            }
-        });
-        return ImmutableSet.copyOf(transform);
-    }
-
-    @Override
-    public Collection<DependencySpec> getApiDependencies() {
-        return apiSpec.getDependencies().getDependencies();
-    }
-
-    @Override
-    public Collection<DependencySpec> getDependencies() {
-        return dependencies.getDependencies();
-    }
-
-    @Override
-    public DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction) {
-        configureAction.execute(dependencies);
+    public DependencySpecContainer getDependencies() {
         return dependencies;
     }
 }

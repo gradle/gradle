@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
-import org.gradle.model.internal.DynamicObjectAwareTypeUtils;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
 import org.gradle.model.internal.type.ModelType;
@@ -64,7 +64,7 @@ public abstract class BridgedCollections {
                             if (!containerNode.hasLink(name)) {
                                 ModelRegistration itemRegistration = ModelRegistrations
                                     .unmanagedInstanceOf(
-                                        ModelReference.of(containerPath.child(name), DynamicObjectAwareTypeUtils.extractModelTypeFromInstance(item)),
+                                        ModelReference.of(containerPath.child(name), new DslObject(item).getDeclaredType()),
                                         new ExtractFromParentContainer<I, C>(name, containerType)
                                     )
                                     .descriptor(itemDescriptorGenerator.transform(name))
@@ -82,7 +82,6 @@ public abstract class BridgedCollections {
                 }
             }
         )
-            .ephemeral(true)
             .descriptor(descriptor);
     }
 

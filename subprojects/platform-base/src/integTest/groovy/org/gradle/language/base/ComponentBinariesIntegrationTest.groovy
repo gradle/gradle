@@ -15,7 +15,6 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.api.reporting.model.ModelReportOutput
 
 class ComponentBinariesIntegrationTest extends AbstractComponentModelIntegrationTest {
@@ -80,9 +79,11 @@ model {
                     binaries {
                         main {
                             tasks()
+                            sources()
                         }
                         test {
                             tasks()
+                            sources()
                         }
                     }
                     sources()
@@ -91,6 +92,7 @@ model {
                     binaries {
                         main {
                             tasks()
+                            sources()
                         }
                     }
                     sources()
@@ -125,42 +127,8 @@ model {
         fails "model"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: binaries { ... } @ build.gradle line 64, column 5")
-        failure.assertHasCause("Cannot create 'binaries.mylibMain' using creation rule 'mylibMain(CustomBinary) { ... } @ build.gradle line 65, column 9' as the rule 'ComponentModelBasePlugin.Rules#collectBinaries > put()' is already registered to create this model element.")
-    }
-
-    def "input source sets of binary is union of component source sets and binary specific source sets"() {
-        given:
-        buildFile << '''
-model {
-    components {
-        mylib {
-            sources {
-                comp(CustomLanguageSourceSet)
-            }
-            binaries.all {
-                sources {
-                    bin(CustomLanguageSourceSet)
-                }
-            }
-        }
-    }
-    tasks {
-        verify(Task) {
-            doLast {
-                def comp = $('components.mylib')
-                def binary = comp.binaries.main
-                assert comp.sources.size() == 1
-                assert binary.sources.size() == 1
-                assert binary.inputs == comp.sources + binary.sources as Set
-            }
-        }
-    }
-}
-'''
-
-        expect:
-        succeeds "verify"
+        failure.assertHasCause("Exception thrown while executing model rule: binaries { ... } @ build.gradle line 61, column 5")
+        failure.assertHasCause("Cannot create 'binaries.mylibMain' using creation rule 'mylibMain(CustomBinary) { ... } @ build.gradle line 62, column 9' as the rule 'ComponentModelBasePlugin.Rules#collectBinaries > put()' is already registered to create this model element.")
     }
 
     def "binaries of a component can be configured using a rule attached to the top level binaries container"() {
@@ -181,38 +149,9 @@ model {
     tasks {
         verify(Task) {
             doLast {
-                def binaries = $('components.mylib.binaries')
+                def binaries = $.components.mylib.binaries
                 assert binaries.main.data == '([main])'
                 assert binaries.test.data == '([test])'
-            }
-        }
-    }
-}
-'''
-
-        expect:
-        succeeds "verify"
-    }
-
-    def "source sets can be added to the binaries of a component using a rule attached to the top level binaries container"() {
-        given:
-        buildFile << '''
-model {
-    binaries {
-        all {
-            sources {
-                custom(CustomLanguageSourceSet)
-            }
-        }
-    }
-    tasks {
-        verify(Task) {
-            doLast {
-                def binaries = $('components.mylib.binaries')
-                assert binaries.main.sources.size() == 1
-                assert binaries.main.sources.first() instanceof CustomLanguageSourceSet
-                assert binaries.main.inputs.size() == 1
-                assert binaries.main.inputs as Set == binaries.main.sources as Set
             }
         }
     }

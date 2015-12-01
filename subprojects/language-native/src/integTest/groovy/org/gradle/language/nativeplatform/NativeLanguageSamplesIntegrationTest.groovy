@@ -60,7 +60,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         executedAndNotSkipped ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(assembler.dir.file("build/install/mainExecutable")).exec().out == "5 + 7 = 12\n"
+        installation(assembler.dir.file("build/install/main")).exec().out == "5 + 7 = 12\n"
     }
 
     def "c"() {
@@ -75,7 +75,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
                               ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(c.dir.file("build/install/mainExecutable")).exec().out == "Hello world!"
+        installation(c.dir.file("build/install/main")).exec().out == "Hello world!"
     }
 
     def "cpp"() {
@@ -90,7 +90,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(cpp.dir.file("build/install/mainExecutable")).exec().out == "Hello world!\n"
+        installation(cpp.dir.file("build/install/main")).exec().out == "Hello world!\n"
     }
 
     @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
@@ -105,7 +105,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         executedAndNotSkipped ":compileMainExecutableMainObjc", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        executable(objectiveC.dir.file("build/binaries/mainExecutable/main")).exec().out == "Hello world!\n"
+        executable(objectiveC.dir.file("build/exe/main/main")).exec().out == "Hello world!\n"
     }
 
     @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
@@ -120,7 +120,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         executedAndNotSkipped ":compileMainExecutableMainObjcpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        executable(objectiveCpp.dir.file("build/binaries/mainExecutable/main")).exec().out == "Hello world!\n"
+        executable(objectiveCpp.dir.file("build/exe/main/main")).exec().out == "Hello world!\n"
     }
 
     @RequiresInstalledToolChain(VisualCpp)
@@ -137,14 +137,14 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(windowsResources.dir.file("build/install/mainExecutable")).exec().out == "Hello world!\n"
+        installation(windowsResources.dir.file("build/install/main")).exec().out == "Hello world!\n"
 
         when:
         executer.usingBuildScript(windowsResources.dir.file('build-resource-only-dll.gradle'))
         run "helloResSharedLibrary"
 
         then:
-        file(windowsResources.dir.file("build/binaries/helloResSharedLibrary/helloRes.dll")).assertExists()
+        file(windowsResources.dir.file("build/libs/helloRes/shared/helloRes.dll")).assertExists()
     }
 
     def "custom layout"() {
@@ -159,7 +159,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(customLayout.dir.file("build/install/mainExecutable")).exec().out == "Hello world!"
+        installation(customLayout.dir.file("build/install/main")).exec().out == "Hello world!"
     }
 
     def "idl"() {
@@ -174,7 +174,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
                               ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(idl.dir.file("build/install/mainExecutable")).exec().out == "Hello from generated source!!\n"
+        installation(idl.dir.file("build/install/main")).exec().out == "Hello from generated source!!\n"
     }
 
     def "pch"() {
@@ -190,6 +190,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(pch.dir.file("build/install/mainExecutable")).exec().out == "Hello world!\n"
+        installation(pch.dir.file("build/install/main")).exec().out == "Hello world!\n"
     }
 }

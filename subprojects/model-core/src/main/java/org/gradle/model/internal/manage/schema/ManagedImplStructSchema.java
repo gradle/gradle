@@ -19,7 +19,7 @@ package org.gradle.model.internal.manage.schema;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import org.gradle.model.internal.type.ModelType;
 
-public class ManagedImplStructSchema<T> extends AbstractStructSchema<T> implements ManagedImplSchema<T> {
+public class ManagedImplStructSchema<T> extends AbstractStructSchema<T> implements ManagedImplSchema<T>, CompositeSchema<T> {
     public ManagedImplStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
         super(type, properties, aspects);
     }

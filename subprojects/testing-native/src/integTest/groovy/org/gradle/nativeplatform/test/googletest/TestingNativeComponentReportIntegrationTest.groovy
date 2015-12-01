@@ -60,7 +60,7 @@ Binaries
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeExecutable/someExe
+        executable file: build/exe/someExe/someExe
 
 GoogleTest test suite 'someExeTest'
 -----------------------------------
@@ -72,12 +72,13 @@ Source sets
 Binaries
     Google test exe 'someExeTest:googleTestExe'
         build using task: :someExeTestGoogleTestExe
+        install using task: :installSomeExeTestGoogleTestExe
         run using task: :runSomeExeTestGoogleTestExe
         buildType: build type 'debug'
         flavor: flavor 'default'
         targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeTestGoogleTestExe/someExeTest
+        executable file: build/exe/someExeTest/someExeTest
 """
     }
 }
