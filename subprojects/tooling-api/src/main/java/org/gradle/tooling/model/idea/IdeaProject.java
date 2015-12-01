@@ -18,13 +18,19 @@ package org.gradle.tooling.model.idea;
 
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
+import org.gradle.tooling.model.java.JavaSourceAware;
 
 /**
  * Represents the information about the IDEA project.
  *
  * @since 1.0-milestone-5
  */
-public interface IdeaProject extends HierarchicalElement {
+public interface IdeaProject extends HierarchicalElement, JavaSourceAware {
+
+    /**
+     * {@inheritDoc}
+     */
+    IdeaProjectJavaSourceSettings getJavaSourceSettings();
 
     /**
      * Returns the name of the JDK.
