@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.SourceDirectorySet;
 
 import java.io.File;
@@ -33,7 +34,11 @@ public class CompilationSourceDirs {
     List<File> getSourceDirs() {
         List<File> sourceDirs = new LinkedList<File>();
         for (Object s : source) {
-            if (s instanceof SourceDirectorySet) {
+            if (s instanceof File) {
+                sourceDirs.add((File) s);
+            } else if (s instanceof DirectoryTree) {
+                sourceDirs.add(((DirectoryTree) s).getDir());
+            } else if (s instanceof SourceDirectorySet) {
                 sourceDirs.addAll(((SourceDirectorySet) s).getSrcDirs());
             } else {
                 throw new UnsupportedOperationException();
@@ -42,12 +47,18 @@ public class CompilationSourceDirs {
         return sourceDirs;
     }
 
-    public boolean areSourceDirsKnown() {
+    public boolean canInferSourceDirectories() {
         for (Object s : source) {
-            if (!(s instanceof SourceDirectorySet)) {
+            if (!canInferSourceDirectory(s)) {
                 return false;
             }
         }
         return true;
+    }
+
+    private boolean canInferSourceDirectory(Object s) {
+        return s instanceof SourceDirectorySet
+                || s instanceof DirectoryTree
+                || s instanceof File;
     }
 }

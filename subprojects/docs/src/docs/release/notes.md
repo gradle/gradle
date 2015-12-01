@@ -357,6 +357,12 @@ The `EclipseProject` model now exposes the Java source language level via the
 <a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
 IDE providers use this method to automatically determine the source language level. In turn users won't have to configure that anymore via the Gradle Eclipse plugin.
 
+### Incremental Java compilation for sources provided via `File` or `DirectoryTree`
+
+In order to perform incremental Java compilation, Gradle must determine the Class file name from each source file. To do so, Gradle infers the source directory roots based on the values supplied to `JavaCompile.source`.
+
+This release enhances this inference to handle types in addition `SourceDirectorySet`. Both `File` and `DirectoryTree` types are now supported for incremental Java compilation. This means that sources provided via `project.fileTree('source-dir')` can be compiled incrementally.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
