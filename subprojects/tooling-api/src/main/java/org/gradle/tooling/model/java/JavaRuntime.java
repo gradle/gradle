@@ -23,7 +23,7 @@ import java.io.File;
 /**
  * A model for information related the Java Runtime.
  *
- * @since 2.10
+ * @since 2.11
  */
 @Incubating
 public interface JavaRuntime {
