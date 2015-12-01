@@ -112,8 +112,9 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
         return javaSourceSettings;
     }
 
-    public void setJavaSourceSettings(DefaultIdeaModuleJavaSourceSettings javaSourceSettings) {
+    public DefaultIdeaModule setJavaSourceSettings(DefaultIdeaModuleJavaSourceSettings javaSourceSettings) {
         this.javaSourceSettings = javaSourceSettings;
+        return this;
     }
 
     @Override

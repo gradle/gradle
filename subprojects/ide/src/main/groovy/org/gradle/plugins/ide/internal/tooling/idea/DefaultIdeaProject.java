@@ -88,8 +88,9 @@ public class DefaultIdeaProject implements Serializable {
         return javaSourceSettings;
     }
 
-    public void setJavaSourceSettings(DefaultIdeaProjectJavaSourceSettings javaSourceSettings) {
+    public DefaultIdeaProject setJavaSourceSettings(DefaultIdeaProjectJavaSourceSettings javaSourceSettings) {
         this.javaSourceSettings = javaSourceSettings;
+        return this;
     }
 
     @Override

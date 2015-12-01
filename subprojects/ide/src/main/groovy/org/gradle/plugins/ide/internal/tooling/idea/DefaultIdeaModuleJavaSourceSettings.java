@@ -23,15 +23,15 @@ import java.io.Serializable;
 public class DefaultIdeaModuleJavaSourceSettings implements Serializable {
 
     private final JavaVersion sourceLanguageLevel;
-    private final boolean isSourceLanguageLevelInherited;
+    private final boolean inherited;
 
-    public DefaultIdeaModuleJavaSourceSettings(JavaVersion sourceLanguageLevel, boolean isSourceLanguageLevelInherited) {
+    public DefaultIdeaModuleJavaSourceSettings(JavaVersion sourceLanguageLevel, boolean inherited) {
         this.sourceLanguageLevel = sourceLanguageLevel;
-        this.isSourceLanguageLevelInherited = isSourceLanguageLevelInherited;
+        this.inherited = inherited;
     }
 
     public boolean isSourceLanguageLevelInherited() {
-        return isSourceLanguageLevelInherited;
+        return inherited;
     }
 
     public JavaVersion getSourceLanguageLevel() {
