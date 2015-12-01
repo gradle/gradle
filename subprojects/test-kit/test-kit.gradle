@@ -28,9 +28,12 @@ task jar(type: JarJarJar) {
     }
     exclude 'net/rubygrapefruit/platform/**'
     exclude 'com/sun/jna/**'
+    exclude 'org/fusesource/jansi/**'
 
     rule('org.gradle.testkit.**', '@0')
     rule('org.gradle.tooling.**', '@0')
+    rule('org.gradle.api.Nullable', '@0')
+    rule('org.gradle.api.Incubating', '@0')
     rule('org.gradle.**', "${shadedPackage}.@0")
 
     rule('org.**', "${shadedPackage}.@0")
@@ -38,9 +41,6 @@ task jar(type: JarJarJar) {
     rule('net.**', "${shadedPackage}.@0")
 
     keep('org.gradle.testkit.**')
-    keep('org.gradle.tooling.**')
-    keep('net.rubygrapefruit.platform.**')
-    keep('com.sun.jna.**')
 }
 
 artifacts {
