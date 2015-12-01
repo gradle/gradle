@@ -22,12 +22,12 @@ import java.io.Serializable;
 
 public class DefaultJavaSourceSettings implements Serializable {
     private final JavaVersion sourceLanguageLevel;
-    private final JavaVersion targetCompatiblityLevel;
+    private final JavaVersion targetBytecodeLevel;
     private final DefaultJavaRuntime javaRuntime;
 
     public DefaultJavaSourceSettings(JavaVersion sourceLanguageLevel, JavaVersion targetLanguageLevel, DefaultJavaRuntime javaRuntime) {
         this.sourceLanguageLevel = sourceLanguageLevel;
-        this.targetCompatiblityLevel = targetLanguageLevel;
+        this.targetBytecodeLevel = targetLanguageLevel;
         this.javaRuntime = javaRuntime;
     }
 
@@ -35,8 +35,8 @@ public class DefaultJavaSourceSettings implements Serializable {
         return sourceLanguageLevel;
     }
 
-    public JavaVersion getTargetCompatibilityLevel() {
-        return targetCompatiblityLevel;
+    public JavaVersion getTargetBytecodeLevel() {
+        return targetBytecodeLevel;
     }
 
     public DefaultJavaRuntime getTargetRuntime() {

@@ -28,8 +28,6 @@ import org.gradle.tooling.model.java.JavaSourceSettings;
  */
 @Incubating
 public interface EclipseJavaSourceSettings extends JavaSourceSettings {
-
-    // TODO come up with better name for this
-    JavaVersion getTargetCompatibilityLevel();
+    JavaVersion getTargetBytecodeLevel();
     JavaRuntime getTargetRuntime();
 }

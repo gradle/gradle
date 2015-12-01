@@ -27,6 +27,8 @@ class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
 
     String content
 
+    private final String jreContainerPath = "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-${org.gradle.api.JavaVersion.current()}/"
+
     @Test
     void classpathContainsLibraryEntriesForExternalAndFileDependencies() {
         //given
@@ -589,15 +591,15 @@ eclipse.classpath {
     @Test
     void removeDependenciesFromExistingClasspathFileWhenMerging() {
         //given
-        getClasspathFile() << '''<?xml version="1.0" encoding="UTF-8"?>
+        getClasspathFile() << """<?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="output" path="bin"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="$jreContainerPath"/>
 	<classpathentry kind="lib" path="/some/path/someDependency.jar"/>
 	<classpathentry kind="var" path="SOME_VAR/someVarDependency.jar"/>
 	<classpathentry kind="src" path="/someProject"/>
 </classpath>
-'''
+"""
 
         //when
         runEclipseTask """
@@ -608,7 +610,6 @@ dependencies {
   compile files('newDependency.jar')
 }
 """
-
         //then
         assert classpath.entries.size() == 3
         def libraries = classpath.libs
@@ -760,14 +761,14 @@ sourceSets {
     void canAccessXmlModelBeforeAndAfterGeneration() {
         //given
         def classpath = getClasspathFile([:])
-        classpath << '''<?xml version="1.0" encoding="UTF-8"?>
+        classpath << """<?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="output" path="bin"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="$jreContainerPath"/>
 	<classpathentry kind="lib" path="/some/path/someDependency.jar"/>
 	<classpathentry kind="var" path="SOME_VAR/someVarDependency.jar"/>
 </classpath>
-'''
+"""
 
         //when
         runEclipseTask """
@@ -982,7 +983,8 @@ dependencies {
         def libraries = classpath.libs
         assert libraries.size() == 1
         libraries[0].assertHasJar(otherLib)
-        assert classpath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER', 'org.scala-ide.sdt.launching.SCALA_CONTAINER']
+        assert classpath.containers == [jreContainerPath, 'org.scala-ide.sdt.launching.SCALA_CONTAINER']
     }
+
 
 }

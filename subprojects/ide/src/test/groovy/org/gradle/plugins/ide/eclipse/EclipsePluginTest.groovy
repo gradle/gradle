@@ -149,7 +149,7 @@ class EclipsePluginTest extends Specification {
         assert classpath.sourceSets == project.sourceSets
         assert classpath.plusConfigurations == configurations
         assert classpath.minusConfigurations == []
-        assert classpath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER'] + additionalContainers as Set
+        assert classpath.containers == ["org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/${project.eclipse.jdt.getJavaRuntimeName()}/"] + additionalContainers as Set
         assert classpath.defaultOutputDir == new File(project.projectDir, 'bin')
     }
 

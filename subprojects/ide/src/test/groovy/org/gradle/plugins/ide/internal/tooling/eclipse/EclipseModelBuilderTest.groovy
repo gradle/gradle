@@ -139,11 +139,11 @@ class EclipseModelBuilderTest extends Specification {
         where:
         type     | compatibilityProperty | languageLevelProperty     | projectType | pluginType
         "source" | "sourceCompatibility" | "sourceLanguageLevel"     | "java"      | JavaBasePlugin
-        "target" | "targetCompatibility" | "targetCompatiblityLevel" | "java"      | JavaBasePlugin
+        "target" | "targetCompatibility" | "targetBytecodeLevel" | "java"      | JavaBasePlugin
         "source" | "sourceCompatibility" | "sourceLanguageLevel"     | "scala"     | ScalaBasePlugin
-        "target" | "targetCompatibility" | "targetCompatiblityLevel" | "scala"     | ScalaBasePlugin
+        "target" | "targetCompatibility" | "targetBytecodeLevel" | "scala"     | ScalaBasePlugin
         "source" | "sourceCompatibility" | "sourceLanguageLevel"     | "groovy"    | GroovyBasePlugin
-        "target" | "targetCompatibility" | "targetCompatiblityLevel" | "groovy"    | GroovyBasePlugin
+        "target" | "targetCompatibility" | "targetBytecodeLevel" | "groovy"    | GroovyBasePlugin
     }
 
     def "default language levels are set for JVM projects if compatibility is set to null"() {
@@ -158,7 +158,7 @@ class EclipseModelBuilderTest extends Specification {
 
         then:
         eclipseModel.javaSourceSettings.sourceLanguageLevel == org.gradle.api.JavaVersion.current()
-        eclipseModel.javaSourceSettings.targetCompatiblityLevel == org.gradle.api.JavaVersion.current()
+        eclipseModel.javaSourceSettings.targetBytecodeLevel == org.gradle.api.JavaVersion.current()
 
         where:
         pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
@@ -180,7 +180,7 @@ class EclipseModelBuilderTest extends Specification {
         where:
         type     | compatibilityProperty | languageLevelProperty
         "source" | "sourceCompatibility" | "sourceLanguageLevel"
-        "target" | "targetCompatibility" | "targetCompatiblityLevel"
+        "target" | "targetCompatibility" | "targetBytecodeLevel"
     }
 
     @Unroll
@@ -201,7 +201,7 @@ class EclipseModelBuilderTest extends Specification {
         where:
         type     | compatibilityProperty | languageLevelProperty
         "source" | "sourceCompatibility" | "sourceLanguageLevel"
-        "target" | "targetCompatibility" | "targetCompatiblityLevel"
+        "target" | "targetCompatibility" | "targetBytecodeLevel"
     }
 
 
@@ -227,7 +227,7 @@ class EclipseModelBuilderTest extends Specification {
         where:
         type     | compatibilityProperty | languageLevelProperty
         "source" | "sourceCompatibility" | "sourceLanguageLevel"
-        "target" | "targetCompatibility" | "targetCompatiblityLevel"
+        "target" | "targetCompatibility" | "targetBytecodeLevel"
     }
 
     private def createEclipseModelBuilder() {

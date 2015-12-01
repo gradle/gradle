@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse
-
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.plugins.GroovyBasePlugin
@@ -32,7 +31,6 @@ import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
-
 /**
  * <p>A plugin which generates Eclipse files.</p>
  */
@@ -60,8 +58,8 @@ class EclipsePlugin extends IdePlugin {
         def model = project.extensions.create("eclipse", EclipseModel)
 
         configureEclipseProject(project, model)
-        configureEclipseClasspath(project, model)
         configureEclipseJdt(project, model)
+        configureEclipseClasspath(project, model)
 
         hookDeduplicationToTheRoot(project)
     }
@@ -130,7 +128,7 @@ class EclipsePlugin extends IdePlugin {
 
                 classpath.sourceSets = project.sourceSets
 
-                classpath.containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
+                classpath.containers "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/${model.jdt.getJavaRuntimeName()}/"
 
                 project.plugins.withType(JavaPlugin) {
                     classpath.plusConfigurations = [project.configurations.testRuntime]
@@ -169,6 +167,7 @@ class EclipsePlugin extends IdePlugin {
                 model.jdt = jdt
                 jdt.conventionMapping.sourceCompatibility = { project.sourceCompatibility }
                 jdt.conventionMapping.targetCompatibility = { project.targetCompatibility }
+                jdt.conventionMapping.javaRuntimeName = { String.format("JavaSE-%s",project.targetCompatibility) }
             }
         }
     }

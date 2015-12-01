@@ -84,7 +84,7 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 
     interface EclipseJavaSourceSettings {
         JavaRuntime getTargetRuntime()
-        JavaVersion getTargetCompatibilityLevel()
+        JavaVersion getTargetBytecodeVersion()
     }
 
     interface EclipseProject extends JavaSourceAware {
@@ -100,11 +100,11 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 - ~~`JavaRuntime` should expose~~
     - ~~`JavaVersion getJavaVersion()` - the version of the JRE~~
     - ~~`File getHomeDirectory()` - the directory of the JRE in use~~
-- ~~Add `JavaVersion getTargetCompatibilityLevel()` to `EclipseJavaSourceSettings` to expose the java target combatibility level.~~
+- ~~Add `JavaVersion getTargetBytecodeLevel()` to `EclipseJavaSourceSettings` to expose the java target combatibility level.~~
 - ~~Update `DefaultJavaSourceSettings` to expose JRE and target language level information based on current JVM in use~~
 - ~~Update `EclipseModelBuilder` to set values for the target language level and target runtime~~
-    - ~~`EclipseJavaSourceSettings.getTargetCompatibilityLevel()` returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.~~
-- Update `.classpath` and `.settings/...` generation, so that tooling model and generated files are consistent.
+    - ~~`EclipseJavaSourceSettings.getTargetBytecodeLevel()` returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.~~
+- Update `.classpath` generation, so that tooling model and generated files are consistent.
 
 #### Test coverage
 
@@ -126,7 +126,7 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 
     interface IdeaModuleJavaSourceSettings extends JavaSourceSettings {
         boolean isTargetRuntimeInherited()
-        boolean isTargetCompatibilityLevelInherited()
+        boolean isTargetBytecodeLevelInherited()
     }
 
     interface IdeaProjectJavaSourceSettings extends JavaSourceSettings {
@@ -134,7 +134,7 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 
     interface JavaSourceSettings {
         JavaRuntime getTargetRuntime()
-        JavaVersion getTargetCompatibilityLevel()
+        JavaVersion getTargetBytecodeLevel()
     }
 
 #### Estimate
@@ -147,11 +147,11 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 - move EclipseJavaSourceSettings.getTargetCompatibilityLevel() into JavaSourceSettings
 - for each module set `IdeaModuleJavaSourceSettings.targetRuntime` to current runtime in use and `IdeaModuleJavaSourceSettings.TargetRuntimeInherited = true`
 - set `IdeaProjectJavaSourceSettings.targetRuntime` to current runtime
-- for each module set `IdeaModuleJavaSourceSettings.targetCompatibilityLevel` to `JavaConvention.targetCompatibilityLevel`
-- set `IdeaProjectJavaSourceSettings.targetCompatibilityLevel`
-        - all modules same `IdeaModuleJavaSourceSettings.targetCompatibilityLevel` -> set to this value
-        - modules differ in `IdeaModuleJavaSourceSettings.targetCompatibilityLevel` -> set to highest value
-- for modules having same `targetCompatibilityLevel` as `IdeaProjectJavaSourceSettings.targetCompatibilityLevel` set `IdeaModuleJavaSourceSettings.targetCompatibilityLevelInherited = true`
+- for each module set `IdeaModuleJavaSourceSettings.targetBytecodeLevel` to `JavaConvention.targetCompatibilityLevel`
+- set `IdeaProjectJavaSourceSettings.targetBytecodeLevel`
+        - all modules same `IdeaModuleJavaSourceSettings.targetBytecodeLevel` -> set to this value
+        - modules differ in `IdeaModuleJavaSourceSettings.targetBytecodeLevel` -> set to highest value
+- for modules having same `targetBytecodeLevel` as `IdeaProjectJavaSourceSettings.targetBytecodeLevel` set `IdeaModuleJavaSourceSettings.targetBytecodeLevelInherited = true`
 
 -  returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.~~
 
