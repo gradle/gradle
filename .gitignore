@@ -38,3 +38,4 @@ atlassian-ide-plugin.xml
 .nb-gradle
 .nb-gradle-properties
 .java-version
+*.hprof

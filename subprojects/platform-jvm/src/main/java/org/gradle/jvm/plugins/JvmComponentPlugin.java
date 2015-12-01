@@ -18,7 +18,6 @@ package org.gradle.jvm.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.tasks.Copy;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
@@ -174,32 +173,19 @@ public class JvmComponentPlugin implements Plugin<Project> {
             final JarFile apiJar = binary.getApiJar();
             final Set<String> exportedPackages = binary.getExportedPackages();
             String apiJarTaskName = apiJarTaskName(binary);
-            if (exportedPackages.isEmpty()) {
-                tasks.create(apiJarTaskName, Copy.class, new Action<Copy>() {
-                    @Override
-                    public void execute(Copy copy) {
-                        copy.setDescription(String.format("Creates the API binary file for %s.", binary));
-                        copy.from(new File(runtimeJarDestDir, runtimeJarArchiveName));
-                        copy.setDestinationDir(apiJar.getFile().getParentFile());
-                        copy.dependsOn(createRuntimeJar);
-                        apiJar.setBuildTask(copy);
-                    }
-                });
-            } else {
-                tasks.create(apiJarTaskName, ApiJar.class, new Action<ApiJar>() {
-                    @Override
-                    public void execute(ApiJar jar) {
-                        final File apiClassesDir = new File(new File(buildDir, "apiClasses"), runtimeClassesDir.getName());
-                        jar.setDescription(String.format("Creates the API binary file for %s.", binary));
-                        jar.setRuntimeClassesDir(runtimeClassesDir);
-                        jar.setExportedPackages(exportedPackages);
-                        jar.setApiClassesDir(apiClassesDir);
-                        jar.setDestinationDir(apiJar.getFile().getParentFile());
-                        jar.setArchiveName(apiJar.getFile().getName());
-                        apiJar.setBuildTask(jar);
-                    }
-                });
-            }
+            tasks.create(apiJarTaskName, ApiJar.class, new Action<ApiJar>() {
+                @Override
+                public void execute(ApiJar jar) {
+                    final File apiClassesDir = binary.getNamingScheme().getOutputDirectory(buildDir, "apiClasses");
+                    jar.setDescription(String.format("Creates the API binary file for %s.", binary));
+                    jar.setRuntimeClassesDir(runtimeClassesDir);
+                    jar.setExportedPackages(exportedPackages);
+                    jar.setApiClassesDir(apiClassesDir);
+                    jar.setDestinationDir(apiJar.getFile().getParentFile());
+                    jar.setArchiveName(apiJar.getFile().getName());
+                    apiJar.setBuildTask(jar);
+                }
+            });
         }
 
         private String apiJarTaskName(JarBinarySpecInternal binary) {

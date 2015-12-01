@@ -28,8 +28,8 @@ class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec 
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
-        mavenRepo.module("org", "toplevel1").dependsOn('leaf1', 'leaf2').publish()
-        mavenRepo.module("org", "toplevel2").dependsOn('leaf3', 'leaf4').publish()
+        mavenRepo.module("org", "toplevel1").dependsOnModules('leaf1', 'leaf2').publish()
+        mavenRepo.module("org", "toplevel2").dependsOnModules('leaf3', 'leaf4').publish()
 
         file("settings.gradle") << "include 'client', 'impl'"
 

@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.ResolveTestFixture
 import org.gradle.internal.id.UUIDGenerator
+import spock.lang.Issue
 
 class MavenProfileResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
@@ -74,6 +75,78 @@ dependencies { compile 'groupA:artifactA:1.2' }
         requestedModule.artifact.expectGet()
         transitiveModule.pom.expectGet()
         transitiveModule.artifact.expectGet()
+
+        when:
+        run "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:unspecified") {
+                module("groupA:artifactA:1.2") {
+                    module("groupB:artifactB:1.4")
+                }
+            }
+        }
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-2861")
+    def "uses properties from active profile to resolve dependency with placeholders in dependency management"() {
+        given:
+        def parent = mavenHttpRepo.module('group', 'parent', '1.0').publish()
+        parent.pomFile.text = parent.pomFile.text.replace("</project>", '''
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${some.group}</groupId>
+                <artifactId>${some.artifact}</artifactId>
+                <version>${some.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <some.group>groupB</some.group>
+                <some.artifact>artifactB</some.artifact>
+                <some.version>1.4</some.version>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+''')
+
+        def moduleA = mavenHttpRepo.module('groupA', 'artifactA', '1.2')
+                .parent('group', 'parent', '1.0')
+                .dependsOn('groupB', 'artifactB', null)
+                .publish()
+
+        def moduleB = mavenHttpRepo.module('groupB', 'artifactB', '1.4').publish()
+
+        and:
+        buildFile << """
+            repositories {
+                maven { url "${mavenHttpRepo.uri}" }
+            }
+            configurations { compile }
+            dependencies { compile 'groupA:artifactA:1.2' }
+            task libs << { assert configurations.compile.files*.name == ['artifactA-1.2.jar', 'artifactB-1.4.jar'] }
+        """
+
+        when:
+        parent.pom.expectGet()
+        moduleA.pom.expectGet()
+        moduleA.artifact.expectGet()
+        moduleB.pom.expectGet()
+        moduleB.artifact.expectGet()
+
+        then:
+        // have to run twice to trigger the failure, to parse the descriptor from the cache
+        succeeds ":libs"
+        succeeds ":libs"
 
         when:
         run "checkDeps"

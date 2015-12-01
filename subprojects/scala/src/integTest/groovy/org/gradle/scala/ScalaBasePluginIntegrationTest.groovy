@@ -28,30 +28,29 @@ class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "defaults scalaClasspath to inferred Scala compiler dependency"() {
         file("build.gradle") << """
-apply plugin: "scala-base"
+        apply plugin: "scala-base"
 
-sourceSets {
-    custom
-}
+        sourceSets {
+           custom
+        }
 
-repositories {
-    mavenCentral()
-}
+        repositories {
+           mavenCentral()
+        }
 
-dependencies {
-    customCompile "org.scala-lang:scala-library:$version"
-}
+        dependencies {
+           customCompile "org.scala-lang:scala-library:$version"
+        }
 
-task scaladoc(type: ScalaDoc) {
-    classpath = sourceSets.custom.runtimeClasspath
-}
+        task scaladoc(type: ScalaDoc) {
+           classpath = sourceSets.custom.runtimeClasspath
+        }
 
-task verify << {
-    assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
-    assert scalaCustomConsole.classpath.files.any { it.name == "scala-compiler-${version}.jar" }
-    assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
-}
-"""
+        task verify << {
+           assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
+           assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
+        }
+        """
 
         expect:
         succeeds("verify")

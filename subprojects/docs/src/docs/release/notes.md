@@ -10,6 +10,16 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Java software model compile avoidance
+
+This version of Gradle further optimizes on avoiding recompiling consuming libraries after non-ABI breaking changes. Since 2.9, if a library declares an API, Gradle creates a "[stubbed API jar](userguide/java_software.html)". This enables avoiding recompiling any consuming library if the application binary interface (ABI) of the library doesn't change. This version of Gradle extends this functionality to libraries that don't declare their APIs, speeding up builds with incremental changes in most Java projects, small or large. In particular, a library `A` that depend on a library `B` will not need to be recompiled in the following cases:
+
+* a private method is added to `B`
+* a method body is changed in `B`
+* order of methods is changed in `B`
+
+This feature only works for local libraries, not external dependencies. More information about compile avoidance can be found in the [userguide](userguide/java_software.html).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -36,17 +46,17 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Scala plugin no longer adds 'scalaConsole' tasks
+
+Adding the 'scala' plugin to your build will no longer create 'scalaConsole' tasks which launch a Scala REPL from the Gradle build.
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-<!--
-* [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
+* [Johnny Lim](https://github.com/izeye) - Documentation improvements
+* [Christopher O'Connell](https://github.com/lordoku) - Remove 'scalaConsole' task
+* [Illya Gerasymchuk](https://github.com/iluxonchik) - Fix typos in Windows batch scripts
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

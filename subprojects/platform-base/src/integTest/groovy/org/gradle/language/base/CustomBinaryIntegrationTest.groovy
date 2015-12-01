@@ -21,12 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
         buildFile << """
-interface SampleBinary extends BinarySpec {
+@Managed interface SampleBinary extends BinarySpec {
     String getVersion()
     void setVersion(String version)
-}
-class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
-    String version
 }
 """
     }
@@ -104,7 +101,6 @@ model {
             static class Rules extends RuleSource {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.defaultImplementation(DefaultSampleBinary)
                 }
             }
         }
@@ -136,7 +132,6 @@ model {
             static class Rules extends RuleSource {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.defaultImplementation(DefaultSampleBinary)
                 }
             }
         }
@@ -178,8 +173,7 @@ model {
     def "can define and create multiple binary types in the same plugin"() {
         when:
         buildFile << '''
-        interface AnotherSampleBinary extends BinarySpec {}
-        class DefaultAnotherSampleBinary extends BaseBinarySpec implements AnotherSampleBinary {}
+        @Managed interface AnotherSampleBinary extends BinarySpec {}
 
         class MySamplePlugin implements Plugin<Project> {
             void apply(final Project project) {}
@@ -187,7 +181,6 @@ model {
             static class Rules extends RuleSource {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.defaultImplementation(DefaultSampleBinary)
                 }
 
                 @Mutate
@@ -196,9 +189,7 @@ model {
                 }
 
                 @BinaryType
-                void registerAnother(BinaryTypeBuilder<AnotherSampleBinary> builder) {
-                    builder.defaultImplementation(DefaultAnotherSampleBinary)
-                }
+                void registerAnother(BinaryTypeBuilder<AnotherSampleBinary> builder) {}
 
                 @Mutate
                 void createAnotherSampleBinaryInstances(ModelMap<AnotherSampleBinary> anotherBinaries) {
@@ -258,30 +249,35 @@ model {
         failure.assertHasCause "Method annotated with @BinaryType must have a single parameter of type 'org.gradle.platform.base.BinaryTypeBuilder'."
     }
 
-    def "cannot register same binary type multiple times"() {
+    def "cannot register implementation for the same binary type multiple times"() {
         given:
-        buildWithCustomBinaryPlugin()
-        and:
+        settingsFile << """rootProject.name = 'custom-binary'"""
         buildFile << """
-        class MyOtherPlugin implements Plugin<Project> {
-            void apply(final Project project) {}
-
-            static class Rules1 extends RuleSource {
-                @BinaryType
-                void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.defaultImplementation(DefaultSampleBinary)
-                }
+        interface SomeBinary extends BinarySpec {}
+        class DefaultSomeBinary extends BaseBinarySpec implements SomeBinary {}
+        class Rules1 extends RuleSource {
+            @BinaryType
+            void register(BinaryTypeBuilder<SomeBinary> builder) {
+                builder.defaultImplementation(DefaultSomeBinary)
+            }
+        }
+        class Rules2 extends RuleSource {
+            @BinaryType
+            void register(BinaryTypeBuilder<SomeBinary> builder) {
+                builder.defaultImplementation(DefaultSomeBinary)
             }
         }
 
-        apply plugin:MyOtherPlugin
+        apply plugin:Rules1
+        apply plugin:Rules2
 """
         when:
         fails "tasks"
+
         then:
         failure.assertHasDescription "A problem occurred configuring root project 'custom-binary'."
-        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin.Rules1#register"
-        failure.assertHasCause "Cannot register implementation for type 'SampleBinary' because an implementation for this type was already registered by MySamplePlugin.Rules#register"
+        failure.assertHasCause "Exception thrown while executing model rule: Rules2#register"
+        failure.assertHasCause "Cannot register implementation for type 'SomeBinary' because an implementation for this type was already registered by Rules1#register"
     }
 
     def "additional binaries listed in components report"() {
@@ -317,7 +313,6 @@ BUILD SUCCESSFUL"""
             static class Rules extends RuleSource {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.defaultImplementation(DefaultSampleBinary)
                 }
 
                 @Mutate

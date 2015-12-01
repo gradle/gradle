@@ -43,8 +43,8 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         type           | maxExecutionTimeRegression
         "small"        | millis(500)
         "medium"       | millis(500)
-        "big"          | millis(1500)
-        "multi"        | millis(1500)
+        "big"          | millis(2500)
+        "multi"        | millis(2500)
     }
 
     def "Many projects native build" () {

@@ -67,7 +67,10 @@ public class ModelSchemaUtils {
         ModelSchemaUtils.walkTypeHierarchy(clazz, new ModelSchemaUtils.TypeVisitor<T>() {
             @Override
             public void visitType(Class<? super T> type) {
-                for (Method method : type.getDeclaredMethods()) {
+                Method[] declaredMethods = type.getDeclaredMethods();
+                // Sort of determinism
+                Arrays.sort(declaredMethods, Ordering.usingToString());
+                for (Method method : declaredMethods) {
                     if (ModelSchemaUtils.isIgnoredMethod(method)) {
                         continue;
                     }
@@ -76,7 +79,7 @@ public class ModelSchemaUtils {
             }
         });
         ImmutableListMultimap<String, Method> methodsByName = methodsByNameBuilder.build();
-        ImmutableMap.Builder<String, Map<Equivalence.Wrapper<Method>, Collection<Method>>> candidatesBuilder = ImmutableMap.builder();
+        ImmutableSortedMap.Builder<String, Map<Equivalence.Wrapper<Method>, Collection<Method>>> candidatesBuilder = ImmutableSortedMap.naturalOrder();
         for (String methodName : methodsByName.keySet()) {
             ImmutableList<Method> methodsWithSameName = methodsByName.get(methodName);
             ListMultimap<Equivalence.Wrapper<Method>, Method> equivalenceIndex = Multimaps.index(methodsWithSameName, new Function<Method, Equivalence.Wrapper<Method>>() {

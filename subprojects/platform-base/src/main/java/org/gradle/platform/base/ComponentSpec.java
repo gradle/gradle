@@ -29,7 +29,7 @@ import org.gradle.model.ModelMap;
 @HasInternalProtocol
 public interface ComponentSpec extends Named {
     /**
-     * The path the the project containing this component.
+     * The path to the project containing this component.
      */
     String getProjectPath();
 

@@ -15,21 +15,27 @@
  */
 
 
-
 package org.gradle.test.fixtures.maven
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.rules.TestRule
+import org.junit.runner.Description
+import org.junit.runners.model.Statement
 
-class M2Installation implements Action<GradleExecuter> {
+import static org.junit.Assert.fail
+
+class M2Installation implements Action<GradleExecuter>, TestRule {
     final TestFile userHomeDir
     final TestFile userM2Directory
     final TestFile userSettingsFile
     final TestFile globalMavenDirectory
     final TestFile globalSettingsFile
+    private GradleExecuter executer
 
-    public M2Installation(TestFile m2Directory) {
+    public M2Installation(GradleExecuter executer, TestFile m2Directory) {
+        this.executer = executer
         userHomeDir = m2Directory.createDir("maven_home")
         userM2Directory = userHomeDir.createDir(".m2")
         userSettingsFile = userM2Directory.file("settings.xml")
@@ -60,7 +66,28 @@ class M2Installation implements Action<GradleExecuter> {
     void execute(GradleExecuter executer) {
         executer.withUserHomeDir(userHomeDir)
         if (globalMavenDirectory?.exists()) {
-            executer.withEnvironmentVars(M2_HOME:globalMavenDirectory.absolutePath)
+            executer.withEnvironmentVars(M2_HOME: globalMavenDirectory.absolutePath)
+        }
+    }
+
+    @Override
+    Statement apply(Statement base, Description description) {
+        return new Statement() {
+            @Override
+            public void evaluate() throws Throwable {
+                execute(executer)
+
+                def m2RepositoryFolder = new File("~/.m2/repository")
+                boolean existsBefore = m2RepositoryFolder.exists()
+                try {
+                    base.evaluate()
+                } finally {
+                    def existsAfter = m2RepositoryFolder.exists()
+                    if (!existsBefore && existsAfter) {
+                        fail()
+                    }
+                }
+            }
         }
     }
 }

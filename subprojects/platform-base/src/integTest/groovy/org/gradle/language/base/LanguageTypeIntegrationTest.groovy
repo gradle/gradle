@@ -85,7 +85,6 @@ model {
                 }
             }
         }
-
 """
         then:
         succeeds "components"

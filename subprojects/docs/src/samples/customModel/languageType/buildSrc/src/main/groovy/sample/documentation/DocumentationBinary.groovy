@@ -16,6 +16,8 @@
 
 package sample.documentation
 
+import org.gradle.model.Managed
 import org.gradle.platform.base.BinarySpec
 
+@Managed
 interface DocumentationBinary extends BinarySpec {}

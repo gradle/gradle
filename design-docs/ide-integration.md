@@ -21,7 +21,7 @@ language levels for each module in a project.
 #### The API
 
     interface IdeaModuleJavaSourceSettings extends JavaSourceSettings {
-        boolean isInherited()
+        boolean isSourceLanguageLevelInherited()
     }
 
     interface IdeaModule extends JavaSourceAware {
@@ -35,7 +35,6 @@ language levels for each module in a project.
         IdeaProjectJavaSourceSettings getJavaSourceSettings()
     }
 
-TBD: It looks like in IDEA a project always has some Java source settings, which means that `IdeaProject.getJavaSourceSettings()` should always return non-null.
 TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that tooling model and generated files are consistent in module type, and project and module language level.
 
 #### Implementation
@@ -46,7 +45,7 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 - Update `DefaultIdeaProject` to implement new `getJavaSourceSettings()` method.
 - Update `DefaultIdeaModule` to implement new `getJavaSourceSettings()` method.
 - Update `IdeaModelBuilder` to set values for `getJavaSourceSettings()` for `IdeaProject` and `IdeaModule`
-    - return `null` if not a Java project
+    - not a Java project, then `IdeaProject.getLanguageLevel()` should be returned
     - otherwise configure it as follows
         - `IdeaProject.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`.
         - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `project.sourceCompatibility`
@@ -59,7 +58,7 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 #### Test coverage
 
 - `IdeaProject.languageLevel` always has the same value as `IdeaProject.javaSourceSettings.javaVersion`
-- `IdeaModule.getJavaSourceSettings()` returns null for non java projects
+- `IdeaModule.getJavaSourceSettings()` returns `languageLevel` for non java projects
 - `IdeaModule.getJavaSourceSettings().isInherited()` returns true when the same as project's version, false when different.
 - `IdeaProject.getJavaSourceSettings()` returns inferred value from `languageLevel` for older target Gradle version.
 - `IdeaModule.getJavaSourceSettings()` returns inferred value from idea project `languageLevel` for older target Gradle version.
@@ -85,7 +84,7 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 
     interface EclipseJavaSourceSettings {
         JavaRuntime getTargetRuntime()
-        JavaVersion getTargetLanguageLevel()
+        JavaVersion getTargetBytecodeVersion()
     }
 
     interface EclipseProject extends JavaSourceAware {
@@ -101,11 +100,11 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 - ~~`JavaRuntime` should expose~~
     - ~~`JavaVersion getJavaVersion()` - the version of the JRE~~
     - ~~`File getHomeDirectory()` - the directory of the JRE in use~~
-- ~~Add `JavaVersion getTargetLanguageLevel()` to `EclipseJavaSourceSettings` to expose the java target combatibility level.~~
+- ~~Add `JavaVersion getTargetBytecodeLevel()` to `EclipseJavaSourceSettings` to expose the java target combatibility level.~~
 - ~~Update `DefaultJavaSourceSettings` to expose JRE and target language level information based on current JVM in use~~
 - ~~Update `EclipseModelBuilder` to set values for the target language level and target runtime~~
-    - ~~`EclipseJavaSourceSettings.getTargetLanguageLevel()` returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.~~
-- Update `.classpath` and `.settings/...` generation, so that tooling model and generated files are consistent.
+    - ~~`EclipseJavaSourceSettings.getTargetBytecodeLevel()` returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.~~
+- Update `.classpath` generation, so that tooling model and generated files are consistent.
 
 #### Test coverage
 
@@ -118,28 +117,79 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 - ~~Multiproject java project build with different target levels per subproject.~~
 - Project that is not a Java project.
 - ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetRuntime()~~
-- ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetLanguageLevel()~~
-
-
-#### Open Issues
-
-- find better name for 'targetLanguageLevel' as it refers to the target bytecode version.'
+- ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetCompatibilityLevel()~~
 
 ### Story - Expose target JDK for Java projects to IDEA
+
+
+#### the API
+
+    interface IdeaModuleJavaSourceSettings extends JavaSourceSettings {
+        boolean isTargetRuntimeInherited()
+        boolean isTargetBytecodeLevelInherited()
+    }
+
+    interface IdeaProjectJavaSourceSettings extends JavaSourceSettings {
+    }
+
+    interface JavaSourceSettings {
+        JavaRuntime getTargetRuntime()
+        JavaVersion getTargetBytecodeLevel()
+    }
 
 #### Estimate
 
 - 2 days
 
-TBD: Apply to `.ipr` and `.iml` generation, so that the tooling model and the generated files are consistent.
-
 #### Implementation
+
+- move EclipseJavaSourceSettings.getTargetRuntime() into JavaSourceSettings
+- move EclipseJavaSourceSettings.getTargetCompatibilityLevel() into JavaSourceSettings
+- for each module set `IdeaModuleJavaSourceSettings.targetRuntime` to current runtime in use and `IdeaModuleJavaSourceSettings.TargetRuntimeInherited = true`
+- set `IdeaProjectJavaSourceSettings.targetRuntime` to current runtime
+- for each module set `IdeaModuleJavaSourceSettings.targetBytecodeLevel` to `JavaConvention.targetCompatibilityLevel`
+- set `IdeaProjectJavaSourceSettings.targetBytecodeLevel`
+        - all modules same `IdeaModuleJavaSourceSettings.targetBytecodeLevel` -> set to this value
+        - modules differ in `IdeaModuleJavaSourceSettings.targetBytecodeLevel` -> set to highest value
+- for modules having same `targetBytecodeLevel` as `IdeaProjectJavaSourceSettings.targetBytecodeLevel` set `IdeaModuleJavaSourceSettings.targetBytecodeLevelInherited = true`
+
+-  returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.~~
 
 #### Test cases
 
+- Multiproject build with same target Java versions
 - Multiproject build with mix of target Java versions
 - Multiproject build with mix of Java and non-Java projects
 - Multiproject build with no Java projects
+
+
+### Story - Expose target compatibility level in Idea Plugin
+
+#### the API
+
+    idea {
+        project {
+          // project default target bytecode level
+          targetCompatiblityLevel = '1.7'
+        }
+
+        module {
+            // module specific target bytecode level
+          targetCompatiblityLevel = '1.6'
+        }
+    }
+
+#### Test cases
+
+- Multiproject build with same target Java versions
+- Multiproject build with mix of target Java versions
+- Multiproject build with mix of Java and non-Java projects
+- Multiproject build with no Java projects
+
+#### Open issues
+
+- module specific target bytecode levels are stored as list in the ipr file instead of being in the module. Do we want to model it similar
+in the gradle idea project model of the Idea Plugin?
 
 ### Story - Introduce JavaProject
 
