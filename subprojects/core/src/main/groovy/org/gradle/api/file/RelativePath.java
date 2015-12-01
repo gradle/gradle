@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -31,6 +32,7 @@ import java.util.ListIterator;
  * <p>{@code RelativePath} instances are immutable.</p>
  */
 public class RelativePath implements Serializable, Comparable<RelativePath> {
+    private static final StringInterner PATH_SEGMENT_STRING_INTERNER = new StringInterner();
     private final boolean endsWithFile;
     private final String[] segments;
 
@@ -54,7 +56,9 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
         } else {
             segments = new String[childSegments.length];
         }
-        System.arraycopy(childSegments, 0, segments, sourceLength, childSegments.length);
+        for (int i = 0; i < childSegments.length; i++) {
+            segments[sourceLength + i] = PATH_SEGMENT_STRING_INTERNER.intern(childSegments[i]);
+        }
     }
 
     public String[] getSegments() {
