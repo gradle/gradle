@@ -48,7 +48,6 @@ class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
 
         task verify << {
            assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
-           assert scalaCustomConsole.classpath.files.any { it.name == "scala-compiler-${version}.jar" }
            assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
         }
         """
