@@ -34,10 +34,10 @@ class GradlePropertiesToolingApiCrossVersionSpec extends ToolingApiSpecification
 
     def "tooling api honours jvm args specified in gradle.properties"() {
         file('build.gradle') << """
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx62m')
 assert System.getProperty('some-prop') == 'some-value'
 """
-        file('gradle.properties') << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx16m"
+        file('gradle.properties') << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx62m"
 
         when:
         BuildEnvironment env = toolingApi.withConnection { connection ->
@@ -46,7 +46,7 @@ assert System.getProperty('some-prop') == 'some-value'
         }
 
         then:
-        env.java.jvmArguments.contains('-Xmx16m')
+        env.java.jvmArguments.contains('-Xmx62m')
     }
 
     def "tooling api honours java home specified in gradle.properties"() {
