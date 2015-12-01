@@ -257,11 +257,20 @@ Converting this to a true `ModelMap` will add consistency, and enable the later 
 
 ## Plugin author declares default implementation and internal views for custom `LanguageSourceSet` subtype
 
-Extend story "Plugin author declares default implementation for extensible binary and component type"
-for `LanguageSourceSet`.
+Currently, LanguageTypeBuilder provides methods to specify both `defaultImplementation` and `internalView`.
+The former is functional (possibly without adequate test coverage), and the latter is ignored.
+This story is about ensuring there is adequate test coverage for `defaultImplementation`, and supporting the `internalView` functionality.
+
+For this story we should extract the common functionality provided for `BinaryTypeBuilder` and `ComponentTypeBuilder` so that it also applies to `LanguageTypeBuilder`.
+This will form the basis for adding support for other 'extensible types' via additional type builders.
 
 Update user guide and samples to show how to implement a custom `@Managed` `LanguageSourceSet` type
 
-As part of this work, remove empty subclasses of `BaseLanguageSourceSet`, such as `DefaultCoffeeScriptSourceSet`.
+### Test cases
 
-
+- user can declare a base LanguageSourceSet and extended it with a @Managed subtype
+- user can attach internal view to custom LanguageSourceSet
+- fails on registration when:
+  - registered implementation type does not extend BaseLanguageSourceSet
+  - registered managed type extends base type without a default implementation (i.e. LanguageSourceSet)
+  - registered managed type extends multiple interfaces that declare default implementations
