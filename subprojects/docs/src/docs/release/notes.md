@@ -56,6 +56,7 @@ We would like to thank the following community members for making contributions 
 
 * [Johnny Lim](https://github.com/izeye) - Documentation improvements
 * [Christopher O'Connell](https://github.com/lordoku) - Remove 'scalaConsole' task
+* [Illya Gerasymchuk](https://github.com/iluxonchik) - Fix typos in Windows batch scripts
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
