@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 import org.junit.ComparisonFailure
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -38,7 +37,6 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
-    @Ignore // FIXME Rene
     void canCreateAndDeleteMetaData() {
         when:
         File buildFile = testFile("master/build.gradle")
@@ -155,6 +153,26 @@ dependencies {
         """
 
         libEntriesInClasspathFileHaveFilenames(artifact1.name, artifact2.name)
+    }
+
+    @Test
+    void canConfigureTargetRuntimeName() {
+
+        runEclipseTask """
+apply plugin: "java"
+apply plugin: "eclipse"
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+eclipse {
+    jdt {
+        javaRuntimeName = "Jigsaw-1.9"
+    }
+}"""
+
+        assert classpath.containers == ["org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/Jigsaw-1.9/"]
     }
 
     @Test
