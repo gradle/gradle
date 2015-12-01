@@ -23,6 +23,13 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Attempts to infer the source root directories for the `source` inputs to a
+ * {@link org.gradle.api.tasks.compile.JavaCompile} task, in order to determine the `.class` file that corresponds
+ * to any input source file.
+ * 
+ * This is a bit of a hack: we'd be better off inspecting the actual source file to determine the name of the class file.
+ */
 public class CompilationSourceDirs {
 
     private List<Object> source;
