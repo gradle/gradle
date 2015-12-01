@@ -132,7 +132,6 @@ class EclipsePlugin extends IdePlugin {
 
                 classpath.sourceSets = project.sourceSets
 
-//                classpath.conventionMapping.containers = { ["org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/${model.jdt.getJavaRuntimeName()}/"] as LinkedHashSet }
                 project.afterEvaluate {
                     // keep the ordering we had in earlier gradle versions
                     Set<String> containers = new LinkedHashSet<String>()
