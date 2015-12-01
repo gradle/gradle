@@ -84,7 +84,7 @@ class M2Installation implements Action<GradleExecuter>, TestRule {
                 } finally {
                     def existsAfter = m2RepositoryFolder.exists()
                     if (!existsBefore && existsAfter) {
-                        fail()
+                        fail("Test modifies ~/.m2 folder")
                     }
                 }
             }
