@@ -632,7 +632,7 @@ foo configured
         buildFile << '''
             class MyPlugin extends RuleSource {
                 @Mutate
-                void fromAfterEvaluateTaskAvailable(TaskContainer tasks) {
+                void fromAfterEvaluateTaskAvailable(ModelMap<Task> tasks) {
                     tasks.fromAfterEvaluate.value += " and from container rule"
                 }
                 @Mutate
@@ -694,7 +694,7 @@ foo configured
         ":." in executedTasks
     }
 
-    def "proxy classes are never used as task instance nodes types"(){
+    def "tasks are visible to rules using their public type"(){
         given:
         buildFile << """
 tasks.create(name: 'taskContainerTask', type: DefaultTask) { }
