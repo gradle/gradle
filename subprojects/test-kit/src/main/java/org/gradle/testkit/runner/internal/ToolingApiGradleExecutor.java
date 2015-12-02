@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner.internal;
 
+import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
@@ -26,7 +27,6 @@ import org.gradle.testkit.runner.internal.dist.URILocatedGradleDistribution;
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution;
 import org.gradle.testkit.runner.internal.io.NoCloseOutputStream;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
-import org.gradle.testkit.runner.internal.io.TeeOutputStream;
 import org.gradle.tooling.*;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;

@@ -2,6 +2,7 @@ import org.gradle.build.JarJarJar
 
 dependencies {
     compile project(':toolingApi')
+    compile libraries.commons_io
     runtime project(':native')
     testCompile libraries.groovy
 }
