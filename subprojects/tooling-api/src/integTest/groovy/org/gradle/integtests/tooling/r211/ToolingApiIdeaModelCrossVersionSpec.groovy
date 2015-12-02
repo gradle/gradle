@@ -30,7 +30,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8 <2.11")
+    @TargetGradleVersion("=2.10")
     def "older Gradle versions infer project and module source settings from default idea plugin language level"() {
         given:
         if (projectAppliesJavaPlugin) { buildFile << "apply plugin: 'java'"}
@@ -50,7 +50,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         true                     | defaultIdeaPluginLanguageLevelForJavaProjects
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8 <2.11")
+    @TargetGradleVersion("=2.10")
     def "older Gradle versions infer project and module source settings from configured idea plugin language level"() {
         given:
         buildFile << """
