@@ -167,7 +167,7 @@ class IdeaModelBuilderTest extends Specification {
         ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.isSourceLanguageLevelInherited()
     }
 
-    def "multi project builds can define different module source language levels"() {
+    def "can handle multi project builds with different source language levels"() {
         given:
         [root, child1, child2].each { it.plugins.apply(JavaPlugin) }
         root.idea.project.languageLevel = '1.3'
