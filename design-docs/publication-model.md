@@ -420,7 +420,8 @@ should be modified such that the project dependency's exclude rules are passed a
 
 ## Disabling transitive dependencies on a module results in wildcard exclusion in generated POM
 
-Maven added support for [excluding all transitive dependencies](https://issues.apache.org/jira/browse/MNG-2315) in Maven3 via wildcard excludes.
+This is [Gradle-1571](https://issues.gradle.org/browse/GRADLE-1574). Maven added support for
+[excluding all transitive dependencies](https://issues.apache.org/jira/browse/MNG-2315) in Maven3 via wildcard excludes.
 Gradle should map `transitive = false` to a transitive exclude which Maven will interpret with the same behavior.
 
 Given the following build script:
@@ -480,6 +481,8 @@ excluding all transitive dependencies is simply identified with a wildcard exclu
 
  1. Setting `transitive = false` on an `ExternalModuleDependency` results in a wildcard exclusion in the generated POM
  2. Setting `transitive = false` on an `ProjectDependency` results in a wildcard exclusion in the generated POM
+ 3. Depending on publication of project with dependency using `transitive = false` results in same dependency graph as
+    depending on the project itself
 
 ## Fix POM generation issues
 
