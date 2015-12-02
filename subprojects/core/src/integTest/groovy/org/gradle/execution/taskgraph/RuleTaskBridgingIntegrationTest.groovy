@@ -22,6 +22,117 @@ import org.gradle.util.TextUtil
 
 class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
+    def "tasks created using legacy DSL are visible to rules"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            class MyPlugin extends RuleSource {
+                @Mutate
+                void applyMessages(ModelMap<EchoTask> tasks) {
+                    tasks.afterEach {
+                        message += " message!"
+                    }
+                }
+            }
+
+            apply type: MyPlugin
+
+            task foo(type: EchoTask) { message = 'custom' }
+            task bar(type: EchoTask)
+        """
+
+        when:
+        succeeds "foo", "bar"
+
+        then:
+        output.contains "foo: custom message!"
+        output.contains "bar: default message!"
+    }
+
+    def "task initializer defined by rule is invoked before actions defined through legacy task container DSL"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            class MyPlugin extends RuleSource {
+                @Mutate
+                void addTasks(ModelMap<EchoTask> tasks) {
+                    tasks.create("foo") {
+                        message = "foo message"
+                    }
+                }
+            }
+
+            apply type: MyPlugin
+
+            tasks.withType(EchoTask).all {
+                message = "task \$message"
+            }
+        """
+
+        when:
+        succeeds "foo"
+
+        then:
+        output.contains "foo: task foo message"
+    }
+
+    def "task created in afterEvaluate() is visible to rules"() {
+        when:
+        buildFile << '''
+            class MyPlugin extends RuleSource {
+                @Mutate
+                void fromAfterEvaluateTaskAvailable(ModelMap<Task> tasks) {
+                    tasks.fromAfterEvaluate.value += " and from container rule"
+                }
+                @Mutate
+                void fromAfterEvaluateTaskAvailable(@Path("tasks.fromAfterEvaluate") Task task) {
+                    task.value += " and from rule"
+                }
+            }
+
+            apply type: MyPlugin
+
+            project.afterEvaluate {
+                project.tasks.create("fromAfterEvaluate") {
+                    ext.value = "from after evaluate"
+                    doLast {
+                        println "value: $value"
+                    }
+                }
+            }
+        '''
+
+        then:
+        succeeds "fromAfterEvaluate"
+
+        and:
+        output.contains "value: from after evaluate and from container rule and from rule"
+    }
+
+    def "registering a creation rule for a task that is already defined using legacy DSL"() {
+        when:
+        buildFile << """
+            class MyPlugin extends RuleSource {
+                @Mutate
+                void addTask(ModelMap<Task> tasks) {
+                    tasks.create("foo")
+                }
+            }
+
+            apply type: MyPlugin
+
+            task foo {}
+        """
+
+        then:
+        fails "foo"
+
+        and:
+        failure.assertHasCause("Cannot create 'tasks.foo' using creation rule 'MyPlugin#addTask > create(foo)' as the rule 'Project.<init>.tasks.foo()' is already registered to create this model element.")
+    }
+
     def "a non-rule-source task can depend on a rule-source task"() {
         given:
         buildFile << """
@@ -198,7 +309,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecuted( ':climbTask', ':customTask')
+        result.assertTasksExecuted(':climbTask', ':customTask')
     }
 
     def "a non-rule-source task can depend on a rule-source task with matching criteria"() {
