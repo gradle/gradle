@@ -25,7 +25,18 @@ Module dependencies declared this way will be resolved against the configured re
 
 ### Performance improvements
 
-Should mention Java compile avoidance
+#### Java compile avoidance
+
+TODO
+
+#### Native compilation inputs
+
+Gradle needs to know all input properties, input files and output files of a task to perform incremental build checks.  When no input or output files have changed, Gradle can skip executing a task.
+
+For native compilation tasks, Gradle used to consider the contents of all include directories as inputs to the task. This had performance problems when there were many include directories or when the project root directory was used as an include directory.
+To speed up up-to-date checks, Gradle now treats the include path as an input property and only considers files included from source files as inputs. From our performance benchmarks, this can have a large positive impact on incremental builds for very large projects.
+
+Due to the way Gradle determines the set of input files, using macros to `#include` files from native source files requires Gradle to fallback to its old mechanism of including all files in all include directories as inputs.
 
 ### Software model changes
 
