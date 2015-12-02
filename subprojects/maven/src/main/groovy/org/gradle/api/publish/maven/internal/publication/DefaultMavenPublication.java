@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -43,6 +44,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -110,7 +112,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private void addProjectDependency(ProjectDependency dependency) {
         ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
-        runtimeDependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion()));
+        runtimeDependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.<DependencyArtifact>emptyList(), dependency.getExcludeRules()));
     }
 
     private void addModuleDependency(ModuleDependency dependency) {

@@ -32,7 +32,7 @@ public class SourceToNameConverter {
     }
 
     public String getClassName(File javaSourceClass) {
-        List<File> dirs = sourceDirs.getSourceDirs();
+        List<File> dirs = sourceDirs.getSourceRoots();
         for (File sourceDir : dirs) {
             if (javaSourceClass.getAbsolutePath().startsWith(sourceDir.getAbsolutePath())) { //perf tweak only
                 String relativePath = GFileUtils.relativePath(sourceDir, javaSourceClass);

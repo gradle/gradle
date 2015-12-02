@@ -43,7 +43,7 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':climbTask'])
+        result.assertTasksExecuted(':climbTask', ':customTask')
     }
 
     def "a non-rule-source task can depend on one or more task of types created via both rule sources and old world container"() {
@@ -69,7 +69,7 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':customTask', ':climbTask'])
+        result.assertTasksExecuted(':climbTask', ':oldClimber', ':customTask')
     }
 
     def "can depend on a rule-source task in a project which has already evaluated"() {
@@ -102,7 +102,7 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         succeeds('sub2:customTask')
 
         then:
-        result.executedTasks.containsAll([':sub2:customTask', ':sub1:climbTask'])
+        result.assertTasksExecuted(':sub1:climbTask', ':sub2:customTask')
     }
 
     def "can depend on a rule-source task after a project has been evaluated"() {
@@ -129,7 +129,7 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':climbTask'])
+        result.assertTasksExecuted(':climbTask', ':customTask')
     }
 
     def "a build failure occurs when depending on a rule task with failing configuration"() {
@@ -190,8 +190,7 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         apply type: Rules
 
         task customTask << { }
-def t = tasks.withType(Task).withType(ClimbTask)
-println t.getClass()
+        def t = tasks.withType(Task).withType(ClimbTask)
         customTask.dependsOn t
         """
 
@@ -199,7 +198,7 @@ println t.getClass()
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':climbTask'])
+        result.assertTasksExecuted( ':climbTask', ':customTask')
     }
 
     def "a non-rule-source task can depend on a rule-source task with matching criteria"() {
@@ -223,7 +222,7 @@ println t.getClass()
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':climbTask'])
+        result.assertTasksExecuted(':climbTask', ':customTask')
     }
 
     def "a non-rule-source task can not depend on both realizable and default task collections"() {
@@ -248,7 +247,7 @@ println t.getClass()
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':foo'])
+        result.assertTasksExecuted(':foo', ':customTask')
     }
 
     @NotYetImplemented
@@ -274,7 +273,7 @@ println t.getClass()
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':climbTask', ':jumpTask'])
+        result.assertTasksExecuted(':customTask', ':climbTask', ':jumpTask')
     }
 
     @NotYetImplemented
@@ -349,17 +348,14 @@ println t.getClass()
             model {
               tasks {
                 create("climbTask", ClimbTask)
-                create("jumpTask", JumpTask)
+                create("jumpTask", JumpTask) {
+                   throw new RuntimeException()
+                }
               }
             }
 
             task customTask {
               dependsOn tasks.withType(ClimbTask)
-              doLast {
-                // This is somewhat fragile and may break when we handle realizing better
-                println "jumpTask exists: " + !tasks.withType(JumpTask).empty
-                println "climbTask exists: " + !tasks.withType(ClimbTask).empty
-              }
             }
         """
 
@@ -367,7 +363,6 @@ println t.getClass()
         run "customTask"
 
         then:
-        outputContains "jumpTask exists: false"
-        outputContains "climbTask exists: true"
+        result.assertTasksExecuted(':climbTask', ':customTask')
     }
 }

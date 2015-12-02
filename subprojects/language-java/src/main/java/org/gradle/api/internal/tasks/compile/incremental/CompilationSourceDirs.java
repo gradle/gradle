@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.SourceDirectorySet;
 
 import java.io.File;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -32,40 +32,56 @@ import java.util.List;
  */
 public class CompilationSourceDirs {
 
-    private List<Object> source;
+    private final List<Object> sources;
+    private List<File> sourceRoots;
 
-    public CompilationSourceDirs(List<Object> source) {
-        this.source = source;
+    public CompilationSourceDirs(List<Object> sources) {
+        this.sources = sources;
     }
 
-    List<File> getSourceDirs() {
-        List<File> sourceDirs = new LinkedList<File>();
-        for (Object s : source) {
-            if (s instanceof File) {
-                sourceDirs.add((File) s);
-            } else if (s instanceof DirectoryTree) {
-                sourceDirs.add(((DirectoryTree) s).getDir());
-            } else if (s instanceof SourceDirectorySet) {
-                sourceDirs.addAll(((SourceDirectorySet) s).getSrcDirs());
-            } else {
-                throw new UnsupportedOperationException();
+    List<File> getSourceRoots() {
+        if (sourceRoots == null) {
+            sourceRoots = Lists.newArrayList();
+            for (Object source : sources) {
+                if (isDirectory(source)) {
+                    sourceRoots.add((File) source);
+                } else if (isDirectoryTree(source)) {
+                    sourceRoots.add(((DirectoryTree) source).getDir());
+                } else if (isSourceDirectorySet(source)) {
+                    sourceRoots.addAll(((SourceDirectorySet) source).getSrcDirs());
+                } else {
+                    throw new UnsupportedOperationException();
+                }
             }
         }
-        return sourceDirs;
+        return sourceRoots;
     }
 
-    public boolean canInferSourceDirectories() {
-        for (Object s : source) {
-            if (!canInferSourceDirectory(s)) {
+    public boolean canInferSourceRoots() {
+        for (Object source : sources) {
+            if (!canInferSourceRoot(source)) {
                 return false;
             }
         }
         return true;
     }
 
-    private boolean canInferSourceDirectory(Object s) {
-        return s instanceof SourceDirectorySet
-                || s instanceof DirectoryTree
-                || s instanceof File;
+    private boolean canInferSourceRoot(Object source) {
+        return isSourceDirectorySet(source)
+                || isDirectoryTree(source)
+                || isDirectory(source);
+    }
+
+    private boolean isSourceDirectorySet(Object source) {
+        return source instanceof SourceDirectorySet;
+    }
+
+    private boolean isDirectoryTree(Object source) {
+        return source instanceof DirectoryTree;
+    }
+
+    private boolean isDirectory(Object source) {
+        return source instanceof File
+                && ((File) source).isDirectory();
     }
 }
