@@ -42,7 +42,7 @@ class MultiVersionSpecRunner extends AbstractMultiTestRunner {
         } else {
             throw new RuntimeException("Target class '$target' is not annotated with @${TargetVersions.simpleName} nor with @${TargetCoverage.simpleName}.")
         }
-        versionUnderTest.each { add(new VersionExecution(it)) }
+        versionUnderTest.toUnique().each { add(new VersionExecution(it)) }
     }
 
     private static class VersionExecution extends AbstractMultiTestRunner.Execution {
