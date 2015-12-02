@@ -36,6 +36,8 @@ import org.gradle.platform.base.internal.builder.LanguageTypeBuilderInternal;
 import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
+import java.util.Set;
+
 public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<LanguageType, LanguageSourceSet, BaseLanguageSourceSet> {
 
     public LanguageTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
@@ -53,7 +55,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         ModelType<? extends BaseLanguageSourceSet> implementation = determineImplementationType(type, builder);
         if (implementation != null) {
             String languageName = ((LanguageTypeBuilderInternal) builder).getLanguageName();
-            ModelAction mutator = createRegistrationAction(languageName, type, implementation, ruleDefinition.getDescriptor());
+            ModelAction mutator = createRegistrationAction(languageName, type, builder.getInternalViews(), implementation, ruleDefinition.getDescriptor());
             return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
         }
         // TODO:DAZ Work out what this is for
@@ -61,12 +63,13 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
     }
 
     private <S extends LanguageSourceSet> ModelAction createRegistrationAction(final String languageName, final ModelType<S> type,
-                                                                               final ModelType<? extends BaseLanguageSourceSet> implementation, final ModelRuleDescriptor descriptor) {
+                                                                               final Set<Class<?>> internalViews, final ModelType<? extends BaseLanguageSourceSet> implementation,
+                                                                               final ModelRuleDescriptor descriptor) {
         return NoInputsModelAction.of(ModelReference.of(LanguageRegistry.class), descriptor, new Action<LanguageRegistry>() {
             @Override
             public void execute(LanguageRegistry languageRegistry) {
                 ModelType<? extends S> castImplementation = Cast.uncheckedCast(implementation);
-                languageRegistry.add(new NamedLanguageRegistration<S>(languageName, type, castImplementation, descriptor));
+                languageRegistry.add(new NamedLanguageRegistration<S>(languageName, type, internalViews, castImplementation, descriptor));
             }
         });
     }
