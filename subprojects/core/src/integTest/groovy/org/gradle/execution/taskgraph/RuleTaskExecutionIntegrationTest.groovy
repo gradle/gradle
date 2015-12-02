@@ -19,7 +19,7 @@ package org.gradle.execution.taskgraph
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.internal.core.ModelNode
 
-class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
+class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
     def setup() {
         buildFile << """
