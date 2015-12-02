@@ -1360,6 +1360,9 @@
                     </para>
                 </footnote>
             </para>
+            <sample id="testngpreserveorder" dir="testing/testng/preserveorder" title="Preserving order of TestNG tests">
+                <sourcefile file="build.gradle" snippet="test-config"/>
+            </sample>
             <para>The <literal>groupByInstance</literal> property controls whether tests should be grouped by instances. Grouping by instances will result in resolving test method dependencies for each instance instead of running the dependees of all instances before running the dependants. The default behavior is not to group tests by instances.
                 <footnote>
                     <para>The TestNG documentation contains more details about grouping tests by instances:
@@ -1367,6 +1370,9 @@
                     </para>
                 </footnote>
             </para>
+            <sample id="testnggroupbyinstances" dir="testing/testng/groupbyinstances" title="Grouping TestNG tests by instances">
+                <sourcefile file="build.gradle" snippet="test-config"/>
+            </sample>
         </section>
 
         <section id="test_reporting">
