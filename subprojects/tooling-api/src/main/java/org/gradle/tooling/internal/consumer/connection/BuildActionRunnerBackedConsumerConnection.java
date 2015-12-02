@@ -19,6 +19,8 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.consumer.converters.CompositeMappingAction;
+import org.gradle.tooling.internal.consumer.converters.IdeaProjectCompatibilityMapper;
 import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -91,7 +93,10 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
             this.versionDetails = versionDetails;
             this.modelMapping = modelMapping;
             this.buildActionRunner = buildActionRunner;
-            mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
+            mapper = CompositeMappingAction.builder()
+                .add(new TaskPropertyHandlerFactory().forVersion(versionDetails))
+                .add(new IdeaProjectCompatibilityMapper(versionDetails))
+                .build();
         }
 
         public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
