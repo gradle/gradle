@@ -144,7 +144,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         try {
             JavaReflectionUtil.method(TestNG.class, void.class, "setGroupByInstances", boolean.class).invoke(testNg, options.getGroupByInstances());
         } catch (NoSuchMethodException e) {
-            if (options.getPreserveOrder()) {
+            if (options.getGroupByInstances()) {
                 throw e;
             }
         }
