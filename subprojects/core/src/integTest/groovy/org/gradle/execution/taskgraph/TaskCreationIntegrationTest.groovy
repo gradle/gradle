@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.model
+package org.gradle.execution.taskgraph
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
+class TaskCreationIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
     def setup() {
-        buildFile << """
-            class MessageTask extends DefaultTask {
-                String message = "default"
-
-                @TaskAction
-                void printMessages() {
-                    println "\$name message: \$message"
-                }
-            }
-"""
+        buildFile << ruleBasedTasks()
     }
 
     def "can use rule method to create tasks from model"() {
@@ -81,8 +72,8 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                     a {
                         description = 'task a'
                     }
-                    a(MessageTask)
-                    b(MessageTask) {
+                    a(EchoTask)
+                    b(EchoTask) {
                         description = 'task b'
                     }
                     c(Task) {
@@ -109,8 +100,8 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                     a {
                         message = 'greetings from task a'
                     }
-                    a(MessageTask)
-                    b(MessageTask) {
+                    a(EchoTask)
+                    b(EchoTask) {
                         def taskA = $.tasks.a
                         message = taskA.message + " via task b"
                     }
@@ -141,7 +132,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 @Mutate
                 void addTasks(ModelMap<Task> tasks, MyMessage myMessage) {
                     ['foo', 'bar'].each { n ->
-                        tasks.create(n, MessageTask) {
+                        tasks.create(n, EchoTask) {
                             message = "\${myMessage.message} \${name}: "
                         }
                     }
@@ -169,8 +160,8 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "foo", "bar"
 
         then:
-        output.contains "foo message: task foo: foo message!"
-        output.contains "bar message: task bar: bar message!"
+        output.contains "foo: task foo: foo message!"
+        output.contains "bar: task bar: bar message!"
     }
 
     def "can configure tasks using rule methods taking some input"() {
@@ -187,22 +178,22 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void customMessage(@Path('tasks.bar') MessageTask task) {
+                void customMessage(@Path('tasks.bar') EchoTask task) {
                     task.message += ' from'
                 }
 
                 @Defaults
-                void prepareMessage(@Path('tasks.bar') MessageTask task) {
+                void prepareMessage(@Path('tasks.bar') EchoTask task) {
                     task.message = "task bar: "
                 }
 
                 @Finalize
-                void tweakCustomMessage(@Path('tasks.bar') MessageTask task) {
+                void tweakCustomMessage(@Path('tasks.bar') EchoTask task) {
                     task.message += " \$task.name"
                 }
 
                 @Mutate
-                void addTasks(ModelMap<MessageTask> tasks, MyMessage myMessage) {
+                void addTasks(ModelMap<EchoTask> tasks, MyMessage myMessage) {
                     tasks.create('bar') {
                         message += myMessage.message
                     }
@@ -225,8 +216,8 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "foo", "bar"
 
         then:
-        output.contains "foo message: foo"
-        output.contains "bar message: task bar: hi from bar"
+        output.contains "foo: foo"
+        output.contains "bar: task bar: hi from bar"
     }
 
     def "can validate tasks using rule methods"() {
@@ -234,14 +225,14 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class MyPlugin extends RuleSource {
                 @Validate
-                void checkTask(@Path('tasks.bar') MessageTask task) {
+                void checkTask(@Path('tasks.bar') EchoTask task) {
                     throw new RuntimeException("task is invalid!")
                 }
 
                 @Mutate
                 void addTasks(ModelMap<Task> tasks) {
                     ['foo', 'bar'].each { n ->
-                        tasks.create(n, MessageTask)
+                        tasks.create(n, EchoTask)
                     }
                 }
             }
@@ -271,16 +262,16 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addTasks(ModelMap<MessageTask> tasks) {
+                void addTasks(ModelMap<EchoTask> tasks) {
                     ['foo', 'bar'].each { n ->
-                        tasks.create(n, MessageTask) {
+                        tasks.create(n, EchoTask) {
                             message = "\$message \$name"
                         }
                     }
                 }
 
                 @Defaults
-                void applyMessages(ModelMap<MessageTask> tasks, MyMessage myMessage) {
+                void applyMessages(ModelMap<EchoTask> tasks, MyMessage myMessage) {
                     tasks.beforeEach {
                         message = myMessage.message
                     }
@@ -293,7 +284,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void cleanupMessages(ModelMap<MessageTask> tasks) {
+                void cleanupMessages(ModelMap<EchoTask> tasks) {
                     tasks.named('bar') {
                         message = "[\$message]"
                     }
@@ -313,8 +304,8 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "foo", "bar"
 
         then:
-        output.contains "foo message: task foo with message!"
-        output.contains "bar message: [task bar] with message!"
+        output.contains "foo: task foo with message!"
+        output.contains "bar: [task bar] with message!"
     }
 
     def "can use rule DSL to apply rules to all tasks"() {
@@ -322,9 +313,9 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class MyPlugin extends RuleSource {
                 @Mutate
-                void addTasks(ModelMap<MessageTask> tasks) {
+                void addTasks(ModelMap<EchoTask> tasks) {
                     ['foo', 'bar'].each { n ->
-                        tasks.create(n, MessageTask) {
+                        tasks.create(n, EchoTask) {
                             message = "\$message \$name"
                         }
                     }
@@ -336,7 +327,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 tasks {
-                    def messageTasks = withType(MessageTask)
+                    def messageTasks = withType(EchoTask)
                     messageTasks.beforeEach {
                         message = "task"
                     }
@@ -354,8 +345,8 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "foo", "bar"
 
         then:
-        output.contains "foo message: task foo with message"
-        output.contains "bar message: task bar with message"
+        output.contains "foo: task foo with message"
+        output.contains "bar: task bar with message"
     }
 
     def "tasks created using legacy DSL are visible to rules"() {
@@ -363,7 +354,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class MyPlugin extends RuleSource {
                 @Mutate
-                void applyMessages(ModelMap<MessageTask> tasks) {
+                void applyMessages(ModelMap<EchoTask> tasks) {
                     tasks.afterEach {
                         message += " message!"
                     }
@@ -372,16 +363,16 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
             apply type: MyPlugin
 
-            task foo(type: MessageTask) { message = 'custom' }
-            task bar(type: MessageTask)
+            task foo(type: EchoTask) { message = 'custom' }
+            task bar(type: EchoTask)
         """
 
         when:
         succeeds "foo", "bar"
 
         then:
-        output.contains "foo message: custom message!"
-        output.contains "bar message: default message!"
+        output.contains "foo: custom message!"
+        output.contains "bar: default message!"
     }
 
     def "task initializer defined by rule is invoked before actions defined through legacy task container DSL"() {
@@ -389,7 +380,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class MyPlugin extends RuleSource {
                 @Mutate
-                void addTasks(ModelMap<MessageTask> tasks) {
+                void addTasks(ModelMap<EchoTask> tasks) {
                     tasks.create("foo") {
                         message = "foo message"
                     }
@@ -398,7 +389,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
             apply type: MyPlugin
 
-            tasks.withType(MessageTask).all {
+            tasks.withType(EchoTask).all {
                 message = "task \$message"
             }
         """
@@ -407,7 +398,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "foo"
 
         then:
-        output.contains "foo message: task foo message"
+        output.contains "foo: task foo message"
     }
 
     def "can configure dependencies between tasks using task name"() {
@@ -622,9 +613,9 @@ foo configured
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: tasks.foo { ... } @ build.gradle line 21, column 17")
+        failure.assertHasCause("Exception thrown while executing model rule: tasks.foo { ... } @ build.gradle line 40, column 17")
         failure.assertHasCause("config failure")
-        failure.assertHasLineNumber(22)
+        failure.assertHasLineNumber(41)
     }
 
     def "task created in afterEvaluate() is visible to rules"() {

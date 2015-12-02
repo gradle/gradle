@@ -19,7 +19,7 @@ package org.gradle.execution.taskgraph
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.internal.core.ModelNode
 
-class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
+class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
     def setup() {
         buildFile << """
@@ -61,10 +61,11 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "rule based tasks that are not requested on the command line are not realised"() {
         when:
         buildFile << """
+            ${ruleBasedTasks()}
             model {
                 tasks {
                     create("t1")
-                    create("t2")
+                    create("t2", BrokenTask)
                 }
             }
         """
@@ -84,11 +85,12 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                     create("t2")
                 }
             }
-
+            def tasksPath = ModelPath.path("tasks")
+            def registry = project.modelRegistry
+            gradle.taskGraph.whenReady {
+                println "task container node state when task graph ready: ${registry.state(tasksPath)}"
+            }
             gradle.buildFinished {
-                def tasksPath = ModelPath.path("tasks")
-                def registry = project.modelRegistry
-                println "task container node state at the end of build: ${registry.state(tasksPath)}"
                 registry.atState(tasksPath, ModelNode.State.GraphClosed)
                 println "task container node state after graph closing: ${registry.state(tasksPath)}"
             }
@@ -98,31 +100,24 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "t1"
 
         and:
-        output.contains "task container node state at the end of build: ${ModelNode.State.SelfClosed}"
+        output.contains "task container node state when task graph ready: ${ModelNode.State.SelfClosed}"
         output.contains "task container node state after graph closing: ${ModelNode.State.GraphClosed}"
     }
 
     def "tasks added via task container and not explicitly required but executed are self closed"() {
         given:
-        buildScript '''
-            class EchoTask extends DefaultTask {
-                String text = "default"
-
-                @TaskAction
-                void print() {
-                    println "$name: $text"
-                }
-            }
+        buildScript """
+            ${ruleBasedTasks()}
 
             class Rules extends RuleSource {
                 @Mutate
                 void configureDependencyTask(@Path("tasks.dependency") EchoTask task) {
-                    task.text = "configured"
+                    task.message = "configured"
                 }
 
                 @Mutate
                 void configureFinalizerTask(@Path("tasks.finalizer") EchoTask task) {
-                    task.text = "configured"
+                    task.message = "configured"
                 }
 
                 @Mutate
@@ -138,7 +133,7 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.create("dependency", EchoTask)
             tasks.create("finalizer", EchoTask)
-        '''
+        """
 
         when:
         succeeds "requested"
