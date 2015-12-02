@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.java.compile.incremental;
+package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CompilationOutputsFixture;
+import org.gradle.integtests.fixtures.CompilationOutputsFixture
 
 public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -296,11 +296,11 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
     }
 
     def "recompiles classes from extra source directories"() {
-        buildFile << "sourceSets.main.java.srcDir 'java'"
+        buildFile << "sourceSets.main.java.srcDir 'extra-java'"
 
         java("class B {}")
-        file("java/A.java") << "class A extends B {}"
-        file("java/C.java") << "class C {}"
+        file("extra-java/A.java") << "class A extends B {}"
+        file("extra-java/C.java") << "class C {}"
 
         outputs.snapshot { run "compileJava" }
 
@@ -313,20 +313,65 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
     }
 
     def "detects changes to source in extra source directories"() {
-        buildFile << "sourceSets.main.java.srcDir 'java'"
+        buildFile << "sourceSets.main.java.srcDir 'extra-java'"
 
         java("class A extends B {}")
-        file("java/B.java") << "class B {}"
-        file("java/C.java") << "class C {}"
+        file("extra-java/B.java") << "class B {}"
+        file("extra-java/C.java") << "class C {}"
 
         outputs.snapshot { run "compileJava" }
 
         when:
-        file("java/B.java").text = "class B { String change; }"
+        file("extra-java/B.java").text = "class B { String change; }"
         run "compileJava"
 
         then:
         outputs.recompiledClasses("B", "A")
+    }
+
+    def "recompiles classes from extra source directory provided as #type"() {
+        given:
+        buildFile << "compileJava.source $method('extra-java')"
+
+        java("class B {}")
+        file("extra-java/A.java") << "class A extends B {}"
+        file("extra-java/C.java") << "class C {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        java("class B { String change; } ")
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("B", "A")
+
+        where:
+        type            | method
+        "File"          | "file"
+        "DirectoryTree" | "fileTree"
+    }
+
+    def "detects changes to source in extra source directory provided as #type"() {
+        buildFile << "compileJava.source $method('extra-java')"
+
+        java("class A extends B {}")
+        file("extra-java/B.java") << "class B {}"
+        file("extra-java/C.java") << "class C {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("extra-java/B.java").text = "class B { String change; }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("B", "A")
+
+        where:
+        type            | method
+        "File"          | "file"
+        "DirectoryTree" | "fileTree"
     }
 
     def "handles duplicate class across source directories"() {

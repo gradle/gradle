@@ -15,14 +15,11 @@
  */
 
 package org.gradle.api.publish.maven
-
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Ignore
-
 /**
  * Tests “simple” maven publishing scenarios
  */
@@ -32,10 +29,8 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
 
     MavenLocalRepository localM2Repo
 
-    @Rule M2Installation m2Installation = new M2Installation(executer, testDirectory)
-
     def "setup"() {
-        localM2Repo = m2Installation.mavenRepo()
+        localM2Repo = m2.mavenRepo()
     }
 
     def "publishes nothing without defined publication"() {
@@ -144,7 +139,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
     def "can publish to custom maven local repo defined in settings.xml"() {
         given:
         def customLocalRepo = new MavenLocalRepository(file("custom-maven-local"))
-        m2Installation.generateUserSettingsFile(customLocalRepo)
+        m2.generateUserSettingsFile(customLocalRepo)
 
         and:
         settingsFile << "rootProject.name = 'root'"

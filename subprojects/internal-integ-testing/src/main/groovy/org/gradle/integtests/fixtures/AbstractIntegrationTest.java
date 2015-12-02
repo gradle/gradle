@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.executer.*;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.test.fixtures.ivy.IvyFileRepository;
+import org.gradle.test.fixtures.maven.M2Installation;
 import org.gradle.test.fixtures.maven.MavenFileRepository;
 import org.junit.Rule;
 
@@ -29,6 +30,9 @@ public abstract class AbstractIntegrationTest {
     public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
     public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution();
     public final GradleExecuter executer = new GradleContextualExecuter(distribution, testDirectoryProvider);
+
+    @Rule
+    public final M2Installation m2 = new M2Installation(executer, testDirectoryProvider.getTestDirectory());
 
     private MavenFileRepository mavenRepo;
     private IvyFileRepository ivyRepo;

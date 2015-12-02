@@ -164,10 +164,10 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
     }
 
     def "jvm args from gradle properties should be used to run build"() {
-        file('gradle.properties') << "org.gradle.jvmargs=-Xmx32m -Dsome-prop=some-value"
+        file('gradle.properties') << "org.gradle.jvmargs=-Xmx52m -Dsome-prop=some-value"
 
         file('build.gradle') << """
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx32m')
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx52m')
 assert System.getProperty('some-prop') == 'some-value'
 """
 

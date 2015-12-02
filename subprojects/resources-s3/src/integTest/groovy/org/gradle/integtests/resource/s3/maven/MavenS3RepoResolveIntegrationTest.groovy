@@ -37,8 +37,8 @@ class MavenS3RepoResolveIntegrationTest extends AbstractS3DependencyResolutionTe
         setup:
         module.publish()
 
-        m2Installation.generateGlobalSettingsFile()
-        def localModule = m2Installation.mavenRepo().module("org.gradle", "test", artifactVersion).publish()
+        m2.generateGlobalSettingsFile()
+        def localModule = m2.mavenRepo().module("org.gradle", "test", artifactVersion).publish()
 
         buildFile << mavenAwsRepoDsl()
         buildFile << """
@@ -60,7 +60,7 @@ task retrieve(type: Sync) {
         module.artifact.sha1.expectDownload()
 
         when:
-        using m2Installation
+        using m2
 
         then:
         succeeds 'retrieve'
@@ -77,8 +77,8 @@ task retrieve(type: Sync) {
     def "should download artifacts when maven local artifacts are different to remote "() {
         setup:
         module.publish()
-        m2Installation.generateGlobalSettingsFile()
-        def localModule = m2Installation.mavenRepo().module("org.gradle", "test", artifactVersion).publishWithChangedContent()
+        m2.generateGlobalSettingsFile()
+        def localModule = m2.mavenRepo().module("org.gradle", "test", artifactVersion).publishWithChangedContent()
 
         buildFile << mavenAwsRepoDsl()
         buildFile << """
@@ -102,7 +102,7 @@ task retrieve(type: Sync) {
         module.artifact.expectDownload()
 
         when:
-        using m2Installation
+        using m2
 
         then:
         succeeds 'retrieve'

@@ -18,6 +18,7 @@ package org.gradle.integtests.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MavenWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
+
     public void "publishes WAR only for mixed java and WAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.resolve.maven
+
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.MetadataArtifactResolveTestFixture
 import org.gradle.internal.resolve.ArtifactResolveException
@@ -46,8 +47,8 @@ repositories {
 
         when:
         fixture.requestComponent('MavenModule').requestArtifact('MavenPomArtifact')
-                .expectResolvedComponentResult().expectMetadataFiles(module.pom.file)
-                .createVerifyTaskModuleComponentIdentifier()
+            .expectResolvedComponentResult().expectMetadataFiles(module.pom.file)
+            .createVerifyTaskModuleComponentIdentifier()
 
         module.pom.expectGet()
 
@@ -62,9 +63,9 @@ repositories {
 
         when:
         fixture.requestComponent(component).requestArtifact(artifactType)
-                .expectUnresolvedComponentResult(exception)
-                .expectNoMetadataFiles()
-                .createVerifyTaskModuleComponentIdentifier()
+            .expectUnresolvedComponentResult(exception)
+            .expectNoMetadataFiles()
+            .createVerifyTaskModuleComponentIdentifier()
         module.pom.expectGet()
 
         then:
@@ -81,9 +82,9 @@ repositories {
 
         when:
         fixture.requestComponent('MavenModule').requestArtifact('MavenPomArtifact')
-               .expectUnresolvedComponentResult(new IllegalArgumentException("Cannot query artifacts for a project component (project :)."))
-               .expectNoMetadataFiles()
-               .createVerifyTaskForProjectComponentIdentifier()
+            .expectUnresolvedComponentResult(new IllegalArgumentException("Cannot query artifacts for a project component (project :)."))
+            .expectNoMetadataFiles()
+            .createVerifyTaskForProjectComponentIdentifier()
 
         module.pom.expectGet()
 
@@ -97,10 +98,10 @@ repositories {
 
         when:
         fixture.requestComponent('MavenModule').requestArtifact('MavenPomArtifact')
-               .expectResolvedComponentResult()
-               .expectNoMetadataFiles()
-               .expectUnresolvedArtifactResult(ArtifactResolveException, "Could not find some-artifact.pom (some.group:some-artifact:1.0).")
-               .createVerifyTaskModuleComponentIdentifier()
+            .expectResolvedComponentResult()
+            .expectNoMetadataFiles()
+            .expectUnresolvedArtifactResult(ArtifactResolveException, "Could not find some-artifact.pom (some.group:some-artifact:1.0).")
+            .createVerifyTaskModuleComponentIdentifier()
 
         // TODO - should make a single request
         module.pom.expectGetMissing()
@@ -118,8 +119,8 @@ repositories {
 
         fixture.configureChangingModule()
         fixture.requestComponent('MavenModule').requestArtifact('MavenPomArtifact')
-               .expectResolvedComponentResult().expectMetadataFiles(module.pomFile)
-               .createVerifyTaskModuleComponentIdentifier()
+            .expectResolvedComponentResult().expectMetadataFiles(module.pomFile)
+            .createVerifyTaskModuleComponentIdentifier()
 
         when:
         module.pom.expectGet()

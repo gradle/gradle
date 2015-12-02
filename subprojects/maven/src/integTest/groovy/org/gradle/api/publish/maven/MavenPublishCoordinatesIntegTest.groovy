@@ -15,19 +15,14 @@
  */
 
 package org.gradle.api.publish.maven
-
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenLocalRepository
-import org.junit.Rule
 
 class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
     MavenLocalRepository m2Repo
 
-    @Rule M2Installation m2Installation = new M2Installation(executer, testDirectory)
-
     def "setup"() {
-        m2Repo = m2Installation.mavenRepo()
+        m2Repo = m2.mavenRepo()
     }
 
     def "can publish single jar with specified coordinates"() {
