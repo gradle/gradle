@@ -53,13 +53,9 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
     protected <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends LanguageSourceSet> type, TypeBuilderInternal<LanguageSourceSet> builder) {
         ImmutableList<Class<?>> dependencies = ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
         ModelType<? extends BaseLanguageSourceSet> implementation = determineImplementationType(type, builder);
-        if (implementation != null) {
-            String languageName = ((LanguageTypeBuilderInternal) builder).getLanguageName();
-            ModelAction mutator = createRegistrationAction(languageName, type, builder.getInternalViews(), implementation, ruleDefinition.getDescriptor());
-            return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
-        }
-        // TODO:DAZ Work out what this is for
-        return new DependencyOnlyExtractedModelRule(dependencies);
+        String languageName = ((LanguageTypeBuilderInternal) builder).getLanguageName();
+        ModelAction mutator = createRegistrationAction(languageName, type, builder.getInternalViews(), implementation, ruleDefinition.getDescriptor());
+        return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
     }
 
     private <S extends LanguageSourceSet> ModelAction createRegistrationAction(final String languageName, final ModelType<S> type,

@@ -142,6 +142,11 @@ public class LanguageBasePlugin implements Plugin<Project> {
             return new DefaultLanguageRegistry();
         }
 
+        @Validate
+        void validateLanguageSourceSetRegistrations(LanguageSourceSetFactory instanceFactory) {
+            instanceFactory.validateRegistrations();
+        }
+
         @Mutate
         void copyBinaryTasksToTaskContainer(TaskContainer tasks, ModelMap<BinarySpec> binaries) {
             for (BinarySpec binary : binaries) {

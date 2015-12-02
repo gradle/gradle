@@ -99,7 +99,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationTypeRule"))
 
         then:
-        registration instanceof DependencyOnlyExtractedModelRule
+        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
     }
 
