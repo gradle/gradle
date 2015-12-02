@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.ivy.IvyFileRepository
+import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.hamcrest.CoreMatchers
@@ -42,6 +43,9 @@ class AbstractIntegrationSpec extends Specification {
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
     GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder)
+
+    @Rule
+    M2Installation m2 = new M2Installation(executer, temporaryFolder.getTestDirectory())
 
     ExecutionResult result
     ExecutionFailure failure

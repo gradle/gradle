@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.integtests.publish.maven
-
 import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Resources
 import org.junit.Before
@@ -52,7 +50,7 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void "can install to local repository"() {
-        def repo = maven(new TestFile("$SystemProperties.instance.userHome/.m2/repository"))
+        def repo = m2.mavenRepo()
         def module = repo.module('gradle', 'quickstart', '1.0')
         module.moduleDir.deleteDir()
 

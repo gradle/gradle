@@ -41,9 +41,6 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
 
-    @Rule
-    M2Installation m2Installation = new M2Installation(executer, testDirectory)
-
     def setup() {
         withLocalM2Installation()
     }
@@ -327,7 +324,7 @@ Root project 'webinar-parent'
     }
 
     M2Installation withLocalM2Installation() {
-        m2Installation.generateUserSettingsFile(mavenLocal("local_m2"))
+        m2.generateUserSettingsFile(mavenLocal("local_m2"))
     }
 
     PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {
