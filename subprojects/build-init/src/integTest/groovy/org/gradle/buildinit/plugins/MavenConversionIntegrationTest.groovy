@@ -328,7 +328,6 @@ Root project 'webinar-parent'
 
     M2Installation withLocalM2Installation() {
         m2Installation.generateUserSettingsFile(mavenLocal("local_m2"))
-        m2Installation
     }
 
     PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {
