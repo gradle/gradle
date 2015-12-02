@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.consumer.converters.CompositeMappingAction;
+import org.gradle.tooling.internal.consumer.converters.IdeaProjectCompatibilityMapper;
 import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -45,7 +47,10 @@ public class CancellableModelBuilderBackedModelProducer implements ModelProducer
         this.modelMapping = modelMapping;
         this.builder = builder;
         this.exceptionTransformer = exceptionTransformer;
-        mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
+        this.mapper = CompositeMappingAction.builder()
+            .add(new TaskPropertyHandlerFactory().forVersion(versionDetails))
+            .add(new IdeaProjectCompatibilityMapper(versionDetails))
+            .build();
     }
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
