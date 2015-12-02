@@ -59,7 +59,7 @@ public class SftpResourceUploader implements ExternalResourceUploader {
 
     private void ensureParentDirectoryExists(ChannelSftp channel, URI uri) {
         String parentPath = FilenameUtils.getFullPathNoEndSeparator(uri.getPath());
-        if (parentPath.equals("")) {
+        if (parentPath.equals("/")) {
             return;
         }
         URI parent = uri.resolve(parentPath);
