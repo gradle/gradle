@@ -104,7 +104,7 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 - ~~Update `DefaultJavaSourceSettings` to expose JRE and target language level information based on current JVM in use~~
 - ~~Update `EclipseModelBuilder` to set values for the target language level and target runtime~~
     - ~~`EclipseJavaSourceSettings.getTargetBytecodeLevel()` returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.~~
-- Update `.classpath` generation, so that tooling model and generated files are consistent.
+- ~~Update `.classpath` generation, so that tooling model and generated files are consistent.~~
 
 #### Test coverage
 
@@ -118,6 +118,7 @@ TBD: Apply to `.ipr` and `.iml` generation, possibly as another story, so that t
 - Project that is not a Java project.
 - ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetRuntime()~~
 - ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetCompatibilityLevel()~~
+- ~~custom java runtime name for eclipse classpath generation~~
 
 ### Story - Expose target JDK for Java projects to IDEA
 
