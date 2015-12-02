@@ -22,7 +22,7 @@ import org.gradle.util.TextUtil
 
 class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
-    def "tasks created using legacy DSL are visible to rules"() {
+    def "mutate rules are applied to tasks created using legacy DSL when the task is added to the task graph"() {
         given:
         buildFile << """
             ${ruleBasedTasks()}
@@ -40,6 +40,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
 
             task foo(type: EchoTask) { message = 'custom' }
             task bar(type: EchoTask)
+            task dep { dependsOn foo, bar }
         """
 
         when:
@@ -48,6 +49,157 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         then:
         output.contains "foo: custom message!"
         output.contains "bar: default message!"
+
+        when:
+        succeeds "dep"
+
+        then:
+        output.contains "foo: custom message!"
+        output.contains "bar: default message!"
+    }
+
+    def "mutate rules are applied to placeholder tasks created using legacy DSL when the task is added to the task graph"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            class MyPlugin extends RuleSource {
+                @Mutate
+                void applyMessages(ModelMap<EchoTask> tasks) {
+                    tasks.named('foo') {
+                        message += " message!"
+                    }
+                }
+            }
+
+            apply type: MyPlugin
+
+            tasks.addPlaceholderAction('foo', EchoTask) { message = 'custom' }
+            task dep { dependsOn foo }
+            task finalized { finalizedBy foo }
+        """
+
+        when:
+        succeeds "foo"
+
+        then:
+        output.contains "foo: custom message!"
+
+        when:
+        succeeds "dep"
+
+        then:
+        output.contains "foo: custom message!"
+    }
+
+    def "mutate rules are not applied to tasks created using legacy DSL when the task is not added to the task graph"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            model {
+                tasks.foo {
+                    message += " message!"
+                }
+                tasks.bar {
+                    throw new RuntimeException()
+                }
+            }
+
+            task foo(type: EchoTask) { message = 'custom' }
+            task bar(type: EchoTask)
+            task dep {
+                dependsOn foo
+                shouldRunAfter bar
+                mustRunAfter bar
+            }
+        """
+
+        when:
+        succeeds "foo"
+
+        then:
+        output.contains "foo: custom message!"
+
+        when:
+        succeeds "dep"
+
+        then:
+        output.contains "foo: custom message!"
+    }
+
+    def "mutate rules are applied to task created using legacy DSL after task is configured from legacy DSL"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            model {
+                tasks.foo {
+                    message += " message!"
+                }
+            }
+
+            task foo(type: EchoTask)
+            assert foo.message == 'default'
+            foo.message = 'custom'
+        """
+
+        when:
+        succeeds "foo"
+
+        then:
+        output.contains "foo: custom message!"
+    }
+
+    def "mutate rules are applied to placeholder task created using legacy DSL after task is configured from legacy DSL"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            model {
+                tasks.foo {
+                    message += " message!"
+                }
+            }
+
+            tasks.addPlaceholderAction('foo', EchoTask) { }
+            assert foo.message == 'default'
+            foo.message = 'custom'
+        """
+
+        when:
+        succeeds "foo"
+
+        then:
+        output.contains "foo: custom message!"
+    }
+
+    @NotYetImplemented
+    def "mutate rules are applied to task created using rules after task is configured from legacy DSL"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            model {
+                tasks {
+                    foo(EchoTask) {
+                        message = 'rules'
+                    }
+                }
+                tasks.foo {
+                    message += " message!"
+                }
+            }
+
+            assert foo.message == 'rules'
+            foo.message = 'custom'
+        """
+
+        when:
+        succeeds "foo"
+
+        then:
+        output.contains "foo: custom message!"
     }
 
     def "task initializer defined by rule is invoked before actions defined through legacy task container DSL"() {

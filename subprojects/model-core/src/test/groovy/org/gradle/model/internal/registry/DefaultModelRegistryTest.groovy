@@ -881,9 +881,13 @@ class DefaultModelRegistryTest extends Specification {
     }
 
     @Unroll
-    def "asking for unknown element at state #state returns null"() {
-        expect:
-        registry.atState(ModelPath.path("thing"), state) == null
+    def "asking for unknown element at state #state fails"() {
+        when:
+        registry.atState(ModelPath.path("thing"), state)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "No model node at 'thing'"
 
         where:
         state << ModelNode.State.values()
