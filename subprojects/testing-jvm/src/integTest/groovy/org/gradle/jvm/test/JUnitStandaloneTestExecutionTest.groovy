@@ -93,13 +93,12 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
     }
 
     private TestFile applyJUnitPlugin() {
-        buildFile << '''
+        buildFile << '''import org.gradle.jvm.plugins.JUnitTestSuitePlugin
             plugins {
                 id 'jvm-component'
                 id 'java-lang'
+                id 'junit-test-suite'
             }
-
-            apply plugin: JUnitTestSuitePlugin
         '''
     }
 
