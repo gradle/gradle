@@ -58,7 +58,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
         createdTasksFor("t1") == [":a:t1", ":b:t1", ":c:t1", ":t1"]
     }
 
-    def "rule based tasks that are not requested on the command line are not realised"() {
+    def "rule based tasks that are not requested on the command line are not created"() {
         when:
         buildFile << """
             ${ruleBasedTasks()}

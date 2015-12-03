@@ -522,8 +522,8 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         class Rules extends RuleSource {
             @Mutate
             void addTasks(ModelMap<Task> tasks) {
-                tasks.create("climbTask", ClimbTask) { }
-                tasks.create("jumpTask", JumpTask) { }
+                tasks.create("climbTask", ClimbTask)
+                tasks.create("jumpTask", JumpTask)
             }
         }
         apply type: Rules
@@ -603,7 +603,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('help')
     }
 
-    def "only tasks of specified type are realized"() {
+    def "only tasks of specified type are created when tasks with type are declared as dependency"() {
         when:
         buildScript """
             ${ruleBasedTasks()}
@@ -611,9 +611,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
             model {
               tasks {
                 create("climbTask", ClimbTask)
-                create("jumpTask", JumpTask) {
-                   throw new RuntimeException()
-                }
+                create("jumpTask", BrokenTask)
               }
             }
 
