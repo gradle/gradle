@@ -22,7 +22,7 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.util.Collection;
 
-public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal {
+public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal, WithJvmAssembly {
 
     void setApiDependencies(Collection<DependencySpec> apiDependencies);
 

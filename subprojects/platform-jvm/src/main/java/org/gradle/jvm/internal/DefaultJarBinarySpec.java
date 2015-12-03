@@ -33,17 +33,16 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
+import static org.gradle.util.CollectionUtils.findSingle;
+
 public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpecInternal {
     private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(super.getTasks());
     private final JarFile apiJar = new DefaultJarFile();
-    private JavaToolChain toolChain;
-    private JavaPlatform platform;
-    private File classesDir;
-    private File resourcesDir;
     private File jarFile;
     private Set<String> exportedPackages = ImmutableSet.of();
     private Set<DependencySpec> apiDependencies = ImmutableSet.of();
     private Set<DependencySpec> componentLevelDependencies = ImmutableSet.of();
+    private final DefaultJvmAssembly assembly = new DefaultJvmAssembly();
 
     @Override
     protected String getTypeName() {
@@ -63,22 +62,22 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public JavaToolChain getToolChain() {
-        return toolChain;
+        return assembly.getToolChain();
     }
 
     @Override
     public void setToolChain(JavaToolChain toolChain) {
-        this.toolChain = toolChain;
+        assembly.setToolChain(toolChain);
     }
 
     @Override
     public JavaPlatform getTargetPlatform() {
-        return platform;
+        return assembly.getTargetPlatform();
     }
 
     @Override
     public void setTargetPlatform(JavaPlatform platform) {
-        this.platform = platform;
+        assembly.setTargetPlatform(platform);
     }
 
     @Override
@@ -108,22 +107,22 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public File getClassesDir() {
-        return classesDir;
+        return findSingle(assembly.getClassDirectories());
     }
 
     @Override
     public void setClassesDir(File classesDir) {
-        this.classesDir = classesDir;
+        replaceSingleDirectory(assembly.getClassDirectories(), classesDir);
     }
 
     @Override
     public File getResourcesDir() {
-        return resourcesDir;
+        return findSingle(assembly.getResourceDirectories());
     }
 
     @Override
     public void setResourcesDir(File resourcesDir) {
-        this.resourcesDir = resourcesDir;
+        replaceSingleDirectory(assembly.getResourceDirectories(), resourcesDir);
     }
 
     @Override
@@ -138,7 +137,7 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public void setApiDependencies(Collection<DependencySpec> apiDependencies) {
-       this.apiDependencies = ImmutableSet.copyOf(apiDependencies);
+        this.apiDependencies = ImmutableSet.copyOf(apiDependencies);
     }
 
     @Override
@@ -160,4 +159,24 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     protected BinaryBuildAbility getBinaryBuildAbility() {
         return new ToolSearchBuildAbility(((JavaToolChainInternal) getToolChain()).select(getTargetPlatform()));
     }
+
+    @Override
+    public JvmAssembly getAssembly() {
+        return assembly;
+    }
+
+    private void replaceSingleDirectory(Set<File> dirs, File dir) {
+        switch (dirs.size()) {
+            case 0:
+                dirs.add(dir);
+                break;
+            case 1:
+                dirs.clear();
+                dirs.add(dir);
+                break;
+            default:
+                throw new IllegalStateException("Can't replace multiple directories.");
+        }
+    }
+
 }
