@@ -210,8 +210,9 @@ public class GlobalScopeServices {
     ClassLoaderCache createClassLoaderCache(GradleBuildEnvironment environment, StringInterner stringInterner) {
         ClassPathSnapshotter classPathSnapshotter;
         if (environment.isLongLivingProcess()) {
-            CachingFileSnapshotter fileSnapshotter = new CachingFileSnapshotter(new DefaultHasher(), new NonThreadsafeInMemoryStore(), stringInterner);
-            classPathSnapshotter = new HashClassPathSnapshotter(fileSnapshotter);
+            final MapBackedInMemoryStore inMemoryStore = new MapBackedInMemoryStore();
+            CachingFileSnapshotter fileSnapshotter = new CachingFileSnapshotter(new DefaultHasher(), inMemoryStore, stringInterner);
+            classPathSnapshotter = new HashClassPathSnapshotter(fileSnapshotter, inMemoryStore);
         } else {
             classPathSnapshotter = new FileClassPathSnapshotter();
         }
