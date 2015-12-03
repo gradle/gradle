@@ -345,6 +345,71 @@ excluding all transitive dependencies is simply identified with a wildcard exclu
  3. Depending on publication of project with dependency using `transitive = false` results in same dependency graph as
     depending on the project itself
 
+## Dependency exclude rules are published in ivy.xml file
+
+Module exclude rules applied to `ExternalModuleDependency` and `ProjectDependency` dependencies should be reflected as `<exclude>` entries in
+the published ivy.xml file when using the 'ivy-publish' plugin. Exclusions will be mapped to [module excludes](http://ant.apache.org/ivy/history/latest-milestone/ivyfile/artifact-exclude.html)
+which were introduced in Ivy 1.3. Since the default value for attributes on `<exclude>` is wildcard, omitting either 'group' or 'module' should
+result is omitting the 'org' or 'module' attributes in the ivy.xml, respectively.
+
+Given the following build script:
+
+    apply plugin: 'java'
+    apply plugin: 'ivy-publish'
+
+    group = 'org.myorg'
+    version = '1.0.0'
+
+    publishing {
+        publication {
+            maven(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+
+    dependencies {
+        compile 'org.springframework:spring-core:4.2.3.RELEASE', {
+            exclude module: 'commons-logging'
+        }
+    }
+
+Should result in the following ivy.xml descriptor
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <ivy-module version="2.0">
+      <info organisation="org.myorg" module="gradle" revision="1.0.0" status="integration" publication="20151203163733"/>
+      <configurations>
+        <conf name="default" visibility="public" extends="runtime"/>
+        <conf name="runtime" visibility="public"/>
+      </configurations>
+      <publications>
+        <artifact name="gradle" type="jar" ext="jar" conf="runtime"/>
+      </publications>
+      <dependencies>
+        <dependency org="org.springframework" name="spring-core" rev="4.2.3.RELEASE" conf="runtime-&gt;default">
+          <exclude module="commons-logging"/>
+        </dependency>
+      </dependencies>
+    </ivy-module>
+
+### Implementation approach
+
+ 1. Add a new `Iterable<ExcludeRule>` to `IvyDependencyInternal` and associated implementation classes
+ 2. Modify `DefaultIvyPublication` to populate exclude rules on `IvyDependency` with the rules from project and
+    external dependencies
+ 3. Modify `IvyDescriptorFileGenerator` to include exclude rules in ivy.xml
+
+
+### Test cases
+
+ 1. `DefaultIvyPublication` creates `IvyDependency` including exclude rules given a `ProjectDependency` or `ExternalModuleDependency`
+ 2. `IvyDescriptorFileGenerator` generates excludes for a given `IvyDependency` in the ivy.xml file
+   * The `ExcludeRule.group` should map to 'org' attribute and `ExcludeRule.module` should map to 'module' attribute
+   * A `null` 'group' or 'module' property should result in 'org' or 'module' attribute to be missing, respectively
+ 3. Integration test which confirms that an `IvyPublication` for a component with dependency excludes results in a published
+    ivy.xml which includes the configured exclude rules
+
 ## Fix POM generation issues
 
 * excludes on configuration.
