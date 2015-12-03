@@ -55,14 +55,22 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
             ModelSchema<? extends T> schema = schemaStore.getSchema(type);
             TypeBuilderInternal<T> builder = typeBuilderFactory.create(schema);
             ruleDefinition.getRuleInvoker().invoke(builder);
-            return createRegistration(ruleDefinition, type, builder);
+            ModelType<? extends U> implModelType = determineImplementationType(type, builder);
+            return createRegistration(ruleDefinition, type, implModelType, builder);
         } catch (InvalidModelException e) {
             throw invalidModelRule(ruleDefinition, e);
         }
     }
 
+    /**
+     * Create model type registration.
+     * @param <P> Public parameterized type extending {@literal T}
+     * @param <I> Implementation parameterized type extending {@literal V}
+     */
     @Nullable
-    protected abstract <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends T> type, TypeBuilderInternal<T> builder);
+    protected abstract <P extends T, I extends U> ExtractedModelRule createRegistration(MethodRuleDefinition<?, ?> ruleDefinition,
+                                                                                        ModelType<P> type, ModelType<I> implModelType,
+                                                                                        TypeBuilderInternal<T> builder);
 
     protected ModelType<? extends T> readType(MethodRuleDefinition<?, ?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);

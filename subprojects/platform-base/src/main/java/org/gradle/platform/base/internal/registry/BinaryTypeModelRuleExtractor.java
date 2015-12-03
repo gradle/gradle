@@ -16,11 +16,9 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -33,8 +31,6 @@ import org.gradle.platform.base.binary.internal.BinarySpecFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
-import java.util.Set;
-
 public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryType, BinarySpec, BaseBinarySpec> {
     public BinaryTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
         super("binary", BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, schemaStore, new TypeBuilderFactory<BinarySpec>() {
@@ -46,26 +42,24 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
     }
 
     @Override
-    protected <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends BinarySpec> type, TypeBuilderInternal<BinarySpec> builder) {
-        ImmutableList<Class<?>> dependencies = ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
-        ModelType<? extends BaseBinarySpec> implementation = determineImplementationType(type, builder);
-        ModelAction registrationAction = createRegistrationAction(type, implementation, builder.getInternalViews(), ruleDefinition.getDescriptor());
-        return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, registrationAction);
-    }
-
-    private <S extends BinarySpec> ModelAction createRegistrationAction(final ModelType<S> publicType, final ModelType<? extends BaseBinarySpec> implementationType,
-                                                                        final Set<Class<?>> internalViews, final ModelRuleDescriptor descriptor) {
-        return NoInputsModelAction.of(ModelReference.of(BinarySpecFactory.class), descriptor, new Action<BinarySpecFactory>() {
+    protected <P extends BinarySpec, I extends BaseBinarySpec> ExtractedModelRule createRegistration(
+        final MethodRuleDefinition<?, ?> ruleDefinition,
+        final ModelType<P> publicModelType, final ModelType<I> implModelType,
+        final TypeBuilderInternal<BinarySpec> builder
+    ) {
+        ModelAction regAction = NoInputsModelAction.of(ModelReference.of(BinarySpecFactory.class), ruleDefinition.getDescriptor(), new Action<BinarySpecFactory>() {
             @Override
             public void execute(BinarySpecFactory binaries) {
-                binaries.register(publicType, implementationType, internalViews, descriptor);
+                binaries.register(publicModelType, implModelType, builder.getInternalViews(), ruleDefinition.getDescriptor());
             }
         });
+        return new ExtractedModelAction(ModelActionRole.Defaults, builder.getDependencies(), regAction);
     }
 
-    public static class DefaultBinaryTypeBuilder extends AbstractTypeBuilder<BinarySpec> implements BinaryTypeBuilder<BinarySpec> {
-        public DefaultBinaryTypeBuilder(ModelSchema<? extends BinarySpec> schema) {
+    private static class DefaultBinaryTypeBuilder extends AbstractTypeBuilder<BinarySpec> implements BinaryTypeBuilder<BinarySpec> {
+        private DefaultBinaryTypeBuilder(ModelSchema<? extends BinarySpec> schema) {
             super(BinaryType.class, schema);
+            dependsOn(ComponentModelBasePlugin.class);
         }
     }
 }
