@@ -1,38 +1,54 @@
 @Managed
 interface Person {
-  void setFirstName(String n); String getFirstName()
-  void setLastName(String n); String getLastName()
+    void setFirstName(String n);
+
+    String getFirstName()
+
+    void setLastName(String n);
+
+    String getLastName()
 }
 
 class PersonRules extends RuleSource {
-  @Mutate void createHelloTask(ModelMap<Task> tasks, Person p) {
-    tasks.create("hello") {
-      doLast {
-        println "Hello $p.firstName $p.lastName!"
-      }
+    @Mutate
+    void createHelloTask(ModelMap<Task> tasks, Person p) {
+        tasks.create("hello") {
+            doLast {
+                println "Hello $p.firstName $p.lastName!"
+            }
+        }
     }
-  }
 }
 
 apply plugin: PersonRules
 
-model {
-  person {
-    lastName = "Smith"
-  }
+// START SNIPPET configure-rule
 // START SNIPPET create-rule
-  person(Person) {
-    firstName = "John"
-  }
+// START SNIPPET rule-inputs
+model {
+// END SNIPPET create-rule
+// END SNIPPET rule-inputs
+    person {
+        lastName = "Smith"
+    }
+// END SNIPPET configure-rule
+// START SNIPPET create-rule
+    person(Person) {
+        firstName = "John"
+    }
 // END SNIPPET create-rule
 // START SNIPPET rule-inputs
-  tasks {
-    create("helloFromDsl") {
-      def p = $.person
-      doLast {
-        println "Hello $p.firstName $p.lastName!"
-      }
+    tasks {
+        create("helloFromDsl") {
+            def p = $.person
+            doLast {
+                println "Hello $p.firstName $p.lastName!"
+            }
+        }
     }
-  }
-// END SNIPPET rule-inputs
+// START SNIPPET configure-rule
+// START SNIPPET create-rule
 }
+// END SNIPPET create-rule
+// END SNIPPET configure-rule
+// END SNIPPET rule-inputs

@@ -501,47 +501,55 @@
         <para>
             It is also possible to declare a model and rules directly in the build script using the “model DSL”.
         </para>
-        <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="the model dsl">
-            <sourcefile file='build.gradle' snippet='dsl'/>
-        </sample>
-        <para>
-            Continuing with the example so far of the model element <literal>"person"</literal> of type <literal>Person</literal> being present,
-            the above DSL snippet effectively adds a mutation rule for the person that sets its <literal>lastName</literal> property.
-        </para>
+        <tip>
+            <para>The model DSL makes heavy use of various Groovy DSL features. Please have a read of <xref linkend="groovy-dsl-basics"/> for an introduction to these Groovy features.</para>
+        </tip>
         <para>
             The general form of the model DSL is:
         </para>
         <programlisting>model {
-  «model-path-to-subject» {
-    «imperative code»
-  }
+    «rule-definition»
 }</programlisting>
         <para>
-            Where there may be multiple blocks.
+            All rules are nested inside a <code>model { }</code> block. There may be any number of rule definitions inside each <code>model { }</code> block,
+            and there may be any number of <code>model { }</code> blocks in a build script. You can also use a <code>model { }</code> block in build scripts that are applied using `apply from:`.
         </para>
-        <para>
-            It is also possible to create <apilink class="org.gradle.model.Managed" /> type elements at the root level.
-        </para>
-        <para>
-            The general form of a creation rule is:
-        </para>
-        <programlisting>model {
-  «element-name»(«element-type») {
-    «imperative code»
-  }
+        <para>There are currently 2 kinds of rule definitions that you can use in the model DSL: configuration rules, and creation rules.</para>
+        <section>
+            <title>Configuration rules</title>
+            <para>A configuration rule has the following form:</para>
+            <programlisting>
+model {
+    «model-path-to-subject» {
+        «imperative code»
+    }
 }</programlisting>
-        <para>
-            The following model rule is creating the person element:
-        </para>
-        <sample id='modelDslCreate' dir='modelRules/modelDsl' includeLocation="true" title="a DSL creation rule">
-            <sourcefile file='build.gradle' snippet="create-rule"/>
-        </sample>
-        <para>
-            The model DSL is currently quite limited.
-            It is only possible to declare creation and general mutation rules.
-            It is also only possible to refer to the subject by-path.
-            These are all limitations that will be addressed in future Gradle versions.
-        </para>
+            <sample id='modelDslConfigure' dir='modelRules/modelDsl' title="DSL configuration rule">
+                <sourcefile file='build.gradle' snippet='configure-rule'/>
+            </sample>
+            <para>
+                Continuing with the example so far of the model element <literal>"person"</literal> of type <literal>Person</literal> being present,
+                the above DSL snippet effectively adds a mutation rule for the person that sets its <literal>lastName</literal> property.
+            </para>
+        </section>
+        <section>
+            <title>Creation rules</title>
+            <para>
+                It is also possible to create model elements at the root level. The general form of a creation rule is:
+            </para>
+                <programlisting>
+model {
+    «element-name»(«element-type») {
+        «imperative code»
+    }
+}</programlisting>
+            <para>
+                The following model rule is creating the person element:
+            </para>
+            <sample id='modelDslCreate' dir='modelRules/modelDsl' includeLocation="true" title="DSL creation rule">
+                <sourcefile file='build.gradle' snippet="create-rule"/>
+            </sample>
+        </section>
         <section id="dsl-type-coercion">
             <title>Automatic type coercion</title>
             <para>
