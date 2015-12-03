@@ -17,6 +17,7 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.language.base.LanguageSourceSet;
@@ -30,6 +31,7 @@ import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.platform.base.internal.builder.LanguageTypeBuilderInternal;
@@ -54,6 +56,9 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         ImmutableList<Class<?>> dependencies = ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
         ModelType<? extends BaseLanguageSourceSet> implementation = determineImplementationType(type, builder);
         String languageName = ((LanguageTypeBuilderInternal) builder).getLanguageName();
+        if(StringUtils.isEmpty(languageName)) {
+            throw new InvalidModelException(String.format("Language type '%s' cannot be registered without a language name.", type));
+        }
         ModelAction mutator = createRegistrationAction(languageName, type, builder.getInternalViews(), implementation, ruleDefinition.getDescriptor());
         return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
     }

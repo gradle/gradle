@@ -71,6 +71,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         "wrongSubType"                      | "Language type 'java.lang.String' is not a subtype of 'org.gradle.language.base.LanguageSourceSet'."                         | "implementation not extending BaseComponentSpec"
         "notExtendingBaseLanguageSourceSet" | "Language implementation '${NotExtendingBaseLanguageSourceSet.name}' must extend '${BaseLanguageSourceSet.name}'."           | "implementation not extending ${BaseLanguageSourceSet.name}"
         "noPublicCtorImplementation"        | "Language implementation '${ImplementationWithNoPublicConstructor.name}' must have public default constructor."              | "implementation with not public default constructor"
+        "noLanguageName"                    | "Language type '${CustomLanguageSourceSet.name}' cannot be registered without a language name."                              | "no language name set"
     }
 
     def "applies ComponentModelBasePlugin and creates language type rule"() {
@@ -180,6 +181,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
         @LanguageType
         void noImplementationTypeRule(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+            languageBuilder.setLanguageName("noImplementationTypeRule")
         }
 
         @LanguageType
@@ -188,7 +190,13 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         }
 
         @LanguageType
+        void noLanguageName(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+            languageBuilder.defaultImplementation(ImplementingCustomLanguageSourceSet)
+        }
+
+        @LanguageType
         void validTypeRule(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+            languageBuilder.setLanguageName("validTypeRule")
             languageBuilder.defaultImplementation(ImplementingCustomLanguageSourceSet)
         }
     }
