@@ -474,7 +474,9 @@
         <title>Library Dependencies</title>
         <para>
             Dependencies for native components are binary libraries that export header files. The header files are used during compilation, with the compiled
-            binary dependency being used during linking and execution.
+            binary dependency being used during linking and execution. Header files should be organized into subdirectories to prevent clashes of commonly named headers.
+            For instance, if your <literal>mylib</literal> project has a <filename>logging.h</filename> header, it will make it less likely the wrong header is used if you include it as
+            <literal>"mylib/logging.h"</literal> instead of <literal>"logging.h"</literal>.   
         </para>
         <section>
            <title>Dependencies within the same project</title>
