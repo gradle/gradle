@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal;
+dependencies {
+    compile project(':core')
+    // todo: should the `Test` class be extracted from "plugins"?
+    compile project(':plugins')
+    compile project(':platformJvm')
+    compile project(':languageJava')
 
-import org.gradle.jvm.JarBinarySpec;
-import org.gradle.platform.base.DependencySpec;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-
-import java.util.Collection;
-
-public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal, WithJvmAssembly, WithDependencies {
-    void setApiDependencies(Collection<DependencySpec> apiDependencies);
-
-    Collection<DependencySpec> getApiDependencies();
-
-    JarFile getApiJar();
+    testCompile libraries.groovy
 }
+
+useTestFixtures()
+useClassycle()
+strictCompile()

@@ -40,6 +40,9 @@ import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.*;
 import org.gradle.util.DeprecationLogger;
 
+import java.io.File;
+import java.util.Set;
+
 /**
  * Base class for custom binary implementations.
  * A custom implementation of {@link org.gradle.platform.base.BinarySpec} must extend this type.
@@ -223,4 +226,19 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         // criteria make them buildable or not.
         return new FixedBuildAbility(true);
     }
+
+    public static void replaceSingleDirectory(Set<File> dirs, File dir) {
+        switch (dirs.size()) {
+            case 0:
+                dirs.add(dir);
+                break;
+            case 1:
+                dirs.clear();
+                dirs.add(dir);
+                break;
+            default:
+                throw new IllegalStateException("Can't replace multiple directories.");
+        }
+    }
+
 }

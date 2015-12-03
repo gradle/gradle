@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.jvm.internal;
 
-import org.gradle.jvm.JarBinarySpec;
 import org.gradle.platform.base.DependencySpec;
-import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.util.Collection;
 
-public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal, WithJvmAssembly, WithDependencies {
-    void setApiDependencies(Collection<DependencySpec> apiDependencies);
+public interface WithDependencies {
+    /**
+     * Sets the component level dependencies of this binary.
+     */
+    void setDependencies(Collection<DependencySpec> dependencies);
 
-    Collection<DependencySpec> getApiDependencies();
-
-    JarFile getApiJar();
+    /**
+     * The component level dependencies of this binary.
+     */
+    Collection<DependencySpec> getDependencies();
 }

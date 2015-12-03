@@ -17,11 +17,14 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.api.Action;
+import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
 
@@ -29,13 +32,18 @@ import java.io.File;
 public class JarBinaryRules extends RuleSource {
     @Defaults
     void configureJarBinaries(final ComponentSpec jvmLibrary, final ProjectLayout projectLayout, final JavaToolChainRegistry toolChains) {
+        jvmLibrary.getBinaries().withType(JvmBinarySpec.class).beforeEach(new Action<JvmBinarySpec>() {
+            @Override
+            public void execute(JvmBinarySpec jarBinary) {
+                BinaryNamingScheme namingScheme = ((BinarySpecInternal) jarBinary).getNamingScheme();
+                jarBinary.setClassesDir(namingScheme.getOutputDirectory(projectLayout.getBuildDir(), "classes"));
+                jarBinary.setResourcesDir(namingScheme.getOutputDirectory(projectLayout.getBuildDir(), "resources"));
+            }
+        });
         jvmLibrary.getBinaries().withType(JarBinarySpecInternal.class).beforeEach(new Action<JarBinarySpecInternal>() {
             @Override
             public void execute(JarBinarySpecInternal jarBinary) {
                 String libraryName = jarBinary.getId().getLibraryName();
-
-                jarBinary.setClassesDir(jarBinary.getNamingScheme().getOutputDirectory(projectLayout.getBuildDir(), "classes"));
-                jarBinary.setResourcesDir(jarBinary.getNamingScheme().getOutputDirectory(projectLayout.getBuildDir(), "resources"));
                 File jarsDir = jarBinary.getNamingScheme().getOutputDirectory(projectLayout.getBuildDir(), "jars");
                 jarBinary.setJarFile(new File(jarsDir, String.format("%s.jar", libraryName)));
                 jarBinary.setApiJarFile(new File(jarsDir, String.format("api/%s.jar", libraryName)));

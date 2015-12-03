@@ -152,15 +152,15 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         private Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {
             return binary instanceof JarBinarySpecInternal
-                            ? compileJarDependencies((JarBinarySpecInternal) binary, sourceSet)
-                            : sourceSet.getDependencies().getDependencies();
+                ? compileJarDependencies((JarBinarySpecInternal) binary, sourceSet)
+                : sourceSet.getDependencies().getDependencies();
         }
 
         private Iterable<DependencySpec> compileJarDependencies(final JarBinarySpecInternal binary, final DependentSourceSet sourceSet) {
             return concat(
-                    sourceSet.getDependencies().getDependencies(),
-                    binary.getDependencies(),
-                    binary.getApiDependencies()
+                sourceSet.getDependencies().getDependencies(),
+                binary.getDependencies(),
+                binary.getApiDependencies()
             );
         }
 

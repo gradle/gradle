@@ -156,18 +156,4 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
         return assembly;
     }
 
-    private void replaceSingleDirectory(Set<File> dirs, File dir) {
-        switch (dirs.size()) {
-            case 0:
-                dirs.add(dir);
-                break;
-            case 1:
-                dirs.clear();
-                dirs.add(dir);
-                break;
-            default:
-                throw new IllegalStateException("Can't replace multiple directories.");
-        }
-    }
-
 }

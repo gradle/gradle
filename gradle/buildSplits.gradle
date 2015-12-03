@@ -24,7 +24,7 @@ def buckets = [
         ":languageJvm", ":performance", ":publish", ":resources", ":baseServicesGroovy", ":resourcesHttp",
         ":pluginDevelopment", ":osgi"],
 
-    "3": [":launcher", ":plugins", ":codeQuality", ":languageJava",
+    "3": [":launcher", ":plugins", ":codeQuality", ":languageJava", ":testingJvm",
         ":ui", ":javascript", ":antlr", ":messaging", ":ear",
         ":resourcesS3", ":wrapper", ":resourcesSftp", ":signing", ":modelGroovy", ":baseServices"],
 

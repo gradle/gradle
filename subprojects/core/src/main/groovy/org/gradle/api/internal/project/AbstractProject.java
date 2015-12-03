@@ -213,6 +213,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         TypeConverter typeConverter(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(TypeConverter.class);
         }
+
+        @Service
+        FileOperations fileOperations(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(FileOperations.class);
+        }
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
