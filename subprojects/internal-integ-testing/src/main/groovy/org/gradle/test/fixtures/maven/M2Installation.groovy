@@ -16,10 +16,11 @@
 
 
 package org.gradle.test.fixtures.maven
-
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GFileUtils
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -63,31 +64,31 @@ class M2Installation implements Action<GradleExecuter>, TestRule {
         return this
     }
 
-    void execute(GradleExecuter executer) {
-        executer.withUserHomeDir(userHomeDir)
-        if (globalMavenDirectory?.exists()) {
-            executer.withEnvironmentVars(M2_HOME: globalMavenDirectory.absolutePath)
-        }
-    }
-
     @Override
     Statement apply(Statement base, Description description) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                execute(executer)
-
-                def m2RepositoryFolder = new File("~/.m2/repository")
+                def m2RepositoryFolder = new File("${SystemProperties.instance.userHome}/.m2/repository")
                 boolean existsBefore = m2RepositoryFolder.exists()
                 try {
                     base.evaluate()
                 } finally {
                     def existsAfter = m2RepositoryFolder.exists()
                     if (!existsBefore && existsAfter) {
-                        fail("Test modifies ~/.m2 folder")
+                        GFileUtils.deleteDirectory(m2RepositoryFolder)
+                        fail("Test modifies ${m2RepositoryFolder.absolutePath} folder")
                     }
                 }
             }
+        }
+    }
+
+    @Override
+    void execute(GradleExecuter gradleExecuter) {
+        executer.withUserHomeDir(userHomeDir)
+        if (globalMavenDirectory?.exists()) {
+            executer.withEnvironmentVars(M2_HOME: globalMavenDirectory.absolutePath)
         }
     }
 }

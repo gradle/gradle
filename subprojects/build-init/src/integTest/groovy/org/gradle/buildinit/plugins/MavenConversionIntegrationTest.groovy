@@ -15,13 +15,11 @@
  */
 
 package org.gradle.buildinit.plugins
-
 import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -42,7 +40,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
     public final HttpServer server = new HttpServer()
 
     def setup() {
-        withLocalM2Installation()
+        using m2
     }
 
     def "multiModule"() {
@@ -321,10 +319,6 @@ Root project 'webinar-parent'
 
     def withSharedResources() {
         resources.maybeCopy('MavenConversionIntegrationTest/sharedResources')
-    }
-
-    M2Installation withLocalM2Installation() {
-        m2.generateUserSettingsFile(mavenLocal("local_m2"))
     }
 
     PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {

@@ -37,6 +37,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractIntegrationTest {
     @Before
     void setUp() {
         pomProjectDir = sample.dir
+        using m2 //uploadArchives leaks into local ~/.m2
     }
 
     @Test

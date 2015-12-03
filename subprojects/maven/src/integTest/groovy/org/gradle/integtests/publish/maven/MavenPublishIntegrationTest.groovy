@@ -30,6 +30,10 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 class MavenPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
+    def setup(){
+        using m2
+    }
+
     def "can publish a project with dependency in mapped and unmapped configuration"() {
         given:
         settingsFile << "rootProject.name = 'root'"

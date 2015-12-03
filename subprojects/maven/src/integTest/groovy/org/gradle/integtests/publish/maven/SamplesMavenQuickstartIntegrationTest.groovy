@@ -35,6 +35,7 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractIntegrationTest {
     @Before
     void setUp() {
         pomProjectDir = sample.dir
+        using m2
     }
 
     @Test
@@ -50,8 +51,7 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void "can install to local repository"() {
-        def repo = m2.mavenRepo()
-        def module = repo.module('gradle', 'quickstart', '1.0')
+        def module = m2.mavenRepo().module('gradle', 'quickstart', '1.0')
         module.moduleDir.deleteDir()
 
         executer.inDirectory(pomProjectDir).withTasks('install').run()
