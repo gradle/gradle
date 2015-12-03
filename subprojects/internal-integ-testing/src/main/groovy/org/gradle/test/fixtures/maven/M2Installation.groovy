@@ -35,9 +35,9 @@ class M2Installation implements Action<GradleExecuter>, TestRule {
     final TestFile globalSettingsFile
     private GradleExecuter executer
 
-    public M2Installation(GradleExecuter executer, TestFile m2Directory) {
+    public M2Installation(GradleExecuter executer, TestFile testDirectory) {
         this.executer = executer
-        userHomeDir = m2Directory.createDir("maven_home")
+        userHomeDir = testDirectory.createDir("maven_home")
         userM2Directory = userHomeDir.createDir(".m2")
         userSettingsFile = userM2Directory.file("settings.xml")
         globalMavenDirectory = userHomeDir.createDir("m2_home")
