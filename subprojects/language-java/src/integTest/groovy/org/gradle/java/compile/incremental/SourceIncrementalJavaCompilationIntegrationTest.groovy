@@ -374,6 +374,26 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         "DirectoryTree" | "fileTree"
     }
 
+    def "reports source type that does not support detection of source root"() {
+        buildFile << "compileJava.source([file('extra-java'), file('other')])"
+
+        java("class A extends B {}")
+        file("extra-java/B.java") << "class B {}"
+        file("extra-java/C.java") << "class C {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("extra-java/B.java").text = "class B { String change; }"
+        executer.withArgument "--info"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("A", "B", "C")
+        output.contains("Cannot infer source root(s) for input with type `ArrayList`. Supported types are `File`, `DirectoryTree` and `SourceDirectorySet`.")
+        output.contains(":compileJava - is not incremental. Unable to infer the source directories.")
+    }
+
     def "handles duplicate class across source directories"() {
         //compiler does not allow this scenario, documenting it here
         buildFile << "sourceSets.main.java.srcDir 'java'"

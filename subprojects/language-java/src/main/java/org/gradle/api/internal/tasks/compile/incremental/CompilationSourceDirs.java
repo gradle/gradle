@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import com.google.common.collect.Lists;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.logging.Logging;
 
 import java.io.File;
 import java.util.List;
@@ -31,6 +32,7 @@ import java.util.List;
  * This is a bit of a hack: we'd be better off inspecting the actual source file to determine the name of the class file.
  */
 public class CompilationSourceDirs {
+    private static final org.gradle.api.logging.Logger LOG = Logging.getLogger(IncrementalCompilerDecorator.class);
 
     private final List<Object> sources;
     private List<File> sourceRoots;
@@ -60,6 +62,7 @@ public class CompilationSourceDirs {
     public boolean canInferSourceRoots() {
         for (Object source : sources) {
             if (!canInferSourceRoot(source)) {
+                LOG.info("Cannot infer source root(s) for input with type `{}`. Supported types are `File`, `DirectoryTree` and `SourceDirectorySet`. Unsupported input: {}", source.getClass().getSimpleName(), source);
                 return false;
             }
         }
