@@ -23,8 +23,8 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.util.Clock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.Formatter;
@@ -33,13 +33,12 @@ import java.util.List;
 /**
  * A {@link TaskExecuter} which skips tasks whose outputs are up-to-date.
  */
-public class SkipUpToDateTaskExecuter implements TaskExecuter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateTaskExecuter.class);
-    private final TaskExecuter executer;
+public class SkipUpToDateTaskExecuter extends AbstractDelegatingTaskExecuter {
+    private static final Logger LOGGER = Logging.getLogger(SkipUpToDateTaskExecuter.class);
     private final TaskArtifactStateRepository repository;
 
     public SkipUpToDateTaskExecuter(TaskArtifactStateRepository repository, TaskExecuter executer) {
-        this.executer = executer;
+        super(executer);
         this.repository = repository;
     }
 
@@ -74,6 +73,23 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         }
     }
 
+    public boolean isCurrentlyUpToDate(TaskInternal task, TaskStateInternal state) {
+        TaskArtifactState taskArtifactState = repository.getStateFor(task);
+        boolean upToDate = false;
+        try {
+            if (taskArtifactState.isUpToDate(new ArrayList<String>())) {
+                upToDate = true;
+            }
+        } finally {
+            taskArtifactState.finished();
+        }
+        LOGGER.debug("{} has up-to-date = {} due to its TaskArtifactState", task, upToDate);
+        if (upToDate) {
+            return upToDate;
+        }
+        // If we get here then there is not a matching output for the current input, though theoretically it might still be up-to-date if it doesn't have any actions
+        return super.isCurrentlyUpToDate(task, state);
+    }
 
     private void logOutOfDateMessages(List<String> messages, TaskInternal task, String took) {
         if (LOGGER.isInfoEnabled()) {
