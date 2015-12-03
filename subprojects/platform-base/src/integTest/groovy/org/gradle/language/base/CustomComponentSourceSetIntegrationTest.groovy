@@ -200,7 +200,6 @@ model {
                                 sources {
                                     haxe(HaxeSourceSet) {
                                         publicData = "public"
-                                        internalData = "internal"
                                     }
                                 }
                             }
@@ -208,6 +207,14 @@ model {
                     }
                 }
             }
+
+            class TestRules extends RuleSource {
+                @Defaults
+                void useInternalView(@Path("components.sampleLib.binaries.sampleBin.sources.haxe") HaxeSourceSetInternal lss) {
+                    lss.setInternalData("internal")
+                }
+            }
+            apply plugin: TestRules
 
             class ValidateTaskRules extends RuleSource {
                 @Mutate
