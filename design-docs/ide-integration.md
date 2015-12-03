@@ -174,33 +174,22 @@ language levels for each module in a project.
 - Multiproject build with no Java projects
 
 
-### Story - Expose target compatibility level in Idea Plugin
+### Story - Expose Idea module specific bytecode level in IdeaPlugin
 
-#### the API
+#### Implementation
 
-    idea {
-        project {
-          // project default target bytecode level
-          targetCompatiblityLevel = '1.7'
-        }
+- if all java modules have same value for `project.targetCompatibility`
+    - when differs from `org.gradle.plugins.ide.idea.model.IdeaProject.jdkName` set bytecode level explicitly in .ipr file
+- if java modules have different value for `project.targetCompatibility`
+    -  set module bytecode level according to `project.targetCompatibility` in `.ipr` file
 
-        module {
-            // module specific target bytecode level
-          targetCompatiblityLevel = '1.6'
-        }
-    }
+#### Test coverage
 
-#### Test cases
-
-- Multiproject build with same target Java versions
-- Multiproject build with mix of target Java versions
+- Multiproject build with same target compatibility matching `project.sourceCompatibility`
+- Multiproject build with same target compatibility with different `project.sourceCompatibility`
+- Multiproject build with same target compatibility explicit set `IdeaProject.jdkName`
+- Multiproject build with mix of different target compatibility levels
 - Multiproject build with mix of Java and non-Java projects
-- Multiproject build with no Java projects
-
-#### Open issues
-
-- module specific target bytecode levels are stored as list in the ipr file instead of being in the module. Do we want to model it similar
-in the gradle idea project model of the Idea Plugin?
 
 ### Story - Introduce JavaProject
 
