@@ -15,12 +15,12 @@
  */
 package org.gradle.build.docs
 
-import groovy.xml.dom.DOMCategory
-import javax.xml.parsers.DocumentBuilder
-import javax.xml.parsers.DocumentBuilderFactory
+import org.w3c.dom.*
 import org.xml.sax.InputSource
 import spock.lang.Specification
-import org.w3c.dom.*
+
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.parsers.DocumentBuilderFactory
 
 abstract class XmlSpecification extends Specification {
     final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
@@ -40,10 +40,8 @@ abstract class XmlSpecification extends Specification {
     }
 
     def withCategories(Closure cl) {
-        use(DOMCategory) {
-            use(BuildableDOMCategory) {
-                return cl.call()
-            }
+        use(BuildableDOMCategory) {
+            return cl.call()
         }
     }
 
@@ -123,7 +121,7 @@ abstract class XmlSpecification extends Specification {
             target.append(node.nodeValue.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'))
             return
         }
-        
+
         throw new UnsupportedOperationException("Don't know how to format DOM node: $node")
     }
 }

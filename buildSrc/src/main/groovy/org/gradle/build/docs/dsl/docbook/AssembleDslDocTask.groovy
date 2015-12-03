@@ -16,7 +16,6 @@
 package org.gradle.build.docs.dsl.docbook
 
 import groovy.transform.CompileStatic
-import groovy.xml.dom.DOMCategory
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.InputDirectory
@@ -89,16 +88,15 @@ class AssembleDslDocTask extends DefaultTask {
         // workaround to IBM JDK bug
         def createDslDocModelClosure = this.&createDslDocModel.curry(classDocbookDir, mainDocbookTemplate, classRepository)
 
-        use(DOMCategory) {
+        def doc = mainDocbookTemplate
+        use(BuildableDOMCategory) {
             DslDocModel model = createDslDocModelClosure(loadPluginsMetaData())
-            use(BuildableDOMCategory) {
-                def root = mainDocbookTemplate.documentElement
-                root.section.table.each { Element table ->
-                    mergeContent(table, model)
-                }
-                model.classes.each {
-                    generateDocForType(root.ownerDocument, model, linkRepository, it)
-                }
+            def root = doc.documentElement
+            root.section.table.each { Element table ->
+                mergeContent(table, model)
+            }
+            model.classes.each {
+                generateDocForType(root.ownerDocument, model, linkRepository, it)
             }
         }
 

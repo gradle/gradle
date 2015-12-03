@@ -15,10 +15,11 @@
  */
 package org.gradle.build.docs
 
+import groovy.xml.dom.DOMCategory
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 
-class BuildableDOMCategory {
+class BuildableDOMCategory extends DOMCategory {
     public static void setText(Element element, String value) {
         while (element.hasChildNodes()) {
             element.removeChild(element.getFirstChild())

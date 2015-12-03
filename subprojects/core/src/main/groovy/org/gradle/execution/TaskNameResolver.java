@@ -98,12 +98,7 @@ public class TaskNameResolver {
     }
 
     private static ModelNode selfClose(ModelRegistry modelRegistry, ModelPath modelPath) {
-        ModelNode modelNode = modelRegistry.atStateOrLater(modelPath, ModelNode.State.SelfClosed);
-        if (modelNode == null) {
-            throw new IllegalStateException("Did not find " + modelPath + " in project model registry");
-        }
-
-        return modelNode;
+        return modelRegistry.atStateOrLater(modelPath, ModelNode.State.SelfClosed);
     }
 
     private static ModelNode selfClosedTasksNode(ProjectInternal project) {

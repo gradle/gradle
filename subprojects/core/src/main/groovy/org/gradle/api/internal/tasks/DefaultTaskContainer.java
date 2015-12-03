@@ -201,9 +201,16 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public void maybeRealizeTask(String name) {
+    public void prepareForExecution(Task task) {
+        assert task.getProject() == project;
+        if (modelNode.hasLink(task.getName())) {
+            realizeTask(MODEL_PATH.child(task.getName()), ModelNode.State.GraphClosed);
+        }
+    }
+
+    private void maybeCreateTasks(String name) {
         if (modelNode.hasLink(name)) {
-            realizeTask(MODEL_PATH.child(name));
+            realizeTask(MODEL_PATH.child(name), ModelNode.State.Initialized);
         }
     }
 
@@ -212,21 +219,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (task != null) {
             return task;
         }
-        maybeMaterializePlaceholder(name);
-        maybeRealizeTask(name);
+        maybeCreateTasks(name);
+        placeholders.remove(name);
         return super.findByName(name);
     }
 
-    private void maybeMaterializePlaceholder(String name) {
-        if (placeholders.remove(name)) {
-            if (super.findByName(name) == null && modelNode.hasLink(name)) {
-                realizeTask(MODEL_PATH.child(name));
-            }
-        }
-    }
-
-    private Task realizeTask(ModelPath taskPath) {
-        return project.getModelRegistry().realize(taskPath, ModelType.of(Task.class));
+    private Task realizeTask(ModelPath taskPath, ModelNode.State minState) {
+        return project.getModelRegistry().atStateOrLater(taskPath, ModelType.of(Task.class), minState);
     }
 
     public <T extends TaskInternal> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, final Action<? super T> configure) {

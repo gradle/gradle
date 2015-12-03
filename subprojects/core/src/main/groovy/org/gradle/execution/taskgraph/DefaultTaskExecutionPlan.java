@@ -22,14 +22,13 @@ import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.*;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.ParallelizableTask;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
@@ -135,7 +134,9 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (visiting.add(node)) {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
-                Set<? extends Task> dependsOnTasks = realizedDependencies(task, context);
+                // Make sure it has been configured
+                ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
+                Set<? extends Task> dependsOnTasks = context.getDependencies(task);
                 for (Task dependsOnTask : dependsOnTasks) {
                     TaskInfo targetNode = graph.addNode(dependsOnTask);
                     node.addDependencySuccessor(targetNode);
@@ -143,7 +144,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         queue.add(0, targetNode);
                     }
                 }
-                for (Task finalizerTask : realizedDependencies(task, task.getFinalizedBy())) {
+                for (Task finalizerTask : task.getFinalizedBy().getDependencies(task)) {
                     TaskInfo targetNode = graph.addNode(finalizerTask);
                     addFinalizerNode(node, targetNode);
                     if (!visiting.contains(targetNode)) {
@@ -175,15 +176,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
         }
         resolveTasksInUnknownState();
-    }
-
-    Set<? extends Task> realizedDependencies(Task task, TaskDependency dependencies) {
-        Set<? extends Task> resolvedDependencies = dependencies.getDependencies(task);
-        for (Task resolvedDependency : resolvedDependencies) {
-            ProjectInternal project = (ProjectInternal) resolvedDependency.getProject();
-            project.getTasks().maybeRealizeTask(resolvedDependency.getName());
-        }
-        return resolvedDependencies;
     }
 
     private void resolveTasksInUnknownState() {

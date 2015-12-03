@@ -40,10 +40,10 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     }
 
     public ClassLoader get(ClassLoaderId id, ClassPath classPath, ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec) {
-        ClassPathSnapshot classPathSnapshot = snapshotter.snapshot(classPath);
-        ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPathSnapshot, filterSpec);
-
         synchronized (lock) {
+            ClassPathSnapshot classPathSnapshot = snapshotter.snapshot(classPath);
+            ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPathSnapshot, filterSpec);
+
             CachedClassLoader cachedLoader = byId.get(id);
             if (cachedLoader == null || !cachedLoader.is(spec)) {
                 CachedClassLoader newLoader = getAndRetainLoader(classPath, spec, id);
@@ -62,9 +62,11 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
 
     @Override
     public void remove(ClassLoaderId id) {
-        CachedClassLoader cachedClassLoader = byId.remove(id);
-        if (cachedClassLoader != null) {
-            cachedClassLoader.release(id);
+        synchronized (lock) {
+            CachedClassLoader cachedClassLoader = byId.remove(id);
+            if (cachedClassLoader != null) {
+                cachedClassLoader.release(id);
+            }
         }
     }
 
@@ -88,7 +90,9 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
 
     @Override
     public int size() {
-        return bySpec.size();
+        synchronized (lock) {
+            return bySpec.size();
+        }
     }
 
     private static class ClassLoaderSpec {
@@ -170,15 +174,17 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     // Used in org.gradle.api.internal.initialization.loadercache.ClassLoadersCachingIntegrationTest
     @SuppressWarnings("UnusedDeclaration")
     public void assertInternalIntegrity() {
-        Map<ClassLoaderId, CachedClassLoader> orphaned = Maps.newHashMap();
-        for (Map.Entry<ClassLoaderId, CachedClassLoader> entry : byId.entrySet()) {
-            if (!bySpec.containsKey(entry.getValue().spec)) {
-                orphaned.put(entry.getKey(), entry.getValue());
+        synchronized (lock) {
+            Map<ClassLoaderId, CachedClassLoader> orphaned = Maps.newHashMap();
+            for (Map.Entry<ClassLoaderId, CachedClassLoader> entry : byId.entrySet()) {
+                if (!bySpec.containsKey(entry.getValue().spec)) {
+                    orphaned.put(entry.getKey(), entry.getValue());
+                }
             }
-        }
 
-        if (!orphaned.isEmpty()) {
-            throw new IllegalStateException("The following class loaders are orphaned: " + Joiner.on(",").withKeyValueSeparator(":").join(orphaned));
+            if (!orphaned.isEmpty()) {
+                throw new IllegalStateException("The following class loaders are orphaned: " + Joiner.on(",").withKeyValueSeparator(":").join(orphaned));
+            }
         }
     }
 }
