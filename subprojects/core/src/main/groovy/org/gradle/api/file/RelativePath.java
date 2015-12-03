@@ -47,18 +47,39 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
 
     private RelativePath(boolean endsWithFile, RelativePath parentPath, String... childSegments) {
         this.endsWithFile = endsWithFile;
-        int sourceLength = 0;
+        int targetOffsetForChildSegments;
         if (parentPath != null) {
             String[] sourceSegments = parentPath.getSegments();
-            sourceLength = sourceSegments.length;
-            segments = new String[sourceLength + childSegments.length];
-            System.arraycopy(sourceSegments, 0, segments, 0, sourceLength);
+            segments = new String[sourceSegments.length + childSegments.length];
+            copySegments(segments, sourceSegments, sourceSegments.length);
+            targetOffsetForChildSegments = sourceSegments.length;
         } else {
             segments = new String[childSegments.length];
+            targetOffsetForChildSegments = 0;
         }
-        for (int i = 0; i < childSegments.length; i++) {
-            segments[sourceLength + i] = PATH_SEGMENT_STRING_INTERNER.intern(childSegments[i]);
+        copyAndInternSegments(segments, targetOffsetForChildSegments, childSegments);
+    }
+
+    private static void copySegments(String[] target, String[] source) {
+        copySegments(target, source, target.length);
+    }
+
+    private static void copySegments(String[] target, String[] source, int length) {
+        // No String instance interning is needed since Strings are from other
+        // RelativePath instances which contain only interned String instances
+        System.arraycopy(source, 0, target, 0, length);
+    }
+
+    private static void copyAndInternSegments(String[] target, int targetOffset, String[] source) {
+        for (int i = 0; i < source.length; i++) {
+            target[targetOffset + i] = internPathSegment(source[i]);
         }
+    }
+
+    private static String internPathSegment(String sample) {
+        // Intern all String instances added to RelativePath instances to minimize memory use
+        // by de-duplicating all path segment String instances
+        return PATH_SEGMENT_STRING_INTERNER.intern(sample);
     }
 
     public String[] getSegments() {
@@ -133,7 +154,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
             return null;
         }
         String[] parentSegments = new String[segments.length - 1];
-        System.arraycopy(segments, 0, parentSegments, 0, parentSegments.length);
+        copySegments(parentSegments, segments);
         return new RelativePath(false, parentSegments);
     }
 
@@ -154,8 +175,8 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
      */
     public RelativePath replaceLastName(String name) {
         String[] newSegments = new String[segments.length];
-        System.arraycopy(segments, 0, newSegments, 0, segments.length);
-        newSegments[segments.length - 1] = name;
+        copySegments(newSegments, segments, segments.length - 1);
+        newSegments[segments.length - 1] = internPathSegment(name);
         return new RelativePath(endsWithFile, newSegments);
     }
 
