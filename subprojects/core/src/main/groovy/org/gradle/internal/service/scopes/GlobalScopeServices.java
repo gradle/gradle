@@ -204,16 +204,14 @@ public class GlobalScopeServices {
         return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors));
     }
 
-    ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, StringInterner stringInterner) {
+    ClassLoaderCache createClassLoaderCache(GradleBuildEnvironment environment, StringInterner stringInterner) {
+        ClassPathSnapshotter classPathSnapshotter;
         if (environment.isLongLivingProcess()) {
             CachingFileSnapshotter fileSnapshotter = new CachingFileSnapshotter(new DefaultHasher(), new NonThreadsafeInMemoryStore(), stringInterner);
-            return new HashClassPathSnapshotter(fileSnapshotter);
+            classPathSnapshotter = new HashClassPathSnapshotter(fileSnapshotter);
         } else {
-            return new FileClassPathSnapshotter();
+            classPathSnapshotter = new FileClassPathSnapshotter();
         }
-    }
-
-    ClassLoaderCache createClassLoaderCache(ClassPathSnapshotter classPathSnapshotter) {
         return new DefaultClassLoaderCache(classPathSnapshotter);
     }
 

@@ -48,7 +48,21 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Scala plugin no longer adds 'scalaConsole' tasks
 
-Adding the 'scala' plugin to your build will no longer create 'scalaConsole' tasks which launch a Scala REPL from the Gradle build.
+Adding the 'scala' plugin to your build will no longer create 'scalaConsole' tasks which launch a Scala REPL from the Gradle build. This capability has been
+removed due to lack of documentation and support for running with the Gradle Daemon. If you wish to continue to have such a task as part of your build, you
+can explicitly configure a [`JavaExec`](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.JavaExec.html) task to do so.
+
+### Eclipse Plugin adds explicit java target runtime to Classpath
+
+The `.classpath` file generated via `eclipseClasspath` task provided by the Eclipse Plugin now points to an explicit Java Runtime Version instead of
+using the default JRE configured in the Eclipse IDE. The naming convention follows the Eclipse defaults.
+To tweak the name of the Java runtime to use, the name can be configured via
+
+    eclipse {
+        jdt {
+            javaRuntimeName = "Jigsaw-1.9"
+        }
+    }
 
 ## External contributions
 

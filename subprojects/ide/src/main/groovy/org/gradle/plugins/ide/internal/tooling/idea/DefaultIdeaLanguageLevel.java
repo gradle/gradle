@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.tooling.model.idea.IdeaLanguageLevel;
 
 import java.io.Serializable;
@@ -55,6 +56,18 @@ public class DefaultIdeaLanguageLevel implements IdeaLanguageLevel, Serializable
     @Override
     public String toString() {
         return "IdeaLanguageLevel{level='" + level + "'}";
+    }
+
+    public JavaVersion toJavaVersion() {
+        if (level != null) {
+            String javaVersionString = level.replaceFirst("JDK", "VERSION");
+            try {
+                return JavaVersion.valueOf(javaVersionString);
+            } catch (IllegalArgumentException e) {
+                // return null silently
+            }
+        }
+        return null;
     }
 
     @Override

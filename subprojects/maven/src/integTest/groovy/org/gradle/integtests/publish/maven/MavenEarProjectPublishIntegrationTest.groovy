@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class MavenEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     public void "publishes EAR only for mixed java and WAR and EAR project"() {
         given:
+        using m2 //uploadArchives leaks into local ~/.m2
         file("settings.gradle") << "rootProject.name = 'publishTest' "
 
         and:

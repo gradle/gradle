@@ -27,6 +27,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
@@ -52,7 +53,7 @@ public class ModelRegistryHelperExtension {
         return ModelPath.path(p);
     }
 
-    public static MutableModelNode atState(ModelRegistry modelRegistry, String path, ModelNode.State state) {
+    public static MutableModelNode atState(DefaultModelRegistry modelRegistry, String path, ModelNode.State state) {
         return (MutableModelNode) modelRegistry.atState(ModelPath.path(path), state);
     }
 

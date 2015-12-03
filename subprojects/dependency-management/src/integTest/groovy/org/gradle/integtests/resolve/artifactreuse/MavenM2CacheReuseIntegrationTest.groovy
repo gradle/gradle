@@ -21,8 +21,8 @@ class MavenM2CacheReuseIntegrationTest extends AbstractHttpDependencyResolutionT
     def "uses cached artifacts from maven local cache"() {
         given:
         def remoteModule = mavenHttpRepo.module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
-        m2Installation.generateGlobalSettingsFile()
-        def m2Module = m2Installation.mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
+        m2.generateGlobalSettingsFile()
+        def m2Module = m2.mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
 
         buildFile.text = """
 repositories {
@@ -44,7 +44,7 @@ task retrieve(type: Sync) {
         remoteModule.artifact.sha1.expectGet()
 
         when:
-        using m2Installation
+        using m2
         run 'retrieve'
 
         then:
@@ -54,8 +54,8 @@ task retrieve(type: Sync) {
     def "does not reuse cached artifacts from maven local cache when they are different to those in the remote repository"() {
         given:
         def remoteModule = mavenHttpRepo.module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
-        m2Installation.generateGlobalSettingsFile()
-        m2Installation.mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publishWithChangedContent()
+        m2.generateGlobalSettingsFile()
+        m2.mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publishWithChangedContent()
 
         buildFile.text = """
 repositories {
@@ -79,7 +79,7 @@ task retrieve(type: Sync) {
         remoteModule.artifact.expectGet()
 
         when:
-        using m2Installation
+        using m2
         run 'retrieve'
 
         then:

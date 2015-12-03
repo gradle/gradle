@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.classpath;
+package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.api.Nullable;
+import org.gradle.api.JavaVersion;
 
-import java.io.File;
+import java.io.Serializable;
 
-public interface GradleDistributionLocator {
-    /**
-     * Returns the directory containing the Gradle distribution of the current Gradle version. May be null.
-     */
-    @Nullable
-    File getGradleHome();
+public class DefaultIdeaProjectJavaSourceSettings implements Serializable {
+
+    private final JavaVersion sourceLanguageLevel;
+
+    public DefaultIdeaProjectJavaSourceSettings(JavaVersion sourceLanguageLevel) {
+        this.sourceLanguageLevel = sourceLanguageLevel;
+    }
+
+    public JavaVersion getSourceLanguageLevel() {
+        return sourceLanguageLevel;
+    }
 }

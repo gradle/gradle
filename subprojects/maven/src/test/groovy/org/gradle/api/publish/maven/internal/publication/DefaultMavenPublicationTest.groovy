@@ -224,6 +224,7 @@ public class DefaultMavenPublicationTest extends Specification {
         def projectDependency = Mock(ProjectDependency)
 
         and:
+        projectDependency.excludeRules >> []
         projectDependencyResolver.resolve(projectDependency) >> DefaultModuleVersionIdentifier.newId("pub-group", "pub-name", "pub-version")
 
         when:

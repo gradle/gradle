@@ -18,8 +18,8 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
-import org.gradle.util.GradleVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.GradleVersion
 import spock.lang.Timeout
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -50,9 +50,11 @@ task sleep << {
         then:
         sleeper.waitForFailure()
 
-        def log = readLog(executer.daemonBaseDir)
-        assert log.contains(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP)
-        assert log.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)
+        poll(5, 1) {
+            def log = readLog(executer.daemonBaseDir)
+            assert log.contains(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP)
+            assert log.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)
+        }
     }
 
     @Timeout(25)

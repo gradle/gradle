@@ -271,8 +271,40 @@ Update user guide and samples to show how to implement a custom unmanaged `Langu
 - user can declare a custom unmanaged `LanguageSourceSet` default implementation
 - user can attach unmanaged internal views to custom `LanguageSourceSet`
 - fails on registration when:
+  - language name is not set
   - model type extends `LanguageSourceSet` without a default implementation
   - default implementation is not a non-abstract class
   - default implementation does not extend `BaseLanguageSourceSet`
   - default implementation does not implement internal views
   - an internal view is not an interface
+
+## Story: Plugin author defines `@Managed` subtype of `LanguageSourceSet`
+
+This story will enable plugin authors to define custom `@Managed` subtypes of `LanguageSourceSet`.
+These subtypes may or may not add additional properties to the base type. For example:
+
+    @Managed
+    interface MyLanguageSourceSet extends LanguageSourceSet {
+        // potential additional properties
+    }
+
+and is used as follows:
+
+    plugins {
+        id "myLanguage"
+    }
+    model {
+        components {
+            main(MyLanguageComponentSpec) {
+                sources {
+                    myLanguage(MyLanguageSourceSet) {
+                      // potential properties
+                    }
+                }
+            }
+        }
+    }
+
+### Test cases
+
+- user can declare and use a custom managed `LanguageSourceSet`

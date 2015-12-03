@@ -38,7 +38,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "forks build when JVM args are requested"() {
-        requireJvmArg('-Xmx32m')
+        requireJvmArg('-Xmx64m')
 
         file('build.gradle') << "println 'hello world'"
 
@@ -53,7 +53,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "stops single use daemon when build fails"() {
-        requireJvmArg('-Xmx32m')
+        requireJvmArg('-Xmx64m')
 
         file('build.gradle') << "throw new RuntimeException('bad')"
 
@@ -107,12 +107,12 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
 
     def "forks build to run when immutable jvm args set regardless of the environment"() {
         when:
-        requireJvmArg('-Xmx32m')
-        runWithJvmArg('-Xmx32m')
+        requireJvmArg('-Xmx64m')
+        runWithJvmArg('-Xmx64m')
 
         and:
         file('build.gradle') << """
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx32m')
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx64m')
 """
 
         then:
@@ -173,7 +173,7 @@ assert System.getProperty('some-prop') == 'some-value'
 
     def "does not print suggestion to use the daemon for a single use daemon"() {
         given:
-        requireJvmArg('-Xmx32m')
+        requireJvmArg('-Xmx64m')
 
         when:
         succeeds()
@@ -186,7 +186,7 @@ assert System.getProperty('some-prop') == 'some-value'
 
     def "does not print daemon startup message for a single use daemon"() {
         given:
-        requireJvmArg('-Xmx32m')
+        requireJvmArg('-Xmx64m')
 
         when:
         succeeds()

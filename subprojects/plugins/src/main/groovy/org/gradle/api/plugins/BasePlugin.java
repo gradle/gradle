@@ -19,7 +19,6 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.ConventionMapping;
@@ -37,10 +36,6 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.internal.core.ModelActionRole;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.NoInputsModelAction;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -172,12 +167,6 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void configureAssemble(final ProjectInternal project) {
-        // Note, this is implicitly retaining the project instance which is a problem for reuse
-        project.getModelRegistry().configure(ModelActionRole.Mutate, NoInputsModelAction.of(ModelReference.of("tasks.assemble", Task.class), new SimpleModelRuleDescriptor("BasePlugin#configureAssemble"), new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
-            }
-        }));
+        project.getTasks().getByName(ASSEMBLE_TASK_NAME).dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
     }
 }

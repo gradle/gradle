@@ -27,6 +27,8 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
+import java.util.Set;
+
 public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet> {
 
     private final FileResolver fileResolver;
@@ -36,7 +38,7 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
         this.fileResolver = fileResolver;
     }
 
-    public <T extends LanguageSourceSet, V extends T> void register(ModelType<T> type, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
+    public <T extends LanguageSourceSet, V extends T> void register(ModelType<T> type, Set<Class<?>> internalViews, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
         InstanceFactory.TypeRegistrationBuilder<T> registration = register(type, ruleDescriptor);
 
         registration.withImplementation(implementationType, new InstanceFactory.ImplementationFactory<T>() {
@@ -45,6 +47,9 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
                 return BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), fileResolver);
             }
         });
+        for (Class<?> internalView : internalViews) {
+            registration.withInternalView(ModelType.of(internalView));
+        }
     }
 
     private String determineParentName(MutableModelNode modelNode) {

@@ -36,6 +36,8 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
 
     private IdeaCompilerOutput compilerOutput;
 
+    private DefaultIdeaModuleJavaSourceSettings javaSourceSettings;
+
     public String getName() {
         return name;
     }
@@ -103,6 +105,15 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
 
     public DefaultIdeaModule setCompilerOutput(IdeaCompilerOutput compilerOutput) {
         this.compilerOutput = compilerOutput;
+        return this;
+    }
+
+    public DefaultIdeaModuleJavaSourceSettings getJavaSourceSettings() {
+        return javaSourceSettings;
+    }
+
+    public DefaultIdeaModule setJavaSourceSettings(DefaultIdeaModuleJavaSourceSettings javaSourceSettings) {
+        this.javaSourceSettings = javaSourceSettings;
         return this;
     }
 

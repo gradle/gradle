@@ -152,7 +152,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         return toType(type, require(path), "get(ModelPath, ModelType)");
     }
 
-    @Override
     public ModelNode atState(ModelPath path, ModelNode.State state) {
         return atStateOrMaybeLater(path, state, false);
     }
@@ -162,10 +161,15 @@ public class DefaultModelRegistry implements ModelRegistry {
         return atStateOrMaybeLater(path, state, true);
     }
 
-    private ModelNode atStateOrMaybeLater(ModelPath path, ModelNode.State state, boolean laterOk) {
+    @Override
+    public <T> T atStateOrLater(ModelPath path, ModelType<T> type, ModelNode.State state) {
+        return toType(type, atStateOrMaybeLater(path, state, true), "atStateOrLater(ModelPath, ModelType, ModelNode.State)");
+    }
+
+    private ModelNodeInternal atStateOrMaybeLater(ModelPath path, ModelNode.State state, boolean laterOk) {
         ModelNodeInternal node = modelGraph.find(path);
         if (node == null) {
-            return null;
+            throw new IllegalStateException("No model node at '" + path + "'");
         }
         transition(node, state, laterOk);
         return node;

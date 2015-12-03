@@ -95,8 +95,8 @@ task retrieve(type: Sync) {
         setup:
         module.publishWithChangedContent()
 
-        m2Installation.generateGlobalSettingsFile()
-        def localModule = m2Installation.mavenRepo().module("org.gradle", "test", artifactVersion).publish()
+        m2.generateGlobalSettingsFile()
+        def localModule = m2.mavenRepo().module("org.gradle", "test", artifactVersion).publish()
 
         buildFile << mavenAwsRepoDsl()
         buildFile << """
@@ -117,7 +117,7 @@ task retrieve(type: Sync) {
         module.artifact.expectDownload()
 
         when:
-        using m2Installation
+        using m2
         run 'retrieve'
 
         then:

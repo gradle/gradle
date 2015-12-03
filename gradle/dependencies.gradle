@@ -19,7 +19,7 @@ ext {
     libraries = [:]
 }
 
-versions.commons_io = 'commons-io:commons-io:1.4'
+versions.commons_io = 'commons-io:commons-io:2.2'
 
 versions.groovy = "2.4.4"
 

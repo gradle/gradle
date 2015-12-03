@@ -20,13 +20,19 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
+import org.gradle.tooling.model.java.JavaSourceAware;
 
 /**
  * Represents information about the IDEA module.
  *
  * @since 1.0-milestone-5
  */
-public interface IdeaModule extends HierarchicalElement, HasGradleProject {
+public interface IdeaModule extends HierarchicalElement, HasGradleProject, JavaSourceAware {
+
+    /**
+     * {@inheritDoc}
+     */
+    IdeaModuleJavaSourceSettings getJavaSourceSettings();
 
     /**
      * All content roots. Most idea modules have a single content root.

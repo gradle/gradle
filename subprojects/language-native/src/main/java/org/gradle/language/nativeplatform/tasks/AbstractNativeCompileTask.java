@@ -63,6 +63,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
                 return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
             }
         });
+        dependsOn(includes);
     }
 
     @Inject
@@ -162,14 +163,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     @Input
     public FileCollection getIncludes() {
         return includes;
-    }
-
-    /**
-     * Returns an empty file collection built by all build dependencies from the include path.
-     */
-    @InputFiles
-    public FileCollection getIncludeDependencies() {
-        return getProject().files().builtBy(includes.getBuildDependencies());
     }
 
     /**

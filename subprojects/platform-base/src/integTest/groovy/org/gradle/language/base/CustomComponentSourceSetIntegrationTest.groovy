@@ -165,4 +165,107 @@ model {
         failure.assertHasCause("Exception thrown while executing model rule: sampleLib { ... } @ build.gradle line 41, column 9")
         failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule 'sampleLib { ... } @ build.gradle line 41, column 9 > components.sampleLib.getBinaries() > create(main)' as the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 30, column 9 > create(bin) > create(main)' is already registered to create this model element.")
     }
+
+    def "user can attach unmanaged internal views to custom `LanguageSourceSet`"() {
+        given:
+        buildFile << """
+            interface HaxeSourceSet extends LanguageSourceSet {
+                String getPublicData()
+                void setPublicData(String data)
+            }
+            interface HaxeSourceSetInternal {
+                String getInternalData()
+                void setInternalData(String data)
+            }
+            class DefaultHaxeSourceSet extends BaseLanguageSourceSet implements HaxeSourceSet, HaxeSourceSetInternal {
+                String publicData
+                String internalData
+            }
+
+            class HaxeRules extends RuleSource {
+                @LanguageType
+                void registerHaxeLanguageSourceSetType(LanguageTypeBuilder<HaxeSourceSet> builder) {
+                    builder.setLanguageName("haxe")
+                    builder.defaultImplementation(DefaultHaxeSourceSet)
+                    builder.internalView(HaxeSourceSetInternal)
+                }
+            }
+            apply plugin: HaxeRules
+
+            model {
+                components {
+                    sampleLib(SampleLibrary) {
+                        binaries {
+                            sampleBin(SampleBinary) {
+                                sources {
+                                    haxe(HaxeSourceSet) {
+                                        publicData = "public"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            class TestRules extends RuleSource {
+                @Defaults
+                void useInternalView(@Path("components.sampleLib.binaries.sampleBin.sources.haxe") HaxeSourceSetInternal lss) {
+                    lss.setInternalData("internal")
+                }
+            }
+            apply plugin: TestRules
+
+            class ValidateTaskRules extends RuleSource {
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
+                    tasks.create("validate") {
+                        assert components*.name == ["sampleLib"]
+                        assert components.withType(SampleLibrary)*.name == ["sampleLib"]
+                        assert components.sampleLib.binaries.sampleBin.sources.haxe != null
+                        assert components.sampleLib.binaries.sampleBin.sources.haxe.publicData == "public"
+                        assert components.sampleLib.binaries.sampleBin.sources.haxe.internalData == "internal"
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
+        expect:
+        succeeds "validate"
+    }
+
+    def "fails on registration when model type extends `LanguageSourceSet` without a default implementation"() {
+        given:
+        buildFile << """
+            interface HaxeSourceSet extends LanguageSourceSet {}
+            class HaxeRules extends RuleSource {
+                @LanguageType
+                void registerHaxeLanguageSourceSetType(LanguageTypeBuilder<HaxeSourceSet> builder) {
+                    builder.setLanguageName("haxe")
+                }
+            }
+            apply plugin: HaxeRules
+            model {
+                components {
+                    sampleLib(SampleLibrary) {
+                        binaries {
+                            sampleBin(SampleBinary) {
+                                sources {
+                                    haxe(HaxeSourceSet)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        fails "model"
+
+        then:
+        failure.assertHasCause("Exception thrown while executing model rule: LanguageBasePlugin.Rules#registerSourceSetTypes")
+        failure.assertHasCause("No implementation type registered for 'HaxeSourceSet'")
+    }
 }

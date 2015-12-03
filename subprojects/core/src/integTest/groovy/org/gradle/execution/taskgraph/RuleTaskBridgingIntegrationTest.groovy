@@ -20,7 +20,270 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 
-class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
+class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
+
+    def "mutate rules are applied to tasks created using legacy DSL when the task is added to the task graph"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            class MyPlugin extends RuleSource {
+                @Mutate
+                void applyMessages(ModelMap<EchoTask> tasks) {
+                    tasks.afterEach {
+                        message += " message!"
+                    }
+                }
+            }
+
+            apply type: MyPlugin
+
+            task foo(type: EchoTask) { message = 'custom' }
+            task bar(type: EchoTask)
+            task dep { dependsOn foo, bar }
+        """
+
+        when:
+        succeeds "foo", "bar"
+
+        then:
+        output.contains "foo: custom message!"
+        output.contains "bar: default message!"
+
+        when:
+        succeeds "dep"
+
+        then:
+        output.contains "foo: custom message!"
+        output.contains "bar: default message!"
+    }
+
+    def "mutate rules are applied to placeholder tasks created using legacy DSL when the task is added to the task graph"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            class MyPlugin extends RuleSource {
+                @Mutate
+                void applyMessages(ModelMap<EchoTask> tasks) {
+                    tasks.named('foo') {
+                        message += " message!"
+                    }
+                }
+            }
+
+            apply type: MyPlugin
+
+            tasks.addPlaceholderAction('foo', EchoTask) { message = 'custom' }
+            task dep { dependsOn foo }
+            task finalized { finalizedBy foo }
+        """
+
+        when:
+        succeeds "foo"
+
+        then:
+        output.contains "foo: custom message!"
+
+        when:
+        succeeds "dep"
+
+        then:
+        output.contains "foo: custom message!"
+    }
+
+    def "mutate rules are not applied to tasks created using legacy DSL when the task is not added to the task graph"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            model {
+                tasks.foo {
+                    message += " message!"
+                }
+                tasks.bar {
+                    throw new RuntimeException()
+                }
+            }
+
+            task foo(type: EchoTask) { message = 'custom' }
+            task bar(type: EchoTask)
+            task dep {
+                dependsOn foo
+                shouldRunAfter bar
+                mustRunAfter bar
+            }
+        """
+
+        when:
+        succeeds "foo"
+
+        then:
+        output.contains "foo: custom message!"
+
+        when:
+        succeeds "dep"
+
+        then:
+        output.contains "foo: custom message!"
+    }
+
+    def "mutate rules are applied to task created using legacy DSL after task is configured from legacy DSL"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            model {
+                tasks.foo {
+                    message += " message!"
+                }
+            }
+
+            task foo(type: EchoTask)
+            assert foo.message == 'default'
+            foo.message = 'custom'
+        """
+
+        when:
+        succeeds "foo"
+
+        then:
+        output.contains "foo: custom message!"
+    }
+
+    def "mutate rules are applied to placeholder task created using legacy DSL after task is configured from legacy DSL"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            model {
+                tasks.foo {
+                    message += " message!"
+                }
+            }
+
+            tasks.addPlaceholderAction('foo', EchoTask) { }
+            assert foo.message == 'default'
+            foo.message = 'custom'
+        """
+
+        when:
+        succeeds "foo"
+
+        then:
+        output.contains "foo: custom message!"
+    }
+
+    @NotYetImplemented
+    def "mutate rules are applied to task created using rules after task is configured from legacy DSL"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            model {
+                tasks {
+                    foo(EchoTask) {
+                        message = 'rules'
+                    }
+                }
+                tasks.foo {
+                    message += " message!"
+                }
+            }
+
+            assert foo.message == 'rules'
+            foo.message = 'custom'
+        """
+
+        when:
+        succeeds "foo"
+
+        then:
+        output.contains "foo: custom message!"
+    }
+
+    def "task initializer defined by rule is invoked before actions defined through legacy task container DSL"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            class MyPlugin extends RuleSource {
+                @Mutate
+                void addTasks(ModelMap<EchoTask> tasks) {
+                    tasks.create("foo") {
+                        message = "foo message"
+                    }
+                }
+            }
+
+            apply type: MyPlugin
+
+            tasks.withType(EchoTask).all {
+                message = "task \$message"
+            }
+        """
+
+        when:
+        succeeds "foo"
+
+        then:
+        output.contains "foo: task foo message"
+    }
+
+    def "task created in afterEvaluate() is visible to rules"() {
+        when:
+        buildFile << '''
+            class MyPlugin extends RuleSource {
+                @Mutate
+                void fromAfterEvaluateTaskAvailable(ModelMap<Task> tasks) {
+                    tasks.fromAfterEvaluate.value += " and from container rule"
+                }
+                @Mutate
+                void fromAfterEvaluateTaskAvailable(@Path("tasks.fromAfterEvaluate") Task task) {
+                    task.value += " and from rule"
+                }
+            }
+
+            apply type: MyPlugin
+
+            project.afterEvaluate {
+                project.tasks.create("fromAfterEvaluate") {
+                    ext.value = "from after evaluate"
+                    doLast {
+                        println "value: $value"
+                    }
+                }
+            }
+        '''
+
+        then:
+        succeeds "fromAfterEvaluate"
+
+        and:
+        output.contains "value: from after evaluate and from container rule and from rule"
+    }
+
+    def "registering a creation rule for a task that is already defined using legacy DSL"() {
+        when:
+        buildFile << """
+            class MyPlugin extends RuleSource {
+                @Mutate
+                void addTask(ModelMap<Task> tasks) {
+                    tasks.create("foo")
+                }
+            }
+
+            apply type: MyPlugin
+
+            task foo {}
+        """
+
+        then:
+        fails "foo"
+
+        and:
+        failure.assertHasCause("Cannot create 'tasks.foo' using creation rule 'MyPlugin#addTask > create(foo)' as the rule 'Project.<init>.tasks.foo()' is already registered to create this model element.")
+    }
 
     def "a non-rule-source task can depend on a rule-source task"() {
         given:
@@ -43,7 +306,7 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':climbTask'])
+        result.assertTasksExecuted(':climbTask', ':customTask')
     }
 
     def "a non-rule-source task can depend on one or more task of types created via both rule sources and old world container"() {
@@ -69,7 +332,7 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':customTask', ':climbTask'])
+        result.assertTasksExecuted(':climbTask', ':oldClimber', ':customTask')
     }
 
     def "can depend on a rule-source task in a project which has already evaluated"() {
@@ -102,7 +365,7 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         succeeds('sub2:customTask')
 
         then:
-        result.executedTasks.containsAll([':sub2:customTask', ':sub1:climbTask'])
+        result.assertTasksExecuted(':sub1:climbTask', ':sub2:customTask')
     }
 
     def "can depend on a rule-source task after a project has been evaluated"() {
@@ -129,7 +392,7 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':climbTask'])
+        result.assertTasksExecuted(':climbTask', ':customTask')
     }
 
     def "a build failure occurs when depending on a rule task with failing configuration"() {
@@ -190,8 +453,7 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         apply type: Rules
 
         task customTask << { }
-def t = tasks.withType(Task).withType(ClimbTask)
-println t.getClass()
+        def t = tasks.withType(Task).withType(ClimbTask)
         customTask.dependsOn t
         """
 
@@ -199,7 +461,7 @@ println t.getClass()
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':climbTask'])
+        result.assertTasksExecuted(':climbTask', ':customTask')
     }
 
     def "a non-rule-source task can depend on a rule-source task with matching criteria"() {
@@ -223,7 +485,7 @@ println t.getClass()
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':climbTask'])
+        result.assertTasksExecuted(':climbTask', ':customTask')
     }
 
     def "a non-rule-source task can not depend on both realizable and default task collections"() {
@@ -248,7 +510,7 @@ println t.getClass()
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':foo'])
+        result.assertTasksExecuted(':foo', ':customTask')
     }
 
     @NotYetImplemented
@@ -260,8 +522,8 @@ println t.getClass()
         class Rules extends RuleSource {
             @Mutate
             void addTasks(ModelMap<Task> tasks) {
-                tasks.create("climbTask", ClimbTask) { }
-                tasks.create("jumpTask", JumpTask) { }
+                tasks.create("climbTask", ClimbTask)
+                tasks.create("jumpTask", JumpTask)
             }
         }
         apply type: Rules
@@ -274,7 +536,7 @@ println t.getClass()
         succeeds('customTask')
 
         then:
-        result.executedTasks.containsAll([':customTask', ':climbTask', ':jumpTask'])
+        result.assertTasksExecuted(':customTask', ':climbTask', ':jumpTask')
     }
 
     @NotYetImplemented
@@ -341,7 +603,7 @@ println t.getClass()
         succeeds('help')
     }
 
-    def "only tasks of specified type are realized"() {
+    def "only tasks of specified type are created when tasks with type are declared as dependency"() {
         when:
         buildScript """
             ${ruleBasedTasks()}
@@ -349,17 +611,12 @@ println t.getClass()
             model {
               tasks {
                 create("climbTask", ClimbTask)
-                create("jumpTask", JumpTask)
+                create("jumpTask", BrokenTask)
               }
             }
 
             task customTask {
               dependsOn tasks.withType(ClimbTask)
-              doLast {
-                // This is somewhat fragile and may break when we handle realizing better
-                println "jumpTask exists: " + !tasks.withType(JumpTask).empty
-                println "climbTask exists: " + !tasks.withType(ClimbTask).empty
-              }
             }
         """
 
@@ -367,7 +624,6 @@ println t.getClass()
         run "customTask"
 
         then:
-        outputContains "jumpTask exists: false"
-        outputContains "climbTask exists: true"
+        result.assertTasksExecuted(':climbTask', ':customTask')
     }
 }
