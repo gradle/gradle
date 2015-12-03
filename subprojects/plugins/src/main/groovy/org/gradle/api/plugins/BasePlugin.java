@@ -36,7 +36,6 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.internal.core.NoInputsModelAction;
 
 import javax.inject.Inject;
 import java.io.File;
