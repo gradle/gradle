@@ -115,7 +115,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                     for (Task task : tasks) {
                         if (task instanceof PlatformJavaCompile) {
                             FileCollection cp = ((PlatformJavaCompile) task).getClasspath();
-                            if (cp!=null) {
+                            if (cp != null) {
                                 classpath.add(cp);
                             }
                         }
@@ -159,6 +159,19 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                             languageSourceSet.getSource().srcDir("src/test/java");
                         }
                     });
+                }
+            });
+        }
+
+        @Validate
+        void validateJUnitTestSuites(ModelMap<JUnitTestSuiteSpec> suites) {
+            suites.all(new Action<JUnitTestSuiteSpec>() {
+                @Override
+                public void execute(JUnitTestSuiteSpec jUnitTestSuiteSpec) {
+                    if (jUnitTestSuiteSpec.getJUnitVersion() == null) {
+                        throw new InvalidModelException(
+                            String.format("Test suite '%s' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example.", jUnitTestSuiteSpec.getName()));
+                    }
                 }
             });
         }

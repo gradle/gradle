@@ -43,7 +43,9 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         buildFile << '''
             model {
                 components {
-                    mySuite(JUnitTestSuiteSpec)
+                    mySuite(JUnitTestSuiteSpec) {
+                        jUnitVersion '4.12'
+                    }
                 }
             }
         '''
@@ -56,6 +58,54 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
 
         and:
         outputContains "Test 'mySuite:mySuite'"
+    }
+
+    def "fails if no JUnit version is specified"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        buildFile << '''
+            model {
+                components {
+                    mySuite(JUnitTestSuiteSpec)
+                }
+            }
+        '''
+
+        when:
+        fails 'components'
+
+        then:
+        failure.assertHasCause "Test suite 'mySuite' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example."
+
+    }
+
+    def "fails if no JUnit version is specified even if found in dependencies"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        buildFile << '''
+            model {
+                components {
+                    mySuite(JUnitTestSuiteSpec) {
+                        sources {
+                            java {
+                                dependencies.module('junit:junit:4.12')
+                            }
+                        }
+                    }
+                }
+            }
+        '''
+
+        when:
+        fails 'components'
+
+        then:
+        failure.assertHasCause "Test suite 'mySuite' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example."
+
     }
 
     @Unroll("Executes a passing test suite with a JUnit component and #sourceconfig.description")
@@ -164,8 +214,9 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
     }
 
     private enum SourceSetConfiguration {
-        NONE('no source set is declared', false, false, ''),
+        NONE('no source set is declared', false, false, ' { jUnitVersion "4.12" }'),
         EXPLICIT_NO_DEPS('an explicit source set configuration is used', false, false, '''{
+                        jUnitVersion '4.12'
                         sources {
                             java {
                                source.srcDirs 'src/test/java'
@@ -173,6 +224,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
                         }
                     }'''),
         LIBRARY_DEP('a dependency onto a local library', true, false, '''{
+                        jUnitVersion '4.12'
                         sources {
                             java {
                                 dependencies {
@@ -182,6 +234,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
                         }
                     }'''),
         EXTERNAL_DEP('a dependency onto an external library', false, true, '''{
+                        jUnitVersion '4.12'
                         sources {
                             java {
                                 dependencies {
