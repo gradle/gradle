@@ -42,6 +42,7 @@ model {
                         library 'library-only'
                         project 'project-only'
                         library 'some-library' project 'some-project'
+                        module 'org.ow2.asm:asm:5.0.4'
                     }
                 }
             }
