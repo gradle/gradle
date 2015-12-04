@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.tooling.model.idea.IdeaLanguageLevel;
 
 import java.io.Serializable;
