@@ -198,7 +198,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
 
         public SocketOutputStream(SocketChannel socket) throws IOException {
             this.socket = socket;
-            buffer = ByteBuffer.allocateDirect(4096);
+            buffer = ByteBuffer.allocateDirect(32 * 1024);
         }
 
         @Override
@@ -218,8 +218,8 @@ public class SocketConnection<T> implements RemoteConnection<T> {
                     remaining -= count;
                     currentPos += count;
                 }
-                if (buffer.remaining() == 0) {
-                    flush();
+                while (buffer.remaining() == 0) {
+                    writeBufferToChannel();
                 }
             }
         }
@@ -227,14 +227,18 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         @Override
         public void flush() throws IOException {
             while (buffer.position() > 0) {
-                buffer.flip();
-                int count = writeWithNonBlockingRetry();
-                if (count == 0) {
-                    // buffer was still full after non-blocking retries, now block
-                    waitForWriteBufferToDrain();
-                }
-                buffer.compact();
+                writeBufferToChannel();
             }
+        }
+
+        private void writeBufferToChannel() throws IOException {
+            buffer.flip();
+            int count = writeWithNonBlockingRetry();
+            if (count == 0) {
+                // buffer was still full after non-blocking retries, now block
+                waitForWriteBufferToDrain();
+            }
+            buffer.compact();
         }
 
         private int writeWithNonBlockingRetry() throws IOException {
