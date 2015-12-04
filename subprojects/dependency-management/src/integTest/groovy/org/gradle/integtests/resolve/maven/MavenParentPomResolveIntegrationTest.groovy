@@ -80,41 +80,48 @@ task retrieve(type: Sync) {
         mavenRepo.module("org", "child_dep", "1.7").publish()
         mavenRepo.module("org", "typed_dep", "1.8").artifact(type: 'bar').publish()
         mavenRepo.module("org", "classified_dep", "1.9").artifact(classifier: 'classy').publish()
+        mavenRepo.module("org", "fq_dep", "2.1").artifact(type: 'bar', classifier: 'classy').publish()
 
         def parent = mavenRepo.module("org", "parent", "1.0")
         parent.hasPackaging('pom')
         parent.publish()
 
-        parent.pomFile.text = parent.pomFile.text.replace("</project>", '''
+        def dep = { Map vals ->
+            def depString = "<dependency><groupId>org</groupId>"
+            vals.each { key, val -> depString += "<$key>$val</$key>" }
+            depString += "</dependency>"
+        }
+
+        parent.pomFile.text = parent.pomFile.text.replace("</project>", """
 <dependencyManagement>
     <dependencies>
-        <dependency>
-            <groupId>org</groupId>
-            <artifactId>child_dep</artifactId>
-            <version>1.7</version>
-        </dependency>
-        <dependency>
-            <groupId>org</groupId>
-            <artifactId>typed_dep</artifactId>
-            <type>bar</type>
-            <version>1.8</version>
-        </dependency>
-        <dependency>
-            <groupId>org</groupId>
-            <artifactId>classified_dep</artifactId>
-            <classifier>classy</classifier>
-            <version>1.9</version>
-        </dependency>
+        ${dep(artifactId: 'child_dep', version: '1.7')}
+        ${dep(artifactId: 'child_dep', version: '44', type: 'bar')}
+        ${dep(artifactId: 'child_dep', version: '44', classifier: 'classy')}
+
+        ${dep(artifactId: 'typed_dep', version: '44')}
+        ${dep(artifactId: 'typed_dep', version: '1.8', type: 'bar')}
+        ${dep(artifactId: 'typed_dep', version: '44', type: 'zip')}
+
+        ${dep(artifactId: 'classified_dep', version: '44')}
+        ${dep(artifactId: 'classified_dep', version: '1.9', classifier: 'classy')}
+        ${dep(artifactId: 'classified_dep', version: '44', classifier: 'other')}
+
+        ${dep(artifactId: 'fq_dep', version: '44')}
+        ${dep(artifactId: 'fq_dep', version: '44', classifier: 'classy')}
+        ${dep(artifactId: 'fq_dep', version: '44', type: 'bar')}
+        ${dep(artifactId: 'fq_dep', version: '2.1', classifier: 'classy', type: 'bar')}
     </dependencies>
 </dependencyManagement>
 </project>
-''')
+""")
 
         def child = mavenRepo.module("org", "child", "1.0")
         child.parent("org", "parent", "1.0")
         child.dependsOn("org", "child_dep", null)
         child.dependsOn("org", "typed_dep", null, "bar", null, null)
         child.dependsOn("org", "classified_dep", null, null, null, "classy")
+        child.dependsOn("org", "fq_dep", null, "bar", null, "classy")
         child.publish()
 
         buildFile << """
@@ -123,7 +130,7 @@ repositories {
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
-task libs << { assert configurations.compile.files*.name == ['child-1.0.jar', 'child_dep-1.7.jar', 'typed_dep-1.8.bar', 'classified_dep-1.9-classy.jar'] }
+task libs << { assert configurations.compile.files*.name == ['child-1.0.jar', 'child_dep-1.7.jar', 'typed_dep-1.8.bar', 'classified_dep-1.9-classy.jar', 'fq_dep-2.1-classy.bar'] }
 """
 
         expect:

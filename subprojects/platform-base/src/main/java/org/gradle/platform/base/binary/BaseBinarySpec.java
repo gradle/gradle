@@ -20,9 +20,11 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
@@ -37,6 +39,9 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.*;
 import org.gradle.util.DeprecationLogger;
+
+import java.io.File;
+import java.util.Set;
 
 /**
  * Base class for custom binary implementations.
@@ -94,6 +99,13 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
         ComponentSpec component = getComponent();
         namingScheme = DefaultBinaryNamingScheme.component(component == null ? null :component.getName()).withBinaryName(name).withBinaryType(getTypeName());
+    }
+
+    @Override
+    public LibraryBinaryIdentifier getId() {
+        // TODO:DAZ This can throw a NPE: will need an identifier for a variant without an owning component
+        ComponentSpec component = getComponent();
+        return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }
 
     @Override
@@ -214,4 +226,19 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         // criteria make them buildable or not.
         return new FixedBuildAbility(true);
     }
+
+    public static void replaceSingleDirectory(Set<File> dirs, File dir) {
+        switch (dirs.size()) {
+            case 0:
+                dirs.add(dir);
+                break;
+            case 1:
+                dirs.clear();
+                dirs.add(dir);
+                break;
+            default:
+                throw new IllegalStateException("Can't replace multiple directories.");
+        }
+    }
+
 }

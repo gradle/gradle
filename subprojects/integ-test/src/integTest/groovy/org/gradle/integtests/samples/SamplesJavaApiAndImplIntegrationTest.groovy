@@ -42,6 +42,7 @@ class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
 
     def "poms contain the right dependencies"() {
         given:
+        using m2
         sample apiAndImpl
 
         when:

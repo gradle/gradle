@@ -660,14 +660,26 @@ class DefaultModelRegistryTest extends Specification {
         registry.register("parent") { it.unmanagedNode (Integer) { MutableModelNode node ->
             node.addLink(registry.instanceRegistration("parent.foo", 12.toInteger()))
         }}
+
         registry.realize("parent")
 
-        when:
+        expect:
+        registry.atStateOrLater("parent", ModelNode.State.Registered).path == ModelPath.path("parent")
+        registry.atStateOrLater("parent.foo", ModelNode.State.Registered).path == ModelPath.path("parent.foo")
+
         registry.remove(ModelPath.path("parent"))
 
-        then:
+        when:
         registry.atStateOrLater("parent", ModelNode.State.Registered) == null
+        then:
+        def exParent = thrown IllegalStateException
+        exParent.message == "No model node at 'parent'"
+
+        when:
         registry.atStateOrLater("parent.foo", ModelNode.State.Registered) == null
+        then:
+        def exFoo = thrown IllegalStateException
+        exFoo.message == "No model node at 'parent.foo'"
     }
 
     def "cannot remove an element whose child has already been used as input by a rule"() {
@@ -930,9 +942,13 @@ class DefaultModelRegistryTest extends Specification {
     }
 
     @Unroll
-    def "asking for unknown element at state #state returns null"() {
-        expect:
-        registry.atState(ModelPath.path("thing"), state) == null
+    def "asking for unknown element at state #state fails"() {
+        when:
+        registry.atState(ModelPath.path("thing"), state)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "No model node at 'thing'"
 
         where:
         state << ModelNode.State.values()

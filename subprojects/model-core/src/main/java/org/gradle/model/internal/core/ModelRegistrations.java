@@ -19,6 +19,7 @@ package org.gradle.model.internal.core;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import net.jcip.annotations.NotThreadSafe;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
@@ -31,9 +32,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @ThreadSafe
 abstract public class ModelRegistrations {
@@ -152,6 +151,11 @@ abstract public class ModelRegistrations {
 
         public Builder action(ModelActionRole role, Iterable<? extends ModelReference<?>> inputs, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> action) {
             return action(role, new InputsUsingBuilderAction(reference, descriptorReference, inputs, action));
+        }
+
+        public Builder actions(Multimap<ModelActionRole, ? extends ModelAction> actions) {
+            this.actions.putAll(actions);
+            return this;
         }
 
         public Builder withProjection(ModelProjection projection) {

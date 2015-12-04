@@ -17,24 +17,45 @@
 package org.gradle.plugins.ide.internal.tooling.idea;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaRuntime;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaSourceSettings;
 
-import java.io.Serializable;
+public class DefaultIdeaModuleJavaSourceSettings extends DefaultJavaSourceSettings {
 
-public class DefaultIdeaModuleJavaSourceSettings implements Serializable {
+    private boolean sourceLanguageLevelInherited;
 
-    private final JavaVersion sourceLanguageLevel;
-    private final boolean inherited;
+    private boolean targetBytecodeLevelInherited;
 
-    public DefaultIdeaModuleJavaSourceSettings(JavaVersion sourceLanguageLevel, boolean inherited) {
-        this.sourceLanguageLevel = sourceLanguageLevel;
-        this.inherited = inherited;
+    public DefaultIdeaModuleJavaSourceSettings setSourceLanguageLevelInherited(boolean sourceLanguageLevelInherited) {
+        this.sourceLanguageLevelInherited = sourceLanguageLevelInherited;
+        return this;
+    }
+
+    public DefaultIdeaModuleJavaSourceSettings setTargetBytecodeLevelInherited(boolean targetBytecodeLevelInherited) {
+        this.targetBytecodeLevelInherited = targetBytecodeLevelInherited;
+        return this;
+    }
+
+    public DefaultIdeaModuleJavaSourceSettings setSourceLanguageLevel(JavaVersion sourceLanguageLevel) {
+        super.setSourceLanguageLevel(sourceLanguageLevel);
+        return this;
+    }
+
+    public DefaultIdeaModuleJavaSourceSettings setTargetBytecodeLevel(JavaVersion targetBytecodeLevel) {
+        super.setTargetBytecodeLevel(targetBytecodeLevel);
+        return this;
+    }
+
+    public DefaultIdeaModuleJavaSourceSettings setJavaRuntime(DefaultJavaRuntime javaRuntime) {
+        super.setJavaRuntime(javaRuntime);
+        return this;
     }
 
     public boolean isSourceLanguageLevelInherited() {
-        return inherited;
+        return sourceLanguageLevelInherited;
     }
 
-    public JavaVersion getSourceLanguageLevel() {
-        return sourceLanguageLevel;
+    public boolean isTargetBytecodeLevelInherited() {
+        return targetBytecodeLevelInherited;
     }
 }

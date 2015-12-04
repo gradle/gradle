@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.classpath;
+package org.gradle.jvm.internal;
 
-import org.gradle.api.Nullable;
-
-import java.io.File;
-
-public interface GradleDistributionLocator {
+/**
+ * Declares the {@link JvmAssembly} of a variant so transformation tasks can be configured accordingly.
+ */
+public interface WithJvmAssembly {
     /**
-     * Returns the directory containing the Gradle distribution of the current Gradle version. May be null.
+     * The assembly.
      */
-    @Nullable
-    File getGradleHome();
+    JvmAssembly getAssembly();
 }

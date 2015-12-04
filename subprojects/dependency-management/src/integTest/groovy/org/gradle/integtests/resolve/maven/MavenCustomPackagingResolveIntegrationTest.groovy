@@ -23,6 +23,7 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2984")
     def "can resolve dependency with custom packaging"() {
+        using m2
         def extension = "aar"
         m2.mavenRepo().module("local", "local", "1.0").hasType(extension).hasPackaging(extension).publish()
         def remote = mavenHttpRepo.module("remote", "remote", "1.0").hasType(extension).hasPackaging(extension).publish()

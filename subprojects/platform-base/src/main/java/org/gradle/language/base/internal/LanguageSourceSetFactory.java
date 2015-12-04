@@ -47,6 +47,9 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
                 return BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), fileResolver);
             }
         });
+        for (Class<?> internalView : internalViews) {
+            registration.withInternalView(ModelType.of(internalView));
+        }
     }
 
     private String determineParentName(MutableModelNode modelNode) {

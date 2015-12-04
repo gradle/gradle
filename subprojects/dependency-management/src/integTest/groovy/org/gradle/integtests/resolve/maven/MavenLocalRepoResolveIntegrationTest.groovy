@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.containsString
 class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def setup() {
+        using m2
         buildFile << """
                 repositories {
                     mavenLocal()

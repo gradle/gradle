@@ -79,6 +79,7 @@ abstract class AbstractComponentModelIntegrationTest extends AbstractIntegration
             class LanguageTypeRules extends RuleSource {
                 @LanguageType
                 void registerCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
+                    builder.setLanguageName("custom")
                     builder.defaultImplementation(DefaultCustomLanguageSourceSet)
                 }
             }

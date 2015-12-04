@@ -22,6 +22,10 @@ import spock.lang.Unroll
 // this spec documents the status quo, not a desired behavior
 class MavenPomGenerationPublishIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        using m2 //uploadArchives leaks into local ~/.m2
+    }
+
     @Unroll
     def "how configuration of archive task affects generated POM"() {
         buildFile << """

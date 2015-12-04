@@ -190,8 +190,8 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
                     builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
                 }
 
-        }
-        apply plugin: JavaLangRuleSource
+            }
+            apply plugin: JavaLangRuleSource
         """
     }
 

@@ -200,7 +200,6 @@ model {
                                 sources {
                                     haxe(HaxeSourceSet) {
                                         publicData = "public"
-                                        internalData = "internal"
                                     }
                                 }
                             }
@@ -208,6 +207,14 @@ model {
                     }
                 }
             }
+
+            class TestRules extends RuleSource {
+                @Defaults
+                void useInternalView(@Path("components.sampleLib.binaries.sampleBin.sources.haxe") HaxeSourceSetInternal lss) {
+                    lss.setInternalData("internal")
+                }
+            }
+            apply plugin: TestRules
 
             class ValidateTaskRules extends RuleSource {
                 @Mutate
@@ -226,5 +233,39 @@ model {
 
         expect:
         succeeds "validate"
+    }
+
+    def "fails on registration when model type extends `LanguageSourceSet` without a default implementation"() {
+        given:
+        buildFile << """
+            interface HaxeSourceSet extends LanguageSourceSet {}
+            class HaxeRules extends RuleSource {
+                @LanguageType
+                void registerHaxeLanguageSourceSetType(LanguageTypeBuilder<HaxeSourceSet> builder) {
+                    builder.setLanguageName("haxe")
+                }
+            }
+            apply plugin: HaxeRules
+            model {
+                components {
+                    sampleLib(SampleLibrary) {
+                        binaries {
+                            sampleBin(SampleBinary) {
+                                sources {
+                                    haxe(HaxeSourceSet)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        fails "model"
+
+        then:
+        failure.assertHasCause("Exception thrown while executing model rule: LanguageBasePlugin.Rules#registerSourceSetTypes")
+        failure.assertHasCause("No implementation type registered for 'HaxeSourceSet'")
     }
 }

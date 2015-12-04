@@ -212,6 +212,7 @@ subprojects {
     @Issue("GRADLE-3318")
     def "can reference rule-source tasks from sub-projects"() {
         given:
+        using m2
         def repo = file("maven").createDir()
         settingsFile << """
         include 'sub1'

@@ -26,10 +26,25 @@ import org.gradle.api.JavaVersion;
  */
 @Incubating
 public interface JavaSourceSettings {
+
     /**
      * Returns the Java source language level.
      *
      * @return The source language level. Never returns {@code null}.
      */
     JavaVersion getSourceLanguageLevel();
+
+    /**
+     * Returns the target bytecode level.
+     *
+     * @return The target bytecode language level. Never returns {@code null}.
+     */
+    JavaVersion getTargetBytecodeLevel();
+
+    /**
+     * Returns the target java runtime.
+     *
+     * @return The target java runtime. Never returns {@code null}.
+     */
+    JavaRuntime getTargetRuntime();
 }

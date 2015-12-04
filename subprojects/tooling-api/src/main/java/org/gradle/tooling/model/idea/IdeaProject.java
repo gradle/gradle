@@ -29,6 +29,7 @@ public interface IdeaProject extends HierarchicalElement, JavaSourceAware {
 
     /**
      * {@inheritDoc}
+     * @since 2.11
      */
     IdeaProjectJavaSourceSettings getJavaSourceSettings();
 
@@ -42,6 +43,9 @@ public interface IdeaProject extends HierarchicalElement, JavaSourceAware {
 
     /**
      * Returns the language level to use within the current project.
+     * <p>
+     * Note: To determine the project language level {@link IdeaModule#getJavaSourceSettings()}
+     * should be preferred.
      *
      * @return The language level to use within the current project.
      * @since 1.0-milestone-5

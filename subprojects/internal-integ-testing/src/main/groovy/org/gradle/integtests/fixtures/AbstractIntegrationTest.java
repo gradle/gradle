@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.api.Action;
 import org.gradle.integtests.fixtures.executer.*;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -111,5 +112,11 @@ public abstract class AbstractIntegrationTest {
             ivyRepo = new IvyFileRepository(file("ivy-repo"));
         }
         return ivyRepo;
+    }
+
+
+    public GradleExecuter using(Action<GradleExecuter> action) {
+        action.execute(executer);
+        return executer;
     }
 }

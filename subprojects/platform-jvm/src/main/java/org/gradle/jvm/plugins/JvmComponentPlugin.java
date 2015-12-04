@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.gradle.util.CollectionUtils.single;
 
 /**
  * Base plugin for JVM component support. Applies the
@@ -154,19 +155,19 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         @BinaryTasks
         public void createTasks(ModelMap<Task> tasks, final JarBinarySpecInternal binary, final @Path("buildDir") File buildDir) {
-            final File runtimeClassesDir = binary.getClassesDir();
-            final File resourcesDir = binary.getResourcesDir();
             final File runtimeJarDestDir = binary.getJarFile().getParentFile();
             final String runtimeJarArchiveName = binary.getJarFile().getName();
             final String createRuntimeJar = "create" + capitalize(binary.getProjectScopedName());
+            final JvmAssembly assembly = binary.getAssembly();
             tasks.create(createRuntimeJar, Jar.class, new Action<Jar>() {
                 @Override
                 public void execute(Jar jar) {
                     jar.setDescription(String.format("Creates the binary file for %s.", binary));
-                    jar.from(runtimeClassesDir);
-                    jar.from(resourcesDir);
+                    jar.from(assembly.getClassDirectories());
+                    jar.from(assembly.getResourceDirectories());
                     jar.setDestinationDir(runtimeJarDestDir);
                     jar.setArchiveName(runtimeJarArchiveName);
+                    jar.dependsOn(assembly);
                 }
             });
 
@@ -178,11 +179,12 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 public void execute(ApiJar jar) {
                     final File apiClassesDir = binary.getNamingScheme().getOutputDirectory(buildDir, "apiClasses");
                     jar.setDescription(String.format("Creates the API binary file for %s.", binary));
-                    jar.setRuntimeClassesDir(runtimeClassesDir);
+                    jar.setRuntimeClassesDir(single(assembly.getClassDirectories()));
                     jar.setExportedPackages(exportedPackages);
                     jar.setApiClassesDir(apiClassesDir);
                     jar.setDestinationDir(apiJar.getFile().getParentFile());
                     jar.setArchiveName(apiJar.getFile().getName());
+                    jar.dependsOn(assembly);
                     apiJar.setBuildTask(jar);
                 }
             });

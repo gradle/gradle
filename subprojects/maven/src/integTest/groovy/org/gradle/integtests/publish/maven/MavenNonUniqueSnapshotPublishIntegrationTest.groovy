@@ -20,6 +20,8 @@ class MavenNonUniqueSnapshotPublishIntegrationTest extends AbstractIntegrationSp
 
     public void "can publish a non-unique snapshot version"() {
         given:
+        using m2
+
         file("settings.gradle") << "rootProject.name = 'publishTest' "
 
         and:

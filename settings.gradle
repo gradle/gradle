@@ -70,6 +70,7 @@ include 'pluginDevelopment'
 include 'modelCore'
 include 'modelGroovy'
 include 'testingNative'
+include 'testingJvm'
 include 'platformPlay'
 include 'testKit'
 

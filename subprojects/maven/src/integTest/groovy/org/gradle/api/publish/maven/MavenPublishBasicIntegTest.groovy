@@ -87,6 +87,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can publish simple jar"() {
         given:
+        using m2
         def repoModule = mavenRepo.module('group', 'root', '1.0')
         def localModule = localM2Repo.module('group', 'root', '1.0')
 
@@ -140,6 +141,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         given:
         def customLocalRepo = new MavenLocalRepository(file("custom-maven-local"))
         m2.generateUserSettingsFile(customLocalRepo)
+        using m2
 
         and:
         settingsFile << "rootProject.name = 'root'"

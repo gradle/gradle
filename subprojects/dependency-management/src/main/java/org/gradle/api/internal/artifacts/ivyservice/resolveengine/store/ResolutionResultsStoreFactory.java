@@ -38,8 +38,8 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private final TemporaryFileProvider temp;
     private int maxSize;
 
-    private CachedStoreFactory oldModelCache;
-    private CachedStoreFactory newModelCache;
+    private CachedStoreFactory<TransientConfigurationResults> oldModelCache;
+    private CachedStoreFactory<ResolvedComponentResult> newModelCache;
 
     private AtomicInteger storeSetBaseId = new AtomicInteger(0);
 
@@ -48,7 +48,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
     }
 
     /**
-     * @param temp
+     * @param temp - Provider of temporary files.
      * @param maxSize - indicates the approx. maximum size of the binary store that will trigger rolling of the file
      */
     ResolutionResultsStoreFactory(TemporaryFileProvider temp, int maxSize) {
@@ -71,17 +71,17 @@ public class ResolutionResultsStoreFactory implements Closeable {
         return store;
     }
 
-    private synchronized CachedStoreFactory getOldModelCache() {
+    private synchronized CachedStoreFactory<TransientConfigurationResults> getOldModelCache() {
         if (oldModelCache == null) {
-            oldModelCache = new CachedStoreFactory("Resolution result");
+            oldModelCache = new CachedStoreFactory<TransientConfigurationResults>("Resolution result");
             cleanUpLater.add(oldModelCache);
         }
         return oldModelCache;
     }
 
-    private synchronized CachedStoreFactory getNewModelCache() {
+    private synchronized CachedStoreFactory<ResolvedComponentResult> getNewModelCache() {
         if (newModelCache == null) {
-            newModelCache = new CachedStoreFactory("Resolution result");
+            newModelCache = new CachedStoreFactory<ResolvedComponentResult>("Resolution result");
             cleanUpLater.add(newModelCache);
         }
         return newModelCache;
@@ -98,11 +98,11 @@ public class ResolutionResultsStoreFactory implements Closeable {
             }
 
             public Store<ResolvedComponentResult> newModelCache() {
-                return getOldModelCache().createCachedStore(storeSetId);
+                return getNewModelCache().createCachedStore(storeSetId);
             }
 
             public Store<TransientConfigurationResults> oldModelCache() {
-                return getNewModelCache().createCachedStore(storeSetId);
+                return getOldModelCache().createCachedStore(storeSetId);
             }
         };
     }
@@ -124,29 +124,6 @@ public class ResolutionResultsStoreFactory implements Closeable {
             oldModelCache = null;
             newModelCache = null;
             stores.clear();
-        }
-    }
-
-    private class DefaultStoreSet implements StoreSet {
-        final int storeSetId;
-        int binaryStoreId;
-
-        public DefaultStoreSet(int storeSetId) {
-            this.storeSetId = storeSetId;
-        }
-
-        public DefaultBinaryStore nextBinaryStore() {
-            //one binary store per id+threadId
-            String storeKey = Thread.currentThread().getId() + "-" + binaryStoreId++;
-            return createBinaryStore(storeKey);
-        }
-
-        public Store<ResolvedComponentResult> newModelCache() {
-            return getOldModelCache().createCachedStore(storeSetId);
-        }
-
-        public Store<TransientConfigurationResults> oldModelCache() {
-            return getNewModelCache().createCachedStore(storeSetId);
         }
     }
 }

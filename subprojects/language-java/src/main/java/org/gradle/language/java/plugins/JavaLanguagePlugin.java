@@ -21,14 +21,18 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.internal.DependencyResolvingClasspath;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
+import org.gradle.jvm.internal.JvmAssembly;
+import org.gradle.jvm.internal.WithJvmAssembly;
+import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
@@ -42,6 +46,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.util.CollectionUtils;
@@ -50,6 +55,9 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static com.google.common.collect.Iterables.concat;
+import static org.gradle.util.CollectionUtils.single;
 
 /**
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
@@ -106,38 +114,59 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     return PlatformJavaCompile.class;
                 }
 
-                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+                public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlatformJavaCompile compile = (PlatformJavaCompile) task;
                     JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
-                    JarBinarySpecInternal binary = (JarBinarySpecInternal) binarySpec;
-
-                    ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
-                    RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
-                    List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
+                    JvmAssembly assembly = ((WithJvmAssembly) binary).getAssembly();
+                    assembly.builtBy(compile);
 
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
-                    compile.setDestinationDir(binary.getClassesDir());
-                    compile.setToolChain(binary.getToolChain());
-                    compile.setPlatform(binary.getTargetPlatform());
-
-                    compile.setSource(javaSourceSet.getSource());
-                    DependencyResolvingClasspath classpath = new DependencyResolvingClasspath(binary, javaSourceSet, dependencyResolver, schemaStore, resolutionAwareRepositories);
-                    compile.setClasspath(classpath);
-                    compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
-                    compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
-
+                    compile.setDestinationDir(single(assembly.getClassDirectories()));
                     compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
                     compile.dependsOn(javaSourceSet);
-
-                    binary.getTasks().getJar().dependsOn(compile);
-                    binary.getApiJar().builtBy(compile);
+                    compile.setSource(javaSourceSet.getSource());
+                    DependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry);
+                    configureCompileTaskFor(assembly, compile, classpath);
                 }
             };
         }
 
-        public boolean applyToBinary(BinarySpec binary) {
-            return binary instanceof JvmBinarySpec;
+        private void configureCompileTaskFor(JvmAssembly assembly, PlatformJavaCompile compile, FileCollection classpath) {
+            JavaPlatform targetPlatform = assembly.getTargetPlatform();
+            String targetCompatibility = targetPlatform.getTargetCompatibility().toString();
+            compile.setPlatform(targetPlatform);
+            compile.setToolChain(assembly.getToolChain());
+            compile.setTargetCompatibility(targetCompatibility);
+            compile.setSourceCompatibility(targetCompatibility);
+            compile.setClasspath(classpath);
         }
-    }
 
+        private DependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry) {
+            Iterable<DependencySpec> dependencies = compileDependencies(binary, javaSourceSet);
+
+            ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
+            RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
+            List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
+            return new DependencyResolvingClasspath(binary, javaSourceSet, dependencies, dependencyResolver, schemaStore, resolutionAwareRepositories);
+        }
+
+        private Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {
+            return binary instanceof JarBinarySpecInternal
+                ? compileJarDependencies((JarBinarySpecInternal) binary, sourceSet)
+                : sourceSet.getDependencies().getDependencies();
+        }
+
+        private Iterable<DependencySpec> compileJarDependencies(final JarBinarySpecInternal binary, final DependentSourceSet sourceSet) {
+            return concat(
+                sourceSet.getDependencies().getDependencies(),
+                binary.getDependencies(),
+                binary.getApiDependencies()
+            );
+        }
+
+        public boolean applyToBinary(BinarySpec binary) {
+            return binary instanceof WithJvmAssembly;
+        }
+
+    }
 }

@@ -21,6 +21,7 @@ class MavenWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
     public void "publishes WAR only for mixed java and WAR project"() {
         given:
+        using m2
         file("settings.gradle") << "rootProject.name = 'publishTest' "
 
         and:

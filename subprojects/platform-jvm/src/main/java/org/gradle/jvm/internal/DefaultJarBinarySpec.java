@@ -17,13 +17,10 @@
 package org.gradle.jvm.internal;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
-import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
@@ -33,27 +30,20 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
+import static org.gradle.util.CollectionUtils.findSingle;
+
 public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpecInternal {
     private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(super.getTasks());
     private final JarFile apiJar = new DefaultJarFile();
-    private JavaToolChain toolChain;
-    private JavaPlatform platform;
-    private File classesDir;
-    private File resourcesDir;
     private File jarFile;
     private Set<String> exportedPackages = ImmutableSet.of();
     private Set<DependencySpec> apiDependencies = ImmutableSet.of();
     private Set<DependencySpec> componentLevelDependencies = ImmutableSet.of();
+    private final DefaultJvmAssembly assembly = new DefaultJvmAssembly();
 
     @Override
     protected String getTypeName() {
         return "Jar";
-    }
-
-    @Override
-    public LibraryBinaryIdentifier getId() {
-        ComponentSpec component = getComponent();
-        return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }
 
     @Override
@@ -63,22 +53,22 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public JavaToolChain getToolChain() {
-        return toolChain;
+        return assembly.getToolChain();
     }
 
     @Override
     public void setToolChain(JavaToolChain toolChain) {
-        this.toolChain = toolChain;
+        assembly.setToolChain(toolChain);
     }
 
     @Override
     public JavaPlatform getTargetPlatform() {
-        return platform;
+        return assembly.getTargetPlatform();
     }
 
     @Override
     public void setTargetPlatform(JavaPlatform platform) {
-        this.platform = platform;
+        assembly.setTargetPlatform(platform);
     }
 
     @Override
@@ -108,22 +98,22 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public File getClassesDir() {
-        return classesDir;
+        return findSingle(assembly.getClassDirectories());
     }
 
     @Override
     public void setClassesDir(File classesDir) {
-        this.classesDir = classesDir;
+        replaceSingleDirectory(assembly.getClassDirectories(), classesDir);
     }
 
     @Override
     public File getResourcesDir() {
-        return resourcesDir;
+        return findSingle(assembly.getResourceDirectories());
     }
 
     @Override
     public void setResourcesDir(File resourcesDir) {
-        this.resourcesDir = resourcesDir;
+        replaceSingleDirectory(assembly.getResourceDirectories(), resourcesDir);
     }
 
     @Override
@@ -138,7 +128,7 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public void setApiDependencies(Collection<DependencySpec> apiDependencies) {
-       this.apiDependencies = ImmutableSet.copyOf(apiDependencies);
+        this.apiDependencies = ImmutableSet.copyOf(apiDependencies);
     }
 
     @Override
@@ -160,4 +150,10 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     protected BinaryBuildAbility getBinaryBuildAbility() {
         return new ToolSearchBuildAbility(((JavaToolChainInternal) getToolChain()).select(getTargetPlatform()));
     }
+
+    @Override
+    public JvmAssembly getAssembly() {
+        return assembly;
+    }
+
 }

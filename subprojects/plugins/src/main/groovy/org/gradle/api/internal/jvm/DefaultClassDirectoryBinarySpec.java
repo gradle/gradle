@@ -16,6 +16,7 @@
 package org.gradle.api.internal.jvm;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -57,6 +58,11 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
             return name.substring(0, name.length() - 7);
         }
         return name;
+    }
+
+    @Override
+    public LibraryBinaryIdentifier getId() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

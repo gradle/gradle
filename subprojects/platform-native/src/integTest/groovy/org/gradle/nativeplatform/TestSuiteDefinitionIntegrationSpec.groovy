@@ -57,6 +57,7 @@ class TestSuitePlugin extends RuleSource {
 
     @LanguageType
     void registerLanguageType(LanguageTypeBuilder<CustomTestSourceSet> builder) {
+        builder.setLanguageName("custom")
         builder.defaultImplementation(DefaultCustomTestSourceSet)
     }
 

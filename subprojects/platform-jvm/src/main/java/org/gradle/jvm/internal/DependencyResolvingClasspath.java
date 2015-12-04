@@ -32,42 +32,45 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalConfigurationMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.jvm.JarBinarySpec;
-import org.gradle.language.base.DependentSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
-import static com.google.common.collect.Iterables.concat;
 import static org.gradle.util.CollectionUtils.collect;
 
 public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
     private final List<ResolutionAwareRepository> remoteRepositories;
-    private final JarBinarySpecInternal binary;
-    private final DependentSourceSet sourceSet;
+    private final BinarySpecInternal binary;
+    private final LanguageSourceSet sourceSet;
     private final ArtifactDependencyResolver dependencyResolver;
     private final DependentSourceSetResolveContext resolveContext;
 
     private ResolveResult resolveResult;
 
     public DependencyResolvingClasspath(
-            JarBinarySpecInternal binarySpec,
-            DependentSourceSet sourceSet,
+            BinarySpec binarySpec,
+            LanguageSourceSet sourceSet,
+            Iterable<DependencySpec> dependencies,
             ArtifactDependencyResolver dependencyResolver,
             ModelSchemaStore schemaStore,
             List<ResolutionAwareRepository> remoteRepositories) {
-        this.binary = binarySpec;
+        this.binary = (BinarySpecInternal) binarySpec;
         this.sourceSet = sourceSet;
         this.dependencyResolver = dependencyResolver;
         this.remoteRepositories = remoteRepositories;
-        this.resolveContext = new DependentSourceSetResolveContext(binary.getId(), sourceSet, variantsMetaDataFrom(binary, schemaStore), allDependencies());
+        this.resolveContext = new DependentSourceSetResolveContext(binary.getId(), sourceSet, variantsMetaDataFrom(binary, schemaStore), dependencies);
     }
 
     @Override
@@ -93,27 +96,6 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         return resolveResult.taskDependency;
     }
 
-    private Iterable<DependencySpec> allDependencies() {
-        return new Iterable<DependencySpec>() {
-            @Override
-            public Iterator<DependencySpec> iterator() {
-                return concat(sourceSetDependencies(), componentDependencies(), apiDependencies()).iterator();
-            }
-        };
-    }
-
-    private Collection<DependencySpec> componentDependencies() {
-        return binary.getDependencies();
-    }
-
-    private Collection<DependencySpec> sourceSetDependencies() {
-        return sourceSet.getDependencies().getDependencies();
-    }
-
-    private Collection<DependencySpec> apiDependencies() {
-        return binary.getApiDependencies();
-    }
-
     private void ensureResolved(boolean failFast) {
         if (resolveResult == null) {
             resolveResult = resolve();
@@ -135,7 +117,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         }
     }
 
-    private VariantsMetaData variantsMetaDataFrom(JarBinarySpec binary, ModelSchemaStore schemaStore) {
+    private VariantsMetaData variantsMetaDataFrom(BinarySpec binary, ModelSchemaStore schemaStore) {
         return DefaultVariantsMetaData.extractFrom(binary, schemaStore);
     }
 

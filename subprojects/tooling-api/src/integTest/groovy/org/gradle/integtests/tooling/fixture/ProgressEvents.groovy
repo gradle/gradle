@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.fixture
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.tooling.Failure
 import org.gradle.tooling.events.*
 import org.gradle.tooling.events.task.TaskOperationDescriptor
@@ -26,7 +27,7 @@ class ProgressEvents implements ProgressListener {
     private boolean dirty
     private final Map<String, Operation> byDisplayName = new LinkedHashMap<>()
     private final List<Operation> operations= new ArrayList<Operation>()
-
+    private static final boolean IS_WINDOWS_OS = OperatingSystem.current().isWindows()
 
     void clear() {
         events.clear()
@@ -78,7 +79,12 @@ class ProgressEvents implements ProgressListener {
                     storedOperation.result = event.result
 
                     assert event.displayName.matches("\\Q${descriptor.displayName}\\E \\w+")
-                    assert startEvent.eventTime <= event.eventTime
+
+                    // don't check event timestamp order on Windows OS
+                    // timekeeping in CI environment on Windows is currently problematic
+                    if(!IS_WINDOWS_OS) {
+                        assert startEvent.eventTime <= event.eventTime
+                    }
 
                     assert event.result.startTime == startEvent.eventTime
                     assert event.result.endTime == event.eventTime

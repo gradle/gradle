@@ -24,13 +24,15 @@ import java.io.Serializable;
 public class DefaultJavaRuntime implements Serializable {
 
     private final File homeDirectory;
+    private final JavaVersion javaVersion;
 
-    public DefaultJavaRuntime(File homeDirectory){
+    public DefaultJavaRuntime(File homeDirectory, JavaVersion javaVersion) {
         this.homeDirectory = homeDirectory;
+        this.javaVersion = javaVersion;
     }
 
     public JavaVersion getJavaVersion() {
-        return JavaVersion.current();
+        return javaVersion;
     }
 
     public File getHomeDirectory() {

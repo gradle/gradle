@@ -22,6 +22,10 @@ import spock.lang.Unroll
 
 class MavenVersionRangePublishIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        using m2 //uploadArchives leaks into local ~/.m2
+    }
+
     public void "version range is mapped to maven syntax in published pom file"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

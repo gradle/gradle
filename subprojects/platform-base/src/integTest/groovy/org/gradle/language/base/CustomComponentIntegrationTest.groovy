@@ -292,7 +292,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         succeeds "validate"
     }
 
-    def "can declare internal views for both for custom unmanaged and managed component"() {
+    def "can declare internal views for both custom unmanaged and managed component"() {
         buildFile << """
             interface UnmanagedComponentSpec extends ComponentSpec {
             }
