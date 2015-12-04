@@ -16,19 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.api.JavaVersion;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaSourceSettings;
 
-import java.io.Serializable;
-
-public class DefaultIdeaProjectJavaSourceSettings implements Serializable {
-
-    private final JavaVersion sourceLanguageLevel;
-
-    public DefaultIdeaProjectJavaSourceSettings(JavaVersion sourceLanguageLevel) {
-        this.sourceLanguageLevel = sourceLanguageLevel;
-    }
-
-    public JavaVersion getSourceLanguageLevel() {
-        return sourceLanguageLevel;
-    }
+public class DefaultIdeaProjectJavaSourceSettings extends DefaultJavaSourceSettings {
 }

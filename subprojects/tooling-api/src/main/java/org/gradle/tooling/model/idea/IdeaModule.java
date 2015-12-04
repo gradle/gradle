@@ -31,6 +31,7 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject, JavaS
 
     /**
      * {@inheritDoc}
+     * @since 2.11
      */
     IdeaModuleJavaSourceSettings getJavaSourceSettings();
 

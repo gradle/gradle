@@ -24,8 +24,15 @@ public class DefaultIdeaModuleJavaSourceSettings extends DefaultJavaSourceSettin
 
     private boolean sourceLanguageLevelInherited;
 
+    private boolean targetBytecodeLevelInherited;
+
     public DefaultIdeaModuleJavaSourceSettings setSourceLanguageLevelInherited(boolean sourceLanguageLevelInherited) {
         this.sourceLanguageLevelInherited = sourceLanguageLevelInherited;
+        return this;
+    }
+
+    public DefaultIdeaModuleJavaSourceSettings setTargetBytecodeLevelInherited(boolean targetBytecodeLevelInherited) {
+        this.targetBytecodeLevelInherited = targetBytecodeLevelInherited;
         return this;
     }
 
@@ -46,5 +53,9 @@ public class DefaultIdeaModuleJavaSourceSettings extends DefaultJavaSourceSettin
 
     public boolean isSourceLanguageLevelInherited() {
         return sourceLanguageLevelInherited;
+    }
+
+    public boolean isTargetBytecodeLevelInherited() {
+        return targetBytecodeLevelInherited;
     }
 }

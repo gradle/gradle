@@ -29,6 +29,7 @@ public interface IdeaProject extends HierarchicalElement, JavaSourceAware {
 
     /**
      * {@inheritDoc}
+     * @since 2.11
      */
     IdeaProjectJavaSourceSettings getJavaSourceSettings();
 

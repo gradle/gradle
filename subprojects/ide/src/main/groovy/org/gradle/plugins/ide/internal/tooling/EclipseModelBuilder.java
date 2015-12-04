@@ -141,10 +141,11 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         eclipseProject.setBuildCommands(buildCommands);
         EclipseJdt jdt = eclipseModel.getJdt();
         if (jdt != null) {
+            final Jvm currentJvm = Jvm.current();
             eclipseProject.setJavaSourceSettings(new DefaultJavaSourceSettings()
                 .setSourceLanguageLevel(jdt.getSourceCompatibility())
                 .setTargetBytecodeLevel(jdt.getTargetCompatibility())
-                .setJavaRuntime(new DefaultJavaRuntime(Jvm.current().getJavaHome()))
+                .setJavaRuntime(new DefaultJavaRuntime(currentJvm.getJavaHome(), currentJvm.getJavaVersion()))
             );
         }
 
