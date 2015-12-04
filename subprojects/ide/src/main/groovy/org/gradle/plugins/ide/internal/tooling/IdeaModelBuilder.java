@@ -19,12 +19,11 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
-import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
-import org.gradle.plugins.ide.idea.model.IdeaModule;
-import org.gradle.plugins.ide.idea.model.IdeaProject;
 import org.gradle.plugins.ide.internal.tooling.idea.*;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaRuntime;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -71,9 +70,10 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 .setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel()))
                 .setJavaSourceSettings(new DefaultIdeaProjectJavaSourceSettings(projectSourceLanguageLevel));
 
+        final DefaultJavaRuntime defaultJavaRuntime = new DefaultJavaRuntime(Jvm.current().getJavaHome());
         Map<String, DefaultIdeaModule> modules = new HashMap<String, DefaultIdeaModule>();
         for (IdeaModule module : projectModel.getModules()) {
-            appendModule(modules, module, out, rootGradleProject, projectSourceLanguageLevel);
+            appendModule(modules, module, out, rootGradleProject, projectSourceLanguageLevel, defaultJavaRuntime);
         }
         for (IdeaModule module : projectModel.getModules()) {
             buildDependencies(modules, module);
@@ -113,7 +113,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         modules.get(ideaModule.getName()).setDependencies(dependencies);
     }
 
-    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject, JavaVersion projectSourceLanguageLevel) {
+    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject, JavaVersion projectSourceLanguageLevel, DefaultJavaRuntime javaRuntime) {
         DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
             .setRootDirectory(ideaModule.getContentRoot())
             .setSourceDirectories(srcDirs(ideaModule.getSourceDirs(), ideaModule.getGeneratedSourceDirs()))
@@ -134,7 +134,10 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                     .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
                     .setOutputDir(ideaModule.getOutputDir())
                     .setTestOutputDir(ideaModule.getTestOutputDir()))
-                    .setJavaSourceSettings(new DefaultIdeaModuleJavaSourceSettings(moduleSourceLanguageLevel, sourceLanguageLevelInherited));
+                    .setJavaSourceSettings(new DefaultIdeaModuleJavaSourceSettings()
+                                    .setSourceLanguageLevelInherited(sourceLanguageLevelInherited)
+                                    .setSourceLanguageLevel(moduleSourceLanguageLevel)
+                                    .setJavaRuntime(javaRuntime));
         modules.put(ideaModule.getName(), defaultIdeaModule);
     }
 

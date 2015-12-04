@@ -33,4 +33,18 @@ public interface IdeaModuleJavaSourceSettings extends JavaSourceSettings {
      * @return whether the language level is inherited
      */
     boolean isSourceLanguageLevelInherited();
+
+    /**
+     * Returns {@code true} if the bytecode level is inherited from the project settings.
+     *
+     * @return whether the target bytecode level is inherited
+     */
+    boolean isTargetBytecodeLevelInherited();
+
+    /**
+     * Returns {@code true} if the target runtime setting for the idea module is inherited from the project source settings.
+     *
+     * @return whether the target runtime is inherited
+     */
+    boolean isTargetRuntimeInherited();
 }
