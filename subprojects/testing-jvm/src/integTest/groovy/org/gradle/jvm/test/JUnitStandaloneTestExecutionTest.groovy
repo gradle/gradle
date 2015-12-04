@@ -56,24 +56,6 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         outputContains "Test 'mySuite:mySuite'"
     }
 
-    def "compiles a test case"() {
-        given:
-        applyJUnitPlugin()
-
-        and:
-        testSuiteComponent()
-
-        and:
-        standaloneTestCase()
-
-        when:
-        succeeds ':compileMySuiteMySuiteMySuiteJava'
-
-        then:
-        executedAndNotSkipped ':compileMySuiteMySuiteMySuiteJava'
-
-    }
-
     def "executes a passing test suite"() {
         given:
         applyJUnitPlugin()

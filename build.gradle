@@ -146,8 +146,8 @@ ext {
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'testingNative',
-        'pluginDevelopment', 'pluginUse', 'resourcesHttp', 'resourcesSftp', 'resourcesS3',
-        'toolingApiBuilders'
+        'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp', 'resourcesSftp',
+        'resourcesS3', 'toolingApiBuilders'
     ].collect {
         project(it)
     }
