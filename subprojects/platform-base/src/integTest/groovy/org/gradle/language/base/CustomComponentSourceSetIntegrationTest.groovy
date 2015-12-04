@@ -166,7 +166,7 @@ model {
         failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule 'sampleLib { ... } @ build.gradle line 41, column 9 > components.sampleLib.getBinaries() > create(main)' as the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 30, column 9 > create(bin) > create(main)' is already registered to create this model element.")
     }
 
-    def "user can attach unmanaged internal views to custom `LanguageSourceSet`"() {
+    def "user can attach unmanaged internal views to custom unmanaged `LanguageSourceSet`"() {
         given:
         buildFile << """
             interface HaxeSourceSet extends LanguageSourceSet {
@@ -195,13 +195,9 @@ model {
             model {
                 components {
                     sampleLib(SampleLibrary) {
-                        binaries {
-                            sampleBin(SampleBinary) {
-                                sources {
-                                    haxe(HaxeSourceSet) {
-                                        publicData = "public"
-                                    }
-                                }
+                        sources {
+                            haxe(HaxeSourceSet) {
+                                publicData = "public"
                             }
                         }
                     }
@@ -210,7 +206,7 @@ model {
 
             class TestRules extends RuleSource {
                 @Defaults
-                void useInternalView(@Path("components.sampleLib.binaries.sampleBin.sources.haxe") HaxeSourceSetInternal lss) {
+                void useInternalView(@Path("components.sampleLib.sources.haxe") HaxeSourceSetInternal lss) {
                     lss.setInternalData("internal")
                 }
             }
@@ -222,9 +218,9 @@ model {
                     tasks.create("validate") {
                         assert components*.name == ["sampleLib"]
                         assert components.withType(SampleLibrary)*.name == ["sampleLib"]
-                        assert components.sampleLib.binaries.sampleBin.sources.haxe != null
-                        assert components.sampleLib.binaries.sampleBin.sources.haxe.publicData == "public"
-                        assert components.sampleLib.binaries.sampleBin.sources.haxe.internalData == "internal"
+                        assert components.sampleLib.sources.haxe != null
+                        assert components.sampleLib.sources.haxe.publicData == "public"
+                        assert components.sampleLib.sources.haxe.internalData == "internal"
                     }
                 }
             }
@@ -249,12 +245,8 @@ model {
             model {
                 components {
                     sampleLib(SampleLibrary) {
-                        binaries {
-                            sampleBin(SampleBinary) {
-                                sources {
-                                    haxe(HaxeSourceSet)
-                                }
-                            }
+                        sources {
+                            haxe(HaxeSourceSet)
                         }
                     }
                 }
