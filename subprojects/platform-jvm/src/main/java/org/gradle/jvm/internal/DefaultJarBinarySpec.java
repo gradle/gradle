@@ -17,13 +17,10 @@
 package org.gradle.jvm.internal;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
-import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
@@ -47,12 +44,6 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     @Override
     protected String getTypeName() {
         return "Jar";
-    }
-
-    @Override
-    public LibraryBinaryIdentifier getId() {
-        ComponentSpec component = getComponent();
-        return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }
 
     @Override

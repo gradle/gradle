@@ -20,9 +20,11 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
@@ -94,6 +96,13 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
         ComponentSpec component = getComponent();
         namingScheme = DefaultBinaryNamingScheme.component(component == null ? null :component.getName()).withBinaryName(name).withBinaryType(getTypeName());
+    }
+
+    @Override
+    public LibraryBinaryIdentifier getId() {
+        // TODO:DAZ This can throw a NPE: will need an identifier for a variant without an owning component
+        ComponentSpec component = getComponent();
+        return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }
 
     @Override
