@@ -157,22 +157,21 @@ language levels for each module in a project.
 
 - ~~move EclipseJavaSourceSettings.getTargetRuntime() into JavaSourceSettings~~
 - ~~move EclipseJavaSourceSettings.getTargetBytecodeLevel() into JavaSourceSettings~~
-- for each module set `IdeaModuleJavaSourceSettings.targetRuntime` to current runtime in use and `IdeaModuleJavaSourceSettings.TargetRuntimeInherited = true`
+- for each module set `IdeaModuleJavaSourceSettings.targetRuntime` to current runtime in use and `IdeaModuleJavaSourceSettings.targetRuntimeInherited = true`
 - set `IdeaProjectJavaSourceSettings.targetRuntime` to current runtime
 - for each module set `IdeaModuleJavaSourceSettings.targetBytecodeLevel` to `JavaConvention.targetCompatibilityLevel`
-- set `IdeaProjectJavaSourceSettings.targetBytecodeLevel`
-        - all modules same `IdeaModuleJavaSourceSettings.targetBytecodeLevel` -> set to this value
-        - modules differ in `IdeaModuleJavaSourceSettings.targetBytecodeLevel` -> set to highest value
+- set `IdeaProjectJavaSourceSettings.targetBytecodeLevel` to highest bytecode level found among the modules
+- set `IdeaModuleJavaSourceSettings.targetBytecodeLevelInherited = true` for modules with same target bytecode level as in `IdeaProjectJavaSourceSettings.targetBytecodeLevel`
 - for modules having same `targetBytecodeLevel` as `IdeaProjectJavaSourceSettings.targetBytecodeLevel` set `IdeaModuleJavaSourceSettings.targetBytecodeLevelInherited = true`
 - returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.~~
 
 #### Test cases
 
-- Multiproject build with same target Java versions
-- Multiproject build with mix of target Java versions
+- ~~Multiproject build with same target Java versions~~
+- ~~Multiproject build with mix of target Java versions~~
 - Multiproject build with mix of Java and non-Java projects
 - Multiproject build with no Java projects
-
+- meaningful error for older gradle providers
 
 ### Story - Expose Idea module specific bytecode level in IdeaPlugin
 

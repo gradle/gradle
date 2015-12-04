@@ -137,23 +137,27 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
                 targetCompatibility = '1.6'
             }
 
+            project(':child2:child3') {
+                targetCompatibility = '1.7'
+            }
+
         """
 
         when:
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_6
+        ideaProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_7
         ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
         ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
         ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_6
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_7
 
         and:
         ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetBytecodeLevelInherited == false
         ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetBytecodeLevelInherited == false
         ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetBytecodeLevelInherited == false
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetBytecodeLevelInherited == false
+        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetBytecodeLevelInherited == true
     }
 
     def "can query target bytecode level for idea project and modules"() {

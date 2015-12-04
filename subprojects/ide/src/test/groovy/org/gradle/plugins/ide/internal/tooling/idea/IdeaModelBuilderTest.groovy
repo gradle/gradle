@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
+import org.gradle.internal.jvm.Jvm
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.plugins.ide.internal.tooling.IdeaModelBuilder
@@ -227,6 +228,72 @@ class IdeaModelBuilderTest extends Specification {
         !ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.isSourceLanguageLevelInherited()
         ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.isSourceLanguageLevelInherited()
     }
+
+    def "project target runtime matches current jvm in use"() {
+        when:
+        def ideaProject = buildIdeaProjectModel()
+
+        then:
+        ideaProject.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
+        ideaProject.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetRuntimeInherited == true
+
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetRuntimeInherited == true
+
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetRuntimeInherited == true
+    }
+
+    def "synched module bytecode level marked as inherited"() {
+
+        when:
+        [root, child1, child2].each {
+            it.plugins.apply(JavaPlugin)
+            it.targetCompatibility = "1.5"
+        }
+        def ideaProject = buildIdeaProjectModel()
+
+        then:
+        ideaProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeLevelInherited == true
+
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeLevelInherited == true
+
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetBytecodeLevelInherited == true
+    }
+
+    def "can have mixed bytecode level"() {
+
+        when:
+        [root, child1, child2].each {
+            it.plugins.apply(JavaPlugin)
+        }
+        root.targetCompatibility = "1.5"
+        child1.targetCompatibility = "1.6"
+        child2.targetCompatibility = "1.7"
+
+        def ideaProject = buildIdeaProjectModel()
+
+        then:
+        ideaProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_7
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeLevelInherited == false
+
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_6
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeLevelInherited == false
+
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_7
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetBytecodeLevelInherited == true
+    }
+
 
     private DefaultIdeaProject buildIdeaProjectModel() {
         def builder = createIdeaModelBuilder()

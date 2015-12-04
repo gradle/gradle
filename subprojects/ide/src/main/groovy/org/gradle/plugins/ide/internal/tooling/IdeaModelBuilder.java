@@ -77,7 +77,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel()))
             .setJavaSourceSettings(new DefaultJavaSourceSettings()
                 .setSourceLanguageLevel(projectSourceLanguageLevel)
-                .setJavaRuntime(javaRuntime));
+                .setTargetRuntime(javaRuntime));
 
         Map<String, DefaultIdeaModule> modules = new HashMap<String, DefaultIdeaModule>();
         for (IdeaModule module : projectModel.getModules()) {
@@ -95,15 +95,14 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             }
         })));
 
-        if (moduleBytecodeVersions.size() == 1) {
-            // same bytecode versions declared for all modules
-            for (DefaultIdeaModule ideaModule : ideaModules) {
-                ideaModule.getJavaSourceSettings().setTargetBytecodeLevelInherited(true);
-            }
-            out.getJavaSourceSettings().setTargetBytecodeLevel(single(moduleBytecodeVersions));
-        } else if (moduleBytecodeVersions.size() > 1) {
+        if (moduleBytecodeVersions.size() > 0) {
             final JavaVersion maxBytecodeLevel = Collections.max(moduleBytecodeVersions);
             out.getJavaSourceSettings().setTargetBytecodeLevel(maxBytecodeLevel);
+            for (DefaultIdeaModule ideaModule : ideaModules) {
+                if (ideaModule.getJavaSourceSettings().getTargetBytecodeLevel() != null && ideaModule.getJavaSourceSettings().getTargetBytecodeLevel().equals(maxBytecodeLevel)) {
+                    ideaModule.getJavaSourceSettings().setTargetBytecodeLevelInherited(true);
+                }
+            }
         }
 
         out.setChildren(new LinkedList<DefaultIdeaModule>(ideaModules));
@@ -168,7 +167,8 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 .setSourceLanguageLevelInherited(sourceLanguageLevelInherited)
                 .setSourceLanguageLevel(moduleSourceLanguageLevel)
                 .setTargetBytecodeLevel(moduleTargetLanguageLevel)
-                .setJavaRuntime(javaRuntime));
+                .setTargetRuntime(javaRuntime)
+                .setTargetRuntimeInherited(true));
         modules.put(ideaModule.getName(), defaultIdeaModule);
     }
 

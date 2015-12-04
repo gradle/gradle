@@ -26,6 +26,8 @@ public class DefaultIdeaModuleJavaSourceSettings extends DefaultJavaSourceSettin
 
     private boolean targetBytecodeLevelInherited;
 
+    private boolean targetRuntimeInherited;
+
     public DefaultIdeaModuleJavaSourceSettings setSourceLanguageLevelInherited(boolean sourceLanguageLevelInherited) {
         this.sourceLanguageLevelInherited = sourceLanguageLevelInherited;
         return this;
@@ -34,6 +36,15 @@ public class DefaultIdeaModuleJavaSourceSettings extends DefaultJavaSourceSettin
     public DefaultIdeaModuleJavaSourceSettings setTargetBytecodeLevelInherited(boolean targetBytecodeLevelInherited) {
         this.targetBytecodeLevelInherited = targetBytecodeLevelInherited;
         return this;
+    }
+
+    public DefaultIdeaModuleJavaSourceSettings setTargetRuntimeInherited(boolean targetRuntimeInherited) {
+        this.targetRuntimeInherited = targetRuntimeInherited;
+        return this;
+    }
+
+    public boolean isTargetRuntimeInherited() {
+        return targetRuntimeInherited;
     }
 
     public DefaultIdeaModuleJavaSourceSettings setSourceLanguageLevel(JavaVersion sourceLanguageLevel) {
@@ -46,8 +57,8 @@ public class DefaultIdeaModuleJavaSourceSettings extends DefaultJavaSourceSettin
         return this;
     }
 
-    public DefaultIdeaModuleJavaSourceSettings setJavaRuntime(DefaultJavaRuntime javaRuntime) {
-        super.setJavaRuntime(javaRuntime);
+    public DefaultIdeaModuleJavaSourceSettings setTargetRuntime(DefaultJavaRuntime targetRuntime) {
+        super.setTargetRuntime(targetRuntime);
         return this;
     }
 
