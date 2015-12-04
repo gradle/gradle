@@ -22,6 +22,7 @@ import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.plugins.ide.internal.tooling.IdeaModelBuilder
 import org.gradle.tooling.internal.gradle.DefaultGradleProject
@@ -47,7 +48,7 @@ class IdeaModelBuilderTest extends Specification {
 
         then:
         ideaProject.javaSourceSettings.sourceLanguageLevel == defaultIdeaPluginLanguageLevelForNonJavaProjects
-        ideaProject.javaSourceSettings.sourceLanguageLevel == ideaProject.languageLevel.toJavaVersion()
+        ideaProject.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
     }
 
     def "project source language level matches idea plugin language level for jvm projects with default configuration"() {
@@ -59,7 +60,7 @@ class IdeaModelBuilderTest extends Specification {
 
         then:
         ideaProject.javaSourceSettings.sourceLanguageLevel == defaultIdeaPluginLanguageLevelForJavaProjects
-        ideaProject.javaSourceSettings.sourceLanguageLevel == ideaProject.languageLevel.toJavaVersion()
+        ideaProject.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
 
         where:
         pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
@@ -75,7 +76,7 @@ class IdeaModelBuilderTest extends Specification {
 
         then:
         ideaProject.javaSourceSettings.sourceLanguageLevel.toString() == sourceLanguageLevel
-        ideaProject.javaSourceSettings.sourceLanguageLevel == ideaProject.languageLevel.toJavaVersion()
+        ideaProject.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
 
         where:
         sourceLanguageLevel << ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9']
@@ -87,7 +88,7 @@ class IdeaModelBuilderTest extends Specification {
 
         then:
         ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == defaultIdeaPluginLanguageLevelForNonJavaProjects
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == ideaProject.languageLevel.toJavaVersion()
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
     }
 
     def "module source language level matches source compatibility level from java plugin for jvm projects"() {
@@ -142,9 +143,9 @@ class IdeaModelBuilderTest extends Specification {
         then:
         ideaProject.javaSourceSettings.sourceLanguageLevel == defaultIdeaPluginLanguageLevelForNonJavaProjects
         ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == defaultIdeaPluginLanguageLevelForNonJavaProjects
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == ideaProject.languageLevel.toJavaVersion()
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel == ideaProject.languageLevel.toJavaVersion()
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.sourceLanguageLevel == ideaProject.languageLevel.toJavaVersion()
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
         ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.isSourceLanguageLevelInherited()
         ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.isSourceLanguageLevelInherited()
         ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.isSourceLanguageLevelInherited()
@@ -241,6 +242,10 @@ class IdeaModelBuilderTest extends Specification {
 
     private DefaultIdeaProject buildIdeaProject(modelBuilder, project) {
         modelBuilder.buildAll("org.gradle.tooling.model.idea.IdeaProject", project)
+    }
+
+    private JavaVersion toJavaVersion(ideaLanguageLevel) {
+        JavaVersion.valueOf(ideaLanguageLevel.level.replaceFirst("JDK", "VERSION"));
     }
 
     private JavaVersion getDefaultIdeaPluginLanguageLevelForNonJavaProjects() {

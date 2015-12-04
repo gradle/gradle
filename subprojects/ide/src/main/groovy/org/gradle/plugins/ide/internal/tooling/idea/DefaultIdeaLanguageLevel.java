@@ -58,18 +58,6 @@ public class DefaultIdeaLanguageLevel implements IdeaLanguageLevel, Serializable
         return "IdeaLanguageLevel{level='" + level + "'}";
     }
 
-    public JavaVersion toJavaVersion() {
-        if (level != null) {
-            String javaVersionString = level.replaceFirst("JDK", "VERSION");
-            try {
-                return JavaVersion.valueOf(javaVersionString);
-            } catch (IllegalArgumentException e) {
-                // return null silently
-            }
-        }
-        return null;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
