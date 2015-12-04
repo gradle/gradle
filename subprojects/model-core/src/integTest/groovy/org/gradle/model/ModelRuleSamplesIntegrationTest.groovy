@@ -38,8 +38,11 @@ class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
         sample sample
 
         then:
-        succeeds "helloFromDsl"
+        succeeds "listPeople"
+        output.contains("configuring Person 'people.john'")
+        output.contains("configuring Person 'people.barry'")
         output.contains("Hello John Smith!")
+        output.contains("Hello Barry Barry!")
     }
 }
 
