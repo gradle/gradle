@@ -94,6 +94,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':compileMySuiteMySuiteMySuiteJava', ':mySuiteTest'
+        failure.assertHasCause('There were failing tests. See the report at')
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('MyTest')
         result.testClass('MyTest')
