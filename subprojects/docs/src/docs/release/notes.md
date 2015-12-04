@@ -10,7 +10,8 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Java software model compile avoidance
+### Java software model
+#### Compile avoidance
 
 This version of Gradle further optimizes on avoiding recompiling consuming libraries after non-ABI breaking changes. Since 2.9, if a library declares an API, Gradle creates a "[stubbed API jar](userguide/java_software.html)". This enables avoiding recompiling any consuming library if the application binary interface (ABI) of the library doesn't change. This version of Gradle extends this functionality to libraries that don't declare their APIs, speeding up builds with incremental changes in most Java projects, small or large. In particular, a library `A` that depend on a library `B` will not need to be recompiled in the following cases:
 
@@ -19,6 +20,22 @@ This version of Gradle further optimizes on avoiding recompiling consuming libra
 * order of methods is changed in `B`
 
 This feature only works for local libraries, not external dependencies. More information about compile avoidance can be found in the [userguide](userguide/java_software.html).
+
+#### Standalone JUnit test suite execution
+
+It is now possible to declare a JUnit test suite as a software component. This incubating feature is however limited to standalone tests because the test suite doesn't yet have a component under test: it is possible to depend on a local library, but not *testing* a local library. This is the first step in providing first class support for test suites in the Java software model.
+
+Declaring a test suite can be done like this:
+
+    model {
+        components {
+            mySuite(JUnitTestSuiteSpec) {
+                junitVersion '4.12'
+            }
+        }
+    }
+
+Then the suite can be executed running the `:mySuiteTest` task.
 
 ## Promoted features
 
