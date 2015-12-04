@@ -101,7 +101,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 ideaModule.getJavaSourceSettings().setTargetBytecodeLevelInherited(true);
             }
             out.getJavaSourceSettings().setTargetBytecodeLevel(single(moduleBytecodeVersions));
-        } else {
+        } else if (moduleBytecodeVersions.size() > 1) {
             final JavaVersion maxBytecodeLevel = Collections.max(moduleBytecodeVersions);
             out.getJavaSourceSettings().setTargetBytecodeLevel(maxBytecodeLevel);
         }
