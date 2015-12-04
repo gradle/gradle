@@ -23,8 +23,11 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class NonThreadsafeInMemoryStore implements PersistentStore {
+public class MapBackedInMemoryStore implements PersistentStore {
+    private final Lock lock = new ReentrantLock();
 
     @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
@@ -33,12 +36,22 @@ public class NonThreadsafeInMemoryStore implements PersistentStore {
 
     @Override
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        return action.create();
+        lock.lock();
+        try {
+            return action.create();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public void useCache(String operationDisplayName, Runnable action) {
-        action.run();
+        lock.lock();
+        try {
+            action.run();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override

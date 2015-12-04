@@ -1,38 +1,100 @@
 @Managed
 interface Person {
-  void setFirstName(String n); String getFirstName()
-  void setLastName(String n); String getLastName()
+    void setFirstName(String n);
+
+    String getFirstName()
+
+    void setLastName(String n);
+
+    String getLastName()
 }
 
 class PersonRules extends RuleSource {
-  @Mutate void createHelloTask(ModelMap<Task> tasks, Person p) {
-    tasks.create("hello") {
-      doLast {
-        println "Hello $p.firstName $p.lastName!"
-      }
+    @Model
+    void people(ModelMap<Person> people) {
     }
-  }
 }
 
 apply plugin: PersonRules
 
-model {
-  person {
-    lastName = "Smith"
-  }
+// START SNIPPET configure-rule
 // START SNIPPET create-rule
-  person(Person) {
-    firstName = "John"
-  }
-// END SNIPPET create-rule
 // START SNIPPET rule-inputs
-  tasks {
-    create("helloFromDsl") {
-      def p = $.person
-      doLast {
-        println "Hello $p.firstName $p.lastName!"
-      }
-    }
-  }
+// START SNIPPET create-rule-no-config
+model {
+// END SNIPPET create-rule
 // END SNIPPET rule-inputs
+// END SNIPPET create-rule-no-config
+    person {
+        lastName = "Smith"
+    }
+// END SNIPPET configure-rule
+// START SNIPPET create-rule
+    person(Person) {
+        firstName = "John"
+    }
+// END SNIPPET create-rule
+// START SNIPPET create-rule-no-config
+    barry(Person)
+// END SNIPPET create-rule-no-config
+// START SNIPPET rule-inputs
+    tasks {
+        hello(Task) {
+            def p = $.person
+            doLast {
+                println "Hello $p.firstName $p.lastName!"
+            }
+        }
+    }
+// START SNIPPET create-rule-no-config
+// START SNIPPET configure-rule
+// START SNIPPET create-rule
 }
+// END SNIPPET create-rule
+// END SNIPPET create-rule-no-config
+// END SNIPPET configure-rule
+// END SNIPPET rule-inputs
+
+// START SNIPPET model-map-nested-configure-rule
+// START SNIPPET model-map-nested-create-rule
+// START SNIPPET model-map-all-rule
+model {
+    people {
+// END SNIPPET model-map-nested-create-rule
+// END SNIPPET model-map-all-rule
+        john {
+            lastName = "Smith"
+        }
+// END SNIPPET model-map-nested-configure-rule
+// START SNIPPET model-map-nested-create-rule
+        john(Person) {
+            firstName = "John"
+        }
+// END SNIPPET model-map-nested-create-rule
+// START SNIPPET model-map-all-rule
+        all {
+            println "configuring $it"
+        }
+// END SNIPPET model-map-all-rule
+        barry(Person) {
+            firstName = "Barry"
+            lastName = "Barry"
+        }
+    }
+    tasks {
+        listPeople(Task) {
+            doLast {
+                def p = $.people
+                p.each {
+                    println "Hello $it.firstName $it.lastName!"
+                }
+            }
+        }
+// START SNIPPET model-map-nested-create-rule
+// START SNIPPET model-map-nested-configure-rule
+// START SNIPPET model-map-all-rule
+    }
+}
+// END SNIPPET model-map-nested-configure-rule
+// END SNIPPET model-map-nested-create-rule
+// END SNIPPET model-map-all-rule
