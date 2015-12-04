@@ -16,19 +16,17 @@
 
 package org.gradle.internal.authentication;
 
-import org.gradle.api.NonExtensible;
-import org.gradle.api.credentials.Credentials;
-import org.gradle.authentication.Authentication;
+import org.gradle.authentication.aws.AwsImAuthentication;
 
-@NonExtensible
-public interface AuthenticationInternal extends Authentication {
-    boolean supports(Credentials credentials);
+public class DefaultAwsImAuthentication extends AbstractAuthentication implements AwsImAuthentication {
 
-    Credentials getCredentials();
+    public DefaultAwsImAuthentication(String name) {
+        super(name, AwsImAuthentication.class);
+    }
 
-    void setCredentials(Credentials credentials);
 
-    Class<? extends Authentication> getType();
-
-    boolean requiresCredentials();
+    @Override
+    public boolean requiresCredentials() {
+        return false;
+    }
 }

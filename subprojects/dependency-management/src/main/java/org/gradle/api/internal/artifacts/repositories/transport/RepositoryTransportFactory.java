@@ -128,13 +128,15 @@ public class RepositoryTransportFactory {
                     authentication, schemes.iterator().next()));
             }
 
-            if (credentials != null) {
-                if (!((AuthenticationInternal) authentication).supports(credentials)) {
-                    throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme %s",
-                        credentials.getClass().getSimpleName(), authentication));
+            if (authenticationInternal.requiresCredentials()) {
+                if (credentials != null) {
+                    if (!((AuthenticationInternal) authentication).supports(credentials)) {
+                        throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme %s",
+                            credentials.getClass().getSimpleName(), authentication));
+                    }
+                } else {
+                    throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
                 }
-            } else {
-                throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
             }
 
             if (!configuredAuthenticationTypes.add(authenticationInternal.getType())) {
@@ -165,9 +167,9 @@ public class RepositoryTransportFactory {
                 return null;
             }
 
-            Credentials credentials = ((AuthenticationInternal)authentications.iterator().next()).getCredentials();
+            Credentials credentials = ((AuthenticationInternal) authentications.iterator().next()).getCredentials();
 
-            if(credentials == null) {
+            if (credentials == null) {
                 return null;
             }
             if (type.isAssignableFrom(credentials.getClass())) {

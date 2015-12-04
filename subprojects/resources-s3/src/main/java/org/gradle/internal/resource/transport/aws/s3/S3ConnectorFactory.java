@@ -16,9 +16,11 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import org.gradle.authentication.Authentication;
 import org.gradle.api.credentials.AwsCredentials;
+import org.gradle.authentication.Authentication;
+import org.gradle.authentication.aws.AwsImAuthentication;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
+import org.gradle.internal.authentication.DefaultAwsImAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
@@ -37,15 +39,25 @@ public class S3ConnectorFactory implements ResourceConnectorFactory {
     public Set<Class<? extends Authentication>> getSupportedAuthentication() {
         Set<Class<? extends Authentication>> supported = new HashSet<Class<? extends Authentication>>();
         supported.add(AllSchemesAuthentication.class);
+        supported.add(AwsImAuthentication.class);
         return supported;
     }
 
     @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
+        final S3Client s3Client;
+        for (Authentication authentication : connectionDetails.getAuthentications()) {
+            if (authentication instanceof DefaultAwsImAuthentication) {
+                s3Client = S3Client.forInstanceMetaData();
+                return new S3ResourceConnector(s3Client);
+            }
+        }
+
         AwsCredentials awsCredentials = connectionDetails.getCredentials(AwsCredentials.class);
-        if(awsCredentials == null) {
+        if (awsCredentials == null) {
             throw new IllegalArgumentException("AwsCredentials must be set for S3 backed repository.");
         }
-        return new S3ResourceConnector(new S3Client(awsCredentials, new S3ConnectionProperties()));
+        s3Client = S3Client.of(awsCredentials, new S3ConnectionProperties());
+        return new S3ResourceConnector(s3Client);
     }
 }

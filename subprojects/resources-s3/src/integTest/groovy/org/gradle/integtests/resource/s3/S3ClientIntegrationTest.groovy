@@ -66,7 +66,7 @@ class S3ClientIntegrationTest extends Specification {
             getMaxErrorRetryCount() >> Optional.absent()
         }
 
-        S3Client s3Client = new S3Client(authenticationImpl, s3SystemProperties)
+        S3Client s3Client = S3Client.of(authenticationImpl, s3SystemProperties)
 
         when:
         def stream = new FileInputStream(file)
@@ -120,7 +120,7 @@ class S3ClientIntegrationTest extends Specification {
         String bucketName = System.getenv('G_S3_BUCKET')
         credentials.setAccessKey(System.getenv('G_AWS_ACCESS_KEY_ID'))
         credentials.setSecretKey(System.getenv('G_AWS_SECRET_ACCESS_KEY'))
-        S3Client s3Client = new S3Client(credentials, new S3ConnectionProperties())
+        S3Client s3Client = S3Client.of(credentials, new S3ConnectionProperties())
 
         def fileContents = 'This is only a test'
         File file = temporaryFolder.createFile(FILE_NAME)
@@ -141,7 +141,7 @@ class S3ClientIntegrationTest extends Specification {
         credentials.setAccessKey(System.getenv('G_AWS_ACCESS_KEY_ID'))
         credentials.setSecretKey(System.getenv('G_AWS_SECRET_ACCESS_KEY'))
 
-        S3Client s3Client = new S3Client(credentials, new S3ConnectionProperties())
+        S3Client s3Client = S3Client.of(credentials, new S3ConnectionProperties())
 
         def fileContents = 'This is only a test'
         File file = temporaryFolder.createFile(FILE_NAME)

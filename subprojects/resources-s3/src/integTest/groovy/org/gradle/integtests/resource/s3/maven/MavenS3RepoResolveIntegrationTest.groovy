@@ -18,8 +18,15 @@ package org.gradle.integtests.resource.s3.maven
 
 import org.gradle.integtests.resource.s3.AbstractS3DependencyResolutionTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Module
+import org.gradle.integtests.resource.s3.fixtures.S3Server
+import org.gradle.integtests.resource.s3.fixtures.stub.HttpStub
+import org.gradle.test.fixtures.server.http.TestProxyServer
+import org.junit.Rule
 
 class MavenS3RepoResolveIntegrationTest extends AbstractS3DependencyResolutionTest {
+
+    @Rule
+    TestProxyServer proxyServer = new TestProxyServer(server)
 
     @Override
     String getRepositoryPath() {
@@ -29,7 +36,7 @@ class MavenS3RepoResolveIntegrationTest extends AbstractS3DependencyResolutionTe
     String artifactVersion = "1.85"
     MavenS3Module module
 
-    def setup(){
+    def setup() {
         module = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
     }
 
@@ -111,5 +118,116 @@ task retrieve(type: Sync) {
         localModule.artifactFile.assertIsDifferentFrom(module.artifactFile)
         localModule.pomFile.assertIsDifferentFrom(module.pomFile)
         file('libs/test-1.85.jar').assertIsCopyOf(module.artifactFile)
+    }
+
+    def "should resolve authenticating with instance metadata"() {
+        given:
+        module.publish()
+        m2.generateGlobalSettingsFile()
+        m2.mavenRepo().module("org.gradle", "test", artifactVersion).publishWithChangedContent()
+
+
+        buildFile << """
+repositories {
+    maven {
+        url "${mavenS3Repo.uri}"
+         authentication {
+            awsIm(AwsImAuthentication)
+         }
+    }
+}
+configurations { compile }
+
+dependencies{
+    compile 'org.gradle:test:$artifactVersion'
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+        and:
+        module.pom.expectMetadataRetrieve()
+        module.pom.sha1.expectDownload()
+        module.pom.expectDownload()
+        module.artifact.expectMetadataRetrieve()
+        module.artifact.sha1.expectDownload()
+        module.artifact.expectDownload()
+
+        when:
+        using m2
+
+        //A proxy server is used to intercept requests to AWS's IM endpoint (169.254.169.254)
+        proxyServer.start()
+        AwsImStubSupport.stubRoleNames(server, ['some-s3-iam-role'])
+        AwsImStubSupport.stubCredentialsForRole(server, 'some-s3-iam-role')
+
+        executer.withArguments(
+            "-Dorg.gradle.s3.endpoint=${server.uri}",
+            "-Dhttp.proxyHost=localhost",
+            "-Dhttp.proxyPort=${proxyServer.port}"
+        )
+
+        then:
+        succeeds 'retrieve'
+
+        then:
+        module.artifact
+    }
+    
+    class AwsImStubSupport {
+        static stubRoleNames(S3Server s3Server, List<String> roleNames) {
+            s3Server.expect(HttpStub.stubInteraction {
+                request {
+                    method = 'GET'
+                    headers = [
+                        'Host': '169.254.169.254'
+                    ]
+                    path = '/latest/meta-data/iam/security-credentials/'
+                }
+
+                response {
+                    status = 200
+                    body = {
+                        roleNames.collect { String.format("$it%n") }.join()
+                    }
+                }
+            })
+        }
+
+        static Map stubCredentialsForRole(S3Server s3Server, String role) {
+            String accessKeyId = 'someAccessKeyId'
+            String secretAccessKey = 'someSecretAccessKey'
+            String token = "someToken"
+
+            s3Server.expect(HttpStub.stubInteraction {
+                request {
+                    method = 'GET'
+                    headers = [
+                        'Host': '169.254.169.254'
+                    ]
+                    path = "/latest/meta-data/iam/security-credentials/$role"
+                }
+
+                response {
+                    status = 200
+                    body = {
+                        """{
+  "Code" : "Success",
+  "LastUpdated" : "2012-04-26T16:39:16Z",
+  "Type" : "AWS-HMAC",
+  "AccessKeyId" : "$accessKeyId",
+  "SecretAccessKey" : "$secretAccessKey",
+  "Token" : "$token",
+  "Expiration" : "2050-04-27T22:39:16Z"
+}
+"""
+                    }
+                }
+            })
+
+            return [accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, token: token]
+        }
     }
 }

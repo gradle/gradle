@@ -20,7 +20,9 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.model.*;
@@ -49,16 +51,29 @@ public class S3Client {
     public S3Client(AmazonS3Client amazonS3Client, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
         this.amazonS3Client = amazonS3Client;
+        configureClientOptions(amazonS3Client);
     }
 
-    public S3Client(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
-        this.s3ConnectionProperties = s3ConnectionProperties;
+    public static S3Client of(AmazonS3Client amazonS3Client, S3ConnectionProperties s3ConnectionProperties) {
+        return new S3Client(amazonS3Client, s3ConnectionProperties);
+    }
+
+    public static S3Client of(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
         AWSCredentials credentials = awsCredentials == null ? null : new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
-        amazonS3Client = createAmazonS3Client(credentials);
+        AmazonS3Client s3 = new AmazonS3Client(credentials, createConnectionProperties(s3ConnectionProperties));
+        return new S3Client(s3, s3ConnectionProperties);
+    }
+    public static S3Client forInstanceMetaData() {
+        return S3Client.of(new InstanceProfileCredentialsProvider());
     }
 
-    private AmazonS3Client createAmazonS3Client(AWSCredentials credentials) {
-        AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, createConnectionProperties());
+    private static S3Client of(AWSCredentialsProvider awsCredentialsProvider) {
+        S3ConnectionProperties s3ConnectionProperties = new S3ConnectionProperties();
+        AmazonS3Client s3 = new AmazonS3Client(awsCredentialsProvider, createConnectionProperties(s3ConnectionProperties));
+        return new S3Client(s3, s3ConnectionProperties);
+    }
+
+    private void configureClientOptions(AmazonS3Client amazonS3Client) {
         S3ClientOptions clientOptions = new S3ClientOptions();
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         if (endpoint.isPresent()) {
@@ -66,14 +81,13 @@ public class S3Client {
             clientOptions.withPathStyleAccess(true);
         }
         amazonS3Client.setS3ClientOptions(clientOptions);
-        return amazonS3Client;
     }
 
-    private ClientConfiguration createConnectionProperties() {
+    private static ClientConfiguration createConnectionProperties(S3ConnectionProperties props) {
         ClientConfiguration clientConfiguration = new ClientConfiguration();
-        Optional<HttpProxySettings.HttpProxy> proxyOptional = s3ConnectionProperties.getProxy();
+        Optional<HttpProxySettings.HttpProxy> proxyOptional = props.getProxy();
         if (proxyOptional.isPresent()) {
-            HttpProxySettings.HttpProxy proxy = s3ConnectionProperties.getProxy().get();
+            HttpProxySettings.HttpProxy proxy = props.getProxy().get();
             clientConfiguration.setProxyHost(proxy.host);
             clientConfiguration.setProxyPort(proxy.port);
             PasswordCredentials credentials = proxy.credentials;
@@ -82,7 +96,7 @@ public class S3Client {
                 clientConfiguration.setProxyPassword(credentials.getPassword());
             }
         }
-        Optional<Integer> maxErrorRetryCount = s3ConnectionProperties.getMaxErrorRetryCount();
+        Optional<Integer> maxErrorRetryCount = props.getMaxErrorRetryCount();
         if (maxErrorRetryCount.isPresent()) {
             clientConfiguration.setMaxErrorRetry(maxErrorRetryCount.get());
         }
@@ -128,10 +142,10 @@ public class S3Client {
         configureClient(s3RegionalResource);
 
         ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
-                .withBucketName(bucketName)
-                .withPrefix(s3BucketKey)
-                .withMaxKeys(1000)
-                .withDelimiter("/");
+            .withBucketName(bucketName)
+            .withPrefix(s3BucketKey)
+            .withMaxKeys(1000)
+            .withDelimiter("/");
         ObjectListing objectListing = amazonS3Client.listObjects(listObjectsRequest);
         results.addAll(resolveResourceNames(objectListing));
 
@@ -196,4 +210,8 @@ public class S3Client {
             amazonS3Client.setRegion(s3RegionalResource.getRegion());
         }
     }
+
+
+
+
 }
