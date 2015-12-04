@@ -269,7 +269,7 @@ class UserGuideSamplesRunner extends Runner {
 
         samplesById.nativeComponentReport.runs.each { it.outputFormatter = new NativeComponentReportOutputFormatter() }
         samplesById.playComponentReport.runs.each { it.outputFormatter = new PlayComponentReportOutputFormatter() }
-        samplesById.newJavaComponentReport.runs.each { it.outputFormatter = new JvmComponentReportOutputFormatter() }
+        samplesById.javaLibraryComponentReport.runs.each { it.outputFormatter = new JvmComponentReportOutputFormatter() }
 
         if ("true".equals(System.getProperty("org.gradle.integtest.unknownos"))) {
             // Ignore for now
