@@ -15,6 +15,7 @@
  */
 
 package org.gradle.jvm.test
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
@@ -61,24 +62,33 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
     def "executes a passing test suite"() {
         given:
         applyJUnitPlugin()
+        boolean useLib = sourceconfig.hasLibraryDependency
 
         and:
         testSuiteComponent(sourceconfig)
+        if (useLib) {
+            utilsLibrary()
+        }
 
         and:
-        standaloneTestCase(true)
+        standaloneTestCase(true, useLib)
 
         when:
         succeeds ':mySuiteTest'
 
         then:
         executedAndNotSkipped ':compileMySuiteMySuiteMySuiteJava', ':mySuiteTest'
+        int testCount = useLib ? 2 : 1;
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('MyTest')
-        result.testClass('MyTest')
-            .assertTestCount(1, 0, 0)
-            .assertTestsExecuted('test')
+        def check = result.testClass('MyTest')
+            .assertTestCount(testCount, 0, 0)
+            .assertTestsExecuted((useLib ? ['test', 'testLibDependency'] : ['test']) as String[])
             .assertTestPassed('test')
+
+        if (useLib) {
+            check.assertTestPassed('testLibDependency')
+        }
 
         where:
         sourceconfig << SourceSetConfiguration.values()
@@ -88,12 +98,16 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
     def "executes a failing test suite"() {
         given:
         applyJUnitPlugin()
+        boolean useLib = sourceconfig.hasLibraryDependency
 
         and:
         testSuiteComponent(sourceconfig)
+        if (useLib) {
+            utilsLibrary()
+        }
 
         and:
-        standaloneTestCase(false)
+        standaloneTestCase(false, useLib)
 
         when:
         fails ':mySuiteTest'
@@ -101,12 +115,16 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ':compileMySuiteMySuiteMySuiteJava', ':mySuiteTest'
         failure.assertHasCause('There were failing tests. See the report at')
+        int testCount = useLib ? 2 : 1;
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('MyTest')
-        result.testClass('MyTest')
-            .assertTestCount(1, 1, 0)
-            .assertTestsExecuted('test')
+        def check = result.testClass('MyTest')
+            .assertTestCount(testCount, testCount, 0)
+            .assertTestsExecuted((useLib ? ['test', 'testLibDependency'] : ['test']) as String[])
             .assertTestFailed('test', Matchers.equalTo('java.lang.AssertionError: expected:<true> but was:<false>'))
+        if (useLib) {
+            check.assertTestFailed('testLibDependency', Matchers.equalTo('java.lang.AssertionError: expected:<0> but was:<666>'))
+        }
 
         where:
         sourceconfig << SourceSetConfiguration.values()
@@ -127,25 +145,36 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
     }
 
     private enum SourceSetConfiguration {
-        NONE('no source set is declared', ''),
-        EXPLICIT_NO_DEPS('an explicit source set configuration is used', '''{
+        NONE('no source set is declared', false, ''),
+        EXPLICIT_NO_DEPS('an explicit source set configuration is used', false, '''{
                         sources {
                             java {
                                source.srcDirs 'src/test/java'
                             }
                         }
+                    }'''),
+        LIBRARY_DEP('a dependency onto a local library', true, '''{
+                        sources {
+                            java {
+                                dependencies {
+                                    library 'utils'
+                                }
+                            }
+                        }
                     }''')
         private final String description
         private final String configuration
+        private boolean hasLibraryDependency;
 
-        public SourceSetConfiguration(String description, String configuration) {
+        public SourceSetConfiguration(String description, boolean hasLibraryDependency, String configuration) {
             this.description = description
+            this.hasLibraryDependency = hasLibraryDependency
             this.configuration = configuration
         }
 
     }
 
-    private TestFile testSuiteComponent(SourceSetConfiguration config = SourceSetConfiguration.EXPLICIT_NO_DEPS) {
+    private void testSuiteComponent(SourceSetConfiguration config = SourceSetConfiguration.EXPLICIT_NO_DEPS) {
         buildFile << """
             model {
                 components {
@@ -155,7 +184,20 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         """
     }
 
-    private TestFile standaloneTestCase(boolean passing = true) {
+    private void utilsLibrary() {
+        buildFile << """
+            model {
+                components {
+                    utils(JvmLibrarySpec)
+                }
+            }
+        """.stripMargin()
+        file('src/utils/java/Utils.java') << '''public class Utils {
+            public static final int MAGIC = 42;
+        }'''.stripMargin()
+    }
+
+    private TestFile standaloneTestCase(boolean passing = true, boolean hasLibraryDependency) {
         file('src/test/java/MyTest.java') << """
         import org.junit.Test;
 
@@ -167,6 +209,10 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
             public void test() {
                 assertEquals(true, ${passing ? 'true' : 'false'});
             }
+            // todo: the value '0' is used, where it should in reality be 42, because we're using the API jar when resolving dependencies
+            // where we should be using the runtime jar instead. This will be fixed in another story.
+            // Meanwhile this will ensure that we can depend on a local library for building a test suite.
+            ${hasLibraryDependency ? ('@Test public void testLibDependency() { assertEquals(Utils.MAGIC, ' + (passing ? '0); }' : '666); }')) : ''}
         }
         """.stripMargin()
     }
