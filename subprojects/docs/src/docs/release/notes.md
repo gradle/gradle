@@ -25,10 +25,6 @@ Module dependencies declared this way will be resolved against the configured re
 
 ### Performance improvements
 
-#### Java compile avoidance
-
-TODO
-
 #### Native compilation inputs
 
 Gradle needs to know all input properties, input files and output files of a task to perform incremental build checks.  When no input or output files have changed, Gradle can skip executing a task.
