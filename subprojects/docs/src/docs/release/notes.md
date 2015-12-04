@@ -40,7 +40,7 @@ Due to the way Gradle determines the set of input files, using macros to `#inclu
 
 ### Software model changes
 
-TBD - Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
+TODO - Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
 might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
 
 #### Convenient configuration of scalar properties from Groovy
@@ -419,6 +419,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 - It is no longer possible to configure `BinarySpec.sources` from the top-level `binaries` container: this functionality will be re-added in a subsequent release.
 - `FunctionalSourceSet` is now a subtype of `ModelMap`, and no longer extends `Named`
 - The implementation object of a `ComponentSpec`, `BinarySpec` or `LanguageSourceSet`, if defined, is no longer visible. These elements can only be accessed using their public types or internal view types.
+- The `DependentSpec` API is now polymorphic. For dependencies declared by project and library, use `ProjectDependencySpec`.
 
 ### Changes to incubating Native Software Model
 
