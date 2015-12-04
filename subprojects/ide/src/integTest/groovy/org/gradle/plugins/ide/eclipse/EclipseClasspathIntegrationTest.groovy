@@ -986,5 +986,25 @@ dependencies {
         assert classpath.containers == [jreContainerPath, 'org.scala-ide.sdt.launching.SCALA_CONTAINER']
     }
 
+    @Test
+    void avoidsDuplicateJreContainersInClasspathWhenMerging() {
+        //given
+        getClasspathFile() << """<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.5"/>
+	<classpathentry kind="src" path="/someProject"/>
+</classpath>
+"""
 
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+"""
+        //then
+        assert classpath.entries.size() == 2
+        assert classpath.containers.size() == 1
+        assert classpath.containers == [jreContainerPath]
+    }
 }
