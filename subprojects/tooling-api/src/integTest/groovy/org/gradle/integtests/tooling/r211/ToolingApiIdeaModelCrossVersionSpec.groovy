@@ -185,7 +185,6 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetBytecodeLevelInherited == true
     }
 
-
     private IdeaProject loadIdeaProjectModel() {
         withConnection { connection -> connection.getModel(IdeaProject) }
     }
