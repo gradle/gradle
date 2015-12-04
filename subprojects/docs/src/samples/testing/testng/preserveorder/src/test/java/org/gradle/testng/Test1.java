@@ -21,20 +21,24 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class Test1 {
-    
+
     @BeforeClass
     public void beforeClass() {
-        UniqueResource.acquire();
+        System.out.println("Test1.beforeClass()");
     }
 
     @Test
-    public void test1() {}
+    public void test1() {
+        System.out.println("Test1.test1()");
+    }
 
     @Test(dependsOnMethods = {"test1"})
-    public void test2() {}
-    
+    public void test2() {
+        System.out.println("Test1.test2()");
+    }
+
     @AfterClass
     public void afterClass() {
-        UniqueResource.release();
+        System.out.println("Test1.afterClass()");
     }
 }

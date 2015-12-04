@@ -15,3 +15,7 @@ test {
     }
 }
 // END SNIPPET test-config
+
+test.testLogging {
+    showStandardStreams = true
+}

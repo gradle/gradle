@@ -30,17 +30,21 @@ public class Test2 {
 
     @BeforeClass
     public void beforeClass() {
-        UniqueResource.acquire();
+        System.out.println("Test2.beforeClass()");
     }
 
     @Test
-    public void test1() {}
+    public void test1() {
+        System.out.println("Test2.test1()");
+    }
 
     @Test(dependsOnMethods = {"test1"})
-    public void test2() {}
+    public void test2() {
+        System.out.println("Test2.test2()");
+    }
 
     @AfterClass
     public void afterClass() {
-        UniqueResource.release();
+        System.out.println("Test2.afterClass()");
     }
 }
