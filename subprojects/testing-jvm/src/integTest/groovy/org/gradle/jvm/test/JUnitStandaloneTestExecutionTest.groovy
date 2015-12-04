@@ -320,6 +320,52 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         errorOutput.contains 'package utils.internal does not exist'
     }
 
+    @NotYetImplemented
+    def "test should access test resources"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        testSuiteComponent()
+
+        and:
+        file('src/test/java/MyTest.java') << """
+        import org.junit.Test;
+        import java.util.Properties;
+        import java.io.InputStream;
+        import static org.junit.Assert.*;
+
+        public class MyTest {
+            public static String MAGIC;
+
+            static {
+                try {
+                   Properties properties = new Properties();
+                   InputStream in = MyTest.class.getResourceAsStream("data.properties");
+                   properties.load(in);
+                   MAGIC = properties.getProperty("magic");
+                   in.close();
+                } catch (Throwable e) {
+                    throw new RuntimeException("Test resource not found",e);
+                }
+            }
+
+            @Test
+            public void test() {
+                assertEquals(MAGIC, "42");
+            }
+        }
+        """.stripMargin()
+        file('src/test/resources/data.properties') << 'magic = 42'
+
+        when:
+        succeeds ':mySuiteTest'
+
+        then:
+        noExceptionThrown()
+        executedAndNotSkipped ':compileMySuiteMySuiteMySuiteJava', ':mySuiteTest'
+    }
+
     private TestFile applyJUnitPlugin() {
         buildFile << '''import org.gradle.jvm.plugins.JUnitTestSuitePlugin
             plugins {

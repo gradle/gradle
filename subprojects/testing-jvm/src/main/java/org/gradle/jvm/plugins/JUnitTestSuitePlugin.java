@@ -30,6 +30,7 @@ import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
+import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.model.*;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
@@ -149,7 +150,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
         }
 
         @Defaults
-        void addDefaultJavaSourceSet(ModelMap<JUnitTestSuiteSpec> suites) {
+        void addDefaultSourceSets(ModelMap<JUnitTestSuiteSpec> suites) {
             suites.all(new Action<JUnitTestSuiteSpec>() {
                 @Override
                 public void execute(JUnitTestSuiteSpec jUnitTestSuiteSpec) {
@@ -157,6 +158,12 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                         @Override
                         public void execute(JavaSourceSet languageSourceSet) {
                             languageSourceSet.getSource().srcDir("src/test/java");
+                        }
+                    });
+                    jUnitTestSuiteSpec.getSources().create("resources", JvmResourceSet.class, new Action<JvmResourceSet>() {
+                        @Override
+                        public void execute(JvmResourceSet languageSourceSet) {
+                            languageSourceSet.getSource().srcDir("src/test/resources");
                         }
                     });
                 }
