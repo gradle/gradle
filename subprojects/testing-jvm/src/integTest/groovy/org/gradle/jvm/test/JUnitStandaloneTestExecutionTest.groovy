@@ -63,6 +63,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         given:
         applyJUnitPlugin()
         boolean useLib = sourceconfig.hasLibraryDependency
+        boolean useExternalDep = sourceconfig.hasExternalDependency
 
         and:
         testSuiteComponent(sourceconfig)
@@ -71,23 +72,30 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         }
 
         and:
-        standaloneTestCase(true, useLib)
+        standaloneTestSuite(true, useLib, useExternalDep)
 
         when:
         succeeds ':mySuiteTest'
 
         then:
         executedAndNotSkipped ':compileMySuiteMySuiteMySuiteJava', ':mySuiteTest'
-        int testCount = useLib ? 2 : 1;
+        int testCount = 1;
+        def tests = ['test']
+        if (useLib) {
+            testCount++
+            tests << 'testLibDependency'
+        }
+        if (useExternalDep) {
+            testCount++
+            tests << 'testExternalDependency'
+        };
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('MyTest')
         def check = result.testClass('MyTest')
             .assertTestCount(testCount, 0, 0)
-            .assertTestsExecuted((useLib ? ['test', 'testLibDependency'] : ['test']) as String[])
-            .assertTestPassed('test')
-
-        if (useLib) {
-            check.assertTestPassed('testLibDependency')
+            .assertTestsExecuted(tests as String[])
+        tests.each {
+            check.assertTestPassed(it)
         }
 
         where:
@@ -99,6 +107,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         given:
         applyJUnitPlugin()
         boolean useLib = sourceconfig.hasLibraryDependency
+        boolean useExternalDep = sourceconfig.hasExternalDependency
 
         and:
         testSuiteComponent(sourceconfig)
@@ -107,7 +116,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         }
 
         and:
-        standaloneTestCase(false, useLib)
+        standaloneTestSuite(false, useLib, useExternalDep)
 
         when:
         fails ':mySuiteTest'
@@ -115,15 +124,25 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ':compileMySuiteMySuiteMySuiteJava', ':mySuiteTest'
         failure.assertHasCause('There were failing tests. See the report at')
-        int testCount = useLib ? 2 : 1;
+        int testCount = 1;
+        def tests = [
+            'test': 'java.lang.AssertionError: expected:<true> but was:<false>',
+        ]
+        if (useLib) {
+            testCount++
+            tests.testLibDependency = 'java.lang.AssertionError: expected:<0> but was:<666>'
+        }
+        if (useExternalDep) {
+            testCount++
+            tests.testExternalDependency = 'org.junit.ComparisonFailure: expected:<[Hello World]> but was:<[oh noes!]>'
+        };
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('MyTest')
         def check = result.testClass('MyTest')
             .assertTestCount(testCount, testCount, 0)
-            .assertTestsExecuted((useLib ? ['test', 'testLibDependency'] : ['test']) as String[])
-            .assertTestFailed('test', Matchers.equalTo('java.lang.AssertionError: expected:<true> but was:<false>'))
-        if (useLib) {
-            check.assertTestFailed('testLibDependency', Matchers.equalTo('java.lang.AssertionError: expected:<0> but was:<666>'))
+            .assertTestsExecuted(tests.keySet() as String[])
+        tests.each { test, error ->
+            check.assertTestFailed(test, Matchers.equalTo(error))
         }
 
         where:
@@ -145,15 +164,15 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
     }
 
     private enum SourceSetConfiguration {
-        NONE('no source set is declared', false, ''),
-        EXPLICIT_NO_DEPS('an explicit source set configuration is used', false, '''{
+        NONE('no source set is declared', false, false, ''),
+        EXPLICIT_NO_DEPS('an explicit source set configuration is used', false, false, '''{
                         sources {
                             java {
                                source.srcDirs 'src/test/java'
                             }
                         }
                     }'''),
-        LIBRARY_DEP('a dependency onto a local library', true, '''{
+        LIBRARY_DEP('a dependency onto a local library', true, false, '''{
                         sources {
                             java {
                                 dependencies {
@@ -161,14 +180,25 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
                                 }
                             }
                         }
+                    }'''),
+        EXTERNAL_DEP('a dependency onto an external library', false, true, '''{
+                        sources {
+                            java {
+                                dependencies {
+                                    module 'org.apache.commons:commons-lang3:3.4'
+                                }
+                            }
+                        }
                     }''')
         private final String description
         private final String configuration
         private boolean hasLibraryDependency;
+        private boolean hasExternalDependency;
 
-        public SourceSetConfiguration(String description, boolean hasLibraryDependency, String configuration) {
+        public SourceSetConfiguration(String description, boolean hasLibraryDependency, boolean hasExternalDependency, String configuration) {
             this.description = description
             this.hasLibraryDependency = hasLibraryDependency
+            this.hasExternalDependency = hasExternalDependency
             this.configuration = configuration
         }
 
@@ -197,7 +227,25 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         }'''.stripMargin()
     }
 
-    private TestFile standaloneTestCase(boolean passing = true, boolean hasLibraryDependency) {
+    private void standaloneTestSuite(boolean passing, boolean hasLibraryDependency, boolean hasExternalDependency) {
+
+        // todo: the value '0' is used, where it should in reality be 42, because we're using the API jar when resolving dependencies
+        // where we should be using the runtime jar instead. This will be fixed in another story.
+        // Meanwhile this will ensure that we can depend on a local library for building a test suite.
+        String libraryDependencyTest = """
+            @Test
+            public void testLibDependency() {
+                assertEquals(Utils.MAGIC, ${passing ? '0' : '666'});
+            }
+        """
+
+        String externalDependencyTest = """
+            @Test
+            public void testExternalDependency() {
+                assertEquals("Hello World", ${passing ? 'org.apache.commons.lang3.text.WordUtils.capitalize("hello world")' : '"oh noes!"'});
+            }
+        """
+
         file('src/test/java/MyTest.java') << """
         import org.junit.Test;
 
@@ -209,10 +257,11 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
             public void test() {
                 assertEquals(true, ${passing ? 'true' : 'false'});
             }
-            // todo: the value '0' is used, where it should in reality be 42, because we're using the API jar when resolving dependencies
-            // where we should be using the runtime jar instead. This will be fixed in another story.
-            // Meanwhile this will ensure that we can depend on a local library for building a test suite.
-            ${hasLibraryDependency ? ('@Test public void testLibDependency() { assertEquals(Utils.MAGIC, ' + (passing ? '0); }' : '666); }')) : ''}
+
+
+            ${hasLibraryDependency ? libraryDependencyTest : ''}
+
+            ${hasExternalDependency ? externalDependencyTest : ''}
         }
         """.stripMargin()
     }
