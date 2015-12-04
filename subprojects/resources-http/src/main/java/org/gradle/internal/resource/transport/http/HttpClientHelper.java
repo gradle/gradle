@@ -21,10 +21,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.DecompressingHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.impl.client.SystemDefaultHttpClient;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.gradle.api.UncheckedIOException;
@@ -44,10 +41,8 @@ public class HttpClientHelper {
 
     public HttpClientHelper(HttpSettings settings) {
         alwaysUseKeepAliveConnections();
-        DefaultHttpClient client = new SystemDefaultHttpClient();
-        client.setRedirectStrategy(new AlwaysRedirectRedirectStrategy());
-        new HttpClientConfigurer(settings).configure(client);
-        this.client = new DecompressingHttpClient(client);
+        HttpClientConfigurer configurer = new HttpClientConfigurer(settings);
+        this.client = configurer.createAndConfigureClient();
     }
 
     private void alwaysUseKeepAliveConnections() {
@@ -108,7 +103,7 @@ public class HttpClientHelper {
 
     public HttpResponse performHttpRequest(HttpRequestBase request) throws IOException {
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
-        httpContext.removeAttribute(DefaultRedirectStrategy.REDIRECT_LOCATIONS);
+        httpContext.removeAttribute(HttpClientContext.REDIRECT_LOCATIONS);
         LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), request.getURI());
         return client.execute(request, httpContext);
     }
