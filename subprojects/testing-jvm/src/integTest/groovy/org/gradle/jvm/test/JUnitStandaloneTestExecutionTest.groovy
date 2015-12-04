@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.test
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
@@ -197,6 +198,26 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
 
         where:
         sourceconfig << SourceSetConfiguration.values()
+    }
+
+    @NotYetImplemented
+    def "assemble does not compile nor run test suite"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        testSuiteComponent()
+
+        and:
+        standaloneTestSuite(false, false, false)
+
+        when:
+        executer.withArgument('--dry-run')
+        succeeds 'assemble'
+
+        then:
+        notExecuted ':compileMySuiteMySuiteMySuiteJava', ':mySuiteTest'
+
     }
 
     private TestFile applyJUnitPlugin() {
