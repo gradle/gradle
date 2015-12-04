@@ -26,7 +26,9 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ScalarValueSchema;
+import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
+import org.gradle.model.internal.manage.schema.extract.SpecializedMapNodeInitializer;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
@@ -84,10 +86,13 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         final ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        final ModelReference<T> reference = ModelReference.of(modelPath, managedType);
-        return ModelRegistrations.of(modelPath)
-            .descriptor(descriptor)
-            .action(ModelActionRole.Discover, Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class)), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+        ModelRegistrations.Builder registration = ModelRegistrations.of(modelPath)
+            .descriptor(descriptor);
+
+        if (modelSchema instanceof SpecializedMapSchema) {
+            registration.actions(SpecializedMapNodeInitializer.getActions(ModelReference.of(modelPath), descriptor, (SpecializedMapSchema<T, ?>) modelSchema));
+        } else {
+            registration.action(ModelActionRole.Discover, Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class)), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                     NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
@@ -98,12 +103,14 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
                         node.applyToSelf(role, action);
                     }
                 }
-            })
-            .action(ModelActionRole.Initialize, InputUsingModelAction.of(
-                    reference, descriptor, inputs, new RuleMethodBackedMutationAction<T>(ruleDefinition.getRuleInvoker())
-                )
-            )
-            .build();
+            });
+        }
+
+        registration.action(ModelActionRole.Initialize, InputUsingModelAction.of(
+            ModelReference.of(modelPath, managedType), descriptor, inputs, new RuleMethodBackedMutationAction<T>(ruleDefinition.getRuleInvoker())
+        ));
+
+        return registration.build();
     }
 
     private static NodeInitializer getNodeInitializer(ModelRuleDescriptor descriptor, ModelSchema<?> modelSchema, NodeInitializerRegistry nodeInitializerRegistry) {
