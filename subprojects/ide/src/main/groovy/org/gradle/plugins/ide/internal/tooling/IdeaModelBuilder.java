@@ -81,7 +81,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
 
         Map<String, DefaultIdeaModule> modules = new HashMap<String, DefaultIdeaModule>();
         for (IdeaModule module : projectModel.getModules()) {
-            appendModule(modules, module, out, rootGradleProject, projectSourceLanguageLevel, javaRuntime);
+            appendModule(modules, module, out, rootGradleProject, javaRuntime);
         }
         for (IdeaModule module : projectModel.getModules()) {
             buildDependencies(modules, module);
@@ -140,7 +140,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         modules.get(ideaModule.getName()).setDependencies(dependencies);
     }
 
-    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject, JavaVersion projectSourceLanguageLevel, DefaultJavaRuntime javaRuntime) {
+    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject, DefaultJavaRuntime javaRuntime) {
         DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
             .setRootDirectory(ideaModule.getContentRoot())
             .setSourceDirectories(srcDirs(ideaModule.getSourceDirs(), ideaModule.getGeneratedSourceDirs()))
@@ -149,6 +149,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
 
         Project project = ideaModule.getProject();
         JavaPluginConvention javaPluginConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
+        JavaVersion projectSourceLanguageLevel = ideaProject.getJavaSourceSettings().getSourceLanguageLevel();
         JavaVersion moduleSourceLanguageLevel = javaPluginConvention != null ? javaPluginConvention.getSourceCompatibility() : projectSourceLanguageLevel;
         JavaVersion moduleTargetLanguageLevel = javaPluginConvention != null ? javaPluginConvention.getTargetCompatibility() : null;
 
