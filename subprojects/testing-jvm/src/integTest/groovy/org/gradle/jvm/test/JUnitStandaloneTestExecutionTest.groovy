@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matchers
+import spock.lang.Unroll
 
 class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
 
@@ -56,12 +57,13 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         outputContains "Test 'mySuite:mySuite'"
     }
 
+    @Unroll("Executes a passing test suite with a JUnit component and #sourceconfig.description")
     def "executes a passing test suite"() {
         given:
         applyJUnitPlugin()
 
         and:
-        testSuiteComponent()
+        testSuiteComponent(sourceconfig)
 
         and:
         standaloneTestCase(true)
@@ -77,14 +79,18 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
             .assertTestCount(1, 0, 0)
             .assertTestsExecuted('test')
             .assertTestPassed('test')
+
+        where:
+        sourceconfig << SourceSetConfiguration.values()
     }
 
+    @Unroll("Executes a failing test suite with a JUnit component and #sourceconfig.description")
     def "executes a failing test suite"() {
         given:
         applyJUnitPlugin()
 
         and:
-        testSuiteComponent()
+        testSuiteComponent(sourceconfig)
 
         and:
         standaloneTestCase(false)
@@ -101,6 +107,9 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
             .assertTestCount(1, 1, 0)
             .assertTestsExecuted('test')
             .assertTestFailed('test', Matchers.equalTo('java.lang.AssertionError: expected:<true> but was:<false>'))
+
+        where:
+        sourceconfig << SourceSetConfiguration.values()
     }
 
     private TestFile applyJUnitPlugin() {
@@ -117,20 +126,33 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         '''
     }
 
-    private TestFile testSuiteComponent() {
-        buildFile << '''
-            model {
-                components {
-                    mySuite(JUnitTestSuiteSpec) {
+    private enum SourceSetConfiguration {
+        NONE('no source set is declared', ''),
+        EXPLICIT_NO_DEPS('an explicit source set configuration is used', '''{
                         sources {
-                            java(JavaSourceSet) {
+                            java {
                                source.srcDirs 'src/test/java'
                             }
                         }
-                    }
+                    }''')
+        private final String description
+        private final String configuration
+
+        public SourceSetConfiguration(String description, String configuration) {
+            this.description = description
+            this.configuration = configuration
+        }
+
+    }
+
+    private TestFile testSuiteComponent(SourceSetConfiguration config = SourceSetConfiguration.EXPLICIT_NO_DEPS) {
+        buildFile << """
+            model {
+                components {
+                    mySuite(JUnitTestSuiteSpec) ${config.configuration}
                 }
             }
-        '''
+        """
     }
 
     private TestFile standaloneTestCase(boolean passing = true) {

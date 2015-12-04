@@ -28,11 +28,9 @@ import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteSpec;
 import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
-import org.gradle.model.ModelMap;
-import org.gradle.model.Mutate;
-import org.gradle.model.Path;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
@@ -144,6 +142,21 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                             if (languageSourceSet instanceof DependentSourceSet) {
                                 ((DependentSourceSet) languageSourceSet).getDependencies().group("junit").module("junit").version(jUnitVersion);
                             }
+                        }
+                    });
+                }
+            });
+        }
+
+        @Defaults
+        void addDefaultJavaSourceSet(ModelMap<JUnitTestSuiteSpec> suites) {
+            suites.all(new Action<JUnitTestSuiteSpec>() {
+                @Override
+                public void execute(JUnitTestSuiteSpec jUnitTestSuiteSpec) {
+                    jUnitTestSuiteSpec.getSources().create("java", JavaSourceSet.class, new Action<JavaSourceSet>() {
+                        @Override
+                        public void execute(JavaSourceSet languageSourceSet) {
+                            languageSourceSet.getSource().srcDir("src/test/java");
                         }
                     });
                 }
