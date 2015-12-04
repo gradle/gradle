@@ -96,7 +96,7 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
 
     /**
      * Specifies the rule priority threshold.
-     * 
+     *
 	 * @see PmdExtension#rulePriority
 	 */
     @Incubating
@@ -154,10 +154,10 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
             // http://sourceforge.net/p/pmd/bugs/1004/
             // http://java-pmd.30631.n5.nabble.com/pmd-pmd-db05bc-pmd-AntTask-support-for-language-td5710041.html
             antPmdArgs["targetjdk"] = getTargetJdk().getName()
-        } else {
-            // allow PmdPlugin to set a version-independent default
-            if (getRuleSets() == ["basic"]) {
-                setRuleSets(["java-basic"])
+
+            // fallback to basic on pre 5.0 for backwards compatible
+            if (getRuleSets() == ["java-basic"]) {
+                setRuleSets(["basic"])
             }
         }
 

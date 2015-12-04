@@ -51,7 +51,7 @@ class PmdPluginTest extends Specification {
     def "configures pmd extension"() {
         expect:
         PmdExtension extension = project.extensions.pmd
-        extension.ruleSets == ["basic"]
+        extension.ruleSets == ["java-basic"]
         extension.ruleSetConfig == null
         extension.ruleSetFiles.empty
         extension.reportsDir == project.file("build/reports/pmd")
@@ -103,7 +103,7 @@ class PmdPluginTest extends Specification {
             assert description == "Run PMD analysis for ${sourceSet.name} classes"
             source as List == sourceSet.allJava as List
             assert pmdClasspath == project.configurations.pmd
-            assert ruleSets == ["basic"]
+            assert ruleSets == ["java-basic"]
             assert ruleSetConfig == null
             assert ruleSetFiles.empty
             assert reports.xml.destination == project.file("build/reports/pmd/${sourceSet.name}.xml")
@@ -120,7 +120,7 @@ class PmdPluginTest extends Specification {
         task.description == null
         task.source.empty
         task.pmdClasspath == project.configurations.pmd
-        task.ruleSets == ["basic"]
+        task.ruleSets == ["java-basic"]
         task.ruleSetConfig == null
         task.ruleSetFiles.empty
         task.reports.xml.destination == project.file("build/reports/pmd/custom.xml")
@@ -151,7 +151,7 @@ class PmdPluginTest extends Specification {
 
         project.pmd {
             sourceSets = [project.sourceSets.main]
-            ruleSets = ["braces", "unusedcode"]
+            ruleSets = ["java-braces", "java-unusedcode"]
             ruleSetConfig = project.resources.text.fromString("ruleset contents")
             ruleSetFiles = project.files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
@@ -174,7 +174,7 @@ class PmdPluginTest extends Specification {
             assert description == "Run PMD analysis for ${sourceSet.name} classes"
             source as List == sourceSet.allJava as List
             assert pmdClasspath == project.configurations.pmd
-            assert ruleSets == ["braces", "unusedcode"]
+            assert ruleSets == ["java-braces", "java-unusedcode"]
             assert ruleSetConfig.asString() == "ruleset contents"
             assert ruleSetFiles.singleFile == project.file("my-ruleset.xml")
             assert reports.xml.destination == project.file("pmd-reports/${sourceSet.name}.xml")
@@ -187,7 +187,7 @@ class PmdPluginTest extends Specification {
     def "can customize any additional PMD tasks via extension"() {
         def task = project.tasks.create("pmdCustom", Pmd)
         project.pmd {
-            ruleSets = ["braces", "unusedcode"]
+            ruleSets = ["java-braces", "java-unusedcode"]
             ruleSetConfig = project.resources.text.fromString("ruleset contents")
             ruleSetFiles = project.files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
@@ -199,7 +199,7 @@ class PmdPluginTest extends Specification {
         task.description == null
         task.source.empty
         task.pmdClasspath == project.configurations.pmd
-        task.ruleSets == ["braces", "unusedcode"]
+        task.ruleSets == ["java-braces", "java-unusedcode"]
         task.ruleSetConfig.asString() == "ruleset contents"
         task.ruleSetFiles.singleFile == project.file("my-ruleset.xml")
         task.reports.xml.destination == project.file("pmd-reports/custom.xml")
