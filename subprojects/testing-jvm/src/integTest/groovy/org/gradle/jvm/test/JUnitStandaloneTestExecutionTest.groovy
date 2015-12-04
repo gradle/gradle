@@ -220,6 +220,76 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
 
     }
 
+    def "should fail if a library attempts to depend on a test suite"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        testSuiteComponent()
+
+        and:
+        buildFile << '''
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        sources {
+                            java {
+                                dependencies {
+                                    library 'mySuite'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        '''
+        file('src/myLib/java/MyLib.java') << 'public class MyLib {}'
+
+        when:
+        fails ':myLibJar'
+
+        then:
+        failure.assertHasCause "Project ':' does not contain library 'mySuite'. Did you want to use 'myLib'?"
+    }
+
+    def "should fail if a library attempts to depend on a project that only declares a test suite"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        testSuiteComponent()
+
+        and:
+        file('settings.gradle') << 'include "sub"'
+        file('sub/build.gradle') << '''
+            plugins {
+                id 'jvm-component'
+                id 'java-lang'
+            }
+
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        sources {
+                            java {
+                                dependencies {
+                                    project ':'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        '''
+        file('sub/src/myLib/java/MyLib.java') << 'public class MyLib {}'
+
+        when:
+        fails ':sub:myLibJar'
+
+        then:
+        failure.assertHasCause "Project ':' doesn't define any library."
+    }
+
     private TestFile applyJUnitPlugin() {
         buildFile << '''import org.gradle.jvm.plugins.JUnitTestSuitePlugin
             plugins {
