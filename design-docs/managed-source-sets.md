@@ -308,3 +308,9 @@ and is used as follows:
 ### Test cases
 
 - user can declare and use a custom managed `LanguageSourceSet`
+- user can declare custom managed `LanguageSourceSet` based on custom `LanguageSourceSet` component
+- user can add managed properties to a custom managed `LanguageSourceSet`
+- user can add unmanaged properties to a custom managed `LanguageSourceSet`
+- user can target managed internal views to a custom managed `LanguageSourceSet` with rules
+- custom managed `LanguageSourceSet` show up properly in `model` report
+- custom managed `LanguageSourceSet` show up properly in `component` report
