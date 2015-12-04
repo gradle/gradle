@@ -309,8 +309,12 @@ and is used as follows:
 
 - user can declare and use a custom managed `LanguageSourceSet`
 - user can declare custom managed `LanguageSourceSet` based on custom `LanguageSourceSet` component
-- user can add managed properties to a custom managed `LanguageSourceSet`
-- user can add unmanaged properties to a custom managed `LanguageSourceSet`
 - user can target managed internal views to a custom managed `LanguageSourceSet` with rules
+- managed `LanguageSourceSet` can be used in all places where an unmanaged `LanguageSourceSet` can be used
+    - as a binary's source
+    - as a component's source
+    - as a standalone top-level source element
+    - as a property of a managed type
+    - as an element of a managed collection
 - custom managed `LanguageSourceSet` show up properly in `model` report
 - custom managed `LanguageSourceSet` show up properly in `component` report
