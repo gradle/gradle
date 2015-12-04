@@ -107,17 +107,17 @@ model {
         noExceptionThrown()
     }
 
-    def "cannot create a dependency with all null values with library"() {
+    def "reports failure for invalid dependency notation"() {
         given:
         applyJavaPlugin(buildFile)
-        buildFile << '''
+        buildFile << """
 model {
     components {
         main(JvmLibrarySpec) {
             sources {
                 java {
                     dependencies {
-                        library(null)
+                        $notation
                     }
                 }
             }
@@ -125,99 +125,24 @@ model {
     }
 
     tasks {
-        create('checkDependencies') {
+        create('printDependencies') {
             doLast {
-                def libraries = $('components.main.sources.java').dependencies.dependencies*.libraryName
+                println \$('components.main.sources.java').dependencies.dependencies*.displayName
             }
         }
     }
 }
-'''
+"""
         when:
-        fails "checkDependencies"
+        fails "printDependencies"
 
         then:
-        failure.assertHasCause('A project dependency spec must have at least one of project or library name not null')
-    }
+        failure.assertHasCause(failureMessage)
 
-    def "cannot create a dependency with all null values with project"() {
-        given:
-        applyJavaPlugin(buildFile)
-        buildFile << '''
-model {
-    components {
-        main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        project(null)
-                    }
-                }
-            }
-        }
-    }
-
-    tasks {
-        create('checkDependencies') {
-            doLast {
-                def libraries = $('components.main.sources.java').dependencies.dependencies*.libraryName
-            }
-        }
-    }
-}
-'''
-        when:
-        fails "checkDependencies"
-
-        then:
-        failure.assertHasCause('A project dependency spec must have at least one of project or library name not null')
-    }
-
-    def "filters duplicate dependencies"() {
-        given:
-        applyJavaPlugin(buildFile)
-        buildFile << '''
-model {
-    components {
-        main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'someLib' // Library in same project
-                        project 'otherProject' library 'someLib' // Library in other project
-                        project 'otherProject' // Library in other project, expect exactly one library
-
-                        // explicitly create duplicates
-                        library 'someLib' // Library in same project
-                        project 'otherProject' library 'someLib' // Library in other project
-                        project 'otherProject' // Library in other project, expect exactly one library
-                    }
-                }
-            }
-        }
-    }
-
-    tasks {
-        create('checkDependencies') {
-            doLast {
-                def deps = $('components.main.sources.java').dependencies.dependencies
-                assert deps.size() == 3
-                assert deps[0].projectPath == null
-                assert deps[0].libraryName == 'someLib'
-                assert deps[1].projectPath == 'otherProject'
-                assert deps[1].libraryName == 'someLib'
-                assert deps[2].projectPath == 'otherProject'
-                assert deps[2].libraryName == null
-            }
-        }
-    }
-}
-'''
-        when:
-        succeeds "checkDependencies"
-
-        then:
-        noExceptionThrown()
+        where:
+        notation                         | failureMessage
+        "library(null)"                  | 'A project dependency must have at least a project or library name specified.'
+        "group 'group-without-a-module'" | 'A module dependency must have at least a group and a module name specified.'
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
