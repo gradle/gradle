@@ -16,11 +16,11 @@
 
 package org.gradle.jvm.test
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
 class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
+
     def "should apply junit plugin using explicit class reference"() {
         given:
         applyJUnitPlugin()
@@ -73,7 +73,6 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
 
     }
 
-    @NotYetImplemented
     def "executes a test case"() {
         given:
         applyJUnitPlugin()
@@ -98,6 +97,10 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
                 id 'jvm-component'
                 id 'java-lang'
                 id 'junit-test-suite'
+            }
+
+            repositories {
+                jcenter()
             }
         '''
     }

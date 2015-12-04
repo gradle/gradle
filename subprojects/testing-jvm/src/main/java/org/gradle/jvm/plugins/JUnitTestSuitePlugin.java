@@ -26,13 +26,14 @@ import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteSpec;
+import org.gradle.language.base.DependentSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.DefaultModuleDependencySpec;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 import org.gradle.platform.base.internal.PlatformResolvers;
@@ -130,10 +131,19 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
             testBinaries.create(testSuite.getName(), JUnitTestSuiteBinarySpec.class, new Action<JUnitTestSuiteBinarySpec>() {
                 @Override
                 public void execute(JUnitTestSuiteBinarySpec jUnitTestSuiteBinarySpec) {
-                    jUnitTestSuiteBinarySpec.setJUnitVersion(testSuite.getJUnitVersion());
-                    DefaultModuleDependencySpec junitDep = new DefaultModuleDependencySpec("junit", "junit", jUnitTestSuiteBinarySpec.getJUnitVersion());
-                    jUnitTestSuiteBinarySpec.setDependencies(Collections.<DependencySpec>singleton(junitDep));
+                    final String jUnitVersion = testSuite.getJUnitVersion();
+                    jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);
                     jUnitTestSuiteBinarySpec.setTargetPlatform(resolvePlatforms(platformResolver).get(0));
+                    testSuite.getSources().all(new Action<LanguageSourceSet>() {
+                        @Override
+                        public void execute(LanguageSourceSet languageSourceSet) {
+                            // For now, dependencies have to be defined at the source set level
+                            // in order for the dependency resolution engine to kick in
+                            if (languageSourceSet instanceof DependentSourceSet) {
+                                ((DependentSourceSet) languageSourceSet).getDependencies().group("junit").module("junit").version(jUnitVersion);
+                            }
+                        }
+                    });
                 }
             });
         }
