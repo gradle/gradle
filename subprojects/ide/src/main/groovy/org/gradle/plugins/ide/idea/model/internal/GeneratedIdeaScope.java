@@ -23,13 +23,17 @@ import java.util.Set;
 
 /**
  * An enumeration of possible mappings used to assign Idea classpath scope to Gradle dependency.
+ *
+ * Warning:
+ *   The order of the elements in this enum important.
+ *   If the dependence is contained in several scope, it will be added to the one that comes first in this enum.
  */
 public enum GeneratedIdeaScope {
-    PROVIDED_TEST("PROVIDED", "TEST"),
-    PROVIDED("PROVIDED"),
     COMPILE("COMPILE"),
     RUNTIME_TEST("RUNTIME", "TEST"),
     RUNTIME("RUNTIME"),
+    PROVIDED_TEST("PROVIDED", "TEST"),
+    PROVIDED("PROVIDED"),
     TEST("TEST");
 
     public final Set<String> scopes;
