@@ -138,14 +138,14 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             JavaReflectionUtil.method(TestNG.class, void.class, "setPreserveOrder", boolean.class).invoke(testNg, options.getPreserveOrder());
         } catch (NoSuchMethodException e) {
             if (options.getPreserveOrder()) {
-                throw e;
+                throw new GradleException("Preserving the order of tests is not supported by this version of TestNG.", e);
             }
         }
         try {
             JavaReflectionUtil.method(TestNG.class, void.class, "setGroupByInstances", boolean.class).invoke(testNg, options.getGroupByInstances());
         } catch (NoSuchMethodException e) {
             if (options.getGroupByInstances()) {
-                throw e;
+                throw new GradleException("Grouping tests by instances is not supported by this version of TestNG.", e);
             }
         }
 
