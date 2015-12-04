@@ -33,7 +33,7 @@ class OldJavaPluginBigProjectPerformanceTest extends AbstractCrossVersionPerform
         runner.testProject = "bigOldJavaMoreSource"
         runner.useDaemon = true
         runner.tasksToRun = tasks
-        runner.maxExecutionTimeRegression = millis(1000)
+        runner.maxExecutionTimeRegression = millis(1500) // std dev for these tests ~1 s
         runner.maxMemoryRegression = mbytes(50)
         runner.warmUpRuns = 5
         runner.targetVersions = ['2.0', '2.4', '2.8', 'last']
