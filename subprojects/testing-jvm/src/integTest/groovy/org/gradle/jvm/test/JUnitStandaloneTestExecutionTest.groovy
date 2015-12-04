@@ -290,6 +290,36 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         failure.assertHasCause "Project ':' doesn't define any library."
     }
 
+    def "should not allow a test suite to use a non-exported class from a dependency"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        testSuiteComponent()
+        utilsLibrary()
+
+        and:
+        file('src/test/java/MyTest.java') << """
+        import org.junit.Test;
+
+        import static org.junit.Assert.*;
+
+        public class MyTest {
+
+            @Test
+            public void test() {
+                assertEquals(utils.internal.InternalUtils.MAGIC, 42);
+            }
+        }
+        """.stripMargin()
+
+        when:
+        fails ':compileMySuiteMySuiteMySuiteJava'
+
+        then:
+        errorOutput.contains 'package utils.internal does not exist'
+    }
+
     private TestFile applyJUnitPlugin() {
         buildFile << '''import org.gradle.jvm.plugins.JUnitTestSuitePlugin
             plugins {
@@ -362,11 +392,23 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         buildFile << """
             model {
                 components {
-                    utils(JvmLibrarySpec)
+                    utils(JvmLibrarySpec) {
+                        api {
+                            exports 'utils'
+                        }
+                    }
                 }
             }
         """.stripMargin()
-        file('src/utils/java/Utils.java') << '''public class Utils {
+        file('src/utils/java/utils/Utils.java') << '''package utils;
+
+        public class Utils {
+            public static final int MAGIC = 42;
+        }'''.stripMargin()
+
+        file('src/utils/java/utils/internal/InternalUtils.java') << '''package utils.internal;
+
+        public class InternalUtils {
             public static final int MAGIC = 42;
         }'''.stripMargin()
     }
@@ -379,7 +421,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         String libraryDependencyTest = """
             @Test
             public void testLibDependency() {
-                assertEquals(Utils.MAGIC, ${passing ? '0' : '666'});
+                assertEquals(utils.Utils.MAGIC, ${passing ? '0' : '666'});
             }
         """
 
