@@ -15,9 +15,10 @@
  */
 
 package org.gradle.jvm.test
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
+import org.hamcrest.Matchers
 
 class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
 
@@ -73,7 +74,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
 
     }
 
-    def "executes a test case"() {
+    def "executes a passing test suite"() {
         given:
         applyJUnitPlugin()
 
@@ -81,14 +82,42 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         testSuiteComponent()
 
         and:
-        standaloneTestCase()
+        standaloneTestCase(true)
 
         when:
         succeeds ':mySuiteTest'
 
         then:
         executedAndNotSkipped ':compileMySuiteMySuiteMySuiteJava', ':mySuiteTest'
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('MyTest')
+        result.testClass('MyTest')
+            .assertTestCount(1, 0, 0)
+            .assertTestsExecuted('test')
+            .assertTestPassed('test')
+    }
 
+    def "executes a failing test suite"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        testSuiteComponent()
+
+        and:
+        standaloneTestCase(false)
+
+        when:
+        fails ':mySuiteTest'
+
+        then:
+        executedAndNotSkipped ':compileMySuiteMySuiteMySuiteJava', ':mySuiteTest'
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('MyTest')
+        result.testClass('MyTest')
+            .assertTestCount(1, 1, 0)
+            .assertTestsExecuted('test')
+            .assertTestFailed('test', Matchers.equalTo('java.lang.AssertionError: expected:<true> but was:<false>'))
     }
 
     private TestFile applyJUnitPlugin() {
@@ -121,8 +150,8 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         '''
     }
 
-    private TestFile standaloneTestCase() {
-        file('src/test/java/MyTest.java') << '''
+    private TestFile standaloneTestCase(boolean passing = true) {
+        file('src/test/java/MyTest.java') << """
         import org.junit.Test;
 
         import static org.junit.Assert.*;
@@ -131,9 +160,9 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
 
             @Test
             public void test() {
-                assertEquals(true, true);
+                assertEquals(true, ${passing ? 'true' : 'false'});
             }
         }
-        '''.stripMargin()
+        """.stripMargin()
     }
 }

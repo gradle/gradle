@@ -77,10 +77,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                 public void execute(final Test test) {
                     test.setTestClassesDir(binary.getClassesDir());
 
-                    File reportsDirectory = new File(buildDir, "reports");
-                    configureReports(test, reportsDirectory);
-                    test.setBinResultsDir(reportsDirectory);
-
+                    configureReports(test);
                     configureTaskDependencies(test);
                 }
 
@@ -95,11 +92,16 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                     });
                 }
 
-                private File configureReports(Test test, File reportsDirectory) {
+                private File configureReports(Test test) {
                     // todo: improve configuration of reports
                     TestTaskReports reports = test.getReports();
-                    reports.getHtml().setDestination(reportsDirectory);
-                    reports.getJunitXml().setDestination(reportsDirectory);
+                    File reportsDirectory = new File(buildDir, "reports");
+                    File htmlDir = new File(reportsDirectory, "tests");
+                    File xmlDir = new File(buildDir, "test-results");
+                    File binDir = new File(xmlDir, "binary");
+                    reports.getHtml().setDestination(htmlDir);
+                    reports.getJunitXml().setDestination(xmlDir);
+                    test.setBinResultsDir(binDir);
                     return reportsDirectory;
                 }
             });
