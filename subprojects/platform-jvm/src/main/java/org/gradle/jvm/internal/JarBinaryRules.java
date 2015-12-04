@@ -34,10 +34,10 @@ public class JarBinaryRules extends RuleSource {
     void configureJarBinaries(final ComponentSpec jvmLibrary, final ProjectLayout projectLayout, final JavaToolChainRegistry toolChains) {
         jvmLibrary.getBinaries().withType(JvmBinarySpec.class).beforeEach(new Action<JvmBinarySpec>() {
             @Override
-            public void execute(JvmBinarySpec jarBinary) {
-                BinaryNamingScheme namingScheme = ((BinarySpecInternal) jarBinary).getNamingScheme();
-                jarBinary.setClassesDir(namingScheme.getOutputDirectory(projectLayout.getBuildDir(), "classes"));
-                jarBinary.setResourcesDir(namingScheme.getOutputDirectory(projectLayout.getBuildDir(), "resources"));
+            public void execute(JvmBinarySpec jvmBinary) {
+                BinaryNamingScheme namingScheme = ((BinarySpecInternal) jvmBinary).getNamingScheme();
+                jvmBinary.setClassesDir(namingScheme.getOutputDirectory(projectLayout.getBuildDir(), "classes"));
+                jvmBinary.setResourcesDir(namingScheme.getOutputDirectory(projectLayout.getBuildDir(), "resources"));
             }
         });
         jvmLibrary.getBinaries().withType(JarBinarySpecInternal.class).beforeEach(new Action<JarBinarySpecInternal>() {
