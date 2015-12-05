@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimap;
 import net.jcip.annotations.ThreadSafe;
@@ -30,10 +31,10 @@ public class DefaultModelRegistration implements ModelRegistration {
 
     public DefaultModelRegistration(ModelPath path, ModelRuleDescriptor descriptor,
                                     boolean hidden, Multimap<ModelActionRole, ? extends ModelAction> actions) {
-        this.path = path;
-        this.descriptor = descriptor;
+        this.path = Preconditions.checkNotNull(path, "path");
+        this.descriptor = Preconditions.checkNotNull(descriptor, "descriptor");
         this.hidden = hidden;
-        this.actions = ImmutableListMultimap.copyOf(actions);
+        this.actions = ImmutableListMultimap.copyOf(Preconditions.checkNotNull(actions, "actions"));
     }
 
     public ModelPath getPath() {

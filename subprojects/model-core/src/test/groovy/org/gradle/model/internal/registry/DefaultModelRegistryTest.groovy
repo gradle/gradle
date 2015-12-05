@@ -1202,7 +1202,7 @@ class DefaultModelRegistryTest extends Specification {
 
     def "does not report unbound actions applied at registration as unbound after the nodes is removed"() {
         given:
-        def registration = ModelRegistrations.of(ModelPath.path("unused"))
+        def registration = ModelRegistrations.of(ModelPath.path("unused")).descriptor("unused")
         ModelActionRole.values().each { role ->
             registration.action(role, [ModelReference.of("unknown")], BiActions.doNothing())
         }
@@ -1400,7 +1400,7 @@ foo
     }
 
     def "does not discover children of scope when node matching input type is already in discovered"() {
-        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).build())
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).descriptor("dep").build())
         registry.atState("dep", ModelNode.State.Discovered)
         registry.register(registry.registration("target").unmanaged(String, {}))
         registry.register(registry.registration("childA").unmanaged(String, {}))

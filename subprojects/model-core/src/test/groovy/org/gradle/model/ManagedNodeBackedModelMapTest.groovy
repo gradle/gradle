@@ -20,6 +20,7 @@ import org.gradle.api.Named
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
@@ -501,7 +502,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
     def "can create item using transformed DSL rule closure"() {
         // DSL rules are represented using DeferredModelAction
-        def action = Mock(DeferredModelAction)
+        def action = mockDeferredModelAction()
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
@@ -528,7 +529,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
     def "can define config rules for named item using transformed DSL rule closure"() {
         // DSL rules are represented using DeferredModelAction
-        def action = Mock(DeferredModelAction)
+        def action = mockDeferredModelAction()
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
@@ -551,7 +552,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
     def "can define config rules for all item using transformed DSL rule closure"() {
         // DSL rules are represented using DeferredModelAction
-        def action = Mock(DeferredModelAction)
+        def action = mockDeferredModelAction()
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
@@ -573,7 +574,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
     def "can define config rules for all item with given type using transformed DSL rule closure"() {
         // DSL rules are represented using DeferredModelAction
-        def action = Mock(DeferredModelAction)
+        def action = mockDeferredModelAction()
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
@@ -595,7 +596,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
     def "can define default rules for all item using transformed DSL rule closure"() {
         // DSL rules are represented using DeferredModelAction
-        def action = Mock(DeferredModelAction)
+        def action = mockDeferredModelAction()
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
@@ -617,7 +618,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
 
     def "can define finalize rules for all item using transformed DSL rule closure"() {
         // DSL rules are represented using DeferredModelAction
-        def action = Mock(DeferredModelAction)
+        def action = mockDeferredModelAction()
 
         given:
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
@@ -1023,4 +1024,10 @@ It must be one of:
     - A managed type (annotated with @Managed)''')
     }
 
+    def mockDeferredModelAction() {
+        def action = Mock(DeferredModelAction)
+        def descriptor = new SimpleModelRuleDescriptor("action")
+        action.getDescriptor() >> descriptor
+        return action
+    }
 }
