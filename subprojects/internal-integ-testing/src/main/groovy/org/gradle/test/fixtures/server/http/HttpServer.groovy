@@ -32,6 +32,7 @@ import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
 import org.mortbay.jetty.security.*
+import org.mortbay.jetty.servlet.SessionHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -59,7 +60,10 @@ class HttpServer extends ServerWithExpectations {
     List<ServerExpectation> expectations = []
 
     enum AuthScheme {
-        BASIC(new BasicAuthHandler()), DIGEST(new DigestAuthHandler()), HIDE_UNAUTHORIZED(new HideUnauthorizedBasicAuthHandler())
+        BASIC(new BasicAuthHandler()),
+        DIGEST(new DigestAuthHandler()),
+        HIDE_UNAUTHORIZED(new HideUnauthorizedBasicAuthHandler()),
+        NTLM(new NtlmAuthHandler())
 
         final AuthSchemeHandler handler;
 
@@ -115,7 +119,9 @@ class HttpServer extends ServerWithExpectations {
                 response.sendError(404, "'$target' does not exist")
             }
         })
-        server.setHandler(handlers)
+        SessionHandler sessionHandler = new SessionHandler()
+        sessionHandler.setHandler(handlers)
+        server.setHandler(sessionHandler)
     }
 
     protected Logger getLogger() {
@@ -745,6 +751,18 @@ class HttpServer extends ServerWithExpectations {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                 }
             }
+        }
+    }
+
+    public static class NtlmAuthHandler extends AuthSchemeHandler {
+        @Override
+        protected String constraintName() {
+            return NtlmAuthenticator.NTLM_AUTH_METHOD
+        }
+
+        @Override
+        protected Authenticator getAuthenticator() {
+            return new NtlmAuthenticator()
         }
     }
 

@@ -92,7 +92,7 @@ uploadArchives {
         progressLogging.uploadProgressLogged(module.jar.uri)
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.NTLM]
     }
 
     @Unroll
@@ -132,8 +132,10 @@ uploadArchives {
         authScheme                   | credsName | creds
         HttpServer.AuthScheme.BASIC  | 'empty'   | ''
         HttpServer.AuthScheme.DIGEST | 'empty'   | ''
+        HttpServer.AuthScheme.NTLM   | 'empty'   | ''
         HttpServer.AuthScheme.BASIC  | 'bad'     | BAD_CREDENTIALS
         HttpServer.AuthScheme.DIGEST | 'bad'     | BAD_CREDENTIALS
+        HttpServer.AuthScheme.NTLM   | 'bad'     | BAD_CREDENTIALS
     }
 
     public void reportsFailedPublishToHttpRepository() {

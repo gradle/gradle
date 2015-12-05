@@ -28,6 +28,7 @@ dependencies {
     compile libraries.gson
     compile libraries.joda
     compile libraries.jsch
+    compile libraries.jcifs
 }
 
 useTestFixtures(sourceSet: 'main')
