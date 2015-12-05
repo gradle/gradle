@@ -292,12 +292,6 @@ This feature was kindly contributed by [Sebastian Schuberth](https://github.com/
 This release facilitates adding source sets (subtypes of `LanguageSourceSet`) to arbitrary locations in the model space. A `LanguageSourceSet` can be attached to any @Managed type as a property, or used for
 the elements of a ModelSet or ModelMap, or as a top level model element in it's own right.
 
-### Support for external dependencies in the 'jvm-components' plugin
-
-It is now possible to reference external dependencies when building a `JvmLibrary` using the `jvm-component` plugin.
-
-TODO: Expand this and provide a DSL example.
-
 ### Model DSL improvements
 
 TODO: `ModelMap` creation and configuration DSL syntax is now treated as nested rule. For example, an element can be configured using the configuration of a sibling as input:
