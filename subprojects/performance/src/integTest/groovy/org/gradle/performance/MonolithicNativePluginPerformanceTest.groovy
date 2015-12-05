@@ -17,8 +17,12 @@
 package org.gradle.performance
 import org.apache.commons.io.FileUtils
 import org.gradle.performance.categories.NativePerformanceTest
-import org.gradle.performance.fixture.*
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.Duration
 import org.gradle.performance.measure.MeasuredOperation
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -59,7 +63,7 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
     }
 
     @Unroll('Project #buildSize native build #changeType')
-    def "build with changes"() {
+    def "build with changes"(String buildSize, String changeType, Amount<Duration> maxExecutionTimeRegression, String changedFile, Closure changeClosure) {
         given:
         runner.testId = "native build ${buildSize} ${changeType}"
         runner.testProject = "${buildSize}NativeMonolithic"
@@ -71,55 +75,32 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
         runner.warmUpRuns = 2
         runner.runs = 10
-        String fileName = changedFile
-        Closure fileChanger = changeClosure
-        boolean compilerOptionChange = (changeClosure == null)
+
         runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
             File file
             String originalContent
 
             @Override
-            GradleInvocationCustomizer createInvocationCustomizer(BuildExperimentInvocationInfo invocationInfo) {
-                if (compilerOptionChange) {
-                    return new GradleInvocationCustomizer() {
-                        @Override
-                        GradleInvocationSpec customize(GradleInvocationSpec invocationSpec) {
-                            if (invocationInfo.iterationNumber % 2 == 0) {
-                                println "Adding -PaddMoreDefines to arguments"
-                                return invocationSpec.withAdditionalArgs(["-PaddMoreDefines"])
-                            } else {
-                                return invocationSpec
-                            }
-                        }
-                    }
-                } else {
-                    null
-                }
-            }
-
-            @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                if (fileChanger != null) {
-                    if (file == null) {
-                        file = new File(invocationInfo.projectDir, fileName)
-                        assert file.exists()
-                        def backupFile = new File(file.parentFile, file.name + "~")
-                        if (backupFile.exists()) {
-                            originalContent = backupFile.text
-                            file.text = originalContent
-                        } else {
-                            originalContent = file.text
-                            FileUtils.copyFile(file, backupFile)
-                        }
-                    }
-                    if (invocationInfo.iterationNumber % 2 == 0) {
-                        println "Changing $file"
-                        // do change
-                        fileChanger(file, originalContent)
-                    } else if (invocationInfo.iterationNumber > 2) {
-                        println "Reverting $file"
+                if (file == null) {
+                    file = new File(invocationInfo.projectDir, changedFile)
+                    assert file.exists()
+                    def backupFile = new File(file.parentFile, file.name + "~")
+                    if (backupFile.exists()) {
+                        originalContent = backupFile.text
                         file.text = originalContent
+                    } else {
+                        originalContent = file.text
+                        FileUtils.copyFile(file, backupFile)
                     }
+                }
+                if (invocationInfo.iterationNumber % 2 == 0) {
+                    println "Changing $file"
+                    // do change
+                    changeClosure(file, originalContent)
+                } else if (invocationInfo.iterationNumber > 2) {
+                    println "Reverting $file"
+                    file.text = originalContent
                 }
             }
 
@@ -142,7 +123,7 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         buildSize | changeType              | maxExecutionTimeRegression | changedFile                       | changeClosure
         "medium"  | 'source file change'    | millis(200)                | 'modules/project5/src/src100_c.c' | this.&changeCSource
         "medium"  | 'header file change'    | millis(5000)               | 'common/common/include/header8.h' | this.&changeHeader
-        "medium"  | 'recompile all sources' | millis(5000)               | null                              | null
+        "medium"  | 'recompile all sources' | millis(5000)               | 'common.gradle'                   | this.&changeArgs
     }
 
     void changeCSource(File file, String originalContent) {
@@ -154,5 +135,11 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
 
     void changeHeader(File file, String originalContent) {
         file.text = originalContent.replaceFirst(~/#endif/, '#define HELLO_WORLD "Hello world!"\n#endif')
+    }
+
+    void changeArgs(File file, String originalContent) {
+        file.text = originalContent.
+            replaceFirst(~/cCompiler.define "SOMETHING7=0"/, 'cCompiler.define "SOMETHING_NEW=0"').
+            replaceFirst(~/cppCompiler.define "SOMETHING7=0"/, 'cppCompiler.define "SOMETHING_NEW=0"')
     }
 }

@@ -495,34 +495,31 @@ configure([smallJavaSwModelCompileAvoidanceWithApi,
 
 task nativeMonolithicOverlapping(type: MonolithicNativeProjectGeneratorTask) {
     templateArgs = [ overlapWithOutput: true ]
+    projects = 100
+    // number of source files to generate in each project of each type
+    // this generates 200 C, 200 C++, 200 headers and 400 unused C/C++ files
+    sourceFiles = 200
 }
 
 task nativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
     templateArgs = [ overlapWithOutput: false ]
+    projects = 100
+    sourceFiles = 200
 }
 
 task smallNativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
     templateArgs = [overlapWithOutput: false]
+    projects = 2
+    sourceFiles = 100
 }
 
 task mediumNativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
     templateArgs = [overlapWithOutput: false]
+    projects = 10
+    sourceFiles = 200
 }
 
 configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic, mediumNativeMonolithic]) {
-    projects = 100
-
-    // number of source files to generate in each project of each type
-    // this generates 200 C, 200 C++, 200 headers and 400 unused C/C++ files
-    sourceFiles = 200
-
-    if (name.startsWith('small')) {
-        projects = 2
-        sourceFiles = 100
-    } else if (name.startsWith('medium')) {
-        projects = 10
-    }
-
     templateArgs += [
             // number of functions created in each source file
             functionCount: 50,

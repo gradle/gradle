@@ -129,9 +129,7 @@ public class BuildExperimentRunner {
                 GradleInvocationSpec customizedInvocation = invocationSpec.withAdditionalArgs(createIterationInfoArguments(phase, iterationNumber, iterationMax));
                 if (experiment.getListener() != null) {
                     GradleInvocationCustomizer customizer = experiment.getListener().createInvocationCustomizer(invocationInfo);
-                    if (customizer != null) {
-                        customizedInvocation = customizer.customize(customizedInvocation);
-                    }
+                    customizedInvocation = customizer.customize(customizedInvocation);
                 }
                 return customizedInvocation;
             }
