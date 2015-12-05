@@ -120,9 +120,12 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         result.assertCurrentVersionHasNotRegressed()
 
         where:
+        // source file change causes a single project, single source set, single file to be recompiled.
+        // header file change causes a single project, two source sets, some files to be recompiled.
+        // recompile all sources causes all projects, all source sets, all files to be recompiled.
         buildSize | changeType              | maxExecutionTimeRegression | changedFile                       | changeClosure
         "medium"  | 'source file change'    | millis(200)                | 'modules/project5/src/src100_c.c' | this.&changeCSource
-        "medium"  | 'header file change'    | millis(5000)               | 'common/common/include/header8.h' | this.&changeHeader
+        "medium"  | 'header file change'    | millis(5000)               | 'modules/project1/src/src50_h.h'  | this.&changeHeader
         "medium"  | 'recompile all sources' | millis(5000)               | 'common.gradle'                   | this.&changeArgs
     }
 
