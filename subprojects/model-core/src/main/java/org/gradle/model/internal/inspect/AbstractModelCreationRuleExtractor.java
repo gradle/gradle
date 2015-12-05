@@ -17,16 +17,16 @@
 package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.ModelPath;
-
-import java.lang.annotation.Annotation;
+import org.gradle.model.Model;
+import org.gradle.model.internal.core.*;
 
 @ThreadSafe
-public abstract class AbstractModelCreationRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
+public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Model> {
 
     protected String determineModelName(MethodRuleDefinition<?, ?> ruleDefinition) {
-        String annotationValue = getNameFromAnnotation(ruleDefinition);
+        String annotationValue = ruleDefinition.getAnnotation(Model.class).value();
         String modelName = (annotationValue == null || annotationValue.isEmpty()) ? ruleDefinition.getMethodName() : annotationValue;
 
         try {
@@ -38,5 +38,20 @@ public abstract class AbstractModelCreationRuleExtractor<T extends Annotation> e
         return modelName;
     }
 
-    protected abstract String getNameFromAnnotation(MethodRuleDefinition<?, ?> ruleDefinition);
+    @Nullable
+    @Override
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
+        String modelName = determineModelName(ruleDefinition);
+
+        ModelPath modelPath = ModelPath.path(modelName);
+        ModelRegistrations.Builder registration = ModelRegistrations.of(modelPath).descriptor(ruleDefinition.getDescriptor());
+
+        buildRegistration(ruleDefinition, modelPath, registration);
+
+        registration.hidden(ruleDefinition.isAnnotationPresent(Hidden.class));
+
+        return new ExtractedModelRegistration(registration.build());
+    }
+
+    protected abstract <R, S> void buildRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelPath modelPath, ModelRegistrations.Builder registration);
 }

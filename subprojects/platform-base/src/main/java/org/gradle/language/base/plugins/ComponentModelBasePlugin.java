@@ -35,8 +35,8 @@ import org.gradle.language.base.internal.registry.DefaultLanguageTransformContai
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
+import org.gradle.model.internal.core.Hidden;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.core.Service;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
@@ -77,9 +77,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        // TODO The 'path' is required to here to avoid a rule cycle being reported
-        @Service
-        ComponentSpecFactory componentSpecFactory(@Path("projectIdentifier") ProjectIdentifier projectIdentifier) {
+        @Hidden @Model
+        ComponentSpecFactory componentSpecFactory(ProjectIdentifier projectIdentifier) {
             return new ComponentSpecFactory("components", projectIdentifier);
         }
 
@@ -89,7 +88,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             builder.internalView(ComponentSpecInternal.class);
         }
 
-        @Service
+        @Hidden @Model
         BinarySpecFactory binarySpecFactory(ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
             return new BinarySpecFactory("binaries", serviceRegistry.get(Instantiator.class), taskFactory);
         }
@@ -103,7 +102,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory));
         }
 
-        @Service
+        @Hidden @Model
         LanguageTransformContainer languageTransforms() {
             return new DefaultLanguageTransformContainer();
         }
@@ -144,7 +143,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
         }
 
-        @Service
+        @Hidden @Model
         PlatformResolvers platformResolver(PlatformContainer platforms) {
             return new DefaultPlatformResolvers(platforms);
         }

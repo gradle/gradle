@@ -32,14 +32,16 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @ThreadSafe
 abstract public class ModelRegistrations {
 
     public static <T> Builder serviceInstance(ModelReference<T> modelReference, T instance) {
         return bridgedInstance(modelReference, instance)
-            .service(true);
+            .hidden(true);
     }
 
     public static <T> Builder bridgedInstance(ModelReference<T> modelReference, T instance) {
@@ -111,7 +113,6 @@ abstract public class ModelRegistrations {
         private final ListMultimap<ModelActionRole, ModelAction> actions = ArrayListMultimap.create();
         private final NodeInitializer nodeInitializer;
         private final DescriptorReference descriptorReference = new DescriptorReference();
-        private boolean service;
         private boolean hidden;
 
         private Builder(ModelPath path) {
@@ -168,11 +169,6 @@ abstract public class ModelRegistrations {
             return this;
         }
 
-        public Builder service(boolean flag) {
-            this.service = flag;
-            return this;
-        }
-
         public ModelRegistration build() {
             ModelRuleDescriptor descriptor = descriptorReference.descriptor;
             if (nodeInitializer != null) {
@@ -181,7 +177,7 @@ abstract public class ModelRegistrations {
             if (!projections.isEmpty()) {
                 action(ModelActionRole.Discover, AddProjectionsAction.of(reference, descriptor, projections));
             }
-            return new DefaultModelRegistration(reference.getPath(), descriptor, service, hidden || service, actions);
+            return new DefaultModelRegistration(reference.getPath(), descriptor, hidden, actions);
         }
 
         private static class DescriptorReference {

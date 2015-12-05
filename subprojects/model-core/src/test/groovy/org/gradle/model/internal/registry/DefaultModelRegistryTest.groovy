@@ -1400,7 +1400,8 @@ foo
     }
 
     def "does not discover children of scope when node matching input type is already in discovered"() {
-        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).service(true).build())
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).build())
+        registry.atState("dep", ModelNode.State.Discovered)
         registry.register(registry.registration("target").unmanaged(String, {}))
         registry.register(registry.registration("childA").unmanaged(String, {}))
         registry.register(registry.registration("childB").unmanaged(String, {}))
@@ -1417,7 +1418,8 @@ foo
     }
 
     def "fails when another child in scope with matching bound rule's target type is discovered"() {
-        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).service(true).descriptor("dep creator").build())
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).descriptor("dep creator").build())
+        registry.atState("dep", ModelNode.State.Discovered)
         registry.register(registry.registration("target").unmanaged(String, {}))
         registry.register(registry.registration("childA").unmanaged(String, {}))
         registry.register(registry.registration("childB").unmanaged(String, {}))

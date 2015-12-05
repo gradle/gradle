@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,16 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.collect.ListMultimap;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.util.Set;
-
-public interface ModelRegistration {
-    ModelRuleDescriptor getDescriptor();
-
-    ModelPath getPath();
-
-    /**
-     * Actions that need to be registered when the node is registered.
-     */
-    ListMultimap<ModelActionRole, ? extends ModelAction> getActions();
-
-    Set<? extends ModelReference<?>> getInputs();
-
-    /**
-     * Returns whether the registered node is hidden.
-     */
-    boolean isHidden();
+/**
+ * Applied together with {@link org.gradle.model.Model} annotation the registered model element
+ * will not be shown in reports.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Hidden {
 }

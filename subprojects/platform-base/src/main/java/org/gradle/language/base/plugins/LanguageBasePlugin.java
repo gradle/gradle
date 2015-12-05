@@ -102,7 +102,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @Service
+        @Hidden @Model
         LanguageSourceSetFactory languageSourceSetFactory(ServiceRegistry serviceRegistry) {
             return new LanguageSourceSetFactory("sourceSets", serviceRegistry.get(FileResolver.class));
         }
@@ -137,7 +137,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
             return serviceRegistry.get(Instantiator.class).newInstance(DefaultProjectSourceSet.class);
         }
 
-        @Service
+        @Hidden @Model
         LanguageRegistry languages() {
             return new DefaultLanguageRegistry();
         }

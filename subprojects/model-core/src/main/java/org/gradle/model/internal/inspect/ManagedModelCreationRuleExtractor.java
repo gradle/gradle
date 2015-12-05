@@ -19,8 +19,8 @@ package org.gradle.model.internal.inspect;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.BiAction;
+import org.gradle.internal.Cast;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.Model;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 @NotThreadSafe
-public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor<Model> {
+public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
     private final ModelSchemaStore schemaStore;
 
     public ManagedModelCreationRuleExtractor(ModelSchemaStore schemaStore) {
@@ -58,26 +58,14 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     }
 
     @Override
-    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
-        String modelName = determineModelName(ruleDefinition);
-
+    protected <T, S> void buildRegistration(MethodRuleDefinition<T, S> ruleDefinition, final ModelPath modelPath, ModelRegistrations.Builder registration) {
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         if (references.isEmpty()) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule has to take a managed model element instance as the first argument");
         }
 
-        ModelType<?> managedType = references.get(0).getType();
-        return new ExtractedModelRegistration(buildRegistrationForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
-    }
-
-    @Override
-    protected String getNameFromAnnotation(MethodRuleDefinition<?, ?> ruleDefinition) {
-        return ruleDefinition.getAnnotation(Model.class).value();
-    }
-
-    private <T> ModelRegistration buildRegistrationForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, final ModelPath modelPath) {
-        final ModelSchema<T> modelSchema = getModelSchema(managedType, ruleDefinition);
-
+        ModelType<T> modelType = Cast.uncheckedCast(references.get(0).getType());
+        final ModelSchema<T> modelSchema = getModelSchema(modelType, ruleDefinition);
         if (modelSchema instanceof ScalarValueSchema) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.");
         }
@@ -85,9 +73,6 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         List<ModelReference<?>> bindings = ruleDefinition.getReferences();
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         final ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
-
-        ModelRegistrations.Builder registration = ModelRegistrations.of(modelPath)
-            .descriptor(descriptor);
 
         if (modelSchema instanceof SpecializedMapSchema) {
             registration.actions(SpecializedMapNodeInitializer.getActions(ModelReference.of(modelPath), descriptor, (SpecializedMapSchema<T, ?>) modelSchema));
@@ -107,10 +92,8 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         }
 
         registration.action(ModelActionRole.Initialize, InputUsingModelAction.of(
-            ModelReference.of(modelPath, managedType), descriptor, inputs, new RuleMethodBackedMutationAction<T>(ruleDefinition.getRuleInvoker())
+            ModelReference.of(modelPath, modelType), descriptor, inputs, new RuleMethodBackedMutationAction<T>(ruleDefinition.getRuleInvoker())
         ));
-
-        return registration.build();
     }
 
     private static NodeInitializer getNodeInitializer(ModelRuleDescriptor descriptor, ModelSchema<?> modelSchema, NodeInitializerRegistry nodeInitializerRegistry) {

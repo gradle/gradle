@@ -29,19 +29,16 @@ import java.util.Set;
 public class DefaultModelRegistration implements ModelRegistration {
     private final ModelPath path;
     private final ModelRuleDescriptor descriptor;
-    private final boolean service;
     private final boolean hidden;
     private final ListMultimap<ModelActionRole, ? extends ModelAction> actions;
 
     public DefaultModelRegistration(
         ModelPath path,
         ModelRuleDescriptor descriptor,
-        boolean service,
         boolean hidden,
         Multimap<ModelActionRole, ? extends ModelAction> actions) {
         this.path = path;
         this.descriptor = descriptor;
-        this.service = service;
         this.hidden = hidden;
         this.actions = ImmutableListMultimap.copyOf(actions);
     }
@@ -62,11 +59,6 @@ public class DefaultModelRegistration implements ModelRegistration {
             builder.addAll(action.getInputs());
         }
         return builder.build();
-    }
-
-    @Override
-    public boolean isService() {
-        return service;
     }
 
     @Override

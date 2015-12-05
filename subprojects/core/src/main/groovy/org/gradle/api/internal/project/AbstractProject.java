@@ -63,6 +63,7 @@ import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
+import org.gradle.model.Model;
 import org.gradle.model.RuleSource;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
@@ -189,32 +190,32 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     static class BasicServicesRules extends RuleSource {
-        @Service
+        @Hidden @Model
         ITaskFactory taskFactory(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ITaskFactory.class);
         }
 
-        @Service
+        @Hidden @Model
         ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ModelSchemaStore.class);
         }
 
-        @Service
+        @Hidden @Model
         ManagedProxyFactory proxyFactory(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ManagedProxyFactory.class);
         }
 
-        @Service
+        @Hidden @Model
         NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore) {
             return new DefaultNodeInitializerRegistry(schemaStore);
         }
 
-        @Service
+        @Hidden @Model
         TypeConverter typeConverter(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(TypeConverter.class);
         }
 
-        @Service
+        @Hidden @Model
         FileOperations fileOperations(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(FileOperations.class);
         }

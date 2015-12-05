@@ -40,18 +40,14 @@ import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.language.twirl.TwirlSourceSet;
 import org.gradle.language.twirl.internal.DefaultTwirlSourceSet;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.Service;
+import org.gradle.model.internal.core.Hidden;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 import org.gradle.platform.base.internal.PlatformResolvers;
-import org.gradle.play.JvmClasses;
-import org.gradle.play.PlayApplicationBinarySpec;
-import org.gradle.play.PlayApplicationSpec;
-import org.gradle.play.PlayPlatformAwareComponentSpec;
-import org.gradle.play.PublicAssets;
+import org.gradle.play.*;
 import org.gradle.play.internal.*;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.run.PlayApplicationRunnerFactory;
@@ -102,11 +98,11 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             return serviceRegistry.get(PlayToolChainInternal.class);
         }
 
-        @Service
+        @Hidden @Model
         FileResolver fileResolver(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(FileResolver.class);
         }
-        
+
         @ComponentType
         void registerPlayPlatformAwareComponentSpecType(ComponentTypeBuilder<PlayPlatformAwareComponentSpec> builder) {
             builder.defaultImplementation(DefaultPlayPlatformAwareComponentSpec.class);

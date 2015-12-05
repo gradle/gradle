@@ -84,9 +84,6 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         ModelRegistration registration = node.getRegistration();
         node.setHidden(registration.isHidden());
-        if (registration.isService()) {
-            node.ensureAtLeast(Discovered);
-        }
 
         return node;
     }
@@ -1236,6 +1233,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             dependencies.add(graph.nodeAtState(new NodeAtState(getPath(), Discovered)));
             return true;
         }
+
+        @Override
+        public String toString() {
+            return "try discover and resolve path " + getPath() + ", state: " + state;
+        }
     }
 
     private class TryResolveReference extends ModelGoal {
@@ -1282,12 +1284,60 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     /**
+     * Discover children that can be discovered without having to close other nodes.
+     * These are nodes that only have discovery rules that don't have inputs.
+     */
+    private class TryDiscoverSelfDiscoveringInScope extends ModelGoal {
+        private final ModelNodeInternal scopeNode;
+
+        public TryDiscoverSelfDiscoveringInScope(ModelNodeInternal scopeNode) {
+            this.scopeNode = scopeNode;
+        }
+
+        @Override
+        public boolean isAchieved() {
+            for (ModelNodeInternal child : scopeNode.getLinks()) {
+                if (!child.isAtLeast(Discovered) && !hasInputs(new NodeAtState(child.getPath(), Discovered))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            for (ModelNodeInternal child : scopeNode.getLinks()) {
+                NodeAtState target = new NodeAtState(child.getPath(), Discovered);
+                if (!child.isAtLeast(Discovered) && !hasInputs(target)) {
+                    dependencies.add(graph.nodeAtState(target));
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return "try discover self-discovering children of scope " + scopeNode.getPath() + ", state: " + state;
+        }
+
+        private boolean hasInputs(NodeAtState target) {
+            for (RuleBinder ruleBinder : ruleBindings.getRulesWithSubject(target)) {
+                if (!ruleBinder.getInputBindings().isEmpty()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    /**
      * Attempts to define the contents of the requested scope. Does not fail if not possible.
      */
     private class TryDefineScopeForType extends ModelGoal {
         private final ModelPath scope;
         private final ModelType<?> typeToBind;
         private boolean attemptedPath;
+        private boolean attemptedSelfDiscoveringChildren;
         private boolean attemptedCloseScope;
 
         public TryDefineScopeForType(ModelPath scope, ModelType<?> typeToBind) {
@@ -1316,15 +1366,28 @@ public class DefaultModelRegistry implements ModelRegistry {
                 attemptedPath = true;
                 return false;
             }
-            if (modelGraph.find(scope) != null) {
-                if (!attemptedCloseScope) {
-                    dependencies.add(graph.nodeAtState(new NodeAtState(scope, SelfClosed)));
-                    attemptedCloseScope = true;
-                    return false;
-                } else {
-                    dependencies.add(new TransitionChildrenOrReference(scope, Discovered));
-                }
+            ModelNodeInternal scopeNode = modelGraph.find(scope);
+            if (scopeNode == null) {
+                return true;
             }
+
+            if (!attemptedSelfDiscoveringChildren) {
+                dependencies.add(new TryDiscoverSelfDiscoveringInScope(scopeNode));
+                attemptedSelfDiscoveringChildren = true;
+                return false;
+            }
+
+            if (isAchieved()) {
+                return true;
+            }
+
+            if (!attemptedCloseScope) {
+                dependencies.add(graph.nodeAtState(new NodeAtState(scope, SelfClosed)));
+                attemptedCloseScope = true;
+                return false;
+            }
+
+            dependencies.add(new TransitionChildrenOrReference(scope, Discovered));
             return true;
         }
 
@@ -1381,7 +1444,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public String toString() {
-            return "run action for " + getPath() + ", rule: " + binder.getDescriptor() + ", state: " + state;
+            return "run action for " + binder.getSubjectBinding().getPredicate() + ", rule: " + binder.getDescriptor() + ", state: " + state;
         }
 
         @Override
