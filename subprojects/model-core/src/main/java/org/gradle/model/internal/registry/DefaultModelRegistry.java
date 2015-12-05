@@ -17,9 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.model.ConfigurationCycleException;
@@ -71,22 +69,19 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
-    public <T extends ModelNodeInternal> T registerNode(T node) {
+    public <T extends ModelNodeInternal> T registerNode(T node, Multimap<ModelActionRole, ? extends ModelAction> actions) {
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
         // ModelPath.validateName(name);
 
-        addRuleBindings(node);
+        addRuleBindings(node, actions);
         modelGraph.add(node);
         ruleBindings.nodeCreated(node);
-
-        ModelRegistration registration = node.getRegistration();
-        node.setHidden(registration.isHidden());
 
         return node;
     }
 
-    private void addRuleBindings(ModelNodeInternal node) {
-        for (Map.Entry<ModelActionRole, ? extends ModelAction> entry : node.getRegistration().getActions().entries()) {
+    private void addRuleBindings(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction> actions) {
+        for (Map.Entry<ModelActionRole, ? extends ModelAction> entry : actions.entries()) {
             ModelActionRole role = entry.getKey();
             ModelAction action = entry.getValue();
             checkNodePath(node, action);
@@ -933,7 +928,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
                 .build();
             ModelReferenceNode childNode = new ModelReferenceNode(registration, parent);
             childNode.setTarget(childTarget);
-            registerNode(childNode);
+            registerNode(childNode, ImmutableMultimap.<ModelActionRole, ModelAction>of());
             ruleBindings.nodeDiscovered(childNode);
         }
 

@@ -31,7 +31,8 @@ import static org.gradle.model.internal.core.ModelNode.State.Discovered;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
-    private final ModelRegistration registration;
+    private final ModelPath path;
+    private final ModelRuleDescriptor descriptor;
     private final Set<ModelNodeInternal> dependencies = Sets.newHashSet();
     private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
     private ModelNode.State state = ModelNode.State.Registered;
@@ -42,12 +43,10 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private final ModelProjection projection;
 
     public ModelNodeInternal(ModelRegistration registration) {
-        this.registration = registration;
+        this.path = registration.getPath();
+        this.descriptor = registration.getDescriptor();
+        this.hidden = registration.isHidden();
         this.projection = new ChainingModelProjection(projections);
-    }
-
-    public ModelRegistration getRegistration() {
-        return registration;
     }
 
     /**
@@ -91,11 +90,11 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     public ModelPath getPath() {
-        return registration.getPath();
+        return path;
     }
 
     public ModelRuleDescriptor getDescriptor() {
-        return registration.getDescriptor();
+        return descriptor;
     }
 
     public ModelNode.State getState() {

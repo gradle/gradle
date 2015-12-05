@@ -350,7 +350,7 @@ class ModelElementNode extends ModelNodeInternal {
             );
         }
         links.put(child.getPath().getName(), child);
-        modelRegistry.registerNode(child);
+        modelRegistry.registerNode(child, registration.getActions());
     }
 
     @Override
