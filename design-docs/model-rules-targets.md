@@ -122,33 +122,48 @@ And combining:
 
 - Add `@Rules` annotation and allow to be attached to method.
 - A `@Rules` method can accept inputs but not do anything with them at this stage.
-- Invoked and applied when subject is transitioned to `initialized`.
+- A `@Rules` method must accept two parameters. The first is the `RuleSource` to configure, the second is the target for the `RuleSource`.
+- The method is invoked and the rules applied when subject is transitioned to `initialized`.
 - Can be applied to:
     - Top-level `RuleSource`
     - Rules source applied via `ModelMap.withType()`
     - Rules applied using a `@Rules` rule.
-- Error when `@Rule` applied to a method whose parameter is not a `RuleSource`.
+- Userguide and sample
+- Error when `@Rule` applied to a method whose first parameter is not a `RuleSource`.
+- Error when `@Rule` applied to a method that does not accept 2 parameters.
+- Error attempting to create a model element with type `RuleSource`.
 
-- TBD: useful descriptor for rules in `RuleSource`.
+#### Test cases
 
-### `RuleSource` can declare inputs to be bound
+- Plugin can use a `@Rules` method to define a `RuleSource`, and the rules on the `RuleSource` are applied  
+- Plugin can specify a target for the `RuleSource` and this is used to resolve by type and by path references
+- Error cases as above 
+- Useful descriptor for rules in `RuleSource`.
+
+### `RuleSource` can declare inputs that must be bound
 
 - Allow `@Input` properties to be declared on `RuleSource` subtypes.
 - Getter and setter must be abstract.
 - Generate and cache an implementation class.
-- Allow a `@Rules` method to set values for the `RuleSource` properties:
+- Allow a `@Rules` method to set the values of the `RuleSource` properties:
      - Inputs should be at or after `initialized`.
      - Inputs should not be mutable.
-- `@Input` properties treated as implicit input for all rules. 
-    - Getter should provide a value during rule invocation.
-- Error when `RuleSource` used with null value for input property.
-- Error when mutating `@Input` property outside `@Rule` method.
-- Error when reading `@Input` property outside self rule execution.
-- TBD: useful descriptor for input property.
+     - Can read or mutate property during `@Rule` method invocation
+- `@Input` properties treated as implicit input for all rules on the `RuleSource`. 
+    - Getter should provide a value during rule method invocation.
+    - Can read property during `@Rule` method invocation
+- Userguide and sample
+- Error when `RuleSource` used with `null` value for input property.
+- Error when setting `@Input` property to a value that not a model element.
+- Error when reading or mutating `@Input` property outside `@Rule` method.
+- Error when mutating `@Input` property in own rule execution.
+
+#### Test cases
+
+- Error cases as above.
 
 ### `RuleSource` can declare subject to be bound
 
 - Allow `@Subject` property to be declared on `RuleSource` subtypes.
 - Validation as per inputs.
 - User guide and samples describe how to use this.
-- TBD: useful descriptor for subject property.

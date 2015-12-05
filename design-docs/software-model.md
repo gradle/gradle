@@ -14,7 +14,7 @@ Specific sub streams have been broken out into other concurrent specs.
 Potential stories and ideas.
 Unordered and not all appropriately story sized.
 
-## Ordering
+## Rule ordering
 
 - Node ancestry should be self closed before node is used as an input, to pick up rules and configuration performed by a rule with ancestor as subject.
 
@@ -44,6 +44,11 @@ Unordered and not all appropriately story sized.
 
 - Validate (or otherwise encode) the names of components, binaries, LSS, etc so that the result makes sense for file names and task names. 
 
+## Documentation
+
+- How to write a rule based plugin is not documented
+- Migration guide and/or build migration assistance
+
 ## Reporting
 
 - Model report shows too much detail by default, should probably not include tasks and just show 'data'
@@ -54,7 +59,6 @@ Unordered and not all appropriately story sized.
 
 ## RuleSource
 
-- How to write a rule based plugin is not documented (need to tidy up docs on `PluginAware` and `ObjectConfigurationAction`)
 - Methods of rule source classes must be private, or be declared as rules, but cannot be both.
     - Remove constraints on private methods (eg allow parameterized private methods).
 - Allow helper (i.e. non rule) methods to be parameterized for types in rule source plugins (currently we do not allow any parameterized methods)
