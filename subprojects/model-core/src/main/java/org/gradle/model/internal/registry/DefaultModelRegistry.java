@@ -1433,11 +1433,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private abstract class RunAction extends ModelNodeGoal {
+    private class RunModelAction extends ModelNodeGoal {
         private final RuleBinder binder;
         private boolean bindInputs;
 
-        public RunAction(ModelPath path, RuleBinder binder) {
+        public RunModelAction(ModelPath path, RuleBinder binder) {
             super(path);
             this.binder = binder;
         }
@@ -1468,15 +1468,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         void attachToCycle(List<String> displayValue) {
             displayValue.add(binder.getDescriptor().toString());
-        }
-    }
-
-    private class RunModelAction extends RunAction {
-        private final RuleBinder binder;
-
-        public RunModelAction(ModelPath path, RuleBinder binder) {
-            super(path, binder);
-            this.binder = binder;
         }
 
         @Override
