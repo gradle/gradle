@@ -44,7 +44,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     }
 
     public String getDescription() {
-        return String.format("@%s and taking a managed model element", super.getDescription());
+        return String.format("%s and taking a managed model element", super.getDescription());
     }
 
     @Override
