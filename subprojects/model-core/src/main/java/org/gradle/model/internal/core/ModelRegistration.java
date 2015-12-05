@@ -16,10 +16,8 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
-import java.util.Set;
 
 public interface ModelRegistration {
     ModelRuleDescriptor getDescriptor();
@@ -29,9 +27,7 @@ public interface ModelRegistration {
     /**
      * Actions that need to be registered when the node is registered.
      */
-    ListMultimap<ModelActionRole, ? extends ModelAction> getActions();
-
-    Set<? extends ModelReference<?>> getInputs();
+    Multimap<ModelActionRole, ? extends ModelAction> getActions();
 
     /**
      * Returns whether the registered node is hidden.
