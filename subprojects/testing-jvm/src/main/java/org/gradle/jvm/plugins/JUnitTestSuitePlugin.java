@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
+import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
@@ -81,14 +82,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                 }
 
                 private void configureTaskDependencies(final Test test) {
-                    binary.getTasks().withType(PlatformJavaCompile.class).all(new Action<PlatformJavaCompile>() {
-                        @Override
-                        public void execute(PlatformJavaCompile platformJavaCompile) {
-                            // todo: we should probably find a way to better register dependencies
-                            // for the test task
-                            test.dependsOn(platformJavaCompile);
-                        }
-                    });
+                    test.dependsOn(((WithJvmAssembly) binary).getAssembly());
                 }
 
                 private File configureReports(Test test) {
