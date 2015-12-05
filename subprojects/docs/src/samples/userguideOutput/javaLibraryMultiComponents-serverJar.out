@@ -3,6 +3,7 @@
 :compileCommonsJarCommonsJava
 :commonsApiJar
 :compileCoreJarCoreJava
+:processCoreJarCoreResources
 :coreApiJar
 :compileServerJarServerJava
 :createServerJar
