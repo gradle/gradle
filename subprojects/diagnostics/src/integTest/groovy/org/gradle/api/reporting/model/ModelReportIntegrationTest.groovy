@@ -349,11 +349,11 @@ apply plugin: ClassHolder.InnerRules
         rules[i] == 'NumberRules#validateRule'
     }
 
-    def "service nodes are not displayed on the report"() {
+    def "hidden nodes are not displayed on the report"() {
         given:
         buildFile << """
         class Rules extends RuleSource {
-            @org.gradle.model.internal.core.Service
+            @org.gradle.model.internal.core.Hidden @Model
             String thingamajigger() {
                 return "hello"
             }
