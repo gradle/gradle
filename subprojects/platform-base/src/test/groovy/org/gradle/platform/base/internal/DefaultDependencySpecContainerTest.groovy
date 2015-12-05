@@ -64,7 +64,7 @@ class DefaultDependencySpecContainerTest extends Specification {
         t.message == "'org:my-module:1.0' is not a valid library name. Did you mean to refer to a module instead?"
     }
 
-    def "throws IllegalDependencyNotation when for project notation setting value twice"() {
+    def "throws IllegalDependencyNotation when setting project notation value twice"() {
         when:
         container.project(":foo").project(":bar")
 
@@ -147,7 +147,7 @@ class DefaultDependencySpecContainerTest extends Specification {
     }
 
     @Unroll
-    def "throws IllegalDependencyNotation when for incomplete module notation (#group:#name:#version)"() {
+    def "throws IllegalDependencyNotation for incomplete module notation (#group:#name:#version)"() {
         when:
         container.group(group).module(name).version(version)
         container.dependencies.first()
@@ -163,7 +163,7 @@ class DefaultDependencySpecContainerTest extends Specification {
         null  | null | "1.0"
     }
 
-    def "throws IllegalDependencyNotation when for module notation setting value twice"() {
+    def "throws IllegalDependencyNotation when setting module notation value twice"() {
         when:
         container.module("org:foo:1.0").module("bar")
 
