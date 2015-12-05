@@ -18,8 +18,10 @@ package org.gradle.jvm.plugins;
 import org.gradle.api.*;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
+import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -40,7 +42,6 @@ import org.gradle.platform.base.internal.PlatformResolvers;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -70,19 +71,22 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
         @BinaryTasks
         void createTestSuiteTask(final ModelMap<Task> tasks,
                                  final JUnitTestSuiteBinarySpec binary,
+                                 final FileOperations fileOperations,
                                  final @Path("buildDir") File buildDir) {
             String taskName = binary.getName() + "Test";
+            final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
+
             tasks.create(taskName, Test.class, new Action<Test>() {
                 @Override
                 public void execute(final Test test) {
+                    test.dependsOn(jvmAssembly);
+
                     test.setTestClassesDir(binary.getClassesDir());
 
-                    configureReports(test);
-                    configureTaskDependencies(test);
-                }
+                    FileCollection jvmAssemblyOutput = fileOperations.files(jvmAssembly.getClassDirectories(), jvmAssembly.getResourceDirectories());
+                    test.setClasspath(jvmAssemblyOutput);
 
-                private void configureTaskDependencies(final Test test) {
-                    test.dependsOn(((WithJvmAssembly) binary).getAssembly());
+                    configureReports(test);
                 }
 
                 private File configureReports(Test test) {
@@ -101,22 +105,22 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void configureClasspath(final ModelMap<Test> testTasks, final FileOperations fileOperations) {
+        void configureClasspath(final ModelMap<Test> testTasks) {
             testTasks.all(new Action<Test>() {
                 @Override
                 public void execute(Test test) {
+                    UnionFileCollection testClasspath = new UnionFileCollection(test.getClasspath());
                     Set<? extends Task> tasks = test.getTaskDependencies().getDependencies(test);
-                    List<Object> classpath = new LinkedList<Object>();
                     for (Task task : tasks) {
                         if (task instanceof PlatformJavaCompile) {
                             FileCollection cp = ((PlatformJavaCompile) task).getClasspath();
                             if (cp != null) {
-                                classpath.add(cp);
+                                testClasspath.add(cp);
                             }
                         }
                     }
-                    classpath.add(test.getTestClassesDir());
-                    test.setClasspath(fileOperations.files(classpath.toArray(new Object[classpath.size()])));
+
+                    test.setClasspath(testClasspath);
                 }
             });
         }

@@ -320,7 +320,6 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         errorOutput.contains 'package utils.internal does not exist'
     }
 
-    @NotYetImplemented
     def "test should access test resources"() {
         given:
         applyJUnitPlugin()
