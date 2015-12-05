@@ -116,9 +116,42 @@ must not be used. Often, build users are not particularly opinionated regarding 
 
 - Add coverage for NTLM based authentication, perhaps as provided by this [pull request](https://github.com/gradle/gradle/pull/444)
 
+## Story: An S3 repository can be configured to authenticate using AWS's EC2 instance metadata.
+
+### Implementation
+
+- Add the method org.gradle.internal.authentication.AuthenticationInternal.requiresCredentials to determine if an Authentication requires credentials
+- change `org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory.validateConnectorFactoryCredentials` to only vaildate when credentials are required
+- Add an authentication type `public interface AwsImAuthentication extends Authentication` and implementation `DefaultAwsImAuthentication extends AbstractAuthentication implements AwsImAuthentication`
+- Change `org.gradle.internal.resource.transport.aws.s3.S3ConnectorFactory` to register `org.gradle.authentication.aws.AwsImAuthentication` as a supported authentication type
+- Change `org.gradle.internal.resource.transport.aws.s3.S3ResourcesPluginServiceRegistry` to register the authentication scheme: `authenticationSchemeRegistry.registerScheme(AwsImAuthentication.class, DefaultAwsImAuthentication.class);`
+- Add integration test support to stub out AWS IM http api calls.  
+
+### Test coverage
+- No instance metadata found on the host
+- Successfully publish and resolve using IM authentication
+
+### DSL
+
+```
+maven {
+    url "s3://somewhere/over/the/rainbow"
+    authentication {
+        awsIm(AwsImAuthentication)
+    }
+}
+
+ivy {
+    url "s3://somewhere/over/the/rainbow"
+    authentication {
+        awsIm(AwsImAuthentication)
+    }
+}
+```
+
 ## Candidate Stories
 
-* Implement an authentication scheme to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata.
+* ~~Implement an authentication scheme to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata.~~
 * Implement an authentication scheme to facilitate authenticating with S3 repositories using [temporary credentials](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html).
 * Implement an authentication scheme to facilitate authenticating with S3 no credentials (publicly accessible buckets)
 ~~* Implement an authentication scheme to facilitate preemptive basic authentication with HTTP repositories.~~
