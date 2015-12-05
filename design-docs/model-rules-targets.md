@@ -118,7 +118,7 @@ And combining:
 
 ## Stories
 
-### Rule method can define rules using a `RuleSource`
+### Rule method can define additional rules by providing a `RuleSource` implementation
 
 - Add `@Rules` annotation and allow to be attached to method.
 - A `@Rules` method can accept inputs but not do anything with them at this stage.
@@ -140,7 +140,7 @@ And combining:
 - Error cases as above 
 - Useful descriptor for rules in `RuleSource`.
 
-### `RuleSource` can declare inputs that must be bound
+### Rule method can bind inputs of rules of a `RuleSource` implementation
 
 - Allow `@Input` properties to be declared on `RuleSource` subtypes.
 - Getter and setter must be abstract.
@@ -162,8 +162,13 @@ And combining:
 
 - Error cases as above.
 
-### `RuleSource` can declare subject to be bound
+### Rule method can bind subject of rules of a `RuleSource` implementation
 
 - Allow `@Subject` property to be declared on `RuleSource` subtypes.
 - Validation as per inputs.
 - User guide and samples describe how to use this.
+
+### `RuleSource` methods can be applied to all subjects of matching type
+
+- Add `@Each` annotation. When applied to a rule method, the rule method is applied to each
+- Alternatively/additionally, allow this to be added to a `RuleSource`
