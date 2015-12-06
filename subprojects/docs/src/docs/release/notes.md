@@ -352,6 +352,8 @@ TODO: The properties of a `@Managed` type can be configured using nested configu
 
 This is automatically added for any property whose type is `@Managed`, or a `ModelMap<T>` or `ModelSet<T>`.
 
+See the <a href="userguide/software_model.html#model-dsl">model DSL</a> user guide section for more details and examples.
+
 ### Tooling API exposes source language level on EclipseProject model
 
 The `EclipseProject` model now exposes the Java source language level via the
