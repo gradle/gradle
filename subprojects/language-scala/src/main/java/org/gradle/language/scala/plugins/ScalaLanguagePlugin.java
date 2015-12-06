@@ -17,10 +17,11 @@
 package org.gradle.language.scala.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
-import org.gradle.jvm.internal.JarBinarySpecInternal;
+import org.gradle.jvm.internal.JvmAssembly;
+import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -43,6 +44,8 @@ import org.gradle.platform.base.LanguageTypeBuilder;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
+
+import static org.gradle.util.CollectionUtils.single;
 
 
 /**
@@ -103,32 +106,31 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlatformScalaCompile compile = (PlatformScalaCompile) task;
                     ScalaLanguageSourceSet scalaSourceSet = (ScalaLanguageSourceSet) sourceSet;
-                    JarBinarySpecInternal binary = (JarBinarySpecInternal) binarySpec;
-                    JavaPlatform javaPlatform = binary.getTargetPlatform();
-                    // TODO RG resolve the scala platform from the binary
-
-                    compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
-                    File analysisFile = new File(task.getTemporaryDir(), String.format("compilerAnalysis/%s.analysis", task.getName()));
-                    compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
+                    JvmAssembly assembly = ((WithJvmAssembly) binarySpec).getAssembly();
+                    assembly.builtBy(compile);
 
                     compile.setDescription(String.format("Compiles %s.", scalaSourceSet));
-                    compile.setDestinationDir(binary.getClassesDir());
-
-                    compile.setSource(scalaSourceSet.getSource());
-                    compile.setClasspath(scalaSourceSet.getCompileClasspath().getFiles());
-                    compile.setTargetCompatibility(javaPlatform.getTargetCompatibility().toString());
-                    compile.setSourceCompatibility(javaPlatform.getTargetCompatibility().toString());
-
+                    compile.setDestinationDir(single(assembly.getClassDirectories()));
+                    // TODO:DAZ This might not be unique in a multi-project build
+                    File analysisFile = new File(task.getTemporaryDir(), String.format("compilerAnalysis/%s.analysis", task.getName()));
+                    compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
                     compile.dependsOn(scalaSourceSet);
+                    compile.setSource(scalaSourceSet.getSource());
 
-                    binary.getTasks().getJar().dependsOn(compile);
-                    binary.getApiJar().builtBy(compile);
+                    JavaPlatform javaPlatform = assembly.getTargetPlatform();
+                    String targetCompatibility = javaPlatform.getTargetCompatibility().toString();
+                    compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
+                    compile.setTargetCompatibility(targetCompatibility);
+                    compile.setSourceCompatibility(targetCompatibility);
+
+                    FileCollection classpath = scalaSourceSet.getCompileClasspath().getFiles();
+                    compile.setClasspath(classpath);
                 }
             };
         }
 
         public boolean applyToBinary(BinarySpec binary) {
-            return binary instanceof JvmBinarySpec;
+            return binary instanceof WithJvmAssembly;
         }
     }
 }

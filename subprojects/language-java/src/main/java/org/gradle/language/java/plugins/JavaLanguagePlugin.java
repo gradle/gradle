@@ -21,7 +21,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Transformers;
@@ -125,20 +124,18 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
                     compile.dependsOn(javaSourceSet);
                     compile.setSource(javaSourceSet.getSource());
+
+                    JavaPlatform targetPlatform = assembly.getTargetPlatform();
+                    String targetCompatibility = targetPlatform.getTargetCompatibility().toString();
+                    compile.setPlatform(targetPlatform);
+                    compile.setToolChain(assembly.getToolChain());
+                    compile.setTargetCompatibility(targetCompatibility);
+                    compile.setSourceCompatibility(targetCompatibility);
+
                     DependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry);
-                    configureCompileTaskFor(assembly, compile, classpath);
+                    compile.setClasspath(classpath);
                 }
             };
-        }
-
-        private void configureCompileTaskFor(JvmAssembly assembly, PlatformJavaCompile compile, FileCollection classpath) {
-            JavaPlatform targetPlatform = assembly.getTargetPlatform();
-            String targetCompatibility = targetPlatform.getTargetCompatibility().toString();
-            compile.setPlatform(targetPlatform);
-            compile.setToolChain(assembly.getToolChain());
-            compile.setTargetCompatibility(targetCompatibility);
-            compile.setSourceCompatibility(targetCompatibility);
-            compile.setClasspath(classpath);
         }
 
         private DependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry) {
