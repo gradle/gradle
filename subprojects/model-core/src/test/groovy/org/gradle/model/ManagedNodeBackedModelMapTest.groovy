@@ -656,7 +656,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         def mmType = ModelTypes.modelMap(MutableValue)
 
         registry
-            .modelMap("values", MutableValue) { it.registerFactory(MutableValue) { new MutableValue() } }
+            .registerModelMap("values", MutableValue) { it.registerFactory(MutableValue) { new MutableValue() } }
             .mutate {
             it.descriptor("mutating elements").path "values" type mmType action { c ->
                 c.create("element")
@@ -686,7 +686,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         def events = []
         registry
             .registerInstance("input", "input") { events << "input created" }
-            .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+            .registerModelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
             it.path "beans" type mmType action { c ->
                 events << "collection mutated"
@@ -718,7 +718,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
                 subject.value = input.value
             }
         }
-        .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+        .registerModelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
             it.path "beans" type mmType action { c ->
                 c.create("element")
@@ -749,7 +749,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         def mmType = ModelTypes.modelMap(Bean)
 
         registry
-            .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+            .registerModelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
             it.path "beans" type mmType action { c ->
                 c.create("element")
@@ -774,7 +774,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         def mmType = ModelTypes.modelMap(Bean)
 
         registry
-            .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+            .registerModelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
             it.path "beans" type mmType action { c ->
                 c.named("element", ElementRules)
@@ -809,7 +809,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         given:
         def mmType = ModelTypes.modelMap(Bean)
         registry
-            .modelMap("beans", Bean) {
+            .registerModelMap("beans", Bean) {
             it.registerFactory(Bean) { new Bean(name: it) }
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
@@ -859,7 +859,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         def mmType = ModelTypes.modelMap(Bean)
 
         registry
-            .modelMap("beans", Bean) {
+            .registerModelMap("beans", Bean) {
             it.registerFactory(Bean) { new Bean(name: it) }
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
@@ -895,7 +895,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         def mmType = ModelTypes.modelMap(Bean)
 
         registry
-            .modelMap("beans", Bean) {
+            .registerModelMap("beans", Bean) {
             it.registerFactory(Bean) { new Bean(name: it) }
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }
@@ -920,7 +920,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         def mmType = ModelTypes.modelMap(Bean)
 
         registry
-            .modelMap("beans", Bean) {
+            .registerModelMap("beans", Bean) {
             it.registerFactory(Bean) { new Bean(name: it) }
             it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
         }

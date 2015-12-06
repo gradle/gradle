@@ -961,7 +961,7 @@ class DefaultModelRegistryTest extends Specification {
         def mmType = ModelTypes.modelMap(Bean)
 
         registry
-            .modelMap("things", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+            .registerModelMap("things", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
             it.path "things" type mmType action { c ->
                 events << "collection mutated"
@@ -1179,13 +1179,13 @@ class DefaultModelRegistryTest extends Specification {
             it.descriptor("bindable").path("foo").type(Bean).action("beans.element", ModelType.of(Bean)) {
             }
         }
-        .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+        .registerModelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
             it.path "beans" type mmType action { c ->
                 c.create("element")
             }
         }
-        .modelMap("emptyBeans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+        .registerModelMap("emptyBeans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
 
         when:
         registry.bindAllReferences()

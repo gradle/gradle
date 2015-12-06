@@ -91,7 +91,7 @@ public class ModelRegistryHelperExtension {
         return modelRegistry.register(definition.transform(registration(path)));
     }
 
-    public static <I> ModelRegistry modelMap(ModelRegistry modelRegistry, String path, final Class<I> itemType, final Action<? super PolymorphicNamedEntityInstantiator<I>> registrations) {
+    public static <I> ModelRegistry registerModelMap(ModelRegistry modelRegistry, String path, final Class<I> itemType, final Action<? super PolymorphicNamedEntityInstantiator<I>> registrations) {
         configure(modelRegistry, Initialize, ModelReference.of(path, ModelRegistryHelper.instantiatorType(itemType)), new Action<RuleAwarePolymorphicNamedEntityInstantiator<I>>() {
             @Override
             public void execute(final RuleAwarePolymorphicNamedEntityInstantiator<I> instantiator) {

@@ -274,7 +274,7 @@ class TaskNameResolverTest extends Specification {
     }
 
     private ModelRegistry createTasksCollection(ModelRegistry registry, String description) {
-        registry.modelMap("tasks", TaskInternal) {
+        registry.registerModelMap("tasks", TaskInternal) {
             it.registerFactory(TaskInternal) {
                 task(it, description)
             }
