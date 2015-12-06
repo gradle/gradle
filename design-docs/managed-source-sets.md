@@ -248,8 +248,25 @@ Converting this to a true `ModelMap` will add consistency, and enable the later 
     - Are added to the top-level 'sources' container
 - Reasonable error message when source set added to `BinarySpec.sources` cannot be constructed
 
-
 ## Story: Standalone `FunctionalSourceSet` has true `ModelMap` semantics
+
+This work involves converting `FunctionalSourceSet` to a node-backed `ModelMap` implementation, removing the use of a backing DomainObjectContainer. This change will add consistency, and enable the later transition to managed-type-aware node registration.
+
+We will add test coverage to ensure that it has true `ModelMap` semantics:
+- Elements appear in the model report
+- Elements can be addressed by model rules
+- Elements are configured on demand
+
+### Test cases
+
+- Elements in a standalone `FunctionalSourceSet` are visible in the model report
+- Elements in a standalone `FunctionalSourceSet` can be addressed by model rules
+    - Iterated in model rule
+    - Directly addressed in a model rule
+- Elements in a standalone `FunctionalSourceSet` are not created when defined: configuration is evaluated on-demand
+    - Configuration supplied when registering element
+    - Configuration supplied for `beforeEach`, `all` and `afterEach`
+
 ## Story: Elements of `ProjectSourceSet` container are visible to rules
 
 - TBD: Change `ProjectSourceSet` so that it is bridged in the same way as the `binaries` container, alternatively move `sources` completely into model space.
