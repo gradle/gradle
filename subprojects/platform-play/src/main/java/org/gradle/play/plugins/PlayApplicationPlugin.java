@@ -22,9 +22,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
@@ -317,38 +317,24 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         @BinaryTasks
         void createScalaCompileTask(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
             final String scalaCompileTaskName = binary.getTasks().taskName("compile", "Scala");
+            final JvmAssembly assembly = ((PlayApplicationBinarySpecInternal) binary).getAssembly();
             tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
-                    scalaCompile.setDescription("Compiles all scala and java source sets for the " + binary.getDisplayName() + ".");
-
-                    scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
-                    scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
-                    //infer scala classpath
-                    String targetCompatibility = binary.getTargetPlatform().getJavaPlatform().getTargetCompatibility().getMajorVersion();
-                    scalaCompile.setSourceCompatibility(targetCompatibility);
-                    scalaCompile.setTargetCompatibility(targetCompatibility);
-
-                    IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
-                    incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", scalaCompileTaskName)));
-
+                    ScalaLanguagePlugin.configureScalaTask(scalaCompile, assembly, "Compiles all scala and java source sets for the " + binary.getDisplayName() + ".");
                     for (LanguageSourceSet appSources : binary.getInputs().withType(ScalaLanguageSourceSet.class)) {
-                        scalaCompile.source(appSources.getSource());
-                        scalaCompile.dependsOn(appSources);
+                        ScalaLanguagePlugin.addSourceSetToCompile(scalaCompile, appSources);
                     }
 
                     for (LanguageSourceSet appSources : binary.getInputs().withType(JavaSourceSet.class)) {
-                        scalaCompile.source(appSources.getSource());
-                        scalaCompile.dependsOn(appSources);
+                        ScalaLanguagePlugin.addSourceSetToCompile(scalaCompile, appSources);
                     }
 
                     for (LanguageSourceSet generatedSourceSet : binary.getGeneratedScala().values()) {
-                        scalaCompile.source(generatedSourceSet.getSource());
-                        scalaCompile.dependsOn(generatedSourceSet);
+                        ScalaLanguagePlugin.addSourceSetToCompile(scalaCompile, generatedSourceSet);
                     }
 
+                    scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
                     scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal) binary).getClasspath());
-
-                    binary.getClasses().builtBy(scalaCompile);
                 }
             });
         }

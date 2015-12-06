@@ -17,6 +17,7 @@
 package org.gradle.play.internal;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
@@ -38,4 +39,7 @@ public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinary
     FileCollection getClasspath();
 
     void setClasspath(FileCollection applicationClasspath);
+
+    // Not yet implementing `WithJvmAssembly` because the infrastructure isn't ready
+    JvmAssembly getAssembly();
 }

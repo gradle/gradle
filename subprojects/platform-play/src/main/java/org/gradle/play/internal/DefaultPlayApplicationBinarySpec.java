@@ -18,8 +18,13 @@ package org.gradle.play.internal;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.gradle.api.Nullable;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.jvm.internal.DefaultJvmAssembly;
+import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
@@ -36,8 +41,10 @@ import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.util.CollectionUtils.single;
+
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
-    private final JvmClasses classesDir = new DefaultJvmClasses();
+    private final DefaultJvmAssembly jvmAssembly = new DefaultJvmAssembly();
     private final PublicAssets assets = new DefaultPublicAssets();
     private Map<LanguageSourceSet, ScalaLanguageSourceSet> generatedScala = Maps.newHashMap();
     private Map<LanguageSourceSet, JavaScriptSourceSet> generatedJavaScript = Maps.newHashMap();
@@ -65,12 +72,17 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return toolChain;
     }
 
+    public JvmAssembly getAssembly() {
+        return jvmAssembly;
+    }
+
     public File getJarFile() {
         return jarFile;
     }
 
     public void setTargetPlatform(PlayPlatform platform) {
         this.platform = platform;
+        jvmAssembly.setTargetPlatform(platform.getJavaPlatform());
     }
 
     public void setToolChain(PlayToolChainInternal toolChain) {
@@ -90,7 +102,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     }
 
     public JvmClasses getClasses() {
-        return classesDir;
+        return new JvmClassesAdapter(jvmAssembly);
     }
 
     public PublicAssets getAssets() {
@@ -122,24 +134,49 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return new ToolSearchBuildAbility(getToolChain().select(getTargetPlatform()));
     }
 
-    private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {
-        private Set<File> resourceDirs = Sets.newLinkedHashSet();
-        private File classesDir;
+    private static class JvmClassesAdapter implements JvmClasses {
+
+        private final JvmAssembly jvmAssembly;
+
+        private JvmClassesAdapter(JvmAssembly jvmAssembly) {
+            this.jvmAssembly = jvmAssembly;
+        }
 
         public File getClassesDir() {
-            return classesDir;
+            return single(jvmAssembly.getClassDirectories());
         }
 
         public void setClassesDir(File classesDir) {
-            this.classesDir = classesDir;
+            replaceSingleDirectory(jvmAssembly.getClassDirectories(), classesDir);
         }
 
         public Set<File> getResourceDirs() {
-            return resourceDirs;
+            return jvmAssembly.getResourceDirectories();
         }
 
         public void addResourceDir(File resourceDir) {
-            resourceDirs.add(resourceDir);
+            jvmAssembly.getResourceDirectories().add(resourceDir);
+        }
+
+        public void builtBy(Object... tasks) {
+            jvmAssembly.builtBy(tasks);
+        }
+
+        @Nullable
+        public Task getBuildTask() {
+            return jvmAssembly.getBuildTask();
+        }
+
+        public void setBuildTask(Task lifecycleTask) {
+            jvmAssembly.setBuildTask(lifecycleTask);
+        }
+
+        public boolean hasBuildDependencies() {
+            return jvmAssembly.hasBuildDependencies();
+        }
+
+        public TaskDependency getBuildDependencies() {
+            return jvmAssembly.getBuildDependencies();
         }
     }
 

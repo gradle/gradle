@@ -80,6 +80,32 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
         }
     }
 
+    public static void configureScalaTask(PlatformScalaCompile compile, JvmAssembly assembly, String description) {
+        assembly.builtBy(compile);
+
+        compile.setDescription(description);
+        compile.setDestinationDir(single(assembly.getClassDirectories()));
+        File analysisFile = new File(compile.getTemporaryDir(), String.format("compilerAnalysis/%s.analysis", compile.getName()));
+        compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
+
+        JavaPlatform javaPlatform = assembly.getTargetPlatform();
+        String targetCompatibility = javaPlatform.getTargetCompatibility().toString();
+        // TODO:DAZ Don't hard-code the Scala platform
+        compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
+        compile.setTargetCompatibility(targetCompatibility);
+        compile.setSourceCompatibility(targetCompatibility);
+    }
+
+    public static void addSourceSetToCompile(PlatformScalaCompile compile, LanguageSourceSet sourceSet) {
+        compile.dependsOn(sourceSet);
+        compile.source(sourceSet.getSource());
+    }
+
+    private static void addSourceSetClasspath(PlatformScalaCompile compile, ScalaLanguageSourceSet scalaLanguageSourceSet) {
+        FileCollection classpath = scalaLanguageSourceSet.getCompileClasspath().getFiles();
+        compile.setClasspath(classpath);
+    }
+
     private static class Scala implements LanguageTransform<ScalaLanguageSourceSet, JvmByteCode> {
         public Class<ScalaLanguageSourceSet> getSourceSetType() {
             return ScalaLanguageSourceSet.class;
@@ -105,26 +131,9 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlatformScalaCompile compile = (PlatformScalaCompile) task;
-                    ScalaLanguageSourceSet scalaSourceSet = (ScalaLanguageSourceSet) sourceSet;
-                    JvmAssembly assembly = ((WithJvmAssembly) binarySpec).getAssembly();
-                    assembly.builtBy(compile);
-
-                    compile.setDescription(String.format("Compiles %s.", scalaSourceSet));
-                    compile.setDestinationDir(single(assembly.getClassDirectories()));
-                    // TODO:DAZ This might not be unique in a multi-project build
-                    File analysisFile = new File(task.getTemporaryDir(), String.format("compilerAnalysis/%s.analysis", task.getName()));
-                    compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
-                    compile.dependsOn(scalaSourceSet);
-                    compile.setSource(scalaSourceSet.getSource());
-
-                    JavaPlatform javaPlatform = assembly.getTargetPlatform();
-                    String targetCompatibility = javaPlatform.getTargetCompatibility().toString();
-                    compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
-                    compile.setTargetCompatibility(targetCompatibility);
-                    compile.setSourceCompatibility(targetCompatibility);
-
-                    FileCollection classpath = scalaSourceSet.getCompileClasspath().getFiles();
-                    compile.setClasspath(classpath);
+                    configureScalaTask(compile, ((WithJvmAssembly) binarySpec).getAssembly(), String.format("Compiles %s.", sourceSet));
+                    addSourceSetToCompile(compile, sourceSet);
+                    addSourceSetClasspath(compile, (ScalaLanguageSourceSet) sourceSet);
                 }
             };
         }
