@@ -26,7 +26,6 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.model.ComponentBinaryRules;
@@ -113,28 +112,43 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
+        // TODO:DAZ Convert this to `@BinaryTasks` when we model a `NativeAssembly` instead of wiring compile tasks directly to LinkTask
         @Finalize
         void createSourceTransformTasks(final TaskContainer tasks, final ModelMap<BinarySpecInternal> binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
-            for (LanguageTransform<?, ?> language : languageTransforms) {
-                for (final BinarySpecInternal binary : binaries) {
-                    if (binary.isLegacyBinary() || !language.applyToBinary(binary)) {
+            for (BinarySpecInternal binary : binaries) {
+                if (binary.isLegacyBinary()) {
+                    continue;
+                }
+
+                for (LanguageSourceSetInternal sourceSet : binary.getInputs().withType(LanguageSourceSetInternal.class)) {
+                    if (!sourceSet.getMayHaveSources()) {
+                        continue;
+                    }
+
+                    LanguageTransform<?, ?> language = findLanguageTransform(binary, sourceSet, languageTransforms);
+                    if (language == null) {
+                        // TODO:DAZ Should fail here : no transform for this source set in this binary
                         continue;
                     }
 
                     final SourceTransformTaskConfig taskConfig = language.getTransformTask();
-                    for (LanguageSourceSet languageSourceSet : binary.getInputs()) {
-                        LanguageSourceSetInternal sourceSet = (LanguageSourceSetInternal) languageSourceSet;
-                        if (language.getSourceSetType().isInstance(sourceSet) && sourceSet.getMayHaveSources()) {
-                            String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(sourceSet.getProjectScopedName());
-                            Task task = tasks.create(taskName, taskConfig.getTaskType());
-                            taskConfig.configureTask(task, binary, sourceSet, serviceRegistry);
+                    String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(sourceSet.getProjectScopedName());
+                    Task task = tasks.create(taskName, taskConfig.getTaskType());
+                    taskConfig.configureTask(task, binary, sourceSet, serviceRegistry);
 
-                            task.dependsOn(sourceSet);
-                            binary.getTasks().add(task);
-                        }
-                    }
+                    task.dependsOn(sourceSet);
+                    binary.getTasks().add(task);
                 }
             }
+        }
+
+        private LanguageTransform<?, ?> findLanguageTransform(BinarySpecInternal binary, LanguageSourceSetInternal sourceSet, LanguageTransformContainer languageTransforms) {
+            for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
+                if (languageTransform.applyToBinary(binary) && languageTransform.getSourceSetType().isInstance(sourceSet)) {
+                    return languageTransform;
+                }
+            }
+            return null;
         }
 
         @Model
