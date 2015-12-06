@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
@@ -201,13 +202,13 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     configurations.getPlay().addArtifact(new DefaultPublishArtifact(projectIdentifier.getName(), "jar", "jar", null, new Date(), mainJar, playBinaryInternal));
                     configurations.getPlay().addArtifact(new DefaultPublishArtifact(projectIdentifier.getName(), "jar", "jar", "assets", new Date(), assetsJar, playBinaryInternal));
 
-                    JvmClasses classes = playBinary.getClasses();
-                    classes.setClassesDir(new File(binaryBuildDir, "classes"));
+                    JvmAssembly jvmAssembly = ((PlayApplicationBinarySpecInternal) playBinary).getAssembly();
+                    jvmAssembly.getClassDirectories().add(new File(binaryBuildDir, "classes"));
 
                     ModelMap<JvmResourceSet> jvmResourceSets = componentSpec.getSources().withType(JvmResourceSet.class);
                     for (JvmResourceSet jvmResourceSet : jvmResourceSets.values()) {
                         for (File resourceDir : jvmResourceSet.getSource().getSrcDirs()) {
-                            classes.addResourceDir(resourceDir);
+                            jvmAssembly.getResourceDirectories().add(resourceDir);
                         }
                     }
 
@@ -339,16 +340,16 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createJarTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary) {
+        void createJarTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary) {
             String jarTaskName = binary.getTasks().taskName("create", "Jar");
             tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
                 public void execute(Jar jar) {
                     jar.setDescription("Assembles the application jar for the " + binary.getDisplayName() + ".");
                     jar.setDestinationDir(binary.getJarFile().getParentFile());
                     jar.setArchiveName(binary.getJarFile().getName());
-                    jar.from(binary.getClasses().getClassesDir());
-                    jar.from(binary.getClasses().getResourceDirs());
-                    jar.dependsOn(binary.getClasses());
+                    jar.from(binary.getAssembly().getClassDirectories());
+                    jar.from(binary.getAssembly().getResourceDirectories());
+                    jar.dependsOn(binary.getAssembly());
                 }
             });
 
