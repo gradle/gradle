@@ -1,0 +1,37 @@
+@Managed
+interface Person {
+    void setFirstName(String n);
+
+    String getFirstName()
+
+    void setLastName(String n);
+
+    String getLastName()
+}
+
+// START SNIPPET configure-rule
+model {
+    person {
+        println "configuring person"
+        lastName = "Smith"
+    }
+}
+// END SNIPPET configure-rule
+model {
+    person(Person) {
+        firstName = "John"
+    }
+    tasks {
+        showPerson(Task) {
+            def p = $.person
+            doLast {
+                println "Hello $p.firstName $p.lastName!"
+            }
+        }
+        somethingElse(Task) {
+            doLast {
+                println "Not using person"
+            }
+        }
+    }
+}

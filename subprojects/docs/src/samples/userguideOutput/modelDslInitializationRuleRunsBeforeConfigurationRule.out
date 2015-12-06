@@ -1,0 +1,9 @@
+creating person
+configuring person
+last name is Smith, should be Smythe
+:showPerson
+Hello John Smythe!
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

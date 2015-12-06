@@ -499,7 +499,7 @@
     <section id="model-dsl">
         <title>The model DSL</title>
         <para>
-            It is also possible to declare a model and rules directly in the build script using the “model DSL”.
+            It is also possible to declare a model and rules directly in a build script using the “model DSL”.
         </para>
         <tip>
             <para>The model DSL makes heavy use of various Groovy DSL features. Please have a read of <xref linkend="groovy-dsl-basics"/> for an introduction to these Groovy features.</para>
@@ -508,7 +508,7 @@
             The general form of the model DSL is:
         </para>
         <programlisting>model {
-    «rule-definition»
+    «rule-definitions»
 }</programlisting>
         <para>
             All rules are nested inside a <code>model </code> block. There may be any number of rule definitions inside each <code>model</code> block,
@@ -532,10 +532,22 @@ model {
                 <sourcefile file='build.gradle' snippet='configure-rule'/>
             </sample>
             <para>A configuration rule specifies a path to the subject that should be configured and a closure containing the code to run when the subject is
-                configured. The closure is executed with the subject passed as the closure delegate. You should note that the configuration code is not executed immediately
-                but is instead executed only when the subject is required.
+                configured. The closure is executed with the subject passed as the closure delegate.
+                Exactly what code you can provide in the closure depends on the type of the subject. This is discussed below.
             </para>
-            <para>Exactly what code you can provide in the closure depends on the type of the subject. This is discussed below.</para>
+            <para>You should note that the configuration code is not executed immediately but is instead executed only when the subject is required.
+                This is an important behaviour of model rules and allows Gradle to configure only those elements that are required for the build, which helps
+                reduce build time.
+                For example, let's run a task that uses the "person" object:</para>
+            <sample id='modelDslConfigureRuleRunWhenRequired' dir='userguide/modelRules/configureAsRequired' title="Configuration run when required">
+                <sourcefile file='build.gradle' snippet='configure-rule'/>
+                <output args="showPerson"/>
+            </sample>
+            <para>You can see that before the task is run, the "person" element is configured by running the rule closure. Now let's run a task that does not require the "person" element:</para>
+            <sample id='modelDslConfigureRuleNotRunWhenNotRequired' dir='userguide/modelRules/configureAsRequired' title="Configuration not run when not required">
+                <output args="somethingElse"/>
+            </sample>
+            <para>In this instance, you can see that the "person" element is not configured at all.</para>
         </section>
         <section>
             <title>Creation rules</title>
@@ -554,15 +566,23 @@ model {
             <sample id='modelDslCreate' dir='modelRules/modelDsl' title="DSL creation rule">
                 <sourcefile file='build.gradle' snippet="create-rule"/>
             </sample>
-            <para>A creation rule definition specifies the path of the element to create, plus its public type. Only certain types of model elements can be created.</para>
+            <para>A creation rule definition specifies the path of the element to create, plus its public type, represented as a Java interface or class. Only certain types of model elements can be created.</para>
             <para>A creation rule may also provide a closure containing the initialization code to run when the element is created. The closure is executed with the element passed as
-                the closure delegate. You should note that the initialization code is not executed immediately but is instead executed only when the element is required.
+                the closure delegate. Exactly what code you can provide in the closure depends on the type of the subject. This is discussed below.
             </para>
-            <para>Exactly what code you can provide in the closure depends on the type of the subject. This is discussed below.</para>
-            <para>The initialization closure is optional, for example:</para>
+            <para>The initialization closure is optional and can be omitted, for example:</para>
             <sample id='modelDslCreateNoConfig' dir='modelRules/modelDsl' title="DSL creation rule without initialization">
                 <sourcefile file='build.gradle' snippet="create-rule-no-config"/>
             </sample>
+            <para>You should note that the initialization code is not executed immediately but is instead executed only when the element is required.
+                The initialization code is executed before any configuration rules are run. For example:
+            </para>
+            <sample id='modelDslInitializationRuleRunsBeforeConfigurationRule' dir='userguide/modelRules/initializationRuleRunsBeforeConfigurationRules' title="Initialization before configuration">
+                <sourcefile file='build.gradle' snippet="configure-and-create-rules"/>
+                <output args="showPerson"/>
+            </sample>
+            <para>Notice that the creation rule appears in the build script <emphasis>after</emphasis> the configuration rule. Gradle collects up all the rules for a given subject before running any
+                of them, then runs the rules in the approriate order.</para>
         </section>
         <section>
             <title>Configuring model elements</title>
