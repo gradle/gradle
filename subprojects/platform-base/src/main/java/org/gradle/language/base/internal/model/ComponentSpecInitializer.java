@@ -18,10 +18,7 @@ package org.gradle.language.base.internal.model;
 
 import org.gradle.api.Action;
 import org.gradle.internal.BiAction;
-import org.gradle.model.internal.core.ModelRegistration;
-import org.gradle.model.internal.core.ModelRegistrations;
-import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.UnmanagedModelProjection;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
@@ -33,13 +30,14 @@ public class ComponentSpecInitializer {
         @Override
         public void execute(MutableModelNode node, BinarySpec spec) {
             final ModelType<BinaryTasksCollection> itemType = ModelType.of(BinaryTasksCollection.class);
-            ModelRegistration itemRegistration = ModelRegistrations.of(node.getPath().child("tasks"), new Action<MutableModelNode>() {
-                @Override
-                public void execute(MutableModelNode modelNode) {
-                    BinaryTasksCollection tasks = modelNode.getParent().getPrivateData(ModelType.of(BinarySpec.class)).getTasks();
-                    modelNode.setPrivateData(itemType, tasks);
-                }
-            })
+            ModelRegistration itemRegistration = ModelRegistrations.of(node.getPath().child("tasks"))
+                .action(ModelActionRole.Create, new Action<MutableModelNode>() {
+                    @Override
+                    public void execute(MutableModelNode modelNode) {
+                        BinaryTasksCollection tasks = modelNode.getParent().getPrivateData(ModelType.of(BinarySpec.class)).getTasks();
+                        modelNode.setPrivateData(itemType, tasks);
+                    }
+                })
                 .withProjection(new UnmanagedModelProjection<BinaryTasksCollection>(itemType))
                 .descriptor(new StandardDescriptorFactory(node.getDescriptor()).transform("tasks"))
                 .build();

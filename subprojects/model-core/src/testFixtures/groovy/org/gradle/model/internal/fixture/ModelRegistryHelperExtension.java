@@ -32,11 +32,9 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
-import java.util.List;
 import java.util.Set;
 
-import static org.gradle.model.internal.core.ModelActionRole.Initialize;
-import static org.gradle.model.internal.core.ModelActionRole.Mutate;
+import static org.gradle.model.internal.core.ModelActionRole.*;
 
 /**
  * A helper for adding rules to a model registry.
@@ -231,12 +229,13 @@ public class ModelRegistryHelperExtension {
     }
 
     public static <C> ModelRegistration registration(ModelRegistry modelRegistry, String path, final ModelType<C> modelType, String inputPath, final Transformer<? extends C, Object> action) {
-        return ModelRegistrations.of(ModelPath.path(path), ModelReference.of(inputPath), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-            @Override
-            public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
-                mutableModelNode.setPrivateData(modelType, action.transform(inputs.get(0).getInstance()));
-            }
-
-        }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true)).descriptor("create " + path).build();
+        return ModelRegistrations.of(ModelPath.path(path))
+            .action(Create, ModelReference.of(inputPath), new BiAction<MutableModelNode, Object>() {
+                @Override
+                public void execute(MutableModelNode mutableModelNode, Object input) {
+                    mutableModelNode.setPrivateData(modelType, action.transform(input));
+                }
+            })
+            .withProjection(new UnmanagedModelProjection<C>(modelType, true, true)).descriptor("create " + path).build();
     }
 }

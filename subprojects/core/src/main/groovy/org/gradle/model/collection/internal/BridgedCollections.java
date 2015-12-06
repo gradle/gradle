@@ -44,9 +44,8 @@ public abstract class BridgedCollections {
         final ModelType<C> containerType = containerReference.getType();
         assert containerPath != null : "container reference path cannot be null";
 
-        return ModelRegistrations.of(
-            containerPath,
-            new Action<MutableModelNode>() {
+        return ModelRegistrations.of(containerPath)
+            .action(ModelActionRole.Create, new Action<MutableModelNode>() {
                 public void execute(final MutableModelNode containerNode) {
                     final C container = containerFactory.transform(containerNode);
                     containerNode.setPrivateData(containerType, container);
@@ -79,8 +78,7 @@ public abstract class BridgedCollections {
                         }
                     });
                 }
-            }
-        )
+            })
             .descriptor(descriptor);
     }
 

@@ -32,8 +32,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
-
 public class ModelRegistrationBuilder {
     private final ModelPath path;
     private ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("tester");
@@ -65,15 +63,17 @@ public class ModelRegistrationBuilder {
     }
 
     public <C> ModelRegistration unmanaged(final ModelType<C> modelType, String inputPath, String inputDescriptor, final Transformer<? extends C, Object> action) {
-        return ModelRegistrations.of(
-            path,
-            ModelReference.of(inputPath, ModelType.UNTYPED, inputDescriptor),
-            new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                @Override
-                public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
-                    mutableModelNode.setPrivateData(modelType, action.transform(inputs.get(0).getInstance()));
+        return ModelRegistrations.of(path)
+            .action(
+                ModelActionRole.Create,
+                ModelReference.of(inputPath, ModelType.UNTYPED, inputDescriptor),
+                new BiAction<MutableModelNode, Object>() {
+                    @Override
+                    public void execute(MutableModelNode mutableModelNode, Object input) {
+                        mutableModelNode.setPrivateData(modelType, action.transform(input));
+                    }
                 }
-            })
+            )
             .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
             .descriptor(descriptor)
             .build();
@@ -84,15 +84,16 @@ public class ModelRegistrationBuilder {
     }
 
     public <C, I> ModelRegistration unmanaged(final ModelType<C> modelType, final ModelType<I> inputModelType, final Transformer<? extends C, ? super I> action) {
-        return ModelRegistrations.of(
-            path,
-            ModelReference.of(inputModelType),
-            new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                @Override
-                public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
-                    mutableModelNode.setPrivateData(modelType, action.transform(ModelViews.assertType(inputs.get(0), inputModelType).getInstance()));
-                }
-            })
+        return ModelRegistrations.of(path)
+            .action(
+                ModelActionRole.Create,
+                ModelReference.of(inputModelType),
+                new BiAction<MutableModelNode, I>() {
+                    @Override
+                    public void execute(MutableModelNode mutableModelNode, I input) {
+                        mutableModelNode.setPrivateData(modelType, action.transform(input));
+                    }
+                })
             .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
             .descriptor(descriptor)
             .build();
@@ -107,9 +108,8 @@ public class ModelRegistrationBuilder {
     }
 
     private <C> ModelRegistration unmanaged(final ModelType<C> modelType, final Factory<? extends C> initializer) {
-        return ModelRegistrations.of(
-            path,
-            new Action<MutableModelNode>() {
+        return ModelRegistrations.of(path)
+            .action(ModelActionRole.Create, new Action<MutableModelNode>() {
                 @Override
                 public void execute(MutableModelNode mutableModelNode) {
                     mutableModelNode.setPrivateData(modelType, initializer.create());
@@ -125,7 +125,8 @@ public class ModelRegistrationBuilder {
     }
 
     public <C> ModelRegistration unmanagedNode(ModelType<C> modelType, final Action<? super MutableModelNode> action) {
-        return ModelRegistrations.of(path, action)
+        return ModelRegistrations.of(path)
+            .action(ModelActionRole.Create, action)
             .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
             .descriptor(descriptor)
             .build();
@@ -149,17 +150,16 @@ public class ModelRegistrationBuilder {
         final ModelType<RuleAwarePolymorphicNamedEntityInstantiator<I>> instantiatorType = ModelRegistryHelper.instantiatorType(itemType);
 
         ModelType<I> modelType = ModelType.of(itemType);
-        return ModelRegistrations.of(
-                ModelReference.of(path, instantiatorType),
-                new Factory<RuleAwarePolymorphicNamedEntityInstantiator<I>>() {
-                    @Override
-                    public RuleAwarePolymorphicNamedEntityInstantiator<I> create() {
-                        return new DefaultRuleAwarePolymorphicNamedEntityInstantiator<I>(
-                            new DefaultPolymorphicNamedEntityInstantiator<I>(itemType, "this collection")
-                        );
-                    }
+        return ModelRegistrations.of(path)
+            .action(ModelActionRole.Create, new Action<MutableModelNode>() {
+                @Override
+                public void execute(MutableModelNode mutableModelNode) {
+                    RuleAwarePolymorphicNamedEntityInstantiator<I> instantiator = new DefaultRuleAwarePolymorphicNamedEntityInstantiator<I>(
+                        new DefaultPolymorphicNamedEntityInstantiator<I>(itemType, "this collection")
+                    );
+                    mutableModelNode.setPrivateData(instantiatorType, instantiator);
                 }
-            )
+            })
             .withProjection(ModelMapModelProjection.unmanaged(
                 modelType,
                 ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(modelType)))

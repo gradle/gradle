@@ -30,6 +30,7 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,13 +64,14 @@ abstract public class ModelRegistrations {
     }
 
     public static <T> Builder unmanagedInstanceOf(final ModelReference<T> modelReference, final Transformer<? extends T, ? super MutableModelNode> factory) {
-        return of(modelReference.getPath(), new Action<MutableModelNode>() {
-            @Override
-            public void execute(MutableModelNode modelNode) {
-                T t = factory.transform(modelNode);
-                modelNode.setPrivateData(modelReference.getType(), t);
-            }
-        })
+        return of(modelReference.getPath())
+            .action(ModelActionRole.Create, new Action<MutableModelNode>() {
+                @Override
+                public void execute(MutableModelNode modelNode) {
+                    T t = factory.transform(modelNode);
+                    modelNode.setPrivateData(modelReference.getType(), t);
+                }
+            })
             .withProjection(UnmanagedModelProjection.of(modelReference.getType()));
     }
 
@@ -79,30 +81,6 @@ abstract public class ModelRegistrations {
 
     public static Builder of(ModelPath path, NodeInitializer initializer) {
         return new Builder(path, initializer);
-    }
-
-    public static Builder of(ModelPath path, ModelReference<?> input, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
-        return of(path, Collections.singletonList(input), initializer);
-    }
-
-    public static Builder of(ModelPath path, List<? extends ModelReference<?>> inputs, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
-        return new Builder(path)
-            .action(ModelActionRole.Create, inputs, initializer);
-    }
-
-    public static Builder of(ModelPath path, Action<? super MutableModelNode> initializer) {
-        return new Builder(path)
-            .action(ModelActionRole.Create, initializer);
-    }
-
-    public static <T> Builder of(final ModelReference<T> modelReference, final Factory<? extends T> factory) {
-        return of(modelReference.getPath(), new Action<MutableModelNode>() {
-            @Override
-            public void execute(MutableModelNode modelNode) {
-                T value = factory.create();
-                modelNode.setPrivateData(modelReference.getType(), value);
-            }
-        });
     }
 
     @NotThreadSafe
@@ -139,6 +117,10 @@ abstract public class ModelRegistrations {
 
         public Builder action(ModelActionRole role, Action<? super MutableModelNode> action) {
             return action(role, new NoInputsBuilderAction(reference, descriptorReference, action));
+        }
+
+        public <T> Builder action(ModelActionRole role, ModelReference<T> input, BiAction<MutableModelNode, T> action) {
+            return action(role, new InputsUsingBuilderAction(reference, descriptorReference, Collections.singleton(input), new SingleInputNodeBiAction<T>(input.getType(), action)));
         }
 
         public Builder action(ModelActionRole role, Iterable<? extends ModelReference<?>> inputs, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> action) {
@@ -232,6 +214,22 @@ abstract public class ModelRegistrations {
             @Override
             public List<? extends ModelReference<?>> getInputs() {
                 return inputs;
+            }
+        }
+
+        private static class SingleInputNodeBiAction<T> implements BiAction<MutableModelNode, List<ModelView<?>>> {
+            private final ModelType<T> type;
+            private final BiAction<MutableModelNode, T> action;
+
+            public SingleInputNodeBiAction(ModelType<T> type, BiAction<MutableModelNode, T> action) {
+                this.type = type;
+                this.action = action;
+            }
+
+            @Override
+            public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> modelViews) {
+                T input = ModelViews.getInstance(modelViews, 0, type);
+                action.execute(mutableModelNode, input);
             }
         }
     }
