@@ -439,7 +439,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         int i = 0;
         for (ModelBinding binding : bindings) {
             ModelNodeInternal element = binding.getNode();
-            ModelView<?> view = assertView(element, binding.getPredicate().getType(), descriptor.append("toViews"));
+            ModelView<?> view = assertView(element, binding.getPredicate().getType(), descriptor);
             array[i++] = view;
         }
         @SuppressWarnings("unchecked") List<ModelView<?>> views = Arrays.asList(array);
