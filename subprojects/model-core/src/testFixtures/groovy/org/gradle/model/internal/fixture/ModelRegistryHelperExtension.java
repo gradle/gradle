@@ -19,11 +19,18 @@ import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
 import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
+import org.gradle.api.internal.rules.DefaultRuleAwarePolymorphicNamedEntityInstantiator;
 import org.gradle.api.internal.rules.RuleAwarePolymorphicNamedEntityInstantiator;
+import org.gradle.internal.Actions;
 import org.gradle.internal.BiAction;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
+import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -43,6 +50,8 @@ import static org.gradle.model.internal.core.ModelActionRole.*;
  */
 @SuppressWarnings("UnusedParameters")
 public class ModelRegistryHelperExtension {
+    // ModelRegistry methods
+
     public static ModelRuleDescriptor desc(ModelRegistry modelRegistry, String p) {
         return new SimpleModelRuleDescriptor(p);
     }
@@ -72,7 +81,7 @@ public class ModelRegistryHelperExtension {
     }
 
     public static <C> ModelRegistry register(ModelRegistry modelRegistry, String path, final C c, Action<? super C> action) {
-        return modelRegistry.register(registration(modelRegistry, path).unmanaged(c, action));
+        return modelRegistry.register(unmanaged(registration(modelRegistry, path), c, action));
     }
 
     @Nullable
@@ -80,11 +89,11 @@ public class ModelRegistryHelperExtension {
         return modelRegistry.node(ModelPath.path(path));
     }
 
-    public static ModelRegistry register(ModelRegistry modelRegistry, String path, Transformer<? extends ModelRegistration, ? super ModelRegistrationBuilder> definition) {
+    public static ModelRegistry register(ModelRegistry modelRegistry, String path, Transformer<? extends ModelRegistration, ? super ModelRegistrations.Builder> definition) {
         return register(modelRegistry, ModelPath.path(path), definition);
     }
 
-    public static ModelRegistry register(ModelRegistry modelRegistry, ModelPath path, Transformer<? extends ModelRegistration, ? super ModelRegistrationBuilder> definition) {
+    public static ModelRegistry register(ModelRegistry modelRegistry, ModelPath path, Transformer<? extends ModelRegistration, ? super ModelRegistrations.Builder> definition) {
         return modelRegistry.register(definition.transform(registration(modelRegistry, path)));
     }
 
@@ -110,10 +119,10 @@ public class ModelRegistryHelperExtension {
                 });
             }
         });
-        return register(modelRegistry, path, new Transformer<ModelRegistration, ModelRegistrationBuilder>() {
+        return register(modelRegistry, path, new Transformer<ModelRegistration, ModelRegistrations.Builder>() {
             @Override
-            public ModelRegistration transform(ModelRegistrationBuilder modelRegistrationBuilder) {
-                return modelRegistrationBuilder.modelMap(itemType);
+            public ModelRegistration transform(ModelRegistrations.Builder modelRegistrationBuilder) {
+                return modelMap(modelRegistrationBuilder, itemType);
             }
         });
     }
@@ -129,23 +138,23 @@ public class ModelRegistryHelperExtension {
     }
 
     public static <C> ModelRegistration registration(ModelRegistry modelRegistry, String path, C c, Action<C> action) {
-        return registration(modelRegistry, path).unmanaged(c, action);
+        return unmanaged(registration(modelRegistry, path), c, action);
     }
 
-    public static ModelRegistration registration(ModelRegistry modelRegistry, String path, Transformer<? extends ModelRegistration, ? super ModelRegistrationBuilder> action) {
-        return action.transform(registration(modelRegistry, ModelPath.path(path)));
+    public static ModelRegistration registration(ModelRegistry modelRegistry, String path, Transformer<? extends ModelRegistration, ? super ModelRegistrations.Builder> action) {
+        return action.transform(registration(modelRegistry, path));
     }
 
     public static <C> ModelRegistration instanceRegistration(ModelRegistry modelRegistry, String path, final C c) {
-        return registration(modelRegistry, ModelPath.path(path)).unmanaged(c);
+        return unmanaged(registration(modelRegistry, path), c);
     }
 
-    public static ModelRegistrationBuilder registration(ModelRegistry modelRegistry, String path) {
+    public static ModelRegistrations.Builder registration(ModelRegistry modelRegistry, String path) {
         return registration(modelRegistry, ModelPath.path(path));
     }
 
-    public static ModelRegistrationBuilder registration(ModelRegistry modelRegistry, ModelPath path) {
-        return new ModelRegistrationBuilder(path);
+    public static ModelRegistrations.Builder registration(ModelRegistry modelRegistry, ModelPath path) {
+        return ModelRegistrations.of(path).descriptor(path + " creator");
     }
 
     public static ModelRegistry configure(ModelRegistry modelRegistry, ModelActionRole role, Transformer<? extends ModelAction, ? super ModelActionBuilder<Object>> definition) {
@@ -229,7 +238,7 @@ public class ModelRegistryHelperExtension {
     }
 
     public static <C> ModelRegistration registration(ModelRegistry modelRegistry, String path, final ModelType<C> modelType, String inputPath, final Transformer<? extends C, Object> action) {
-        return ModelRegistrations.of(ModelPath.path(path))
+        return registration(modelRegistry, path)
             .action(Create, ModelReference.of(inputPath), new BiAction<MutableModelNode, Object>() {
                 @Override
                 public void execute(MutableModelNode mutableModelNode, Object input) {
@@ -237,5 +246,116 @@ public class ModelRegistryHelperExtension {
                 }
             })
             .withProjection(new UnmanagedModelProjection<C>(modelType, true, true)).descriptor("create " + path).build();
+    }
+
+    // ModelRegistrations.Builder methods
+
+    public static <C> ModelRegistration unmanaged(ModelRegistrations.Builder builder, Class<C> modelType, String inputPath, Transformer<? extends C, Object> action) {
+        return unmanaged(builder, modelType, inputPath, inputPath, action);
+    }
+
+    public static <C> ModelRegistration unmanaged(ModelRegistrations.Builder builder, Class<C> modelType, String inputPath, String referenceDescription, Transformer<? extends C, Object> action) {
+        return unmanaged(builder, ModelType.of(modelType), inputPath, referenceDescription, action);
+    }
+
+    public static <C> ModelRegistration unmanaged(ModelRegistrations.Builder builder, ModelType<C> modelType, String inputPath, Transformer<? extends C, Object> action) {
+        return unmanaged(builder, modelType, inputPath, inputPath, action);
+    }
+
+    public static <C> ModelRegistration unmanaged(ModelRegistrations.Builder builder, final ModelType<C> modelType, String inputPath, String inputDescriptor, final Transformer<? extends C, Object> action) {
+        return builder.action(
+                ModelActionRole.Create,
+                ModelReference.of(inputPath, ModelType.UNTYPED, inputDescriptor),
+                new BiAction<MutableModelNode, Object>() {
+                    @Override
+                    public void execute(MutableModelNode mutableModelNode, Object input) {
+                        mutableModelNode.setPrivateData(modelType, action.transform(input));
+                    }
+                }
+            )
+            .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
+            .build();
+    }
+
+    public static <C, I> ModelRegistration unmanaged(ModelRegistrations.Builder builder, Class<C> type, Class<I> inputType, Transformer<? extends C, ? super I> action) {
+        return unmanaged(builder, ModelType.of(type), ModelType.of(inputType), action);
+    }
+
+    public static <C, I> ModelRegistration unmanaged(ModelRegistrations.Builder builder, final ModelType<C> modelType, ModelType<I> inputModelType, final Transformer<? extends C, ? super I> action) {
+        return builder.action(
+                ModelActionRole.Create,
+                ModelReference.of(inputModelType),
+                new BiAction<MutableModelNode, I>() {
+                    @Override
+                    public void execute(MutableModelNode mutableModelNode, I input) {
+                        mutableModelNode.setPrivateData(modelType, action.transform(input));
+                    }
+                })
+            .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
+            .build();
+    }
+
+    public static <C> ModelRegistration unmanaged(ModelRegistrations.Builder builder, Class<C> type, Factory<? extends C> initializer) {
+        return unmanaged(builder, ModelType.of(type), initializer);
+    }
+
+    public static <C> ModelRegistration unmanaged(ModelRegistrations.Builder builder, Class<C> type, C c) {
+        return unmanaged(builder, ModelType.of(type), Factories.constant(c));
+    }
+
+    private static <C> ModelRegistration unmanaged(ModelRegistrations.Builder builder, final ModelType<C> modelType, final Factory<? extends C> initializer) {
+        return builder.action(ModelActionRole.Create, new Action<MutableModelNode>() {
+                @Override
+                public void execute(MutableModelNode mutableModelNode) {
+                    mutableModelNode.setPrivateData(modelType, initializer.create());
+                }
+            })
+            .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
+            .build();
+    }
+
+    public static <C> ModelRegistration unmanagedNode(ModelRegistrations.Builder builder, Class<C> modelType, Action<? super MutableModelNode> action) {
+        return unmanagedNode(builder, ModelType.of(modelType), action);
+    }
+
+    public static <C> ModelRegistration unmanagedNode(ModelRegistrations.Builder builder, ModelType<C> modelType, Action<? super MutableModelNode> action) {
+        return builder.action(ModelActionRole.Create, action)
+            .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
+            .build();
+    }
+
+    public static <C> ModelRegistration unmanaged(ModelRegistrations.Builder builder, C c) {
+        return unmanaged(builder, c, Actions.doNothing());
+    }
+
+    public static <C> ModelRegistration unmanaged(ModelRegistrations.Builder builder, final C c, final Action<? super C> action) {
+        return unmanaged(builder, ModelType.typeOf(c).getConcreteClass(), new Factory<C>() {
+            @Override
+            public C create() {
+                action.execute(c);
+                return c;
+            }
+        });
+    }
+
+    public static <I> ModelRegistration modelMap(ModelRegistrations.Builder builder, final Class<I> itemType) {
+        final ModelType<RuleAwarePolymorphicNamedEntityInstantiator<I>> instantiatorType = ModelRegistryHelper.instantiatorType(itemType);
+
+        ModelType<I> modelType = ModelType.of(itemType);
+        return builder.action(ModelActionRole.Create, new Action<MutableModelNode>() {
+                @Override
+                public void execute(MutableModelNode mutableModelNode) {
+                    RuleAwarePolymorphicNamedEntityInstantiator<I> instantiator = new DefaultRuleAwarePolymorphicNamedEntityInstantiator<I>(
+                        new DefaultPolymorphicNamedEntityInstantiator<I>(itemType, "this collection")
+                    );
+                    mutableModelNode.setPrivateData(instantiatorType, instantiator);
+                }
+            })
+            .withProjection(ModelMapModelProjection.unmanaged(
+                modelType,
+                ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(modelType)))
+            )
+            .withProjection(UnmanagedModelProjection.of(instantiatorType))
+            .build();
     }
 }
