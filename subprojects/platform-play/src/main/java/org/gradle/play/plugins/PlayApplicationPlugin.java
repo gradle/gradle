@@ -24,7 +24,6 @@ import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
@@ -35,6 +34,7 @@ import org.gradle.language.routes.RoutesSourceSet;
 import org.gradle.language.routes.internal.DefaultRoutesSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
+import org.gradle.language.scala.internal.ScalaJvmAssembly;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.language.twirl.TwirlSourceSet;
@@ -317,7 +317,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         @BinaryTasks
         void createScalaCompileTask(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
             final String scalaCompileTaskName = binary.getTasks().taskName("compile", "Scala");
-            final JvmAssembly assembly = ((PlayApplicationBinarySpecInternal) binary).getAssembly();
+            final ScalaJvmAssembly assembly = ((PlayApplicationBinarySpecInternal) binary).getAssembly();
             tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
                     ScalaLanguagePlugin.configureScalaTask(scalaCompile, assembly, "Compiles all scala and java source sets for the " + binary.getDisplayName() + ".");
@@ -333,7 +333,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         ScalaLanguagePlugin.addSourceSetToCompile(scalaCompile, generatedSourceSet);
                     }
 
-                    scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
                     scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal) binary).getClasspath());
                 }
             });

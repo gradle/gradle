@@ -32,6 +32,7 @@ import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaPlatform;
+import org.gradle.language.scala.internal.ScalaJvmAssembly;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.language.scala.toolchain.ScalaToolChain;
 import org.gradle.model.Model;
@@ -90,10 +91,15 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
         JavaPlatform javaPlatform = assembly.getTargetPlatform();
         String targetCompatibility = javaPlatform.getTargetCompatibility().toString();
-        // TODO:DAZ Don't hard-code the Scala platform
-        compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
         compile.setTargetCompatibility(targetCompatibility);
         compile.setSourceCompatibility(targetCompatibility);
+
+        if (assembly instanceof ScalaJvmAssembly) {
+            compile.setPlatform(((ScalaJvmAssembly) assembly).getScalaPlatform());
+        } else {
+            // TODO:DAZ Put the default scala platform somewhere else, or enforce that we always have a `ScalaJvmAssembly`
+            compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
+        }
     }
 
     public static void addSourceSetToCompile(PlatformScalaCompile compile, LanguageSourceSet sourceSet) {

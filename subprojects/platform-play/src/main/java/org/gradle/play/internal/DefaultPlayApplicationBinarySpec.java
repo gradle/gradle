@@ -23,11 +23,12 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.jvm.internal.DefaultJvmAssembly;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
+import org.gradle.language.scala.internal.DefaultScalaJvmAssembly;
+import org.gradle.language.scala.internal.ScalaJvmAssembly;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
@@ -44,7 +45,7 @@ import java.util.Set;
 import static org.gradle.util.CollectionUtils.single;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
-    private final DefaultJvmAssembly jvmAssembly = new DefaultJvmAssembly();
+    private final DefaultScalaJvmAssembly jvmAssembly = new DefaultScalaJvmAssembly();
     private final PublicAssets assets = new DefaultPublicAssets();
     private Map<LanguageSourceSet, ScalaLanguageSourceSet> generatedScala = Maps.newHashMap();
     private Map<LanguageSourceSet, JavaScriptSourceSet> generatedJavaScript = Maps.newHashMap();
@@ -72,7 +73,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return toolChain;
     }
 
-    public JvmAssembly getAssembly() {
+    public ScalaJvmAssembly getAssembly() {
         return jvmAssembly;
     }
 
@@ -83,6 +84,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     public void setTargetPlatform(PlayPlatform platform) {
         this.platform = platform;
         jvmAssembly.setTargetPlatform(platform.getJavaPlatform());
+        jvmAssembly.setScalaPlatform(platform.getScalaPlatform());
     }
 
     public void setToolChain(PlayToolChainInternal toolChain) {
