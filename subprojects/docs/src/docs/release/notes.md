@@ -77,7 +77,7 @@ To tweak the name of the Java runtime to use, the name can be configured via
 
     eclipse {
         jdt {
-            javaRuntimeName = "Jigsaw-1.9"
+            javaRuntimeName = "JavaSE-1.8"
         }
     }
 
