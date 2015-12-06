@@ -40,7 +40,7 @@ public class ModelMaps {
                         node.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
                     }
                 })
-                .descriptor(modelNode.getDescriptor(), "." + name)
+                .descriptor(modelNode.getDescriptor().append(name))
                 .withProjection(
                     ModelMapModelProjection.unmanaged(elementModelType, ChildNodeInitializerStrategyAccessors.fromPrivateData())
                 )

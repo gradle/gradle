@@ -29,7 +29,6 @@ import org.gradle.internal.BiAction;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 import java.util.ArrayList;
@@ -131,14 +130,6 @@ abstract public class ModelRegistrations {
         public Builder descriptor(ModelRuleDescriptor descriptor) {
             this.descriptorReference.descriptor = descriptor;
             return this;
-        }
-
-        public Builder descriptor(ModelRuleDescriptor parent, ModelRuleDescriptor child) {
-            return descriptor(new NestedModelRuleDescriptor(parent, child));
-        }
-
-        public Builder descriptor(ModelRuleDescriptor parent, String child) {
-            return descriptor(new NestedModelRuleDescriptor(parent, new SimpleModelRuleDescriptor(child)));
         }
 
         public Builder action(ModelActionRole role, ModelAction action) {

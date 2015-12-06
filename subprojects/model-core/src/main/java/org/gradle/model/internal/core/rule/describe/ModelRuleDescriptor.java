@@ -31,4 +31,9 @@ public interface ModelRuleDescriptor {
      */
     void describeTo(Appendable appendable);
 
+    ModelRuleDescriptor append(ModelRuleDescriptor child);
+
+    ModelRuleDescriptor append(String child);
+
+    ModelRuleDescriptor append(String child, Object... args);
 }

@@ -24,7 +24,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.ModelSet;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 
@@ -74,7 +73,7 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
 
         String name = String.valueOf(modelNode.getLinkCount(elementType));
         ModelPath childPath = modelNode.getPath().child(name);
-        final ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(this.descriptor, "create()");
+        final ModelRuleDescriptor descriptor = this.descriptor.append("create()");
 
         NodeInitializer nodeInitializer = creatorStrategy.initializer(elementType);
         ModelRegistration registration = ModelRegistrations.of(childPath, nodeInitializer)
@@ -88,13 +87,13 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     @Override
     public void afterEach(Action<? super T> configAction) {
         state.assertCanMutate();
-        modelNode.applyToAllLinks(ModelActionRole.Finalize, NoInputsModelAction.of(elementTypeReference, NestedModelRuleDescriptor.append(descriptor, "afterEach()"), configAction));
+        modelNode.applyToAllLinks(ModelActionRole.Finalize, NoInputsModelAction.of(elementTypeReference, descriptor.append("afterEach()"), configAction));
     }
 
     @Override
     public void beforeEach(Action<? super T> configAction) {
         state.assertCanMutate();
-        modelNode.applyToAllLinks(ModelActionRole.Defaults, NoInputsModelAction.of(elementTypeReference, NestedModelRuleDescriptor.append(descriptor, "afterEach()"), configAction));
+        modelNode.applyToAllLinks(ModelActionRole.Defaults, NoInputsModelAction.of(elementTypeReference, descriptor.append("afterEach()"), configAction));
     }
 
     @Override

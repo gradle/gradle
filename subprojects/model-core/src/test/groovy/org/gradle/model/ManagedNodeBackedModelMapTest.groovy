@@ -505,6 +505,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         def action = mockDeferredModelAction()
 
         given:
+        action.getDescriptor() >> new SimpleModelRuleDescriptor("action")
         action.execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
             def thing = node.asMutable(itemType, Stub(ModelRuleDescriptor)).instance
             thing.other = "changed"

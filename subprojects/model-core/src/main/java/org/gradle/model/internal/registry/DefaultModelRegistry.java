@@ -25,6 +25,7 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.report.unbound.UnboundRule;
 import org.gradle.model.internal.type.ModelType;
@@ -184,7 +185,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         if (node == null) {
             return null;
         } else {
-            return assertView(node, type, null, msg).getInstance();
+            return assertView(node, type, new SimpleModelRuleDescriptor(msg)).getInstance();
         }
     }
 
@@ -400,11 +401,11 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         transitionTo(goalGraph, goalGraph.nodeAtState(new NodeAtState(node.getPath(), desired)));
     }
 
-    private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
+    private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor) {
         ModelView<? extends T> view = node.asImmutable(targetType, descriptor);
         if (view == null) {
             // TODO better error reporting here
-            throw new IllegalArgumentException("Model node '" + node.getPath().toString() + "' is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
+            throw new IllegalArgumentException("Model node '" + node.getPath().toString() + "' is not compatible with requested " + targetType + " (operation: " + descriptor + ")");
         } else {
             return view;
         }
@@ -438,7 +439,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         int i = 0;
         for (ModelBinding binding : bindings) {
             ModelNodeInternal element = binding.getNode();
-            ModelView<?> view = assertView(element, binding.getPredicate().getType(), descriptor, "toViews");
+            ModelView<?> view = assertView(element, binding.getPredicate().getType(), descriptor.append("toViews"));
             array[i++] = view;
         }
         @SuppressWarnings("unchecked") List<ModelView<?>> views = Arrays.asList(array);

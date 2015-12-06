@@ -19,7 +19,6 @@ package org.gradle.model.internal.registry;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 import java.util.Deque;
@@ -44,7 +43,7 @@ public class RuleContext {
         if (parent == null) {
             return modelRuleDescriptor;
         } else {
-            return new NestedModelRuleDescriptor(parent, modelRuleDescriptor);
+            return parent.append(modelRuleDescriptor);
         }
     }
 

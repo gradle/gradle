@@ -26,7 +26,6 @@ import org.gradle.internal.Factories;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 
@@ -149,7 +148,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     @Override
     public void all(Action<? super T> configAction) {
         viewState.assertCanMutate();
-        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "all()");
+        ModelRuleDescriptor descriptor = sourceDescriptor.append("all()");
         ModelReference<T> subject = ModelReference.of(elementType);
         modelNode.applyToAllLinks(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
     }
@@ -225,7 +224,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     @Override
     public void put(String name, T instance) {
         Class<T> type = Cast.uncheckedCast(instance.getClass());
-        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "put()");
+        ModelRuleDescriptor descriptor = sourceDescriptor.append("put()");
         modelNode.addLink(
             ModelRegistrations.unmanagedInstance(
                 ModelReference.of(modelNode.getPath().child(name), type),
@@ -238,7 +237,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
 
     private <S> void doBeforeEach(ModelType<S> type, Action<? super S> configAction) {
         viewState.assertCanMutate();
-        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "beforeEach()");
+        ModelRuleDescriptor descriptor = sourceDescriptor.append("beforeEach()");
         ModelReference<S> subject = ModelReference.of(type);
         modelNode.applyToAllLinks(ModelActionRole.Defaults, NoInputsModelAction.of(subject, descriptor, configAction));
     }
@@ -256,7 +255,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
 
     private <S extends T> void doCreate(String name, ModelType<S> type, @Nullable Action<? super S> initAction) {
         ModelPath childPath = modelNode.getPath().child(name);
-        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name);
+        ModelRuleDescriptor descriptor = sourceDescriptor.append("create(%s)", name);
         if (initAction != null) {
             doCreate(childPath, type, descriptor, NoInputsModelAction.of(ModelReference.of(childPath, type), descriptor, initAction));
         } else {
@@ -284,7 +283,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
 
     private <S> void doFinalizeAll(ModelType<S> type, Action<? super S> configAction) {
         viewState.assertCanMutate();
-        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "afterEach()");
+        ModelRuleDescriptor descriptor = sourceDescriptor.append("afterEach()");
         ModelReference<S> subject = ModelReference.of(type);
         modelNode.applyToAllLinks(ModelActionRole.Finalize, NoInputsModelAction.of(subject, descriptor, configAction));
     }
@@ -333,7 +332,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     @Override
     public void named(String name, Action<? super T> configAction) {
         viewState.assertCanMutate();
-        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "named(%s)", name);
+        ModelRuleDescriptor descriptor = sourceDescriptor.append("named(%s)", name);
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
         modelNode.applyToLink(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
     }
@@ -407,7 +406,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     @Override
     public <S> void withType(Class<S> type, Action<? super S> configAction) {
         viewState.assertCanMutate();
-        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "withType()");
+        ModelRuleDescriptor descriptor = sourceDescriptor.append("withType()");
         ModelReference<S> subject = ModelReference.of(type);
         modelNode.applyToAllLinks(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
     }
