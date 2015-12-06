@@ -28,10 +28,10 @@ import spock.lang.Specification
 
 @SuppressWarnings("GrMethodMayBeStatic")
 class ProjectRegistrySpec extends Specification {
-    def registry
-    def schemaStore
-    def proxyFactory
-    def nodeInitializerRegistry
+    ModelRegistry registry
+    ModelSchemaStore schemaStore
+    ManagedProxyFactory proxyFactory
+    NodeInitializerRegistry nodeInitializerRegistry
 
     def setup() {
         registry = createModelRegistry()

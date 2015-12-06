@@ -15,9 +15,7 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
-
 import org.gradle.api.artifacts.Configuration
-import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import spock.lang.Unroll
@@ -100,7 +98,7 @@ class ScalarTypesInManagedModelTest extends ProjectRegistrySpec {
     }
 
     private void realize(Class type) {
-        registry.register(ModelRegistrations.of(registry.path("bar"), nodeInitializerRegistry.getNodeInitializer(type)).descriptor(registry.desc("bar")).build())
+        registry.registerWithInitializer("bar", type, nodeInitializerRegistry)
         registry.realize("bar", type)
     }
 }

@@ -620,7 +620,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         def mmType = ModelTypes.modelMap(Bean)
         def events = []
         registry
-            .register("input", "input") { events << "input created" }
+            .registerInstance("input", "input") { events << "input created" }
             .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
             it.path "beans" type mmType action { c ->
@@ -661,7 +661,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         }
         .mutate {
             it.path "beans.element" node {
-                it.addLink(registry.instanceRegistration("beans.element.mutable", new MutableValue(value: "bar")))
+                it.addLinkInstance("beans.element.mutable", new MutableValue(value: "bar"))
             }
         }
 
@@ -693,7 +693,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         }
         .mutate {
             it.path "beans.element" descriptor "element child" node {
-                it.addLink(registry.instanceRegistration("beans.element.mutable", new MutableValue()))
+                it.addLinkInstance("beans.element.mutable", new MutableValue())
             }
         }
 

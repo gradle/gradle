@@ -110,8 +110,8 @@ class ScopedRuleTest extends Specification {
             .apply("values", ByPathBoundInputsChildRule)
             .mutate {
             it.path "values" node {
-                it.addLink(registry.instanceRegistration("values.first", new MutableValue()))
-                it.addLink(registry.instanceRegistration("values.second", new MutableValue()))
+                it.addLinkInstance("values.first", new MutableValue())
+                it.addLinkInstance("values.second", new MutableValue())
             }
         }
 
@@ -138,7 +138,7 @@ class ScopedRuleTest extends Specification {
             .apply("values", ByTypeSubjectBoundToScopeChildRule)
             .mutate {
             it.path "values" node {
-                it.addLink(registry.instanceRegistration("values.mutable", new MutableValue()))
+                it.addLinkInstance("values.mutable", new MutableValue())
             }
         }
 
@@ -164,7 +164,7 @@ class ScopedRuleTest extends Specification {
             .apply("values", ByTypeBindingSubjectRule)
             .mutate {
             it.path "values" node {
-                it.addLink(registry.instanceRegistration("values.element", new MutableValue()))
+                it.addLinkInstance("values.element", new MutableValue())
             }
         }
 
@@ -190,7 +190,7 @@ class ScopedRuleTest extends Specification {
             .registerInstance("element", new MutableValue(value: "outer"))
             .mutate {
             it.path "values" node {
-                it.addLink(registry.instanceRegistration("values.element", new MutableValue()))
+                it.addLinkInstance("values.element", new MutableValue())
             }
         }
 

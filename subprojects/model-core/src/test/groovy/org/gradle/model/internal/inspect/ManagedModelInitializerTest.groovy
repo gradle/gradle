@@ -326,7 +326,7 @@ interface Managed${typeName} {
     }
 
     void realizeNodeOfType(Class type) {
-        registry.register(ModelRegistrations.of(registry.path("bar"), nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)))).descriptor(registry.desc("bar")).build())
+        registry.registerWithInitializer("bar", type, nodeInitializerRegistry)
         registry.realize("bar", type)
     }
 

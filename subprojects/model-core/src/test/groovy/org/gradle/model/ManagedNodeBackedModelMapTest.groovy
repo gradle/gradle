@@ -685,7 +685,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         def mmType = ModelTypes.modelMap(Bean)
         def events = []
         registry
-            .register("input", "input") { events << "input created" }
+            .registerInstance("input", "input") { events << "input created" }
             .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
             it.path "beans" type mmType action { c ->
@@ -726,7 +726,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         }
         .mutate {
             it.path "beans.element" node {
-                it.addLink(registry.instanceRegistration("beans.element.mutable", new MutableValue(value: "bar")))
+                it.addLinkInstance("beans.element.mutable", new MutableValue(value: "bar"))
             }
         }
 
@@ -758,7 +758,7 @@ class ManagedNodeBackedModelMapTest extends ProjectRegistrySpec {
         }
         .mutate {
             it.path "beans.element" descriptor "element child" node {
-                it.addLink(registry.instanceRegistration("beans.element.mutable", new MutableValue()))
+                it.addLinkInstance("beans.element.mutable", new MutableValue())
             }
         }
 
