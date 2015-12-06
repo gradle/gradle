@@ -259,13 +259,9 @@ We will add test coverage to ensure that it has true `ModelMap` semantics:
 
 ### Test cases
 
-- Elements in a standalone `FunctionalSourceSet` are visible in the model report
-- Elements in a standalone `FunctionalSourceSet` can be addressed by model rules
-    - Iterated in model rule
-    - Directly addressed in a model rule
-- Elements in a standalone `FunctionalSourceSet` are not created when defined: configuration is evaluated on-demand
-    - Configuration supplied when registering element
-    - Configuration supplied for `beforeEach`, `all` and `afterEach`
+- ~~Elements in a standalone `FunctionalSourceSet` are visible in the model report~~
+- ~~Elements in a standalone `FunctionalSourceSet` can be addressed by model rules~~
+- ~~Elements in a standalone `FunctionalSourceSet` are not created when defined: configuration is evaluated on-demand~~
 
 ## Story: Elements of `ProjectSourceSet` container are visible to rules
 
