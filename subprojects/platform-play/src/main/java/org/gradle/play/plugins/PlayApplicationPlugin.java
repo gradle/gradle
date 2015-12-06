@@ -15,6 +15,7 @@
  */
 package org.gradle.play.plugins;
 
+import com.beust.jcommander.internal.Lists;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
@@ -63,6 +64,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
@@ -264,8 +266,11 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                 public void execute(PlayApplicationBinarySpec playApplicationBinarySpec) {
                     for (LanguageSourceSet languageSourceSet : playApplicationBinarySpec.getInputs().withType(languageSourceSetType)) {
                         String name = String.format("%sScalaSources", languageSourceSet.getName());
-                        ScalaLanguageSourceSet twirlScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, name, playApplicationBinarySpec.getName(), fileResolver);
-                        playApplicationBinarySpec.getGeneratedScala().put(languageSourceSet, twirlScalaSources);
+                        ScalaLanguageSourceSet generatedScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, name, playApplicationBinarySpec.getName(), fileResolver);
+                        playApplicationBinarySpec.getGeneratedScala().put(languageSourceSet, generatedScalaSources);
+                    }
+                    for (ScalaLanguageSourceSet generatedSources : playApplicationBinarySpec.getGeneratedScala().values()) {
+                        playApplicationBinarySpec.getInputs().add(generatedSources);
                     }
                 }
             });
@@ -328,10 +333,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
                     for (LanguageSourceSet appSources : binary.getInputs().withType(JavaSourceSet.class)) {
                         ScalaLanguagePlugin.addSourceSetToCompile(scalaCompile, appSources);
-                    }
-
-                    for (LanguageSourceSet generatedSourceSet : binary.getGeneratedScala().values()) {
-                        ScalaLanguagePlugin.addSourceSetToCompile(scalaCompile, generatedSourceSet);
                     }
 
                     scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal) binary).getClasspath());
