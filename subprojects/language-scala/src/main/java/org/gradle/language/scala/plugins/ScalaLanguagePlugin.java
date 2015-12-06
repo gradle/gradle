@@ -86,7 +86,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
         compile.setDescription(description);
         compile.setDestinationDir(single(assembly.getClassDirectories()));
-        File analysisFile = new File(compile.getTemporaryDir(), String.format("compilerAnalysis/%s.analysis", compile.getName()));
+        File analysisFile = new File(compile.getProject().getBuildDir(), String.format("tmp/scala/compilerAnalysis/%s.analysis", compile.getName()));
         compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
 
         JavaPlatform javaPlatform = assembly.getTargetPlatform();
