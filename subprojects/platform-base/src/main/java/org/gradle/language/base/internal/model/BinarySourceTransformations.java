@@ -116,7 +116,7 @@ public class BinarySourceTransformations {
     }
 
     private String getTransformTaskName(LanguageTransform<?, ?> transform, SourceTransformTaskConfig taskConfig, BinarySpecInternal binary, LanguageSourceSetInternal sourceSetToCompile) {
-        if (taskConfig instanceof JointCompileTaskConfig) {
+        if (binary.hasCodependentSources() && taskConfig instanceof JointCompileTaskConfig) {
             return taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(transform.getClass().getSimpleName());
         }
         return taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(sourceSetToCompile.getProjectScopedName());
