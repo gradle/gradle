@@ -18,6 +18,8 @@ package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import java.util.zip.ZipFile
+
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 
 class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
@@ -37,7 +39,7 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         '''
-        file('src/main/java/myorg/Main.java') << 'package myorg; class Main {}'
+        file('src/main/java/myorg/Main.java')       << 'package myorg; class Main {}'
         file('src/main/resources/myorg/answer.txt') << '# yadda\n42\n# yadda'
     }
 
@@ -45,14 +47,14 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << '''
             model {
-                tasks { ts ->
+                tasks { tasks ->
                     $.components.main.binaries { binaries ->
                         def binary = binaries.values().first()
-                        ts.create('taskThatDependsOnAssembly') {
+                        tasks.create('taskThatDependsOnAssembly') {
                             dependsOn binary.assembly
                             doFirst {
                                 def hasOrNot = binary.jarFile.exists() ? 'has' : 'has not'
-                                println "The jar $hasOrNot been built."
+                                println "Jar $hasOrNot been built."
 
                                 def relativize = { root, file ->
                                     root.toURI().relativize(file.toURI()).toString()
@@ -84,8 +86,29 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'taskThatDependsOnAssembly'
 
         and:
-        outputContains 'The jar has not been built.'
+        outputContains 'Jar has not been built.'
         outputContains 'Classes were generated: [myorg/Main.class]'
         outputContains 'Resources were processed: [myorg/answer.txt => 42]'
+    }
+
+    def "can specify additional resource directory with preprocessed resources and it will end up in the jar"() {
+        given:
+        buildFile << '''
+            model {
+                components.main.binaries.jar {
+                    assembly.resourceDirectories << file('preprocessed/resources')
+                }
+            }
+        '''
+        file('preprocessed/resources/myorg/question.txt') << '# the ultimate question'
+
+        expect:
+        succeeds 'assemble'
+
+        and:
+        def jar = new ZipFile(file('build/jars/main/jar/main.jar'))
+        def textForEntry = { String path -> jar.getInputStream(jar.getEntry(path)).text }
+        textForEntry('myorg/question.txt') == '# the ultimate question'
+        textForEntry('myorg/answer.txt')   == '42\n'
     }
 }

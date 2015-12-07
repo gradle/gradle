@@ -87,6 +87,10 @@ public abstract class CollectionUtils {
         return null;
     }
 
+    public static <T> T first(Iterable<? extends T> source) {
+        return source.iterator().next();
+    }
+
     public static <T> boolean any(Iterable<? extends T> source, Spec<? super T> filter) {
         return findFirst(source, filter) != null;
     }

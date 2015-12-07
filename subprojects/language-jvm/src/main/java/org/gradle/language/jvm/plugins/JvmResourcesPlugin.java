@@ -37,7 +37,7 @@ import org.gradle.platform.base.LanguageTypeBuilder;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.gradle.util.CollectionUtils.single;
+import static org.gradle.util.CollectionUtils.first;
 
 /**
  * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers "resources" language support with the {@link
@@ -92,8 +92,10 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                     JvmResourceSet resourceSet = (JvmResourceSet) sourceSet;
                     resourcesTask.from(resourceSet.getSource());
 
+                    // The first directory is the one created by JarBinaryRules
+                    // to be used as the default output directory for processed resources
                     JvmAssembly assembly = ((WithJvmAssembly) binary).getAssembly();
-                    resourcesTask.setDestinationDir(single(assembly.getResourceDirectories()));
+                    resourcesTask.setDestinationDir(first(assembly.getResourceDirectories()));
 
                     assembly.builtBy(resourcesTask);
                 }
