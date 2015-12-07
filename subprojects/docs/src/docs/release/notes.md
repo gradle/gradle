@@ -416,7 +416,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 - All rule methods on `RuleSource` must not be private, and all other methods must be private.
 - `BinarySpec.name` should no longer be considered a unique identifier for the binary within a project.
-- The name for the 'build' task for a binary is now qualified with the name of its component. For example, `jar` in `mylib` will have a build task called 'mylibJar'
+- The name for the 'build' task for a binary is now qualified with the name of its component. For example, `jar` in `mylib` will have a build task called `mylibJar`
 - The name for the compile tasks for a binary is now qualified with the name of its component.
 - The top-level `binaries` container is now a `ModelMap` instead of a `DomainObjectContainer`. It is still accessible as `BinaryContainer`.
 - `ComponentSpec.sources` and `BinarySpec.sources` now have true `ModelMap` semantics. Elements are created and configured on demand, and appear in the model report.
@@ -429,7 +429,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 - JVM libraries have a binary called `jar` rather than one qualified with the library name.
 - When building a JVM library with multiple variants, the task and output directory names have changed. The library name is now first.
-- The name of the task to build an API jar for a `JarBinarySpec` has been changed: what was previously "createMyLibApiJar" is now simply "myLibApiJar".
+- The name of the task to build an API jar for a `JarBinarySpec` has been changed: what was previously `createMyLibApiJar` is now simply `myLibApiJar`.
 
 ### Changes to incubating Native Software Model
 
