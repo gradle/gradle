@@ -81,6 +81,12 @@ To tweak the name of the Java runtime to use, the name can be configured via
         }
     }
 
+### Tooling API exposes source language level on IdeaProject model
+
+The `IdeaProject` model now exposes the Java source language level via the
+<a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
+IDE providers use this method to automatically determine the source language level.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
