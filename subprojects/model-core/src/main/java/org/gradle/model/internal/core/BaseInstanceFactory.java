@@ -184,7 +184,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
         public TypeRegistration(ModelType<S> publicType) {
             this.publicType = publicType;
-            this.managedPublicType = publicType.isAnnotationPresent(Managed.class);
+            this.managedPublicType = isManaged(publicType);
         }
 
         public void setImplementation(ModelType<? extends S> implementationType, ModelRuleDescriptor source, ImplementationFactory<S> factory) {
@@ -217,8 +217,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
                 throw new IllegalArgumentException(String.format("Internal view '%s' registered for '%s' must be an interface", internalView, publicType));
             }
 
-            boolean managedInternalView = internalView.isAnnotationPresent(Managed.class);
-            if (managedPublicType && !managedInternalView) {
+            if (managedPublicType && !isManaged(internalView)) {
                 throw new IllegalArgumentException(String.format("Internal view '%s' registered for managed type '%s' must be managed", internalView, publicType));
             }
             internalViewRegistrations.add(new InternalViewRegistration<V>(source, internalView));
