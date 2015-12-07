@@ -19,7 +19,6 @@ package org.gradle.model.internal.registry;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import net.jcip.annotations.NotThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.model.ConfigurationCycleException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
@@ -185,7 +184,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         if (node == null) {
             return null;
         } else {
-            return assertView(node, type, new SimpleModelRuleDescriptor(msg)).getInstance();
+            return node.asImmutable(type, new SimpleModelRuleDescriptor(msg)).getInstance();
         }
     }
 
@@ -401,16 +400,6 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         transitionTo(goalGraph, goalGraph.nodeAtState(new NodeAtState(node.getPath(), desired)));
     }
 
-    private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor) {
-        ModelView<? extends T> view = node.asImmutable(targetType, descriptor);
-        if (view == null) {
-            // TODO better error reporting here
-            throw new IllegalArgumentException("Model node '" + node.getPath().toString() + "' is not compatible with requested " + targetType + " (operation: " + descriptor + ")");
-        } else {
-            return view;
-        }
-    }
-
     private void fireAction(RuleBinder boundMutator) {
         final List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction().getDescriptor());
         ModelBinding subjectBinding = boundMutator.getSubjectBinding();
@@ -439,7 +428,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         int i = 0;
         for (ModelBinding binding : bindings) {
             ModelNodeInternal element = binding.getNode();
-            ModelView<?> view = assertView(element, binding.getPredicate().getType(), descriptor);
+            ModelView<?> view = element.asImmutable(binding.getPredicate().getType(), descriptor);
             array[i++] = view;
         }
         @SuppressWarnings("unchecked") List<ModelView<?>> views = Arrays.asList(array);

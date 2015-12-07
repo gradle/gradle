@@ -61,7 +61,7 @@ class ModelElementNode extends ModelNodeInternal {
     public <T> ModelView<? extends T> asImmutable(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
         ModelView<? extends T> modelView = getAdapter().asImmutable(type, this, ruleDescriptor);
         if (modelView == null) {
-            throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a read-only view of type " + type);
+            throw new IllegalStateException("Model element " + getPath() + " cannot be expressed as a read-only view of type " + type);
         }
         return modelView;
     }
@@ -70,7 +70,7 @@ class ModelElementNode extends ModelNodeInternal {
     public <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
         ModelView<? extends T> modelView = getAdapter().asMutable(type, this, ruleDescriptor);
         if (modelView == null) {
-            throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);
+            throw new IllegalStateException("Model element " + getPath() + " cannot be expressed as a mutable view of type " + type);
         }
         return modelView;
     }
