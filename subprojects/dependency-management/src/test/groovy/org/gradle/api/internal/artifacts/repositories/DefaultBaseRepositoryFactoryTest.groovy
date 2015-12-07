@@ -79,6 +79,19 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         repo.url == jcenterUrl
     }
 
+    def testCreateJitpackRepo() {
+        given:
+        def jitpackUrl = new URI(DefaultRepositoryHandler.JITPACK_URL)
+
+        when:
+        fileResolver.resolveUri(DefaultRepositoryHandler.JITPACK_URL) >> jitpackUrl
+
+        then:
+        def repo = factory.createJitpackRepository()
+        repo instanceof DefaultMavenArtifactRepository
+        repo.url == jitpackUrl
+    }
+
     def testCreateMavenCentralRepo() {
         given:
         def centralUrl = new URI(RepositoryHandler.MAVEN_CENTRAL_URL)
