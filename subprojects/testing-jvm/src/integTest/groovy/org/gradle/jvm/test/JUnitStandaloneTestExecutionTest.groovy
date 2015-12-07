@@ -15,11 +15,9 @@
  */
 
 package org.gradle.jvm.test
-
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matchers
 import spock.lang.Unroll
 
@@ -354,8 +352,66 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
 
         and:
         testSuiteComponent()
+        checkResourceProcessTaskType()
 
         and:
+        testCaseReadingResourceFile()
+        file('src/test/resources/data.properties') << 'magic = 42'
+
+        when:
+        succeeds ':myTestSuiteTest'
+
+        then:
+        noExceptionThrown()
+        executedAndNotSkipped ':compileMyTestSuiteMyTestJava', ':processMyTestSuiteMyTestResources', ':myTestSuiteTest'
+
+        when:
+        succeeds ':checkTaskType'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "test should access test resources in a non conventional place"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        buildFile << """
+            model {
+                components {
+                    myTest(JUnitTestSuiteSpec) {
+                        jUnitVersion '4.12'
+                        sources {
+                            resources {
+                               source.srcDirs 'src/test-resources'
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        checkResourceProcessTaskType()
+
+        and:
+        testCaseReadingResourceFile()
+        file('src/test-resources/data.properties') << 'magic = 42'
+
+        when:
+        succeeds ':myTestSuiteTest'
+
+        then:
+        noExceptionThrown()
+        executedAndNotSkipped ':compileMyTestSuiteMyTestJava', ':processMyTestSuiteMyTestResources', ':myTestSuiteTest'
+
+        when:
+        succeeds ':checkTaskType'
+
+        then:
+        noExceptionThrown()
+    }
+
+    private void testCaseReadingResourceFile() {
         file('src/test/java/MyTest.java') << """
         import org.junit.Test;
         import java.util.Properties;
@@ -383,17 +439,24 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
             }
         }
         """.stripMargin()
-        file('src/test/resources/data.properties') << 'magic = 42'
-
-        when:
-        succeeds ':myTestSuiteTest'
-
-        then:
-        noExceptionThrown()
-        executedAndNotSkipped ':compileMyTestSuiteMyTestJava', ':myTestSuiteTest'
     }
 
-    private TestFile applyJUnitPlugin() {
+    private void checkResourceProcessTaskType() {
+        buildFile << '''
+            model {
+                tasks {
+                    create('checkTaskType') {
+                        doLast {
+                            def processResources = $.tasks.processMyTestSuiteMyTestResources
+                            assert processResources instanceof ProcessResources
+                        }
+                    }
+                }
+            }
+        '''
+    }
+
+    private void applyJUnitPlugin() {
         buildFile << '''import org.gradle.jvm.plugins.JUnitTestSuitePlugin
             plugins {
                 id 'jvm-component'
