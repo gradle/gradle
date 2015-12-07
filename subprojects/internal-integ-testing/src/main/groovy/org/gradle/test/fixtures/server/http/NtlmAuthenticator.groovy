@@ -26,37 +26,42 @@ import org.mortbay.jetty.security.Credential
 import org.mortbay.jetty.security.UserRealm
 
 import javax.servlet.http.HttpServletResponse
-import javax.servlet.http.HttpSession
 import java.security.Principal
 
 class NtlmAuthenticator implements Authenticator {
     static final String NTLM_AUTH_METHOD = 'NTLM'
-    private static final String NTLM_CHALLENGE = 'ntlm_challenge'
 
     @Override
     Principal authenticate(UserRealm realm, String pathInContext, Request request, Response response) throws IOException {
-        HttpSession session = request.getSession(true)
-        byte[] challenge = session.getAttribute(NTLM_CHALLENGE) as byte[]
+        NtlmConnectionAuthentication connectionAuth = request.connection.associatedObject
 
-        if (challenge == null) {
-            challenge = new byte[8]
-            new Random().nextBytes(challenge)
-            session.setAttribute(NTLM_CHALLENGE, challenge)
+        if (connectionAuth == null) {
+            connectionAuth = new NtlmConnectionAuthentication(challenge: new byte[8])
+            new Random().nextBytes(connectionAuth.challenge)
+
+            request.connection.associatedObject = connectionAuth
         }
 
-        NtlmPasswordAuthentication authentication = NtlmSsp.authenticate(request, response, challenge)
+        if (connectionAuth.authenticated) {
+            request.authType = authMethod
+            request.userPrincipal = connectionAuth.principal
 
-        if (authentication != null) {
-            session.setAttribute(NTLM_CHALLENGE, null)
-            Principal principal = realm.authenticate(authentication.username, new TestNtlmCredentials(authentication, challenge), request)
+            return connectionAuth.principal
+        } else {
+            NtlmPasswordAuthentication authentication = NtlmSsp.authenticate(request, response, connectionAuth.challenge)
 
-            if (principal != null) {
-                request.authType = authMethod
-                request.userPrincipal = principal
+            if (authentication != null) {
+                Principal principal = realm.authenticate(authentication.username, new TestNtlmCredentials(authentication, connectionAuth.challenge), request)
 
-                return principal
-            } else {
-                badCredentials(response)
+                if (principal != null) {
+                    request.authType = authMethod
+                    request.userPrincipal = principal
+                    connectionAuth.principal = principal
+
+                    return principal
+                } else {
+                    badCredentials(response)
+                }
             }
         }
     }
@@ -91,5 +96,12 @@ class NtlmAuthenticator implements Authenticator {
 
             return false
         }
+    }
+
+    private static class NtlmConnectionAuthentication {
+        byte[] challenge
+        Principal principal
+
+        boolean isAuthenticated() { principal != null}
     }
 }

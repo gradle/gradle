@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.test.fixtures.server.http
+
 import com.google.common.collect.Sets
 import com.google.common.net.UrlEscapers
 import com.google.gson.Gson
@@ -32,7 +33,6 @@ import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
 import org.mortbay.jetty.security.*
-import org.mortbay.jetty.servlet.SessionHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -119,9 +119,7 @@ class HttpServer extends ServerWithExpectations {
                 response.sendError(404, "'$target' does not exist")
             }
         })
-        SessionHandler sessionHandler = new SessionHandler()
-        sessionHandler.setHandler(handlers)
-        server.setHandler(sessionHandler)
+        server.setHandler(handlers)
     }
 
     protected Logger getLogger() {
