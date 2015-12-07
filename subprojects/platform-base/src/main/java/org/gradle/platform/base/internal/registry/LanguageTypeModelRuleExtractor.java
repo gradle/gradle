@@ -56,7 +56,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         if(StringUtils.isEmpty(languageName)) {
             throw new InvalidModelException(String.format("Language type '%s' cannot be registered without a language name.", publicModelType));
         }
-        ModelAction regAction = NoInputsModelAction.of(ModelReference.of(LanguageRegistry.class), ruleDefinition.getDescriptor(), new Action<LanguageRegistry>() {
+        ModelAction<LanguageRegistry> regAction = NoInputsModelAction.of(ModelReference.of(LanguageRegistry.class), ruleDefinition.getDescriptor(), new Action<LanguageRegistry>() {
             @Override
             public void execute(LanguageRegistry languageRegistry) {
                 ModelType<? extends P> castedImplModelType = Cast.uncheckedCast(implModelType);

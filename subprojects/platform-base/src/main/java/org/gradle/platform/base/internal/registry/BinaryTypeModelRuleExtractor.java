@@ -47,7 +47,7 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
         final ModelType<P> publicModelType, final ModelType<I> implModelType,
         final TypeBuilderInternal<BinarySpec> builder
     ) {
-        ModelAction regAction = NoInputsModelAction.of(ModelReference.of(BinarySpecFactory.class), ruleDefinition.getDescriptor(), new Action<BinarySpecFactory>() {
+        ModelAction<BinarySpecFactory> regAction = NoInputsModelAction.of(ModelReference.of(BinarySpecFactory.class), ruleDefinition.getDescriptor(), new Action<BinarySpecFactory>() {
             @Override
             public void execute(BinarySpecFactory binaries) {
                 binaries.register(publicModelType, implModelType, builder.getInternalViews(), ruleDefinition.getDescriptor());

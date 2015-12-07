@@ -74,22 +74,22 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        def void applyToSelf(ModelActionRole type, ModelAction action) {
+        def void applyToSelf(ModelActionRole type, ModelAction<?> action) {
 
         }
 
         @Override
-        def void applyToAllLinks(ModelActionRole type, ModelAction action) {
+        def void applyToAllLinks(ModelActionRole type, ModelAction<?> action) {
 
         }
 
         @Override
-        def void applyToAllLinksTransitive(ModelActionRole type, ModelAction action) {
+        def void applyToAllLinksTransitive(ModelActionRole type, ModelAction<?> action) {
 
         }
 
         @Override
-        def void applyToLink(ModelActionRole type, ModelAction action) {
+        def void applyToLink(ModelActionRole type, ModelAction<?> action) {
 
         }
 

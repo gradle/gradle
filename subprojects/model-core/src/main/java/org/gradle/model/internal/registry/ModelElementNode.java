@@ -174,13 +174,13 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyToSelf(ModelActionRole role, ModelAction action) {
+    public void applyToSelf(ModelActionRole role, ModelAction<?> action) {
         DefaultModelRegistry.checkNodePath(this, action);
         modelRegistry.bind(action.getSubject(), role, action, ModelPath.ROOT);
     }
 
     @Override
-    public void applyToLink(ModelActionRole type, ModelAction action) {
+    public void applyToLink(ModelActionRole type, ModelAction<?> action) {
         if (!getPath().isDirectChild(action.getSubject().getPath())) {
             throw new IllegalArgumentException(String.format("Linked element action reference has a path (%s) which is not a child of this node (%s).", action.getSubject().getPath(), getPath()));
         }
@@ -253,7 +253,7 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyToAllLinks(final ModelActionRole type, final ModelAction action) {
+    public void applyToAllLinks(final ModelActionRole type, final ModelAction<?> action) {
         if (action.getSubject().getPath() != null) {
             throw new IllegalArgumentException("Linked element action reference must have null path.");
         }
@@ -278,7 +278,7 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyToAllLinksTransitive(final ModelActionRole type, final ModelAction action) {
+    public void applyToAllLinksTransitive(final ModelActionRole type, final ModelAction<?> action) {
         if (action.getSubject().getPath() != null) {
             throw new IllegalArgumentException("Linked element action reference must have null path.");
         }

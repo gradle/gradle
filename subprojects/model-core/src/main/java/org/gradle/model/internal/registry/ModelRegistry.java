@@ -103,9 +103,9 @@ public interface ModelRegistry {
 
     ModelRegistry register(ModelRegistration registration);
 
-    ModelRegistry configure(ModelActionRole role, ModelAction action);
+    ModelRegistry configure(ModelActionRole role, ModelAction<?> action);
 
-    ModelRegistry configure(ModelActionRole role, ModelAction action, ModelPath scope);
+    ModelRegistry configure(ModelActionRole role, ModelAction<?> action, ModelPath scope);
 
     ModelRegistry apply(Class<? extends RuleSource> rules);
 

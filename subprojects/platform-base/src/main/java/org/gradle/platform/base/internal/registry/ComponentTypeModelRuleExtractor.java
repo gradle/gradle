@@ -47,7 +47,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         final ModelType<P> publicModelType, final ModelType<I> implModelType,
         final TypeBuilderInternal<ComponentSpec> builder
     ) {
-        ModelAction regAction = NoInputsModelAction.of(ModelReference.of(ComponentSpecFactory.class), ruleDefinition.getDescriptor(), new Action<ComponentSpecFactory>() {
+        ModelAction<ComponentSpecFactory> regAction = NoInputsModelAction.of(ModelReference.of(ComponentSpecFactory.class), ruleDefinition.getDescriptor(), new Action<ComponentSpecFactory>() {
             @Override
             public void execute(ComponentSpecFactory components) {
                 components.register(publicModelType, implModelType, builder.getInternalViews(), ruleDefinition.getDescriptor());

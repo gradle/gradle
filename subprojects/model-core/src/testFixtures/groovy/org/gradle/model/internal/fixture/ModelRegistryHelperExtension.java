@@ -122,9 +122,9 @@ public class ModelRegistryHelperExtension {
     }
 
     public static <I> ModelRegistry mutateModelMap(ModelRegistry modelRegistry, final String path, final Class<I> itemType, final Action<? super ModelMap<I>> action) {
-        return mutate(modelRegistry, new Transformer<ModelAction, ModelActionBuilder<Object>>() {
+        return mutate(modelRegistry, new Transformer<ModelAction<ModelMap<I>>, ModelActionBuilder<Object>>() {
             @Override
-            public ModelAction transform(ModelActionBuilder<Object> builder) {
+            public ModelAction<ModelMap<I>> transform(ModelActionBuilder<Object> builder) {
                 return builder.path(path).type(ModelTypes.modelMap(itemType)).action(action);
             }
         });
@@ -134,11 +134,11 @@ public class ModelRegistryHelperExtension {
         return ModelRegistrations.of(path).descriptor(path + " creator");
     }
 
-    public static ModelRegistry configure(ModelRegistry modelRegistry, ModelActionRole role, Transformer<? extends ModelAction, ? super ModelActionBuilder<Object>> definition) {
+    public static ModelRegistry configure(ModelRegistry modelRegistry, ModelActionRole role, Transformer<? extends ModelAction<?>, ? super ModelActionBuilder<Object>> definition) {
         return modelRegistry.configure(role, definition.transform(ModelActionBuilder.of()));
     }
 
-    public static ModelRegistry mutate(ModelRegistry modelRegistry, Transformer<? extends ModelAction, ? super ModelActionBuilder<Object>> definition) {
+    public static ModelRegistry mutate(ModelRegistry modelRegistry, Transformer<? extends ModelAction<?>, ? super ModelActionBuilder<Object>> definition) {
         return configure(modelRegistry, Mutate, definition);
     }
 
@@ -163,9 +163,9 @@ public class ModelRegistryHelperExtension {
     }
 
     public static ModelRegistry mutate(ModelRegistry modelRegistry, final String path, final Action<? super MutableModelNode> action) {
-        return configure(modelRegistry, Mutate, new Transformer<ModelAction, ModelActionBuilder<Object>>() {
+        return configure(modelRegistry, Mutate, new Transformer<ModelAction<Object>, ModelActionBuilder<Object>>() {
             @Override
-            public ModelAction transform(ModelActionBuilder<Object> objectModelActionBuilder) {
+            public ModelAction<Object> transform(ModelActionBuilder<Object> objectModelActionBuilder) {
                 return objectModelActionBuilder.path(path).node(action);
             }
         });
@@ -181,12 +181,11 @@ public class ModelRegistryHelperExtension {
     }
 
     public static <T> ModelRegistry configure(ModelRegistry modelRegistry, ModelActionRole role, final ModelReference<T> reference, final Action<? super T> action) {
-        return configure(modelRegistry, role, new Transformer<ModelAction, ModelActionBuilder<Object>>() {
+        return configure(modelRegistry, role, new Transformer<ModelAction<T>, ModelActionBuilder<Object>>() {
             @Override
-            public ModelAction transform(ModelActionBuilder<Object> objectModelActionBuilder) {
+            public ModelAction<T> transform(ModelActionBuilder<Object> objectModelActionBuilder) {
                 return objectModelActionBuilder.path(reference.getPath()).type(reference.getType()).action(action);
             }
-
         });
     }
 
@@ -329,19 +328,19 @@ public class ModelRegistryHelperExtension {
 
     // MutableModelNode methods
 
-    public static void applyToSelf(MutableModelNode node, ModelActionRole role, Transformer<ModelAction, ModelActionBuilder<?>> action) {
+    public static void applyToSelf(MutableModelNode node, ModelActionRole role, Transformer<ModelAction<?>, ModelActionBuilder<?>> action) {
         node.applyToSelf(role, action.transform(ModelActionBuilder.of()));
     }
 
-    public static void applyToLink(MutableModelNode node, ModelActionRole role, Transformer<ModelAction, ModelActionBuilder<?>> action) {
+    public static void applyToLink(MutableModelNode node, ModelActionRole role, Transformer<ModelAction<?>, ModelActionBuilder<?>> action) {
         node.applyToLink(role, action.transform(ModelActionBuilder.of()));
     }
 
-    public static void applyToAllLinks(MutableModelNode node, ModelActionRole role, Transformer<ModelAction, ModelActionBuilder<?>> action) {
+    public static void applyToAllLinks(MutableModelNode node, ModelActionRole role, Transformer<ModelAction<?>, ModelActionBuilder<?>> action) {
         node.applyToAllLinks(role, action.transform(ModelActionBuilder.of()));
     }
 
-    public static void applyToAllLinksTransitive(MutableModelNode node, ModelActionRole role, Transformer<ModelAction, ModelActionBuilder<?>> action) {
+    public static void applyToAllLinksTransitive(MutableModelNode node, ModelActionRole role, Transformer<ModelAction<?>, ModelActionBuilder<?>> action) {
         node.applyToAllLinksTransitive(role, action.transform(ModelActionBuilder.of()));
     }
 

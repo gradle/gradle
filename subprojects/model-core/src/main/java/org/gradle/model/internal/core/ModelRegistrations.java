@@ -85,9 +85,9 @@ abstract public class ModelRegistrations {
 
     @NotThreadSafe
     public static class Builder {
-        private final ModelReference<?> reference;
+        private final ModelReference<Object> reference;
         private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
-        private final ListMultimap<ModelActionRole, ModelAction> actions = ArrayListMultimap.create();
+        private final ListMultimap<ModelActionRole, ModelAction<?>> actions = ArrayListMultimap.create();
         private final NodeInitializer nodeInitializer;
         private final DescriptorReference descriptorReference = new DescriptorReference();
         private boolean hidden;
@@ -110,7 +110,7 @@ abstract public class ModelRegistrations {
             return this;
         }
 
-        public Builder action(ModelActionRole role, ModelAction action) {
+        public Builder action(ModelActionRole role, ModelAction<?> action) {
             this.actions.put(role, action);
             return this;
         }
@@ -127,7 +127,7 @@ abstract public class ModelRegistrations {
             return action(role, new InputsUsingBuilderAction(reference, descriptorReference, inputs, action));
         }
 
-        public Builder actions(Multimap<ModelActionRole, ? extends ModelAction> actions) {
+        public Builder actions(Multimap<ModelActionRole, ? extends ModelAction<?>> actions) {
             this.actions.putAll(actions);
             return this;
         }
@@ -157,17 +157,17 @@ abstract public class ModelRegistrations {
             private ModelRuleDescriptor descriptor;
         }
 
-        private static abstract class AbstractBuilderAction implements ModelAction {
-            private final ModelReference<?> subject;
+        private static abstract class AbstractBuilderAction implements ModelAction<Object> {
+            private final ModelReference<Object> subject;
             private final DescriptorReference descriptorReference;
 
-            public AbstractBuilderAction(ModelReference<?> subject, DescriptorReference descriptorReference) {
+            public AbstractBuilderAction(ModelReference<Object> subject, DescriptorReference descriptorReference) {
                 this.subject = subject;
                 this.descriptorReference = descriptorReference;
             }
 
             @Override
-            public ModelReference<?> getSubject() {
+            public ModelReference<Object> getSubject() {
                 return subject;
             }
 
@@ -180,7 +180,7 @@ abstract public class ModelRegistrations {
         private static class NoInputsBuilderAction extends AbstractBuilderAction {
             private final Action<? super MutableModelNode> action;
 
-            public NoInputsBuilderAction(ModelReference<?> subject, DescriptorReference descriptorReference, Action<? super MutableModelNode> action) {
+            public NoInputsBuilderAction(ModelReference<Object> subject, DescriptorReference descriptorReference, Action<? super MutableModelNode> action) {
                 super(subject, descriptorReference);
                 this.action = action;
             }
@@ -200,7 +200,7 @@ abstract public class ModelRegistrations {
             private final List<ModelReference<?>> inputs;
             private final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> action;
 
-            public InputsUsingBuilderAction(ModelReference<?> subject, DescriptorReference descriptorReference, Iterable<? extends ModelReference<?>> inputs, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> action) {
+            public InputsUsingBuilderAction(ModelReference<Object> subject, DescriptorReference descriptorReference, Iterable<? extends ModelReference<?>> inputs, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> action) {
                 super(subject, descriptorReference);
                 this.inputs = ImmutableList.copyOf(inputs);
                 this.action = action;

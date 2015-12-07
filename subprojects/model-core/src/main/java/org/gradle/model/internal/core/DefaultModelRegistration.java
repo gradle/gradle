@@ -27,10 +27,10 @@ public class DefaultModelRegistration implements ModelRegistration {
     private final ModelPath path;
     private final ModelRuleDescriptor descriptor;
     private final boolean hidden;
-    private final Multimap<ModelActionRole, ? extends ModelAction> actions;
+    private final Multimap<ModelActionRole, ? extends ModelAction<?>> actions;
 
     public DefaultModelRegistration(ModelPath path, ModelRuleDescriptor descriptor,
-                                    boolean hidden, Multimap<ModelActionRole, ? extends ModelAction> actions) {
+                                    boolean hidden, Multimap<ModelActionRole, ? extends ModelAction<?>> actions) {
         this.path = Preconditions.checkNotNull(path, "path");
         this.descriptor = Preconditions.checkNotNull(descriptor, "descriptor");
         this.hidden = hidden;
@@ -42,7 +42,7 @@ public class DefaultModelRegistration implements ModelRegistration {
     }
 
     @Override
-    public Multimap<ModelActionRole, ? extends ModelAction> getActions() {
+    public Multimap<ModelActionRole, ? extends ModelAction<?>> getActions() {
         return actions;
     }
 

@@ -92,8 +92,8 @@ public class ManagedSetNodeInitializerExtractionStrategy extends CollectionNodeI
         }
 
         @Override
-        public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
-            return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
+        public Multimap<ModelActionRole, ModelAction<?>> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+            return ImmutableSetMultimap.<ModelActionRole, ModelAction<?>>builder()
                 .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor,
                     TypedModelProjection.of(
                         ModelTypes.managedSet(schema.getElementType()),

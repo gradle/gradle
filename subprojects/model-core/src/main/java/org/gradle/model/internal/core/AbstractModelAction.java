@@ -22,7 +22,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class AbstractModelAction<T> implements ModelAction {
+public abstract class AbstractModelAction<T> implements ModelAction<T> {
     protected final ModelReference<T> subject;
     protected final ModelRuleDescriptor descriptor;
     protected final List<? extends ModelReference<?>> inputs;

@@ -63,7 +63,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         registration.apply(mockRegistry, ModelPath.ROOT)
 
         then:
-        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction action, ModelPath scope ->
+        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->
             assert role == ModelActionRole.Defaults
             assert action.subject == ModelReference.of(BinarySpecFactory)
         }

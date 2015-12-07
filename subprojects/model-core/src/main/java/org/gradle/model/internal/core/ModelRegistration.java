@@ -27,7 +27,7 @@ public interface ModelRegistration {
     /**
      * Actions that need to be registered when the node is registered.
      */
-    Multimap<ModelActionRole, ? extends ModelAction> getActions();
+    Multimap<ModelActionRole, ? extends ModelAction<?>> getActions();
 
     /**
      * Returns whether the registered node is hidden.

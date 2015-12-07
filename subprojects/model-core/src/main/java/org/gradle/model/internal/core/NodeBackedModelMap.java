@@ -85,8 +85,8 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
             public <S extends T> NodeInitializer initializer(final ModelType<S> type) {
                 return new NodeInitializer() {
                     @Override
-                    public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
-                        return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
+                    public Multimap<ModelActionRole, ModelAction<?>> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+                        return ImmutableSetMultimap.<ModelActionRole, ModelAction<?>>builder()
                             .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor,
                                 UnmanagedModelProjection.of(type)
                             ))
@@ -261,7 +261,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         }
     }
 
-    private <S extends T> void doCreate(ModelPath childPath, ModelType<S> type, ModelRuleDescriptor descriptor, @Nullable ModelAction initAction) {
+    private <S extends T> void doCreate(ModelPath childPath, ModelType<S> type, ModelRuleDescriptor descriptor, @Nullable ModelAction<?> initAction) {
         viewState.assertCanMutate();
         NodeInitializer nodeInitializer = creatorStrategy.initializer(type);
 
@@ -343,7 +343,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         modelNode.applyToLink(ModelActionRole.Initialize, toInitializeAction(subject, action, ModelActionRole.Mutate));
     }
 
-    private ModelAction toInitializeAction(ModelReference<?> subject, final DeferredModelAction action, final ModelActionRole role) {
+    private ModelAction<?> toInitializeAction(ModelReference<?> subject, final DeferredModelAction action, final ModelActionRole role) {
         return DirectNodeNoInputsModelAction.of(subject, action.getDescriptor(), new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode node) {
