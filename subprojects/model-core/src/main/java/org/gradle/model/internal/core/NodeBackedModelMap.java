@@ -42,13 +42,11 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     private final ModelRuleDescriptor sourceDescriptor;
     private final MutableModelNode modelNode;
     private final String description;
-    private final boolean eager;
     private final ModelViewState viewState;
     private final ChildNodeInitializerStrategy<? super T> creatorStrategy;
 
-    public NodeBackedModelMap(String description, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, boolean eager, ModelViewState viewState, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
+    public NodeBackedModelMap(String description, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, ModelViewState viewState, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
         this.description = description;
-        this.eager = eager;
         this.viewState = viewState;
         this.creatorStrategy = creatorStrategy;
         this.elementType = elementType;
@@ -56,8 +54,8 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         this.sourceDescriptor = sourceDescriptor;
     }
 
-    public NodeBackedModelMap(ModelType<T> type, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, boolean eager, ModelViewState viewState, ChildNodeInitializerStrategy<? super T> childStrategy) {
-        this(derivedDescription(modelNode, type), type, sourceDescriptor, modelNode, eager, viewState, childStrategy);
+    public NodeBackedModelMap(ModelType<T> type, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, ModelViewState viewState, ChildNodeInitializerStrategy<? super T> childStrategy) {
+        this(derivedDescription(modelNode, type), type, sourceDescriptor, modelNode, viewState, childStrategy);
     }
 
     public static <T> ChildNodeInitializerStrategy<T> createUsingRegistry(final ModelType<T> baseItemModelType, final NodeInitializerRegistry nodeInitializerRegistry) {
@@ -274,11 +272,6 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         ModelRegistration registration = builder.build();
 
         modelNode.addLink(registration);
-
-        if (eager) {
-            //noinspection ConstantConditions
-            modelNode.getLink(childPath.getName()).ensureUsable();
-        }
     }
 
     private <S> void doFinalizeAll(ModelType<S> type, Action<? super S> configAction) {
@@ -378,7 +371,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         // TODO:HH Filtering should be additive
         // map.withType(Foo).withType(Bar) should return only elements that implement both Foo and Bar
         ChildNodeInitializerStrategy<S> creatorStrategy = uncheckedCast(this.creatorStrategy);
-        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, viewState, creatorStrategy);
+        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, viewState, creatorStrategy);
     }
 
     @Override
@@ -436,7 +429,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
             return uncheckedCast(subType);
         }
 
-        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, viewState, new ChildNodeInitializerStrategy<S>() {
+        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, viewState, new ChildNodeInitializerStrategy<S>() {
             @Override
             public <D extends S> NodeInitializer initializer(ModelType<D> type) {
                 throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type, elementType.toString()));
