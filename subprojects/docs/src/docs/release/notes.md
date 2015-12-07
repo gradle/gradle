@@ -294,24 +294,32 @@ the elements of a ModelSet or ModelMap, or as a top level model element in it's 
 
 ### Model DSL improvements
 
-TODO: `ModelMap` creation and configuration DSL syntax is now treated as nested rule. For example, an element can be configured using the configuration of a sibling as input:
+This release includes a number of improvements to the model DSL, which is the DSL you use to define and configure the software model from a build script.
+
+#### Nested rules in the DSL
+
+The `ModelMap` creation and configuration DSL syntax now defines nested rules, each with its own inputs. 
+For example, this means that an element of a `ModelMap` can now be configured using the configuration of a sibling as input:
 
     model {
         components {
             mylib { ... }
             test {
+                // Use `mylib` as input. When this code runs, it has been fully configured and will not change any further
+                // Previously, this would have been treated as an input of the `components` rule, resulting in a dependency cycle 
                 targetPlatform = $.components.mylib.targetPlatform
             }
         }
     }
 
-This means that a task can be configured using another task as input:
+And because `tasks` is a `ModelMap`, this means that a task can be configured using another task as input using the same syntax:
 
     model {
         tasks {
             jar { ... }
             dist(Zip) {
-                def jar = $.tasks.jar // The `jar` task has been fully configured and will not change any further
+                // Use the `jar` task as input. It has been fully configured and will not change any further
+                def jar = $.tasks.jar 
                 from jar.output
                 into someDir
             }
@@ -333,14 +341,16 @@ This is also available for the various methods of `ModelMap`, such as `all` or `
         }
     }
 
-TODO: The properties of a `@Managed` type can be configured using nested configure methods:
+#### Configure the properties of a `@Managed` type
+
+The properties of a `@Managed` type can now be configured using nested configure methods:
 
     model {
         components {
             mylib {
                 sources {
                     // Adds a rule to configure `mylib.sources`
-                    ..
+                    ...
                 }
                 binaries {
                     // Adds a rule to configure `mylib.sources`
@@ -350,7 +360,9 @@ TODO: The properties of a `@Managed` type can be configured using nested configu
         }
     }
 
-This is automatically added for any property whose type is `@Managed`, or a `ModelMap<T>` or `ModelSet<T>`.
+This is automatically added for any property whose type is `@Managed`, or a `ModelMap<T>` or `ModelSet<T>`. 
+Note that for this release, these nested closures do not define a nested rule, and the closure is executed as soon as it is encountered in the containing closure.
+This will be improved in the next Gradle release.
 
 See the <a href="userguide/software_model.html#model-dsl">model DSL</a> user guide section for more details and examples.
 
