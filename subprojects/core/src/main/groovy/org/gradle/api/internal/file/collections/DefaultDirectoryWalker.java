@@ -22,7 +22,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.CachingFileVisitDetails;
+import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
@@ -49,7 +49,7 @@ public class DefaultDirectoryWalker implements DirectoryWalker {
             File child = children[i];
             boolean isFile = child.isFile();
             RelativePath childPath = path.append(isFile, relativePathStringInterner.intern(child.getName()));
-            FileVisitDetails details = new CachingFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, !isFile);
+            FileVisitDetails details = new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, !isFile);
             if (DirectoryFileTree.isAllowed(details, spec)) {
                 if (isFile) {
                     visitor.visitFile(details);

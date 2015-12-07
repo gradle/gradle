@@ -38,16 +38,14 @@ public interface FileTreeElement {
     boolean isDirectory();
 
     /**
-     * Returns the last modified time of this file. Generally, calling this method is more performant than calling
-     * {@code getFile().lastModified()}
+     * Returns the last modified time of this file at the time of file traversal.
      *
      * @return The last modified time.
      */
     long getLastModified();
 
     /**
-     * Returns the size of this file. Generally, calling this method is more performant than calling {@code
-     * getFile().length()}.
+     * Returns the size of this file at the time of file traversal.
      *
      * @return The size, in bytes.
      */

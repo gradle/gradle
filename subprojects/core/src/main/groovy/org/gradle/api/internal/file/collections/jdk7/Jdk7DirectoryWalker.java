@@ -21,7 +21,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.FileVisitDetailsWithAttributes;
+import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.collections.DirectoryWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -81,7 +81,7 @@ public class Jdk7DirectoryWalker implements DirectoryWalker {
                     File child = file.toFile();
                     FileVisitDetails dirDetails = directoryDetailsHolder.peek();
                     RelativePath childPath = dirDetails != null ? dirDetails.getRelativePath().append(!isDirectory, child.getName()) : rootPath;
-                    return new FileVisitDetailsWithAttributes(child, childPath, stopFlag, fileSystem, fileSystem, isDirectory, attrs.lastModifiedTime().toMillis(), attrs.size());
+                    return new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, isDirectory, attrs.lastModifiedTime().toMillis(), attrs.size());
                 }
 
                 @Override

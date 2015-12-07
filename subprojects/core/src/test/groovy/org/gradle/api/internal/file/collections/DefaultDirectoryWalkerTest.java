@@ -374,6 +374,12 @@ public class DefaultDirectoryWalkerTest {
             expectations.allowing(mock).exists();
             expectations.will(expectations.returnValue(true));
 
+            expectations.allowing(mock).lastModified();
+            expectations.will(expectations.returnValue(1L));
+
+            expectations.allowing(mock).length();
+            expectations.will(expectations.returnValue(1L));
+
             ArrayList<File> mockChildren = new ArrayList<File>(children.size());
             for (MockFile child : children) {
                 mockChildren.add(child.getMock());

@@ -134,16 +134,17 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         private final RelativePath path;
         private final Action<OutputStream> generator;
         private long lastModified;
+        private long size;
         private final AtomicBoolean stopFlag;
         private File file;
+        private final boolean isDirectory;
 
         public FileVisitDetailsImpl(RelativePath path, Action<OutputStream> generator, AtomicBoolean stopFlag, Chmod chmod) {
             super(chmod);
             this.path = path;
             this.generator = generator;
             this.stopFlag = stopFlag;
-            // round to nearest second
-            lastModified = System.currentTimeMillis() / 1000 * 1000;
+            this.isDirectory = !path.isFile();
         }
 
         public String getDisplayName() {
@@ -187,12 +188,13 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
                 }
                 // round to nearest second
                 lastModified = file.lastModified() / 1000 * 1000;
+                size = file.length();
             }
             return file;
         }
 
         public boolean isDirectory() {
-            return !path.isFile();
+            return isDirectory;
         }
 
         public long getLastModified() {
@@ -201,7 +203,8 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         public long getSize() {
-            return getFile().length();
+            getFile();
+            return size;
         }
 
         public void copyTo(OutputStream outstr) {

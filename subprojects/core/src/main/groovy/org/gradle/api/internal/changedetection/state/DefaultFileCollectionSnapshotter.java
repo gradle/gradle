@@ -20,7 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.CachingFileVisitDetails;
+import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.*;
 import org.gradle.internal.serialize.SerializerRegistry;
@@ -88,7 +88,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             Set<File> fileTreeBackingFiles = unwrapFileTreeBackingFilesIfAvailable(fileTree);
             if (fileTreeBackingFiles != null) {
                 for (File fileTreeSourceFile : fileTreeBackingFiles) {
-                    allFileVisitDetails.add(new CachingFileVisitDetails(fileTreeSourceFile));
+                    allFileVisitDetails.add(new DefaultFileVisitDetails(fileTreeSourceFile));
                 }
             } else {
                 fileTree.visit(new FileVisitor() {
