@@ -425,6 +425,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 - The implementation object of a `ComponentSpec`, `BinarySpec` or `LanguageSourceSet`, if defined, is no longer visible. These elements can only be accessed using their public types or internal view types.
 - The `DependentSpec` API is now polymorphic. For dependencies declared by project and library, use `ProjectDependencySpec`.
 
+### Changes to incubating Java Software Model
+
+- JVM libraries have a binary called `jar` rather than one qualified with the library name.
+- When building a JVM library with multiple variants, the task and output directory names have changed. The library name is now first.
+- The name of the task to build an API jar for a `JarBinarySpec` has been changed: what was previously "createMyLibApiJar" is now simply "myLibApiJar".
+
 ### Changes to incubating Native Software Model
 
 - Task names have changed for components with multiple variants. The library or executable name is now first.
@@ -442,12 +448,6 @@ Gradle only checks header files that are included from source files during compi
 Gradle no longer detects changes where a new header file earlier in the include path that should replace an existing header file.  If a compilation task has an include path of `[ first/, second/ ]` and a source file includes `header.h` from `second/`, if a new file called `header.h` is added to `first/`, Gradle will not detect a change that requires recompilation of the source file.
 
 The recommended way for dealing with the ambiguity of which `header.h` should be included is to namespace your header files.  Source files should include `second/header.h` or `first/header.h` with the appropriate include path.
-
-### Changes to incubating Java Software Model
-
-- JVM libraries have a binary called `jar` rather than one qualified with the library name.
-- When building a JVM library with multiple variants, the task and output directory names have changed. The library name is now first.
-- The name of the task to build an API jar for a `JarBinarySpec` has been changed: what was previously "createMyLibApiJar" is now simply "myLibApiJar".
 
 ## External contributions
 
