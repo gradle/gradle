@@ -36,9 +36,7 @@ import org.gradle.language.java.tasks.PlatformJavaCompile;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.model.*;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.DefaultPlatformRequirement;
-import org.gradle.platform.base.internal.PlatformRequirement;
-import org.gradle.platform.base.internal.PlatformResolvers;
+import org.gradle.platform.base.internal.*;
 
 import java.io.File;
 import java.util.Collections;
@@ -73,7 +71,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                                  final JUnitTestSuiteBinarySpec binary,
                                  final FileOperations fileOperations,
                                  final @Path("buildDir") File buildDir) {
-            String taskName = binary.getName() + "Test";
+            String taskName = ((BinarySpecInternal)binary).getProjectScopedName() + "Test";
             final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
 
             tasks.create(taskName, Test.class, new Action<Test>() {
@@ -127,12 +125,16 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
         @ComponentBinaries
         void createJUnitBinaries(final ModelMap<JUnitTestSuiteBinarySpec> testBinaries, final PlatformResolvers platformResolver, final JUnitTestSuiteSpec testSuite) {
-            testBinaries.create(testSuite.getName(), JUnitTestSuiteBinarySpec.class, new Action<JUnitTestSuiteBinarySpec>() {
+            final List<JavaPlatform> javaPlatforms = resolvePlatforms(platformResolver);
+            final JavaPlatform platform = javaPlatforms.get(0);
+            final BinaryNamingScheme namingScheme = namingSchemeFor(testSuite, javaPlatforms, platform);
+            testBinaries.create(namingScheme.getBinaryName(), JUnitTestSuiteBinarySpec.class, new Action<JUnitTestSuiteBinarySpec>() {
                 @Override
                 public void execute(JUnitTestSuiteBinarySpec jUnitTestSuiteBinarySpec) {
                     final String jUnitVersion = testSuite.getJUnitVersion();
+                    ((BinarySpecInternal)jUnitTestSuiteBinarySpec).setNamingScheme(namingScheme);
                     jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);
-                    jUnitTestSuiteBinarySpec.setTargetPlatform(resolvePlatforms(platformResolver).get(0));
+                    jUnitTestSuiteBinarySpec.setTargetPlatform(platform);
                     testSuite.getSources().all(new Action<LanguageSourceSet>() {
                         @Override
                         public void execute(LanguageSourceSet languageSourceSet) {
@@ -184,6 +186,13 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
         private static List<JavaPlatform> resolvePlatforms(final PlatformResolvers platformResolver) {
             PlatformRequirement defaultPlatformRequirement = DefaultPlatformRequirement.create(DefaultJavaPlatform.current().getName());
             return Collections.singletonList(platformResolver.resolve(JavaPlatform.class, defaultPlatformRequirement));
+        }
+
+        private BinaryNamingScheme namingSchemeFor(JUnitTestSuiteSpec testSuiteSpec, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
+            return DefaultBinaryNamingScheme.component(testSuiteSpec.getName())
+                .withBinaryType("suite") // not a 'Jar', not a 'test'
+                .withRole("assembly", true)
+                .withVariantDimension(platform, selectedPlatforms);
         }
 
     }

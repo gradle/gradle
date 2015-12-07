@@ -58,7 +58,8 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         noExceptionThrown()
 
         and:
-        outputContains "Test 'mySuite:mySuite'"
+        outputContains "Test 'mySuite:suite'"
+        outputContains "build using task: :mySuiteSuite"
     }
 
     def "fails if no JUnit version is specified"() {
@@ -126,10 +127,10 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         standaloneTestSuite(true, useLib, useExternalDep)
 
         when:
-        succeeds ':mySuiteTest'
+        succeeds ':mySuiteSuiteTest'
 
         then:
-        executedAndNotSkipped ':compileMySuiteMySuiteMySuiteJava', ':mySuiteTest'
+        executedAndNotSkipped ':compileMySuiteSuiteMySuiteJava', ':mySuiteSuiteTest'
         int testCount = 1;
         def tests = ['test']
         if (useLib) {
@@ -170,10 +171,10 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         standaloneTestSuite(false, useLib, useExternalDep)
 
         when:
-        fails ':mySuiteTest'
+        fails ':mySuiteSuiteTest'
 
         then:
-        executedAndNotSkipped ':compileMySuiteMySuiteMySuiteJava', ':mySuiteTest'
+        executedAndNotSkipped ':compileMySuiteSuiteMySuiteJava', ':mySuiteSuiteTest'
         failure.assertHasCause('There were failing tests. See the report at')
         int testCount = 1;
         def tests = [
@@ -200,6 +201,31 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         sourceconfig << SourceSetConfiguration.values()
     }
 
+    def "can have multiple JUnit test suites in a single project"() {
+        given:
+        applyJUnitPlugin()
+
+        def suites = ['mySuite', 'myOtherSuite']
+        suites.each {
+            buildFile << """
+            model {
+                components {
+                    ${it}(JUnitTestSuiteSpec) ${SourceSetConfiguration.NONE.configuration}
+                }
+            }"""
+        }
+
+        and:
+        standaloneTestSuite(true, false, false)
+
+        when:
+        succeeds(suites.collect { ":${it}SuiteTest"} as String[])
+
+        then:
+        noExceptionThrown()
+    }
+
+
     @NotYetImplemented
     def "assemble does not compile nor run test suite"() {
         given:
@@ -216,7 +242,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         succeeds 'assemble'
 
         then:
-        notExecuted ':compileMySuiteMySuiteMySuiteJava', ':mySuiteTest'
+        notExecuted ':compileMySuiteSuiteMySuiteJava', ':mySuiteSuiteTest'
 
     }
 
@@ -314,7 +340,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         """.stripMargin()
 
         when:
-        fails ':compileMySuiteMySuiteMySuiteJava'
+        fails ':compileMySuiteSuiteMySuiteJava'
 
         then:
         errorOutput.contains 'package utils.internal does not exist'
@@ -358,11 +384,11 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         file('src/test/resources/data.properties') << 'magic = 42'
 
         when:
-        succeeds ':mySuiteTest'
+        succeeds ':mySuiteSuiteTest'
 
         then:
         noExceptionThrown()
-        executedAndNotSkipped ':compileMySuiteMySuiteMySuiteJava', ':mySuiteTest'
+        executedAndNotSkipped ':compileMySuiteSuiteMySuiteJava', ':mySuiteSuiteTest'
     }
 
     private TestFile applyJUnitPlugin() {
