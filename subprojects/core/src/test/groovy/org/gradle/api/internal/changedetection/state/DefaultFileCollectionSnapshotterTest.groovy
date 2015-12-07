@@ -29,7 +29,7 @@ import spock.lang.Specification
 
 @UsesNativeServices
 public class DefaultFileCollectionSnapshotterTest extends Specification {
-    def fileSnapshotter = Stub(FileTreeElementSnapshotter)
+    def fileSnapshotter = Stub(FileSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
     def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, new StringInterner())
 
