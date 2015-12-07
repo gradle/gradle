@@ -41,4 +41,6 @@ public interface BinarySpecInternal extends BinarySpec {
     BinaryNamingScheme getNamingScheme();
 
     void setNamingScheme(BinaryNamingScheme namingScheme);
+
+    boolean hasCodependentSources();
 }

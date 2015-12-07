@@ -190,6 +190,11 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         this.namingScheme = namingScheme;
     }
 
+    @Override
+    public boolean hasCodependentSources() {
+        return false;
+    }
+
     private static class BinaryInfo {
         private final String name;
         private final Class<? extends BinarySpec> publicType;

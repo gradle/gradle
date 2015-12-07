@@ -136,6 +136,11 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return new ToolSearchBuildAbility(getToolChain().select(getTargetPlatform()));
     }
 
+    @Override
+    public boolean hasCodependentSources() {
+        return true;
+    }
+
     private static class JvmClassesAdapter implements JvmClasses {
 
         private final JvmAssembly jvmAssembly;

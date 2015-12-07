@@ -148,6 +148,11 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     @Override
+    public boolean hasCodependentSources() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public DomainObjectSet<LanguageSourceSet> getInputs() {
         return sourceSets;
     }

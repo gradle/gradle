@@ -24,10 +24,11 @@ import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.JointCompileTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
@@ -125,10 +126,15 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
             return JvmByteCode.class;
         }
 
-        public SourceTransformTaskConfig getTransformTask() {
-            return new SourceTransformTaskConfig() {
+        public JointCompileTaskConfig getTransformTask() {
+            return new JointCompileTaskConfig() {
                 public String getTaskPrefix() {
                     return "compile";
+                }
+
+                @Override
+                public boolean canTransform(LanguageSourceSet candidate) {
+                    return candidate instanceof ScalaLanguageSourceSet || candidate instanceof JavaSourceSet;
                 }
 
                 public Class<? extends DefaultTask> getTaskType() {
@@ -140,6 +146,12 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     configureScalaTask(compile, ((WithJvmAssembly) binarySpec).getAssembly(), String.format("Compiles %s.", sourceSet));
                     addSourceSetToCompile(compile, sourceSet);
                     addSourceSetClasspath(compile, (ScalaLanguageSourceSet) sourceSet);
+                }
+
+                @Override
+                public void configureAdditionalTransform(Task task, LanguageSourceSet sourceSet) {
+                    PlatformScalaCompile compile = (PlatformScalaCompile) task;
+                    addSourceSetToCompile(compile, sourceSet);
                 }
             };
         }

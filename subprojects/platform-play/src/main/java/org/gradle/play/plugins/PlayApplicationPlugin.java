@@ -28,14 +28,11 @@ import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
-import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.plugins.JavaLanguagePlugin;
-import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.routes.RoutesSourceSet;
 import org.gradle.language.routes.internal.DefaultRoutesSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
-import org.gradle.language.scala.internal.ScalaJvmAssembly;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.language.twirl.TwirlSourceSet;
@@ -48,7 +45,10 @@ import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 import org.gradle.platform.base.internal.PlatformResolvers;
-import org.gradle.play.*;
+import org.gradle.play.PlayApplicationBinarySpec;
+import org.gradle.play.PlayApplicationSpec;
+import org.gradle.play.PlayPlatformAwareComponentSpec;
+import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.*;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.run.PlayApplicationRunnerFactory;
@@ -204,13 +204,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
                     JvmAssembly jvmAssembly = ((PlayApplicationBinarySpecInternal) playBinary).getAssembly();
                     jvmAssembly.getClassDirectories().add(new File(binaryBuildDir, "classes"));
-
-                    ModelMap<JvmResourceSet> jvmResourceSets = componentSpec.getSources().withType(JvmResourceSet.class);
-                    for (JvmResourceSet jvmResourceSet : jvmResourceSets.values()) {
-                        for (File resourceDir : jvmResourceSet.getSource().getSrcDirs()) {
-                            jvmAssembly.getResourceDirectories().add(resourceDir);
-                        }
-                    }
+                    jvmAssembly.getResourceDirectories().add(new File(binaryBuildDir, "resources"));
 
                     PublicAssets assets = playBinary.getAssets();
                     assets.addAssetDir(new File(projectIdentifier.getProjectDir(), "public"));
@@ -320,19 +314,9 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         @BinaryTasks
         void createScalaCompileTask(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
-            final String scalaCompileTaskName = binary.getTasks().taskName("compile", "Scala");
-            final ScalaJvmAssembly assembly = ((PlayApplicationBinarySpecInternal) binary).getAssembly();
-            tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
+            tasks.withType(PlatformScalaCompile.class).afterEach(new Action<PlatformScalaCompile>() {
+                @Override
                 public void execute(PlatformScalaCompile scalaCompile) {
-                    ScalaLanguagePlugin.configureScalaTask(scalaCompile, assembly, "Compiles all scala and java source sets for the " + binary.getDisplayName() + ".");
-                    for (LanguageSourceSet appSources : binary.getInputs().withType(ScalaLanguageSourceSet.class)) {
-                        ScalaLanguagePlugin.addSourceSetToCompile(scalaCompile, appSources);
-                    }
-
-                    for (LanguageSourceSet appSources : binary.getInputs().withType(JavaSourceSet.class)) {
-                        ScalaLanguagePlugin.addSourceSetToCompile(scalaCompile, appSources);
-                    }
-
                     scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal) binary).getClasspath());
                 }
             });

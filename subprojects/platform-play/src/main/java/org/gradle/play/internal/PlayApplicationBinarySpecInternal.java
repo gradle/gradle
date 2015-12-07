@@ -17,6 +17,7 @@
 package org.gradle.play.internal;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.language.scala.internal.ScalaJvmAssembly;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.play.PlayApplicationBinarySpec;
@@ -25,7 +26,7 @@ import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
 
-public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinarySpec, BinarySpecInternal {
+public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinarySpec, BinarySpecInternal, WithJvmAssembly {
     void setTargetPlatform(PlayPlatform platform);
 
     void setToolChain(PlayToolChainInternal toolChain);
@@ -40,6 +41,5 @@ public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinary
 
     void setClasspath(FileCollection applicationClasspath);
 
-    // Not yet implementing `WithJvmAssembly` because the infrastructure isn't ready
     ScalaJvmAssembly getAssembly();
 }

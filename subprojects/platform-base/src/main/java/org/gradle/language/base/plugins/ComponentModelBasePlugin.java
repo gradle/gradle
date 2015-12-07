@@ -26,12 +26,10 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
-import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.model.BinarySourceTransformations;
 import org.gradle.language.base.internal.model.ComponentBinaryRules;
 import org.gradle.language.base.internal.model.ComponentRules;
 import org.gradle.language.base.internal.registry.DefaultLanguageTransformContainer;
-import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
@@ -48,8 +46,6 @@ import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.*;
 
 import javax.inject.Inject;
-
-import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
  * Base plugin for language support.
@@ -115,40 +111,14 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         // TODO:DAZ Convert this to `@BinaryTasks` when we model a `NativeAssembly` instead of wiring compile tasks directly to LinkTask
         @Finalize
         void createSourceTransformTasks(final TaskContainer tasks, final ModelMap<BinarySpecInternal> binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
+            BinarySourceTransformations transformations = new BinarySourceTransformations(tasks, languageTransforms, serviceRegistry);
             for (BinarySpecInternal binary : binaries) {
                 if (binary.isLegacyBinary()) {
                     continue;
                 }
 
-                for (LanguageSourceSetInternal sourceSet : binary.getInputs().withType(LanguageSourceSetInternal.class)) {
-                    if (!sourceSet.getMayHaveSources()) {
-                        continue;
-                    }
-
-                    LanguageTransform<?, ?> language = findLanguageTransform(binary, sourceSet, languageTransforms);
-                    if (language == null) {
-                        // TODO:DAZ Should fail here : no transform for this source set in this binary
-                        continue;
-                    }
-
-                    final SourceTransformTaskConfig taskConfig = language.getTransformTask();
-                    String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(sourceSet.getProjectScopedName());
-                    Task task = tasks.create(taskName, taskConfig.getTaskType());
-                    taskConfig.configureTask(task, binary, sourceSet, serviceRegistry);
-
-                    task.dependsOn(sourceSet);
-                    binary.getTasks().add(task);
-                }
+                transformations.createTasksFor(binary);
             }
-        }
-
-        private LanguageTransform<?, ?> findLanguageTransform(BinarySpecInternal binary, LanguageSourceSetInternal sourceSet, LanguageTransformContainer languageTransforms) {
-            for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
-                if (languageTransform.applyToBinary(binary) && languageTransform.getSourceSetType().isInstance(sourceSet)) {
-                    return languageTransform;
-                }
-            }
-            return null;
         }
 
         @Model
@@ -200,4 +170,5 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             });
         }
     }
+
 }
