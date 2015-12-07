@@ -177,6 +177,26 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     @Override
+    public void defineRulesForSelf(ModelActionRole role, ModelAction<?> action) {
+        applyToSelf(role, action);
+    }
+
+    @Override
+    public void defineRulesForAllLinks(ModelActionRole role, ModelAction<?> action) {
+        applyToAllLinks(role, action);
+    }
+
+    @Override
+    public void defineRulesForAllLinksTransitive(ModelActionRole role, ModelAction<?> action) {
+        applyToAllLinksTransitive(role, action);
+    }
+
+    @Override
+    public void defineRulesForLink(ModelActionRole role, ModelAction<?> action) {
+        applyToLink(role, action);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         return this == obj;
     }

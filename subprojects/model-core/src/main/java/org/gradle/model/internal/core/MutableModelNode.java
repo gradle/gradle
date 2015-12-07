@@ -102,6 +102,35 @@ public interface MutableModelNode extends ModelNode {
      */
     void applyToAllLinksTransitive(ModelType<?> type, Class<? extends RuleSource> rules);
 
+    /**
+     * Applies an action that defines rules for the node in the given role.
+     */
+    void defineRulesForSelf(ModelActionRole role, ModelAction<?> action);
+
+    /**
+     * Applies an action that defines rules for the node in the given role to all nodes linked from this node.
+     *
+     * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
+     * requested type available.
+     */
+    void defineRulesForAllLinks(ModelActionRole role, ModelAction<?> action);
+
+    /**
+     * Applies an action that defines rules for the node in the given role to all nodes linked from this node,
+     * including all nodes transitively linked from this node.
+     *
+     * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
+     * requested type available.
+     */
+    void defineRulesForAllLinksTransitive(ModelActionRole role, ModelAction<?> action);
+
+    /**
+     * Applies an action that defines rules for the node in the given role to a linked node.
+     *
+     * The path returned by {@link ModelAction#getSubject()} is used to select the link to apply the action to.
+     */
+    void defineRulesForLink(ModelActionRole role, ModelAction<?> action);
+
     @Nullable
     MutableModelNode getLink(String name);
 

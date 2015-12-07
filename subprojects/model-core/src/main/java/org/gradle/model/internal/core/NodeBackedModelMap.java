@@ -155,7 +155,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     public void all(DeferredModelAction configAction) {
         viewState.assertCanMutate();
         ModelReference<T> subject = ModelReference.of(elementType);
-        modelNode.applyToAllLinks(ModelActionRole.Initialize, toInitializeAction(subject, configAction, ModelActionRole.Mutate));
+        modelNode.defineRulesForAllLinks(ModelActionRole.Mutate, toInitializeAction(subject, configAction, ModelActionRole.Mutate));
     }
 
     @Override
@@ -243,7 +243,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     private <S> void doBeforeEach(ModelType<S> type, DeferredModelAction configAction) {
         viewState.assertCanMutate();
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Defaults, toInitializeAction(subject, configAction, ModelActionRole.Defaults));
+        modelNode.defineRulesForAllLinks(ModelActionRole.Defaults, toInitializeAction(subject, configAction, ModelActionRole.Defaults));
     }
 
     private <S extends T> void doCreate(String name, ModelType<S> type, DeferredModelAction action) {
@@ -284,7 +284,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     private <S> void doFinalizeAll(ModelType<S> type, DeferredModelAction configAction) {
         viewState.assertCanMutate();
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Initialize, toInitializeAction(subject, configAction, ModelActionRole.Finalize));
+        modelNode.defineRulesForAllLinks(ModelActionRole.Finalize, toInitializeAction(subject, configAction, ModelActionRole.Finalize));
     }
 
     @Nullable
@@ -408,7 +408,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     public <S> void withType(Class<S> type, DeferredModelAction configAction) {
         viewState.assertCanMutate();
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Initialize, toInitializeAction(subject, configAction, ModelActionRole.Mutate));
+        modelNode.defineRulesForAllLinks(ModelActionRole.Mutate, toInitializeAction(subject, configAction, ModelActionRole.Mutate));
     }
 
     @Override
