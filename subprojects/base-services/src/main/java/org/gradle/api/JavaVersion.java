@@ -46,14 +46,15 @@ public enum JavaVersion {
         }
 
         String name = value.toString();
-        if (name.matches("\\d")) {
-            int index = Integer.parseInt(name) - 1;
+        Matcher matcher = Pattern.compile("(\\d)(-.+)?").matcher(name);
+        if (matcher.matches()) {
+            int index = Integer.parseInt(matcher.group(1)) - 1;
             if (index < values().length && values()[index].hasMajorVersion) {
                 return values()[index];
             }
         }
 
-        Matcher matcher = Pattern.compile("1\\.(\\d)(\\D.*)?").matcher(name);
+        matcher = Pattern.compile("1\\.(\\d)(\\D.+)?").matcher(name);
         if (matcher.matches()) {
             int versionIdx = Integer.parseInt(matcher.group(1)) - 1;
             if (versionIdx >= 0 && versionIdx < values().length) {
