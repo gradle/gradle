@@ -18,10 +18,7 @@ package org.gradle.jvm.test.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.jvm.JvmBinaryTasks;
-import org.gradle.jvm.internal.DefaultJvmAssembly;
-import org.gradle.jvm.internal.DefaultJvmBinaryTasks;
-import org.gradle.jvm.internal.JvmAssembly;
-import org.gradle.jvm.internal.WithJvmAssembly;
+import org.gradle.jvm.internal.*;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
@@ -35,7 +32,7 @@ import java.util.Collection;
 
 import static org.gradle.util.CollectionUtils.findSingle;
 
-public class DefaultJUnitTestSuiteBinarySpec extends BaseBinarySpec implements JUnitTestSuiteBinarySpec, WithJvmAssembly {
+public class DefaultJUnitTestSuiteBinarySpec extends BaseBinarySpec implements JUnitTestSuiteBinarySpec, WithJvmAssembly, WithDependencies {
     private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(super.getTasks());
     private String junitVersion;
     private Collection<DependencySpec> componentLevelDependencies = Lists.newLinkedList();

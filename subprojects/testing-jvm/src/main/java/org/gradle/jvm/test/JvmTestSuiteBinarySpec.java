@@ -18,7 +18,6 @@ package org.gradle.jvm.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.jvm.JvmBinarySpec;
-import org.gradle.jvm.internal.WithDependencies;
 import org.gradle.platform.base.test.TestSuiteBinarySpec;
 
 /**
@@ -27,7 +26,7 @@ import org.gradle.platform.base.test.TestSuiteBinarySpec;
  * @since 2.11
  */
 @Incubating
-public interface JvmTestSuiteBinarySpec extends TestSuiteBinarySpec, JvmBinarySpec, WithDependencies {
+public interface JvmTestSuiteBinarySpec extends TestSuiteBinarySpec, JvmBinarySpec {
     @Override
     JvmTestSuiteSpec getTestSuite();
 }
