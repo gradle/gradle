@@ -44,7 +44,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         buildFile << '''
             model {
                 components {
-                    mySuite(JUnitTestSuiteSpec) {
+                    myTest(JUnitTestSuiteSpec) {
                         jUnitVersion '4.12'
                     }
                 }
@@ -58,8 +58,8 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         noExceptionThrown()
 
         and:
-        outputContains "Test 'mySuite:suite'"
-        outputContains "build using task: :mySuiteSuite"
+        outputContains "Test 'myTest:suite'"
+        outputContains "build using task: :myTestSuite"
     }
 
     def "fails if no JUnit version is specified"() {
@@ -70,7 +70,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         buildFile << '''
             model {
                 components {
-                    mySuite(JUnitTestSuiteSpec)
+                    myTest(JUnitTestSuiteSpec)
                 }
             }
         '''
@@ -79,7 +79,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         fails 'components'
 
         then:
-        failure.assertHasCause "Test suite 'mySuite' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example."
+        failure.assertHasCause "Test suite 'myTest' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example."
 
     }
 
@@ -91,7 +91,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         buildFile << '''
             model {
                 components {
-                    mySuite(JUnitTestSuiteSpec) {
+                    myTest(JUnitTestSuiteSpec) {
                         sources {
                             java {
                                 dependencies.module('junit:junit:4.12')
@@ -106,7 +106,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         fails 'components'
 
         then:
-        failure.assertHasCause "Test suite 'mySuite' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example."
+        failure.assertHasCause "Test suite 'myTest' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example."
 
     }
 
@@ -127,10 +127,10 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         standaloneTestSuite(true, useLib, useExternalDep)
 
         when:
-        succeeds ':mySuiteSuiteTest'
+        succeeds ':myTestSuiteTest'
 
         then:
-        executedAndNotSkipped ':compileMySuiteSuiteMySuiteJava', ':mySuiteSuiteTest'
+        executedAndNotSkipped ':compileMyTestSuiteMyTestJava', ':myTestSuiteTest'
         int testCount = 1;
         def tests = ['test']
         if (useLib) {
@@ -171,10 +171,10 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         standaloneTestSuite(false, useLib, useExternalDep)
 
         when:
-        fails ':mySuiteSuiteTest'
+        fails ':myTestSuiteTest'
 
         then:
-        executedAndNotSkipped ':compileMySuiteSuiteMySuiteJava', ':mySuiteSuiteTest'
+        executedAndNotSkipped ':compileMyTestSuiteMyTestJava', ':myTestSuiteTest'
         failure.assertHasCause('There were failing tests. See the report at')
         int testCount = 1;
         def tests = [
@@ -205,7 +205,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         given:
         applyJUnitPlugin()
 
-        def suites = ['mySuite', 'myOtherSuite']
+        def suites = ['myTest', 'myOtherSuite']
         suites.each {
             buildFile << """
             model {
@@ -242,7 +242,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         succeeds 'assemble'
 
         then:
-        notExecuted ':compileMySuiteSuiteMySuiteJava', ':mySuiteSuiteTest'
+        notExecuted ':compileMyTestSuiteMyTestJava', ':myTestSuiteTest'
 
     }
 
@@ -261,7 +261,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
                         sources {
                             java {
                                 dependencies {
-                                    library 'mySuite'
+                                    library 'myTest'
                                 }
                             }
                         }
@@ -275,7 +275,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         fails ':myLibJar'
 
         then:
-        failure.assertHasCause "Project ':' does not contain library 'mySuite'. Did you want to use 'myLib'?"
+        failure.assertHasCause "Project ':' does not contain library 'myTest'. Did you want to use 'myLib'?"
     }
 
     def "should fail if a library attempts to depend on a project that only declares a test suite"() {
@@ -340,7 +340,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         """.stripMargin()
 
         when:
-        fails ':compileMySuiteSuiteMySuiteJava'
+        fails ':compileMyTestSuiteMyTestJava'
 
         then:
         errorOutput.contains 'package utils.internal does not exist'
@@ -384,11 +384,11 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         file('src/test/resources/data.properties') << 'magic = 42'
 
         when:
-        succeeds ':mySuiteSuiteTest'
+        succeeds ':myTestSuiteTest'
 
         then:
         noExceptionThrown()
-        executedAndNotSkipped ':compileMySuiteSuiteMySuiteJava', ':mySuiteSuiteTest'
+        executedAndNotSkipped ':compileMyTestSuiteMyTestJava', ':myTestSuiteTest'
     }
 
     private TestFile applyJUnitPlugin() {
@@ -453,7 +453,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         buildFile << """
             model {
                 components {
-                    mySuite(JUnitTestSuiteSpec) ${config.configuration}
+                    myTest(JUnitTestSuiteSpec) ${config.configuration}
                 }
             }
         """
