@@ -15,7 +15,6 @@
  */
 package org.gradle.play.plugins;
 
-import com.beust.jcommander.internal.Lists;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
@@ -64,7 +63,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
