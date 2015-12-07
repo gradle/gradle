@@ -227,6 +227,8 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
 
 
     @NotYetImplemented
+    // this has been deferred to a later story, where test binaries will
+    // be segregated from "regular" binaries
     def "assemble does not compile nor run test suite"() {
         given:
         applyJUnitPlugin()
