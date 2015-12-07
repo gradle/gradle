@@ -30,17 +30,15 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         class Rules extends RuleSource {
             @Model
             void fss(FunctionalSourceSet sources) {
-
             }
 
             @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet sources) {
                 tasks.create("printTask") {
-                  doLast {
-                    println sources
-                  }
-              }
+                    doLast {
+                        println sources
+                    }
+                }
             }
-
         }
         apply plugin: Rules
         """
