@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaProject
 
 @ToolingApiVersion(">=2.11")
@@ -31,7 +32,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion("=2.9")
-    def "older Gradle versions infer project and module source settings from default idea plugin language level"() {
+    def "older Gradle versions infer project source settings from default idea plugin language level"() {
         given:
         if (projectAppliesJavaPlugin) { buildFile << "apply plugin: 'java'"}
 
@@ -41,8 +42,6 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         then:
         ideaProject.javaSourceSettings.sourceLanguageLevel == expectedSourceLanguageLevel
         ideaProject.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.sourceLanguageLevel == expectedSourceLanguageLevel
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.isSourceLanguageLevelInherited()
 
         where:
         projectAppliesJavaPlugin | expectedSourceLanguageLevel
@@ -51,7 +50,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion("=2.9")
-    def "older Gradle versions infer project and module source settings from configured idea plugin language level"() {
+    def "older Gradle versions infer project source settings from configured idea plugin language level"() {
         given:
         buildFile << """
             apply plugin: 'idea'
@@ -69,12 +68,21 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         then:
         ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
         toJavaVersion(ideaProject.languageLevel) == JavaVersion.VERSION_1_3
-        ideaProject.modules.find { it.name == 'root' }.getJavaSourceSettings().sourceLanguageLevel == JavaVersion.VERSION_1_3
-        ideaProject.modules.find { it.name == 'root' }.getJavaSourceSettings().isSourceLanguageLevelInherited()
 
         where:
         applyJavaPlugin << [false, true]
     }
+
+    @TargetGradleVersion("=2.9")
+    def "older Gradle version throw exception when querying idea module source settings"() {
+        when:
+        def ideaProject = loadIdeaProjectModel()
+        ideaProject.modules.find { it.name == 'root' }.getJavaSourceSettings()
+
+        then:
+        thrown(UnsupportedMethodException)
+    }
+
 
     def "can retrieve project and module source language level for multi project build"() {
         given:

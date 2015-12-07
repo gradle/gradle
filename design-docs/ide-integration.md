@@ -49,9 +49,10 @@ language levels for each module in a project.
         - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` is calculated from `project.sourceCompatibility`
         - `IdeaModule.getSourceLanguageLevel().isInherited` returns `false` if different from the IDEA project, `true` if the same.
 - Add a comment on `IdeaProject.getLanguageLevel()` that `getJavaSourceSettings()` should be preferred.
-- For older Gradle versions value for `javaSourceSettings.sourceLanguageLevel` for IdeaModule and IdeaProject is inferred from `languageLevel`
+- For older Gradle versions value for `javaSourceSettings.sourceLanguageLevel`
     - Use an Action<SourceObjectMapping> to wire IdeaProject.languageLevel and the javaSourceSettings.sourceLanguageLevel.
         ( see `TaskPropertyHandlerFactory` as an example for this)
+    - for IdeaModule, let the TAPI throw an `UnsupportedMethodException`
 
 #### Test coverage
 
@@ -59,7 +60,7 @@ language levels for each module in a project.
 - `IdeaModule.getJavaSourceSettings()` returns `languageLevel` for non java projects
 - `IdeaModule.getJavaSourceSettings().isInherited()` returns true when the same as project's version, false when different.
 - `IdeaProject.getJavaSourceSettings()` returns inferred value from `languageLevel` for older target Gradle version.
-- `IdeaModule.getJavaSourceSettings()` returns inferred value from idea project `languageLevel` for older target Gradle version.
+- `IdeaModule.getJavaSourceSettings()` throws UnsupportedMethodException for older target Gradle version.
 - `IdeaProject.getJavaSourceSettings().getSourceLanguageLevel()` matches language level information obtained from `IdeaProject.getLanguageLevel()`.
 - `IdeaModule.getJavaSourceSettings().getSourceLanguageLevel()` matches language level information obtained from `project.sourceCompatibility`.
 - Can handle multi project builds with different source levels per subproject.
