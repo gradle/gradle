@@ -1,12 +1,18 @@
 @Managed
+interface Address {
+    String getCity()
+    void setCity(String city)
+}
+
+@Managed
 interface Person {
-    void setFirstName(String n);
-
     String getFirstName()
-
-    void setLastName(String n);
+    void setFirstName(String n)
 
     String getLastName()
+    void setLastName(String n)
+
+    Address getAddress()
 }
 
 class PersonRules extends RuleSource {
@@ -21,14 +27,23 @@ apply plugin: PersonRules
 // START SNIPPET create-rule
 // START SNIPPET rule-inputs
 // START SNIPPET create-rule-no-config
+// START SNIPPET managed-type-nested-config-rule
 model {
 // END SNIPPET create-rule
 // END SNIPPET rule-inputs
 // END SNIPPET create-rule-no-config
+// END SNIPPET managed-type-nested-config-rule
     person {
         lastName = "Smith"
     }
 // END SNIPPET configure-rule
+// START SNIPPET managed-type-nested-config-rule
+    person {
+        address {
+            city = "Melbourne"
+        }
+    }
+// END SNIPPET managed-type-nested-config-rule
 // START SNIPPET create-rule
     person(Person) {
         firstName = "John"
@@ -49,11 +64,13 @@ model {
 // START SNIPPET create-rule-no-config
 // START SNIPPET configure-rule
 // START SNIPPET create-rule
+// START SNIPPET managed-type-nested-config-rule
 }
 // END SNIPPET create-rule
 // END SNIPPET create-rule-no-config
 // END SNIPPET configure-rule
 // END SNIPPET rule-inputs
+// END SNIPPET managed-type-nested-config-rule
 
 // START SNIPPET model-map-nested-configure-rule
 // START SNIPPET model-map-nested-create-rule

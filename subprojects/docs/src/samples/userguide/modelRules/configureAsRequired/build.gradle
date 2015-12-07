@@ -1,12 +1,10 @@
 @Managed
 interface Person {
-    void setFirstName(String n);
-
     String getFirstName()
-
-    void setLastName(String n);
+    void setFirstName(String n)
 
     String getLastName()
+    void setLastName(String n)
 }
 
 // START SNIPPET configure-rule

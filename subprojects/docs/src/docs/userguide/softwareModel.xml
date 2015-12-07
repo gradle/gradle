@@ -581,40 +581,61 @@ model {
                 <sourcefile file='build.gradle' snippet="configure-and-create-rules"/>
                 <output args="showPerson"/>
             </sample>
-            <para>Notice that the creation rule appears in the build script <emphasis>after</emphasis> the configuration rule. Gradle collects up all the rules for a given subject before running any
-                of them, then runs the rules in the approriate order.</para>
+            <para>Notice that the creation rule appears in the build script <emphasis>after</emphasis> the configuration rule, but its code runs before the code of the configuration rule.
+                Gradle collects up all the rules for a particular subject before running any of them, then runs the rules in the appropriate order.</para>
         </section>
         <section>
-            <title>Configuring model elements</title>
-            <para>DSL rules may take a closure containing some code to run to configure the subject. The code you can use in this closure depends on the type of the subject of the rule.</para>
+            <title>Model rule closures</title>
+            <para>Most DSL rules take a closure containing some code to run to configure the subject. The code you can use in this closure depends on the type of the subject of the rule.</para>
+            <tip>
+                <para>You can use the <link linkend="model-report">model report</link> to determine the type of a particular model element.</para>
+            </tip>
             <para>In general, a rule closure may contain arbitrary code, mixed with some type specific DSL syntax.</para>
             <section>
-                <title><classname>ModelMap&lt;T></classname></title>
-                <para>A <apilink class="org.gradle.model.ModelMap"/> is basically a map of model elements, indexed by some name.</para>
-                <para>When a <classname>ModelMap</classname> is used as the subject of a DSL rule, the rule closure can use any of the methods defined on the
+                <title><classname>ModelMap&lt;T></classname> subject</title>
+                <para>A <apilink class="org.gradle.model.ModelMap"/> is basically a map of model elements, indexed by some name.
+                    When a <classname>ModelMap</classname> is used as the subject of a DSL rule, the rule closure can use any of the methods defined on the
                     <apilink class="org.gradle.model.ModelMap"/> interface.
                 </para>
-                <para>A rule closure can also nest creation or configuration rules.</para>
-                <sample id='modelDslNestedCreate' dir='modelRules/modelDsl' title="Nested DSL creation rule">
+                <para>A rule closure with <classname>ModelMap</classname> as a subject can also include nested creation or configuration rules. These behave in a similar way
+                    to the creation and configuration rules that appear directly under the <literal>model</literal> block.
+                </para>
+                <para>Here is an example of a nested creation rule:</para>
+                <sample id='modelDslModelMapNestedCreate' dir='modelRules/modelDsl' title="Nested DSL creation rule">
                     <sourcefile file='build.gradle' snippet="model-map-nested-create-rule"/>
                 </sample>
-                <sample id='modelDslNestedConfig' dir='modelRules/modelDsl' title="Nested DSL configuration rule">
+                <para>As before, a nested creation rule defines a name and public type for the element, and optionally, a closure containing code to use to initialize the element.
+                    The code is run only when the element is required in the build.
+                </para>
+                <para>Here is an example of a nested configuration rule:</para>
+                <sample id='modelDslModelMapNestedConfig' dir='modelRules/modelDsl' title="Nested DSL configuration rule">
                     <sourcefile file='build.gradle' snippet="model-map-nested-configure-rule"/>
                 </sample>
-                <para>You can define rules that target each of the elements in the map, and rules that target elements of a particular type.</para>
-                <sample id='modelDslNestedAll' dir='modelRules/modelDsl' title="DSL configuration rule for each element in a map">
-                    <sourcefile file='build.gradle' snippet="model-map-all-rule"/>
+                <para>As before, a nested configuration rule defines the name of the element to configure and a closure containing code to use to configure the element.
+                    The code is run only when the element is required in the build.
+                </para>
+                <para><classname>ModelMap</classname> introduces several other kinds of rules. For example, you can define a rule that targets each of the elements in the map.
+                    The code in the rule closure is executed once for each element in the map, when that element is required. Let's run a task that requires
+                    all of the children of the "people" element:
+                </para>
+                <sample id='modelDslModelMapNestedAll' dir='userguide/modelRules/configureElementsOfMap' title="DSL configuration rule for each element in a map">
+                    <sourcefile file='build.gradle' snippet="create-and-configure"/>
+                    <output args="listPeople"/>
                 </sample>
+                <para>Any method on <apilink class="org.gradle.model.ModelMap"/> that accepts an <apilink class="org.gradle.api.Action"/> as its last parameter can also be used to define a nested rule.</para>
             </section>
             <section>
-                <title>Managed types</title>
+                <title><classname>@Managed</classname> type subject</title>
                 <para>When a managed type is used as the subject of a DSL rule, the rule closure can use any of the methods defined on the managed type interface.</para>
-                <para>A rule closure can also configure the properties of the element using nested closures.</para>
+                <para>A rule closure can also configure the properties of the element using nested closures. For example:</para>
+                <sample id='modelDslManagedTypeNestedConfigure' dir='modelRules/modelDsl' title="Nested DSL property configuration">
+                    <sourcefile file='build.gradle' snippet="managed-type-nested-config-rule"/>
+                </sample>
                 <note><para>Currently, the nested closures do not define rules and are executed immediately. Please be aware that this behaviour will change in a future Gradle release.</para></note>
             </section>
             <section>
-                <title>All other types</title>
-                <para>For all other types, the rule closure can use any of the methods defined by the type. There is no special DSL added for these elements.</para>
+                <title>All other subjects</title>
+                <para>For all other types, the rule closure can use any of the methods defined by the type. There is no special DSL defined for these elements.</para>
             </section>
         </section>
         <section id="dsl-type-coercion">
