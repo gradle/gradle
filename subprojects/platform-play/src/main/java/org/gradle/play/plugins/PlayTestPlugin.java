@@ -72,8 +72,6 @@ public class PlayTestPlugin extends RuleSource {
 
                     IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                     incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", testCompileTaskName)));
-
-                    binary.getTasks().add(scalaCompile);
                 }
             });
 
