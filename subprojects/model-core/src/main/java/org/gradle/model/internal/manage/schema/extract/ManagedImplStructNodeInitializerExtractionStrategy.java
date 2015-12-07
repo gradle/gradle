@@ -28,7 +28,7 @@ import org.gradle.model.internal.type.ModelType;
 public class ManagedImplStructNodeInitializerExtractionStrategy implements NodeInitializerExtractionStrategy {
 
     protected boolean isTarget(ModelType<?> type) {
-        return type.getRawClass().isAnnotationPresent(Managed.class);
+        return type.isAnnotationPresent(Managed.class);
     }
 
     @Override

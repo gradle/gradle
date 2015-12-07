@@ -25,6 +25,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.util.CollectionUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.Collections;
 import java.util.List;
@@ -152,6 +153,10 @@ public abstract class ModelType<T> {
 
     public boolean isAssignableFrom(ModelType<?> modelType) {
         return getTypeToken().isAssignableFrom(modelType.getTypeToken());
+    }
+
+    public boolean isAnnotationPresent(Class<? extends Annotation> annotation) {
+        return getRawClass().isAnnotationPresent(annotation);
     }
 
     public boolean isWildcard() {
