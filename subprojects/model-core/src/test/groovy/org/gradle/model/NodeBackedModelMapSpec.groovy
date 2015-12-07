@@ -232,7 +232,7 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
      */
     def "rules targeting item of mismatched type are allowed"() {
         def classLoader = new GroovyClassLoader(getClass().classLoader)
-        def SetOtherToName = classLoader.parseClass """
+        def setOtherToName = classLoader.parseClass """
             import org.gradle.model.*
 
             class SetOtherToName extends RuleSource {
@@ -245,7 +245,7 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
 
         when:
         mutate {
-            withType(String).named("foo", SetOtherToName)
+            withType(String).named("foo", setOtherToName)
             create("foo")
         }
         realize()
