@@ -48,7 +48,9 @@ In order to perform incremental Java compilation, Gradle must determine the Clas
 
 This release enhances this inference to handle types in addition `SourceDirectorySet`. Both `File` and `DirectoryTree` types are now supported for incremental Java compilation. This means that sources provided via `project.fileTree('source-dir')` can be compiled incrementally.
 
-### Dependencies management in the incubating Java software model
+### Dependency management for the incubating Java software model
+
+This release adds some important new features for dependency management for Java libraries in the incubating Java software model.
 
 #### Component level dependencies for Java libraries
 
@@ -208,10 +210,7 @@ The model DSL now supports automatic conversions between various scalar types, m
 
 ### Improvement for software model plugin authors
 
-#### Binary names are scoped to the owning component
-
-Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
-might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
+This release includes some major capabilities to allow plugin authors to extend the software model
 
 #### Support for `LanguageSourceSet` model elements
 
@@ -381,6 +380,11 @@ It is also possible to attach internal views to `@Managed` types as well:
 Internal views registered for a `@Managed` public type must themselves be `@Managed`.
 
 This functionality is available for types extending `ComponentSpec` and `BinarySpec`.
+
+#### Binary names are scoped to the owning component
+
+Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
+might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
 
 ## Promoted features
 
