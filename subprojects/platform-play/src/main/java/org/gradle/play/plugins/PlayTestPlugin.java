@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.util.PatternSet;
@@ -37,7 +38,7 @@ import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.toolchain.PlayToolProvider;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Plugin for executing tests from a Play Framework application.
@@ -75,6 +76,18 @@ public class PlayTestPlugin extends RuleSource {
                 }
             });
 
+            final String testProcessResourcesTaskName = binary.getTasks().taskName("process", "testResources");
+            final File testResourceDir = fileResolver.resolve("test/resources");
+            tasks.create(testProcessResourcesTaskName, Copy.class, new Action<Copy>() {
+                public void execute(Copy copy) {
+                    copy.setDescription("Copy test resources into the test classes directory for the '" + binary.getName() + "' binary.");
+                    copy.from(testResourceDir);
+                    copy.setDestinationDir(testClassesDir);
+
+                    binary.getTasks().add(copy);
+                }
+            });
+
             final String testTaskName = binary.getTasks().taskName("test");
             final File binaryBuildDir = new File(buildDir, binary.getProjectScopedName());
             tasks.create(testTaskName, Test.class, new Action<Test>() {
@@ -87,11 +100,12 @@ public class PlayTestPlugin extends RuleSource {
                     test.setBinResultsDir(new File(binaryBuildDir, String.format("results/%s/bin", testTaskName)));
                     test.getReports().getJunitXml().setDestination(new File(binaryBuildDir, "reports/test/xml"));
                     test.getReports().getHtml().setDestination(new File(binaryBuildDir, "reports/test"));
-                    test.dependsOn(testCompileTaskName);
-                    test.setTestSrcDirs(Arrays.asList(testSourceDir));
+                    test.dependsOn(testCompileTaskName, testProcessResourcesTaskName);
+                    test.setTestSrcDirs(Collections.singletonList(testSourceDir));
                     test.setWorkingDir(projectIdentifier.getProjectDir());
                 }
             });
+
             binary.getTasks().add(tasks.get(testTaskName));
         }
     }

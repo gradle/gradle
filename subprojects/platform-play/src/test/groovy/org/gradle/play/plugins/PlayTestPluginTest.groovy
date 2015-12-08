@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectIdentifier
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.testing.Test
 import org.gradle.language.scala.tasks.PlatformScalaCompile
 import org.gradle.model.ModelMap
@@ -76,6 +77,7 @@ class PlayTestPluginTest extends Specification {
 
         then:
         1 * taskModelMap.create("compileSomeBinaryTests", PlatformScalaCompile, _)
+        1 * taskModelMap.create("processSomeBinaryTestResources", Copy, _)
         1 * taskModelMap.create("testSomeBinary", Test, _)
         0 * taskModelMap.create(_)
         0 * taskModelMap.create(_, _, _)
