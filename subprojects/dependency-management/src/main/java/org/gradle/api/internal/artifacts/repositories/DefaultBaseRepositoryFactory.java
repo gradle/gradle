@@ -89,6 +89,12 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         return mavenRepository;
     }
 
+    public MavenArtifactRepository createJitpackRepository() {
+        MavenArtifactRepository mavenRepository = createMavenRepository();
+        mavenRepository.setUrl(DefaultRepositoryHandler.JITPACK_URL);
+        return mavenRepository;
+    }
+
     public MavenArtifactRepository createMavenCentralRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository();
         mavenRepository.setUrl(RepositoryHandler.MAVEN_CENTRAL_URL);

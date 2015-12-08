@@ -123,6 +123,48 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     MavenArtifactRepository jcenter();
 
     /**
+     * Adds a repository which looks in Jitpack repository for dependencies.
+     * <p>
+     * The URL used to access this repository is {@literal "https://jitpack.io/"}.
+     * The behavior of this repository is otherwise the same as those added by {@link #maven(org.gradle.api.Action)}.
+     * <p>
+     * Examples:
+     * <pre autoTested="">
+     * repositories {
+     *   jitpack {
+     *     artifactUrls = ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
+     *   }
+     *   jitpack {
+     *     name = "nonDefaultName"
+     *     artifactUrls = ["http://www.mycompany.com/artifacts1"]
+     *   }
+     * }
+     * </pre>
+     *
+     * @param action a configuration action
+     * @return the added repository
+     */
+    MavenArtifactRepository jitpack(Action<? super MavenArtifactRepository> action);
+
+    /**
+     * Adds a repository which looks in Jitpack repository for dependencies.
+     * <p>
+     * The URL used to access this repository is {@literal "https://jitpack.io/"}.
+     * The behavior of this repository is otherwise the same as those added by {@link #maven(org.gradle.api.Action)}.
+     * <p>
+     * Examples:
+     * <pre autoTested="">
+     * repositories {
+     *     jitpack()
+     * }
+     * </pre>
+     *
+     * @return the added resolver
+     * @see #jitpack(Action)
+     */
+    MavenArtifactRepository jitpack();
+
+    /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}.
      *

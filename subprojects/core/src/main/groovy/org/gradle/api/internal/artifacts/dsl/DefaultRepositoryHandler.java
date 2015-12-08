@@ -37,6 +37,9 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     public static final String DEFAULT_BINTRAY_JCENTER_REPO_NAME = "BintrayJCenter";
     public static final String BINTRAY_JCENTER_URL = "https://jcenter.bintray.com/";
 
+    public static final String DEFAULT_JITPACK_REPO_NAME = "JitPack";
+    public static final String JITPACK_URL = "https://jitpack.io";
+
     public static final String FLAT_DIR_DEFAULT_NAME = "flatDir";
     private static final String MAVEN_REPO_DEFAULT_NAME = "maven";
     private static final String IVY_REPO_DEFAULT_NAME = "ivy";
@@ -74,6 +77,14 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     public MavenArtifactRepository jcenter(Action<? super MavenArtifactRepository> action) {
         return addRepository(repositoryFactory.createJCenterRepository(), DEFAULT_BINTRAY_JCENTER_REPO_NAME, action);
+    }
+
+    public MavenArtifactRepository jitpack() {
+        return addRepository(repositoryFactory.createJitpackRepository(), DEFAULT_JITPACK_REPO_NAME);
+    }
+
+    public MavenArtifactRepository jitpack(Action<? super MavenArtifactRepository> action) {
+        return addRepository(repositoryFactory.createJitpackRepository(), DEFAULT_JITPACK_REPO_NAME, action);
     }
 
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
