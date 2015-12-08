@@ -1,3 +1,7 @@
+The Gradle team is pleased to bring you Gradle 2.10. This release delivers significant performance improvements for large Native software builds, together with a number of bug fixes and smaller improvements.
+
+Major progress has been made on the Rule-based configuration and Software Model infrastructure. We are excited about the opportunities this work will bring, and the progress that has been made. With full support for dependency management, an improved DSL and better support for developing plugins, the Gradle 2.10 release brings this revolutionary way of building software closer to the mainstream.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -7,48 +11,37 @@ Here are the new features introduced in this Gradle release.
 Gradle needs to know all input properties, input files and output files of a task to perform incremental build checks.  When no input or output files have changed, Gradle can skip executing a task.
 
 For native compilation tasks, Gradle used to consider the contents of all include directories as inputs to the task. This had performance problems when there were many include directories or when the project root directory was used as an include directory.
-To speed up up-to-date checks, Gradle now treats the include path as an input property and only considers files included from source files as inputs. From our performance benchmarks, this can have a large positive impact on incremental builds for very large projects.
+To speed up up-to-date checks, Gradle now treats the include path as an input property and only considers those header files that are actually referenced by a source file as a inputs. Our performance benchmarks have demonstrated this to have a large positive impact on incremental builds for very large native projects.
 
-Due to the way Gradle determines the set of input files, using macros to `#include` files from native source files requires Gradle to fallback to its old mechanism of including all files in all include directories as inputs.
+For C++ and related languages, Gradle uses source file parsing to determine the set of included headers for a source file. If Gradle cannot determine the set of included headers, it will fall back to the old mechanism of including all files in all include directories as inputs. This means that using a macro to define an `#include` file is not recommended, as it can prevent Gradle from taking advantage of this optimization.
 
-### TestKit dependency decoupled from Gradle core dependencies
+### TestKit dependency is decoupled from Gradle core classes and dependencies
 
-The method `DependencyHandler.gradleTestKit()` creates a dependency on the classes of the Gradle TestKit runtime classpath. In previous versions
-of Gradle the TestKit dependency also declared transitive dependencies on other Gradle core classes and external libraries that ship with the Gradle distribution. This might lead to
-version conflicts between the runtime classpath of the TestKit and user-defined libraries required for functional testing. A typical example for this scenario would be Google Guava.
-With this version of Gradle, the Gradle TestKit dependency is represented by a fat and shaded JAR file containing Gradle core classes and classes of all required external dependencies
-to avoid polluting the functional test runtime classpath.
+Declaring a dependency on `gradleTestKit()` includes all of the Gradle TestKit runtime classpath. In previous versions of Gradle this TestKit dependency also included transitive dependencies on some Gradle core classes and external libraries. This could lead to version conflicts between the TestKit runtime classpath and user-defined dependency declarations.
 
-### Visualising a project's build script dependencies
+Gradle TestKit now avoids polluting the runtime classpath by using a fat and shaded JAR file for any required Gradle core classes and external dependencies.
 
-The new `buildEnvironment` task can be used to visualise the project's `buildscript` dependencies.
-This task is implicitly available for all projects, much like the existing `dependencies` task.
+### New task for visualising a `buildScript` dependencies
 
-The `buildEnvironment` task can be used to understand how the declared dependencies of project's build script actually resolve,
-including transitive dependencies.
+The new `buildEnvironment` task can be used to obtain better insight into the `buildscript` dependencies of a Gradle project. This task is implicitly available for all projects, much like the existing `dependencies` task.
+
+Use the `buildEnvironment` task to gain an understanding of how the declared dependencies of project's build script are actually resolved, and to debug issues with plugin loading and classloading.
 
 The feature was kindly contributed by [Ethan Hall](https://github.com/ethankhall).
 
-### Checkstyle HTML report
+### HTML report for Checkstyle
 
-The [`Checkstyle` task](dsl/org.gradle.api.plugins.quality.Checkstyle.html) now produces a HTML report on failure in addition to the existing XML report.
-The, more human friendly, HTML report is now advertised instead of the XML report when it is available.
+The [`Checkstyle` task](dsl/org.gradle.api.plugins.quality.Checkstyle.html) now produces a HTML report on failure in addition to the existing XML report. This more human friendly HTML report is generated by default, and when available will be advertised in preference to the XML report.
 
 This feature was kindly contributed by [Sebastian Schuberth](https://github.com/sschuberth).
 
 ### Tooling API exposes Java source language level for Eclipse projects
 
-The Tooling API now exposes the Java source language level that should be used for an Eclipse project via the
-<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings">`EclipseProject.getJavaSourceSettings()`</a> method.
-IDE providers can use this to automatically configure the source language level in Eclipse, so that users no longer need to configure this themselves.
+The Tooling API now exposes the Java source language level that should be used for an Eclipse project via the [`javaSourceSettings`](javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings) property.
 
-### Incremental Java compilation for sources provided via `File` or `DirectoryTree`
+This allows `Buildship` and other IDE integrations to automatically configure the source language level in Eclipse, so that users no longer need to configure this themselves.
 
-In order to perform incremental Java compilation, Gradle must determine the Class file name from each source file. To do so, Gradle infers the source directory roots based on the values supplied to `JavaCompile.source`.
-
-This release enhances this inference to handle types in addition `SourceDirectorySet`. Both `File` and `DirectoryTree` types are now supported for incremental Java compilation. This means that sources provided via `project.fileTree('source-dir')` can be compiled incrementally.
-
-### Dependency management for the incubating Java software model
+### Dependency management for the Java Software Model (i)
 
 This release adds some important new features for dependency management for Java libraries in the incubating Java software model.
 
@@ -101,7 +94,7 @@ It is now possible to declare dependencies on external modules for a Java librar
 Module dependencies declared this way will be resolved against the configured repositories as usual. 
 External dependencies can be declared for a Java library, Java source set or Java library API specification. 
 
-### Model DSL improvements
+### DSL improvements for the Software Model (i)
 
 This release includes a number of improvements to the model DSL, which is the DSL you use to define and configure the software model from a build script.
 
@@ -208,7 +201,7 @@ The model DSL now supports automatic conversions between various scalar types, m
         }
     }
 
-### Improvement for software model plugin authors
+### Better support for developing plugins with the Software Model
 
 This release includes some major capabilities to allow plugin authors to extend the software model
 
@@ -386,35 +379,23 @@ This functionality is available for types extending `ComponentSpec` and `BinaryS
 Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
 might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
 
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
-
 ## Fixed issues
-
-## Deprecations
-
-Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
-
-<!--
-### Example deprecation
--->
 
 ## Potential breaking changes
 
-### Changes to TestKit's runtime classpath
+### Changes to the runtime classpath provided by TestKit
 
-- External dependencies e.g. Google Guava brought in by Gradle core libraries when using the TestKit runtime classpath are no longer usable in functional test code. Any external dependency required by the test code needs to be declared for the test classpath.
+Previous versions of Gradle TestKit included a number of additional dependencies in the test runtime classpath. These dependencies, such as Google Guava, are no longer automatically usable by functional test code. If an external dependency is required by test code, it must be explicitly declared in order to be available on the test classpath.
+
+### Native header files as inputs to compile task
+
+Previously, Gradle considered all files in all include path directories as inputs to a compile task. This had performance problems and could cause tasks to be out of date when they should not be. This has been fixed but may cause some subtle differences to the way changes are detected for compilation tasks.
+
+Gradle now considers a compile task to be out-of-date (and require full recompilation) when the include path is changed. In older releases, Gradle would only recompile source files if the resolved set of headers changed.  This meant that you could reorder the include path without necessarily causing any files to be recompiled.
+
+Once Gradle has compiled a file once, it will only be recompiled if it or one of the included headers has changed. This means that Gradle will not detect a new header file added to the include path, where that file that should be used in preference to an existing header file.  If a compilation task has an include path of `[ first/, second/ ]` and a source file includes `header.h` from `second/`, if a new file called `header.h` is added to `first/`, Gradle will not detect the change, and will consider the source file compilation to be up to date.
+
+We plan to address this limitation in a future version of Gradle.
 
 ### Changes to model rules DSL
 
@@ -444,18 +425,6 @@ The following are the newly deprecated items in this Gradle release. If you have
 - Task names have changed for components with multiple variants. The library or executable name is now first.
 - `org.gradle.language.PreprocessingTool` has moved to `org.gradle.nativeplatform.PreprocessingTool`
 - Output directory names have changed.
-
-### Native header files as inputs to compile task
-
-Previously, Gradle considered all files in all include path directories as inputs to a compile task. This had performance problems and could cause tasks to be out of date when they should not be. This has been fixed but may cause some subtle differences to the way changes are detected for compilation tasks.
-
-Gradle now considers a compile task to be out-of-date (and require full recompilation) when the include path is changed. In older releases, Gradle would only recompile source files if the resolved set of headers changed.  This means you could reorder the include path and not necessarily see any recompiled files.
-
-Gradle only checks header files that are included from source files during compilation, except when an included header file cannot be found because it is included via a macro. When a header file cannot be resolved during task execution, a fallback mechanism is used to follow the old behavior--all files are added as inputs to the compilation task from all include directories. Gradle emits a warning at `--info` level if this fallback mechanism is used.
-
-Gradle no longer detects changes where a new header file earlier in the include path that should replace an existing header file.  If a compilation task has an include path of `[ first/, second/ ]` and a source file includes `header.h` from `second/`, if a new file called `header.h` is added to `first/`, Gradle will not detect a change that requires recompilation of the source file.
-
-The recommended way for dealing with the ambiguity of which `header.h` should be included is to namespace your header files.  Source files should include `second/header.h` or `first/header.h` with the appropriate include path.
 
 ## External contributions
 
