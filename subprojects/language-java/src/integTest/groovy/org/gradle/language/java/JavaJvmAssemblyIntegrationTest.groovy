@@ -106,9 +106,20 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'assemble'
 
         and:
-        def jar = new ZipFile(file('build/jars/main/jar/main.jar'))
-        def textForEntry = { String path -> jar.getInputStream(jar.getEntry(path)).text }
-        textForEntry('myorg/question.txt') == '# the ultimate question'
-        textForEntry('myorg/answer.txt')   == '42'
+        def jar = file('build/jars/main/jar/main.jar')
+        def (question, answer) = textForEntriesOf(jar, 'myorg/question.txt', 'myorg/answer.txt')
+        question == '# the ultimate question'
+        answer   == '42'
+    }
+
+    def textForEntriesOf(File zipFile, String... entryPaths) {
+        def zip = new ZipFile(zipFile)
+        try {
+            entryPaths.collect {
+                zip.getInputStream(zip.getEntry(it)).text
+            }
+        } finally {
+            zip.close()
+        }
     }
 }
