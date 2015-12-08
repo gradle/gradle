@@ -1069,10 +1069,11 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
         private void maybeBind(ModelBinding binding, Collection<ModelGoal> dependencies) {
             if (!binding.isBound()) {
-                if (binding.getPredicate().getPath() != null) {
-                    dependencies.add(new TryResolveAndDiscoverPath(binding.getPredicate().getPath()));
+                BindingPredicate predicate = binding.getPredicate();
+                if (predicate.getPath() != null) {
+                    dependencies.add(new TryResolveAndDiscoverPath(predicate.getPath()));
                 } else {
-                    dependencies.add(new TryDefineScopeForType(binding.getPredicate().getScope(), binding.getPredicate().getType()));
+                    dependencies.add(new TryDefineScopeForType(predicate.getScope(), predicate.getType()));
                 }
             }
         }

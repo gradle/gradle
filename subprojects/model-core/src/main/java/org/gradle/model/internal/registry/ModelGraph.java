@@ -27,8 +27,8 @@ import org.gradle.model.internal.core.ModelPath;
 import java.util.*;
 
 class ModelGraph {
-    private static enum PendingState {
-        ADD, NOTIFY;
+    private enum PendingState {
+        ADD, NOTIFY
     }
 
     private final ModelNodeInternal root;
@@ -216,14 +216,13 @@ class ModelGraph {
         }
     }
 
+    @SuppressWarnings("SimplifiableIfStatement")
     private boolean maybeNotify(ModelNodeInternal node, ModelListener listener) {
-        if (listener.getType() != null) {
-            if (!node.isAtLeast(ModelNode.State.Discovered)) {
-                return false;
-            }
-            if (!node.getPromise().canBeViewedAsMutable(listener.getType()) && !node.getPromise().canBeViewedAsImmutable(listener.getType())) {
-                return false;
-            }
+        if (!node.isAtLeast(ModelNode.State.Discovered)) {
+            return false;
+        }
+        if (!listener.matches(node)) {
+            return false;
         }
         return listener.onDiscovered(node);
     }

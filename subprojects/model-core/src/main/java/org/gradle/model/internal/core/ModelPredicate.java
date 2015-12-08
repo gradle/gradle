@@ -17,7 +17,6 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.type.ModelType;
 
 /**
  * A predicate that selects model nodes.
@@ -56,17 +55,9 @@ public abstract class ModelPredicate {
     }
 
     /**
-     * Returns the type of node to select, or null if type is not relevant.
+     * Returns if the node matches this predicate.
      */
-    @Nullable
-    public ModelType<?> getType() {
-        return null;
-    }
-
-    /**
-     * Returns whether the node to select must satisfy a type. Returns {code true} if the type is not relevant.
-     */
-    public boolean isUntyped() {
+    public boolean matches(MutableModelNode node) {
         return true;
     }
 }

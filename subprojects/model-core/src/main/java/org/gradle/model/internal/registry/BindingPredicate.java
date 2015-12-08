@@ -17,10 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelPredicate;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
 
 public class BindingPredicate extends ModelPredicate {
@@ -36,7 +33,7 @@ public class BindingPredicate extends ModelPredicate {
 
     @Override
     public String toString() {
-        return "{type: " + ModelType.getDisplayName(getType()) + ", path: " + getPath() + ", scope: " + getScope() + ", state: " + getState() + "}";
+        return "{type: " + ModelType.getDisplayName(reference.getType()) + ", path: " + getPath() + ", scope: " + getScope() + ", state: " + getState() + "}";
     }
 
     @Nullable
@@ -45,15 +42,13 @@ public class BindingPredicate extends ModelPredicate {
         return reference.getPath();
     }
 
-    @Nullable
-    @Override
     public ModelType<?> getType() {
         return reference.getType();
     }
 
     @Override
-    public boolean isUntyped() {
-        return reference.isUntyped();
+    public boolean matches(MutableModelNode node) {
+        return reference.isUntyped() || node.canBeViewedAs(reference.getType());
     }
 
     @Nullable

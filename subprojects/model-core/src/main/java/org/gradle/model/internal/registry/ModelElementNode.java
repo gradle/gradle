@@ -206,10 +206,9 @@ class ModelElementNode extends ModelNodeInternal {
                 return getPath();
             }
 
-            @Nullable
             @Override
-            public ModelType<?> getType() {
-                return type;
+            public boolean matches(MutableModelNode node) {
+                return node.canBeViewedAs(type);
             }
 
             @Override
@@ -228,10 +227,9 @@ class ModelElementNode extends ModelNodeInternal {
                 return ModelElementNode.this.getPath();
             }
 
-            @Nullable
             @Override
-            public ModelType<?> getType() {
-                return type;
+            public boolean matches(MutableModelNode node) {
+                return node.canBeViewedAs(type);
             }
 
             @Override
@@ -265,8 +263,8 @@ class ModelElementNode extends ModelNodeInternal {
             }
 
             @Override
-            public ModelType<?> getType() {
-                return action.getSubject().getType();
+            public boolean matches(MutableModelNode node) {
+                return node.canBeViewedAs(action.getSubject().getType());
             }
 
             @Override
@@ -290,8 +288,8 @@ class ModelElementNode extends ModelNodeInternal {
             }
 
             @Override
-            public ModelType<?> getType() {
-                return action.getSubject().getType();
+            public boolean matches(MutableModelNode node) {
+                return node.canBeViewedAs(action.getSubject().getType());
             }
 
             @Override

@@ -49,7 +49,7 @@ abstract class RegistrySpec extends Specification {
 
         @Override
         boolean canBeViewedAs(ModelType<?> type) {
-            return true
+            return projection.canBeViewedAsMutable(type) || projection.canBeViewedAsImmutable(type)
         }
 
         @Override

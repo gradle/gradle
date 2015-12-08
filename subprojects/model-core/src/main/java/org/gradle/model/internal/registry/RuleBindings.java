@@ -59,7 +59,7 @@ class RuleBindings {
 
     private void addTypeMatches(ModelNodeInternal node, Collection<Reference> references) {
         for (Reference reference : references) {
-            if (reference.binding.isTypeCompatible(node.getPromise())) {
+            if (reference.binding.getPredicate().matches(node)) {
                 bound(reference, node);
             }
         }
@@ -119,7 +119,7 @@ class RuleBindings {
                 if (!node.isAtLeast(ModelNode.State.Discovered)) {
                     continue;
                 }
-                if (binding.isTypeCompatible(node.getPromise())) {
+                if (binding.getPredicate().matches(node)) {
                     bound(reference, node);
                 }
             }
