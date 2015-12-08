@@ -102,16 +102,16 @@ public class TestNGPreserveOrderIntegrationTest extends MultiVersionIntegrationS
 
         then:
         result.output.contains("""
-            Test1.beforeClass()
-            Test1.test1()
-            Test1.test2()
-            Test1.afterClass()
-        """)
+Test1.beforeClass()
+Test1.test1()
+Test1.test2()
+Test1.afterClass()
+""")
         result.output.contains("""
-            Test2.beforeClass()
-            Test2.test1()
-            Test2.test2()
-            Test2.afterClass()
-        """)
+Test2.beforeClass()
+Test2.test1()
+Test2.test2()
+Test2.afterClass()
+""")
     }
 }
