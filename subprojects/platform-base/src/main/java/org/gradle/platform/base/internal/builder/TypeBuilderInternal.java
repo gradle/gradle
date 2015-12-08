@@ -18,13 +18,10 @@ package org.gradle.platform.base.internal.builder;
 
 import org.gradle.platform.base.TypeBuilder;
 
-import java.util.List;
 import java.util.Set;
 
 public interface TypeBuilderInternal<T> extends TypeBuilder<T> {
     Class<? extends T> getDefaultImplementation();
 
     Set<Class<?>> getInternalViews();
-
-    List<Class<?>> getDependencies();
 }

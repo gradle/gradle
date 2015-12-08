@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
@@ -63,7 +64,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
                 languageRegistry.add(new NamedLanguageRegistration<P>(languageName, publicModelType, builder.getInternalViews(), castedImplModelType, ruleDefinition.getDescriptor()));
             }
         });
-        return new ExtractedModelAction(ModelActionRole.Defaults, builder.getDependencies(), regAction);
+        return new ExtractedModelAction(ModelActionRole.Defaults, ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class), regAction);
     }
 
     private static class DefaultLanguageTypeBuilder extends AbstractTypeBuilder<LanguageSourceSet> implements LanguageTypeBuilderInternal<LanguageSourceSet> {
@@ -71,7 +72,6 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
 
         private DefaultLanguageTypeBuilder(ModelSchema<? extends LanguageSourceSet> schema) {
             super(LanguageType.class, schema);
-            dependsOn(ComponentModelBasePlugin.class);
         }
 
         @Override

@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.model.internal.manage.schema.ManagedImplSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -24,7 +23,6 @@ import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
-import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
@@ -32,7 +30,6 @@ public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
     private final ModelSchema<? extends T> schema;
     private Class<? extends T> implementation;
     private final Set<Class<?>> internalViews = Sets.newLinkedHashSet();
-    private final List<Class<?>> dependencies = Lists.newArrayList();
 
     public AbstractTypeBuilder(Class<?> markerAnnotation, ModelSchema<? extends T> schema) {
         this.markerAnnotation = markerAnnotation;
@@ -68,14 +65,5 @@ public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
     @Override
     public Set<Class<?>> getInternalViews() {
         return internalViews;
-    }
-
-    protected void dependsOn(Class<?> dependency) {
-        dependencies.add(dependency);
-    }
-
-    @Override
-    public List<Class<?>> getDependencies() {
-        return dependencies;
     }
 }

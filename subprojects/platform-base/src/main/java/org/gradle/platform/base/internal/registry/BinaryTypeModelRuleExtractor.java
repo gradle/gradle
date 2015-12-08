@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
@@ -53,13 +54,12 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
                 binaries.register(publicModelType, implModelType, builder.getInternalViews(), ruleDefinition.getDescriptor());
             }
         });
-        return new ExtractedModelAction(ModelActionRole.Defaults, builder.getDependencies(), regAction);
+        return new ExtractedModelAction(ModelActionRole.Defaults, ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class), regAction);
     }
 
     private static class DefaultBinaryTypeBuilder extends AbstractTypeBuilder<BinarySpec> implements BinaryTypeBuilder<BinarySpec> {
         private DefaultBinaryTypeBuilder(ModelSchema<? extends BinarySpec> schema) {
             super(BinaryType.class, schema);
-            dependsOn(ComponentModelBasePlugin.class);
         }
     }
 }
