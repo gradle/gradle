@@ -16,28 +16,23 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.gradle.api.internal.resources.URIBuilder;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
-import org.gradle.api.resources.internal.ReadableResourceInternal;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-public class GzipArchiver implements CompressedReadableResource {
-
-    private ReadableResource resource;
-    private URI uri;
-
+public class GzipArchiver extends AbstractArchiver {
     public GzipArchiver(ReadableResource resource) {
-        assert resource != null;
-        this.resource = resource;
-        this.uri = new URIBuilder(resource.getURI()).schemePrefix("gzip:").build();
+        super(resource);
+    }
+
+    protected String getSchemePrefix() {
+        return "gzip:";
     }
 
     public static ArchiveOutputStreamFactory getCompressor() {
@@ -66,30 +61,4 @@ public class GzipArchiver implements CompressedReadableResource {
         }
     }
 
-    public String getDisplayName() {
-        return resource.getDisplayName();
-    }
-
-    public URI getURI() {
-        return uri;
-    }
-
-    public String getBaseName() {
-        return resource.getBaseName();
-    }
-
-    @Override
-    public ReadableResource getCompressedResource() {
-        return resource;
-    }
-
-    @Override
-    public ReadableResource getBackingResource() {
-        ReadableResource resource = getCompressedResource();
-        if (resource instanceof ReadableResourceInternal) {
-            return ((ReadableResourceInternal) resource).getBackingResource();
-        } else {
-            return resource;
-        }
-    }
 }
