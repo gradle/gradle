@@ -71,7 +71,7 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
                                 def resources = []
                                 binary.assembly.resourceDirectories.each { dir ->
                                     dir.eachFileRecurse(groovy.io.FileType.FILES) {
-                                        resources << "${relativize(dir, it)} => ${it.text.trim()}"
+                                        resources << "${relativize(dir, it)} => $it.text"
                                     }
                                 }
                                 println "Resources were processed: $resources"
