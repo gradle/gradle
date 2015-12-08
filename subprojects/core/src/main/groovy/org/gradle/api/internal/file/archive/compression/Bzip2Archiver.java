@@ -21,6 +21,7 @@ import org.apache.tools.bzip2.CBZip2OutputStream;
 import org.gradle.api.internal.resources.URIBuilder;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.api.resources.internal.ReadableResourceInternal;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -85,5 +86,15 @@ public class Bzip2Archiver implements CompressedReadableResource {
     @Override
     public ReadableResource getCompressedResource() {
         return resource;
+    }
+
+    @Override
+    public ReadableResource getBackingResource() {
+        ReadableResource resource = getCompressedResource();
+        if (resource instanceof ReadableResourceInternal) {
+            return ((ReadableResourceInternal) resource).getBackingResource();
+        } else {
+            return resource;
+        }
     }
 }

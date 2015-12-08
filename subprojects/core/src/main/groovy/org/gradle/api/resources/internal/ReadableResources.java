@@ -14,11 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.archive.compression;
+package org.gradle.api.resources.internal;
 
+import org.gradle.api.internal.file.AbstractFileResource;
 import org.gradle.api.resources.ReadableResource;
-import org.gradle.api.resources.internal.ReadableResourceInternal;
 
-public interface CompressedReadableResource extends ReadableResourceInternal {
-    ReadableResource getCompressedResource();
+import java.io.File;
+
+public class ReadableResources {
+    public static File resolveBackingFileForResource(ReadableResource resource) {
+        ReadableResource backingResource;
+        if (resource instanceof ReadableResourceInternal) {
+            backingResource = ((ReadableResourceInternal) resource).getBackingResource();
+        } else {
+            backingResource = resource;
+        }
+        if (backingResource instanceof AbstractFileResource) {
+            return ((AbstractFileResource) backingResource).getFile();
+        }
+        return null;
+    }
 }

@@ -23,17 +23,15 @@ import org.gradle.api.Nullable;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.AbstractFileResource;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.internal.file.MaybeCompressedFileResource;
-import org.gradle.api.internal.file.archive.compression.CompressedReadableResource;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.FileTreeWithBackingFile;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.api.resources.internal.ReadableResources;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.util.GFileUtils;
@@ -107,18 +105,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
             return tarFile;
         }
         if (resource != null) {
-            return unwrapSourceFileFromResource(resource);
-        }
-        return null;
-    }
-
-    private File unwrapSourceFileFromResource(ReadableResource resource) {
-        if (resource instanceof MaybeCompressedFileResource) {
-            return unwrapSourceFileFromResource(((MaybeCompressedFileResource) resource).getResource());
-        } else if (resource instanceof CompressedReadableResource) {
-            return unwrapSourceFileFromResource(((CompressedReadableResource) resource).getCompressedResource());
-        } else if (resource instanceof AbstractFileResource) {
-            return ((AbstractFileResource) resource).getFile();
+            return ReadableResources.resolveBackingFileForResource(resource);
         }
         return null;
     }

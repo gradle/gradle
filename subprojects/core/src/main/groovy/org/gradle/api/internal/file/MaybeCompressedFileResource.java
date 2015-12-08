@@ -22,12 +22,13 @@ import org.gradle.api.internal.file.archive.compression.CompressedReadableResour
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.bundling.Compression;
 
 import java.io.InputStream;
 import java.net.URI;
 
-public class MaybeCompressedFileResource implements ReadableResource {
+public class MaybeCompressedFileResource implements ReadableResourceInternal {
 
     private final ReadableResource resource;
 
@@ -67,5 +68,15 @@ public class MaybeCompressedFileResource implements ReadableResource {
 
     public String getBaseName() {
         return resource.getBaseName();
+    }
+
+    @Override
+    public ReadableResource getBackingResource() {
+        ReadableResource resource = getResource();
+        if (resource instanceof ReadableResourceInternal) {
+            return ((ReadableResourceInternal) resource).getBackingResource();
+        } else {
+            return resource;
+        }
     }
 }
