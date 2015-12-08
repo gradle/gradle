@@ -2,6 +2,52 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Performance improvements for native compilation
+
+Gradle needs to know all input properties, input files and output files of a task to perform incremental build checks.  When no input or output files have changed, Gradle can skip executing a task.
+
+For native compilation tasks, Gradle used to consider the contents of all include directories as inputs to the task. This had performance problems when there were many include directories or when the project root directory was used as an include directory.
+To speed up up-to-date checks, Gradle now treats the include path as an input property and only considers files included from source files as inputs. From our performance benchmarks, this can have a large positive impact on incremental builds for very large projects.
+
+Due to the way Gradle determines the set of input files, using macros to `#include` files from native source files requires Gradle to fallback to its old mechanism of including all files in all include directories as inputs.
+
+### TestKit dependency decoupled from Gradle core dependencies
+
+The method `DependencyHandler.gradleTestKit()` creates a dependency on the classes of the Gradle TestKit runtime classpath. In previous versions
+of Gradle the TestKit dependency also declared transitive dependencies on other Gradle core classes and external libraries that ship with the Gradle distribution. This might lead to
+version conflicts between the runtime classpath of the TestKit and user-defined libraries required for functional testing. A typical example for this scenario would be Google Guava.
+With this version of Gradle, the Gradle TestKit dependency is represented by a fat and shaded JAR file containing Gradle core classes and classes of all required external dependencies
+to avoid polluting the functional test runtime classpath.
+
+### Visualising a project's build script dependencies
+
+The new `buildEnvironment` task can be used to visualise the project's `buildscript` dependencies.
+This task is implicitly available for all projects, much like the existing `dependencies` task.
+
+The `buildEnvironment` task can be used to understand how the declared dependencies of project's build script actually resolve,
+including transitive dependencies.
+
+The feature was kindly contributed by [Ethan Hall](https://github.com/ethankhall).
+
+### Checkstyle HTML report
+
+The [`Checkstyle` task](dsl/org.gradle.api.plugins.quality.Checkstyle.html) now produces a HTML report on failure in addition to the existing XML report.
+The, more human friendly, HTML report is now advertised instead of the XML report when it is available.
+
+This feature was kindly contributed by [Sebastian Schuberth](https://github.com/sschuberth).
+
+### Tooling API exposes source language level on EclipseProject model
+
+The `EclipseProject` model now exposes the Java source language level via the
+<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
+IDE providers use this method to automatically determine the source language level. In turn users won't have to configure that anymore via the Gradle Eclipse plugin.
+
+### Incremental Java compilation for sources provided via `File` or `DirectoryTree`
+
+In order to perform incremental Java compilation, Gradle must determine the Class file name from each source file. To do so, Gradle infers the source directory roots based on the values supplied to `JavaCompile.source`.
+
+This release enhances this inference to handle types in addition `SourceDirectorySet`. Both `File` and `DirectoryTree` types are now supported for incremental Java compilation. This means that sources provided via `project.fileTree('source-dir')` can be compiled incrementally.
+
 ### Software Model DSL for declaring external dependencies
 
 It is now possible to declare dependencies on external modules via the Software Model DSL:
@@ -22,17 +68,6 @@ It is now possible to declare dependencies on external modules via the Software 
     }
 
 Module dependencies declared this way will be resolved against the configured repositories as usual.
-
-### Performance improvements
-
-#### Native compilation inputs
-
-Gradle needs to know all input properties, input files and output files of a task to perform incremental build checks.  When no input or output files have changed, Gradle can skip executing a task.
-
-For native compilation tasks, Gradle used to consider the contents of all include directories as inputs to the task. This had performance problems when there were many include directories or when the project root directory was used as an include directory.
-To speed up up-to-date checks, Gradle now treats the include path as an input property and only considers files included from source files as inputs. From our performance benchmarks, this can have a large positive impact on incremental builds for very large projects.
-
-Due to the way Gradle determines the set of input files, using macros to `#include` files from native source files requires Gradle to fallback to its old mechanism of including all files in all include directories as inputs.
 
 ### Software model changes
 
@@ -260,31 +295,6 @@ Internal views registered for a `@Managed` public type must themselves be `@Mana
 
 This functionality is available for types extending `ComponentSpec` and `BinarySpec`.
 
-### TestKit dependency decoupled from Gradle core dependencies
-
-The method `DependencyHandler.gradleTestKit()` creates a dependency on the classes of the Gradle TestKit runtime classpath. In previous versions
-of Gradle the TestKit dependency also declared transitive dependencies on other Gradle core classes and external libraries that ship with the Gradle distribution. This might lead to
-version conflicts between the runtime classpath of the TestKit and user-defined libraries required for functional testing. A typical example for this scenario would be Google Guava.
-With this version of Gradle, the Gradle TestKit dependency is represented by a fat and shaded JAR file containing Gradle core classes and classes of all required external dependencies
-to avoid polluting the functional test runtime classpath.
-
-### Visualising a project's build script dependencies
-
-The new `buildEnvironment` task can be used to visualise the project's `buildscript` dependencies.
-This task is implicitly available for all projects, much like the existing `dependencies` task.
-
-The `buildEnvironment` task can be used to understand how the declared dependencies of project's build script actually resolve,
-including transitive dependencies.
-
-The feature was kindly contributed by [Ethan Hall](https://github.com/ethankhall).
-
-### Checkstyle HTML report
-
-The [`Checkstyle` task](dsl/org.gradle.api.plugins.quality.Checkstyle.html) now produces a HTML report on failure in addition to the existing XML report.
-The, more human friendly, HTML report is now advertised instead of the XML report when it is available.
-
-This feature was kindly contributed by [Sebastian Schuberth](https://github.com/sschuberth).
-
 ### Model rules improvements
 
 #### Support for `LanguageSourceSet` model elements
@@ -365,18 +375,6 @@ Note that for this release, these nested closures do not define a nested rule, a
 This will be improved in the next Gradle release.
 
 See the <a href="userguide/software_model.html#model-dsl">model DSL</a> user guide section for more details and examples.
-
-### Tooling API exposes source language level on EclipseProject model
-
-The `EclipseProject` model now exposes the Java source language level via the
-<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-IDE providers use this method to automatically determine the source language level. In turn users won't have to configure that anymore via the Gradle Eclipse plugin.
-
-### Incremental Java compilation for sources provided via `File` or `DirectoryTree`
-
-In order to perform incremental Java compilation, Gradle must determine the Class file name from each source file. To do so, Gradle infers the source directory roots based on the values supplied to `JavaCompile.source`.
-
-This release enhances this inference to handle types in addition `SourceDirectorySet`. Both `File` and `DirectoryTree` types are now supported for incremental Java compilation. This means that sources provided via `project.fileTree('source-dir')` can be compiled incrementally.
 
 ## Promoted features
 
