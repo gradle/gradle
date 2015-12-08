@@ -53,7 +53,7 @@ class ModelReferenceNode extends ModelNodeInternal {
 
     @Override
     public boolean canBeViewedAs(ModelType<?> type) {
-        return target != null && target.canBeViewedAs(type);
+        return target == null ? super.canBeViewedAs(type) : target.canBeViewedAs(type);
     }
 
     @Override

@@ -113,6 +113,11 @@ abstract class ModelNodeInternal implements MutableModelNode {
     @Override
     public abstract ModelNodeInternal getLink(String name);
 
+    @Override
+    public boolean canBeViewedAs(ModelType<?> type) {
+        return getPromise().canBeViewedAsImmutable(type) || getPromise().canBeViewedAsMutable(type);
+    }
+
     public ModelPromise getPromise() {
         if (!state.isAtLeast(State.Discovered)) {
             throw new IllegalStateException(String.format("Cannot get promise for %s in state %s when not yet discovered", getPath(), state));

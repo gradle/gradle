@@ -52,11 +52,6 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public boolean canBeViewedAs(ModelType<?> type) {
-        return getPromise().canBeViewedAsImmutable(type) || getPromise().canBeViewedAsMutable(type);
-    }
-
-    @Override
     public <T> ModelView<? extends T> asImmutable(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
         ModelView<? extends T> modelView = getAdapter().asImmutable(type, this, ruleDescriptor);
         if (modelView == null) {

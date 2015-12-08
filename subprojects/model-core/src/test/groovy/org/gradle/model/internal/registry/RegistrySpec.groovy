@@ -49,11 +49,6 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        boolean canBeViewedAs(ModelType<?> type) {
-            return projection.canBeViewedAsMutable(type) || projection.canBeViewedAsImmutable(type)
-        }
-
-        @Override
         def <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
             return null
         }

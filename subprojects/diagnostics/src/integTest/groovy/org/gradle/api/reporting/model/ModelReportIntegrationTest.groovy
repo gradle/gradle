@@ -479,6 +479,39 @@ apply plugin: ClassHolder.InnerRules
         ModelReportOutput.from(output).modelNode.binaries.sample.internalData
     }
 
+
+    def "managed properties with null values are displayed with correct type"() {
+        given:
+        buildFile << """
+            @Managed
+            interface Person {
+                Person getFather()
+                void setFather(Person person)
+            }
+
+            class Rules extends RuleSource {
+                @Model
+                void father(Person father) {}
+
+                @Model
+                void person(Person child, @Path("father") Person father) {
+                    child.father = father
+                }
+            }
+            apply plugin: Rules
+        """
+
+        when:
+        succeeds "model"
+
+        then:
+        def modelNode = ModelReportOutput.from(output).modelNode
+        modelNode.person.father.size() == 1
+        modelNode.person.father[0].type == "Person"
+        modelNode.father.father.size() == 1
+        modelNode.father.father[0].type == "Person"
+    }
+
     private String managedNumbers() {
         return """@Managed
         public interface Numbers {
