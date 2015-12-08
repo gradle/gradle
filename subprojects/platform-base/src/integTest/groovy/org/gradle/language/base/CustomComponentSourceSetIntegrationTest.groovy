@@ -214,13 +214,11 @@ model {
 
             class ValidateTaskRules extends RuleSource {
                 @Mutate
-                void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
+                void createValidateTask(ModelMap<Task> tasks, @Path("components.sampleLib.sources") ModelMap<LanguageSourceSet> sources) {
                     tasks.create("validate") {
-                        assert components*.name == ["sampleLib"]
-                        assert components.withType(SampleLibrary)*.name == ["sampleLib"]
-                        assert components.sampleLib.sources.haxe != null
-                        assert components.sampleLib.sources.haxe.publicData == "public"
-                        assert components.sampleLib.sources.haxe.internalData == "internal"
+                        assert sources.haxe != null
+                        assert sources.haxe.publicData == "public"
+                        assert sources.haxe.internalData == "internal"
                     }
                 }
             }
@@ -242,15 +240,6 @@ model {
                 }
             }
             apply plugin: HaxeRules
-            model {
-                components {
-                    sampleLib(SampleLibrary) {
-                        sources {
-                            haxe(HaxeSourceSet)
-                        }
-                    }
-                }
-            }
         """
 
         when:
