@@ -1349,6 +1349,34 @@
                 <sourcefile file="build.gradle" snippet="test-config"/>
             </sample>
         </section>
+
+        <section id="test_execution_order">
+            <title>Test execution order</title>
+            <para>TestNG allows explicit control of the execution order of tests.</para>
+            <para>The <literal>preserveOrder</literal> property controls whether tests are executed in the order defined by the source set or in unpredictable order. Preserving the order guarantees that the complete test (including <literal>@BeforeXXX</literal> and <literal>@AfterXXX</literal>) is run in a test thread before the next test is run. While preserving the order of tests is the default behavior when directly working with <literal>testng.xml</literal> files, the <ulink url='http://testng.org/javadocs/org/testng/TestNG.html'>TestNG API</ulink>, that is used for running tests programmatically, as well as Gradle&apos;s TestNG plug-in execute tests in unpredictable order by default.
+                <footnote>
+                    <para>The TestNG documentation contains more details about test ordering when working with <literal>testng.xml</literal> files:
+                        <ulink url='http://testng.org/doc/documentation-main.html#testng-xml'/>.
+                    </para>
+                </footnote>
+            Preserving the order of tests was introduced with TestNG version 5.14.5, i.e., setting the <literal>preserveOrder</literal> property to <literal>true</literal> for an older TestNG version will cause the build to fail with an according exception.
+            </para>
+            <sample id="testngpreserveorder" dir="testing/testng/preserveorder" title="Preserving order of TestNG tests">
+                <sourcefile file="build.gradle" snippet="test-config"/>
+            </sample>
+            <para>The <literal>groupByInstance</literal> property controls whether tests should be grouped by instances. Grouping by instances will result in resolving test method dependencies for each instance instead of running the dependees of all instances before running the dependants. The default behavior is not to group tests by instances.
+                <footnote>
+                    <para>The TestNG documentation contains more details about grouping tests by instances:
+                        <ulink url='http://testng.org/doc/documentation-main.html#dependencies-with-annotations'/>.
+                    </para>
+                </footnote>
+            Grouping tests by instances was introduced with TestNG version 6.1, i.e., setting the <literal>groupByInstances</literal> property to <literal>true</literal> for an older TestNG version will cause the build to fail with an according exception.
+            </para>
+            <sample id="testnggroupbyinstances" dir="testing/testng/groupbyinstances" title="Grouping TestNG tests by instances">
+                <sourcefile file="build.gradle" snippet="test-config"/>
+            </sample>
+        </section>
+
         <section id="test_reporting">
             <title>Test reporting</title>
 

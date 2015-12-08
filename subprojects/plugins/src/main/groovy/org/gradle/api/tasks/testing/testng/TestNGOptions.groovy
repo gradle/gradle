@@ -152,6 +152,30 @@ class TestNGOptions extends TestFrameworkOptions {
      */
     List<File> suiteXmlFiles = []
 
+    /**
+     * Indicates whether the tests should be run in the order defined by the source set or in unpredictable order.
+     * Preserving the order guarantees that the complete test (including @BeforeXXX and @AfterXXX) is run in a test
+     * thread before the next test is run.
+     *
+     * Not required.
+     *
+     * If not present, the order will not be preserved.
+     */
+    @Incubating
+	boolean preserveOrder = false
+
+    /**
+     * Indicates whether the tests should be grouped by instances.
+     * Grouping by instances will result in resolving test method dependencies for each instance instead of running
+     * the dependees of all instances before running the dependants.
+     *
+     * Not required.
+     *
+     * If not present, the tests will not be grouped by instances.
+     */
+    @Incubating
+	boolean groupByInstances = false
+
     transient StringWriter suiteXmlWriter = null
     transient MarkupBuilder suiteXmlBuilder = null
     private final File projectDir
