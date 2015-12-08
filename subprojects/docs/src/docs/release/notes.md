@@ -91,6 +91,7 @@ IDE providers use this method to automatically determine the source language lev
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Tobias Riemenschneider](https://github.com/riemenschneider) - Add support for TestNG's preserveOrder and groupByInstances options
 * [Johnny Lim](https://github.com/izeye) - Documentation improvements
 * [Christopher O'Connell](https://github.com/lordoku) - Remove 'scalaConsole' task
 * [Illya Gerasymchuk](https://github.com/iluxonchik) - Fix typos in Windows batch scripts
