@@ -48,6 +48,29 @@ In order to perform incremental Java compilation, Gradle must determine the Clas
 
 This release enhances this inference to handle types in addition `SourceDirectorySet`. Both `File` and `DirectoryTree` types are now supported for incremental Java compilation. This means that sources provided via `project.fileTree('source-dir')` can be compiled incrementally.
 
+### Component level dependencies for Java libraries
+
+In most cases it is more natural and convenient to define dependencies per component rather than individually on a source set and it is now possible to do so when defining a Java library.
+
+Example:
+
+    apply plugin: "jvm-component"
+
+    model {
+      components {
+        main(JvmLibrarySpec) {
+          dependencies {
+            library "core"
+          }
+        }
+
+        core(JvmLibrarySpec) {
+        }
+      }
+    }
+
+Dependencies declared this way will apply to all source sets for the component.
+
 ### Software Model DSL for declaring external dependencies
 
 It is now possible to declare dependencies on external modules via the Software Model DSL:
@@ -74,63 +97,12 @@ Module dependencies declared this way will be resolved against the configured re
 TODO - Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
 might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
 
-#### Convenient configuration of scalar properties from Groovy
+### Support for `LanguageSourceSet` model elements
 
-The Groovy DSL for configuring model nodes now supports automatic conversions of types for scalar types, making it very easy to use one type for another. In particular, you can use a `String` wherever a scalar type is expected. For example:
+This release facilitates adding source sets (subtypes of `LanguageSourceSet`) to arbitrary locations in the model space. A `LanguageSourceSet` can be attached to any @Managed type as a property, or used for
+the elements of a ModelSet or ModelMap, or as a top level model element in it's own right.
 
-    enum FailType {
-       FAIL_BUILD,
-       WARNING
-    }
-
-    @Managed
-    interface CoverageConfiguration {
-       double getMinClassCoverage()
-       void setMinClassCoverage(double minCoverage)
-
-       double getMinPackageCoverage()
-       void setMinPackageCoverage(double minCoverage)
-
-       FailType getFailType()
-       void setFailType(FailType failType)
-
-       File getReportTemplateDir()
-       void setReportTemplateDir(File templateDir)
-    }
-
-    model {
-        coverage {
-           minClassCoverage = '0.7' // can use a `String` where a `double` was expected
-           minPackageCoverage = 1L // can use a `long` where a `double` was expected
-           failType = 'WARNING' // can use a `String` instead of an `Enum`
-           templateReportDir = 'src/templates/coverage' // creates a `File` which path is relative to the current project directory
-        }
-    }
-
-#### Component level dependencies for Java libraries
-
-In most cases it is more natural and convenient to define dependencies per component rather than individually on a source set and it is now possible to do so when defining a Java library.
-
-Example:
-
-    apply plugin: "jvm-component"
-
-    model {
-      components {
-        main(JvmLibrarySpec) {
-          dependencies {
-            library "core"
-          }
-        }
-
-        core(JvmLibrarySpec) {
-        }
-      }
-    }
-
-Dependencies declared this way will apply to all source sets for the component.
-
-#### Managed internal views for binaries and components
+### Managed internal views for binaries and components
 
 Now it is possible to attach a `@Managed` internal view to any `BinarySpec` or `ComponentSpec` type. This allows pluign authors to attach extra properties to already registered binary and component types like `JarBinarySpec`.
 
@@ -177,7 +149,7 @@ Note: `@Managed` internal views registered on unmanaged types (like `JarBinarySp
 
 This feature is available for subtypes of `BinarySpec` and `ComponentSpec`.
 
-#### Managed binary and component types
+### Managed binary and component types
 
 The `BinarySpec` and `ComponentSpec` types can now be extended via `@Managed` subtypes, allowing for declaration of `@Managed` components and binaries without having to provide a default implementation. `LibrarySpec` and `ApplicationSpec` can also be extended in this manner.
 
@@ -204,8 +176,7 @@ Example:
         }
     }
 
-
-#### Default implementation for unmanaged base binary and component types
+### Default implementation for unmanaged base binary and component types
 
 It is now possible to declare a default implementation for a base component or a binary type, and extend it via further managed subtypes.
 
@@ -234,7 +205,7 @@ It is now possible to declare a default implementation for a base component or a
 
 This functionality is available for unmanaged types extending `ComponentSpec` and `BinarySpec`.
 
-#### Internal views for unmanaged binary and component types
+### Internal views for unmanaged binary and component types
 
 The goal of the new internal views feature is for plugin authors to be able to draw a clear line between public and internal APIs of their plugins regarding model elements.
 By declaring some functionality in internal views (as opposed to exposing it on a public type), the plugin author can let users know that the given functionality is intended
@@ -294,13 +265,6 @@ It is also possible to attach internal views to `@Managed` types as well:
 Internal views registered for a `@Managed` public type must themselves be `@Managed`.
 
 This functionality is available for types extending `ComponentSpec` and `BinarySpec`.
-
-### Model rules improvements
-
-#### Support for `LanguageSourceSet` model elements
-
-This release facilitates adding source sets (subtypes of `LanguageSourceSet`) to arbitrary locations in the model space. A `LanguageSourceSet` can be attached to any @Managed type as a property, or used for
-the elements of a ModelSet or ModelMap, or as a top level model element in it's own right.
 
 ### Model DSL improvements
 
@@ -375,6 +339,39 @@ Note that for this release, these nested closures do not define a nested rule, a
 This will be improved in the next Gradle release.
 
 See the <a href="userguide/software_model.html#model-dsl">model DSL</a> user guide section for more details and examples.
+
+### Convenient configuration of scalar properties from Groovy
+
+The Groovy DSL for configuring model nodes now supports automatic conversions of types for scalar types, making it very easy to use one type for another. In particular, you can use a `String` wherever a scalar type is expected. For example:
+
+    enum FailType {
+       FAIL_BUILD,
+       WARNING
+    }
+
+    @Managed
+    interface CoverageConfiguration {
+       double getMinClassCoverage()
+       void setMinClassCoverage(double minCoverage)
+
+       double getMinPackageCoverage()
+       void setMinPackageCoverage(double minCoverage)
+
+       FailType getFailType()
+       void setFailType(FailType failType)
+
+       File getReportTemplateDir()
+       void setReportTemplateDir(File templateDir)
+    }
+
+    model {
+        coverage {
+           minClassCoverage = '0.7' // can use a `String` where a `double` was expected
+           minPackageCoverage = 1L // can use a `long` where a `double` was expected
+           failType = 'WARNING' // can use a `String` instead of an `Enum`
+           templateReportDir = 'src/templates/coverage' // creates a `File` which path is relative to the current project directory
+        }
+    }
 
 ## Promoted features
 
