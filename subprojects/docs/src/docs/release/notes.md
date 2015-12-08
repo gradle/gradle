@@ -36,11 +36,11 @@ The, more human friendly, HTML report is now advertised instead of the XML repor
 
 This feature was kindly contributed by [Sebastian Schuberth](https://github.com/sschuberth).
 
-### Tooling API exposes source language level on EclipseProject model
+### Tooling API exposes Java source language level for Eclipse projects
 
-The `EclipseProject` model now exposes the Java source language level via the
-<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-IDE providers use this method to automatically determine the source language level. In turn users won't have to configure that anymore via the Gradle Eclipse plugin.
+The Tooling API now exposes the Java source language level that should be used for an Eclipse project via the
+<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings">`EclipseProject.getJavaSourceSettings()`</a> method.
+IDE providers can use this to automatically configure the source language level in Eclipse, so that users no longer need to configure this themselves.
 
 ### Incremental Java compilation for sources provided via `File` or `DirectoryTree`
 
@@ -50,7 +50,7 @@ This release enhances this inference to handle types in addition `SourceDirector
 
 ### Component level dependencies for Java libraries
 
-In most cases it is more natural and convenient to define dependencies per component rather than individually on a source set and it is now possible to do so when defining a Java library.
+In most cases it is more natural and convenient to define dependencies on a component rather than on each if its source sets and it is now possible to do so when defining a Java library in the software model.
 
 Example:
 
@@ -71,10 +71,14 @@ Example:
 
 Dependencies declared this way will apply to all source sets for the component.
 
-### Software Model DSL for declaring external dependencies
+### External dependencies for Java libraries
 
-It is now possible to declare dependencies on external modules via the Software Model DSL:
+It is now possible to declare dependencies on external modules for a Java library in the software model:
 
+    repositories {
+        jcenter()
+    }
+    
     model {
         components {
             main(JvmLibrarySpec) {
@@ -90,11 +94,12 @@ It is now possible to declare dependencies on external modules via the Software 
         }
     }
 
-Module dependencies declared this way will be resolved against the configured repositories as usual.
+Module dependencies declared this way will be resolved against the configured repositories as usual. 
+External dependencies can be declared for a Java library, Java source set or Java library API specification. 
 
 ### Software model changes
 
-TODO - Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
+Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
 might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
 
 ### Support for `LanguageSourceSet` model elements
@@ -104,7 +109,7 @@ the elements of a ModelSet or ModelMap, or as a top level model element in it's 
 
 ### Managed internal views for binaries and components
 
-Now it is possible to attach a `@Managed` internal view to any `BinarySpec` or `ComponentSpec` type. This allows pluign authors to attach extra properties to already registered binary and component types like `JarBinarySpec`.
+Now it is possible to attach a `@Managed` internal view to any `BinarySpec` or `ComponentSpec` type. This allows plugin authors to attach extra properties to already registered binary and component types like `JarBinarySpec`.
 
 Example:
 
@@ -340,9 +345,9 @@ This will be improved in the next Gradle release.
 
 See the <a href="userguide/software_model.html#model-dsl">model DSL</a> user guide section for more details and examples.
 
-### Convenient configuration of scalar properties from Groovy
+#### Convenient configuration of scalar properties
 
-The Groovy DSL for configuring model nodes now supports automatic conversions of types for scalar types, making it very easy to use one type for another. In particular, you can use a `String` wherever a scalar type is expected. For example:
+The model DSL now supports automatic conversions between various scalar types, making it very easy to use one type for another. In particular, you can use a `String` wherever a scalar type is expected. For example:
 
     enum FailType {
        FAIL_BUILD,
