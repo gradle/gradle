@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry;
 
+import com.google.common.base.Predicate;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
@@ -139,13 +140,13 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public int getLinkCount(ModelType<?> type) {
-        return target == null ? 0 : target.getLinkCount(type);
+    public int getLinkCount(Predicate<? super MutableModelNode> predicate) {
+        return target == null ? 0 : target.getLinkCount(predicate);
     }
 
     @Override
-    public Set<String> getLinkNames(ModelType<?> type) {
-        return target == null ? Collections.<String>emptySet() : target.getLinkNames(type);
+    public Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate) {
+        return target == null ? Collections.<String>emptySet() : target.getLinkNames(predicate);
     }
 
     @Nullable
@@ -160,8 +161,8 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public Iterable<? extends MutableModelNode> getLinks(ModelType<?> type) {
-        return target == null ? Collections.<MutableModelNode>emptyList() : target.getLinks(type);
+    public Iterable<? extends MutableModelNode> getLinks(Predicate<? super MutableModelNode> predicate) {
+        return target == null ? Collections.<MutableModelNode>emptyList() : target.getLinks(predicate);
     }
 
     @Override
@@ -170,8 +171,8 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public boolean hasLink(String name, ModelType<?> type) {
-        return target != null && target.hasLink(name, type);
+    public boolean hasLink(String name, Predicate<? super MutableModelNode> predicate) {
+        return target != null && target.hasLink(name, predicate);
     }
 
     @Override

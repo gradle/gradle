@@ -71,7 +71,7 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     public void create(final Action<? super T> action) {
         state.assertCanMutate();
 
-        String name = String.valueOf(modelNode.getLinkCount(elementType));
+        String name = String.valueOf(modelNode.getLinkCount(ModelNodes.withType(elementType)));
         ModelPath childPath = modelNode.getPath().child(name);
         final ModelRuleDescriptor descriptor = this.descriptor.append("create()");
 
@@ -99,7 +99,7 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     @Override
     public int size() {
         state.assertCanReadChildren();
-        return modelNode.getLinkCount(elementType);
+        return modelNode.getLinkCount(ModelNodes.withType(elementType));
     }
 
     @Override
@@ -179,7 +179,7 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
         state.assertCanReadChildren();
         if (elements == null) {
             elements = Lists.newArrayList(
-                Iterables.transform(modelNode.getLinks(elementType), new Function<MutableModelNode, T>() {
+                Iterables.transform(modelNode.getLinks(ModelNodes.withType(elementType)), new Function<MutableModelNode, T>() {
                     @Override
                     public T apply(MutableModelNode input) {
                         return input.asImmutable(elementType, descriptor).getInstance();

@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Predicate;
 import org.gradle.api.Nullable;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -131,14 +132,18 @@ public interface MutableModelNode extends ModelNode {
      */
     void defineRulesForLink(ModelActionRole role, ModelAction<?> action);
 
+    boolean hasLink(String name, Predicate<? super MutableModelNode> predicate);
+
     @Nullable
     MutableModelNode getLink(String name);
 
-    int getLinkCount(ModelType<?> type);
+    int getLinkCount(Predicate<? super MutableModelNode> predicate);
 
-    Set<String> getLinkNames(ModelType<?> type);
+    Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate);
 
     Iterable<? extends MutableModelNode> getLinks(ModelType<?> type);
+
+    Iterable<? extends MutableModelNode> getLinks(Predicate<? super MutableModelNode> predicate);
 
     <T> void setPrivateData(Class<? super T> type, T object);
 

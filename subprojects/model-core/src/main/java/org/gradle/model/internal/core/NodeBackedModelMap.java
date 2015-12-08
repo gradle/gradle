@@ -181,7 +181,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     @Override
     public boolean containsKey(Object name) {
         viewState.assertCanReadChildren();
-        return name instanceof String && modelNode.hasLink((String) name, elementType);
+        return name instanceof String && modelNode.hasLink((String) name, ModelNodes.withType(elementType));
     }
 
     @Override
@@ -319,7 +319,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     @Override
     public Set<String> keySet() {
         viewState.assertCanReadChildren();
-        return modelNode.getLinkNames(elementType);
+        return modelNode.getLinkNames(ModelNodes.withType(elementType));
     }
 
     @Override
@@ -355,7 +355,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     @Override
     public int size() {
         viewState.assertCanReadChildren();
-        return modelNode.getLinkCount(elementType);
+        return modelNode.getLinkCount(ModelNodes.withType(elementType));
     }
 
     @Override

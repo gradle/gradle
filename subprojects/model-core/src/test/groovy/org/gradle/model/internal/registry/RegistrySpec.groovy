@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry
 
+import com.google.common.base.Predicate
 import org.gradle.api.Nullable
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.*
@@ -119,17 +120,17 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        int getLinkCount(ModelType<?> type) {
+        int getLinkCount(Predicate<? super MutableModelNode> predicate) {
             return 0
         }
 
         @Override
-        Set<String> getLinkNames(ModelType<?> type) {
+        Iterable<? extends MutableModelNode> getLinks(Predicate<? super MutableModelNode> predicate) {
             return null
         }
 
         @Override
-        Iterable<? extends MutableModelNode> getLinks(ModelType<?> type) {
+        Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate) {
             return null
         }
 
@@ -144,7 +145,7 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        boolean hasLink(String name, ModelType<?> type) {
+        boolean hasLink(String name, Predicate<? super MutableModelNode> predicate) {
             return false
         }
 

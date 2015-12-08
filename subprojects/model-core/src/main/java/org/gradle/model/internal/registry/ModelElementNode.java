@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.model.internal.core.ModelNode.State.Created;
-import static org.gradle.model.internal.core.ModelNode.State.Discovered;
 import static org.gradle.model.internal.core.ModelNode.State.Initialized;
 
 class ModelElementNode extends ModelNodeInternal {
@@ -123,24 +122,16 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public int getLinkCount(ModelType<?> type) {
-        int count = 0;
-        for (ModelNodeInternal linked : links.values()) {
-            linked.ensureAtLeast(Discovered);
-            if (linked.getPromise().canBeViewedAsMutable(type)) {
-                count++;
-            }
-        }
-        return count;
+    public int getLinkCount(Predicate<? super MutableModelNode> predicate) {
+        return Iterables.size(Iterables.filter(links.values(), predicate));
     }
 
     @Override
-    public Set<String> getLinkNames(ModelType<?> type) {
+    public Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate) {
         Set<String> names = Sets.newLinkedHashSet();
         for (Map.Entry<String, ModelNodeInternal> entry : links.entrySet()) {
             ModelNodeInternal link = entry.getValue();
-            link.ensureAtLeast(Discovered);
-            if (link.getPromise().canBeViewedAsMutable(type)) {
+            if (predicate.apply(link)) {
                 names.add(entry.getKey());
             }
         }
@@ -148,14 +139,8 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public Iterable<? extends MutableModelNode> getLinks(final ModelType<?> type) {
-        return Iterables.filter(links.values(), new Predicate<ModelNodeInternal>() {
-            @Override
-            public boolean apply(ModelNodeInternal link) {
-                link.ensureAtLeast(Discovered);
-                return link.getPromise().canBeViewedAsMutable(type);
-            }
-        });
+    public Iterable<? extends MutableModelNode> getLinks(Predicate<? super MutableModelNode> predicate) {
+        return Iterables.filter(links.values(), predicate);
     }
 
     @Override
@@ -164,13 +149,9 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public boolean hasLink(String name, ModelType<?> type) {
+    public boolean hasLink(String name, Predicate<? super MutableModelNode> predicate) {
         ModelNodeInternal linked = getLink(name);
-        if (linked == null) {
-            return false;
-        }
-        linked.ensureAtLeast(Discovered);
-        return linked.getPromise().canBeViewedAsMutable(type);
+        return linked != null && predicate.apply(linked);
     }
 
     @Override

@@ -177,6 +177,21 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     @Override
+    public boolean hasLink(String name, ModelType<?> type) {
+        return hasLink(name, ModelNodes.withType(type));
+    }
+
+    @Override
+    public Iterable<? extends MutableModelNode> getLinks(ModelType<?> type) {
+        return getLinks(ModelNodes.withType(type));
+    }
+
+    @Override
+    public Set<String> getLinkNames(ModelType<?> type) {
+        return getLinkNames(ModelNodes.withType(type));
+    }
+
+    @Override
     public void defineRulesForSelf(ModelActionRole role, ModelAction<?> action) {
         applyToSelf(role, action);
     }
