@@ -99,182 +99,6 @@ It is now possible to declare dependencies on external modules for a Java librar
 Module dependencies declared this way will be resolved against the configured repositories as usual. 
 External dependencies can be declared for a Java library, Java source set or Java library API specification. 
 
-### Improvement for software model plugin authors
-
-#### Binary names are scoped to the owning component
-
-Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
-might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
-
-#### Support for `LanguageSourceSet` model elements
-
-This release allows source sets (subtypes of `LanguageSourceSet`) to be added to arbitrary locations in the managed model. A `LanguageSourceSet` can be attached to any `@Managed` type as a property, or used for
-the elements of a `ModelSet` or `ModelMap`, or as a top level model element.
-
-#### Managed internal views for binaries and components
-
-Now it is possible to attach a `@Managed` internal view to any `BinarySpec` or `ComponentSpec` type. This allows plugin authors to attach extra properties to already registered binary and component types like `JarBinarySpec`.
-
-Example:
-
-    @Managed
-    interface MyJarBinarySpecInternal extends JarBinarySpec {
-        String getInternal()
-        void setInternal(String internal)
-    }
-
-    class CustomPlugin extends RuleSource {
-        @BinaryType
-        public void register(BinaryTypeBuilder<JarBinarySpec> builder) {
-            builder.internalView(MyJarBinarySpecInternal)
-        }
-
-        @Mutate
-        void mutateInternal(ModelMap<MyJarBinarySpecInternal> binaries) {
-            // ...
-        }
-    }
-
-    apply plugin: "jvm-component"
-
-    model {
-        components {
-            myComponent(JvmLibrarySpec) {
-                binaries.withType(MyJarBinarySpecInternal) { binary ->
-                    binary.internal = "..."
-                }
-            }
-        }
-    }
-
-Note: `@Managed` internal views registered on unmanaged types (like `JarBinarySpec`) are not yet visible in the top-level `binaries` container, and thus it's impossible to do things like:
-
-    // This won't work:
-    model {
-        binaries.withType(MyJarBinarySpecInternal) {
-            // ...
-        }
-    }
-
-This feature is available for subtypes of `BinarySpec` and `ComponentSpec`.
-
-#### Managed binary and component types
-
-The `BinarySpec` and `ComponentSpec` types can now be extended via `@Managed` subtypes, allowing for declaration of `@Managed` components and binaries without having to provide a default implementation. `LibrarySpec` and `ApplicationSpec` can also be extended in this manner.
-
-Example:
-
-    @Managed
-    interface SampleLibrarySpec extends LibrarySpec {
-        String getPublicData()
-        void setPublicData(String publicData)
-    }
-
-    class RegisterComponentRules extends RuleSource {
-        @ComponentType
-        void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
-        }
-    }
-    apply plugin: RegisterComponentRules
-
-    model {
-        components {
-            sampleLib(SampleLibrarySpec) {
-                publicData = "public"
-            }
-        }
-    }
-
-#### Default implementation for unmanaged base binary and component types
-
-It is now possible to declare a default implementation for a base component or a binary type, and extend it via further managed subtypes.
-
-    interface MyBaseBinarySpec extends BinarySpec {}
-
-    class MyBaseBinarySpecImpl extends BaseBinarySpec implements MyBaseBinarySpec {}
-
-    class BasePlugin extends RuleSource {
-        @ComponentType
-        public void registerMyBaseBinarySpec(ComponentTypeBuilder<MyBaseBinarySpec> builder) {
-            builder.defaultImplementation(MyBaseBinarySpecImpl.class);
-        }
-    }
-
-    @Managed
-    interface MyCustomBinarySpec extends BaseBinarySpec {
-        // Add some further managed properties
-    }
-
-    class CustomPlugin extends RuleSource {
-        @ComponentType
-        public void registerMyCustomBinarySpec(ComponentTypeBuilder<MyCustomBinarySpec> builder) {
-            // No default implementation required
-        }
-    }
-
-This functionality is available for unmanaged types extending `ComponentSpec` and `BinarySpec`.
-
-#### Internal views for unmanaged binary and component types
-
-The goal of the new internal views feature is for plugin authors to be able to draw a clear line between public and internal APIs of their plugins regarding model elements.
-By declaring some functionality in internal views (as opposed to exposing it on a public type), the plugin author can let users know that the given functionality is intended
-for the plugin's internal bookkeeping, and should not be considered part of the public API of the plugin.
-
-Internal views must be interfaces, but they don't need to extend the public type they are registered for.
-
-**Example:** A plugin could introduce a new binary type like this:
-
-    /**
-     * Documented public type exposed by the plugin
-     */
-    interface MyBinarySpec extends BinarySpec {
-        // Functionality exposed to the public
-    }
-
-    // Undocumented internal type used by the plugin itself only
-    interface MyBinarySpecInternal extends MyBinarySpec {
-        String getInternalData();
-        void setInternalData(String internalData);
-    }
-
-    class MyBinarySpecImpl implements MyBinarySpecInternal {
-        private String internalData;
-        String getInternalData() { return internalData; }
-        void setInternalData(String internalData) { this.internalData = internalData; }
-    }
-
-    class MyBinarySpecPlugin extends RuleSource {
-        @BinaryType
-        public void registerMyBinarySpec(BinaryTypeBuilder<MyBinarySpec> builder) {
-            builder.defaultImplementation(MyBinarySpecImpl.class);
-            builder.internalView(MyBinarySpecInternal.class);
-        }
-    }
-
-With this setup the plugin can expose `MyBinarySpec` to the user as the public API, while it can attach some additional information to each of those binaries internally.
-
-Internal views registered for an unmanaged public type must be unmanaged themselves, and the default implementation of the public type must implement the internal view
-(as `MyBinarySpecImpl` implements `MyBinarySpecInternal` in the example above).
-
-It is also possible to attach internal views to `@Managed` types as well:
-
-    @Managed
-    interface MyManagedBinarySpec extends MyBinarySpec {}
-
-    @Managed
-    interface MyManagedBinarySpecInternal extends MyManagedBinarySpec {}
-
-    class MyManagedBinarySpecPlugin extends RuleSource {
-        @BinaryType
-        public void registerMyManagedBinarySpec(BinaryTypeBuilder<MyManagedBinarySpec> builder) {
-            builder.internalView(MyManagedBinarySpecInternal.class);
-        }
-    }
-
-Internal views registered for a `@Managed` public type must themselves be `@Managed`.
-
-This functionality is available for types extending `ComponentSpec` and `BinarySpec`.
-
 ### Model DSL improvements
 
 This release includes a number of improvements to the model DSL, which is the DSL you use to define and configure the software model from a build script.
@@ -381,6 +205,182 @@ The model DSL now supports automatic conversions between various scalar types, m
            templateReportDir = 'src/templates/coverage' // creates a `File` which path is relative to the current project directory
         }
     }
+
+### Improvement for software model plugin authors
+
+#### Binary names are scoped to the owning component
+
+Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
+might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
+
+#### Support for `LanguageSourceSet` model elements
+
+This release allows source sets (subtypes of `LanguageSourceSet`) to be added to arbitrary locations in the managed model. A `LanguageSourceSet` can be attached to any `@Managed` type as a property, or used for
+the elements of a `ModelSet` or `ModelMap`, or as a top level model element.
+
+#### Managed binary and component types
+
+The `BinarySpec` and `ComponentSpec` types can now be extended via `@Managed` subtypes, allowing for declaration of `@Managed` components and binaries without having to provide a default implementation. `LibrarySpec` and `ApplicationSpec` can also be extended in this manner.
+
+Example:
+
+    @Managed
+    interface SampleLibrarySpec extends LibrarySpec {
+        String getPublicData()
+        void setPublicData(String publicData)
+    }
+
+    class RegisterComponentRules extends RuleSource {
+        @ComponentType
+        void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+        }
+    }
+    apply plugin: RegisterComponentRules
+
+    model {
+        components {
+            sampleLib(SampleLibrarySpec) {
+                publicData = "public"
+            }
+        }
+    }
+
+#### Managed internal views for binaries and components
+
+Now it is possible to attach a `@Managed` internal view to any `BinarySpec` or `ComponentSpec` type. This allows plugin authors to attach extra properties to already registered binary and component types like `JarBinarySpec`.
+
+Example:
+
+    @Managed
+    interface MyJarBinarySpecInternal extends JarBinarySpec {
+        String getInternal()
+        void setInternal(String internal)
+    }
+
+    class CustomPlugin extends RuleSource {
+        @BinaryType
+        public void register(BinaryTypeBuilder<JarBinarySpec> builder) {
+            builder.internalView(MyJarBinarySpecInternal)
+        }
+
+        @Mutate
+        void mutateInternal(ModelMap<MyJarBinarySpecInternal> binaries) {
+            // ...
+        }
+    }
+
+    apply plugin: "jvm-component"
+
+    model {
+        components {
+            myComponent(JvmLibrarySpec) {
+                binaries.withType(MyJarBinarySpecInternal) { binary ->
+                    binary.internal = "..."
+                }
+            }
+        }
+    }
+
+Note: `@Managed` internal views registered on unmanaged types (like `JarBinarySpec`) are not yet visible in the top-level `binaries` container, and thus it's impossible to do things like:
+
+    // This won't work:
+    model {
+        binaries.withType(MyJarBinarySpecInternal) {
+            // ...
+        }
+    }
+
+This feature is available for subtypes of `BinarySpec` and `ComponentSpec`.
+
+#### Default implementation for unmanaged base binary and component types
+
+It is now possible to declare a default implementation for a base component or a binary type, and extend it via further managed subtypes.
+
+    interface MyBaseBinarySpec extends BinarySpec {}
+
+    class MyBaseBinarySpecImpl extends BaseBinarySpec implements MyBaseBinarySpec {}
+
+    class BasePlugin extends RuleSource {
+        @ComponentType
+        public void registerMyBaseBinarySpec(ComponentTypeBuilder<MyBaseBinarySpec> builder) {
+            builder.defaultImplementation(MyBaseBinarySpecImpl.class);
+        }
+    }
+
+    @Managed
+    interface MyCustomBinarySpec extends BaseBinarySpec {
+        // Add some further managed properties
+    }
+
+    class CustomPlugin extends RuleSource {
+        @ComponentType
+        public void registerMyCustomBinarySpec(ComponentTypeBuilder<MyCustomBinarySpec> builder) {
+            // No default implementation required
+        }
+    }
+
+This functionality is available for unmanaged types extending `ComponentSpec` and `BinarySpec`.
+
+#### Internal views for unmanaged binary and component types
+
+The goal of the new internal views feature is for plugin authors to be able to draw a clear line between public and internal APIs of their plugins regarding model elements.
+By declaring some functionality in internal views (as opposed to exposing it on a public type), the plugin author can let users know that the given functionality is intended
+for the plugin's internal bookkeeping, and should not be considered part of the public API of the plugin.
+
+Internal views must be interfaces, but they don't need to extend the public type they are registered for.
+
+**Example:** A plugin could introduce a new binary type like this:
+
+    /**
+     * Documented public type exposed by the plugin
+     */
+    interface MyBinarySpec extends BinarySpec {
+        // Functionality exposed to the public
+    }
+
+    // Undocumented internal type used by the plugin itself only
+    interface MyBinarySpecInternal extends MyBinarySpec {
+        String getInternalData();
+        void setInternalData(String internalData);
+    }
+
+    class MyBinarySpecImpl implements MyBinarySpecInternal {
+        private String internalData;
+        String getInternalData() { return internalData; }
+        void setInternalData(String internalData) { this.internalData = internalData; }
+    }
+
+    class MyBinarySpecPlugin extends RuleSource {
+        @BinaryType
+        public void registerMyBinarySpec(BinaryTypeBuilder<MyBinarySpec> builder) {
+            builder.defaultImplementation(MyBinarySpecImpl.class);
+            builder.internalView(MyBinarySpecInternal.class);
+        }
+    }
+
+With this setup the plugin can expose `MyBinarySpec` to the user as the public API, while it can attach some additional information to each of those binaries internally.
+
+Internal views registered for an unmanaged public type must be unmanaged themselves, and the default implementation of the public type must implement the internal view
+(as `MyBinarySpecImpl` implements `MyBinarySpecInternal` in the example above).
+
+It is also possible to attach internal views to `@Managed` types as well:
+
+    @Managed
+    interface MyManagedBinarySpec extends MyBinarySpec {}
+
+    @Managed
+    interface MyManagedBinarySpecInternal extends MyManagedBinarySpec {}
+
+    class MyManagedBinarySpecPlugin extends RuleSource {
+        @BinaryType
+        public void registerMyManagedBinarySpec(BinaryTypeBuilder<MyManagedBinarySpec> builder) {
+            builder.internalView(MyManagedBinarySpecInternal.class);
+        }
+    }
+
+Internal views registered for a `@Managed` public type must themselves be `@Managed`.
+
+This functionality is available for types extending `ComponentSpec` and `BinarySpec`.
 
 ## Promoted features
 
