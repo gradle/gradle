@@ -48,7 +48,9 @@ In order to perform incremental Java compilation, Gradle must determine the Clas
 
 This release enhances this inference to handle types in addition `SourceDirectorySet`. Both `File` and `DirectoryTree` types are now supported for incremental Java compilation. This means that sources provided via `project.fileTree('source-dir')` can be compiled incrementally.
 
-### Component level dependencies for Java libraries
+### Dependencies management in the incubating Java software model
+
+#### Component level dependencies for Java libraries
 
 In most cases it is more natural and convenient to define dependencies on a component rather than on each if its source sets and it is now possible to do so when defining a Java library in the software model.
 
@@ -71,7 +73,7 @@ Example:
 
 Dependencies declared this way will apply to all source sets for the component.
 
-### External dependencies for Java libraries
+#### External dependencies for Java libraries
 
 It is now possible to declare dependencies on external modules for a Java library in the software model:
 
@@ -97,17 +99,19 @@ It is now possible to declare dependencies on external modules for a Java librar
 Module dependencies declared this way will be resolved against the configured repositories as usual. 
 External dependencies can be declared for a Java library, Java source set or Java library API specification. 
 
-### Software model changes
+### Improvement for software model plugin authors
+
+#### Binary names are scoped to the owning component
 
 Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
 might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
 
-### Support for `LanguageSourceSet` model elements
+#### Support for `LanguageSourceSet` model elements
 
-This release facilitates adding source sets (subtypes of `LanguageSourceSet`) to arbitrary locations in the model space. A `LanguageSourceSet` can be attached to any @Managed type as a property, or used for
-the elements of a ModelSet or ModelMap, or as a top level model element in it's own right.
+This release allows source sets (subtypes of `LanguageSourceSet`) to be added to arbitrary locations in the managed model. A `LanguageSourceSet` can be attached to any `@Managed` type as a property, or used for
+the elements of a `ModelSet` or `ModelMap`, or as a top level model element.
 
-### Managed internal views for binaries and components
+#### Managed internal views for binaries and components
 
 Now it is possible to attach a `@Managed` internal view to any `BinarySpec` or `ComponentSpec` type. This allows plugin authors to attach extra properties to already registered binary and component types like `JarBinarySpec`.
 
@@ -154,7 +158,7 @@ Note: `@Managed` internal views registered on unmanaged types (like `JarBinarySp
 
 This feature is available for subtypes of `BinarySpec` and `ComponentSpec`.
 
-### Managed binary and component types
+#### Managed binary and component types
 
 The `BinarySpec` and `ComponentSpec` types can now be extended via `@Managed` subtypes, allowing for declaration of `@Managed` components and binaries without having to provide a default implementation. `LibrarySpec` and `ApplicationSpec` can also be extended in this manner.
 
@@ -181,7 +185,7 @@ Example:
         }
     }
 
-### Default implementation for unmanaged base binary and component types
+#### Default implementation for unmanaged base binary and component types
 
 It is now possible to declare a default implementation for a base component or a binary type, and extend it via further managed subtypes.
 
@@ -210,7 +214,7 @@ It is now possible to declare a default implementation for a base component or a
 
 This functionality is available for unmanaged types extending `ComponentSpec` and `BinarySpec`.
 
-### Internal views for unmanaged binary and component types
+#### Internal views for unmanaged binary and component types
 
 The goal of the new internal views feature is for plugin authors to be able to draw a clear line between public and internal APIs of their plugins regarding model elements.
 By declaring some functionality in internal views (as opposed to exposing it on a public type), the plugin author can let users know that the given functionality is intended
