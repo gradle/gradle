@@ -117,3 +117,8 @@ TBD
 > In practice, this isn't too big of an issue because most shells intepret ctrl-d as closure of stdin, which doesn't suffer this buffering problem.
 
 - Interactive cancellation on windows requires pressing enter (https://issues.gradle.org/browse/GRADLE-3311)
+
+- Scala compiler crashing in continuous build mode
+  - crash in java.util.zip.ZipFile.getEntry because Jar file handles are kept open. Modifying a mmapped jar file crashes the java process.
+  - URL caching should be disabled in the Scala compiler process when continuous build mode is enabled
+    - `new URL("jar:file://valid_jar_url_syntax.jar!/").openConnection().setDefaultUseCaches(false)` can be used to disable URL caching in a Java process.
