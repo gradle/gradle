@@ -82,36 +82,6 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
         }
     }
 
-    public static void configureScalaTask(PlatformScalaCompile compile, JvmAssembly assembly, String description) {
-        assembly.builtBy(compile);
-
-        compile.setDescription(description);
-        compile.setDestinationDir(single(assembly.getClassDirectories()));
-        File analysisFile = new File(compile.getProject().getBuildDir(), String.format("tmp/scala/compilerAnalysis/%s.analysis", compile.getName()));
-        compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
-
-        JavaPlatform javaPlatform = assembly.getTargetPlatform();
-        String targetCompatibility = javaPlatform.getTargetCompatibility().toString();
-        compile.setTargetCompatibility(targetCompatibility);
-        compile.setSourceCompatibility(targetCompatibility);
-
-        if (assembly instanceof ScalaJvmAssembly) {
-            compile.setPlatform(((ScalaJvmAssembly) assembly).getScalaPlatform());
-        } else {
-            // TODO:DAZ Put the default scala platform somewhere else, or enforce that we always have a `ScalaJvmAssembly`
-            compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
-        }
-    }
-
-    public static void addSourceSetToCompile(PlatformScalaCompile compile, LanguageSourceSet sourceSet) {
-        compile.dependsOn(sourceSet);
-        compile.source(sourceSet.getSource());
-    }
-
-    private static void addSourceSetClasspath(PlatformScalaCompile compile, ScalaLanguageSourceSet scalaLanguageSourceSet) {
-        FileCollection classpath = scalaLanguageSourceSet.getCompileClasspath().getFiles();
-        compile.setClasspath(classpath);
-    }
 
     private static class Scala implements LanguageTransform<ScalaLanguageSourceSet, JvmByteCode> {
         public Class<ScalaLanguageSourceSet> getSourceSetType() {
@@ -153,6 +123,38 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     PlatformScalaCompile compile = (PlatformScalaCompile) task;
                     addSourceSetToCompile(compile, sourceSet);
                 }
+
+                private void configureScalaTask(PlatformScalaCompile compile, JvmAssembly assembly, String description) {
+                    assembly.builtBy(compile);
+
+                    compile.setDescription(description);
+                    compile.setDestinationDir(single(assembly.getClassDirectories()));
+                    File analysisFile = new File(compile.getProject().getBuildDir(), String.format("tmp/scala/compilerAnalysis/%s.analysis", compile.getName()));
+                    compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
+
+                    JavaPlatform javaPlatform = assembly.getTargetPlatform();
+                    String targetCompatibility = javaPlatform.getTargetCompatibility().toString();
+                    compile.setTargetCompatibility(targetCompatibility);
+                    compile.setSourceCompatibility(targetCompatibility);
+
+                    if (assembly instanceof ScalaJvmAssembly) {
+                        compile.setPlatform(((ScalaJvmAssembly) assembly).getScalaPlatform());
+                    } else {
+                        // TODO:DAZ Put the default scala platform somewhere else, or enforce that we always have a `ScalaJvmAssembly`
+                        compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
+                    }
+                }
+
+                private void addSourceSetToCompile(PlatformScalaCompile compile, LanguageSourceSet sourceSet) {
+                    compile.dependsOn(sourceSet);
+                    compile.source(sourceSet.getSource());
+                }
+
+                private void addSourceSetClasspath(PlatformScalaCompile compile, ScalaLanguageSourceSet scalaLanguageSourceSet) {
+                    FileCollection classpath = scalaLanguageSourceSet.getCompileClasspath().getFiles();
+                    compile.setClasspath(classpath);
+                }
+
             };
         }
 
