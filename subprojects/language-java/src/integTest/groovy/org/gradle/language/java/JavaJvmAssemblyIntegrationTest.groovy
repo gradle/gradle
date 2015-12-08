@@ -40,7 +40,7 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
             }
         '''
         file('src/main/java/myorg/Main.java')       << 'package myorg; class Main {}'
-        file('src/main/resources/myorg/answer.txt') << '# yadda\n42\n# yadda'
+        file('src/main/resources/myorg/answer.txt') << '# yadda\n42'
     }
 
     def "can create task that depends on assembly and jar is *not* built"() {
@@ -109,6 +109,6 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
         def jar = new ZipFile(file('build/jars/main/jar/main.jar'))
         def textForEntry = { String path -> jar.getInputStream(jar.getEntry(path)).text }
         textForEntry('myorg/question.txt') == '# the ultimate question'
-        textForEntry('myorg/answer.txt')   == '42\n'
+        textForEntry('myorg/answer.txt')   == '42'
     }
 }
