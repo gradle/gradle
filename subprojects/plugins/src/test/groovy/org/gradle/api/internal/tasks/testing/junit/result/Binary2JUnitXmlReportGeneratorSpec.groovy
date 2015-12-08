@@ -22,7 +22,11 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.regex.Pattern
+
 class Binary2JUnitXmlReportGeneratorSpec extends Specification {
+
+    public static final int MAX_FILENAME_LEN = 250
 
     @Rule private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     private resultsProvider = Mock(TestResultsProvider)
@@ -71,4 +75,27 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         ex.message.startsWith('Could not write XML test results for FooTest')
         ex.cause.message == "Boo!"
     }
+
+    def fileNameIsSafe(String testName){
+        given:
+        Pattern pattern = Pattern.compile("[a-zA-Z0-9\\.#_/\$-]+");
+        TestClassResult result = new TestClassResult(1, testName, 100)
+
+        when:
+        def fileName = generator.getReportFileName(result)
+        def matcher = pattern.matcher(fileName);
+        println fileName
+
+        then:
+        fileName.length() < MAX_FILENAME_LEN
+        matcher.matches()
+
+        where:
+        testName << [
+            'abc ~#@*+%{}<>\\[]|"^' * 20,
+            'ąęþó→↓←ß©ęœπąśðæŋ’ə…ł≤µń”„ćźż',
+            '| customer1 | 127.0.0.1 | nod1 | 2 | MML command | /webapp/protocolSelection?$selected_rows.Customer=customer1&$selected_rows.ElementManagerIP=127.0.0.1&$selected_rows.Manager=10.0.0.1&$selected_rows.Node=nod1&$selected_rows.NodeAlias=nod1&$selected_rows.Region=region1&datasource=the_silo&FORCE_SHOW_APPLET=YES&login=user3&VNECLI_NODE_TYPE_CLASS_PARAMETERS=OSSRC_IP%3D127.0.0.1%7CNode%3Dnod1&Protocol=OSSRC_MML |'
+        ]
+    }
+
 }

@@ -16,24 +16,19 @@
 package org.gradle.api.internal.tasks.testing.junit.report
 
 import spock.lang.Specification
+
 import java.util.regex.Pattern
 
-class ClassTestResultsTest extends Specification {
+class PackageTestResultsTest extends Specification {
 
     public static final int MAX_FILENAME_LEN = 250
-
-    def determinesSimpleName() {
-        expect:
-        new ClassTestResults(1, 'org.gradle.Test', null).simpleName == 'Test'
-        new ClassTestResults(2, 'Test', null).simpleName == 'Test'
-    }
 
     def baseUrlIsSafeFileName(String testName){
         given:
         Pattern pattern = Pattern.compile("[a-zA-Z0-9\\.#_/\$-]+");
 
         when:
-        def baseUrl = new ClassTestResults(1, testName, null).getBaseUrl()
+        def baseUrl = new PackageTestResults(testName, null).getBaseUrl()
         def matcher = pattern.matcher(baseUrl);
 
         then:

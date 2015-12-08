@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.report;
 
+import org.gradle.internal.FileUtils;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
@@ -24,6 +26,7 @@ import java.util.TreeMap;
  */
 public class PackageTestResults extends CompositeTestResults {
     private static final String DEFAULT_PACKAGE = "default-package";
+    private static final int MAX_FILENAME_BASE_LEN = 200;
     private final String name;
     private final Map<String, ClassTestResults> classes = new TreeMap<String, ClassTestResults>();
 
@@ -38,7 +41,11 @@ public class PackageTestResults extends CompositeTestResults {
     }
 
     public String getBaseUrl() {
-        return String.format("packages/%s.html", name);
+        String safeFileName = FileUtils.toSafeFileName(name);
+        if (safeFileName.length() > MAX_FILENAME_BASE_LEN) {
+            safeFileName = safeFileName.substring(0, MAX_FILENAME_BASE_LEN);
+        }
+        return String.format("packages/%s.html", safeFileName);
     }
 
     public String getName() {
