@@ -476,7 +476,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         return modelGraph.getRoot();
     }
 
-    @Override
+    @Nullable
     public MutableModelNode node(ModelPath path) {
         return modelGraph.find(path);
     }

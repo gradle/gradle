@@ -127,7 +127,7 @@ public class TaskNameResolver {
         ModelRegistry modelRegistry = project.getModelRegistry();
         ModelPath path = TaskContainerInternal.MODEL_PATH.child(taskName);
         try {
-            if (modelRegistry.node(path) == null) {
+            if (modelRegistry.state(path) == null) {
                 // The tasks exists but isn't in the model registry, was created after the registry was closed
                 // This can happen for a few reasons, use of task container rules being a common one
                 return (TaskInternal) project.getTasks().getByName(taskName);

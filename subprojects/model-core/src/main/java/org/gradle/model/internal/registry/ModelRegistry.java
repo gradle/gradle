@@ -110,7 +110,4 @@ public interface ModelRegistry {
     ModelRegistry configure(Class<? extends RuleSource> rules, ModelPath scope);
 
     MutableModelNode getRoot();
-
-    @Nullable
-    MutableModelNode node(ModelPath path);
 }

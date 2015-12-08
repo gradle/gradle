@@ -64,7 +64,7 @@ public class ModelRegistryHelperExtension {
     }
 
     @Nullable
-    public static MutableModelNode node(ModelRegistry modelRegistry, String path) {
+    public static MutableModelNode node(DefaultModelRegistry modelRegistry, String path) {
         return modelRegistry.node(ModelPath.path(path));
     }
 
