@@ -74,15 +74,6 @@ abstract class RegistrySpec extends Specification {
 
         }
 
-        @Override
-        def void applyToAllLinks(ModelActionRole type, ModelAction<?> action) {
-
-        }
-
-        @Override
-        def void applyToAllLinksTransitive(ModelActionRole type, ModelAction<?> action) {
-
-        }
 
         @Override
         def void applyToLink(ModelActionRole type, ModelAction<?> action) {
@@ -90,12 +81,12 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        void applyToLinks(ModelType<?> type, Class<? extends RuleSource> rules) {
+        void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction<?> action) {
 
         }
 
         @Override
-        void applyToAllLinksTransitive(ModelType<?> type, Class<? extends RuleSource> rules) {
+        void applyTo(NodePredicate predicate, Class<? extends RuleSource> rules) {
 
         }
 

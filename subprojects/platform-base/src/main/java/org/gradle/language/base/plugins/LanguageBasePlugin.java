@@ -49,6 +49,9 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.Set;
 
+import static org.gradle.model.internal.core.NodePredicate.allLinks;
+import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive;
+
 /**
  * Base plugin for language support.
  *
@@ -78,7 +81,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTasks"), new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode binariesNode) {
-                binariesNode.applyToAllLinks(ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpecInternal.class),
+                binariesNode.applyTo(allLinks(), ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpecInternal.class),
                                 new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTask"), ModelReference.of(ITaskFactory.class), new BiAction<BinarySpecInternal, ITaskFactory>() {
                     @Override
                     public void execute(BinarySpecInternal binary, ITaskFactory taskFactory) {
@@ -93,7 +96,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
             }
         }));
 
-        modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
+        modelRegistry.getRoot().applyTo(allLinksTransitive(), ModelActionRole.Defaults,
             DirectNodeNoInputsModelAction.of(
                 ModelReference.of(BinarySpec.class),
                 new SimpleModelRuleDescriptor(baseDescriptor + ComponentSpecInitializer.class.getSimpleName() + ".binaryAction()"),

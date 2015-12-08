@@ -336,12 +336,8 @@ public class ModelRegistryHelperExtension {
         node.applyToLink(role, action.transform(ModelActionBuilder.of()));
     }
 
-    public static void applyToAllLinks(MutableModelNode node, ModelActionRole role, Transformer<ModelAction<?>, ModelActionBuilder<?>> action) {
-        node.applyToAllLinks(role, action.transform(ModelActionBuilder.of()));
-    }
-
-    public static void applyToAllLinksTransitive(MutableModelNode node, ModelActionRole role, Transformer<ModelAction<?>, ModelActionBuilder<?>> action) {
-        node.applyToAllLinksTransitive(role, action.transform(ModelActionBuilder.of()));
+    public static void applyTo(MutableModelNode node, NodePredicate predicate, ModelActionRole role, Transformer<? extends ModelAction<?>, ? super ModelActionBuilder<?>> definition) {
+        node.applyTo(predicate, role, definition.transform(ModelActionBuilder.of()));
     }
 
     public static void addLink(MutableModelNode node, String path, Transformer<ModelRegistration, ModelRegistrations.Builder> definition) {

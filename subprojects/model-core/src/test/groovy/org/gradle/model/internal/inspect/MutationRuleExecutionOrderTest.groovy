@@ -51,7 +51,7 @@ class MutationRuleExecutionOrderTest extends Specification {
 
     def "mutation rules from the same plugin are applied in the order specified by their signatures"() {
         when:
-        modelRegistry.apply(ByPathRules)
+        modelRegistry.getRoot().applyToSelf(ByPathRules)
 
         then:
         modelRegistry.get("recorder", MutationRecorder).mutations == ["a", "b"]
@@ -76,7 +76,7 @@ class MutationRuleExecutionOrderTest extends Specification {
 
     def "mutation rule application order is consistent if by type subject bound rules are used"() {
         when:
-        modelRegistry.apply(MixedRules)
+        modelRegistry.getRoot().applyToSelf(MixedRules)
 
         then:
         modelRegistry.get("recorder", MutationRecorder).mutations == ["b", "a"]
@@ -115,9 +115,9 @@ class MutationRuleExecutionOrderTest extends Specification {
 
     def "binding order does not affect mutation rule execution order"() {
         when:
-        modelRegistry.apply(MutationRulesWithInputs)
-        modelRegistry.apply(SecondInputCreationRule)
-        modelRegistry.apply(FirstInputCreationRule)
+        modelRegistry.getRoot().applyToSelf(MutationRulesWithInputs)
+        modelRegistry.getRoot().applyToSelf(SecondInputCreationRule)
+        modelRegistry.getRoot().applyToSelf(FirstInputCreationRule)
 
         then:
         modelRegistry.get("recorder", MutationRecorder).mutations == ["first", "second"]

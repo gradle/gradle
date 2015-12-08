@@ -25,9 +25,9 @@ public interface ModelRegistryInternal extends ModelRegistry {
 
     <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator, ModelPath scope);
 
-    void registerListener(ModelListener listener);
+    ModelRegistry configureMatching(ModelPredicate predicate, ModelActionRole role, ModelAction<?> action);
 
-    Iterable<ExtractedModelRule> extract(Class<? extends RuleSource> rules);
+    ModelRegistry configureMatching(ModelPredicate predicate, Class<? extends RuleSource> rules);
 
     void transition(ModelNodeInternal node, ModelNode.State desired, boolean laterOk);
 }

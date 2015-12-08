@@ -54,7 +54,8 @@ class ModelRuleBindingTest extends Specification {
 
     def "error message produced when unpathed reference matches more than one item"() {
         when:
-        modelRegistry.apply(AmbiguousBindingsInOneSource).bindAllReferences()
+        modelRegistry.getRoot().applyToSelf(AmbiguousBindingsInOneSource)
+        modelRegistry.bindAllReferences()
 
         then:
         def e = thrown(InvalidModelRuleException)
@@ -93,7 +94,7 @@ class ModelRuleBindingTest extends Specification {
     def "ambiguous binding is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            modelRegistry.apply(it)
+            modelRegistry.getRoot().applyToSelf(it)
         }
         modelRegistry.bindAllReferences()
 
@@ -124,7 +125,7 @@ class ModelRuleBindingTest extends Specification {
     def "incompatible writable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            modelRegistry.apply(it)
+            modelRegistry.getRoot().applyToSelf(it)
         }
         modelRegistry.bindAllReferences()
 
@@ -159,7 +160,7 @@ class ModelRuleBindingTest extends Specification {
     def "incompatible readable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            modelRegistry.apply(it)
+            modelRegistry.getRoot().applyToSelf(it)
         }
         modelRegistry.bindAllReferences()
 

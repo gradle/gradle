@@ -30,6 +30,8 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collection;
 import java.util.Iterator;
 
+import static org.gradle.model.internal.core.NodePredicate.allLinks;
+
 public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
 
     private final String toString;
@@ -87,13 +89,13 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     @Override
     public void afterEach(Action<? super T> configAction) {
         state.assertCanMutate();
-        modelNode.applyToAllLinks(ModelActionRole.Finalize, NoInputsModelAction.of(elementTypeReference, descriptor.append("afterEach()"), configAction));
+        modelNode.applyTo(allLinks(), ModelActionRole.Finalize, NoInputsModelAction.of(elementTypeReference, descriptor.append("afterEach()"), configAction));
     }
 
     @Override
     public void beforeEach(Action<? super T> configAction) {
         state.assertCanMutate();
-        modelNode.applyToAllLinks(ModelActionRole.Defaults, NoInputsModelAction.of(elementTypeReference, descriptor.append("afterEach()"), configAction));
+        modelNode.applyTo(allLinks(), ModelActionRole.Defaults, NoInputsModelAction.of(elementTypeReference, descriptor.append("afterEach()"), configAction));
     }
 
     @Override

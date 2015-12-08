@@ -27,6 +27,8 @@ import org.gradle.platform.base.*;
 
 import java.util.List;
 
+import static org.gradle.model.internal.core.NodePredicate.allLinks;
+
 public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentBinaries> {
 
     @Override
@@ -68,7 +70,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         }
 
         protected  void execute(final MutableModelNode modelNode, final ComponentSpecContainer componentSpecs, final List<ModelView<?>> modelMapRuleInputs) {
-            modelNode.applyToAllLinks(ModelActionRole.Finalize, DirectNodeInputUsingModelAction.of(
+            modelNode.applyTo(allLinks(), ModelActionRole.Finalize, DirectNodeInputUsingModelAction.of(
                 ModelReference.of(ModelType.of(componentType)),
                 getDescriptor(),
                 getInputs(),

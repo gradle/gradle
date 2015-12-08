@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
+import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
 // TODO - mix Groovy DSL support in
 public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements ManagedInstance {
@@ -148,14 +149,14 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append("all()");
         ModelReference<T> subject = ModelReference.of(elementType);
-        modelNode.applyToAllLinks(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
+        modelNode.applyTo(allLinks(), ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
     // Called from transformed DSL rules
     public void all(DeferredModelAction configAction) {
         viewState.assertCanMutate();
         ModelReference<T> subject = ModelReference.of(elementType);
-        modelNode.defineRulesForAllLinks(ModelActionRole.Mutate, toInitializeAction(subject, configAction, ModelActionRole.Mutate));
+        modelNode.defineRulesFor(allLinks(), ModelActionRole.Mutate, toInitializeAction(subject, configAction, ModelActionRole.Mutate));
     }
 
     @Override
@@ -237,13 +238,13 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append("beforeEach()");
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Defaults, NoInputsModelAction.of(subject, descriptor, configAction));
+        modelNode.applyTo(allLinks(), ModelActionRole.Defaults, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
     private <S> void doBeforeEach(ModelType<S> type, DeferredModelAction configAction) {
         viewState.assertCanMutate();
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.defineRulesForAllLinks(ModelActionRole.Defaults, toInitializeAction(subject, configAction, ModelActionRole.Defaults));
+        modelNode.defineRulesFor(allLinks(), ModelActionRole.Defaults, toInitializeAction(subject, configAction, ModelActionRole.Defaults));
     }
 
     private <S extends T> void doCreate(String name, ModelType<S> type, DeferredModelAction action) {
@@ -278,13 +279,13 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append("afterEach()");
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Finalize, NoInputsModelAction.of(subject, descriptor, configAction));
+        modelNode.applyTo(allLinks(), ModelActionRole.Finalize, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
     private <S> void doFinalizeAll(ModelType<S> type, DeferredModelAction configAction) {
         viewState.assertCanMutate();
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.defineRulesForAllLinks(ModelActionRole.Finalize, toInitializeAction(subject, configAction, ModelActionRole.Finalize));
+        modelNode.defineRulesFor(allLinks(), ModelActionRole.Finalize, toInitializeAction(subject, configAction, ModelActionRole.Finalize));
     }
 
     @Nullable
@@ -401,20 +402,20 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append("withType()");
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
+        modelNode.applyTo(allLinks(), ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
     // Called from transformed DSL rules
     public <S> void withType(Class<S> type, DeferredModelAction configAction) {
         viewState.assertCanMutate();
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.defineRulesForAllLinks(ModelActionRole.Mutate, toInitializeAction(subject, configAction, ModelActionRole.Mutate));
+        modelNode.defineRulesFor(allLinks(), ModelActionRole.Mutate, toInitializeAction(subject, configAction, ModelActionRole.Mutate));
     }
 
     @Override
     public <S> void withType(Class<S> type, Class<? extends RuleSource> rules) {
         viewState.assertCanMutate();
-        modelNode.applyToLinks(ModelType.of(type), rules);
+        modelNode.applyTo(allLinks(ModelNodes.withType(type)), rules);
     }
 
     @Override

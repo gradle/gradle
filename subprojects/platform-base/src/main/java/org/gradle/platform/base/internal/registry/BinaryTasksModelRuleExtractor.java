@@ -35,6 +35,8 @@ import org.gradle.platform.base.InvalidModelException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.gradle.model.internal.core.NodePredicate.allLinks;
+
 public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<BinaryTasks> {
 
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
@@ -57,7 +59,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
                     new Action<MutableModelNode>() {
                         @Override
                         public void execute(MutableModelNode modelNode) {
-                            modelNode.applyToAllLinks(ModelActionRole.Finalize, binaryTaskRule);
+                            modelNode.applyTo(allLinks(), ModelActionRole.Finalize, binaryTaskRule);
                         }
                     }
                 )

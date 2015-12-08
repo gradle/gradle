@@ -105,16 +105,6 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyToAllLinks(ModelActionRole type, ModelAction<?> action) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void applyToAllLinksTransitive(ModelActionRole type, ModelAction<?> action) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void applyToLink(ModelActionRole type, ModelAction<?> action) {
         throw new UnsupportedOperationException();
     }
@@ -125,17 +115,17 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyToLinks(ModelType<?> type, Class<? extends RuleSource> rules) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void applyToAllLinksTransitive(ModelType<?> type, Class<? extends RuleSource> rules) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void applyToSelf(Class<? extends RuleSource> rules) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction<?> action) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void applyTo(NodePredicate predicate, Class<? extends RuleSource> rules) {
         throw new UnsupportedOperationException();
     }
 

@@ -32,7 +32,6 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
 import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.*;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
 import org.gradle.util.CollectionUtils;
@@ -45,6 +44,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.gradle.model.internal.core.ModelNodes.withType;
+import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive;
 import static org.gradle.util.CollectionUtils.single;
 
 /**
@@ -64,7 +65,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), JarBinaryRules.class);
+        modelRegistry.getRoot().applyTo(allLinksTransitive(withType(ComponentSpec.class)), JarBinaryRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")

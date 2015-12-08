@@ -34,7 +34,7 @@ import static org.gradle.model.internal.core.ModelNode.State.Created;
 import static org.gradle.model.internal.core.ModelNode.State.Initialized;
 
 class ModelElementNode extends ModelNodeInternal {
-    private ModelRegistryInternal modelRegistry;
+    private final ModelRegistryInternal modelRegistry;
     private final Map<String, ModelNodeInternal> links = Maps.newTreeMap();
     private final MutableModelNode parent;
     private Object privateData;
@@ -165,115 +165,22 @@ class ModelElementNode extends ModelNodeInternal {
 
     @Override
     public void applyToLink(String name, Class<? extends RuleSource> rules) {
-        apply(rules, getPath().child(name));
+        modelRegistry.configure(rules, getPath().child(name));
     }
 
     @Override
     public void applyToSelf(Class<? extends RuleSource> rules) {
-        apply(rules, getPath());
+        modelRegistry.configure(rules, getPath());
     }
 
     @Override
-    public void applyToLinks(final ModelType<?> type, final Class<? extends RuleSource> rules) {
-        modelRegistry.registerListener(new ModelListener() {
-            @Nullable
-            @Override
-            public ModelPath getParent() {
-                return getPath();
-            }
-
-            @Override
-            public boolean matches(MutableModelNode node) {
-                return node.canBeViewedAs(type);
-            }
-
-            @Override
-            public boolean onDiscovered(ModelNodeInternal node) {
-                node.applyToSelf(rules);
-                return false;
-            }
-        });
+    public void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction<?> action) {
+        modelRegistry.configureMatching(predicate.scope(getPath()), role, action);
     }
 
     @Override
-    public void applyToAllLinksTransitive(final ModelType<?> type, final Class<? extends RuleSource> rules) {
-        modelRegistry.registerListener(new ModelListener() {
-            @Override
-            public ModelPath getAncestor() {
-                return ModelElementNode.this.getPath();
-            }
-
-            @Override
-            public boolean matches(MutableModelNode node) {
-                return node.canBeViewedAs(type);
-            }
-
-            @Override
-            public boolean onDiscovered(ModelNodeInternal node) {
-                node.applyToSelf(rules);
-                return false;
-            }
-        });
-    }
-
-    private void apply(Class<? extends RuleSource> rules, ModelPath scope) {
-        Iterable<ExtractedModelRule> extractedRules = modelRegistry.extract(rules);
-        for (ExtractedModelRule extractedRule : extractedRules) {
-            if (!extractedRule.getRuleDependencies().isEmpty()) {
-                throw new IllegalStateException("Rule source " + rules + " cannot have plugin dependencies (introduced by rule " + extractedRule + ")");
-            }
-            extractedRule.apply(modelRegistry, scope);
-        }
-    }
-
-    @Override
-    public void applyToAllLinks(final ModelActionRole type, final ModelAction<?> action) {
-        if (action.getSubject().getPath() != null) {
-            throw new IllegalArgumentException("Linked element action reference must have null path.");
-        }
-
-        modelRegistry.registerListener(new ModelListener() {
-            @Override
-            public ModelPath getParent() {
-                return ModelElementNode.this.getPath();
-            }
-
-            @Override
-            public boolean matches(MutableModelNode node) {
-                return node.canBeViewedAs(action.getSubject().getType());
-            }
-
-            @Override
-            public boolean onDiscovered(ModelNodeInternal node) {
-                modelRegistry.bind(ModelReference.of(node.getPath(), action.getSubject().getType()), type, action, ModelPath.ROOT);
-                return false;
-            }
-        });
-    }
-
-    @Override
-    public void applyToAllLinksTransitive(final ModelActionRole type, final ModelAction<?> action) {
-        if (action.getSubject().getPath() != null) {
-            throw new IllegalArgumentException("Linked element action reference must have null path.");
-        }
-
-        modelRegistry.registerListener(new ModelListener() {
-            @Override
-            public ModelPath getAncestor() {
-                return ModelElementNode.this.getPath();
-            }
-
-            @Override
-            public boolean matches(MutableModelNode node) {
-                return node.canBeViewedAs(action.getSubject().getType());
-            }
-
-            @Override
-            public boolean onDiscovered(ModelNodeInternal node) {
-                modelRegistry.bind(ModelReference.of(node.getPath(), action.getSubject().getType()), type, action, ModelPath.ROOT);
-                return false;
-            }
-        });
+    public void applyTo(NodePredicate predicate, Class<? extends RuleSource> rules) {
+        modelRegistry.configureMatching(predicate.scope(getPath()), rules);
     }
 
     @Override

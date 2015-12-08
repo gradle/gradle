@@ -32,6 +32,8 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
+import static org.gradle.model.internal.core.NodePredicate.allLinks;
+
 public class DefaultTaskContainerFactory implements Factory<TaskContainerInternal> {
     private final ModelRegistry modelRegistry;
     private final Instantiator instantiator;
@@ -81,7 +83,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         MutableModelNode mutableModelNode = (MutableModelNode) modelNode;
 
         // Add tasks created through rules to the actual task container
-        mutableModelNode.applyToAllLinks(ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(ModelReference.of(Task.class), new SimpleModelRuleDescriptor("copyToTaskContainer"), new BiAction<MutableModelNode, Task>() {
+        mutableModelNode.applyTo(allLinks(), ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(ModelReference.of(Task.class), new SimpleModelRuleDescriptor("copyToTaskContainer"), new BiAction<MutableModelNode, Task>() {
             @Override
             public void execute(MutableModelNode modelNode, Task task) {
                 TaskContainerInternal taskContainer = modelNode.getParent().getPrivateData(TaskContainerInternal.MODEL_TYPE);

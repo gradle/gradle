@@ -32,6 +32,8 @@ import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.model.internal.core.NodePredicate.allLinks
+import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class DefaultModelRegistryTest extends Specification {
@@ -500,7 +502,7 @@ class DefaultModelRegistryTest extends Specification {
     def "can attach a mutator with inputs to all elements linked from an element"() {
         given:
         registry.register("parent") { it.unmanagedNode Integer, { MutableModelNode node ->
-            node.applyToAllLinks(ModelActionRole.Mutate) {
+            node.applyTo(allLinks(), ModelActionRole.Mutate) {
                 it.type(Bean).action(String) { Bean bean, String prefix ->
                     bean.value = "$prefix: $bean.value"
                 }
@@ -523,7 +525,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { it.unmanagedNode Integer, creatorAction }
         creatorAction.execute(_) >> { MutableModelNode node ->
-            node.applyToAllLinks(ModelActionRole.Mutate) { it.type(Bean).action(mutatorAction) }
+            node.applyTo(allLinks(), ModelActionRole.Mutate) { it.type(Bean).action(mutatorAction) }
             node.addLinkInstance("parent.foo", "ignore me")
             node.addLinkInstance("parent.bar", new Bean(value: "bar"))
         }
@@ -547,7 +549,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { it.unmanagedNode Integer, creatorAction }
         creatorAction.execute(_) >> { MutableModelNode node ->
-            node.applyToAllLinksTransitive(ModelActionRole.Mutate) { it.type(Bean).action(mutatorAction) }
+            node.applyTo(allLinksTransitive(), ModelActionRole.Mutate) { it.type(Bean).action(mutatorAction) }
             node.addLinkInstance("parent.foo", "ignore me")
             node.addLinkInstance("parent.bar", new Bean(value: "bar"))
             node.applyToLink(ModelActionRole.Mutate) { it.path("parent.bar").node { MutableModelNode bar ->

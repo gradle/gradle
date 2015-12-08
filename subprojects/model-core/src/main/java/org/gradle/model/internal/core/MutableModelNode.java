@@ -60,21 +60,7 @@ public interface MutableModelNode extends ModelNode {
      */
     void applyToSelf(ModelActionRole type, ModelAction<?> action);
 
-    /**
-     * Applies an action to all nodes linked from this node.
-     *
-     * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
-     * requested type available.
-     */
-    void applyToAllLinks(ModelActionRole type, ModelAction<?> action);
-
-    /**
-     * Applies an action to all nodes linked from this node, including all nodes transitively linked from this node.
-     *
-     * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
-     * requested type available.
-     */
-    void applyToAllLinksTransitive(ModelActionRole type, ModelAction<?> action);
+    void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction<?> action);
 
     /**
      * Applies an action to a linked node.
@@ -93,20 +79,7 @@ public interface MutableModelNode extends ModelNode {
      */
     void applyToSelf(Class<? extends RuleSource> rules);
 
-    /**
-     * Applies the given rules to all nodes of the given type linked from this node.
-     */
-    void applyToLinks(ModelType<?> type, Class<? extends RuleSource> rules);
-
-    /**
-     * Applies the given rules to all nodes of the given type transitively linked from this node.
-     */
-    void applyToAllLinksTransitive(ModelType<?> type, Class<? extends RuleSource> rules);
-
-    /**
-     * Applies an action that defines rules for the node in the given role.
-     */
-    void defineRulesForSelf(ModelActionRole role, ModelAction<?> action);
+    void applyTo(NodePredicate predicate, Class<? extends RuleSource> rules);
 
     /**
      * Applies an action that defines rules for the node in the given role to all nodes linked from this node.
@@ -114,23 +87,7 @@ public interface MutableModelNode extends ModelNode {
      * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
      * requested type available.
      */
-    void defineRulesForAllLinks(ModelActionRole role, ModelAction<?> action);
-
-    /**
-     * Applies an action that defines rules for the node in the given role to all nodes linked from this node,
-     * including all nodes transitively linked from this node.
-     *
-     * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
-     * requested type available.
-     */
-    void defineRulesForAllLinksTransitive(ModelActionRole role, ModelAction<?> action);
-
-    /**
-     * Applies an action that defines rules for the node in the given role to a linked node.
-     *
-     * The path returned by {@link ModelAction#getSubject()} is used to select the link to apply the action to.
-     */
-    void defineRulesForLink(ModelActionRole role, ModelAction<?> action);
+    void defineRulesFor(NodePredicate predicate, ModelActionRole role, ModelAction<?> action);
 
     boolean hasLink(String name, Predicate<? super MutableModelNode> predicate);
 

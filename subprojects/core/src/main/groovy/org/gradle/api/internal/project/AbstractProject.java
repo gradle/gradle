@@ -232,7 +232,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         });
         registerInstanceOn(modelRegistry, "projectIdentifier", ProjectIdentifier.class, this);
         registerInstanceOn(modelRegistry, "extensionContainer", ExtensionContainer.class, getExtensions());
-        modelRegistry.apply(BasicServicesRules.class);
+        modelRegistry.getRoot().applyToSelf(BasicServicesRules.class);
     }
 
     private <T> void registerInstanceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance) {

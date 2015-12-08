@@ -19,6 +19,7 @@ package org.gradle.model.internal.registry;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import net.jcip.annotations.NotThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.model.ConfigurationCycleException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
@@ -52,11 +53,6 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         ruleBindings = new RuleBindings(modelGraph);
     }
 
-    @Override
-    public Iterable<ExtractedModelRule> extract(Class<? extends RuleSource> rules) {
-        return ruleExtractor.extract(rules);
-    }
-
     public DefaultModelRegistry register(ModelRegistration registration) {
         ModelPath path = registration.getPath();
         if (!ModelPath.ROOT.isDirectChild(path)) {
@@ -85,7 +81,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             ModelActionRole role = entry.getKey();
             ModelAction<?> action = entry.getValue();
             checkNodePath(node, action);
-            RuleBinder binder = forceBind(action.getSubject(), role, action, ModelPath.ROOT);
+            RuleBinder binder = bindInternal(action.getSubject(), role, action, ModelPath.ROOT);
             node.addRegistrationActionBinder(binder);
         }
     }
@@ -103,8 +99,49 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
-    public ModelRegistry apply(Class<? extends RuleSource> rules) {
-        modelGraph.getRoot().applyToSelf(rules);
+    public ModelRegistry configureMatching(ModelPredicate predicate, final ModelActionRole role, final ModelAction<?> action) {
+        if (action.getSubject().getPath() != null) {
+            throw new IllegalArgumentException("Linked element action reference must have null path.");
+        }
+
+        final ModelType<?> subjectType = action.getSubject().getType();
+        registerListener(new DelegatingListener(predicate) {
+            @Override
+            public boolean matches(MutableModelNode node) {
+                node.ensureAtLeast(Discovered);
+                return node.canBeViewedAs(subjectType) && super.matches(node);
+            }
+
+            @Override
+            public boolean onDiscovered(ModelNodeInternal node) {
+                bind(ModelReference.of(node.getPath(), subjectType), role, action, ModelPath.ROOT);
+                return false;
+            }
+        });
+        return this;
+    }
+
+    @Override
+    public ModelRegistry configureMatching(ModelPredicate predicate, final Class<? extends RuleSource> rules) {
+        registerListener(new DelegatingListener(predicate) {
+            @Override
+            public boolean onDiscovered(ModelNodeInternal node) {
+                node.applyToSelf(rules);
+                return false;
+            }
+        });
+        return this;
+    }
+
+    @Override
+    public ModelRegistry configure(Class<? extends RuleSource> rules, ModelPath scope) {
+        Iterable<ExtractedModelRule> extractedRules = ruleExtractor.extract(rules);
+        for (ExtractedModelRule extractedRule : extractedRules) {
+            if (!extractedRule.getRuleDependencies().isEmpty()) {
+                throw new IllegalStateException(String.format("Rule source %s cannot have plugin dependencies (introduced by rule %s)", rules, extractedRule));
+            }
+            extractedRule.apply(this, scope);
+        }
         return this;
     }
 
@@ -116,10 +153,10 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
     @Override
     public <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator, ModelPath scope) {
-        forceBind(subject, role, mutator, scope);
+        bindInternal(subject, role, mutator, scope);
     }
 
-    private <T> RuleBinder forceBind(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator, ModelPath scope) {
+    private <T> RuleBinder bindInternal(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator, ModelPath scope) {
         BindingPredicate mappedSubject = mapSubject(subject, role, scope);
         List<BindingPredicate> mappedInputs = mapInputs(mutator.getInputs(), scope);
         RuleBinder binder = new RuleBinder(mappedSubject, mappedInputs, mutator, unboundRules);
@@ -193,8 +230,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         return require(path);
     }
 
-    @Override
-    public void registerListener(ModelListener listener) {
+    private void registerListener(ModelListener listener) {
         modelGraph.addListener(listener);
     }
 
@@ -1139,6 +1175,37 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         @Override
         public String toString() {
             return "notify discovered for " + getPath() + ", state: " + state;
+        }
+    }
+
+    private abstract static class DelegatingListener extends ModelListener {
+        private final ModelPredicate predicate;
+
+        public DelegatingListener(ModelPredicate predicate) {
+            this.predicate = predicate;
+        }
+
+        @Override
+        @Nullable
+        public ModelPath getPath() {
+            return predicate.getPath();
+        }
+
+        @Override
+        @Nullable
+        public ModelPath getParent() {
+            return predicate.getParent();
+        }
+
+        @Override
+        @Nullable
+        public ModelPath getAncestor() {
+            return predicate.getAncestor();
+        }
+
+        @Override
+        public boolean matches(MutableModelNode node) {
+            return predicate.matches(node);
         }
     }
 }

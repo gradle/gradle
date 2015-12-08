@@ -107,7 +107,7 @@ public interface ModelRegistry {
 
     ModelRegistry configure(ModelActionRole role, ModelAction<?> action, ModelPath scope);
 
-    ModelRegistry apply(Class<? extends RuleSource> rules);
+    ModelRegistry configure(Class<? extends RuleSource> rules, ModelPath scope);
 
     MutableModelNode getRoot();
 

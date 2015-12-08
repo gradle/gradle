@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.gradle.model.internal.core.ModelNode.State.Discovered;
+import static org.gradle.model.internal.core.ModelNodes.withType;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
@@ -183,37 +184,22 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     @Override
     public boolean hasLink(String name, ModelType<?> type) {
-        return hasLink(name, ModelNodes.withType(type));
+        return hasLink(name, withType(type));
     }
 
     @Override
     public Iterable<? extends MutableModelNode> getLinks(ModelType<?> type) {
-        return getLinks(ModelNodes.withType(type));
+        return getLinks(withType(type));
     }
 
     @Override
     public Set<String> getLinkNames(ModelType<?> type) {
-        return getLinkNames(ModelNodes.withType(type));
+        return getLinkNames(withType(type));
     }
 
     @Override
-    public void defineRulesForSelf(ModelActionRole role, ModelAction<?> action) {
-        applyToSelf(role, action);
-    }
-
-    @Override
-    public void defineRulesForAllLinks(ModelActionRole role, ModelAction<?> action) {
-        applyToAllLinks(role, action);
-    }
-
-    @Override
-    public void defineRulesForAllLinksTransitive(ModelActionRole role, ModelAction<?> action) {
-        applyToAllLinksTransitive(role, action);
-    }
-
-    @Override
-    public void defineRulesForLink(ModelActionRole role, ModelAction<?> action) {
-        applyToLink(role, action);
+    public void defineRulesFor(NodePredicate predicate, ModelActionRole role, ModelAction<?> action) {
+        applyTo(predicate, role, action);
     }
 
     @Override

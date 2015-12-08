@@ -40,7 +40,6 @@ import org.gradle.language.twirl.internal.DefaultTwirlSourceSet;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
@@ -64,6 +63,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 
+import static org.gradle.model.internal.core.ModelNodes.withType;
+import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive;
+
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
  */
@@ -84,7 +86,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         project.getPluginManager().apply(ScalaLanguagePlugin.class);
         project.getExtensions().create("playConfigurations", PlayPluginConfigurations.class, project.getConfigurations(), project.getDependencies());
 
-        modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(PlayApplicationSpec.class), PlaySourceSetRules.class);
+        modelRegistry.getRoot().applyTo(allLinksTransitive(withType(PlayApplicationSpec.class)), PlaySourceSetRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
