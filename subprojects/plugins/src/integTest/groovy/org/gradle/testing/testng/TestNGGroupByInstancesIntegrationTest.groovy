@@ -83,22 +83,21 @@ public class TestNGGroupByInstancesIntegrationTest extends MultiVersionIntegrati
                 }
             }
         """
- 
+
         when: run "test"
 
         then:
         result.output.contains("""
-TestFactory[data1].beforeClass()
-TestFactory[data1].test1()
-TestFactory[data1].test2()
-TestFactory[data1].afterClass()
-""")
+            TestFactory[data1].beforeClass()
+            TestFactory[data1].test1()
+            TestFactory[data1].test2()
+            TestFactory[data1].afterClass()
+        """)
         result.output.contains("""
-TestFactory[data2].beforeClass()
-TestFactory[data2].test1()
-TestFactory[data2].test2()
-TestFactory[data2].afterClass()
-""")
+            TestFactory[data2].beforeClass()
+            TestFactory[data2].test1()
+            TestFactory[data2].test2()
+            TestFactory[data2].afterClass()
+        """)
     }
-
 }

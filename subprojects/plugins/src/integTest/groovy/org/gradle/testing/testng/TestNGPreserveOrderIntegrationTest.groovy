@@ -40,7 +40,7 @@ public class TestNGPreserveOrderIntegrationTest extends MultiVersionIntegrationS
             import org.testng.annotations.Test;
 
             public class Test1 {
-                
+
                 @BeforeClass
                 public void beforeClass() {
                     System.out.println("Test1.beforeClass()");
@@ -55,14 +55,14 @@ public class TestNGPreserveOrderIntegrationTest extends MultiVersionIntegrationS
                 public void test2() {
                     System.out.println("Test1.test2()");
                 }
-                
+
                 @AfterClass
                 public void afterClass() {
                     System.out.println("Test1.afterClass()");
                 }
             }
         """
- 
+
         file("src/test/java/Test2.java") << """
             import java.io.Serializable;
 
@@ -90,7 +90,7 @@ public class TestNGPreserveOrderIntegrationTest extends MultiVersionIntegrationS
                 public void test2() {
                     System.out.println("Test2.test2()");
                 }
-                
+
                 @AfterClass
                 public void afterClass() {
                     System.out.println("Test2.afterClass()");
@@ -102,17 +102,16 @@ public class TestNGPreserveOrderIntegrationTest extends MultiVersionIntegrationS
 
         then:
         result.output.contains("""
-Test1.beforeClass()
-Test1.test1()
-Test1.test2()
-Test1.afterClass()
-""")
+            Test1.beforeClass()
+            Test1.test1()
+            Test1.test2()
+            Test1.afterClass()
+        """)
         result.output.contains("""
-Test2.beforeClass()
-Test2.test1()
-Test2.test2()
-Test2.afterClass()
-""")
+            Test2.beforeClass()
+            Test2.test1()
+            Test2.test2()
+            Test2.afterClass()
+        """)
     }
-
 }
