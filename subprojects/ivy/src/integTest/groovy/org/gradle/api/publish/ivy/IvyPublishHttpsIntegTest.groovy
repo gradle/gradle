@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.Matchers
 import org.junit.Rule
 
 class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
@@ -82,7 +83,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-        failure.assertHasCause("javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException: PKIX path validation failed: java.security.cert.CertPathValidatorException: signature check failed")
+        failure.assertThatCause(Matchers.containsText("javax.net.ssl.SSLHandshakeException"))
     }
 
     @LeaksFileHandles
