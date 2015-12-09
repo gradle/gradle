@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree, FileTreeWithBackingFile {
+public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final File tarFile;
     private final ReadableResource resource;
     private final Chmod chmod;
@@ -96,8 +96,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
     }
 
-    @Override
-    public File getBackingFile() {
+    private File getBackingFile() {
         if (tarFile != null) {
             return tarFile;
         }
