@@ -146,6 +146,14 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     static class MissingFileSnapshot implements IncrementalFileSnapshot {
+        private static MissingFileSnapshot instance = new MissingFileSnapshot();
+
+        private MissingFileSnapshot() {
+        }
+
+        static MissingFileSnapshot getInstance() {
+            return instance;
+        }
         public boolean isUpToDate(IncrementalFileSnapshot snapshot) {
             return snapshot instanceof MissingFileSnapshot;
         }
