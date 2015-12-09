@@ -17,6 +17,8 @@ package org.gradle.internal.resource.transport.http
 
 import org.apache.http.auth.AuthScope
 import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.http.ssl.SSLContextBuilder
+import org.apache.http.ssl.SSLContexts
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.Factory
 import org.gradle.internal.authentication.AllSchemesAuthentication
@@ -24,6 +26,7 @@ import org.gradle.internal.resource.UriResource
 import spock.lang.Specification
 
 import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocketFactory
 
 public class HttpClientConfigurerTest extends Specification {
     HttpClientBuilder httpClientBuilder = HttpClientBuilder.create()
@@ -33,7 +36,9 @@ public class HttpClientConfigurerTest extends Specification {
     }
     HttpSettings httpSettings = Mock()
     HttpProxySettings proxySettings = Mock()
-    Factory<SSLContext> sslContextFactory = Mock()
+    Factory<SSLContext> sslContextFactory = Mock() {
+        create() >> SSLContexts.createDefault()
+    }
     HttpClientConfigurer configurer = new HttpClientConfigurer(httpSettings)
 
     def "configures http client with no credentials or proxy"() {
@@ -96,31 +101,5 @@ public class HttpClientConfigurerTest extends Specification {
 
         and:
         httpClientBuilder.requestFirst[0] instanceof HttpClientConfigurer.PreemptiveAuth
-    }
-
-    def "configures http client with user agent"() {
-        httpSettings.authenticationSettings >> []
-        httpSettings.proxySettings >> proxySettings
-        httpSettings.sslContextFactory >> sslContextFactory
-
-        when:
-        configurer.configure(httpClientBuilder)
-
-        then:
-        httpClientBuilder.userAgent == UriResource.userAgentString
-    }
-
-    def "configures http client with custom ssl context"() {
-        def sslContext = Mock(SSLContext)
-        httpSettings.authenticationSettings >> []
-        httpSettings.proxySettings >> proxySettings
-        httpSettings.sslContextFactory >> sslContextFactory
-        sslContextFactory.create() >> sslContext
-
-        when:
-        configurer.configure(httpClientBuilder)
-
-        then:
-        httpClientBuilder.sslcontext == sslContext
     }
 }

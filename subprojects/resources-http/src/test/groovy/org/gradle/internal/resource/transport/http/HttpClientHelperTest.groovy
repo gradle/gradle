@@ -19,6 +19,7 @@ package org.gradle.internal.resource.transport.http
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpRequestBase
+import org.apache.http.ssl.SSLContexts
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.Factory
 import org.gradle.util.SetSystemProperties
@@ -44,22 +45,13 @@ class HttpClientHelperTest extends Specification {
         e.cause.message == "ouch"
     }
 
-    def "always sets http.keepAlive system property to 'true'"() {
-        given:
-        System.setProperty("http.keepAlive", "false")
-
-        when:
-        new HttpClientHelper(httpSettings)
-
-        then:
-        System.getProperty("http.keepAlive", "true")
-    }
-
     private HttpSettings getHttpSettings() {
         return Stub(HttpSettings) {
             getCredentials() >> Stub(PasswordCredentials)
             getProxySettings() >> Stub(HttpProxySettings)
-            getSslContextFactory() >> Mock(Factory)
+            getSslContextFactory() >> Mock(Factory) {
+                create() >> SSLContexts.createDefault()
+            }
         }
     }
 }
