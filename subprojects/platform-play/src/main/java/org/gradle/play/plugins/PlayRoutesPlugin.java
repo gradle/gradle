@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.routes;
+package org.gradle.play.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.twirl;
+package org.gradle.play.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
