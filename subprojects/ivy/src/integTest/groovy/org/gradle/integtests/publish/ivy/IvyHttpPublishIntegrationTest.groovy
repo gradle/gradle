@@ -141,7 +141,7 @@ uploadArchives {
     public void reportsFailedPublishToHttpRepository() {
         given:
         server.start()
-        def repositoryPort = server.port
+        def repositoryUrl = "http://localhost:${server.port}"
 
         buildFile << """
 apply plugin: 'java'
@@ -174,8 +174,7 @@ uploadArchives {
         and:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
         failure.assertHasCause('Could not publish configuration \'archives\'')
-        failure.assertThatCause(Matchers.containsString("org.apache.http.conn.HttpHostConnectException: Connect to localhost:${repositoryPort}"))
-        failure.assertThatCause(Matchers.containsString('failed: Connection refused'))
+        failure.assertHasCause("org.apache.http.conn.HttpHostConnectException: Connection to ${repositoryUrl} refused")
     }
 
     public void usesFirstConfiguredPatternForPublication() {

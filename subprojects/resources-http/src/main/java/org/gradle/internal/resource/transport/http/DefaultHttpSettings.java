@@ -17,27 +17,19 @@ package org.gradle.internal.resource.transport.http;
 
 
 import org.gradle.authentication.Authentication;
-import org.gradle.internal.Factory;
 
-import javax.net.ssl.SSLContext;
 import java.util.Collection;
 
 public class DefaultHttpSettings implements HttpSettings {
     private final HttpProxySettings proxySettings = new JavaSystemPropertiesHttpProxySettings();
     private final Collection<Authentication> authenticationSettings;
-    private final Factory<SSLContext> sslContextFactory;
 
     public DefaultHttpSettings(Collection<Authentication> authenticationSettings) {
-        this(authenticationSettings, new DefaultSslContextFactory());
-    }
-
-    public DefaultHttpSettings(Collection<Authentication> authenticationSettings, Factory<SSLContext> sslContextFactory) {
         if (authenticationSettings == null) {
             throw new IllegalArgumentException("Authentication settings cannot be null.");
         }
 
         this.authenticationSettings = authenticationSettings;
-        this.sslContextFactory = sslContextFactory;
     }
 
     @Override
@@ -48,10 +40,5 @@ public class DefaultHttpSettings implements HttpSettings {
     @Override
     public Collection<Authentication> getAuthenticationSettings() {
         return authenticationSettings;
-    }
-
-    @Override
-    public Factory<SSLContext> getSslContextFactory() {
-        return sslContextFactory;
     }
 }

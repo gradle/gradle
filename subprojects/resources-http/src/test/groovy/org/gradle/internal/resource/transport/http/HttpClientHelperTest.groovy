@@ -15,12 +15,10 @@
  */
 
 package org.gradle.internal.resource.transport.http
-
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpRequestBase
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.internal.Factory
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -59,7 +57,6 @@ class HttpClientHelperTest extends Specification {
         return Stub(HttpSettings) {
             getCredentials() >> Stub(PasswordCredentials)
             getProxySettings() >> Stub(HttpProxySettings)
-            getSslContextFactory() >> Mock(Factory)
         }
     }
 }

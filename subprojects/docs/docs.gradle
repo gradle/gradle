@@ -81,11 +81,7 @@ dependencies {
     testCompile "org.pegdown:pegdown:1.1.0"
     testCompile libraries.jsoup
     testCompile "org.gebish:geb-spock:0.9.3"
-    testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2') {
-        exclude group: 'org.apache.httpcomponents'
-    }
-    testCompile libraries.commons_httpclient
-    testCompile 'org.apache.httpcomponents:httpmime:4.4.1'
+    testCompile 'org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2'
     testCompile project(":core")
 }
 

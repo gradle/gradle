@@ -82,7 +82,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-        failure.assertHasCause("javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException: PKIX path validation failed: java.security.cert.CertPathValidatorException: signature check failed")
+        failure.assertHasCause("javax.net.ssl.SSLPeerUnverifiedException: peer not authenticated")
     }
 
     @LeaksFileHandles
@@ -98,7 +98,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-        failure.assertHasCause("javax.net.ssl.SSLHandshakeException: Received fatal alert: certificate_unknown")
+        failure.assertHasCause("javax.net.ssl.SSLPeerUnverifiedException: peer not authenticated")
     }
 
     def expectPublication() {

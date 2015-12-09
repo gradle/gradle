@@ -196,7 +196,6 @@ credentials {
         given:
         server.start()
         def repositoryUrl = "http://localhost:${server.port}"
-        def repositoryPort = server.port
 
         buildFile << """
             apply plugin: 'java'
@@ -237,8 +236,7 @@ credentials {
         and:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
-        failure.assertThatCause(Matchers.containsString("org.apache.http.conn.HttpHostConnectException: Connect to localhost:${repositoryPort}"))
-        failure.assertThatCause(Matchers.containsString('failed: Connection refused'))
+        failure.assertHasCause("org.apache.http.conn.HttpHostConnectException: Connection to ${repositoryUrl} refused")
     }
 
     def "uses first configured pattern for publication"() {

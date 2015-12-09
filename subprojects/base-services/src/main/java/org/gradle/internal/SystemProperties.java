@@ -99,17 +99,10 @@ public class SystemProperties {
     }
 
     public File getJavaHomeDir() {
-        lock.lock();
-        File javaHomeDir;
-        try {
-            javaHomeDir = new File(System.getProperty("java.home"));
-        } finally {
-            lock.unlock();
-        }
-        return javaHomeDir;
+        return new File(System.getProperty("java.home"));
     }
 
-    private void setJavaHomeDir(File javaHomeDir) {
+    public void setJavaHomeDir(File javaHomeDir) {
         System.setProperty("java.home", javaHomeDir.getAbsolutePath());
     }
 

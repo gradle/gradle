@@ -17,35 +17,44 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.DecompressingHttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.gradle.api.UncheckedIOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 /**
  * Provides some convenience and unified logging.
  */
-public class HttpClientHelper implements Closeable {
+public class HttpClientHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientHelper.class);
-    private final CloseableHttpClient client;
+    private final HttpClient client;
     private final BasicHttpContext httpContext = new BasicHttpContext();
 
     public HttpClientHelper(HttpSettings settings) {
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setRedirectStrategy(new AlwaysRedirectRedirectStrategy());
-        new HttpClientConfigurer(settings).configure(builder);
-        this.client = builder.build();
+        alwaysUseKeepAliveConnections();
+        DefaultHttpClient client = new SystemDefaultHttpClient();
+        client.setRedirectStrategy(new AlwaysRedirectRedirectStrategy());
+        new HttpClientConfigurer(settings).configure(client);
+        this.client = new DecompressingHttpClient(client);
+    }
+
+    private void alwaysUseKeepAliveConnections() {
+        // HttpClient 4.2.2 does not use the correct default value for "http.keepAlive" system property (default is "true").
+        // HttpClient NTLM authentication fails badly when this property value is true.
+        // So we force it to be true here: effectively, we're ignoring any user-supplied value for our HttpClient configuration.
+        System.setProperty("http.keepAlive", "true");
     }
 
     public HttpResponse performRawHead(String source) {
@@ -99,7 +108,7 @@ public class HttpClientHelper implements Closeable {
 
     public HttpResponse performHttpRequest(HttpRequestBase request) throws IOException {
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
-        httpContext.removeAttribute(HttpClientContext.REDIRECT_LOCATIONS);
+        httpContext.removeAttribute(DefaultRedirectStrategy.REDIRECT_LOCATIONS);
         LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), request.getURI());
         return client.execute(request, httpContext);
     }
@@ -116,12 +125,5 @@ public class HttpClientHelper implements Closeable {
         }
 
         return response;
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (client != null) {
-            client.close();
-        }
     }
 }
