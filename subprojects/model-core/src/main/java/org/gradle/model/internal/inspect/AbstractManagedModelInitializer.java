@@ -117,9 +117,7 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
     private <P> void validateProperty(ModelSchema<P> propertySchema, ModelProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry) {
         if (propertySchema instanceof ManagedImplSchema) {
             if (!property.isWritable()) {
-                if (propertySchema instanceof CollectionSchema
-                        && !(propertySchema instanceof ScalarCollectionSchema)
-                        && !(propertySchema instanceof SpecializedMapSchema)) {
+                if (isCollectionOfManagedTypes(propertySchema)) {
                     CollectionSchema<P, ?> propertyCollectionsSchema = (CollectionSchema<P, ?>) propertySchema;
                     ModelType<?> elementType = propertyCollectionsSchema.getElementType();
                     nodeInitializerRegistry.ensureHasInitializer(NodeInitializerContext.forProperty(elementType, property, schema.getType()));
@@ -131,6 +129,11 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
         } else if (!shouldHaveANodeInitializer(property, propertySchema) && !property.isWritable() && !isNamePropertyOfANamedType(property)) {
             throw new ReadonlyImmutableManagedPropertyException(schema.getType(), property.getName(), property.getType());
         }
+    }
+
+    private <P> boolean isCollectionOfManagedTypes(ModelSchema<P> propertySchema) {
+        return propertySchema instanceof CollectionSchema
+                && !(propertySchema instanceof ScalarCollectionSchema);
     }
 
     private <P> boolean isNamePropertyOfANamedType(ModelProperty<P> property) {
