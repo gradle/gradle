@@ -17,11 +17,15 @@ package org.gradle.internal.resource.transport.http;
 
 
 import org.gradle.authentication.Authentication;
+import org.gradle.internal.Factory;
 
+import javax.net.ssl.SSLContext;
 import java.util.Collection;
 
 public interface HttpSettings {
     HttpProxySettings getProxySettings();
 
     Collection<Authentication> getAuthenticationSettings();
+
+    Factory<SSLContext> getSslContextFactory();
 }

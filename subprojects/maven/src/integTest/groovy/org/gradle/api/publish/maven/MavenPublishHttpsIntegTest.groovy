@@ -81,7 +81,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
         failure.assertHasCause("Failed to deploy artifacts: Could not transfer artifact org.gradle:publish:jar:2 from/to remote (https://localhost:${server.sslPort}/repo): Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
         // TODO:DAZ Get this exception into the cause
-        failure.error.contains("peer not authenticated")
+        failure.error.contains("javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException: PKIX path validation failed: java.security.cert.CertPathValidatorException: signature check failed")
     }
 
     def "decent error message when server can't authenticate client"() {
@@ -97,7 +97,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         then:
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
         failure.assertHasCause("Failed to deploy artifacts: Could not transfer artifact org.gradle:publish:jar:2 from/to remote (https://localhost:${server.sslPort}/repo): Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
-        failure.error.contains("peer not authenticated")
+        failure.error.contains("javax.net.ssl.SSLHandshakeException: Received fatal alert: certificate_unknown")
     }
 
     def expectPublication() {
