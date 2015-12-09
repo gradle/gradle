@@ -22,12 +22,15 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaJvmAssembly;
+import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.ScalaJvmAssembly;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
@@ -114,6 +117,14 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     @Override
     public Map<LanguageSourceSet, ScalaLanguageSourceSet> getGeneratedScala() {
         return generatedScala;
+    }
+
+    @Override
+    public void addGeneratedScala(LanguageSourceSet input, FileResolver fileResolver) {
+        String lssName = String.format("%sScalaSources", input.getName());
+        // TODO:DAZ To get rid of this, we need a `FunctionalSourceSet` instance here, and that's surprisingly difficult to get.
+        ScalaLanguageSourceSet generatedScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, lssName, getName(), fileResolver);
+        generatedScala.put(input, generatedScalaSources);
     }
 
     @Override

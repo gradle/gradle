@@ -17,7 +17,9 @@
 package org.gradle.play.internal;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.jvm.internal.WithJvmAssembly;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.scala.internal.ScalaJvmAssembly;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.play.PlayApplicationBinarySpec;
@@ -42,4 +44,6 @@ public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinary
     void setClasspath(FileCollection applicationClasspath);
 
     ScalaJvmAssembly getAssembly();
+
+    void addGeneratedScala(LanguageSourceSet input, FileResolver fileResolver);
 }
