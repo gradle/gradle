@@ -17,16 +17,13 @@ package org.gradle.internal.resource.transport.http
 
 import org.apache.http.auth.AuthScope
 import org.apache.http.impl.client.HttpClientBuilder
-import org.apache.http.ssl.SSLContextBuilder
 import org.apache.http.ssl.SSLContexts
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.Factory
 import org.gradle.internal.authentication.AllSchemesAuthentication
-import org.gradle.internal.resource.UriResource
 import spock.lang.Specification
 
 import javax.net.ssl.SSLContext
-import javax.net.ssl.SSLSocketFactory
 
 public class HttpClientConfigurerTest extends Specification {
     HttpClientBuilder httpClientBuilder = HttpClientBuilder.create()
