@@ -20,7 +20,6 @@ import org.apache.http.HttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpRequestBase
 import org.apache.http.ssl.SSLContexts
-import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.Factory
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -47,8 +46,8 @@ class HttpClientHelperTest extends Specification {
 
     private HttpSettings getHttpSettings() {
         return Stub(HttpSettings) {
-            getCredentials() >> Stub(PasswordCredentials)
-            getProxySettings() >> Stub(HttpProxySettings)
+            getProxySettings() >> Mock(HttpProxySettings)
+            getSecureProxySettings() >> Mock(HttpProxySettings)
             getSslContextFactory() >> Mock(Factory) {
                 create() >> SSLContexts.createDefault()
             }

@@ -31,8 +31,12 @@ public class HttpClientConfigurerTest extends Specification {
     AllSchemesAuthentication authentication = Mock() {
         getCredentials() >> credentials
     }
-    HttpSettings httpSettings = Mock()
     HttpProxySettings proxySettings = Mock()
+    HttpProxySettings secureProxySettings = Mock()
+    HttpSettings httpSettings = Mock() {
+        getProxySettings() >> proxySettings
+        getSecureProxySettings() >> secureProxySettings
+    }
     Factory<SSLContext> sslContextFactory = Mock() {
         create() >> SSLContexts.createDefault()
     }
@@ -40,7 +44,6 @@ public class HttpClientConfigurerTest extends Specification {
 
     def "configures http client with no credentials or proxy"() {
         httpSettings.authenticationSettings >> []
-        httpSettings.proxySettings >> proxySettings
         httpSettings.sslContextFactory >> sslContextFactory
 
         when:
@@ -52,7 +55,6 @@ public class HttpClientConfigurerTest extends Specification {
 
     def "configures http client with proxy credentials"() {
         httpSettings.authenticationSettings >> []
-        httpSettings.proxySettings >> proxySettings
         httpSettings.sslContextFactory >> sslContextFactory
         proxySettings.proxy >> new HttpProxySettings.HttpProxy("host", 1111, "domain/proxyUser", "proxyPass")
 
@@ -77,7 +79,6 @@ public class HttpClientConfigurerTest extends Specification {
         httpSettings.authenticationSettings >> [authentication]
         credentials.username >> "domain/user"
         credentials.password >> "pass"
-        httpSettings.proxySettings >> proxySettings
         httpSettings.sslContextFactory >> sslContextFactory
 
         when:
