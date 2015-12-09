@@ -17,9 +17,11 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.internal.Cast;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -107,18 +109,26 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
         return ImmutableSet.copyOf(registrations.keySet());
     }
 
-    private String getSupportedTypeNames() {
-        List<String> names = registeredTypeNames();
-        Collections.sort(names);
-        return names.isEmpty() ? "(None)" : Joiner.on(", ").join(names);
-    }
-
-    private List<String> registeredTypeNames() {
+    private String getConstructibleTypeNames() {
+        Set<ModelType<? extends T>> constructibleTypes = getConstructibleTypes();
+        if (constructibleTypes.isEmpty()) {
+            return "(None)";
+        }
         List<String> names = Lists.newArrayList();
-        for (ModelType<?> type : registrations.keySet()) {
+        for (ModelType<?> type : constructibleTypes) {
             names.add(type.toString());
         }
-        return names;
+        Collections.sort(names);
+        return Joiner.on(", ").join(names);
+    }
+
+    private Set<ModelType<? extends T>> getConstructibleTypes() {
+        return Sets.filter(getSupportedTypes(), new Predicate<ModelType<? extends T>>() {
+            @Override
+            public boolean apply(ModelType<? extends T> registeredType) {
+                return !baseInterface.equals(registeredType);
+            }
+        });
     }
 
     private <S extends T> TypeRegistration<S> getRegistration(ModelType<S> type) {
@@ -129,7 +139,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
         TypeRegistration<S> registration = getRegistration(type);
         if (registration == null) {
             throw new IllegalArgumentException(
-                String.format("Cannot create a '%s' because this type is not known to %s. Known types are: %s", type, displayName, getSupportedTypeNames()));
+                String.format("Cannot create a '%s' because this type is not known to %s. Known types are: %s", type, displayName, getConstructibleTypeNames()));
         }
         if (registration.implementationRegistration == null) {
             throw new IllegalArgumentException(
@@ -147,7 +157,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
     @Override
     public String toString() {
-        return "[" + getSupportedTypeNames() + "]";
+        return "[" + getConstructibleTypeNames() + "]";
     }
 
     private static boolean isManaged(ModelType<?> type) {
