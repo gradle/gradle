@@ -29,6 +29,7 @@ import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
+import org.gradle.language.base.internal.LanguageSourceSetFactory
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
 import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
 import spock.lang.Unroll
@@ -90,7 +91,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         then:
         1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->
             assert role == ModelActionRole.Defaults
-            assert action.subject == ModelReference.of(LanguageRegistry)
+            assert action.subject == ModelReference.of(LanguageSourceSetFactory)
         }
         0 * _
     }

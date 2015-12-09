@@ -30,9 +30,6 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
-import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
-import org.gradle.language.base.internal.registry.LanguageRegistration;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -120,17 +117,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void registerSourceSetTypes(LanguageSourceSetFactory languageSourceSetFactory, LanguageRegistry languageRegistry) {
-            for (LanguageRegistration<?> languageRegistration : languageRegistry) {
-                register(languageSourceSetFactory, languageRegistration);
-            }
-        }
-
-        private <T extends LanguageSourceSet> void register(LanguageSourceSetFactory lssFactory, LanguageRegistration<T> languageRegistration) {
-            lssFactory.register(languageRegistration.getSourceSetType(), languageRegistration.getInternalViews(), languageRegistration.getSourceSetImplementationType(), languageRegistration.getRuleDescriptor());
-        }
-
-        @Mutate
         void registerSourceSetNodeInitializer(NodeInitializerRegistry nodeInitializerRegistry, LanguageSourceSetFactory languageSourceSetFactory) {
             nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<LanguageSourceSet>(languageSourceSetFactory));
         }
@@ -138,11 +124,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
         @Model
         ProjectSourceSet sources(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(Instantiator.class).newInstance(DefaultProjectSourceSet.class);
-        }
-
-        @Hidden @Model
-        LanguageRegistry languages() {
-            return new DefaultLanguageRegistry();
         }
 
         @Validate

@@ -21,8 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.internal.registry.LanguageRegistration;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.Defaults;
@@ -41,8 +41,8 @@ import static com.google.common.base.Strings.emptyToNull;
 @SuppressWarnings("UnusedDeclaration")
 public class ComponentRules extends RuleSource {
     @Defaults
-    void initializeSourceSets(ComponentSpecInternal component, LanguageRegistry languageRegistry, LanguageTransformContainer languageTransforms) {
-        for (LanguageRegistration<?> languageRegistration : languageRegistry) {
+    void initializeSourceSets(ComponentSpecInternal component, LanguageSourceSetFactory languageSourceSetFactory, LanguageTransformContainer languageTransforms) {
+        for (LanguageRegistration<?> languageRegistration : languageSourceSetFactory.getRegistrations()) {
             ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms).execute(component);
         }
     }

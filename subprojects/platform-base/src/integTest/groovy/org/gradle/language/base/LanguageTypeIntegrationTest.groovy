@@ -37,15 +37,16 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 """
     }
 
-    def "registers language in languageRegistry"(){
+    def "registers language in languageSourceSetFactory"(){
         given:
         buildFile << '''
 model {
     tasks {
         create("printLanguages") {
             it.doLast {
-                 def languages = $.languages*.name.sort().join(", ")
-                 println "registered languages: $languages"
+                def languageSourceSetFactory = $.languageSourceSetFactory
+                def languages = languageSourceSetFactory.registrations*.name.sort().join(", ")
+                println "registered languages: $languages"
             }
         }
     }

@@ -17,7 +17,6 @@
 package org.gradle.language.base.internal.model;
 
 import org.gradle.api.Action;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
@@ -33,7 +32,7 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 @SuppressWarnings("unused")
 public class ComponentBinaryRules extends RuleSource {
     @Defaults
-    void initializeBinarySourceSets(final ComponentSpec component, final LanguageRegistry languageRegistry) {
+    void initializeBinarySourceSets(final ComponentSpec component) {
         component.getBinaries().withType(BinarySpecInternal.class).beforeEach(new Action<BinarySpecInternal>() {
             @Override
             public void execute(BinarySpecInternal binary) {

@@ -21,8 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
-import org.gradle.language.base.internal.registry.NamedLanguageRegistration;
+import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.*;
@@ -57,11 +56,11 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         if(StringUtils.isEmpty(languageName)) {
             throw new InvalidModelException(String.format("Language type '%s' cannot be registered without a language name.", publicModelType));
         }
-        ModelAction<LanguageRegistry> regAction = NoInputsModelAction.of(ModelReference.of(LanguageRegistry.class), ruleDefinition.getDescriptor(), new Action<LanguageRegistry>() {
+        ModelAction<LanguageSourceSetFactory> regAction = NoInputsModelAction.of(ModelReference.of(LanguageSourceSetFactory.class), ruleDefinition.getDescriptor(), new Action<LanguageSourceSetFactory>() {
             @Override
-            public void execute(LanguageRegistry languageRegistry) {
+            public void execute(LanguageSourceSetFactory sourceSetFactory) {
                 ModelType<? extends P> castedImplModelType = Cast.uncheckedCast(implModelType);
-                languageRegistry.add(new NamedLanguageRegistration<P>(languageName, publicModelType, builder.getInternalViews(), castedImplModelType, ruleDefinition.getDescriptor()));
+                sourceSetFactory.register(languageName, publicModelType, builder.getInternalViews(), castedImplModelType, ruleDefinition.getDescriptor());
             }
         });
         return new ExtractedModelAction(ModelActionRole.Defaults, ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class), regAction);

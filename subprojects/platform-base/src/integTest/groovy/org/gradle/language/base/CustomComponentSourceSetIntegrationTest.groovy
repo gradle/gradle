@@ -246,7 +246,6 @@ model {
         fails "model"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: LanguageBasePlugin.Rules#registerSourceSetTypes")
         failure.assertHasCause("No implementation type registered for 'HaxeSourceSet'")
     }
 }

@@ -18,6 +18,9 @@ package org.gradle.language.base.internal;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
+import org.gradle.language.base.internal.registry.NamedLanguageRegistration;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.model.internal.core.InstanceFactory;
@@ -31,6 +34,7 @@ import java.util.Set;
 
 public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet> {
 
+    private final LanguageRegistry languageRegistry = new DefaultLanguageRegistry();
     private final FileResolver fileResolver;
 
     public LanguageSourceSetFactory(String displayName, FileResolver fileResolver) {
@@ -38,7 +42,7 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
         this.fileResolver = fileResolver;
     }
 
-    public <T extends LanguageSourceSet, V extends T> void register(ModelType<T> type, Set<Class<?>> internalViews, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
+    public <T extends LanguageSourceSet, V extends T> void register(String languageName, ModelType<T> type, Set<Class<?>> internalViews, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
         InstanceFactory.TypeRegistrationBuilder<T> registration = register(type, ruleDescriptor);
 
         registration.withImplementation(implementationType, new InstanceFactory.ImplementationFactory<T>() {
@@ -50,6 +54,11 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
         for (Class<?> internalView : internalViews) {
             registration.withInternalView(ModelType.of(internalView));
         }
+        languageRegistry.add(new NamedLanguageRegistration<T>(languageName, type));
+    }
+
+    public LanguageRegistry getRegistrations() {
+        return languageRegistry;
     }
 
     private String determineParentName(MutableModelNode modelNode) {

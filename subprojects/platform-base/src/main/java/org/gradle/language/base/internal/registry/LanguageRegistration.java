@@ -18,10 +18,8 @@ package org.gradle.language.base.internal.registry;
 
 
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Set;
 
 /**
  * A registered language.
@@ -36,19 +34,4 @@ public interface LanguageRegistration<U extends LanguageSourceSet> {
      * The interface type of the language source set.
      */
     ModelType<U> getSourceSetType();
-
-    /**
-     * The internal views of the language source set.
-     */
-    Set<Class<?>> getInternalViews();
-
-    /**
-     * The implementation type of the language source set.
-     */
-    ModelType<? extends U> getSourceSetImplementationType();
-
-    /**
-     * The rule that registered this type.
-     */
-    ModelRuleDescriptor getRuleDescriptor();
 }
