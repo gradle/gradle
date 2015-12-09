@@ -17,26 +17,32 @@
 package org.gradle.play.internal.routes;
 
 import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.registry.LanguageTransform;
+import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.routes.RoutesSourceSet;
 import org.gradle.language.routes.internal.DefaultRoutesSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
-import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.platform.base.BinaryTasks;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.internal.ScalaSourceCode;
 import org.gradle.play.tasks.RoutesCompile;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Plugin for compiling Play routes sources in a Play application.
@@ -64,26 +70,58 @@ public class PlayRoutesPlugin extends RuleSource {
         });
     }
 
-    @BinaryTasks
-    void createRoutesCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary, @Path("buildDir") final File buildDir) {
-        for (final RoutesSourceSet routesSourceSet : binary.getInputs().withType(RoutesSourceSet.class)) {
-            final String routesCompileTaskName = binary.getTasks().taskName("compile", routesSourceSet.getName());
-            final File routesCompilerOutputDirectory = binary.getNamingScheme().getOutputDirectory(buildDir, routesCompileTaskName);
+    @Mutate
+    void registerLanguageTransform(LanguageTransformContainer languages) {
+        languages.add(new Routes());
+    }
 
-            tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
-                public void execute(RoutesCompile routesCompile) {
+    private static class Routes implements LanguageTransform<RoutesSourceSet, ScalaSourceCode> {
+        public Class<RoutesSourceSet> getSourceSetType() {
+            return RoutesSourceSet.class;
+        }
+
+        public Class<ScalaSourceCode> getOutputType() {
+            return ScalaSourceCode.class;
+        }
+
+        public Map<String, Class<?>> getBinaryTools() {
+            return Collections.emptyMap();
+        }
+
+        public SourceTransformTaskConfig getTransformTask() {
+            return new SourceTransformTaskConfig() {
+                public String getTaskPrefix() {
+                    return "compile";
+                }
+
+                public Class<? extends DefaultTask> getTaskType() {
+                    return RoutesCompile.class;
+                }
+
+                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+                    PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
+                    RoutesSourceSet routesSourceSet = (RoutesSourceSet) sourceSet;
+                    RoutesCompile routesCompile = (RoutesCompile) task;
+                    ScalaLanguageSourceSet routesScalaSources = binary.getGeneratedScala().get(routesSourceSet);
+                    File generatedSourceDir = binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(), "src");
+                    File routesCompileOutputDirectory = new File(generatedSourceDir, routesScalaSources.getName());
+
                     routesCompile.setDescription("Generates routes for the '" + routesSourceSet.getName() + "' source set.");
                     routesCompile.setPlatform(binary.getTargetPlatform());
                     routesCompile.setAdditionalImports(new ArrayList<String>());
                     routesCompile.setSource(routesSourceSet.getSource());
-                    routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
+                    routesCompile.setOutputDirectory(routesCompileOutputDirectory);
                     routesCompile.setInjectedRoutesGenerator(binary.getApplication().getInjectedRoutesGenerator());
 
-                    ScalaLanguageSourceSet routesScalaSources = binary.getGeneratedScala().get(routesSourceSet);
-                    routesScalaSources.getSource().srcDir(routesCompilerOutputDirectory);
+                    routesScalaSources.getSource().srcDir(routesCompileOutputDirectory);
                     routesScalaSources.builtBy(routesCompile);
                 }
-            });
+            };
+        }
+
+        public boolean applyToBinary(BinarySpec binary) {
+            return binary instanceof PlayApplicationBinarySpecInternal;
         }
     }
+    
 }

@@ -282,7 +282,7 @@
             </tr>
             <tr>
                 <td>
-                    <literal>compilePlayBinaryTwirlTemplates</literal>
+                    <literal>compilePlayBinaryPlayTwirlTemplates</literal>
                 </td>
                 <td>
                     Twirl HTML templates
@@ -292,7 +292,7 @@
             </tr>
             <tr>
                 <td>
-                    <literal>compilePlayBinaryRoutes</literal>
+                    <literal>compilePlayBinaryPlayRoutes</literal>
                 </td>
                 <td>
                     Play Route files

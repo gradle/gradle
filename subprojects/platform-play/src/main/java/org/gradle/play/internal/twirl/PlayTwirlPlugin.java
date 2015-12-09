@@ -17,25 +17,31 @@
 package org.gradle.play.internal.twirl;
 
 import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.registry.LanguageTransform;
+import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.twirl.TwirlSourceSet;
 import org.gradle.language.twirl.internal.DefaultTwirlSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
-import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.platform.base.BinaryTasks;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.internal.ScalaSourceCode;
 import org.gradle.play.tasks.TwirlCompile;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Plugin for compiling Twirl sources in a Play application.
@@ -63,24 +69,56 @@ public class PlayTwirlPlugin extends RuleSource {
         });
     }
 
-    @BinaryTasks
-    void createTwirlCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary, @Path("buildDir") final File buildDir) {
-        for (final TwirlSourceSet twirlSourceSet : binary.getInputs().withType(TwirlSourceSet.class)) {
-            final String twirlCompileTaskName = binary.getTasks().taskName("compile", twirlSourceSet.getName());
-            final File twirlCompileOutputDirectory = binary.getNamingScheme().getOutputDirectory(buildDir, twirlCompileTaskName);
+    @Mutate
+    void registerLanguageTransform(LanguageTransformContainer languages) {
+        languages.add(new Twirl());
+    }
 
-            tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
-                public void execute(TwirlCompile twirlCompile) {
+    private static class Twirl implements LanguageTransform<TwirlSourceSet, ScalaSourceCode> {
+        public Class<TwirlSourceSet> getSourceSetType() {
+            return TwirlSourceSet.class;
+        }
+
+        public Class<ScalaSourceCode> getOutputType() {
+            return ScalaSourceCode.class;
+        }
+
+        public Map<String, Class<?>> getBinaryTools() {
+            return Collections.emptyMap();
+        }
+
+        public SourceTransformTaskConfig getTransformTask() {
+            return new SourceTransformTaskConfig() {
+                public String getTaskPrefix() {
+                    return "compile";
+                }
+
+                public Class<? extends DefaultTask> getTaskType() {
+                    return TwirlCompile.class;
+                }
+
+                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+                    PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
+                    TwirlSourceSet twirlSourceSet = (TwirlSourceSet) sourceSet;
+                    TwirlCompile twirlCompile = (TwirlCompile) task;
+                    ScalaLanguageSourceSet twirlScalaSources = binary.getGeneratedScala().get(twirlSourceSet);
+
+                    File generatedSourceDir = binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(), "src");
+                    File twirlCompileOutputDirectory = new File(generatedSourceDir, twirlScalaSources.getName());
+
                     twirlCompile.setDescription("Compiles twirl templates for the '" + twirlSourceSet.getName() + "' source set.");
                     twirlCompile.setPlatform(binary.getTargetPlatform());
                     twirlCompile.setSource(twirlSourceSet.getSource());
                     twirlCompile.setOutputDirectory(twirlCompileOutputDirectory);
 
-                    ScalaLanguageSourceSet twirlScalaSources = binary.getGeneratedScala().get(twirlSourceSet);
                     twirlScalaSources.getSource().srcDir(twirlCompileOutputDirectory);
                     twirlScalaSources.builtBy(twirlCompile);
                 }
-            });
+            };
+        }
+
+        public boolean applyToBinary(BinarySpec binary) {
+            return binary instanceof PlayApplicationBinarySpecInternal;
         }
     }
 }

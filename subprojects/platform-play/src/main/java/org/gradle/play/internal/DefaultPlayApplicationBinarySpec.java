@@ -124,6 +124,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         String lssName = String.format("%sScalaSources", input.getName());
         // TODO:DAZ To get rid of this, we need a `FunctionalSourceSet` instance here, and that's surprisingly difficult to get.
         ScalaLanguageSourceSet generatedScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, lssName, getName(), fileResolver);
+        generatedScalaSources.builtBy();
         generatedScala.put(input, generatedScalaSources);
     }
 

@@ -26,8 +26,8 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryRoutes",
-                ":compilePlayBinaryTwirlTemplates",
+                ":compilePlayBinaryPlayRoutes",
+                ":compilePlayBinaryPlayTwirlTemplates",
                 ":compilePlayBinaryScala",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
@@ -41,7 +41,7 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
         succeeds("createPlayBinaryJar")
 
         then:
-        skipped(":createPlayBinaryJar", ":compilePlayBinaryTwirlTemplates")
+        skipped(":createPlayBinaryJar", ":compilePlayBinaryPlayTwirlTemplates")
     }
 
     def "can run play app"() {
