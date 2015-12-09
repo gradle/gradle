@@ -16,9 +16,11 @@
 
 package org.gradle.language.base.internal.registry;
 
+import org.gradle.api.DomainObjectSet;
+
 /**
  * A registry of languages.
  */
-public interface LanguageRegistry extends Iterable<LanguageRegistration<?>> {
-    void add(LanguageRegistration<?> languageRegistration);
+public interface LanguageRegistry extends DomainObjectSet<LanguageRegistration<?>> {
+    String getSupportedTypeNames();
 }
