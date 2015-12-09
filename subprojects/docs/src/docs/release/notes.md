@@ -37,6 +37,19 @@ Declaring a test suite can be done like this:
 
 Then the suite can be executed running the `:mySuiteTest` task.
 
+### Controlling test executing order in TestNG
+
+This version of Gradle adds support for TestNG preserveOrder and groupByInstances options to control test order execution. More information about these features can be found in the [userguide](userguide/java_plugin.html#test_execution_order).
+
+New options can be enabled in the useTestNG block:
+
+    test {
+        useTestNG {
+            preserveOrder true
+            groupByInstances true
+        }
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
