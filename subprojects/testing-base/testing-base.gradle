@@ -16,19 +16,10 @@
 
 dependencies {
     compile project(':core')
-    compile project(':platformJvm')
-    compile project(':languageJava')
-    compile project(':testingBase')
-
-    compile libraries.junit
-    compile 'org.testng:testng:6.3.1'
-
+    compile project(':reporting')
     testCompile libraries.groovy
-
 }
 
 useTestFixtures()
 
-// TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
-//useClassycle()
-//strictCompile()
+
