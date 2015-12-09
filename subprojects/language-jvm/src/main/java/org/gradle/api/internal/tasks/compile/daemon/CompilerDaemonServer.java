@@ -16,26 +16,36 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import org.gradle.api.Action;
-import org.gradle.language.base.internal.compile.CompileSpec;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.UncheckedException;
+import org.gradle.language.base.internal.compile.CompileSpec;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.internal.WorkerProcessContext;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 
 
 public class CompilerDaemonServer implements Action<WorkerProcessContext>, CompilerDaemonServerProtocol, Serializable {
     private static final Logger LOGGER = Logging.getLogger(CompilerDaemonServer.class);
-    
+
     private volatile CompilerDaemonClientProtocol client;
     private volatile CountDownLatch stop;
-    
+    private final boolean disableUrlCaching;
+
+    public CompilerDaemonServer(boolean disableUrlCaching) {
+        this.disableUrlCaching = disableUrlCaching;
+    }
+
     public void execute(WorkerProcessContext context) {
         stop = new CountDownLatch(1);
+        if (disableUrlCaching) {
+            disableUrlCaching();
+        }
         client = context.getServerConnection().addOutgoing(CompilerDaemonClientProtocol.class);
         context.getServerConnection().addIncoming(CompilerDaemonServerProtocol.class, this);
         context.getServerConnection().connect();
@@ -45,6 +55,17 @@ public class CompilerDaemonServer implements Action<WorkerProcessContext>, Compi
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
+    }
+
+    // disable URL caching which keeps Jar files opens
+    // Modifying open Jar files might cause JVM crashes on Unixes (jar/zip files are mmapped by default)
+    // On Windows, open Jar files keep file locks that can prevent modifications
+    private static void disableUrlCaching() {
+        try {
+            new URL("jar:file://valid_jar_url_syntax.jar!/").openConnection().setDefaultUseCaches(false);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public <T extends CompileSpec> void execute(Compiler<T> compiler, T spec) {
