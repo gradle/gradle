@@ -30,7 +30,6 @@ import java.util.Collections;
 /**
  * Should be used along with {@code PolymorphicModelMapProjection}.
  */
-// TODO:DAZ Removed `P extends ModelMap<E>` : find a generics expert to help me put it back
 public class SpecializedModelMapProjection<P, E> implements ModelProjection {
     private static final ModelType<ManagedInstance> MANAGED_INSTANCE_TYPE = ModelType.of(ManagedInstance.class);
 
