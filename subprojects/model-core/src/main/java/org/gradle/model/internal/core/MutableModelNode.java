@@ -28,6 +28,16 @@ public interface MutableModelNode extends ModelNode {
     boolean canBeViewedAs(ModelType<?> type);
 
     /**
+     * @see ModelPromise#getReadableTypeDescriptions(MutableModelNode)
+     */
+    Iterable<String> getReadableTypeDescriptions();
+
+    /**
+     * @see ModelPromise#getWritableTypeDescriptions(MutableModelNode)
+     */
+    Iterable<String> getWritableTypeDescriptions();
+
+    /**
      * Creates a mutable view over this node's value.
      *
      * Callers should try to {@link ModelView#close()} the returned view when it is done with, allowing any internal cleanup to occur.

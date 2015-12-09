@@ -16,7 +16,6 @@
 
 package org.gradle.model
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.internal.ClosureBackedAction
@@ -231,21 +230,41 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
         def map = realizeAsModelMap()
 
         expect:
-        map.withType(itemClass)*.name == ["item", "specialItem"]
-        map.withType(itemClass).size() == 2
-        !map.withType(itemClass).isEmpty()
+        with (map.withType(itemClass)) {
+            it*.name == ["item", "specialItem"]
+            it.keySet() as List == ["item", "specialItem"]
+            it.size() == 2
+            !it.isEmpty()
+            itemClass.isInstance it.get("item")
+            specialItemClass.isInstance it.get("specialItem")
+        }
 
-        map.withType(specialItemClass).withType(Named)*.name == ["specialItem"]
-        map.withType(specialItemClass).withType(Named).size() == 1
-        !map.withType(specialItemClass).withType(Named).isEmpty()
+        with (map.withType(specialItemClass).withType(Named)) {
+            it*.name == ["specialItem"]
+            it.keySet() as List == ["specialItem"]
+            it.size() == 1
+            !it.isEmpty()
+            it.get("item") == null
+            specialItemClass.isInstance it.get("specialItem")
+        }
 
-        map.withType(specialItemClass).withType(itemClass)*.name == ["specialItem"]
-        map.withType(specialItemClass).withType(itemClass).size() == 1
-        !map.withType(specialItemClass).withType(itemClass).isEmpty()
+        with (map.withType(specialItemClass).withType(itemClass)) {
+            it*.name == ["specialItem"]
+            it.keySet() as List == ["specialItem"]
+            it.size() == 1
+            !it.isEmpty()
+            it.get("item") == null
+            specialItemClass.isInstance it.get("specialItem")
+        }
 
-        map.withType(String).withType(itemClass)*.name == []
-        map.withType(String).withType(itemClass).size() == 0
-        map.withType(String).withType(itemClass).isEmpty()
+        with (map.withType(String).withType(itemClass)) {
+            it*.name == []
+            it.keySet().isEmpty()
+            it.size() == 0
+            it.isEmpty()
+            it.get("item") == null
+            it.get("specialItem") == null
+        }
     }
 
     def "all(Action) respects chained filtering"() {
@@ -310,7 +329,19 @@ This element was created by testrule > create(item) and can be mutated as the fo
   - $itemClass.name (or assignment compatible type thereof)"""
     }
 
-    @NotYetImplemented
+    def "named(String, Action) fails when named element requested in chain filtered collection with incompatible type"() {
+        when:
+        accessedBy { map, action -> map.withType(specialItemClass).withType(itemClass).named("item", action) }
+
+        then:
+        def ex = thrown ModelRuleExecutionException
+        ex.cause instanceof InvalidModelRuleException
+        ex.cause.cause instanceof ModelRuleBindingException
+        normaliseLineSeparators(ex.cause.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
+This element was created by testrule > create(item) and can be mutated as the following types:
+  - $itemClass.name (or assignment compatible type thereof)"""
+    }
+
     def "named(String, DeferredModelAction) fails when named element requested in filtered collection with incompatible type"() {
         when:
         accessedByDeferred() { map, action -> ((NodeBackedModelMap) map.withType(specialItemClass)).named("item", action) }
@@ -319,6 +350,19 @@ This element was created by testrule > create(item) and can be mutated as the fo
         def ex = thrown InvalidModelRuleException
         ex.cause instanceof ModelRuleBindingException
         normaliseLineSeparators(ex.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
+This element was created by testrule > create(item) and can be mutated as the following types:
+  - $itemClass.name (or assignment compatible type thereof)"""
+    }
+
+    def "named(String, DeferredModelAction) fails when named element requested in chain filtered collection with incompatible type"() {
+        when:
+        accessedByDeferred() { map, action -> ((NodeBackedModelMap) map.withType(specialItemClass).withType(itemClass)).named("item", action) }
+
+        then:
+        def ex = thrown ModelRuleExecutionException
+        ex.cause instanceof InvalidModelRuleException
+        ex.cause.cause instanceof ModelRuleBindingException
+        normaliseLineSeparators(ex.cause.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
 This element was created by testrule > create(item) and can be mutated as the following types:
   - $itemClass.name (or assignment compatible type thereof)"""
     }

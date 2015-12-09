@@ -24,10 +24,13 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
+import org.gradle.model.InvalidModelRuleException;
 import org.gradle.model.ModelMap;
+import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
+import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.*;
@@ -43,6 +46,9 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         public boolean apply(MutableModelNode node) {
             return true;
         }
+
+        @Override
+        public <S> void validateCanBindAction(MutableModelNode node, ModelAction<S> action) {}
     };
 
     private final ModelType<T> elementType;
@@ -346,7 +352,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append("named(%s)", name);
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.applyToLink(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
+        modelNode.applyToLink(ModelActionRole.Mutate, new FilteringActionWrapper<T>(elementFilter, NoInputsModelAction.of(subject, descriptor, configAction)));
     }
 
     @Override
@@ -358,8 +364,8 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     // Called from transformed DSL rules
     public void named(String name, final DeferredModelAction action) {
         viewState.assertCanMutate();
-        ModelReference<Object> subject = ModelReference.of(modelNode.getPath().child(name));
-        modelNode.applyToLink(ModelActionRole.Initialize, new DeferredActionWrapper<Object>(subject, ModelActionRole.Mutate, action));
+        ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
+        modelNode.applyToLink(ModelActionRole.Initialize, new FilteringActionWrapper<T>(elementFilter, new DeferredActionWrapper<T>(subject, ModelActionRole.Mutate, action)));
     }
 
     @Override
@@ -470,6 +476,8 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
                 return new ChainedElementFilter(this, elementType);
             }
         }
+
+        public abstract <S> void validateCanBindAction(MutableModelNode node, ModelAction<S> action);
     }
 
     private static class ChainedElementFilter extends ElementFilter {
@@ -484,6 +492,17 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         public boolean apply(MutableModelNode node) {
             node.ensureAtLeast(ModelNode.State.Discovered);
             return node.canBeViewedAs(elementType) && parent.apply(node);
+        }
+
+        @Override
+        public <S> void validateCanBindAction(MutableModelNode node, ModelAction<S> action) {
+            node.ensureAtLeast(ModelNode.State.Discovered);
+            if (!node.canBeViewedAs(elementType)) {
+                throw new InvalidModelRuleException(action.getDescriptor(), new ModelRuleBindingException(
+                    IncompatibleTypeReferenceReporter.of(node, elementType, action.getSubject().getDescription(), true).asString()
+                ));
+            }
+            parent.validateCanBindAction(node, action);
         }
     }
 
@@ -500,6 +519,24 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         @Override
         public void execute(MutableModelNode node, List<ModelView<?>> inputs) {
             action.execute(node, role);
+        }
+    }
+
+    private static class FilteringActionWrapper<T> extends AbstractModelAction<T> {
+
+        private final ElementFilter elementFilter;
+        private final ModelAction<T> delegate;
+
+        public FilteringActionWrapper(ElementFilter elementFilter, ModelAction<T> delegate) {
+            super(delegate.getSubject(), delegate.getDescriptor(), delegate.getInputs());
+            this.elementFilter = elementFilter;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+            elementFilter.validateCanBindAction(modelNode, delegate);
+            delegate.execute(modelNode, inputs);
         }
     }
 }

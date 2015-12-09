@@ -42,7 +42,7 @@ class PathBinderCreationListener extends ModelBinding {
             bindAction.execute(this);
         } else {
             throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
-                IncompatibleTypeReferenceReporter.of(node, node.getPromise(), predicate.getReference(), writable).asString()
+                IncompatibleTypeReferenceReporter.of(node, predicate.getReference().getType(), predicate.getReference().getDescription(), writable).asString()
             ));
         }
     }
