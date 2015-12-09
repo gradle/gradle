@@ -61,6 +61,11 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     }
 
     @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        visit(visitor);
+    }
+
+    @Override
     public FileTree getAsFileTree() {
         return this;
     }

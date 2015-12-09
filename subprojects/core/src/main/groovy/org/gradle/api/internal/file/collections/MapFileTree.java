@@ -224,4 +224,9 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
 
     }
+
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        visit(visitor);
+    }
 }

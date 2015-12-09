@@ -20,7 +20,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.FileTrees;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
@@ -78,18 +79,24 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
     private List<FileVisitDetails> visitFiles(FileCollection input) {
         final List<FileVisitDetails> allFileVisitDetails = new LinkedList<FileVisitDetails>();
-        final FileVisitor visitor = new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                allFileVisitDetails.add(dirDetails);
-            }
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
+        context.add(input);
 
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                allFileVisitDetails.add(fileDetails);
-            }
-        };
-        FileTrees.visitTreeOrBackingFile(input, visitor);
+        List<FileTreeInternal> fileTrees = context.resolveAsFileTrees();
+        for (FileTreeInternal fileTree : fileTrees) {
+            fileTree.visitTreeOrBackingFile(new FileVisitor() {
+                @Override
+                public void visitDir(FileVisitDetails dirDetails) {
+                    allFileVisitDetails.add(dirDetails);
+                }
+
+                @Override
+                public void visitFile(FileVisitDetails fileDetails) {
+                    allFileVisitDetails.add(fileDetails);
+                }
+            });
+        }
+
         return allFileVisitDetails;
     }
 

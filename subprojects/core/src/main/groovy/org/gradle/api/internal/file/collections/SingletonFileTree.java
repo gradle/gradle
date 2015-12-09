@@ -49,4 +49,8 @@ public class SingletonFileTree implements MinimalFileTree {
         builder.add(file);
     }
 
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        visit(visitor);
+    }
 }

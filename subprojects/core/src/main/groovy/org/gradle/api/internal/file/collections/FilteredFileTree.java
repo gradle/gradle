@@ -17,11 +17,9 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.specs.Spec;
 
 public interface FilteredFileTree {
-    FileTreeInternal getOriginalFileTree();
 
     Spec<FileTreeElement> getFilter();
 }

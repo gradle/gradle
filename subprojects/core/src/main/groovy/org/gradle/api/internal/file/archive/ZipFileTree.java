@@ -25,10 +25,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.file.collections.FileTreeWithBackingFile;
-import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.file.collections.*;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -175,5 +172,15 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
         builder.add(zipFile);
+    }
+
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        File backingFile = getBackingFile();
+        if (backingFile!=null) {
+            new SingletonFileTree(backingFile).visit(visitor);
+        } else {
+            visit(visitor);
+        }
     }
 }

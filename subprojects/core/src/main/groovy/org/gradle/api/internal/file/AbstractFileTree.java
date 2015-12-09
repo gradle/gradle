@@ -112,6 +112,11 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         return visit(DefaultGroovyMethods.asType(closure, FileVisitor.class));
     }
 
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        visit(visitor);
+    }
+
     private static class FilteredFileTreeImpl extends AbstractFileTree implements FilteredFileTree {
         private final AbstractFileTree fileTree;
         private final Spec<FileTreeElement> spec;
@@ -155,8 +160,8 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         }
 
         @Override
-        public FileTreeInternal getOriginalFileTree() {
-            return fileTree;
+        public void visitTreeOrBackingFile(FileVisitor visitor) {
+            fileTree.visitTreeOrBackingFile(visitor);
         }
 
         @Override

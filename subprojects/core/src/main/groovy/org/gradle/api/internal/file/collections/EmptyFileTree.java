@@ -50,6 +50,9 @@ public class EmptyFileTree implements MinimalFileTree, Buildable, LocalFileTree 
 
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
+    }
 
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
     }
 }

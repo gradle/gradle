@@ -107,6 +107,11 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         builder.add(this);
     }
 
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        visit(visitor);
+    }
+
     /**
      * Process the specified file or directory.  Note that the startFile parameter
      * may be either a directory or a file.  If it is a directory, then its contents

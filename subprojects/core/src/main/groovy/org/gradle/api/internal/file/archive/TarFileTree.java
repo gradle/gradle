@@ -25,10 +25,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.file.collections.FileTreeWithBackingFile;
-import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.file.collections.*;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResources;
@@ -190,6 +187,16 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
         if (tarFile != null) {
             builder.add(tarFile);
+        }
+    }
+
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        File backingFile = getBackingFile();
+        if (backingFile!=null) {
+            new SingletonFileTree(backingFile).visit(visitor);
+        } else {
+            visit(visitor);
         }
     }
 }

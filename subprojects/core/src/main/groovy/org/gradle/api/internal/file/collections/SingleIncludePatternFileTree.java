@@ -136,4 +136,9 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
         builder.add(baseDir, new PatternSet().include(includePattern).exclude(excludeSpec));
     }
+
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        visit(visitor);
+    }
 }
