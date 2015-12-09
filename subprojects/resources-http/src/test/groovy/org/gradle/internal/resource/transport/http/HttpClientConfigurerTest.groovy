@@ -21,6 +21,7 @@ import org.apache.http.ssl.SSLContexts
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.Factory
 import org.gradle.internal.authentication.AllSchemesAuthentication
+import org.gradle.internal.resource.UriResource
 import spock.lang.Specification
 
 import javax.net.ssl.SSLContext
@@ -99,5 +100,17 @@ public class HttpClientConfigurerTest extends Specification {
 
         and:
         httpClientBuilder.requestFirst[0] instanceof HttpClientConfigurer.PreemptiveAuth
+    }
+
+    def "configures http client with user agent"() {
+        httpSettings.authenticationSettings >> []
+        httpSettings.proxySettings >> proxySettings
+        httpSettings.sslContextFactory >> sslContextFactory
+
+        when:
+        configurer.configure(httpClientBuilder)
+
+        then:
+        httpClientBuilder.userAgent == UriResource.userAgentString
     }
 }
