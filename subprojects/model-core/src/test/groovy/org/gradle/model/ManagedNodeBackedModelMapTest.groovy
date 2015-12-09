@@ -32,102 +32,6 @@ class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInt
         registry.register(ModelRegistrations.of(path, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(modelMapType))).descriptor("creator").build())
     }
 
-    def "can query collection size"() {
-        when:
-        mutate {
-            create("a")
-            create("b")
-        }
-
-        then:
-        realizeAsModelMap().size() == 2
-        !realizeAsModelMap().isEmpty()
-    }
-
-    def "can query filtered collection size"() {
-        when:
-        mutate {
-            create("a")
-            create("b", SpecialNamedThingInterface)
-        }
-
-        then:
-        with(realizeAsModelMap()) {
-            assert withType(SpecialNamedThingInterface).size() == 1
-            assert withType(Special).size() == 1
-            assert withType(NamedThingInterface).size() == 2
-            assert withType(String).size() == 0
-
-            assert !withType(SpecialNamedThingInterface).isEmpty()
-            assert withType(String).isEmpty()
-        }
-    }
-
-    def "can query collection membership"() {
-        when:
-        mutate {
-            create("a")
-            create("b")
-        }
-
-        then:
-        realizeAsModelMap().containsKey("a")
-        realizeAsModelMap().containsKey("b")
-        !realizeAsModelMap().containsKey("c")
-    }
-
-    def "can query filtered collection membership"() {
-        when:
-        mutate {
-            create("a")
-            create("b", SpecialNamedThingInterface)
-        }
-
-        then:
-        with(realizeAsModelMap()) {
-            withType(SpecialNamedThingInterface).containsKey("b")
-            withType(Object).containsKey("a")
-            withType(NamedThingInterface).containsKey("a")
-            !withType(SpecialNamedThingInterface).containsKey("a")
-            !withType(Special).containsKey("a")
-            !withType(String).containsKey("a")
-
-            withType(Object).containsKey("b")
-            withType(NamedThingInterface).containsKey("b")
-            withType(SpecialNamedThingInterface).containsKey("b")
-            withType(Special).containsKey("b")
-            !withType(String).containsKey("b")
-        }
-    }
-
-    def "can query collection keys"() {
-        when:
-        mutate {
-            create("a")
-            create("b")
-        }
-
-        then:
-        realizeAsModelMap().keySet() as List == ["a", "b"]
-    }
-
-    def "can query filtered collection keys"() {
-        when:
-        mutate {
-            create("b", SpecialNamedThingInterface)
-            create("a")
-        }
-
-        then:
-        with(realizeAsModelMap()) {
-            assert withType(Special).keySet() as List == ["b"]
-            assert withType(NamedThingInterface).keySet() as List == ["a", "b"]
-            assert withType(SpecialNamedThingInterface).keySet() as List == ["b"]
-            assert withType(Special).keySet() as List == ["b"]
-            assert withType(String).keySet().isEmpty()
-        }
-    }
-
     def "cannot read child in mutative method"() {
         when:
         mutate {
@@ -180,6 +84,7 @@ class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInt
         then:
         def e = thrown ModelRuleExecutionException
         e.cause instanceof InvalidManagedModelElementTypeException
+        e.cause.message == "Invalid managed model type $Invalid.name: cannot be a parameterized type."
     }
 
     def "reasonable error message when creating a non-constructable type"() {

@@ -16,16 +16,12 @@
 
 package org.gradle.model
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.internal.ClosureBackedAction
-import org.gradle.model.internal.core.DeferredModelAction
-import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.ModelNode
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.internal.BiAction
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
@@ -119,6 +115,275 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
         specialItemClass.isInstance(realizeChild("foo"))
         itemClass.isInstance(realizeChild("bar"))
         !specialItemClass.isInstance(realizeChild("bar"))
+    }
+
+    def "can query collection size"() {
+        when:
+        mutate {
+            create("a")
+            create("b")
+        }
+
+        then:
+        realizeAsModelMap().size() == 2
+        !realizeAsModelMap().isEmpty()
+    }
+
+    def "can query filtered collection size"() {
+        when:
+        mutateWithoutDelegation() {
+            it.create("a")
+            it.create("b", specialItemClass)
+        }
+
+        then:
+        with(realizeAsModelMap()) {
+            assert withType(specialItemClass).size() == 1
+            assert withType(Special).size() == 1
+            assert withType(itemClass).size() == 2
+            assert withType(String).size() == 0
+
+            assert !withType(specialItemClass).isEmpty()
+            assert withType(String).isEmpty()
+        }
+    }
+
+    def "can query collection membership"() {
+        when:
+        mutate {
+            create("a")
+            create("b")
+        }
+
+        then:
+        realizeAsModelMap().containsKey("a")
+        realizeAsModelMap().containsKey("b")
+        !realizeAsModelMap().containsKey("c")
+    }
+
+    def "can query filtered collection membership"() {
+        when:
+        mutateWithoutDelegation() {
+            it.create("a")
+            it.create("b", specialItemClass)
+        }
+
+        then:
+        with(realizeAsModelMap()) {
+            withType(specialItemClass).containsKey("b")
+            withType(Object).containsKey("a")
+            withType(itemClass).containsKey("a")
+            !withType(specialItemClass).containsKey("a")
+            !withType(Special).containsKey("a")
+            !withType(String).containsKey("a")
+
+            withType(Object).containsKey("b")
+            withType(itemClass).containsKey("b")
+            withType(specialItemClass).containsKey("b")
+            withType(Special).containsKey("b")
+            !withType(String).containsKey("b")
+        }
+    }
+
+    def "can query collection keys"() {
+        when:
+        mutate {
+            create("a")
+            create("b")
+        }
+
+        then:
+        realizeAsModelMap().keySet() as List == ["a", "b"]
+    }
+
+    def "can query filtered collection keys"() {
+        when:
+        mutateWithoutDelegation() {
+            it.create("b", specialItemClass)
+            it.create("a")
+        }
+
+        then:
+        with(realizeAsModelMap()) {
+            assert withType(Special).keySet() as List == ["b"]
+            assert withType(itemClass).keySet() as List == ["a", "b"]
+            assert withType(specialItemClass).keySet() as List == ["b"]
+            assert withType(Special).keySet() as List == ["b"]
+            assert withType(String).keySet().isEmpty()
+        }
+    }
+
+    def "withType() returns same instance when element type is the same"() {
+        mutateWithoutDelegation {
+            it.create("item", itemClass)
+            it.create("specialItem", specialItemClass)
+        }
+        def map = realizeAsModelMap()
+        expect:
+        map.is(map.withType(itemClass))
+    }
+
+    def "withType() filtering is additive"() {
+        mutateWithoutDelegation {
+            it.create("item", itemClass)
+            it.create("specialItem", specialItemClass)
+        }
+        def map = realizeAsModelMap()
+
+        expect:
+        map.withType(itemClass)*.name == ["item", "specialItem"]
+        map.withType(itemClass).size() == 2
+        !map.withType(itemClass).isEmpty()
+
+        map.withType(specialItemClass).withType(Named)*.name == ["specialItem"]
+        map.withType(specialItemClass).withType(Named).size() == 1
+        !map.withType(specialItemClass).withType(Named).isEmpty()
+
+        map.withType(specialItemClass).withType(itemClass)*.name == ["specialItem"]
+        map.withType(specialItemClass).withType(itemClass).size() == 1
+        !map.withType(specialItemClass).withType(itemClass).isEmpty()
+
+        map.withType(String).withType(itemClass)*.name == []
+        map.withType(String).withType(itemClass).size() == 0
+        map.withType(String).withType(itemClass).isEmpty()
+    }
+
+    def "all(Action) respects chained filtering"() {
+        expect:
+        accessedBy { map, action -> map.withType(specialItemClass).all(action) } == ["specialItem"]
+    }
+
+    def "all(DeferredModelAction) respects chained filtering"() {
+        expect:
+        accessedByDeferred { map, action -> ((NodeBackedModelMap) map.withType(specialItemClass)).all(action) } == ["specialItem@Initialize"]
+    }
+
+    def "beforeEach(Action) respects chained filtering"() {
+        expect:
+        accessedBy { map, action -> map.withType(specialItemClass).beforeEach(action) } == ["specialItem"]
+    }
+
+    def "beforeEach(Class, Action) respects chained filtering"() {
+        expect:
+        accessedBy { map, action -> map.withType(specialItemClass).beforeEach(Object, action) } == ["specialItem"]
+    }
+
+    def "beforeEach(DeferredModelAction) respects chained filtering"() {
+        expect:
+        accessedByDeferred { map, action -> ((NodeBackedModelMap) map.withType(specialItemClass)).beforeEach(action) } == ["specialItem@Defaults"]
+    }
+
+    def "beforeEach(Class, DeferredModelAction) respects chained filtering"() {
+        expect:
+        accessedByDeferred { map, action -> ((NodeBackedModelMap) map.withType(specialItemClass)).beforeEach(Object, action) } == ["specialItem@Defaults"]
+    }
+
+    def "afterEach(Action) respects chained filtering"() {
+        expect:
+        accessedBy { map, action -> map.withType(specialItemClass).afterEach(action) } == ["specialItem"]
+    }
+
+    def "afterEach(Class, Action) respects chained filtering"() {
+        expect:
+        accessedBy { map, action -> map.withType(specialItemClass).afterEach(Object, action) } == ["specialItem"]
+    }
+
+    def "afterEach(DeferredModelAction) respects chained filtering"() {
+        expect:
+        accessedByDeferred { map, action -> ((NodeBackedModelMap) map.withType(specialItemClass)).afterEach(action) } == ["specialItem@Finalize"]
+    }
+
+    def "afterEach(Class, DeferredModelAction) respects chained filtering"() {
+        expect:
+        accessedByDeferred { map, action -> ((NodeBackedModelMap) map.withType(specialItemClass)).afterEach(Object, action) } == ["specialItem@Finalize"]
+    }
+
+    def "named(String, Action) fails when named element requested in filtered collection with incompatible type"() {
+        when:
+        accessedBy { map, action -> map.withType(specialItemClass).named("item", action) }
+
+        then:
+        def ex = thrown InvalidModelRuleException
+        ex.cause instanceof ModelRuleBindingException
+        normaliseLineSeparators(ex.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
+This element was created by testrule > create(item) and can be mutated as the following types:
+  - $itemClass.name (or assignment compatible type thereof)"""
+    }
+
+    @NotYetImplemented
+    def "named(String, DeferredModelAction) fails when named element requested in filtered collection with incompatible type"() {
+        when:
+        accessedByDeferred() { map, action -> ((NodeBackedModelMap) map.withType(specialItemClass)).named("item", action) }
+
+        then:
+        def ex = thrown InvalidModelRuleException
+        ex.cause instanceof ModelRuleBindingException
+        normaliseLineSeparators(ex.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
+This element was created by testrule > create(item) and can be mutated as the following types:
+  - $itemClass.name (or assignment compatible type thereof)"""
+    }
+
+    def "withType(Class, Action) respects chained filtering"() {
+        expect:
+        accessedBy { map, action -> map.withType(specialItemClass).withType(Object, action) } == ["specialItem"]
+    }
+
+    def "withType(Class, DeferredModelAction) respects chained filtering"() {
+        expect:
+        accessedByDeferred { map, action -> ((NodeBackedModelMap) map.withType(specialItemClass)).withType(Object, action) } == ["specialItem@Mutate"]
+    }
+
+    def "withType(Class, RuleSource) respects chained filtering"() {
+        def withTypeRules = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.*
+
+            class WithTypeRules extends RuleSource {
+                static final List<String> accessed = []
+
+                @Mutate
+                void mutateSpecial($itemClass.name item) {
+                    accessed.add(item.name)
+                }
+            }
+        """
+
+        mutateWithoutDelegation {
+            it.create("item", itemClass)
+            it.create("specialItem", specialItemClass)
+            it.withType(specialItemClass).withType(Object, withTypeRules)
+        }
+        realizeAsModelMap()
+
+        expect:
+        withTypeRules.accessed == ["specialItem"]
+    }
+
+    def accessedBy(BiAction<ModelMap, Action<? super Named>> mutator) {
+        def accessed = []
+        mutateWithoutDelegation {
+            it.create("item", itemClass)
+            it.create("specialItem", specialItemClass)
+            mutator.execute(it) { item -> accessed += item.name }
+        }
+        realizeAsModelMap()
+        return accessed
+    }
+
+    def accessedByDeferred(BiAction<NodeBackedModelMap, DeferredModelAction> mutator) {
+        def accessed = []
+        def action = Mock(DeferredModelAction) {
+            getDescriptor() >> new SimpleModelRuleDescriptor("deferred")
+            execute(_, _) >> { MutableModelNode node, ModelActionRole role ->
+                accessed += node.getPath().getName() + "@" + role
+            }
+        }
+        mutateWithoutDelegation {
+            it.create("item", itemClass)
+            it.create("specialItem", specialItemClass)
+            mutator.execute(it, action)
+        }
+        realizeAsModelMap()
+        return accessed
     }
 
     def "fails when using filtered collection to define item of type that is not assignable to collection item type"() {
@@ -609,6 +874,7 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
         e.cause.class == InvalidModelRuleDeclarationException
         e.cause.message == "Type java.lang.Object is not a valid rule source: rule source classes must directly extend org.gradle.model.RuleSource"
     }
+
     static class ElementRules extends RuleSource {
         @Mutate
         void connectElementToInput(Bean element, String input) {
