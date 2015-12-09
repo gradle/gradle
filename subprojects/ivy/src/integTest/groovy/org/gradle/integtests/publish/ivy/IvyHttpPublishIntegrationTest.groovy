@@ -30,6 +30,7 @@ import org.junit.Rule
 import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
+import static org.gradle.util.Matchers.matchesRegexp
 
 public class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
     private static final String BAD_CREDENTIALS = '''
@@ -174,8 +175,7 @@ uploadArchives {
         and:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
         failure.assertHasCause('Could not publish configuration \'archives\'')
-        failure.assertThatCause(Matchers.containsString("org.apache.http.conn.HttpHostConnectException: Connect to localhost:${repositoryPort}"))
-        failure.assertThatCause(Matchers.containsString('failed: Connection refused'))
+        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${repositoryPort} (\\[.*\\])? failed: Connection refused(: connect)?"))
     }
 
     public void usesFirstConfiguredPatternForPublication() {

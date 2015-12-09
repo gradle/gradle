@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.hamcrest.Matchers
 
+import static org.gradle.util.Matchers.matchesRegexp
+
 class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     MavenHttpRepository repo
@@ -106,8 +108,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
         //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
         failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertThatCause(Matchers.containsString("Connect to localhost:${port}"))
-        failure.assertThatCause(Matchers.containsString('failed: Connection refused'))
+        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${port} (\\[.*\\])? failed: Connection refused(: connect)?"))
 
         when:
         server.resetExpectations()
@@ -142,8 +143,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
         //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
         failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertThatCause(Matchers.containsString("Connect to localhost:${port}"))
-        failure.assertThatCause(Matchers.containsString('failed: Connection refused'))
+        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${port} (\\[.*\\])? failed: Connection refused(: connect)?"))
 
         when:
         server.resetExpectations()
@@ -240,8 +240,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
         //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
         failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertThatCause(Matchers.containsString("Connect to localhost:${port}"))
-        failure.assertThatCause(Matchers.containsString('failed: Connection refused'))
+        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${port} (\\[.*\\])? failed: Connection refused(: connect)?"))
 
         when:
         server.resetExpectations()
@@ -294,8 +293,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         and:
         failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
         failure.assertHasCause("Could not list versions using Ivy pattern 'http://localhost:${port}/ivyRepo/[organisation]/[module]/[revision]/ivy-[revision].xml")
-        failure.assertThatCause(Matchers.containsString("Connect to localhost:${port}"))
-        failure.assertThatCause(Matchers.containsString('failed: Connection refused'))
+        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${port} (\\[.*\\])? failed: Connection refused(: connect)?"))
 
         when:
         server.resetExpectations()

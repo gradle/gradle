@@ -29,6 +29,7 @@ import org.mortbay.jetty.HttpStatus
 import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
+import static org.gradle.util.Matchers.matchesRegexp
 
 public class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
     private static final String BAD_CREDENTIALS = '''
@@ -237,8 +238,7 @@ credentials {
         and:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
-        failure.assertThatCause(Matchers.containsString("org.apache.http.conn.HttpHostConnectException: Connect to localhost:${repositoryPort}"))
-        failure.assertThatCause(Matchers.containsString('failed: Connection refused'))
+        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${repositoryPort} (\\[.*\\])? failed: Connection refused(: connect)?"))
     }
 
     def "uses first configured pattern for publication"() {
