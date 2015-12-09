@@ -21,7 +21,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
+import org.gradle.internal.resolve.resolver.ComponentMetadataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -31,12 +31,12 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 /**
  * Used as a fallback when no repositories are defined for a given resolution.
  */
-public class NoRepositoriesResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+public class NoRepositoriesResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetadataResolver, ArtifactResolver {
     public DependencyToComponentIdResolver getComponentIdResolver() {
         return this;
     }
 
-    public ComponentMetaDataResolver getComponentResolver() {
+    public ComponentMetadataResolver getComponentResolver() {
         return this;
     }
 
@@ -44,7 +44,7 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
         return this;
     }
 
-    public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         result.failed(new ModuleVersionNotFoundException(dependency.getRequested(), String.format("Cannot resolve external dependency %s because no repositories are defined.", dependency.getRequested())));
     }
 
@@ -52,15 +52,15 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
         throw new UnsupportedOperationException();
     }
 
-    public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentResolveMetadata component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
         throw new UnsupportedOperationException();
     }
 
-    public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         throw new UnsupportedOperationException();
     }
 
-    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         throw new UnsupportedOperationException();
     }
 }

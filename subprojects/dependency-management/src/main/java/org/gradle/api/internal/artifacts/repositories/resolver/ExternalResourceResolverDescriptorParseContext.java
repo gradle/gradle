@@ -19,10 +19,10 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
+import org.gradle.internal.resolve.resolver.ComponentMetadataResolver;
 import org.gradle.internal.resolve.result.*;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
@@ -49,17 +49,17 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
         return new DefaultLocallyAvailableExternalResource(resolvedArtifactFile.toURI(), localResource);
     }
 
-    private File resolveMetaDataArtifactFile(ModuleComponentIdentifier moduleComponentIdentifier, ComponentMetaDataResolver componentResolver,
+    private File resolveMetaDataArtifactFile(ModuleComponentIdentifier moduleComponentIdentifier, ComponentMetadataResolver componentResolver,
                                              ArtifactResolver artifactResolver, ArtifactType artifactType) {
         BuildableComponentResolveResult moduleVersionResolveResult = new DefaultBuildableComponentResolveResult();
         componentResolver.resolve(moduleComponentIdentifier, new DefaultComponentOverrideMetadata(), moduleVersionResolveResult);
 
         BuildableArtifactSetResolveResult moduleArtifactsResolveResult = new DefaultBuildableArtifactSetResolveResult();
-        artifactResolver.resolveModuleArtifacts(moduleVersionResolveResult.getMetaData(), artifactType, moduleArtifactsResolveResult);
+        artifactResolver.resolveModuleArtifacts(moduleVersionResolveResult.getMetadata(), artifactType, moduleArtifactsResolveResult);
 
         BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
-        ComponentArtifactMetaData artifactMetaData = moduleArtifactsResolveResult.getArtifacts().iterator().next();
-        artifactResolver.resolveArtifact(artifactMetaData, moduleVersionResolveResult.getMetaData().getSource(), artifactResolveResult);
+        ComponentArtifactMetadata artifactMetaData = moduleArtifactsResolveResult.getArtifacts().iterator().next();
+        artifactResolver.resolveArtifact(artifactMetaData, moduleVersionResolveResult.getMetadata().getSource(), artifactResolveResult);
         return artifactResolveResult.getFile();
     }
 }

@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.component.ArtifactType
-import org.gradle.internal.component.model.ComponentArtifactMetaData
-import org.gradle.internal.component.model.ComponentResolveMetaData
+import org.gradle.internal.component.model.ComponentArtifactMetadata
+import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentUsage
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ArtifactResolveException
@@ -37,7 +37,7 @@ class ErrorHandlingArtifactResolverTest extends Specification {
         def componentArtifactId = Stub(ComponentArtifactIdentifier) {
             getDisplayName() >> "<component-artifact>"
         }
-        def componentArtifact = Stub(ComponentArtifactMetaData) {
+        def componentArtifact = Stub(ComponentArtifactMetadata) {
             getId() >> componentArtifactId
         }
         def moduleSource = Mock(ModuleSource)
@@ -61,7 +61,7 @@ class ErrorHandlingArtifactResolverTest extends Specification {
         def componentId = Stub(ComponentIdentifier) {
             getDisplayName() >> "<component>"
         }
-        def component = Stub(ComponentResolveMetaData) {
+        def component = Stub(ComponentResolveMetadata) {
             getComponentId() >> componentId
         }
         def result = Mock(BuildableArtifactSetResolveResult)

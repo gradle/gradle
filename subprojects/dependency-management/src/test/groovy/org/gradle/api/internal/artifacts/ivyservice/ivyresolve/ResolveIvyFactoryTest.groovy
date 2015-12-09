@@ -26,11 +26,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.resource.cached.CachedArtifactIndex
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
@@ -42,7 +42,7 @@ import spock.lang.Specification
 class ResolveIvyFactoryTest extends Specification {
     ResolveIvyFactory resolveIvyFactory
     ModuleVersionsCache moduleVersionsCache
-    ModuleMetaDataCache moduleMetaDataCache
+    ModuleMetadataCache moduleMetaDataCache
     ModuleArtifactsCache moduleArtifactsCache
     CachedArtifactIndex cachedArtifactIndex
     CacheLockingManager cacheLockingManager
@@ -54,7 +54,7 @@ class ResolveIvyFactoryTest extends Specification {
 
     def setup() {
         moduleVersionsCache = Mock(ModuleVersionsCache)
-        moduleMetaDataCache = Mock(ModuleMetaDataCache)
+        moduleMetaDataCache = Mock(ModuleMetadataCache)
         moduleArtifactsCache = Mock(ModuleArtifactsCache)
         cachedArtifactIndex = Mock(CachedArtifactIndex)
         cacheLockingManager = Mock(CacheLockingManager)
@@ -114,8 +114,8 @@ class ResolveIvyFactoryTest extends Specification {
         ExternalResourceRepository externalResourceRepository = Stub()
         CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor = Stub()
         VersionLister versionLister = Stub()
-        LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder = Stub()
-        FileStore<ModuleComponentArtifactMetaData> fileStore = Stub()
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Stub()
+        FileStore<ModuleComponentArtifactMetadata> fileStore = Stub()
 
         return Spy(ExternalResourceResolver,
             constructorArgs: [

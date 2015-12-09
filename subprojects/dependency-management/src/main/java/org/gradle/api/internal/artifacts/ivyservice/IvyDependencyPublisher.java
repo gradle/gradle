@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
+import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 
 import java.util.List;
 
 public interface IvyDependencyPublisher {
     void publish(List<ModuleVersionPublisher> publishResolvers,
-                 IvyModulePublishMetaData publishMetaData);
+                 IvyModulePublishMetadata publishMetaData);
 }

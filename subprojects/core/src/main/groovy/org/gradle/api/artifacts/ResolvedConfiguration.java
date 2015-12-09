@@ -22,7 +22,7 @@ import java.util.Set;
 
 /**
  * A {@code ResolvedConfiguration} represents the result of resolving a {@link Configuration}, and provides access
- * to both the artifacts and the meta-data of the result.
+ * to both the artifacts and the metadata of the result.
  */
 public interface ResolvedConfiguration {
     /**
@@ -75,7 +75,7 @@ public interface ResolvedConfiguration {
     Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException;
 
     /**
-     * Returns the set of artifact meta-data for this configuration.
+     * Returns the set of artifact metadata for this configuration.
      *
      * @return The set of artifacts.
      * @throws ResolveException when the resolve was not successful.

@@ -188,7 +188,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         0 * _._
     }
 
-    def "will download sha1 for finding candidates if not available in meta-data"() {
+    def "will download sha1 for finding candidates if not available in metadata"() {
         given:
         def localCandidates = Mock(LocallyAvailableResourceCandidates)
         def candidate = tempDir.createFile("candidate-file")

@@ -51,7 +51,7 @@ class ModuleDescriptorCacheEntrySerializer implements Serializer<ModuleDescripto
                 encoder.writeBinary(hash);
                 break;
             default:
-                throw new IllegalArgumentException("Don't know how to serialize meta-data entry: " + value);
+                throw new IllegalArgumentException("Don't know how to serialize metadata entry: " + value);
         }
     }
 
@@ -78,7 +78,7 @@ class ModuleDescriptorCacheEntrySerializer implements Serializer<ModuleDescripto
                 hash = new BigInteger(encodedHash);
                 return new MavenModuleCacheEntry(isChanging, packaging, snapshotTimestamp, createTimestamp, hash, moduleSource);
             default:
-                throw new IllegalArgumentException("Don't know how to deserialize meta-data entry of type " + type);
+                throw new IllegalArgumentException("Don't know how to deserialize metadata entry of type " + type);
         }
     }
 }

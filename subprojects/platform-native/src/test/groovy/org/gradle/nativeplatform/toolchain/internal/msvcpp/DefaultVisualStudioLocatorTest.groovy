@@ -152,7 +152,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         1 * visitor.node("The specified installation directory '$providedDir' does not appear to contain a Visual Studio installation.")
     }
 
-    def "fills in meta-data from registry for install discovered using the system path"() {
+    def "fills in metadata from registry for install discovered using the system path"() {
         def vsDir = vsDir("vs")
 
         given:
@@ -172,7 +172,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         result.visualStudio.baseDir == vsDir
     }
 
-    def "fills in meta-data from registry for user specified install"() {
+    def "fills in metadata from registry for user specified install"() {
         def vsDir = vsDir("vs")
 
         given:

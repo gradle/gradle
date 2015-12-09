@@ -803,7 +803,7 @@ Some more features to mix into the above plan:
 - Don't configure the projects when `GradleBuild` model is requested.
 - Configure projects as required when using configure-on-demand.
 - Don't configure tasks when they are not requested.
-- Deal with non-standard wrapper meta-data location.
+- Deal with non-standard wrapper metadata location.
 - More accurate content assistance.
 - User provides input to build execution.
 - User edits dependencies via some UI.

@@ -43,7 +43,7 @@ class WrapperExecutorTest extends Specification {
         propertiesFile.withOutputStream { properties.store(it, 'header') }
     }
 
-    def "loads wrapper meta data from specified properties file"() {
+    def "loads wrapper metadata from specified properties file"() {
         def wrapper = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out)
 
         expect:
@@ -56,7 +56,7 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.distributionSha256Sum == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
     }
 
-    def "loads wrapper meta data from specified project directory"() {
+    def "loads wrapper metadata from specified project directory"() {
         def wrapper = WrapperExecutor.forProjectDirectory(projectDir, System.out)
 
         expect:
@@ -69,7 +69,7 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.distributionSha256Sum == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
     }
 
-    def "uses default meta data when properties file does not exist in project directory"() {
+    def "uses default metadata when properties file does not exist in project directory"() {
         def wrapper = WrapperExecutor.forProjectDirectory(tmpDir.file('unknown'), System.out)
 
         expect:

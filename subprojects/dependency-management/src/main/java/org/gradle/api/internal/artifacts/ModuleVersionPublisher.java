@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
+import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
 
 import java.io.IOException;
 
 public interface ModuleVersionPublisher {
-    void publish(IvyModulePublishMetaData moduleVersion) throws IOException;
+    void publish(IvyModulePublishMetadata moduleVersion) throws IOException;
 }

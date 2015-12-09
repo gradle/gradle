@@ -19,7 +19,7 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
@@ -35,7 +35,7 @@ public class DefaultConfigurationContainerSpec extends Specification {
     private DependencyMetaDataProvider metaDataProvider = Mock()
     private ProjectAccessListener projectAccessListener = Mock()
     private ProjectFinder projectFinder = Mock()
-    private ConfigurationComponentMetaDataBuilder metaDataBuilder = Mock()
+    private ConfigurationComponentMetadataBuilder metaDataBuilder = Mock()
 
     def ConfigurationInternal conf = Mock()
 

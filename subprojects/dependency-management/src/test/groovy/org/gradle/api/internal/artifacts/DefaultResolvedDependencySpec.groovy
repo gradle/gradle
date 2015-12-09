@@ -21,7 +21,7 @@ import spock.lang.Specification
 class DefaultResolvedDependencySpec extends Specification {
     final dependency = new DefaultResolvedDependency(DefaultModuleVersionIdentifier.newId("group", "module", "version"), "config")
 
-    def "provides meta-data about the module"() {
+    def "provides metadata about the module"() {
         expect:
         dependency.module.id.group == "group"
         dependency.module.id.name == "module"

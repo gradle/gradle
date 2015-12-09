@@ -22,7 +22,7 @@ import org.gradle.internal.classpath.ClassPath;
  */
 public interface ModuleRegistry {
     /**
-     * Locates an external module by name. An external module is one for which there is no meta-data available. Assumed to be packaged as a single jar file, and to have no runtime dependencies.
+     * Locates an external module by name. An external module is one for which there is no metadata available. Assumed to be packaged as a single jar file, and to have no runtime dependencies.
      *
      * @return the module. Does not return null.
      */

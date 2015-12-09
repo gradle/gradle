@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import java.util.*;
 
@@ -57,7 +57,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
             if (!version.isQualified()) {
                 return component;
             }
-            ComponentResolveMetaData metaData = component.getMetaData();
+            ComponentResolveMetadata metaData = component.getMetaData();
             if (metaData != null && "release".equals(metaData.getStatus())) {
                 return component;
             }

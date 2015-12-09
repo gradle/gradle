@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
@@ -30,7 +30,7 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
     private final VersionSelectorScheme versionSelectorScheme;
     private final DynamicVersionResolver dynamicRevisionResolver;
 
-    public RepositoryChainDependencyToComponentIdResolver(VersionSelectorScheme versionSelectorScheme, VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory) {
+    public RepositoryChainDependencyToComponentIdResolver(VersionSelectorScheme versionSelectorScheme, VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.dynamicRevisionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
     }
@@ -39,7 +39,7 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
         dynamicRevisionResolver.add(repository);
     }
 
-    public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
         if (versionSelectorScheme.parseSelector(requested.getVersion()).isDynamic()) {
             dynamicRevisionResolver.resolve(dependency, result);

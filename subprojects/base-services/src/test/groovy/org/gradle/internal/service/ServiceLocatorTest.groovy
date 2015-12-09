@@ -54,7 +54,7 @@ class ServiceLocatorTest extends Specification {
         1 * classLoader2.loadClass('org.gradle.ImplClass3') >> StringBuffer
     }
 
-    def "findFactory() returns null when no service meta data resource available"() {
+    def "findFactory() returns null when no service metadata resource available"() {
         when:
         def result = serviceLocator.findFactory(String.class)
 
@@ -78,7 +78,7 @@ class ServiceLocatorTest extends Specification {
         1 * classLoader.loadClass('org.gradle.ImplClass') >> { throw failure }
     }
 
-    def "ignores comments and whitespace in service meta data resource"() {
+    def "ignores comments and whitespace in service metadata resource"() {
         def serviceFile = stream('''#comment
 
     org.gradle.ImplClass  
@@ -107,7 +107,7 @@ org.gradle.ImplClass2""")
         1 * classLoader.loadClass('org.gradle.ImplClass2') >> String
     }
 
-    def "findFactory() fails when no implementation class specified in service meta data resource"() {
+    def "findFactory() fails when no implementation class specified in service metadata resource"() {
         def serviceFile = stream('#empty!')
 
         when:
@@ -120,7 +120,7 @@ org.gradle.ImplClass2""")
         1 * classLoader.getResources("META-INF/services/java.lang.String") >> Collections.enumeration([serviceFile])
     }
 
-    def "findFactory() fails when implementation class specified in service meta data resource is not assignable to service type"() {
+    def "findFactory() fails when implementation class specified in service metadata resource is not assignable to service type"() {
         given:
         implementationDeclared(String, Integer)
 
@@ -144,13 +144,13 @@ org.gradle.ImplClass2""")
         result instanceof String
     }
 
-    def "get() fails when no meta-data file found for service type"() {
+    def "get() fails when no metadata file found for service type"() {
         when:
         serviceLocator.get(CharSequence)
 
         then:
         UnknownServiceException e = thrown()
-        e.message == "Could not find meta-data resource 'META-INF/services/java.lang.CharSequence' for service 'java.lang.CharSequence'."
+        e.message == "Could not find metadata resource 'META-INF/services/java.lang.CharSequence' for service 'java.lang.CharSequence'."
         1 * classLoader.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([])
     }
 
@@ -169,13 +169,13 @@ org.gradle.ImplClass2""")
         !obj1.is(obj2)
     }
 
-    def "getFactory() fails when no meta-data file found for service type"() {
+    def "getFactory() fails when no metadata file found for service type"() {
         when:
         serviceLocator.getFactory(CharSequence)
 
         then:
         UnknownServiceException e = thrown()
-        e.message == "Could not find meta-data resource 'META-INF/services/java.lang.CharSequence' for service 'java.lang.CharSequence'."
+        e.message == "Could not find metadata resource 'META-INF/services/java.lang.CharSequence' for service 'java.lang.CharSequence'."
         1 * classLoader.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([])
     }
 
@@ -212,7 +212,7 @@ org.gradle.ImplClass2""")
         1 * classLoader.loadClass("org.gradle.Impl2") >> StringBuilder
     }
 
-    def "getAll() returns empty collection no meta-data file found for service type"() {
+    def "getAll() returns empty collection no metadata file found for service type"() {
         when:
         def result = serviceLocator.getAll(CharSequence)
 

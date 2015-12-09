@@ -22,7 +22,7 @@ import org.gradle.util.Clock;
  */
 public interface BuildRequestMetaData {
     /**
-     * Returns the meta-data about the client used to launch this build.
+     * Returns the metadata about the client used to launch this build.
      */
     BuildClientMetaData getClient();
 

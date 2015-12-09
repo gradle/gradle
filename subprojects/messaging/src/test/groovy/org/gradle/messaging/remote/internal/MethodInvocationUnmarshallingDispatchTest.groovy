@@ -50,7 +50,7 @@ class MethodInvocationUnmarshallingDispatchTest extends Specification {
         0 * target._
     }
 
-    def "does not forward method meta-data message"() {
+    def "does not forward method metadata message"() {
         when:
         dispatch.dispatch(new MethodMetaInfo(1, method));
 

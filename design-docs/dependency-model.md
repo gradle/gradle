@@ -20,7 +20,7 @@ software components. Producing working software components is the main purpose o
 The distinction here with our existing approach is that we explicitly model each software component, rather than implicitly describing them through
 modules and dependency configurations. This moves the model closer to the reality of the development world, and decouples build logic (including
 plugins) that operate on components from the dependency management model. A component definition can be assembled from various sources, not just a
-module meta-data descriptor.
+module metadata descriptor.
 
 A second approach taken here is to strongly type the software components. We model, for example, a JVM library, a J2EE application, a native executable,
 and so on. For each such component type, there will be a corresponding strongly typed DSL element (i.e. a Java interface) to represent this. Build
@@ -69,7 +69,7 @@ a particular grammar. Android applications have an integer version code and a ve
 * A version is built from a set of source revisions or branches.
 * A version built by a CI server usually has a unique build number.
 * A version may have an associated versioning scheme.
-* A version may have additional component type specific meta-data.
+* A version may have additional component type specific metadata.
 
 #### Versioning scheme
 
@@ -147,9 +147,9 @@ A bundle may subsequently be bundled into a larger bundle.
 An artefact that provides some information about the software component, that is usage and variant independent. For example, a source or API
 documentation archive. Also includes signature and checksum artefacts.
 
-### Meta-data artifact
+### Metadata artifact
 
-An auxiliary artefact that provides meta-data about the component version.
+An auxiliary artefact that provides metadata about the component version.
 
 ### Dependency
 
@@ -159,14 +159,14 @@ A dependency is a reference to another software component which is required by t
 * A given usage implies a set of zero or more dependencies.
 * A given (usage, dependency) implies a usage from the target component.
 
-Some artefact types encode meta-data about their dependencies. For example, a Jigsaw module or OSGi bundle includes information about the other
+Some artefact types encode metadata about their dependencies. For example, a Jigsaw module or OSGi bundle includes information about the other
 modules/bundles that are required. A native binary includes information about which shared libraries are required at runtime.
 
 ## Publication
 
 A publication is the binary representation of a component, ready to be used by some consuming project.
 
-* A publication is a set of artefacts, including meta-data artifacts.
+* A publication is a set of artefacts, including metadata artifacts.
 * A publication may include auxiliary artefacts.
 
 The consumer of a publication might use the artifacts directly from the location where they were built, or via a binary artifact repository of some kind.
@@ -413,7 +413,7 @@ other repository.
 
 ## Ivy
 
-Map to a module for each variant, that contain variant-specific artifacts and meta-data, plus a module for component meta-data and variant-independent
+Map to a module for each variant, that contain variant-specific artifacts and metadata, plus a module for component metadata and variant-independent
 artifacts.
 
 ## Maven
@@ -562,7 +562,7 @@ PublishArtifactSet more generally), but not actually add any signatures. Applyin
 * Interop with other ivy and maven mappings.
 * Signatures
 * Backwards compatibility:
-    * Consuming ivy/maven modules published by older Gradle versions, by Maven, and with hand-coded ivy.xml meta-data.
+    * Consuming ivy/maven modules published by older Gradle versions, by Maven, and with hand-coded ivy.xml metadata.
     * Older Gradle versions consuming modules published by newer Gradle versions.
 * Resolution improvements:
     * Make better use of ranges, so that if B depends on A:1.2, and C depends on A:[1.0-2.0), and we have A:1.2, A:1.3, A:2.0, then select A:1.2,
@@ -571,5 +571,5 @@ PublishArtifactSet more generally), but not actually add any signatures. Applyin
     * Allow declaration of conflicts, so that I can declare things like: `junit` and `junit-dep` conflict with each other.
     * Allow arbitrary conflict management, so that I can declare things like: prefer a version that my dependencies were tested against, over those
       that my dependencies were not tested against. Or prefer a version that is a direct dependency of any project in the build.
-    * Allow arbitrary mutation of component meta-data, so that I can declare things like: the API of `jetty` depends on `servlet-api`. Or `groovy`
+    * Allow arbitrary mutation of component metadata, so that I can declare things like: the API of `jetty` depends on `servlet-api`. Or `groovy`
       has a `compiler` usage, that includes the `groovy.jar` artifact and depends on `ant`.

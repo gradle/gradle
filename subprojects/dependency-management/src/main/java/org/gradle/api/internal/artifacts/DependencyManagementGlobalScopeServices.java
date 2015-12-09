@@ -54,8 +54,8 @@ class DependencyManagementGlobalScopeServices {
         return new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter);
     }
 
-    ConfigurationComponentMetaDataBuilder createConfigurationComponentMetaDataBuilder(DependenciesToModuleDescriptorConverter dependenciesConverter) {
-        return new DefaultConfigurationComponentMetaDataBuilder(dependenciesConverter);
+    ConfigurationComponentMetadataBuilder createConfigurationComponentMetaDataBuilder(DependenciesToModuleDescriptorConverter dependenciesConverter) {
+        return new DefaultConfigurationComponentMetadataBuilder(dependenciesConverter);
     }
 
     ResourceConnectorFactory createFileConnectorFactory() {

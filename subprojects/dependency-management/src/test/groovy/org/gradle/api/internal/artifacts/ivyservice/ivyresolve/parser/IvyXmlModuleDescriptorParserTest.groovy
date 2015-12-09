@@ -149,7 +149,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parser.parseMetaData(parseContext, file, true)
 
         then:
-        def e = thrown(MetaDataParseException)
+        def e = thrown(MetadataParseException)
         e.message == "Could not parse Ivy file ${file.toURI()}"
         e.cause.message == "invalid version unknown"
     }
@@ -171,7 +171,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parser.parseMetaData(parseContext, file, true)
 
         then:
-        def e = thrown(MetaDataParseException)
+        def e = thrown(MetadataParseException)
         e.message == "Could not parse Ivy file ${file.toURI()}"
         e.cause.message == "unknown configuration 'invalidConf'. It is extended by A"
     }
@@ -194,7 +194,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parser.parseMetaData(parseContext, file, true)
 
         then:
-        def e = thrown(MetaDataParseException)
+        def e = thrown(MetadataParseException)
         e.message == "Could not parse Ivy file ${file.toURI()}"
         e.cause.message == "illegal cycle detected in configuration extension: A => B => A"
     }
@@ -210,7 +210,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parser.parseMetaData(parseContext, file, true)
 
         then:
-        def e = thrown(MetaDataParseException)
+        def e = thrown(MetadataParseException)
         e.message == "Could not parse Ivy file ${file.toURI()}"
         e.cause.message.contains('Element type "info"')
     }
@@ -226,7 +226,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parser.parseMetaData(parseContext, file, true)
 
         then:
-        def e = thrown(MetaDataParseException)
+        def e = thrown(MetadataParseException)
         e.message == "Could not parse Ivy file ${file.toURI()}"
         e.cause.message.contains('unknown tag not-an-ivy-file')
     }
@@ -237,7 +237,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parser.parseMetaData(parseContext, file, true)
 
         then:
-        def e = thrown(MetaDataParseException)
+        def e = thrown(MetadataParseException)
         e.message == "Could not parse Ivy file ${file.toURI()}"
         e.cause.message.contains('null name not allowed')
 

@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
@@ -31,7 +31,7 @@ import spock.lang.Specification
 class DefaultLocalComponentMetaDataTest extends Specification {
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
-    def metaData = new DefaultLocalComponentMetaData(id, componentIdentifier, "status")
+    def metaData = new DefaultLocalComponentMetadata(id, componentIdentifier, "status")
     def taskDep = new DefaultTaskDependency()
 
     def "can lookup configuration after it has been added"() {
@@ -165,7 +165,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
     }
 
     def "can add dependencies"() {
-        def dependency = Mock(DependencyMetaData)
+        def dependency = Mock(DependencyMetadata)
 
         when:
         metaData.addDependency(dependency)

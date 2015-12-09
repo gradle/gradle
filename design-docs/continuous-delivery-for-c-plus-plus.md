@@ -938,7 +938,7 @@ Generally, this means that the library must be installed in some form before it 
 
 To implement this story:
 
-* Producer project publishes the dependency meta-data for the library.
+* Producer project publishes the dependency metadata for the library.
 * Producer project published the library's export file (.lib) when building on Windows.
 * Consumer project uses correct names for resolved libraries.
 * Consumer project sets the UNIX file executable permission for resolved executables on UNIX filesystems.
@@ -966,7 +966,7 @@ permission set. On Windows platforms, the executable should have a `.exe` extens
 To implement this:
 
 * There are a number of tasks in common with [publishing and resolving shared libraries](#shared-libraries) above.
-* Producer project publishes the dependency meta-data for the executable.
+* Producer project publishes the dependency metadata for the executable.
 * Consumer project uses correct names for resolved executables.
 * Consumer project sets the UNIX file executable permission for resolved executables on UNIX filesystems.
 * Consumer project installs the executable and libraries into a location where they are executable.
@@ -999,7 +999,7 @@ Consumer project compiles, links and publishes a shared library that includes th
 To implement this:
 
 * Add tasks to the publisher project to allow both static and shared library binaries to be built and published.
-* Include in the published meta-data, information about which static libraries are linked statically into the binary.
+* Include in the published metadata, information about which static libraries are linked statically into the binary.
 * Consumer project selects either the static or dynamic binaries for a given dependency at link time. A dependency that is statically linked
   into a binary has no files that are required at runtime, but may have files that are required at debug time.
 
@@ -1117,7 +1117,7 @@ TBD
 - Need to handle universal binaries.
     - A component packaging that satisfies multiple points in the variant space.
     - Use `lipo` to merge two binaries into a single universal binary.
-    - Transforms the meta-data for the component - same set of variants but different set of binaries.
+    - Transforms the metadata for the component - same set of variants but different set of binaries.
 - Use separate directories for output binaries, rather than encoding all dimensions in the name: eg `flavor/platform/buildType/myLib.so`
 
 ## Toolchains
@@ -1175,8 +1175,8 @@ TBD
 * Selecting a compatible architecture at resolve time. For example, if I'm building for the amd64 cpu, I can use an x86 cpu + 64 bit data model.
 * Selecting a compatible operating system version at resolve time.
 * Selecting a compatible release binary when the debug binaries are not available.
-* Need to include meta-data about which runtime an DLL is linked against. Same for UNIX shared libraries, but less common.
-* Need to include meta-data about which optimisation level a binary is compiled for.
+* Need to include metadata about which runtime an DLL is linked against. Same for UNIX shared libraries, but less common.
+* Need to include metadata about which optimisation level a binary is compiled for.
 * Cross compilation.
 * Custom variants.
 * Calling convention.

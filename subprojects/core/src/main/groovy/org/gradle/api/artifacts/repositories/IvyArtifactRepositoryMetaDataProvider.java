@@ -19,7 +19,7 @@ package org.gradle.api.artifacts.repositories;
 import org.gradle.api.Incubating;
 
 /**
- * The meta-data provider for an Ivy repository. Uses the Ivy module descriptor ({@code ivy.xml}) to determine the meta-data for module versions and artifacts.
+ * The metadata provider for an Ivy repository. Uses the Ivy module descriptor ({@code ivy.xml}) to determine the metadata for module versions and artifacts.
  */
 @Incubating
 public interface IvyArtifactRepositoryMetaDataProvider {

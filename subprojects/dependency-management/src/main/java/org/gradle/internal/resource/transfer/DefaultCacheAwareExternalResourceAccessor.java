@@ -99,7 +99,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
             if (isUnchanged) {
                 LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", cached.getExternalLastModified(), location);
-                // TODO - update the index with the new remote meta-data
+                // TODO - update the index with the new remote metadata
                 return new DefaultLocallyAvailableExternalResource(location, new DefaultLocallyAvailableResource(cached.getCachedFile()), cached.getExternalResourceMetaData());
             }
         }

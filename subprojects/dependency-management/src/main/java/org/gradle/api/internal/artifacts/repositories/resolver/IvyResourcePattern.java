@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
 
@@ -40,7 +40,7 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
         return String.format("Ivy pattern '%s'", getPattern());
     }
 
-    public ExternalResourceName getLocation(ModuleComponentArtifactMetaData artifact) {
+    public ExternalResourceName getLocation(ModuleComponentArtifactMetadata artifact) {
         Map<String, String> attributes = toAttributes(artifact);
         return getBase().getRoot().resolve(substituteTokens(getBase().getPath(), attributes));
     }

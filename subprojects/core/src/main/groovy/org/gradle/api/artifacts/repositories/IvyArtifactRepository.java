@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
 import java.net.URI;
 
 /**
- * An artifact repository which uses an Ivy format to store artifacts and meta-data.
+ * An artifact repository which uses an Ivy format to store artifacts and metadata.
  * <p>
  * When used to resolve metadata and artifact files, all available patterns will be searched.
  * <p>
@@ -161,10 +161,10 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
     void layout(String layoutName, Closure config);
 
     /**
-     * Returns the meta-data provider used when resolving artifacts from this repository. The provider is responsible for locating and interpreting the meta-data
+     * Returns the metadata provider used when resolving artifacts from this repository. The provider is responsible for locating and interpreting the metadata
      * for the modules and artifacts contained in this repository. Using this provider, you can fine tune how this resolution happens.
      *
-     * @return The meta-data provider for this repository.
+     * @return The metadata provider for this repository.
      */
     @Incubating
     IvyArtifactRepositoryMetaDataProvider getResolve();

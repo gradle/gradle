@@ -111,7 +111,7 @@ public class WrapperExecutor {
     }
 
     /**
-     * Returns the distribution which this wrapper will use. Returns null if no wrapper meta-data was found in the specified project directory.
+     * Returns the distribution which this wrapper will use. Returns null if no wrapper metadata was found in the specified project directory.
      */
     public URI getDistribution() {
         return config.getDistribution();

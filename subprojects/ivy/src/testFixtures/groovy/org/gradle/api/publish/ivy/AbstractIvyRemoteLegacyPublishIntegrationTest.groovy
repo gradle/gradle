@@ -92,7 +92,7 @@ uploadArchives {
         progressLogger.uploadProgressLogged(module.ivy.uri)
     }
 
-    public void "does not upload meta-data file when artifact upload fails"() {
+    public void "does not upload metadata file when artifact upload fails"() {
         given:
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """

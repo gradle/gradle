@@ -26,11 +26,11 @@ import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
-import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
-import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
-import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
+import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetadata;
+import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata;
+import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,15 +38,15 @@ import java.util.List;
 import java.util.Set;
 
 public class IvyBackedArtifactPublisher implements ArtifactPublisher {
-    private final ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder;
+    private final ConfigurationComponentMetadataBuilder configurationComponentMetadataBuilder;
     private final IvyContextManager ivyContextManager;
     private final IvyDependencyPublisher dependencyPublisher;
     private final IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
 
-    public IvyBackedArtifactPublisher(ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder, IvyContextManager ivyContextManager,
+    public IvyBackedArtifactPublisher(ConfigurationComponentMetadataBuilder configurationComponentMetadataBuilder, IvyContextManager ivyContextManager,
                                       IvyDependencyPublisher dependencyPublisher,
                                       IvyModuleDescriptorWriter ivyModuleDescriptorWriter) {
-        this.configurationComponentMetaDataBuilder = configurationComponentMetaDataBuilder;
+        this.configurationComponentMetadataBuilder = configurationComponentMetadataBuilder;
         this.ivyContextManager = ivyContextManager;
         this.dependencyPublisher = dependencyPublisher;
         this.ivyModuleDescriptorWriter = ivyModuleDescriptorWriter;
@@ -60,12 +60,12 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
 
                 if (descriptor != null) {
                     // Convert once, in order to write the Ivy descriptor with _all_ configurations
-                    IvyModulePublishMetaData publishMetaData = toPublishMetaData(module, allConfigurations);
+                    IvyModulePublishMetadata publishMetaData = toPublishMetaData(module, allConfigurations);
                     ivyModuleDescriptorWriter.write(publishMetaData.getModuleDescriptor(), publishMetaData.getArtifacts(), descriptor);
                 }
 
                 // Convert a second time with only the published configurations: this ensures that the correct artifacts are included
-                BuildableIvyModulePublishMetaData publishMetaData = toPublishMetaData(module, configurationsToPublish);
+                BuildableIvyModulePublishMetadata publishMetaData = toPublishMetaData(module, configurationsToPublish);
                 if (descriptor != null) {
                     Artifact artifact = MDArtifact.newIvyArtifact(publishMetaData.getModuleDescriptor());
                     publishMetaData.addArtifact(artifact, descriptor);
@@ -82,10 +82,10 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         });
     }
 
-    private BuildableIvyModulePublishMetaData toPublishMetaData(ModuleInternal module, Set<? extends Configuration> configurations) {
+    private BuildableIvyModulePublishMetadata toPublishMetaData(ModuleInternal module, Set<? extends Configuration> configurations) {
         ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
-        DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(id, module.getStatus());
-        configurationComponentMetaDataBuilder.addConfigurations(publishMetaData, configurations);
+        DefaultIvyModulePublishMetadata publishMetaData = new DefaultIvyModulePublishMetadata(id, module.getStatus());
+        configurationComponentMetadataBuilder.addConfigurations(publishMetaData, configurations);
         return publishMetaData;
     }
 

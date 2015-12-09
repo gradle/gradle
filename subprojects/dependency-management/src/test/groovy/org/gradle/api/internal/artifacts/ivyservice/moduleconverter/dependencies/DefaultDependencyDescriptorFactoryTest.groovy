@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
+import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import spock.lang.Specification
 
 public class DefaultDependencyDescriptorFactoryTest extends Specification {
@@ -30,7 +30,7 @@ public class DefaultDependencyDescriptorFactoryTest extends Specification {
         given:
         def ivyDependencyDescriptorFactory1 = Mock(IvyDependencyDescriptorFactory)
         def ivyDependencyDescriptorFactory2 = Mock(IvyDependencyDescriptorFactory)
-        def result = Stub(DslOriginDependencyMetaData)
+        def result = Stub(DslOriginDependencyMetadata)
 
         when:
         def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(

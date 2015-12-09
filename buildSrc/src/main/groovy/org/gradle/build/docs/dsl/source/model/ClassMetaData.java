@@ -26,7 +26,7 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * Static meta-data about a class extracted from the source for the class.
+ * Static metadata about a class extracted from the source for the class.
  */
 public class ClassMetaData extends AbstractLanguageElement implements Serializable, Attachable<ClassMetaData>, TypeContainer {
     private final String className;

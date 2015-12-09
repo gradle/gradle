@@ -47,7 +47,7 @@ class SimpleClassMetaDataRepositoryTest extends Specification {
 
         then:
         UnknownDomainObjectException e = thrown()
-        e.message == 'No meta-data is available for class \'unknown\'.'
+        e.message == 'No metadata is available for class \'unknown\'.'
     }
 
     def canIterateOverClassesUsingClosure() {

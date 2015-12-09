@@ -21,7 +21,7 @@ import org.gradle.internal.component.model.*;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetadataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
 /**
@@ -56,7 +56,7 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
             this.cacheLockingManager = cacheLockingManager;
         }
 
-        public void listModuleVersions(final DependencyMetaData dependency, final BuildableModuleVersionListingResolveResult result) {
+        public void listModuleVersions(final DependencyMetadata dependency, final BuildableModuleVersionListingResolveResult result) {
             cacheLockingManager.longRunningOperation(String.format("List %s using repository %s", dependency, name), new Runnable() {
                 public void run() {
                     delegate.listModuleVersions(dependency, result);
@@ -65,7 +65,7 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
         }
 
         public void resolveComponentMetaData(final ModuleComponentIdentifier moduleComponentIdentifier,
-                                             final ComponentOverrideMetadata requestMetaData, final BuildableModuleComponentMetaDataResolveResult result) {
+                                             final ComponentOverrideMetadata requestMetaData, final BuildableModuleComponentMetadataResolveResult result) {
             cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", moduleComponentIdentifier, name), new Runnable() {
                 public void run() {
                     delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
@@ -73,7 +73,7 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
             });
         }
 
-        public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(final ComponentResolveMetadata component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
             cacheLockingManager.longRunningOperation(String.format("Resolve %s for %s using repository %s", artifactType, component, name), new Runnable() {
                 public void run() {
                     delegate.resolveModuleArtifacts(component, artifactType, result);
@@ -81,7 +81,7 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
             });
         }
 
-        public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ComponentUsage componentUsage, final BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(final ComponentResolveMetadata component, final ComponentUsage componentUsage, final BuildableArtifactSetResolveResult result) {
             cacheLockingManager.longRunningOperation(String.format("Resolve %s for %s using repository %s", componentUsage, component, name), new Runnable() {
                 public void run() {
                     delegate.resolveModuleArtifacts(component, componentUsage, result);
@@ -90,7 +90,7 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
         }
 
 
-        public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
+        public void resolveArtifact(final ComponentArtifactMetadata artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
             cacheLockingManager.longRunningOperation(String.format("Download %s using repository %s", artifact, name), new Runnable() {
                 public void run() {
                     delegate.resolveArtifact(artifact, moduleSource, result);

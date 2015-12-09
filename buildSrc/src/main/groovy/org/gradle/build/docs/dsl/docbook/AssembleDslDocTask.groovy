@@ -41,8 +41,8 @@ import org.w3c.dom.Element
  *
  * Uses the following as input:
  * <ul>
- * <li>Meta-data extracted from the source by {@link org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask}.</li>
- * <li>Meta-data about the plugins, in the form of an XML file.</li>
+ * <li>Metadata extracted from the source by {@link org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask}.</li>
+ * <li>Metadata about the plugins, in the form of an XML file.</li>
  * <li>{@code sourceFile} - A main docbook template file containing the introductory material and a list of classes to document.</li>
  * <li>{@code classDocbookDir} - A directory that should contain docbook template for each class referenced in main docbook template.</li>
  * </ul>
@@ -50,7 +50,7 @@ import org.w3c.dom.Element
  * Produces the following:
  * <ul>
  * <li>A docbook book XML file containing the reference.</li>
- * <li>A meta-data file containing information about where the canonical documentation for each class can be found:
+ * <li>A metadata file containing information about where the canonical documentation for each class can be found:
  * as dsl doc, javadoc or groovydoc.</li>
  * </ul>
  */

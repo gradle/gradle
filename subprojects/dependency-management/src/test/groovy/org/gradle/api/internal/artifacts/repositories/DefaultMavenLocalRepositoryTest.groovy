@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetadataParser
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenLocalResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
@@ -34,7 +34,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
-    final MetaDataParser pomParser = Stub()
+    final MetadataParser pomParser = Stub()
     final AuthenticationContainer authenticationContainer = Stub()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenLocalArtifactRepository(

@@ -312,8 +312,8 @@ To generate multiple distributions:
 
 1. Change the `distribution` plugin to add a `SoftwareComponent` instance for each distribution that is added.
     - Publishes both the ZIP and TAR archives.
-    - Generated meta-data does not include any dependency declarations.
-    - Generated meta-data include details of components that have been bundled in the distribution.
+    - Generated metadata does not include any dependency declarations.
+    - Generated metadata include details of components that have been bundled in the distribution.
 
 ## Deprecate distribution configuration from the `application` plugin
 

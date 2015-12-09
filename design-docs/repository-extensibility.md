@@ -40,7 +40,7 @@ In this story, we add the ability to resolve files from a Google Code repository
 
 * 'googlecode' repository type
 * version listing via googlecode api
-* no meta-data handling (file-only repository)
+* no metadata handling (file-only repository)
 
 See: https://github.com/Ullink/gradle-repositories-plugin/blob/master/src/main/groovy/com/ullink/RepositoriesPlugin.groovy#L122
 
@@ -50,13 +50,13 @@ In this story, we simply add the ability to resolve files in a Nuget repository:
 
 * 'nuget' repository type
 * version listing via Nuget api
-* No meta-data handling (file-only repository)
+* No metadata handling (file-only repository)
 
 See: https://github.com/Ullink/gradle-repositories-plugin/blob/master/src/main/groovy/com/ullink/RepositoriesPlugin.groovy#L150
 
 ## Resolve artifact files from a GitHub repository
 
-## Allow meta-data file format to be specified for repositories
+## Allow metadata file format to be specified for repositories
 
 This story would permit the metadata file format (ivy/pom/etc) to be specified for a googlecode, nuget or other repository.
 

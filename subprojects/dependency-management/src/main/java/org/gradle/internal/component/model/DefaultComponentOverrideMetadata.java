@@ -19,7 +19,7 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
+import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 
 import java.util.Collections;
 import java.util.Set;
@@ -29,8 +29,8 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
     private final Set<IvyArtifactName> artifacts;
     private final ClientModule clientModule;
 
-    public static ComponentOverrideMetadata forDependency(DependencyMetaData dependencyMetaData) {
-        return new DefaultComponentOverrideMetadata(dependencyMetaData.isChanging(), dependencyMetaData.getArtifacts(), extractClientModule(dependencyMetaData));
+    public static ComponentOverrideMetadata forDependency(DependencyMetadata dependencyMetadata) {
+        return new DefaultComponentOverrideMetadata(dependencyMetadata.isChanging(), dependencyMetadata.getArtifacts(), extractClientModule(dependencyMetadata));
     }
 
     public DefaultComponentOverrideMetadata() {
@@ -43,9 +43,9 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
         this.clientModule = clientModule;
     }
 
-    private static ClientModule extractClientModule(DependencyMetaData dependencyMetaData) {
-        if (dependencyMetaData instanceof DslOriginDependencyMetaData) {
-            ModuleDependency source = ((DslOriginDependencyMetaData) dependencyMetaData).getSource();
+    private static ClientModule extractClientModule(DependencyMetadata dependencyMetadata) {
+        if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
+            ModuleDependency source = ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
             if (source instanceof ClientModule) {
                 return (ClientModule) source;
             }

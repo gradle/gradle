@@ -38,7 +38,7 @@ public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements C
                 inputStream.close();
             }
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not load meta-data from %s.", repoFile), e);
+            throw new GradleException(String.format("Could not load metadata from %s.", repoFile), e);
         }
     }
 
@@ -53,14 +53,14 @@ public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements C
                 outputStream.close();
             }
         } catch (IOException e) {
-            throw new GradleException(String.format("Could not write meta-data to %s.", repoFile), e);
+            throw new GradleException(String.format("Could not write metadata to %s.", repoFile), e);
         }
     }
 
     public T get(String fullyQualifiedClassName) {
         T t = find(fullyQualifiedClassName);
         if (t == null) {
-            throw new UnknownDomainObjectException(String.format("No meta-data is available for class '%s'.", fullyQualifiedClassName));
+            throw new UnknownDomainObjectException(String.format("No metadata is available for class '%s'.", fullyQualifiedClassName));
         }
         return t;
     }

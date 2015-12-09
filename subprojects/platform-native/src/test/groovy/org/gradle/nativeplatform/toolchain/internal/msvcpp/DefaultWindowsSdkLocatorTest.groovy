@@ -196,7 +196,7 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         1 * visitor.node("The specified installation directory '$sdkDir1' does not appear to contain a Windows SDK installation.")
     }
 
-    def "fills in meta-data from registry for SDK discovered using the path"() {
+    def "fills in metadata from registry for SDK discovered using the path"() {
         def sdkDir = sdkDir("sdk1")
 
         given:
@@ -218,7 +218,7 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         result.sdk.baseDir == sdkDir
     }
 
-    def "fills in meta-data from registry for SDK specified by user"() {
+    def "fills in metadata from registry for SDK specified by user"() {
         def sdkDir = sdkDir("sdk1")
 
         given:

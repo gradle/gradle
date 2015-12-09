@@ -195,7 +195,7 @@ It should be possible to implement this as an adapter over the existing MavenPom
 
 ## Allow Ivy module descriptor to be generated without publishing to a repository (DONE)
 
-In this step, the meta-data file generation for an Ivy publication is moved out of the `publish` tasks and into a separate task.
+In this step, the metadata file generation for an Ivy publication is moved out of the `publish` tasks and into a separate task.
 
 1. Add `GenerateIvyDescriptor` task type. Takes a `IvyModuleDescriptor` as input and generates an `ivy.xml` from this.
 2. The `ivy-publish` task adds a rule to define a `generate${publication}MetaData` task for each publication of type `IvyPublication` added to the

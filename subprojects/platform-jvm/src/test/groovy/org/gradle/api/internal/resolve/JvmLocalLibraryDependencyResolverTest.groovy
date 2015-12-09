@@ -62,7 +62,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
     ProjectModelResolver projectModelResolver
     Project rootProject
     LocalLibraryDependencyResolver resolver
-    DependencyMetaData metadata
+    DependencyMetadata metadata
     LibraryComponentSelector selector
     ModuleVersionSelector requested
     JavaPlatform platform
@@ -87,7 +87,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         def errorMessageBuilder = new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
         def variantDimensionSelectorFactories = [DefaultVariantAxisCompatibilityFactory.of(JavaPlatform, new DefaultJavaPlatformVariantAxisCompatibility())]
         resolver = new LocalLibraryDependencyResolver(JarBinarySpec, projectModelResolver, variantDimensionSelectorFactories, variants, schemaStore, libraryAdapter, errorMessageBuilder)
-        metadata = Mock(DependencyMetaData)
+        metadata = Mock(DependencyMetadata)
         selector = Mock(LibraryComponentSelector)
         requested = Mock(ModuleVersionSelector)
         metadata.requested >> requested
@@ -131,7 +131,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
             assert result.failure.cause.message =~ failure
         } else {
             assert result.failure == null
-            def md = result.metaData
+            def md = result.metadata
             assert md.id.group == selector.projectPath
             if (selector.libraryName) {
                 assert md.id.name == selector.libraryName
@@ -164,7 +164,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
 
     def "handles library artifacts"() {
         given:
-        def artifact = Mock(ComponentArtifactMetaData)
+        def artifact = Mock(ComponentArtifactMetadata)
         def result = new DefaultBuildableArtifactResolveResult()
         artifact.componentId >> Mock(LibraryBinaryIdentifier)
 
@@ -177,7 +177,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
 
     def "ignores non library artifacts"() {
         given:
-        def artifact = Mock(ComponentArtifactMetaData)
+        def artifact = Mock(ComponentArtifactMetadata)
         def result = new DefaultBuildableArtifactResolveResult()
         artifact.componentId >> Mock(ModuleComponentIdentifier)
 
@@ -191,7 +191,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
     @Unroll
     def "handles library module artifacts for #type"() {
         given:
-        def component = Mock(ComponentResolveMetaData)
+        def component = Mock(ComponentResolveMetadata)
         def result = new DefaultBuildableArtifactSetResolveResult()
         component.componentId >> Mock(LibraryBinaryIdentifier)
 
@@ -208,7 +208,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
     @Unroll
     def "ignores non library module artifacts for #type"() {
         given:
-        def component = Mock(ComponentResolveMetaData)
+        def component = Mock(ComponentResolveMetadata)
         def result = new DefaultBuildableArtifactSetResolveResult()
         component.componentId >> Mock(ModuleComponentIdentifier)
 

@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.gradle.internal.component.model.ComponentArtifactMetaData
-import org.gradle.internal.component.model.ComponentResolveMetaData
+import org.gradle.internal.component.model.ComponentArtifactMetadata
+import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentUsage
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
@@ -25,8 +25,8 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResu
 import spock.lang.Specification
 
 class ResolverProviderArtifactResolverTest extends Specification {
-    final artifact = Mock(ComponentArtifactMetaData)
-    final component = Mock(ComponentResolveMetaData)
+    final artifact = Mock(ComponentArtifactMetadata)
+    final component = Mock(ComponentResolveMetadata)
     final originalSource = Mock(ModuleSource)
     final result = new DefaultBuildableArtifactResolveResult()
     final artifactSetResult = new DefaultBuildableArtifactSetResolveResult()
@@ -52,7 +52,7 @@ class ResolverProviderArtifactResolverTest extends Specification {
 
     def "uses module artifacts from local access to repository defined by module source"() {
         def usage = Mock(ComponentUsage)
-        def artifact = Mock(ComponentArtifactMetaData)
+        def artifact = Mock(ComponentArtifactMetadata)
         when:
         resolver.resolveModuleArtifacts(component, usage, artifactSetResult)
 
@@ -71,7 +71,7 @@ class ResolverProviderArtifactResolverTest extends Specification {
 
     def "uses module artifacts from remote access to repository defined by module source"() {
         def usage = Mock(ComponentUsage)
-        def artifact = Mock(ComponentArtifactMetaData)
+        def artifact = Mock(ComponentArtifactMetadata)
         when:
         resolver.resolveModuleArtifacts(component, usage, artifactSetResult)
 
@@ -92,7 +92,7 @@ class ResolverProviderArtifactResolverTest extends Specification {
 
     def "locates artifact with local access in repository defined by module source"() {
         def artifactFile = Mock(File)
-        def artifact = Mock(ComponentArtifactMetaData)
+        def artifact = Mock(ComponentArtifactMetadata)
         when:
         resolver.resolveArtifact(artifact, repo2Source, result)
 
@@ -109,7 +109,7 @@ class ResolverProviderArtifactResolverTest extends Specification {
 
     def "locates artifact with remote access in repository defined by module source"() {
         def artifactFile = Mock(File)
-        def artifact = Mock(ComponentArtifactMetaData)
+        def artifact = Mock(ComponentArtifactMetadata)
         when:
         resolver.resolveArtifact(artifact, repo2Source, result)
 

@@ -200,7 +200,7 @@ task retrieve(type: Sync) {
         and:
         failure.assertHasCause('Could not resolve org.test:projectA:1.+.')
         failure.assertHasCause('Failed to list versions for org.test:projectA.')
-        failure.assertHasCause("Unable to load Maven meta-data from ${metaData.uri}.")
+        failure.assertHasCause("Unable to load Maven metadata from ${metaData.uri}.")
         failure.assertHasCause("Could not GET '${metaData.uri}'. Received status code 500 from server")
 
         when:

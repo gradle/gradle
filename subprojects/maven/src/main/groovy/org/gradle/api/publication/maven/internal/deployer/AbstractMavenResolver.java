@@ -34,8 +34,8 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
-import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
-import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
+import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
+import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.apache.maven.settings.building.SettingsBuildingException;
@@ -75,8 +75,8 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
 
     protected abstract MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
 
-    public void publish(IvyModulePublishMetaData moduleVersion) {
-        for (IvyModuleArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
+    public void publish(IvyModulePublishMetadata moduleVersion) {
+        for (IvyModuleArtifactPublishMetadata artifact : moduleVersion.getArtifacts()) {
             collectArtifact(artifact.toIvyArtifact(), artifact.getFile());
         }
         publish();

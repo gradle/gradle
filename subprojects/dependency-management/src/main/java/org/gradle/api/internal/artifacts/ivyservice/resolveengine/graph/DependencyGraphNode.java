@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
-import org.gradle.internal.component.model.ConfigurationMetaData;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.Set;
 
@@ -37,5 +37,5 @@ public interface DependencyGraphNode {
 
     Set<DependencyGraphEdge> getOutgoingEdges();
 
-    ConfigurationMetaData getMetaData();
+    ConfigurationMetadata getMetaData();
 }

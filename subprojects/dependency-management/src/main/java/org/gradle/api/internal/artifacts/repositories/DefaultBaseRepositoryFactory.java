@@ -24,15 +24,15 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.authentication.Authentication;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.internal.authentication.DefaultAuthenticationContainer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
-import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -45,19 +45,19 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final FileResolver fileResolver;
     private final Instantiator instantiator;
     private final RepositoryTransportFactory transportFactory;
-    private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder;
+    private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final ResolverStrategy resolverStrategy;
-    private final FileStore<ModuleComponentArtifactMetaData> artifactFileStore;
-    private final MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser;
+    private final FileStore<ModuleComponentArtifactMetadata> artifactFileStore;
+    private final MetadataParser<DefaultMavenModuleResolveMetadata> pomParser;
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
                                         Instantiator instantiator,
                                         RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
+                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                         ResolverStrategy resolverStrategy,
-                                        FileStore<ModuleComponentArtifactMetaData> artifactFileStore, MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser,
+                                        FileStore<ModuleComponentArtifactMetadata> artifactFileStore, MetadataParser<DefaultMavenModuleResolveMetadata> pomParser,
                                         AuthenticationSchemeRegistry authenticationSchemeRegistry) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;

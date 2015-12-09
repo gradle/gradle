@@ -17,7 +17,7 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 /**
@@ -34,11 +34,11 @@ public interface ComponentResolveResult extends ResolveResult {
     ModuleVersionIdentifier getId() throws ModuleVersionResolveException;
 
     /**
-     * Returns the meta-data for the component.
+     * Returns the metadata for the component.
      *
      * @throws ModuleVersionResolveException If resolution was unsuccessful and the descriptor is not available.
      */
-    ComponentResolveMetaData getMetaData() throws ModuleVersionResolveException;
+    ComponentResolveMetadata getMetadata() throws ModuleVersionResolveException;
 
     /**
      * Returns the resolve failure, if any.

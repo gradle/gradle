@@ -76,9 +76,9 @@ What constitutes a 'feature'? Some candidates:
 * various algorithms (dependency resolution, up-to-date check, searching for settings.gradle, etc).
 * samples
 * documentation
-* URLs for remote resources (for the distribution and tooling API, documentation URLs, meta-data at services.gradle.org)
+* URLs for remote resources (for the distribution and tooling API, documentation URLs, metadata at services.gradle.org)
 * the distribution format, artefact names, partitioning of Gradle into various jars.
-* format of meta-data at services.gradle.org
+* format of metadata at services.gradle.org
 * logging output
 * heap usage
 * performance
@@ -92,7 +92,7 @@ How long to we keep a deprecated feature for? For some features, we can simply r
 releases, we might keep the deprecated behaviour for several major releases.
 
 What's the policy for features that work across versions? e.g. which Gradle versions should a given version of the tooling API
-support? What about the wrapper? What about our meta-data formats and repository mappings? How about future features, such as the
+support? What about the wrapper? What about our metadata formats and repository mappings? How about future features, such as the
 'manage the daemons for all versions', or 'verify I can migrate my build', or 'clean my cache'?
 
 How do we verify we haven't broken anything? We're going to break stuff. Do we add more test coverage? Is it the code reviewer's

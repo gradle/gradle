@@ -26,7 +26,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
     final SimpleClassMetaDataRepository<ClassMetaData> repository = new SimpleClassMetaDataRepository<ClassMetaData>()
 
     def setup() {
-        task.destFile = project.file('meta-data.bin')
+        task.destFile = project.file('metadata.bin')
     }
 
     def extractsClassMetaDataFromGroovySource() {
