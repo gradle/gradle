@@ -56,8 +56,8 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         noExceptionThrown()
 
         and:
-        outputContains "Test 'myTest:suite'"
-        outputContains "build using task: :myTestSuite"
+        outputContains "Test 'myTest:binary'"
+        outputContains "build using task: :myTestBinary"
     }
 
     def "fails if no JUnit version is specified"() {
@@ -122,13 +122,13 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         }
 
         and:
-        standaloneTestSuite(true, useLib, useExternalDep)
+        standaloneTestBinary(true, useLib, useExternalDep)
 
         when:
-        succeeds ':myTestSuiteTest'
+        succeeds ':myTestBinaryTest'
 
         then:
-        executedAndNotSkipped ':compileMyTestSuiteMyTestJava', ':myTestSuiteTest'
+        executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest'
         int testCount = 1;
         def tests = ['test']
         if (useLib) {
@@ -166,13 +166,13 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         }
 
         and:
-        standaloneTestSuite(false, useLib, useExternalDep)
+        standaloneTestBinary(false, useLib, useExternalDep)
 
         when:
-        fails ':myTestSuiteTest'
+        fails ':myTestBinaryTest'
 
         then:
-        executedAndNotSkipped ':compileMyTestSuiteMyTestJava', ':myTestSuiteTest'
+        executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest'
         failure.assertHasCause('There were failing tests. See the report at')
         int testCount = 1;
         def tests = [
@@ -203,7 +203,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         given:
         applyJUnitPlugin()
 
-        def suites = ['myTest', 'myOtherSuite']
+        def suites = ['myTest', 'myOtherBinary']
         suites.each {
             buildFile << """
             model {
@@ -214,10 +214,10 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         }
 
         and:
-        standaloneTestSuite(true, false, false)
+        standaloneTestBinary(true, false, false)
 
         when:
-        succeeds(suites.collect { ":${it}SuiteTest"} as String[])
+        succeeds(suites.collect { ":${it}BinaryTest"} as String[])
 
         then:
         noExceptionThrown()
@@ -235,14 +235,14 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         testSuiteComponent()
 
         and:
-        standaloneTestSuite(false, false, false)
+        standaloneTestBinary(false, false, false)
 
         when:
         executer.withArgument('--dry-run')
         succeeds 'assemble'
 
         then:
-        notExecuted ':compileMyTestSuiteMyTestJava', ':myTestSuiteTest'
+        notExecuted ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest'
 
     }
 
@@ -340,7 +340,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         """.stripMargin()
 
         when:
-        fails ':compileMyTestSuiteMyTestJava'
+        fails ':compileMyTestBinaryMyTestJava'
 
         then:
         errorOutput.contains 'package utils.internal does not exist'
@@ -359,11 +359,11 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         file('src/test/resources/data.properties') << 'magic = 42'
 
         when:
-        succeeds ':myTestSuiteTest'
+        succeeds ':myTestBinaryTest'
 
         then:
         noExceptionThrown()
-        executedAndNotSkipped ':compileMyTestSuiteMyTestJava', ':processMyTestSuiteMyTestResources', ':myTestSuiteTest'
+        executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':processMyTestBinaryMyTestResources', ':myTestBinaryTest'
 
         when:
         succeeds ':checkTaskType'
@@ -398,11 +398,11 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         file('src/test-resources/data.properties') << 'magic = 42'
 
         when:
-        succeeds ':myTestSuiteTest'
+        succeeds ':myTestBinaryTest'
 
         then:
         noExceptionThrown()
-        executedAndNotSkipped ':compileMyTestSuiteMyTestJava', ':processMyTestSuiteMyTestResources', ':myTestSuiteTest'
+        executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':processMyTestBinaryMyTestResources', ':myTestBinaryTest'
 
         when:
         succeeds ':checkTaskType'
@@ -447,7 +447,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
                 tasks {
                     create('checkTaskType') {
                         doLast {
-                            def processResources = $.tasks.processMyTestSuiteMyTestResources
+                            def processResources = $.tasks.processMyTestBinaryMyTestResources
                             assert processResources instanceof ProcessResources
                         }
                     }
@@ -549,7 +549,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         }'''.stripMargin()
     }
 
-    private void standaloneTestSuite(boolean passing, boolean hasLibraryDependency, boolean hasExternalDependency) {
+    private void standaloneTestBinary(boolean passing, boolean hasLibraryDependency, boolean hasExternalDependency) {
 
         // todo: the value '0' is used, where it should in reality be 42, because we're using the API jar when resolving dependencies
         // where we should be using the runtime jar instead. This will be fixed in another story.

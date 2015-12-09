@@ -54,6 +54,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
     public void apply(Project target) {
     }
 
+    @SuppressWarnings("unused")
     static class Rules extends RuleSource {
 
         @ComponentType
@@ -190,7 +191,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
         private BinaryNamingScheme namingSchemeFor(JUnitTestSuiteSpec testSuiteSpec, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
             return DefaultBinaryNamingScheme.component(testSuiteSpec.getName())
-                .withBinaryType("suite") // not a 'Jar', not a 'test'
+                .withBinaryType("binary") // not a 'Jar', not a 'test'
                 .withRole("assembly", true)
                 .withVariantDimension(platform, selectedPlatforms);
         }
