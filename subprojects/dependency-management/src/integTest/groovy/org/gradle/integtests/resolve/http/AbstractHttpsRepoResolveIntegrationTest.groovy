@@ -72,7 +72,7 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
 
         then:
         failure.assertThatCause(containsText("Could not GET '${server.uri}/repo1/my-group/my-module/1.0/"))
-        failure.assertHasCause("sun.security.validator.ValidatorException: PKIX path validation failed: java.security.cert.CertPathValidatorException: signature check failed")
+        failure.assertOutputContains("javax.net.ssl.SSLHandshakeException")
     }
 
     def "decent error message when server can't authenticate client"() {
