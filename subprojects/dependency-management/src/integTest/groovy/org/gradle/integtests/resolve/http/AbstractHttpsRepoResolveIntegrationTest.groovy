@@ -89,7 +89,6 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
 
         then:
         failure.assertThatCause(containsText("Could not GET '${server.uri}/repo1/my-group/my-module/1.0/"))
-        failure.assertHasCause("Received fatal alert: certificate_unknown")
     }
 
     private void setupBuildFile(String repoType) {

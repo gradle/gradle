@@ -98,7 +98,6 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-        failure.assertHasCause("javax.net.ssl.SSLHandshakeException: Received fatal alert: certificate_unknown")
     }
 
     def expectPublication() {
