@@ -24,10 +24,17 @@ dependencies {
     compile 'org.testng:testng:6.3.1'
 
     testCompile libraries.groovy
+    testCompile "com.google.inject:guice:2.0@jar" // this is for TestNG
 
 }
 
+test {
+    exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
+    exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
+}
+
 useTestFixtures()
+useTestFixtures(project: ':testingBase', sourceSet: 'testFixtures')
 
 // TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
 //useClassycle()

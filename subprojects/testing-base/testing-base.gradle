@@ -21,5 +21,6 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ':messaging')
 
 
