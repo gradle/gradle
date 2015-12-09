@@ -1359,7 +1359,7 @@
                         <ulink url='http://testng.org/doc/documentation-main.html#testng-xml'/>.
                     </para>
                 </footnote>
-            Preserving the order of tests was introduced with TestNG version 5.14.5, i.e., setting the <literal>preserveOrder</literal> property to <literal>true</literal> for an older TestNG version will cause the build to fail with an according exception.
+            Preserving the order of tests was introduced with TestNG version 5.14.5. Setting the <literal>preserveOrder</literal> property to <literal>true</literal> for an older TestNG version will cause the build to fail.
             </para>
             <sample id="testngpreserveorder" dir="testing/testng/preserveorder" title="Preserving order of TestNG tests">
                 <sourcefile file="build.gradle" snippet="test-config"/>
@@ -1370,7 +1370,7 @@
                         <ulink url='http://testng.org/doc/documentation-main.html#dependencies-with-annotations'/>.
                     </para>
                 </footnote>
-            Grouping tests by instances was introduced with TestNG version 6.1, i.e., setting the <literal>groupByInstances</literal> property to <literal>true</literal> for an older TestNG version will cause the build to fail with an according exception.
+            Grouping tests by instances was introduced with TestNG version 6.1. Setting the <literal>groupByInstances</literal> property to <literal>true</literal> for an older TestNG version will cause the build to fail.
             </para>
             <sample id="testnggroupbyinstances" dir="testing/testng/groupbyinstances" title="Grouping TestNG tests by instances">
                 <sourcefile file="build.gradle" snippet="test-config"/>
