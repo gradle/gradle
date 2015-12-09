@@ -91,7 +91,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         rootProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
     }
 
-    @TargetGradleVersion("=2.10")
+    @TargetGradleVersion("=2.9")
     def "older Gradle versions throw exception when querying target bytecode level"() {
         when:
         EclipseProject rootProject = loadEclipseProjectModel()
@@ -101,7 +101,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         thrown(UnsupportedMethodException)
     }
 
-    @TargetGradleVersion("=2.10")
+    @TargetGradleVersion("=2.9")
     def "older Gradle versions throw exception when querying target runtime"() {
         when:
         EclipseProject rootProject = loadEclipseProjectModel()
