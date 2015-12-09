@@ -17,6 +17,7 @@
 package org.gradle.platform.base.internal;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.Nullable;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;
@@ -39,7 +40,7 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
 
     public DefaultModuleDependencySpec(String group, String name, String version) {
         if (group == null || name == null) {
-            throw new IllegalArgumentException("A module dependency spec must have at least a group and a module name.");
+            throw new IllegalDependencyNotation("A module dependency must have at least a group and a module name specified.");
         }
         this.group = group;
         this.name = name;
@@ -74,18 +75,49 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
 
         @Override
         public ModuleDependencySpecBuilder module(String name) {
-            module = name;
+            if (name != null && name.contains(":")) {
+                setValuesFromModuleId(name);
+            } else {
+                checkNotSet("module", module);
+                module = name;
+            }
             return this;
         }
 
+       private void checkNotSet(String name, String value) {
+           if (value != null) {
+               throw new IllegalDependencyNotation(String.format("Cannot set '%s' multiple times for module dependency.", name));
+           }
+       }
+
+       private void setValuesFromModuleId(String moduleId) {
+           String[] components = moduleId.split(":");
+           if (components.length < 2 || components.length > 3 || isNullOrEmpty(components[0]) || isNullOrEmpty(components[1])) {
+               throw illegalNotation(moduleId);
+           }
+           group(components[0]).module(components[1]);
+           if (components.length > 2) {
+               version(components[2]);
+           }
+       }
+
+       private IllegalDependencyNotation illegalNotation(String moduleId) {
+           return new IllegalDependencyNotation(
+               String.format(
+                   "'%s' is not a valid module dependency notation. Example notations: 'org.gradle:gradle-core:2.2', 'org.mockito:mockito-core'.",
+                   moduleId));
+       }
+
         @Override
         public ModuleDependencySpecBuilder group(String name) {
+            checkNotSet("group", group);
             group = name;
             return this;
         }
 
         @Override
         public ModuleDependencySpecBuilder version(String range) {
+            checkNotSet("version", version);
             version = range;
             return this;
         }

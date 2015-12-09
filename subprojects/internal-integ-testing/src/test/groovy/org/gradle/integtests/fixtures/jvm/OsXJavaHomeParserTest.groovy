@@ -23,7 +23,8 @@ class OsXJavaHomeParserTest extends Specification {
     def parser = new OsXJavaHomeParser()
 
     def "parses new format output"() {
-        def output = """Matching Java Virtual Machines (10):
+        def output = """Matching Java Virtual Machines (11):
+    9, x86_64:\t"Java SE 9-ea"\t/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home
     1.8.0, x86_64:\t"Java SE 8"\t/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home
     1.7.0_17, x86_64:\t"Java SE 7"\t/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home
     1.7.0_07, x86_64:\t"Java SE 7"\t/Library/Java/JavaVirtualMachines/jdk1.7.0_07.jdk/Contents/Home
@@ -39,36 +40,42 @@ class OsXJavaHomeParserTest extends Specification {
 
         expect:
         def result = parser.parse(new StringReader(output))
-        result.size() == 10
-        result[0].version == parse("1.8.0")
-        result[0].javaVersion == JavaVersion.VERSION_1_8
+        result.size() == 11
+        result[0].version == parse("9")
+        result[0].javaVersion == JavaVersion.VERSION_1_9
         result[0].jdk
         result[0].arch == JvmInstallation.Arch.x86_64
-        result[0].javaHome == new File("/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home")
+        result[0].javaHome == new File("/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home")
 
-        result[1].version == parse("1.7.0_17")
-        result[1].javaVersion == JavaVersion.VERSION_1_7
-        result[1].javaHome == new File("/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home")
+        result[1].version == parse("1.8.0")
+        result[1].javaVersion == JavaVersion.VERSION_1_8
+        result[1].jdk
+        result[1].arch == JvmInstallation.Arch.x86_64
+        result[1].javaHome == new File("/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home")
 
-        result[4].version == parse("1.7.0-ea-b223-ea-b223-ea-b223")
-        result[4].javaVersion == JavaVersion.VERSION_1_7
-        result[4].javaHome == new File("/Library/Java/JavaVirtualMachines/JDK 1.7.0 Developer Preview.jdk/Contents/Home")
+        result[2].version == parse("1.7.0_17")
+        result[2].javaVersion == JavaVersion.VERSION_1_7
+        result[2].javaHome == new File("/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home")
 
-        result[6].version == parse("1.7.0")
-        result[6].javaVersion == JavaVersion.VERSION_1_7
-        result[6].javaHome == new File("/Library/Java/JavaVirtualMachines/1.7.0.jdk/Contents/Home")
+        result[5].version == parse("1.7.0-ea-b223-ea-b223-ea-b223")
+        result[5].javaVersion == JavaVersion.VERSION_1_7
+        result[5].javaHome == new File("/Library/Java/JavaVirtualMachines/JDK 1.7.0 Developer Preview.jdk/Contents/Home")
 
-        result[8].version == parse("1.6.0_65-b14-462")
-        result[8].javaVersion == JavaVersion.VERSION_1_6
-        result[8].jdk
-        result[8].arch == JvmInstallation.Arch.x86_64
-        result[8].javaHome == new File("/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home")
+        result[7].version == parse("1.7.0")
+        result[7].javaVersion == JavaVersion.VERSION_1_7
+        result[7].javaHome == new File("/Library/Java/JavaVirtualMachines/1.7.0.jdk/Contents/Home")
 
         result[9].version == parse("1.6.0_65-b14-462")
         result[9].javaVersion == JavaVersion.VERSION_1_6
         result[9].jdk
-        result[9].arch == JvmInstallation.Arch.i386
+        result[9].arch == JvmInstallation.Arch.x86_64
         result[9].javaHome == new File("/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home")
+
+        result[10].version == parse("1.6.0_65-b14-462")
+        result[10].javaVersion == JavaVersion.VERSION_1_6
+        result[10].jdk
+        result[10].arch == JvmInstallation.Arch.i386
+        result[10].javaHome == new File("/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home")
     }
 
     def "parses old format output"() {

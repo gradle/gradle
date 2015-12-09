@@ -23,6 +23,7 @@ import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
+import org.gradle.platform.base.ProjectDependencySpec;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.File;
@@ -76,7 +77,9 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
                 builder.collection("dependencies", dependencies.getDependencies(), new ReportRenderer<DependencySpec, TextReportBuilder>() {
                     @Override
                     public void render(DependencySpec model, TextReportBuilder output) throws IOException {
-                        output.item(model.getDisplayName());
+                        if (model instanceof ProjectDependencySpec) {
+                            output.item(model.getDisplayName());
+                        }
                     }
                 }, "dependencies");
             }

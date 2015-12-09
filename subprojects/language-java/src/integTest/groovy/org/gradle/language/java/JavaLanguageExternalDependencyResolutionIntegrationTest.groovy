@@ -262,6 +262,6 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         fails 'mainJar'
 
         and:
-        failureCauseContains("`org.gradle:test:1.0' is not a valid library name. Did you mean to refer to a module instead?")
+        failureCauseContains("'org.gradle:test:1.0' is not a valid library name. Did you mean to refer to a module instead?")
     }
 }
