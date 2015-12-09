@@ -106,7 +106,8 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
         //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
         failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertThatCause(Matchers.containsString("Connection to http://localhost:${port} refused"))
+        failure.assertThatCause(Matchers.containsString("Connect to localhost:${port}"))
+        failure.assertThatCause(Matchers.containsString('failed: Connection refused'))
 
         when:
         server.resetExpectations()
@@ -141,7 +142,8 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
         //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
         failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertThatCause(Matchers.containsString("Connection to http://localhost:${port} refused"))
+        failure.assertThatCause(Matchers.containsString("Connect to localhost:${port}"))
+        failure.assertThatCause(Matchers.containsString('failed: Connection refused'))
 
         when:
         server.resetExpectations()
@@ -238,7 +240,8 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
         //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
         failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertThatCause(Matchers.containsString("Connection to http://localhost:${port} refused"))
+        failure.assertThatCause(Matchers.containsString("Connect to localhost:${port}"))
+        failure.assertThatCause(Matchers.containsString('failed: Connection refused'))
 
         when:
         server.resetExpectations()
@@ -291,7 +294,8 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         and:
         failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
         failure.assertHasCause("Could not list versions using Ivy pattern 'http://localhost:${port}/ivyRepo/[organisation]/[module]/[revision]/ivy-[revision].xml")
-        failure.assertHasCause("Connection to http://localhost:${port} refused")
+        failure.assertThatCause(Matchers.containsString("Connect to localhost:${port}"))
+        failure.assertThatCause(Matchers.containsString('failed: Connection refused'))
 
         when:
         server.resetExpectations()
