@@ -30,6 +30,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
     def setup() {
         file("settings.gradle").text = "rootProject.name='TestProject'"
         file("someFile").createFile()
+        using m2
     }
 
     def createTaskForCustomDistribution() {
