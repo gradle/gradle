@@ -72,7 +72,7 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
 
         then:
         failure.assertThatCause(containsText("Could not GET '${server.uri}/repo1/my-group/my-module/1.0/"))
-        failure.assertOutputContains("javax.net.ssl.SSLHandshakeException")
+        failure.error.contains("javax.net.ssl.SSLHandshakeException")
     }
 
     def "decent error message when server can't authenticate client"() {
@@ -89,6 +89,7 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
 
         then:
         failure.assertThatCause(containsText("Could not GET '${server.uri}/repo1/my-group/my-module/1.0/"))
+        failure.error.contains("javax.net.ssl.SSLHandshakeException")
     }
 
     private void setupBuildFile(String repoType) {
