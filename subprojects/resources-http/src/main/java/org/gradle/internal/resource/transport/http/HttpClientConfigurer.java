@@ -69,7 +69,7 @@ public class HttpClientConfigurer {
         configureSslSocketConnectionFactory(builder, httpSettings.getSslContextFactory());
         configureAuthSchemeRegistry(builder);
         configureCredentials(builder, credentialsProvider, httpSettings.getAuthenticationSettings());
-        configureProxyCredentials(credentialsProvider, httpSettings.getProxySettings());
+        configureProxy(builder, credentialsProvider, httpSettings);
         configureRetryHandler(builder);
         configureUserAgent(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
@@ -99,10 +99,19 @@ public class HttpClientConfigurer {
         }
     }
 
-    private void configureProxyCredentials(CredentialsProvider credentialsProvider, HttpProxySettings proxySettings) {
-        HttpProxySettings.HttpProxy proxy = proxySettings.getProxy();
-        if (proxy != null && proxy.credentials != null) {
-            useCredentials(credentialsProvider, proxy.host, proxy.port, Collections.singleton(new AllSchemesAuthentication(proxy.credentials)));
+    private void configureProxy(HttpClientBuilder builder, CredentialsProvider credentialsProvider, HttpSettings httpSettings) {
+        String proxyScheme = "https";
+        HttpProxySettings.HttpProxy proxy = httpSettings.getSecureProxySettings().getProxy();
+        if (proxy == null) {
+            proxy = httpSettings.getProxySettings().getProxy();
+            proxyScheme = "http";
+        }
+
+        if (proxy != null) {
+            if (proxy.credentials != null) {
+                useCredentials(credentialsProvider, proxy.host, proxy.port, Collections.singleton(new AllSchemesAuthentication(proxy.credentials)));
+            }
+            builder.setProxy(new HttpHost(proxy.host, proxy.port, proxyScheme));
         }
     }
 

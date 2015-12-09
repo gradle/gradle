@@ -24,6 +24,7 @@ import java.util.Collection;
 
 public class DefaultHttpSettings implements HttpSettings {
     private final HttpProxySettings proxySettings = new JavaSystemPropertiesHttpProxySettings();
+    private final HttpProxySettings secureProxySettings = new JavaSystemPropertiesSecureHttpProxySettings();
     private final Collection<Authentication> authenticationSettings;
     private final Factory<SSLContext> sslContextFactory;
 
@@ -43,6 +44,11 @@ public class DefaultHttpSettings implements HttpSettings {
     @Override
     public HttpProxySettings getProxySettings() {
         return proxySettings;
+    }
+
+    @Override
+    public HttpProxySettings getSecureProxySettings() {
+        return secureProxySettings;
     }
 
     @Override
