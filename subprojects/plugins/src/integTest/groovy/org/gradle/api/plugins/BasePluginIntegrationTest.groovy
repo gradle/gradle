@@ -69,4 +69,16 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         output.contains "CUSTOM BUILD"
     }
 
+
+    def "can define 'default' and 'archives' configurations prior to applying plugin"() {
+        buildFile << """
+            configurations {
+                "default"
+                archives
+            }
+            apply plugin: 'base'
+"""
+        expect:
+        succeeds "tasks"
+    }
 }
