@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.samples
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
@@ -60,6 +61,8 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
         if (GradleContextualExecuter.isDaemon()) {
             // don't load scala into the daemon as it exhausts permgen
             return
+        } else if (!GradleContextualExecuter.isEmbedded() && !GradleContextualExecuter.isParallel() && !JavaVersion.current().isJava8Compatible()) {
+            executer.withBuildJvmOpts('-XX:MaxPermSize=128m')
         }
 
         TestFile projectDir = sample.dir
