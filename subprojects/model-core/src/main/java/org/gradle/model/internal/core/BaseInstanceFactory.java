@@ -205,9 +205,6 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
             if (managedPublicType) {
                 throw new IllegalArgumentException(String.format("Cannot specify default implementation for managed type '%s'", publicType));
             }
-            if (implementationType == null) {
-                throw new IllegalArgumentException(String.format("No implementation type registered for '%s'", publicType));
-            }
             if (!baseInterface.isAssignableFrom(implementationType)) {
                 throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must extend '%s'", implementationType, publicType, baseImplementation));
             }
