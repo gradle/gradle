@@ -32,7 +32,8 @@ abstract public class MethodModelRuleExtractors {
             new DefaultsModelRuleExtractor(),
             new MutateModelRuleExtractor(),
             new FinalizeModelRuleExtractor(),
-            new ValidateModelRuleExtractor()
+            new ValidateModelRuleExtractor(),
+            new RuleDefinitionRuleExtractor()
         );
     }
 }
