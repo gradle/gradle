@@ -407,7 +407,7 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     Set<ResolvedInclude> deps(File... dep) {
-        dep.collect {new ResolvedInclude(it.name, it)} as Set
+        dep.collect {new ResolvedInclude(it.name, it, [ it ])} as Set
     }
 
     class DummyPersistentStateCache implements PersistentStateCache<CompilationState> {

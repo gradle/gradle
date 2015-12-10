@@ -41,7 +41,7 @@ public class DiscoveredInputFilesStateChangeRule {
                     return Collections.<TaskStateChange>singleton(new DescriptiveChange("Discovered input file history is not available.")).iterator();
                 }
 
-                Iterables.addAll(discoveredFiles, previousExecution.getDiscoveredInputFilesSnapshot().getFiles());
+                Iterables.addAll(discoveredFiles, previousExecution.getDiscoveredInputFilesSnapshot().getAllFiles());
                 final FileCollectionSnapshot discoveredFileSnapshot = inputFilesSnapshotter.snapshot(new SimpleFileCollection(discoveredFiles));
 
                 return new AbstractIterator<TaskStateChange>() {
@@ -65,6 +65,7 @@ public class DiscoveredInputFilesStateChangeRule {
             }
 
             public void snapshotAfterTask() {
+
                 currentExecution.setDiscoveredInputFilesSnapshot(inputFilesSnapshotter.snapshot(new SimpleFileCollection(discoveredFiles)));
             }
         };

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
@@ -51,9 +52,12 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     public FileCollectionSnapshot snapshot(final FileCollection input) {
-        final List<FileVisitDetails> allFileVisitDetails = visitFiles(input);
+        final List<FileVisitDetails> allFileVisitDetails = Lists.newLinkedList();
+        final List<File> missingFiles = Lists.newArrayList();
 
-        if (allFileVisitDetails.isEmpty()) {
+        visitFiles(input, allFileVisitDetails, missingFiles);
+
+        if (allFileVisitDetails.isEmpty() && missingFiles.isEmpty()) {
             return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap());
         }
 
@@ -71,18 +75,23 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                         }
                     }
                 }
+                for (File missingFile : missingFiles) {
+                    final String absolutePath = stringInterner.intern(missingFile.getAbsolutePath());
+                    if (!snapshots.containsKey(absolutePath)) {
+                        snapshots.put(absolutePath, MissingFileSnapshot.getInstance());
+                    }
+                }
             }
         });
 
         return new FileCollectionSnapshotImpl(snapshots);
     }
 
-    private List<FileVisitDetails> visitFiles(FileCollection input) {
-        final List<FileVisitDetails> allFileVisitDetails = new LinkedList<FileVisitDetails>();
+    protected void visitFiles(FileCollection input, final List<FileVisitDetails> allFileVisitDetails, final List<File> missingFiles) {
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
         context.add(input);
-
         List<FileTreeInternal> fileTrees = context.resolveAsFileTrees();
+
         for (FileTreeInternal fileTree : fileTrees) {
             fileTree.visitTreeOrBackingFile(new FileVisitor() {
                 @Override
@@ -96,8 +105,6 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                 }
             });
         }
-
-        return allFileVisitDetails;
     }
 
     interface IncrementalFileSnapshot {
@@ -170,6 +177,16 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             List<File> files = new ArrayList<File>();
             for (Map.Entry<String, IncrementalFileSnapshot> entry : snapshots.entrySet()) {
                 if (entry.getValue() instanceof FileHashSnapshot) {
+                    files.add(new File(entry.getKey()));
+                }
+            }
+            return new SimpleFileCollection(files);
+        }
+
+        public FileCollection getAllFiles() {
+            List<File> files = Lists.newArrayList();
+            for (Map.Entry<String, IncrementalFileSnapshot> entry : snapshots.entrySet()) {
+                if (!(entry.getValue() instanceof DirSnapshot)) {
                     files.add(new File(entry.getKey()));
                 }
             }

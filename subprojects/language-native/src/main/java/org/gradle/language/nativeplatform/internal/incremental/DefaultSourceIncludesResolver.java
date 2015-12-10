@@ -15,15 +15,13 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import com.google.common.collect.Lists;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private final List<File> includePaths;
@@ -37,7 +35,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         searchForDependencies(dependencies, prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludes());
         searchForDependencies(dependencies, includePaths, includes.getSystemIncludes());
         if (!includes.getMacroIncludes().isEmpty()) {
-            dependencies.add(new ResolvedInclude(includes.getMacroIncludes().get(0).getValue(), null));
+            dependencies.add(new ResolvedInclude(includes.getMacroIncludes().get(0).getValue(), null, Collections.<File>emptyList()));
         }
 
         return dependencies;
@@ -57,10 +55,12 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     private void searchForDependency(Set<ResolvedInclude> dependencies, List<File> searchPath, String include) {
+        List<File> candidates = Lists.newArrayList();
         for (File searchDir : searchPath) {
             File candidate = new File(searchDir, include);
+            candidates.add(candidate);
             if (candidate.isFile()) {
-                dependencies.add(new ResolvedInclude(include, GFileUtils.canonicalise(candidate)));
+                dependencies.add(new ResolvedInclude(include, GFileUtils.canonicalise(candidate), candidates));
                 return;
             }
         }

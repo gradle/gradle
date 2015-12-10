@@ -83,7 +83,7 @@ class CompilationStateSerializerTest extends SerializerSpec {
     }
 
     private static ResolvedInclude resolvedInclude(String value) {
-        return new ResolvedInclude(value, new File(value))
+        return new ResolvedInclude(value, new File(value), [ new File(value) ])
     }
 
     private CompilationState getSerialized() {

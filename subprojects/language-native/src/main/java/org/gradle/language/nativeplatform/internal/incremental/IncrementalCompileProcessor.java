@@ -111,8 +111,9 @@ public class IncrementalCompileProcessor {
                     LOGGER.info(String.format("Cannot determine changed state of included '%s' in source file '%s'. Assuming changed.", dep.getInclude(), file.getName()));
                     changed = true;
                 } else {
-                    ((IncrementalTaskInputsInternal)taskInputs).newInput(dep.getFile());
-
+                    for (File candidate : dep.getCandidates()) {
+                        ((IncrementalTaskInputsInternal)taskInputs).newInput(candidate);
+                    }
                     boolean depChanged = checkChangedAndUpdateState(dep.getFile());
                     changed = changed || depChanged;
                 }

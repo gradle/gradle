@@ -87,12 +87,14 @@ public class TaskExecutionServices {
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter, FileSnapshotter fileSnapshotter, StringInterner stringInterner) {
         FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner);
+        FileCollectionSnapshotter discoveredFileCollectionSnapshotter = new MinimalFileSetSnapshotter(fileSnapshotter, cacheAccess, stringInterner);
 
         FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(fileCollectionSnapshotter, new RandomLongIdGenerator(), cacheAccess, stringInterner);
 
         SerializerRegistry<FileCollectionSnapshot> serializerRegistry = new DefaultSerializerRegistry<FileCollectionSnapshot>();
         fileCollectionSnapshotter.registerSerializers(serializerRegistry);
         outputFilesSnapshotter.registerSerializers(serializerRegistry);
+        fileCollectionSnapshotter.registerSerializers(serializerRegistry);
 
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess,
             new CacheBackedFileSnapshotRepository(cacheAccess,
@@ -107,7 +109,8 @@ public class TaskExecutionServices {
                 taskHistoryRepository,
                 instantiator,
                 outputFilesSnapshotter,
-                fileCollectionSnapshotter
+                fileCollectionSnapshotter,
+                discoveredFileCollectionSnapshotter
             )
         );
     }

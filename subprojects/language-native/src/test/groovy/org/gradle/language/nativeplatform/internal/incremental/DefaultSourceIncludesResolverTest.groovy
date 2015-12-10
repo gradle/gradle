@@ -73,7 +73,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         quotedIncludes << "test1.h" << "test2.h"
 
         then:
-        dependencies == deps(header1, header2)
+        dependencies == quotedDeps(header1, header2)
     }
 
     def "locates quoted includes relative to source directory"() {
@@ -115,7 +115,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         systemIncludes << "test12.h" << "test22.h"
 
         then:
-        dependencies == deps(header11, header21, header12, header22)
+        dependencies == quotedDeps(header11, header21) + systemDeps(header12, header22)
     }
 
     def "searches relative before searching include path"() {
@@ -130,7 +130,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         quotedIncludes << "test.h" << "other.h"
 
         then:
-        dependencies == deps(relativeHeader, otherHeader)
+        dependencies == quotedDeps(relativeHeader, otherHeader)
     }
 
     def "includes unknown source dependency for first macro include"() {
@@ -150,11 +150,24 @@ class DefaultSourceIncludesResolverTest extends Specification {
     def include(String value) {
         return DefaultInclude.parse(value, false)
     }
-    def deps(File... files) {
-        return files.collect {dep(it)}
+
+    def quotedDeps(File... files) {
+        return files.collect {dep([ sourceDirectory ] + includePaths, it)}
     }
 
-    def dep(File dependencyFile) {
-        return new ResolvedInclude(dependencyFile.name, dependencyFile)
+    def systemDeps(File... files) {
+        return files.collect {dep(includePaths, it)}
+    }
+
+    def dep(List paths, File dependencyFile) {
+        List<File> candidates = []
+        for (File path : paths) {
+            def candidate = new File(path, dependencyFile.name)
+            candidates.add(candidate)
+            if (dependencyFile.absolutePath == candidate.absolutePath) {
+                break
+            }
+        }
+        return new ResolvedInclude(dependencyFile.name, dependencyFile, candidates)
     }
 }

@@ -72,13 +72,16 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
         TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
         def stringInterner = new StringInterner()
-        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner), cacheAccess, stringInterner)
+        def snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner)
+        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner)
+        FileCollectionSnapshotter discoveredFilesSnapshotter = new MinimalFileSetSnapshotter(snapshotter, cacheAccess, stringInterner)
         FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheAccess, stringInterner)
         SerializerRegistry<FileCollectionSnapshot> serializerRegistry = new DefaultSerializerRegistry<FileCollectionSnapshot>();
         inputFilesSnapshotter.registerSerializers(serializerRegistry);
         outputFilesSnapshotter.registerSerializers(serializerRegistry);
+        discoveredFilesSnapshotter.registerSerializers(serializerRegistry);
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(), new RandomLongIdGenerator()), stringInterner)
-        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, outputFilesSnapshotter, inputFilesSnapshotter)
+        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, outputFilesSnapshotter, inputFilesSnapshotter, discoveredFilesSnapshotter)
     }
 
     def artifactsAreNotUpToDateWhenCacheIsEmpty() {

@@ -17,14 +17,17 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 
 public class ResolvedInclude implements Serializable {
     private final String include;
     private final File dependencyFile;
+    private final List<File> candidates;
 
-    public ResolvedInclude(String include, File dependencyFile) {
+    public ResolvedInclude(String include, File dependencyFile, List<File> candidates) {
         this.include = include;
         this.dependencyFile = dependencyFile;
+        this.candidates = candidates;
     }
 
     public boolean isUnknown() {
@@ -59,9 +62,8 @@ public class ResolvedInclude implements Serializable {
         return dependencyFile;
     }
 
-    @Override
-    public String toString() {
-        return String.format("Resolved include '%s'", include);
+    public List<File> getCandidates() {
+        return candidates;
     }
 
     @Override
@@ -69,14 +71,19 @@ public class ResolvedInclude implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ResolvedInclude)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
         ResolvedInclude that = (ResolvedInclude) o;
 
-        return include.equals(that.include)
-                && (dependencyFile == null ? that.dependencyFile == null : dependencyFile.equals(that.dependencyFile));
+        if (!include.equals(that.include)) {
+            return false;
+        }
+        if (dependencyFile != null ? !dependencyFile.equals(that.dependencyFile) : that.dependencyFile != null) {
+            return false;
+        }
+        return candidates.equals(that.candidates);
 
     }
 
@@ -84,4 +91,17 @@ public class ResolvedInclude implements Serializable {
     public int hashCode() {
         return include.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return String.format("Resolved include '%s' -> '%s' %s", include, resolved(), candidates);
+    }
+
+    private String resolved() {
+        if (isUnknown()) {
+            return "???";
+        }
+        return dependencyFile.getAbsolutePath();
+    }
+
 }

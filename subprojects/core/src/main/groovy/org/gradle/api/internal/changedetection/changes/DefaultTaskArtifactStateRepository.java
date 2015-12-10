@@ -40,14 +40,17 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final TaskHistoryRepository taskHistoryRepository;
     private final FileCollectionSnapshotter outputFilesSnapshotter;
     private final FileCollectionSnapshotter inputFilesSnapshotter;
+    private final FileCollectionSnapshotter discoveredFilesSnapshotter;
     private final Instantiator instantiator;
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
-                                              FileCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter) {
+                                              FileCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter,
+                                              FileCollectionSnapshotter discoveredFileCollectionSnapshotter) {
         this.taskHistoryRepository = taskHistoryRepository;
         this.instantiator = instantiator;
         this.outputFilesSnapshotter = outputFilesSnapshotter;
         this.inputFilesSnapshotter = inputFilesSnapshotter;
+        this.discoveredFilesSnapshotter = discoveredFileCollectionSnapshotter;
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
@@ -129,7 +132,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private TaskUpToDateState getStates() {
             if (states == null) {
                 // Calculate initial state - note this is potentially expensive
-                states = new TaskUpToDateState(task, history, outputFilesSnapshotter, inputFilesSnapshotter);
+                states = new TaskUpToDateState(task, history, outputFilesSnapshotter, inputFilesSnapshotter, discoveredFilesSnapshotter);
             }
             return states;
         }
