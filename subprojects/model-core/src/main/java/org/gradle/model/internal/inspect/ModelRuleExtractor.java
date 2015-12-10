@@ -23,9 +23,9 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ExtractedModelRule;
@@ -66,22 +66,6 @@ public class ModelRuleExtractor {
         return "[" + desc + "]";
     }
 
-    private static RuntimeException invalid(Class<?> source, String reason) {
-        return invalid(source, reason, null);
-    }
-
-    private static RuntimeException invalid(Class<?> source, String reason, Throwable throwable) {
-        return new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid rule source: " + reason, throwable);
-    }
-
-    private static RuntimeException invalidMethod(Method method, String reason) {
-        String description = MethodDescription.name(method.getName())
-                .owner(method.getDeclaringClass())
-                .takes(method.getGenericParameterTypes())
-                .toString();
-        return invalid(description, reason);
-    }
-
     private static RuntimeException invalid(ModelRuleDescriptor rule, String reason) {
         StringBuilder sb = new StringBuilder();
         rule.describeTo(sb);
@@ -105,7 +89,11 @@ public class ModelRuleExtractor {
     }
 
     private List<ExtractedModelRule> doExtract(Class<?> source) {
-        validate(source);
+        ValidationProblemCollector problems = new ValidationProblemCollector(ModelType.of(source));
+
+        // TODO - exceptions thrown here should point to some extensive documentation on the concept of class rule sources
+
+        validate(source, problems);
         final Method[] methods = source.getDeclaredMethods();
 
         // sort for determinism
@@ -121,22 +109,28 @@ public class ModelRuleExtractor {
             MethodRuleDefinition<?, ?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
             MethodModelRuleExtractor handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
-                validateRuleMethod(method);
-                ExtractedModelRule registration = handler.registration(ruleDefinition);
-                if (registration != null) {
+                validateRuleMethod(method, problems);
+                if (!problems.hasProblems()) {
+                    ExtractedModelRule registration = handler.registration(ruleDefinition);
                     registrations.add(registration);
                 }
             } else {
-                validateNonRuleMethod(method);
+                validateNonRuleMethod(method, problems);
             }
         }
+
+        if (problems.hasProblems()) {
+            throw new InvalidModelRuleDeclarationException(problems.format());
+        }
+
         return registrations.build();
     }
 
+    @Nullable
     private MethodModelRuleExtractor getMethodHandler(MethodRuleDefinition<?, ?> ruleDefinition) {
         MethodModelRuleExtractor handler = null;
         for (MethodModelRuleExtractor candidateHandler : handlers) {
-            if (candidateHandler.getSpec().isSatisfiedBy(ruleDefinition)) {
+            if (candidateHandler.isSatisfiedBy(ruleDefinition)) {
                 if (handler == null) {
                     handler = candidateHandler;
                 } else {
@@ -147,79 +141,61 @@ public class ModelRuleExtractor {
         return handler;
     }
 
-    /**
-     * Validates that the given class is effectively static and has no instance state.
-     *
-     * @param source the class the validate
-     */
-    public void validate(Class<?> source) throws InvalidModelRuleDeclarationException {
-        // TODO - exceptions thrown here should point to some extensive documentation on the concept of class rule sources
-
+    private void validate(Class<?> source, ValidationProblemCollector problems) {
         int modifiers = source.getModifiers();
 
         if (Modifier.isInterface(modifiers)) {
-            throw invalid(source, "must be a class, not an interface");
+            problems.add("must be a class, not an interface");
         }
 
         if (!RuleSource.class.isAssignableFrom(source) || !source.getSuperclass().equals(RuleSource.class)) {
-            throw invalid(source, "rule source classes must directly extend " + RuleSource.class.getName());
+            problems.add("rule source classes must directly extend " + RuleSource.class.getName());
         }
 
         if (Modifier.isAbstract(modifiers)) {
-            throw invalid(source, "class cannot be abstract");
+            problems.add("class cannot be abstract");
         }
 
         if (source.getEnclosingClass() != null) {
             if (Modifier.isStatic(modifiers)) {
                 if (Modifier.isPrivate(modifiers)) {
-                    throw invalid(source, "class cannot be private");
+                    problems.add("class cannot be private");
                 }
             } else {
-                throw invalid(source, "enclosed classes must be static and non private");
+                problems.add("enclosed classes must be static and non private");
             }
         }
 
         Constructor<?>[] constructors = source.getDeclaredConstructors();
         for (Constructor<?> constructor : constructors) {
             if (constructor.getParameterTypes().length > 0) {
-                throw invalid(source, "cannot declare a constructor that takes arguments");
+                problems.add("cannot declare a constructor that takes arguments");
+                break;
             }
-        }
-
-        try {
-            Constructor<?> constructor = constructors[0];
-            constructor.setAccessible(true);
-            constructor.newInstance();
-        } catch (InvocationTargetException e) {
-            throw invalid(source, "instance creation failed", e.getCause());
-        } catch (InstantiationException e) {
-            throw invalid(source, "instance creation failed", e);
-        } catch (IllegalAccessException e) {
-            throw invalid(source, "must have an accessible constructor", e);
         }
 
         Field[] fields = source.getDeclaredFields();
         for (Field field : fields) {
             int fieldModifiers = field.getModifiers();
             if (!field.isSynthetic() && !(Modifier.isStatic(fieldModifiers) && Modifier.isFinal(fieldModifiers))) {
-                throw invalid(source, "field " + field.getName() + " is not static final");
+                problems.add("field " + field.getName() + " is not static final");
             }
         }
     }
 
-    private void validateRuleMethod(Method ruleMethod) {
+    private void validateRuleMethod(Method ruleMethod, ValidationProblemCollector problems) {
         if (Modifier.isPrivate(ruleMethod.getModifiers())) {
-            throw invalidMethod(ruleMethod, "a rule method cannot be private");
+            problems.add(ruleMethod, "a rule method cannot be private");
         }
 
         if (ruleMethod.getTypeParameters().length > 0) {
-            throw invalidMethod(ruleMethod, "cannot have type variables (i.e. cannot be a generic method)");
+            problems.add(ruleMethod, "cannot have type variables (i.e. cannot be a generic method)");
         }
 
         // TODO validations on method: synthetic, bridge methods, varargs, abstract, native
         ModelType<?> returnType = ModelType.returnType(ruleMethod);
         if (returnType.isRawClassOfParameterizedType()) {
-            throw invalidMethod(ruleMethod, "raw type " + returnType + " used for return type (all type parameters must be specified of parameterized type)");
+            problems.add(ruleMethod, "raw type " + returnType + " used for return type (all type parameters must be specified of parameterized type)");
         }
 
         int i = 0;
@@ -227,14 +203,14 @@ public class ModelRuleExtractor {
             ++i;
             ModelType<?> modelType = ModelType.of(type);
             if (modelType.isRawClassOfParameterizedType()) {
-                throw invalidMethod(ruleMethod, "raw type " + modelType + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
+                problems.add(ruleMethod, "raw type " + modelType + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
             }
         }
     }
 
-    private void validateNonRuleMethod(Method method) {
+    private void validateNonRuleMethod(Method method, ValidationProblemCollector problems) {
         if (!Modifier.isPrivate(method.getModifiers()) && !Modifier.isStatic(method.getModifiers()) && !method.isSynthetic()) {
-            throw invalidMethod(method, "a method that is not annotated as a rule must be private");
+            problems.add(method, "a method that is not annotated as a rule must be private");
         }
     }
 

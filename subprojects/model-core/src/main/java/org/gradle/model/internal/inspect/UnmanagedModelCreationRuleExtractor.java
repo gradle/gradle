@@ -17,7 +17,6 @@
 package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.BiAction;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -27,15 +26,9 @@ import java.util.List;
 
 @ThreadSafe
 public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
-
     @Override
-    public Spec<MethodRuleDefinition<?, ?>> getSpec() {
-        final Spec<MethodRuleDefinition<?, ?>> superSpec = super.getSpec();
-        return new Spec<MethodRuleDefinition<?, ?>>() {
-            public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> element) {
-                return superSpec.isSatisfiedBy(element) && !element.getReturnType().equals(ModelType.of(Void.TYPE));
-            }
-        };
+    public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> element) {
+        return super.isSatisfiedBy(element) && !element.getReturnType().equals(ModelType.of(Void.TYPE));
     }
 
     @Override

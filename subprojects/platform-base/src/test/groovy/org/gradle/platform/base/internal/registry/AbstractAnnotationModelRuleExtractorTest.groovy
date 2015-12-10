@@ -38,14 +38,14 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends Specifica
         1 * ruleDefinition.getAnnotation(annotation) >> null
 
         then:
-        !ruleHandler.spec.isSatisfiedBy(ruleDefinition)
+        !ruleHandler.isSatisfiedBy(ruleDefinition)
 
 
         when:
         1 * ruleDefinition.getAnnotation(annotation) >> Mock(annotation)
 
         then:
-        ruleHandler.spec.isSatisfiedBy(ruleDefinition)
+        ruleHandler.isSatisfiedBy(ruleDefinition)
         where:
         annotationName << [annotation.getSimpleName()]
     }

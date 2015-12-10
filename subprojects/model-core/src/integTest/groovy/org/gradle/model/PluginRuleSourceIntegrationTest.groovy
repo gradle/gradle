@@ -101,7 +101,9 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyPlugin']")
-        failure.assertHasCause("Type MyPlugin\$Rules is not a valid rule source: enclosed classes must be static and non private")
+        failure.assertHasCause('''Type MyPlugin$Rules is not a valid rule source:
+- enclosed classes must be static and non private
+- cannot declare a constructor that takes arguments''')
     }
 
     def "informative error message when two plugins declare model at the same path"() {
@@ -380,12 +382,15 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         output.contains "name: injected"
     }
 
-    def "plugin application fails if rule source constructor throws exception"() {
+    def "reports rule execution failure when rule source constructor throws exception"() {
         when:
         buildScript '''
             class Rules extends RuleSource {
                 Rules() {
                     throw new RuntimeException("failing constructor")
+                }
+                @Defaults
+                void tasks(ModelMap<Task> tasks) {
                 }
             }
 
@@ -396,8 +401,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Failed to apply plugin [class 'Rules']")
-        failure.assertHasCause("Type Rules is not a valid rule source: instance creation failed")
+        failure.assertHasCause("Exception thrown while executing model rule: Rules#tasks")
         failure.assertHasCause("failing constructor")
     }
 }

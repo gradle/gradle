@@ -18,7 +18,6 @@ package org.gradle.model.internal.inspect;
 
 import com.google.common.reflect.TypeToken;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.specs.Spec;
 
 import java.lang.annotation.Annotation;
 
@@ -31,17 +30,12 @@ public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annot
         this.annotationType = annotationType;
     }
 
-    public Spec<MethodRuleDefinition<?, ?>> getSpec() {
-        return new AnnotationMatchingSpec();
+    @Override
+    public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> ruleDefinition) {
+        return ruleDefinition.getAnnotation(annotationType) != null;
     }
 
     public String getDescription() {
         return String.format("annotated with @%s", annotationType.getSimpleName());
    }
-
-    private class AnnotationMatchingSpec implements Spec<MethodRuleDefinition<?, ?>> {
-        public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> ruleDefinition) {
-           return ruleDefinition.getAnnotation(annotationType) != null;
-       }
-    }
 }

@@ -956,7 +956,8 @@ This element was created by testrule > create(item) and can be mutated as the fo
         then:
         ModelRuleExecutionException e = thrown()
         e.cause.class == InvalidModelRuleDeclarationException
-        e.cause.message == "Type java.lang.Object is not a valid rule source: rule source classes must directly extend org.gradle.model.RuleSource"
+        e.cause.message.startsWith('''Type java.lang.Object is not a valid rule source:
+- rule source classes must directly extend org.gradle.model.RuleSource''')
     }
 
     static class ElementRules extends RuleSource {

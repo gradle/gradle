@@ -17,7 +17,6 @@
 package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.NotThreadSafe;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Cast;
 import org.gradle.model.InvalidModelRuleDeclarationException;
@@ -50,13 +49,8 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     }
 
     @Override
-    public Spec<MethodRuleDefinition<?, ?>> getSpec() {
-        final Spec<MethodRuleDefinition<?, ?>> superSpec = super.getSpec();
-        return new Spec<MethodRuleDefinition<?, ?>>() {
-            public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> element) {
-                return superSpec.isSatisfiedBy(element) && element.getReturnType().equals(ModelType.of(Void.TYPE));
-            }
-        };
+    public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> element) {
+        return super.isSatisfiedBy(element) && element.getReturnType().equals(ModelType.of(Void.TYPE));
     }
 
     @Override
