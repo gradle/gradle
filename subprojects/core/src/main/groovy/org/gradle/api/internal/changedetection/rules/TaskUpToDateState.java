@@ -48,7 +48,7 @@ public class TaskUpToDateState {
         try {
             outputFilesState = caching(OutputFilesStateChangeRule.create(task, lastExecution, thisExecution, outputFilesSnapshotter));
         } catch (UncheckedIOException e) {
-            throw new UncheckedIOException(String.format("Failed to capture snapshot of output files for task '%s' during up-to-date check.  See stacktrace for details.", task.getName()), e);
+            throw new UncheckedIOException(String.format("Failed to capture snapshot of output files for task '%s' during up-to-date check.", task.getName()), e);
         }
 
         // Capture inputs state
@@ -57,14 +57,14 @@ public class TaskUpToDateState {
             this.inputFilesSnapshot = inputFilesSnapshot.getSnapshot();
             inputFilesState = caching(InputFilesStateChangeRule.create(lastExecution, thisExecution, inputFilesSnapshot));
         } catch (UncheckedIOException e) {
-            throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.  See stacktrace for details.", task.getName()), e);
+            throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.", task.getName()), e);
         }
 
         // Capture discovered inputs state from previous execution
         try {
             discoveredInputFilesState = DiscoveredInputFilesStateChangeRule.create(lastExecution, thisExecution, inputFilesSnapshotter);
         } catch (UncheckedIOException e) {
-            throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.  See stacktrace for details.", task.getName()), e);
+            throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.", task.getName()), e);
         }
 
         allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState, caching(discoveredInputFilesState));
