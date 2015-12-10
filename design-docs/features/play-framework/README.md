@@ -4,11 +4,10 @@ This specification outlines the work that is required to use Gradle to build app
 
 - [Build author configures and builds a Play application](build-play-application)
 - [Build author specifies Play, Scala and Java platform for Play application](specify-target-platform)
-- [Build author configures dependencies for Play application](with-dependencies)
 - [Build author runs a Play application in development](run-play-application)
 - [Build author runs tests for a Play application](test-play-application)
 - [Build author develops Play application in IDE](develop-play-application)
-- [Administrator deploys a Play application in production](deploy-play-application)
+- [Administrator deploys a Play application in production](publish-and-deploy)
 
 ## Debt
 
