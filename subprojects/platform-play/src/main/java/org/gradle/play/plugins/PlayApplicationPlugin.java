@@ -26,6 +26,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.java.plugins.JavaLanguagePlugin;
+import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
@@ -197,11 +198,14 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void generatedScalaSourcesAreInputs(ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
+        void generatedSourcesAreInputs(ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
             binaries.afterEach(new Action<PlayApplicationBinarySpecInternal>() {
                 @Override
                 public void execute(PlayApplicationBinarySpecInternal playApplicationBinarySpec) {
                     for (ScalaLanguageSourceSet generatedSources : playApplicationBinarySpec.getGeneratedScala().values()) {
+                        playApplicationBinarySpec.getInputs().add(generatedSources);
+                    }
+                    for (JavaScriptSourceSet generatedSources : playApplicationBinarySpec.getGeneratedJavaScript().values()) {
                         playApplicationBinarySpec.getInputs().add(generatedSources);
                     }
                 }

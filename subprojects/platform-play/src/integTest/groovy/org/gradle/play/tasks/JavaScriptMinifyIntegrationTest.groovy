@@ -23,7 +23,7 @@ import static org.gradle.play.integtest.fixtures.Repositories.*
 class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegrationTest {
 
     TestFile getProcessedJavaScriptDir(String sourceSet) {
-        file("build/playBinary/src/minifyPlayBinary${sourceSet ?: "JavaScript"}")
+        file("build/src/play/binary/minifyPlayBinaryPlay${sourceSet ?: "JavaScript"}")
     }
 
     void hasProcessedJavaScript(String fileName) {
@@ -55,7 +55,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
 
         then:
         executedAndNotSkipped(
-                ":minifyPlayBinaryJavaScript",
+                ":minifyPlayBinaryPlayJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -77,7 +77,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         succeeds "assemble"
 
         then:
-        skipped(":minifyPlayBinaryJavaScript",
+        skipped(":minifyPlayBinaryPlayJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -96,7 +96,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
 
         then:
         executedAndNotSkipped(
-                ":minifyPlayBinaryJavaScript",
+                ":minifyPlayBinaryPlayJavaScript",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
         hasProcessedJavaScript("test")
@@ -114,7 +114,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
 
         then:
         executedAndNotSkipped(
-                ":minifyPlayBinaryJavaScript",
+                ":minifyPlayBinaryPlayJavaScript",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
     }
@@ -174,9 +174,9 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
 
         then:
         executedAndNotSkipped(
-                ":minifyPlayBinaryJavaScript",
-                ":minifyPlayBinaryExtraJavaScript",
-                ":minifyPlayBinaryAnotherJavaScript",
+                ":minifyPlayBinaryPlayJavaScript",
+                ":minifyPlayBinaryPlayExtraJavaScript",
+                ":minifyPlayBinaryPlayAnotherJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -196,9 +196,9 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         succeeds "assemble"
 
         then:
-        skipped(":minifyPlayBinaryJavaScript",
-                ":minifyPlayBinaryExtraJavaScript",
-                ":minifyPlayBinaryAnotherJavaScript",
+        skipped(":minifyPlayBinaryPlayJavaScript",
+                ":minifyPlayBinaryPlayExtraJavaScript",
+                ":minifyPlayBinaryPlayAnotherJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -215,7 +215,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
 
         then:
         hasProcessedJavaScript("javascripts/hello")
-        failure.assertHasDescription("Execution failed for task ':minifyPlayBinaryJavaScript'.")
+        failure.assertHasDescription("Execution failed for task ':minifyPlayBinaryPlayJavaScript'.")
 
         String slash = File.separator
         failure.assertThatCause(Matchers.allOf([
