@@ -30,9 +30,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingletonFileTree;
-import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
-import org.gradle.api.resources.internal.ReadableResources;
+import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.util.GFileUtils;
@@ -44,11 +43,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final File tarFile;
-    private final ReadableResource resource;
+    private final ReadableResourceInternal resource;
     private final Chmod chmod;
     private final File tmpDir;
 
-    public TarFileTree(@Nullable File tarFile, ReadableResource resource, File tmpDir, Chmod chmod) {
+    public TarFileTree(@Nullable File tarFile, ReadableResourceInternal resource, File tmpDir, Chmod chmod) {
         this.tarFile = tarFile;
         this.resource = resource;
         this.chmod = chmod;
@@ -105,7 +104,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
             return tarFile;
         }
         if (resource != null) {
-            return ReadableResources.resolveBackingFileForResource(resource);
+            return resource.getBackingFile();
         }
         return null;
     }

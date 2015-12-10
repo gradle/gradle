@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 
 import java.io.File;
@@ -47,8 +46,7 @@ public abstract class AbstractFileResource implements ReadableResourceInternal {
         return file;
     }
 
-    @Override
-    public ReadableResource getBackingResource() {
-        return this;
+    public File getBackingFile() {
+        return getFile();
     }
 }

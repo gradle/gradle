@@ -25,14 +25,15 @@ import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.bundling.Compression;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 
 public class MaybeCompressedFileResource implements ReadableResourceInternal {
 
-    private final ReadableResource resource;
+    private final ReadableResourceInternal resource;
 
-    public MaybeCompressedFileResource(ReadableResource resource) {
+    public MaybeCompressedFileResource(ReadableResourceInternal resource) {
         if (resource instanceof CompressedReadableResource) {
             // Already in something to uncompress it
             this.resource = resource;
@@ -70,13 +71,7 @@ public class MaybeCompressedFileResource implements ReadableResourceInternal {
         return resource.getBaseName();
     }
 
-    @Override
-    public ReadableResource getBackingResource() {
-        ReadableResource resource = getResource();
-        if (resource instanceof ReadableResourceInternal) {
-            return ((ReadableResourceInternal) resource).getBackingResource();
-        } else {
-            return resource;
-        }
+    public File getBackingFile() {
+        return resource.getBackingFile();
     }
 }

@@ -14,48 +14,46 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.archive.compression;
+package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.resources.URIBuilder;
+import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 
-abstract class AbstractArchiver implements CompressedReadableResource {
-    protected final ReadableResourceInternal resource;
-    protected final URI uri;
+public class UnknownBackingFileReadableResource implements ReadableResourceInternal {
+    private final ReadableResource resource;
 
-    public AbstractArchiver(ReadableResourceInternal resource) {
-        assert resource != null;
-        this.uri = new URIBuilder(resource.getURI()).schemePrefix(getSchemePrefix()).build();
+    public UnknownBackingFileReadableResource(ReadableResource resource) {
         this.resource = resource;
     }
 
-    abstract protected String getSchemePrefix();
+    @Override
+    public File getBackingFile() {
+        return null;
+    }
 
-    abstract public InputStream read();
+    @Override
+    public InputStream read() throws MissingResourceException, ResourceException {
+        return resource.read();
+    }
 
+    @Override
     public String getDisplayName() {
         return resource.getDisplayName();
     }
 
+    @Override
     public URI getURI() {
-        return uri;
-    }
-
-    public String getBaseName() {
-        return resource.getBaseName();
+        return resource.getURI();
     }
 
     @Override
-    public ReadableResource getCompressedResource() {
-        return resource;
-    }
-
-    public File getBackingFile() {
-        return resource.getBackingFile();
+    public String getBaseName() {
+        return resource.getBaseName();
     }
 }

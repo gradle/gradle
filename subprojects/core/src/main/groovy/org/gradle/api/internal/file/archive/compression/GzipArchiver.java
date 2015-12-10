@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.api.resources.internal.ReadableResourceInternal;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,7 +27,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class GzipArchiver extends AbstractArchiver {
-    public GzipArchiver(ReadableResource resource) {
+    public GzipArchiver(ReadableResourceInternal resource) {
         super(resource);
     }
 

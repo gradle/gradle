@@ -31,6 +31,7 @@ import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -98,9 +99,12 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
 
     public FileTree tarTree(Object tarPath) {
         File tarFile = null;
-        ReadableResource resource;
-        if (tarPath instanceof ReadableResource) {
-            resource = (ReadableResource) tarPath;
+        ReadableResourceInternal resource;
+        if (tarPath instanceof ReadableResourceInternal) {
+            resource = (ReadableResourceInternal) tarPath;
+        } else if (tarPath instanceof ReadableResource) {
+            // custom type
+            resource = new UnknownBackingFileReadableResource((ReadableResource)tarPath);
         } else {
             tarFile = file(tarPath);
             resource = new FileResource(tarFile);
