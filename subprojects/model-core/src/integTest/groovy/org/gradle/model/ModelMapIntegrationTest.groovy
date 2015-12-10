@@ -44,6 +44,27 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot create a 'NonRegisteredComponent' because this type is not known to components. Known types are: SampleComponent")
     }
 
+    def "cannot add unregistered type to model map"() {
+        buildFile << """
+            @Managed interface Thing {}
+
+            class Rules extends RuleSource {
+                @Model void things(ModelMap<Thing> things) { }
+            }
+            apply plugin: Rules
+
+            model {
+                things {
+                    bad(FunctionalSourceSet)
+                }
+            }
+        """
+
+        expect:
+        fails "model"
+        failureHasCause "Cannot create 'things.bad' with type '$FunctionalSourceSet.name' as this is not a subtype of 'Thing'."
+    }
+
     def "cannot add invalid type to specialized model map"() {
         buildFile << """
         apply plugin: ComponentModelBasePlugin
@@ -57,7 +78,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "components"
-        failure.assertHasCause("$FunctionalSourceSet.name is not a subtype of $ComponentSpec.name")
+        failure.assertHasCause("Cannot create 'components.main' with type '$FunctionalSourceSet.name' as this is not a subtype of '$ComponentSpec.name'.")
     }
 
     def "withType() returns empty collection for type not implementing ModelMap's base interface"() {

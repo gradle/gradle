@@ -49,6 +49,9 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
 
         @Override
         public <S> void validateCanBindAction(MutableModelNode node, ModelAction<S> action) {}
+
+        @Override
+        public void validateCanCreateElement(ModelPath path, ModelType<?> type) {}
     };
 
     private final ModelType<T> elementType;
@@ -292,6 +295,8 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
 
     private <S extends T> void doCreate(ModelPath childPath, ModelType<S> type, ModelRuleDescriptor descriptor, @Nullable ModelAction<?> initAction) {
         viewState.assertCanMutate();
+        elementFilter.validateCanCreateElement(childPath, type);
+
         NodeInitializer nodeInitializer = creatorStrategy.initializer(type);
 
         ModelRegistrations.Builder builder = ModelRegistrations.of(childPath, nodeInitializer).descriptor(descriptor);
@@ -377,11 +382,6 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         return ModelMap.class.getSimpleName() + '<' + elementType.getDisplayName() + "> '" + modelNode.getPath() + "'";
     }
 
-    public <S extends T> ModelMap<S> toSubType(Class<S> type) {
-        ChildNodeInitializerStrategy<S> creatorStrategy = uncheckedCast(this.creatorStrategy);
-        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, viewState, elementFilter, creatorStrategy);
-    }
-
     @Override
     public Collection<T> values() {
         Iterable<T> values = Iterables.transform(keySet(), new Function<String, T>() {
@@ -420,23 +420,14 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     }
 
     @Override
-    public <S> ModelMap<S> withType(Class<S> type) {
-        if (type.equals(elementType.getConcreteClass())) {
+    public <S> ModelMap<S> withType(Class<S> typeClass) {
+        ModelType<S> type = ModelType.of(typeClass);
+        if (type.equals(elementType)) {
             return uncheckedCast(this);
         }
 
-        if (elementType.getConcreteClass().isAssignableFrom(type)) {
-            Class<? extends T> castType = uncheckedCast(type);
-            ModelMap<? extends T> subType = toSubType(castType);
-            return uncheckedCast(subType);
-        }
-
-        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, viewState, elementFilter, new ChildNodeInitializerStrategy<S>() {
-            @Override
-            public <D extends S> NodeInitializer initializer(ModelType<D> type) {
-                throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type, elementType.toString()));
-            }
-        });
+        ChildNodeInitializerStrategy<S> creatorStrategy1 = uncheckedCast(this.creatorStrategy);
+        return new NodeBackedModelMap<S>(type, sourceDescriptor, modelNode, viewState, elementFilter, creatorStrategy1);
     }
 
     @Override
@@ -478,6 +469,8 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         }
 
         public abstract <S> void validateCanBindAction(MutableModelNode node, ModelAction<S> action);
+
+        public abstract void validateCanCreateElement(ModelPath path, ModelType<?> type);
     }
 
     private static class ChainedElementFilter extends ElementFilter {
@@ -503,6 +496,14 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
                 ));
             }
             parent.validateCanBindAction(node, action);
+        }
+
+        @Override
+        public void validateCanCreateElement(ModelPath path, ModelType<?> type) {
+            if (!elementType.isAssignableFrom(type)) {
+                throw new IllegalArgumentException(String.format("Cannot create '%s' with type '%s' as this is not a subtype of '%s'.", path, type, elementType));
+            }
+            parent.validateCanCreateElement(path, type);
         }
     }
 

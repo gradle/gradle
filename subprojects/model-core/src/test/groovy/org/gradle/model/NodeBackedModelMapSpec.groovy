@@ -424,23 +424,63 @@ This element was created by testrule > create(item) and can be mutated as the fo
         mutateWithoutDelegation {
             it.create("item", itemClass)
             it.create("specialItem", specialItemClass)
-            mutator.execute(it, action)
+            mutator.execute((NodeBackedModelMap) it, action)
         }
         realizeAsModelMap()
         return accessed
     }
 
-    def "fails when using filtered collection to define item of type that is not assignable to collection item type"() {
-        when:
+    def "create(String, Class) respects collection type"() {
         mutate {
-            withType(String).create("foo")
+            create("item", String)
         }
+        when:
         realize()
-
         then:
-        ModelRuleExecutionException e = thrown()
-        e.cause instanceof IllegalArgumentException
-        e.cause.message == "Cannot create an item of type java.lang.String as this is not a subtype of $itemClass.name."
+        def ex = thrown ModelRuleExecutionException
+        assertCannotCreateException ex
+    }
+
+    def "create(String, Class, Action) respects collection type"() {
+        mutate {
+            create("item", String, Mock(Action))
+        }
+        when:
+        realize()
+        then:
+        def ex = thrown ModelRuleExecutionException
+        assertCannotCreateException ex
+    }
+
+    def "create(String, Class, DeferredModelAction) respects collection type"() {
+        def action = Mock(DeferredModelAction) {
+            getDescriptor() >> new SimpleModelRuleDescriptor("deferred")
+        }
+        mutateWithoutDelegation() {
+            ((NodeBackedModelMap) it).create("item", String, action)
+        }
+        when:
+        realize()
+        then:
+        def ex = thrown ModelRuleExecutionException
+        assertCannotCreateException ex
+    }
+
+    def "fails when using filtered collection to define item of type that is not assignable to collection item type"() {
+        mutate {
+            withType(String).create("item")
+        }
+        when:
+        realize()
+        then:
+        def ex = thrown ModelRuleExecutionException
+        assertCannotCreateException ex
+    }
+
+    def assertCannotCreateException(ModelRuleExecutionException ex) {
+        assert ex.cause instanceof IllegalArgumentException
+        assert ex.cause.message == "Cannot create 'map.item' with type '$String.name' as this is not a subtype of '$itemClass.name'."
+        return true
     }
 
     def "can register config rules for item"() {

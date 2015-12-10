@@ -75,15 +75,23 @@ class UnmanagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThing,
         )
     }
 
+    abstract class NonConstructableNamedThing extends NamedThing {
+        NonConstructableNamedThing(String name) {
+            super(name)
+        }
+    }
+
     def "reasonable error message when creating a non-constructable type"() {
         when:
-        mutate { create("foo", List) }
+        mutate {
+            create("foo", NonConstructableNamedThing)
+        }
         realize()
 
         then:
         def e = thrown ModelRuleExecutionException
         e.cause instanceof ObjectInstantiationException
-        e.cause.message == "Could not create an instance of type java.util.List."
+        e.cause.message == "Could not create an instance of type $NonConstructableNamedThing.name."
     }
 
 }

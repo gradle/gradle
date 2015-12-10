@@ -70,9 +70,7 @@ class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInt
     }
 
     @Managed
-    abstract static class Invalid<T> implements SpecialNamedThingInterface {
-
-    }
+    abstract static class Invalid<T> implements SpecialNamedThingInterface {}
 
     def "cannot create invalid subtype"() {
         when:
@@ -87,16 +85,20 @@ class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInt
         e.cause.message == "Invalid managed model type $Invalid.name: cannot be a parameterized type."
     }
 
+    abstract class NonConstructableNamedThing implements NamedThingInterface {}
+
     def "reasonable error message when creating a non-constructable type"() {
         when:
-        mutate { create("foo", List) }
+        mutate {
+            create("foo", NonConstructableNamedThing)
+        }
         realize()
 
         then:
         ModelRuleExecutionException e = thrown()
-        normaliseLineSeparators(e.cause.message).contains('''A model element of type: 'java.util.List' can not be constructed.
+        normaliseLineSeparators(e.cause.message) == """A model element of type: '$NonConstructableNamedThing.name' can not be constructed.
 It must be one of:
-    - A managed type (annotated with @Managed)''')
+    - A managed type (annotated with @Managed)"""
     }
 
 }
