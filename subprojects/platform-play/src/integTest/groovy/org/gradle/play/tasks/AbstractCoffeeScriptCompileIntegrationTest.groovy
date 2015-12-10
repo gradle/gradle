@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 abstract class AbstractCoffeeScriptCompileIntegrationTest extends AbstractJavaScriptMinifyIntegrationTest {
 
     TestFile getProcessedJavaScriptDir(String sourceSet) {
-        file("build/playBinary/src/minifyPlayBinary${sourceSet ?: "CoffeeScript"}JavaScript")
+        file("build/src/play/binary/minifyPlayBinaryBinary${sourceSet ?: "CoffeeScript"}JavaScript")
     }
 
     TestFile getCompiledCoffeeScriptDir() {
@@ -29,7 +29,7 @@ abstract class AbstractCoffeeScriptCompileIntegrationTest extends AbstractJavaSc
     }
 
     TestFile getCompiledCoffeeScriptDir(String sourceSet) {
-        file("build/playBinary/src/compilePlayBinary${sourceSet ?: "CoffeeScript"}")
+        file("build/src/play/binary/${sourceSet ?: "coffeeScript"}JavaScript")
     }
 
     TestFile compiledCoffeeScript(String fileName) {

@@ -46,4 +46,5 @@ public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinary
     ScalaJvmAssembly getAssembly();
 
     void addGeneratedScala(LanguageSourceSet input, FileResolver fileResolver);
+    void addGeneratedJavaScript(LanguageSourceSet input, FileResolver fileResolver);
 }

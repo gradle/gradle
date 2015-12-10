@@ -28,6 +28,7 @@ import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
+import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaJvmAssembly;
 import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
@@ -131,6 +132,14 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     @Override
     public Map<LanguageSourceSet, JavaScriptSourceSet> getGeneratedJavaScript() {
         return generatedJavaScript;
+    }
+
+    @Override
+    public void addGeneratedJavaScript(LanguageSourceSet input, FileResolver fileResolver) {
+        String lssName = String.format("%sJavaScript", input.getName());
+        JavaScriptSourceSet javaScript = BaseLanguageSourceSet.create(JavaScriptSourceSet.class, DefaultJavaScriptSourceSet.class, lssName, getName(), fileResolver);
+        javaScript.builtBy();
+        generatedJavaScript.put(input, javaScript);
     }
 
     @Override

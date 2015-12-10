@@ -63,7 +63,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         succeeds "assemble"
 
         then:
-        executedAndNotSkipped ":compilePlayBinaryCoffeeScript", ":compilePlayBinaryExtraCoffeeScript"
+        executedAndNotSkipped ":compilePlayBinaryPlayCoffeeScript", ":compilePlayBinaryPlayExtraCoffeeScript"
         hasProcessedCoffeeScript("test")
         hasProcessedCoffeeScript("ExtraCoffeeScript", "test2")
     }
@@ -98,7 +98,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         succeeds "assemble"
 
         then:
-        executedAndNotSkipped ":compilePlayBinaryCoffeeScript", ":compilePlayBinaryExtraCoffeeScript"
+        executedAndNotSkipped ":compilePlayBinaryPlayCoffeeScript", ":compilePlayBinaryPlayExtraCoffeeScript"
         hasProcessedCoffeeScript("test")
         hasProcessedCoffeeScript("ExtraCoffeeScript", "test2")
     }
