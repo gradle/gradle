@@ -183,10 +183,6 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         }
 
         @BinaryType
-        static void notCustomBinary(BinaryTypeBuilder<BinarySpec> builder) {
-        }
-
-        @BinaryType
         static void notImplementingBinaryType(BinaryTypeBuilder<SomeBinarySpec> builder) {
             builder.defaultImplementation(NotImplementingCustomBinary)
         }

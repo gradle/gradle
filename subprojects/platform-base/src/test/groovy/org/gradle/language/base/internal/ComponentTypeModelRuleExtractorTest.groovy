@@ -171,10 +171,6 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         }
 
         @ComponentType
-        static void notCustomComponent(ComponentTypeBuilder<ComponentSpec> builder) {
-        }
-
-        @ComponentType
         static void notImplementingLibraryType(ComponentTypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(NotImplementingCustomComponent)
         }
