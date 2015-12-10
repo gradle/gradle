@@ -34,6 +34,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.model.internal.core.DefaultNodeInitializerRegistry.DEFAULT_REFERENCE;
+import static org.gradle.model.internal.core.NodeInitializerContext.forType;
 
 @NotThreadSafe
 public class NonTransformedModelDslBacking extends GroovyObjectSupport {
@@ -75,11 +76,12 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
     private <T> void register(Class<T> type, Action<? super T> action) {
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("model." + modelPath);
         NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DEFAULT_REFERENCE.getPath(), DEFAULT_REFERENCE.getType());
-        NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)));
+        ModelType<T> modelType = ModelType.of(type);
+        NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(forType(modelType));
         modelRegistry.register(
             ModelRegistrations.of(modelPath, nodeInitializer)
                 .descriptor(descriptor)
-                .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(modelPath, type), descriptor, action))
+                .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(modelPath, modelType), descriptor, action))
                 .build()
         );
     }

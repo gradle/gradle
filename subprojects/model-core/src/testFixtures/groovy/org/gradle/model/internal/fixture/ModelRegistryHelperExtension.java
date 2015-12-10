@@ -42,6 +42,7 @@ import java.util.Set;
 
 import static org.gradle.model.internal.core.ModelActionRole.Initialize;
 import static org.gradle.model.internal.core.ModelActionRole.Mutate;
+import static org.gradle.model.internal.core.NodeInitializerContext.forType;
 
 /**
  * A helper for adding rules to a model registry.
@@ -77,7 +78,7 @@ public class ModelRegistryHelperExtension {
     }
 
     public static <C> ModelRegistry registerWithInitializer(ModelRegistry modelRegistry, String path, Class<C> type, NodeInitializerRegistry nodeInitializerRegistry) {
-        NodeInitializerContext<C, Object, Object> nodeInitializerContext = NodeInitializerContext.forType(ModelType.of(type));
+        NodeInitializerContext<C> nodeInitializerContext = forType(ModelType.of(type));
         ModelRegistration registration = ModelRegistrations.of(ModelPath.path(path), nodeInitializerRegistry.getNodeInitializer(nodeInitializerContext)).descriptor("create " + path).build();
         modelRegistry.register(registration);
         return modelRegistry;

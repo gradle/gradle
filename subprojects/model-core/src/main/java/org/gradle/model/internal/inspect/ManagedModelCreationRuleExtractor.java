@@ -35,6 +35,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.model.internal.core.NodeInitializerContext.forType;
+
 @NotThreadSafe
 public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
     private final ModelSchemaStore schemaStore;
@@ -98,7 +100,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
 
     private static NodeInitializer getNodeInitializer(ModelRuleDescriptor descriptor, ModelSchema<?> modelSchema, NodeInitializerRegistry nodeInitializerRegistry) {
         try {
-            return nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(modelSchema.getType()));
+            return nodeInitializerRegistry.getNodeInitializer(forType(modelSchema.getType()));
         } catch (ModelTypeInitializationException e) {
             throw new InvalidModelRuleDeclarationException(descriptor, e);
         }

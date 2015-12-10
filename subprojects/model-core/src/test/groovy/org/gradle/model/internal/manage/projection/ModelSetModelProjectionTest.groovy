@@ -28,6 +28,8 @@ import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Unroll
 
+import static org.gradle.model.internal.core.NodeInitializerContext.forType
+
 class ModelSetModelProjectionTest extends ProjectRegistrySpec {
     @Managed
     interface NamedThing {
@@ -46,7 +48,7 @@ class ModelSetModelProjectionTest extends ProjectRegistrySpec {
 
     def setup() {
         registry.register(
-            ModelRegistrations.of(collectionPath, nodeInitializerRegistry.getNodeInitializer(collectionType))
+            ModelRegistrations.of(collectionPath, nodeInitializerRegistry.getNodeInitializer(forType(collectionType)))
                 .descriptor("define collection")
                 .build()
         )

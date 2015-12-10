@@ -21,6 +21,7 @@ import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.NodeInitializerContext
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 
+import static org.gradle.model.internal.core.NodeInitializerContext.forType
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInterface, SpecialNamedThingInterface> {
@@ -29,7 +30,7 @@ class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInt
     Class<SpecialNamedThingInterface> specialItemClass = SpecialNamedThingInterface.class
 
     def setup() {
-        registry.register(ModelRegistrations.of(path, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(modelMapType))).descriptor("creator").build())
+        registry.register(ModelRegistrations.of(path, nodeInitializerRegistry.getNodeInitializer(forType(modelMapType))).descriptor("creator").build())
     }
 
     def "cannot read child in mutative method"() {

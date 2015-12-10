@@ -26,6 +26,8 @@ import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
+import static org.gradle.model.internal.core.NodeInitializerContext.forType
+
 abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>> extends Specification {
 
     def schemaStore = DefaultModelSchemaStore.instance
@@ -52,7 +54,7 @@ abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>>
         collectionType = collectionProperty.type as ModelType<C>
         def collectionSchema = schemaStore.getSchema(collectionType)
         assert collectionSchema instanceof ManagedImplSchema
-        def nodeInitializer = nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(collectionSchema.getType()))
+        def nodeInitializer = nodeInitializerRegistry.getNodeInitializer(forType(collectionSchema.getType()))
         reference = ModelReference.of(collectionPath, collectionType)
         registry.register(
             ModelRegistrations.of(collectionPath, nodeInitializer)
