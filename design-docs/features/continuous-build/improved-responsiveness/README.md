@@ -1,4 +1,4 @@
-# Gradle continuous mode: Improved responsiveness
+# Continuous build: Improved responsiveness
 
 - [ ] Continuous build does not trigger rebuild when an intermediate file is changed
 - [ ] Provide optimal feedback to user when continuous build is triggered when build is in process

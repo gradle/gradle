@@ -1,9 +1,9 @@
-# Gradle continuous mode
+# Gradle continuous build
 
 This story adds a general-purpose mechanism which is able to keep the output of some tasks up-to-date when source files change.
 For example, a developer may run `gradle --continuous <tasks>`.
 
-When run in continuous mode, Gradle will execute a build and determine any files that are inputs to that build.
+When run with continuous build, Gradle will execute a build and determine any files that are inputs to that build.
 Gradle will then watch for changes to those input files, and re-execute the build when any file changes.
 
 Input files are determined as:

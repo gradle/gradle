@@ -1,4 +1,4 @@
-# Gradle continuous mode: Improved change detection
+# Continuous build: Improved change detection
 
 - [ ] Continuous build will trigger a rebuild when an input file is changed during build execution
 - [ ] Developer is able to easily determine the task/file that triggered a rebuild

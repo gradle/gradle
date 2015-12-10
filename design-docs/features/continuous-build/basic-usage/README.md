@@ -1,4 +1,4 @@
-# Gradle continuous mode V1: basic implementation
+# Continuous build: basic implementation
 
 - [x] Continuous build with rebuild triggered by timer
 - [x] Continuous build with rebuild triggered by file change
