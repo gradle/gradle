@@ -42,12 +42,27 @@ class SimpleClassMetaDataRepositoryTest extends Specification {
     }
 
     def getFailsForUnknownClass() {
+        given:
+        repository.put('unkown', new TestDomainObject('unknown'))
+
         when:
         repository.get('unknown')
 
         then:
         UnknownDomainObjectException e = thrown()
-        e.message == 'No meta-data is available for class \'unknown\'.'
+        e.message == 'No meta-data is available for class \'unknown\'. Did you mean? [unkown]'
+    }
+
+    def getFailsForWrongPackage() {
+        given:
+        repository.put('org.gradle.jvm.test.JUnitTestSuiteSpec', new TestDomainObject('org.gradle.jvm.test.JUnitTestSuiteSpec'))
+
+        when:
+        repository.get('org.gradle.jvm.JUnitTestSuiteSpec')
+
+        then:
+        UnknownDomainObjectException e = thrown()
+        e.message == 'No meta-data is available for class \'org.gradle.jvm.JUnitTestSuiteSpec\'. Did you mean? [org.gradle.jvm.test.JUnitTestSuiteSpec]'
     }
 
     def canIterateOverClassesUsingClosure() {
