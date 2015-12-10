@@ -118,14 +118,14 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryPlayTwirlTemplates",
-                ":compilePlayBinaryExtraTwirl",
-                ":compilePlayBinaryOtherTwirl"
+                ":compilePlayBinaryPlayExtraTwirl",
+                ":compilePlayBinaryPlayOtherTwirl"
         )
 
         and:
         destinationDir.assertHasDescendants("index.template.scala")
-        file("build/playBinary/src/compilePlayBinaryOtherTwirl/templates/html").assertHasDescendants("other.template.scala")
-        file("build/playBinary/src/compilePlayBinaryExtraTwirl/html").assertHasDescendants("extra.template.scala")
+        file("build/src/play/binary/otherTwirlScalaSources").assertHasDescendants("templates/html/other.template.scala")
+        file("build/src/play/binary/extraTwirlScalaSources").assertHasDescendants("html/extra.template.scala")
 
         and:
         jar("build/playBinary/lib/twirl-play-app.jar")

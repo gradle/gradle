@@ -107,7 +107,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "build"
 
         and:
-        play24Sample.dir.file("build/playBinary/src/compilePlayBinaryPlayRoutes").assertHasDescendants(
+        play24Sample.dir.file("build/src/play/binary/routesScalaSources").assertHasDescendants(
             "controllers/routes.java",
             "controllers/ReverseRoutes.scala",
             "router/Routes.scala",

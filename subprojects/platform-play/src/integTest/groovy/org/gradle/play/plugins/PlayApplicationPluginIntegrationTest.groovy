@@ -66,9 +66,10 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
                 ":createPlayBinaryAssetsJar",
                 ":playBinary",
                 ":assemble")
-        skipped(":compilePlayBinaryPlayRoutes",
-                ":compilePlayBinaryPlayTwirlTemplates",
-                ":compilePlayBinaryScala")
+        skipped(":compilePlayBinaryScala")
+        notExecuted(
+                ":compilePlayBinaryPlayRoutes",
+                ":compilePlayBinaryPlayTwirlTemplates")
 
         and:
         jar("build/playBinary/lib/play-app.jar").hasDescendants()
@@ -126,7 +127,8 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
                 ":createPlayBinaryAssetsJar",
                 ":playBinary",
                 ":assemble")
-        skipped(":compilePlayBinaryPlayRoutes",
+        notExecuted(
+                ":compilePlayBinaryPlayRoutes",
                 ":compilePlayBinaryPlayTwirlTemplates")
 
         and:

@@ -65,10 +65,10 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 ":createPlayBinaryAssetsJar",
                 ":createPlayBinaryStartScripts",
                 ":stagePlayBinaryDist")
-        skipped(
+        skipped(":compilePlayBinaryScala")
+        notExecuted(
                 ":compilePlayBinaryPlayRoutes",
-                ":compilePlayBinaryPlayTwirlTemplates",
-                ":compilePlayBinaryScala")
+                ":compilePlayBinaryPlayTwirlTemplates")
 
         and:
         file("build/stage/playBinary").assertContainsDescendants(
@@ -87,13 +87,14 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":createPlayBinaryDist")
         skipped(
-                ":compilePlayBinaryPlayRoutes",
-                ":compilePlayBinaryPlayTwirlTemplates",
                 ":compilePlayBinaryScala",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryDistributionJar",
                 ":createPlayBinaryAssetsJar",
                 ":createPlayBinaryStartScripts")
+        notExecuted(
+                ":compilePlayBinaryPlayRoutes",
+                ":compilePlayBinaryPlayTwirlTemplates")
 
         and:
         zip("build/distributions/playBinary.zip").containsDescendants(
