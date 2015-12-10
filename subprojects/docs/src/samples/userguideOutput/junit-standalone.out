@@ -1,0 +1,5 @@
+:compileTestBinaryTestJava
+:processTestBinaryTestResources
+:testBinaryTest
+
+BUILD SUCCESSFUL
