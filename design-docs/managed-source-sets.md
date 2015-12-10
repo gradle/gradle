@@ -320,9 +320,9 @@ and is used as follows:
 
 ### Test cases
 
-- user can declare and use a custom managed `LanguageSourceSet`
-- user can declare custom managed `LanguageSourceSet` based on custom `LanguageSourceSet` component
-- user can target managed internal views to a custom managed `LanguageSourceSet` with rules
+- ~~user can declare and use a custom managed `LanguageSourceSet`~~
+- ~~user can declare custom managed `LanguageSourceSet` based on custom `LanguageSourceSet` component~~
+- ~~user can target managed internal views to a custom managed `LanguageSourceSet` with rules~~
 - managed `LanguageSourceSet` can be used in all places where an unmanaged `LanguageSourceSet` can be used
     - as a binary's source
     - as a component's source

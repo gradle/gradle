@@ -299,4 +299,92 @@ model {
         expect:
         succeeds "validate"
     }
+
+    def "user can declare custom managed LanguageSourceSet based on custom LanguageSourceSet component"() {
+        given:
+        buildFile << """
+            @Managed interface ChildCustomManagedLSS extends LanguageSourceSet {}
+            class ChildCustomManagedLSSPlugin extends RuleSource {
+                @LanguageType
+                void registerChildCustomManagedLSSPType(LanguageTypeBuilder<ChildCustomManagedLSS> builder) {
+                    builder.setLanguageName("childcustom")
+                }
+            }
+            apply plugin: ChildCustomManagedLSSPlugin
+
+            model {
+                components {
+                    sampleLib(SampleLibrary) {
+                        sources {
+                            childcustom(ChildCustomManagedLSS) {}
+                        }
+                    }
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, @Path("components.sampleLib.sources") ModelMap<LanguageSourceSet> sources) {
+                    tasks.create("validate") {
+                        assert sources.childcustom != null
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
+        expect:
+        succeeds "validate"
+    }
+
+    def "user can target managed internal views of a custom managed LanguageSourceSet with rules"() {
+        given:
+        buildFile << """
+            @Managed interface CustomManagedLSS extends LanguageSourceSet {}
+            @Managed interface CustomManagedLSSInternal extends CustomManagedLSS {
+                String getInternal()
+                void setInternal(String internal)
+            }
+            class CustomManagedLSSPlugin extends RuleSource {
+                @LanguageType
+                void registerCustomManagedLSSType(LanguageTypeBuilder<CustomManagedLSS> builder) {
+                    builder.setLanguageName("managed")
+                    builder.internalView(CustomManagedLSSInternal)
+                }
+            }
+            apply plugin: CustomManagedLSSPlugin
+
+            class TestRules extends RuleSource {
+                @Defaults
+                void useInternalView(@Path("components.sampleLib.sources.managed") CustomManagedLSSInternal lss) {
+                    lss.setInternal("internal value")
+                }
+            }
+            apply plugin: TestRules
+
+            model {
+                components {
+                    sampleLib(SampleLibrary) {
+                        sources {
+                            managed(CustomManagedLSS) {}
+                        }
+                    }
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, @Path("components.sampleLib.sources") ModelMap<CustomManagedLSSInternal> sources) {
+                    tasks.create("validate") {
+                        assert sources.managed != null
+                        assert sources.managed.internal == "internal value"
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
+        expect:
+        succeeds "validate"
+    }
 }
