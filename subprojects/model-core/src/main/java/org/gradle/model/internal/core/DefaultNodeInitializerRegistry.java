@@ -16,18 +16,17 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     public static final ModelReference<NodeInitializerRegistry> DEFAULT_REFERENCE = ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class);
@@ -49,22 +48,21 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
         additionalStrategies = Lists.newArrayList();
     }
 
-    public ModelTypeInitializationException canNotConstructTypeException(NodeInitializerContext<?, ?, ?> context) {
+    private ModelTypeInitializationException canNotConstructTypeException(NodeInitializerContext<?> context) {
         Iterable<ModelType<?>> scalars = Iterables.concat(ScalarTypes.TYPES, ScalarTypes.NON_FINAL_TYPES);
-        Set<ModelType<?>> constructableTypes = new TreeSet<ModelType<?>>(new Comparator<ModelType<?>>() {
-            @Override
-            public int compare(ModelType<?> o1, ModelType<?> o2) {
-                return o1.getDisplayName().compareTo(o2.getDisplayName());
-            }
-        });
+        ImmutableSortedSet.Builder<ModelType<Object>> constructableTypes = ImmutableSortedSet.orderedBy(ModelType.displayOrder());
         for (NodeInitializerExtractionStrategy extractor : additionalStrategies) {
-            Iterables.addAll(constructableTypes, extractor.supportedTypes());
+            for (ModelType<?> constructableType : extractor.supportedTypes()) {
+                if (context.getBaseType().isAssignableFrom(constructableType)) {
+                    constructableTypes.add(Cast.<ModelType<Object>>uncheckedCast(constructableType));
+                }
+            }
         }
-        return new ModelTypeInitializationException(context, schemaStore, scalars, constructableTypes);
+        return new ModelTypeInitializationException(context, schemaStore, scalars, constructableTypes.build());
     }
 
     @Override
-    public NodeInitializer getNodeInitializer(NodeInitializerContext<?, ?, ?> nodeInitializerContext) {
+    public NodeInitializer getNodeInitializer(NodeInitializerContext<?> nodeInitializerContext) {
         NodeInitializer nodeInitializer = findNodeInitializer(nodeInitializerContext.getModelType());
         if (nodeInitializer != null) {
             return nodeInitializer;
@@ -85,7 +83,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     }
 
     @Override
-    public void ensureHasInitializer(NodeInitializerContext<?, ?, ?> nodeInitializer) {
+    public void ensureHasInitializer(NodeInitializerContext<?> nodeInitializer) {
         getNodeInitializer(nodeInitializer);
     }
 

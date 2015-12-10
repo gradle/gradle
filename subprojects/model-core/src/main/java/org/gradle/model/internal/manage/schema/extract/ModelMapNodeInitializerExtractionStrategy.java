@@ -25,7 +25,6 @@ import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessor
 import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 
@@ -67,7 +66,7 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
                     new BiAction<MutableModelNode, NodeInitializerRegistry>() {
                         @Override
                         public void execute(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry) {
-                            ManagedChildNodeCreatorStrategy<E> childStrategy = new ManagedChildNodeCreatorStrategy<E>(nodeInitializerRegistry);
+                            ChildNodeInitializerStrategy<E> childStrategy = NodeBackedModelMap.createUsingRegistry(schema.getElementType(), nodeInitializerRegistry);
                             modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
                         }
                     }

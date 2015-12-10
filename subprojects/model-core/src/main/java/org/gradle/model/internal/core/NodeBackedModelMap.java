@@ -36,6 +36,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.*;
 
 import static org.gradle.internal.Cast.uncheckedCast;
+import static org.gradle.model.internal.core.NodeInitializerContext.forExtensibleType;
 import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
 // TODO - mix Groovy DSL support in
@@ -94,10 +95,10 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         return new ChildNodeInitializerStrategy<T>() {
             @Override
             public <S extends T> NodeInitializer initializer(ModelType<S> type) {
-                if (!baseItemModelType.isAssignableFrom(type) || baseItemModelType.equals(type)) {
+                if (!baseItemModelType.isAssignableFrom(type)) {
                     throw new IllegalArgumentException(String.format("%s is not a subtype of %s", type, baseItemModelType));
                 }
-                return nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(type));
+                return nodeInitializerRegistry.getNodeInitializer(forExtensibleType(type, baseItemModelType));
             }
         };
     }

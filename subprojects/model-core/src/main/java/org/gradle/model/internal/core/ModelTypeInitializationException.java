@@ -43,22 +43,22 @@ public class ModelTypeInitializationException extends GradleException {
     private static final String MANAGED_TYPE_DESCRIPTION = "A managed type (annotated with @Managed)";
     private static final String UNMANAGED_PROPERTY_DESCRIPTION = "An unmanaged property (i.e. annotated with @Unmanaged)";
 
-    public ModelTypeInitializationException(NodeInitializerContext<?, ?, ?> context,
+    public ModelTypeInitializationException(NodeInitializerContext<?> context,
                                             ModelSchemaStore schemaStore,
-                                            Iterable<ModelType<?>> scalarTypes,
-                                            Iterable<ModelType<?>> constructableTypes) {
+                                            Iterable<? extends ModelType<?>> scalarTypes,
+                                            Iterable<? extends ModelType<?>> constructableTypes) {
         super(toMessage(context, schemaStore, scalarTypes, constructableTypes));
     }
 
-    private static String toMessage(NodeInitializerContext<?, ?, ?> context,
+    private static <T> String toMessage(NodeInitializerContext<T> context,
                                     ModelSchemaStore schemaStore,
-                                    Iterable<ModelType<?>> scalarTypes,
-                                    Iterable<ModelType<?>> constructableTypes) {
+                                    Iterable<? extends ModelType<?>> scalarTypes,
+                                    Iterable<? extends ModelType<?>> constructableTypes) {
 
-        Optional<? extends NodeInitializerContext.PropertyContext<?, ?>> propertyContextOptional = context.getPropertyContextOptional();
+        Optional<? extends NodeInitializerContext.PropertyContext> propertyContextOptional = context.getPropertyContextOptional();
         StringBuilder s = new StringBuilder();
         if (propertyContextOptional.isPresent()) {
-            NodeInitializerContext.PropertyContext<?, ?> propertyContext = propertyContextOptional.get();
+            NodeInitializerContext.PropertyContext propertyContext = propertyContextOptional.get();
             s.append(String.format("A model element of type: '%s' can not be constructed.%n", propertyContext.getDeclaringType().getName()));
             ModelProperty<?> modelProperty = propertyContext.getModelProperty();
             if (isManagedCollection(modelProperty.getType())) {
@@ -89,17 +89,17 @@ public class ModelTypeInitializationException extends GradleException {
         return s.toString();
     }
 
-    private static String explainScalarCollections(Iterable<ModelType<?>> scalarTypes) {
+    private static String explainScalarCollections(Iterable<? extends ModelType<?>> scalarTypes) {
         return String.format("A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (%s)", describe(scalarTypes));
     }
 
-    private static String appendManagedCollections(StringBuilder s, int pad, Iterable<ModelType<?>> constructableTypes) {
+    private static String appendManagedCollections(StringBuilder s, int pad, Iterable<? extends ModelType<?>> constructableTypes) {
         s.append(String.format("A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:%n        - %s", MANAGED_TYPE_DESCRIPTION));
         maybeAppendConstructables(s, constructableTypes, pad + 1);
         return s.toString();
     }
 
-    private static void maybeAppendConstructables(StringBuilder s, Iterable<ModelType<?>> constructableTypes, int pad) {
+    private static void maybeAppendConstructables(StringBuilder s, Iterable<? extends ModelType<?>> constructableTypes, int pad) {
         if (!Iterables.isEmpty(constructableTypes)) {
             String padding = pad(pad);
             s.append(String.format("%n%s- or a type which Gradle is capable of constructing:", padding));
@@ -119,7 +119,7 @@ public class ModelTypeInitializationException extends GradleException {
             && !modelProperty.isDeclaredAsHavingUnmanagedType();
     }
 
-    private static String describe(Iterable<ModelType<?>> types) {
+    private static String describe(Iterable<? extends ModelType<?>> types) {
         return Joiner.on(", ").join(ImmutableSet.copyOf(Iterables.transform(types, new Function<ModelType<?>, String>() {
             @Override
             public String apply(ModelType<?> input) {

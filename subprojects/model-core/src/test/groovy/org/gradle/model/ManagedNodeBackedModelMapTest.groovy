@@ -18,8 +18,11 @@ package org.gradle.model
 
 import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.core.NodeInitializerContext
+import org.gradle.model.internal.core.NodeInitializer
+import org.gradle.model.internal.core.NodeInitializerRegistry
+import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
+import org.gradle.model.internal.type.ModelType
 
 import static org.gradle.model.internal.core.NodeInitializerContext.forType
 import static org.gradle.util.TextUtil.normaliseLineSeparators
@@ -86,9 +89,18 @@ class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInt
         e.cause.message == "Invalid managed model type $Invalid.name: cannot be a parameterized type."
     }
 
+    abstract class ConstructableNamedThing implements NamedThingInterface {}
     abstract class NonConstructableNamedThing implements NamedThingInterface {}
 
     def "reasonable error message when creating a non-constructable type"() {
+        registry.mutate(NodeInitializerRegistry) { nodeInitializerRegistry ->
+            def constructableTypesRegistry = new DefaultConstructableTypesRegistry()
+            // This should not show up in the error message on account of not being a subtype of NamedThingInterface
+            constructableTypesRegistry.registerConstructableType(ModelType.of(Serializable), Mock(NodeInitializer))
+            // This should show up in the error message
+            constructableTypesRegistry.registerConstructableType(ModelType.of(ConstructableNamedThing), Mock(NodeInitializer))
+            nodeInitializerRegistry.registerStrategy(constructableTypesRegistry)
+        }
         when:
         mutate {
             create("foo", NonConstructableNamedThing)
@@ -99,7 +111,9 @@ class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInt
         ModelRuleExecutionException e = thrown()
         normaliseLineSeparators(e.cause.message) == """A model element of type: '$NonConstructableNamedThing.name' can not be constructed.
 It must be one of:
-    - A managed type (annotated with @Managed)"""
+    - A managed type (annotated with @Managed)
+    - or a type which Gradle is capable of constructing:
+        - $ConstructableNamedThing.name"""
     }
 
 }
