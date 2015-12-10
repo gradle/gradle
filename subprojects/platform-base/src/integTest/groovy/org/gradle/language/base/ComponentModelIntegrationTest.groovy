@@ -652,6 +652,9 @@ afterEach CustomComponent 'newComponent'"""
                 }
             }
         '''
+        // Non-empty source set to trigger the corresponding task
+        file('src/main/someLang').mkdirs()
+        file('src/main/someLang/somefile.someLang').text = ""
 
         when:
         succeeds "printBinaryTaskNames"
