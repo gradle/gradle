@@ -154,17 +154,17 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
         void addDefaultSourceSets(ModelMap<JUnitTestSuiteSpec> suites) {
             suites.all(new Action<JUnitTestSuiteSpec>() {
                 @Override
-                public void execute(JUnitTestSuiteSpec jUnitTestSuiteSpec) {
+                public void execute(final JUnitTestSuiteSpec jUnitTestSuiteSpec) {
                     jUnitTestSuiteSpec.getSources().create("java", JavaSourceSet.class, new Action<JavaSourceSet>() {
                         @Override
                         public void execute(JavaSourceSet languageSourceSet) {
-                            languageSourceSet.getSource().srcDir("src/test/java");
+                            languageSourceSet.getSource().srcDir(String.format("src/%s/java", jUnitTestSuiteSpec.getName()));
                         }
                     });
                     jUnitTestSuiteSpec.getSources().create("resources", JvmResourceSet.class, new Action<JvmResourceSet>() {
                         @Override
                         public void execute(JvmResourceSet languageSourceSet) {
-                            languageSourceSet.getSource().srcDir("src/test/resources");
+                            languageSourceSet.getSource().srcDir(String.format("src/%s/resources", jUnitTestSuiteSpec.getName()));
                         }
                     });
                 }

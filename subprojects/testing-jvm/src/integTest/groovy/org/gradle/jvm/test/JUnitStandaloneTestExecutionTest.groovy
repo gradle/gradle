@@ -203,7 +203,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         given:
         applyJUnitPlugin()
 
-        def suites = ['myTest', 'myOtherBinary']
+        def suites = ['myTest', 'myOtherTest']
         suites.each {
             buildFile << """
             model {
@@ -214,13 +214,17 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         }
 
         and:
-        standaloneTestBinary(true, false, false)
+        suites.each { name ->
+            standaloneTestBinary(true, false, false, name)
+        }
 
         when:
         succeeds(suites.collect { ":${it}BinaryTest"} as String[])
 
         then:
         noExceptionThrown()
+        executedAndNotSkipped(suites.collect { ":compile${it.capitalize()}Binary${it.capitalize()}Java"} as String[])
+        executedAndNotSkipped(suites.collect { ":${it}BinaryTest"} as String[])
     }
 
 
@@ -325,7 +329,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         utilsLibrary()
 
         and:
-        file('src/test/java/MyTest.java') << """
+        file('src/myTest/java/MyTest.java') << """
         import org.junit.Test;
 
         import static org.junit.Assert.*;
@@ -356,7 +360,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
 
         and:
         testCaseReadingResourceFile()
-        file('src/test/resources/data.properties') << 'magic = 42'
+        file('src/myTest/resources/data.properties') << 'magic = 42'
 
         when:
         succeeds ':myTestBinaryTest'
@@ -412,7 +416,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
     }
 
     private void testCaseReadingResourceFile() {
-        file('src/test/java/MyTest.java') << """
+        file('src/myTest/java/MyTest.java') << """
         import org.junit.Test;
         import java.util.Properties;
         import java.io.InputStream;
@@ -476,7 +480,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
                         jUnitVersion '4.12'
                         sources {
                             java {
-                               source.srcDirs 'src/test/java'
+                               source.srcDirs 'src/myTest/java'
                             }
                         }
                     }'''),
@@ -549,7 +553,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         }'''.stripMargin()
     }
 
-    private void standaloneTestBinary(boolean passing, boolean hasLibraryDependency, boolean hasExternalDependency) {
+    private void standaloneTestBinary(boolean passing, boolean hasLibraryDependency, boolean hasExternalDependency, String name='myTest') {
 
         // todo: the value '0' is used, where it should in reality be 42, because we're using the API jar when resolving dependencies
         // where we should be using the runtime jar instead. This will be fixed in another story.
@@ -568,7 +572,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
             }
         """
 
-        file('src/test/java/MyTest.java') << """
+        file("src/$name/java/MyTest.java") << """
         import org.junit.Test;
 
         import static org.junit.Assert.*;
