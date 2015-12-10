@@ -16,6 +16,7 @@
 
 package org.gradle.language.base.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
@@ -45,16 +46,20 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
     public <T extends LanguageSourceSet, V extends T> void register(String languageName, ModelType<T> type, Set<Class<?>> internalViews, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
         InstanceFactory.TypeRegistrationBuilder<T> registration = register(type, ruleDescriptor);
 
-        registration.withImplementation(implementationType, new InstanceFactory.ImplementationFactory<T>() {
-            @Override
-            public T create(ModelType<? extends T> publicType, String sourceSetName, MutableModelNode modelNode) {
-                return BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), fileResolver);
-            }
-        });
+        if (implementationType != null) {
+            registration.withImplementation(implementationType, new InstanceFactory.ImplementationFactory<T>() {
+                @Override
+                public T create(ModelType<? extends T> publicType, String sourceSetName, MutableModelNode modelNode) {
+                    return BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), fileResolver);
+                }
+            });
+        }
         for (Class<?> internalView : internalViews) {
             registration.withInternalView(ModelType.of(internalView));
         }
-        languageRegistry.add(new NamedLanguageRegistration<T>(languageName, type));
+        if (!StringUtils.isEmpty(languageName)) {
+            languageRegistry.add(new NamedLanguageRegistration<T>(languageName, type));
+        }
     }
 
     public LanguageRegistry getRegistrations() {

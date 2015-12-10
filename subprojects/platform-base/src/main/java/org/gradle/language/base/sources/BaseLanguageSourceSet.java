@@ -31,7 +31,7 @@ import org.gradle.platform.base.ModelInstantiationException;
 /**
  * Base class for custom language sourceset implementations. A custom implementation of {@link org.gradle.language.base.LanguageSourceSet} must extend this type.
  */
-public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
+public class BaseLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
     private String name;
     private String fullName;
     private String parentName;
@@ -94,9 +94,6 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
     private static ThreadLocal<SourceSetInfo> nextSourceSetInfo = new ThreadLocal<SourceSetInfo>();
 
     public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> type, String name, String parentName, FileResolver fileResolver) {
-        if (type.equals(BaseLanguageSourceSet.class)) {
-            throw new ModelInstantiationException("Cannot create instance of abstract class BaseLanguageSourceSet.");
-        }
         nextSourceSetInfo.set(new SourceSetInfo(name, parentName, publicType.getSimpleName(), fileResolver));
         try {
             try {
@@ -110,7 +107,7 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
     }
 
 
-    protected BaseLanguageSourceSet() {
+    public BaseLanguageSourceSet() {
         this(nextSourceSetInfo.get());
     }
 

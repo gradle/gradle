@@ -53,7 +53,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         final TypeBuilderInternal<LanguageSourceSet> builder
     ) {
         final String languageName = ((LanguageTypeBuilderInternal) builder).getLanguageName();
-        if(StringUtils.isEmpty(languageName)) {
+        if (!ModelType.of(LanguageSourceSet.class).equals(publicModelType) && StringUtils.isEmpty(languageName)) {
             throw new InvalidModelException(String.format("Language type '%s' cannot be registered without a language name.", publicModelType));
         }
         ModelAction<LanguageSourceSetFactory> regAction = NoInputsModelAction.of(ModelReference.of(LanguageSourceSetFactory.class), ruleDefinition.getDescriptor(), new Action<LanguageSourceSetFactory>() {

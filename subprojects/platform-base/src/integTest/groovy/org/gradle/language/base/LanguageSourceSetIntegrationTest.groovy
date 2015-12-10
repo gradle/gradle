@@ -18,7 +18,6 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
@@ -42,14 +41,13 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains("A model element of type: 'org.gradle.language.java.JavaSourceSet' can not be constructed.")
     }
 
-    @Unroll
-    def "can not create a top level LSS for base or implementation types (#type)"() {
+    def "can not create a top level LSS for registered default implementation"() {
         buildFile.text = """
         ${registerJavaLanguage()}
 
         class Rules extends RuleSource {
             @Model
-            void lss($type javaSource) {
+            void lss(org.gradle.api.internal.java.DefaultJavaSourceSet javaSource) {
             }
         }
         apply plugin: Rules
@@ -59,10 +57,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         fails "model"
 
         then:
-        failure.assertHasCause("Cannot create a '$type' because this type is not known to sourceSets. Known types are: org.gradle.language.java.JavaSourceSet")
-
-        where:
-        type << ['org.gradle.api.internal.java.DefaultJavaSourceSet', 'org.gradle.language.base.LanguageSourceSet']
+        failure.assertHasCause("Cannot create a 'org.gradle.api.internal.java.DefaultJavaSourceSet' because this type is not known to sourceSets. Known types are: org.gradle.language.java.JavaSourceSet")
     }
 
     def "can create a top level LSS with a rule"() {

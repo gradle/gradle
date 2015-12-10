@@ -29,16 +29,15 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetFactory;
+import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.BinaryType;
-import org.gradle.platform.base.BinaryTypeBuilder;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
@@ -114,6 +113,12 @@ public class LanguageBasePlugin implements Plugin<Project> {
         void registerBaseBinarySpec(BinaryTypeBuilder<BinarySpec> builder) {
             builder.defaultImplementation(BaseBinarySpec.class);
             builder.internalView(BinarySpecInternal.class);
+        }
+
+        @LanguageType
+        void registerBaseLanguageSourceSet(LanguageTypeBuilder<LanguageSourceSet> builder) {
+            builder.defaultImplementation(BaseLanguageSourceSet.class);
+            builder.internalView(LanguageSourceSetInternal.class);
         }
 
         @Mutate

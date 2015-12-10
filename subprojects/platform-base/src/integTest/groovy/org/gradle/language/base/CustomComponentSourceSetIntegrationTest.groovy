@@ -246,6 +246,57 @@ model {
         fails "model"
 
         then:
-        failure.assertHasCause("No implementation type registered for 'HaxeSourceSet'")
+        failure.assertHasCause("Factory registration for 'HaxeSourceSet' is invalid because no implementation was registered")
+    }
+
+    def "user can declare and use a custom managed LanguageSourceSet"() {
+        given:
+        buildFile << """
+            @Managed interface CustomManagedLSS extends LanguageSourceSet {
+                String getSomeProperty()
+                void setSomeProperty(String value)
+            }
+            class CustomManagedLSSPlugin extends RuleSource {
+                @LanguageType
+                void registerCustomManagedLSSType(LanguageTypeBuilder<CustomManagedLSS> builder) {
+                    builder.setLanguageName("managed")
+                }
+            }
+            apply plugin: CustomManagedLSSPlugin
+
+            class TestRules extends RuleSource {
+                @Defaults
+                void useInternalView(@Path("components.sampleLib.sources.managed") CustomManagedLSS lss) {
+                    lss.setSomeProperty("default value")
+                }
+            }
+            apply plugin: TestRules
+
+            model {
+                components {
+                    sampleLib(SampleLibrary) {
+                        sources {
+                            managed(CustomManagedLSS) {
+                                someProperty = "some value"
+                            }
+                        }
+                    }
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, @Path("components.sampleLib.sources") ModelMap<LanguageSourceSet> sources) {
+                    tasks.create("validate") {
+                        assert sources.managed != null
+                        assert sources.managed.someProperty == "some value"
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
+        expect:
+        succeeds "validate"
     }
 }
