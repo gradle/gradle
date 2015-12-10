@@ -402,6 +402,7 @@ afterEach CustomComponent 'newComponent'"""
                 builder.defaultImplementation(DefaultUnmanagedComponent)
             }
         }
+        apply plugin: MyRules
         model {
             components {
                 another(DefaultUnmanagedComponent)
