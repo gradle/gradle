@@ -1,15 +1,45 @@
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 
 allprojects {
-	apply plugin: "idea"
-}
-
-subprojects {
-    plugins.withType(JavaPlugin) {
-        idea {
-            module {
-                scopes.RUNTIME.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets.main.resources.srcDirs })))
-                scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs })))
+    apply plugin: "idea"
+    
+    idea {
+        module {
+            iml {
+                whenMerged { module ->
+                    module.dependencies.removeAll { 
+                        it instanceof org.gradle.plugins.ide.idea.model.ModuleLibrary &&
+                        it.classes.any { 
+                            // remove all Gradle build output directories from all scopes
+                            it.url.contains('/build/classes/') ||
+                            it.url.contains('/build/resources/') ||
+                            // remove possible resource directories from all scopes
+                            // replaced by java-resource/java-test-resource
+                            it.url.contains('$MODULE_DIR$/src/') ||
+                            // keep for build/generated-resources/main/*-classpath.properties
+                            // required by DefaultModuleRegistry
+                            (it.url.contains('$MODULE_DIR$/build/') && !it.url.contains('generated-resources'))
+                        }
+                    }
+                    // remove all build directories from sourceFolders
+                    // f.e. buildInit module contains such a sourceFolder
+                    module.sourceFolders.removeAll {
+                        it.url.contains('$MODULE_DIR$/build/')
+                    }
+                }
+                withXml {
+                    def node = it.asNode()
+                    def content = node.component.find { it.'@name' == 'NewModuleRootManager' }.content[0]
+                    content.sourceFolder.each { sourceFolder ->
+                        // make resource directories a java-resource / java-test-resource type in Idea
+                        if(sourceFolder.@url?.endsWith('/resources')) {
+                            sourceFolder.attributes().with {
+                                boolean isTestSource = (remove('isTestSource') == 'true')
+                                put('type', isTestSource ? 'java-test-resource' : 'java-resource')
+                            }
+                        }
+                    }
+                }
             }
         }
     }
