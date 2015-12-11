@@ -11,6 +11,7 @@ Add-->
 -->
 
 ### Java software model
+
 #### Compile avoidance
 
 This version of Gradle further optimizes on avoiding recompiling consuming libraries after non-ABI breaking changes. Since 2.9, if a library declares an API, Gradle creates a "[stubbed API jar](userguide/java_software.html)". This enables avoiding recompiling any consuming library if the application binary interface (ABI) of the library doesn't change. This version of Gradle extends this functionality to libraries that don't declare their APIs, speeding up builds with incremental changes in most Java projects, small or large. In particular, a library `A` that depend on a library `B` will not need to be recompiled in the following cases:
@@ -36,6 +37,14 @@ Declaring a test suite can be done like this:
     }
 
 Then the suite can be executed running the `:mySuiteTest` task.
+
+### Model rule improvements
+
+#### Fine grained application of rules
+
+TBD - A new kind of rule method is now available, which can be used to apply additional rules to some target. 
+
+This kind of method is annotated with `@Rules`. The first parameter defines a `RuleSource` type to apply, and the second parameter defines the target element to apply the rules to. 
 
 ### Controlling test executing order in TestNG
 
