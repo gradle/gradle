@@ -32,9 +32,16 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
 
     @Override
     public <R, S> ExtractedModelRule registration(final MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
+        validateIsVoidRule(ruleDefinition, problems);
+
+        if (ruleDefinition.getReferences().isEmpty()) {
+            return null;
+        }
         ModelType<?> subjectType = ruleDefinition.getReferences().get(0).getType();
         if (!RULE_SOURCE_MODEL_TYPE.isAssignableFrom(subjectType)) {
-            problems.add(ruleDefinition, "first parameter must be a RuleSource subtype");
+            problems.add(ruleDefinition, "The first parameter of a method " + getDescription() + " must be a subtype of RuleSource");
+        }
+        if (problems.hasProblems()) {
             return null;
         }
 

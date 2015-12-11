@@ -17,6 +17,7 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.language.base.LanguageSourceSet
 
 class ModelRuleDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def "rule can define additional rules using a @Rules method"() {
@@ -66,7 +67,7 @@ model {
         buildFile << '''
 class MyPlugin extends RuleSource {
     @Rules
-    void rules(Project project) {
+    void rules(LanguageSourceSet lss) {
     }
 }
 apply plugin: MyPlugin
@@ -74,7 +75,7 @@ apply plugin: MyPlugin
 
         expect:
         fails 'model'
-        failure.assertHasCause('''Type MyPlugin is not a valid rule source:
-- Method MyPlugin#rules is not a valid rule method: first parameter must be a RuleSource subtype''')
+        failure.assertHasCause("""Type MyPlugin is not a valid rule source:
+- Method rules(${LanguageSourceSet.name}) is not a valid rule method: The first parameter of a method annotated with @Rules must be a subtype of RuleSource""")
     }
 }

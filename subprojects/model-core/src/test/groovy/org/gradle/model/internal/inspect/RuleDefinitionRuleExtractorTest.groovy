@@ -24,19 +24,31 @@ import spock.lang.Specification
 class RuleDefinitionRuleExtractorTest extends Specification {
     def extractor = new ModelRuleExtractor([new RuleDefinitionRuleExtractor()])
 
-    static class ParameterIsNotRuleSource extends RuleSource {
+    static class InvalidSignature extends RuleSource {
         @Rules
-        void broken(String string, RuleSource ruleSource) {
+        void broken1(String string, RuleSource ruleSource) {
+        }
+
+        @Rules
+        void broken2() {
+        }
+
+        @Rules
+        String broken3(String string) {
+            "broken"
         }
     }
 
-    def "first parameter must be assignable to RuleSource"() {
+    def "rule method must have first parameter that be assignable to RuleSource and have void return type"() {
         when:
-        extractor.extract(ParameterIsNotRuleSource)
+        extractor.extract(InvalidSignature)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type ${ParameterIsNotRuleSource.name} is not a valid rule source:
-- Method RuleDefinitionRuleExtractorTest.ParameterIsNotRuleSource#broken is not a valid rule method: first parameter must be a RuleSource subtype"""
+        e.message == """Type ${InvalidSignature.name} is not a valid rule source:
+- Method broken3(java.lang.String) is not a valid rule method: A method annotated with @Rules must return void
+- Method broken3(java.lang.String) is not a valid rule method: The first parameter of a method annotated with @Rules must be a subtype of RuleSource
+- Method broken1(java.lang.String, ${RuleSource.name}) is not a valid rule method: The first parameter of a method annotated with @Rules must be a subtype of RuleSource
+- Method broken2() is not a valid rule method: A method annotated with @Rules must have at least one parameter"""
     }
 }
