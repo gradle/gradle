@@ -17,12 +17,8 @@
 package org.gradle.testfixtures
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.tasks.TaskAction
-import org.gradle.model.Model
-import org.gradle.model.RuleSource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
 import org.junit.Rule
@@ -155,25 +151,4 @@ class ProjectBuilderTest extends Specification {
     }
 }
 
-public class CustomTask extends DefaultTask {
-    def String property
 
-    @TaskAction
-    def doStuff() {
-        property = 'some value'
-    }
-}
-
-public class CustomPlugin implements Plugin<Project> {
-    void apply(Project target) {
-        target.task('hello');
-    }
-}
-
-public class CustomRuleSource extends RuleSource {
-
-    @Model
-    String foo() {
-        "bar"
-    }
-}
