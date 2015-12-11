@@ -65,7 +65,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpe
         then:
         failure.assertHasDescription "Could not resolve all dependencies for 'Test 'myTest:binary'' source set 'Java source 'myTest:java''"
         failure.assertHasCause "Cannot resolve external dependency junit:junit:4.12 because no repositories are defined."
-
     }
 
     def "fails if no JUnit version is specified"() {
@@ -86,7 +85,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpe
 
         then:
         failure.assertHasCause "Test suite 'myTest' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example."
-
     }
 
     def "fails if no JUnit version is specified even if found in dependencies"() {
@@ -113,7 +111,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpe
 
         then:
         failure.assertHasCause "Test suite 'myTest' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example."
-
     }
 
     @Unroll("Executes a passing test suite with a JUnit component and #sourceconfig.description")
@@ -227,14 +224,13 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpe
         }
 
         when:
-        succeeds(suites.collect { ":${it}BinaryTest"} as String[])
+        succeeds(suites.collect { ":${it}BinaryTest" } as String[])
 
         then:
         noExceptionThrown()
-        executedAndNotSkipped(suites.collect { ":compile${it.capitalize()}Binary${it.capitalize()}Java"} as String[])
-        executedAndNotSkipped(suites.collect { ":${it}BinaryTest"} as String[])
+        executedAndNotSkipped(suites.collect { ":compile${it.capitalize()}Binary${it.capitalize()}Java" } as String[])
+        executedAndNotSkipped(suites.collect { ":${it}BinaryTest" } as String[])
     }
-
 
     @NotYetImplemented
     // this has been deferred to a later story, where test binaries will
@@ -255,7 +251,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpe
 
         then:
         notExecuted ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest'
-
     }
 
     def "should fail if a library attempts to depend on a test suite"() {
@@ -396,7 +391,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpe
                         jUnitVersion '4.12'
                         sources {
                             resources {
-                               source.srcDirs 'src/test-resources'
+                                source.srcDirs 'src/test-resources'
                             }
                         }
                     }
@@ -479,7 +474,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpe
                 id 'java-lang'
                 id 'junit-test-suite'
             }
-
         '''
         if (declareRepo) {
             buildFile << '''
@@ -536,7 +530,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpe
             this.hasExternalDependency = hasExternalDependency
             this.configuration = configuration
         }
-
     }
 
     private void testSuiteComponent(SourceSetConfiguration config = SourceSetConfiguration.EXPLICIT_NO_DEPS) {
@@ -612,7 +605,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpe
             public void test() {
                 assertEquals(true, ${passing ? 'true' : 'false'});
             }
-
 
             ${hasLibraryDependency ? libraryDependencyTest : ''}
 

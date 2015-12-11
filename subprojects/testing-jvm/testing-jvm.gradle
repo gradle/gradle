@@ -25,7 +25,6 @@ dependencies {
 
     testCompile libraries.groovy
     testCompile "com.google.inject:guice:2.0@jar" // this is for TestNG
-
 }
 
 test {
