@@ -128,9 +128,6 @@ class TreeNode {
         int i = 0
         for (; i < partsA.size() && i < partsB.size() && partsA[i] == partsB[i]; i++) {
         }
-        if (i == 0) {
-            return null
-        }
         return partsA.subList(0, i).join('/')
     }
 
