@@ -75,7 +75,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="source_sets">
         <title>Source Sets</title>
         <para>Source sets represent logical groupings of source files in a library.  A library can define multiple source sets and all
             sources will be compiled and included in the resulting binaries.  When a library is added to a build, the following
@@ -447,7 +447,7 @@
     <section>
         <title>Testing Java libraries</title>
         <note>
-            <para>This feature is currently under heavy development and will improve with each Gradle release.</para>
+            <para>This feature is currently under heavy development and will improve with each Gradle release. In particular it is not yet possible to test another component: only standalone tests are supported.</para>
         </note>
         <section>
             <title>Standalone JUnit test suites</title>
@@ -462,6 +462,7 @@
                 <sourcefile file="src/test/java/org/gradle/MyTest.java"/>
                 <output args="testBinaryTest" ignoreExtraLines="true" outputFile="junit-standalone.out"/>
             </sample>
+            <para>It is possible to configure source sets in a <link linkend="source_sets">similar way as libraries</link>.</para>
         </section>
 
     </section>
