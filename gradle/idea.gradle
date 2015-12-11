@@ -195,9 +195,7 @@ idea {
 
         node.append(new XmlParser().parseText('''
             <component name="CompilerWorkspaceConfiguration">
-              <option name="COMPILER_PROCESS_ADDITIONAL_VM_OPTIONS" value="-Dgroovyc.in.process=false -Dgroovyc.heap.size=1024" />
               <option name="COMPILER_PROCESS_HEAP_SIZE" value="1024" />
-              <option name="USE_COMPILE_SERVER" value="false" />
             </component>
         '''))
 
