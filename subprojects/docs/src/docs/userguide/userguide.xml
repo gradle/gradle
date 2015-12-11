@@ -112,6 +112,7 @@
         <title>The Software model - Next generation Gradle builds</title>
         <xi:include href='softwareModel.xml'/>
         <xi:include href='softwareModelConcepts.xml'/>
+        <xi:include href='ruleSource.xml'/>
         <xi:include href='buildingJavaLibraries.xml'/>
         <xi:include href='playPlugin.xml'/>
         <xi:include href='nativeBinaries.xml'/>
