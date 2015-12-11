@@ -379,7 +379,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpe
         noExceptionThrown()
     }
 
-    def "test should access test resources in a non conventional place"() {
+    def "test should access processed test resources in a non conventional place"() {
         given:
         applyJUnitPlugin()
 
@@ -396,13 +396,18 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpe
                         }
                     }
                 }
+                tasks.processMyTestBinaryMyTestResources {
+                    // uncomment lines
+                    filter {
+                        it.startsWith('#') ? it.substring(1) : it
+                    }
+                }
             }
         """
-        checkResourceProcessTaskType()
 
         and:
         testCaseReadingResourceFile()
-        file('src/test-resources/data.properties') << 'magic = 42'
+        file('src/test-resources/data.properties') << '# magic = 42'
 
         when:
         succeeds ':myTestBinaryTest'
@@ -410,12 +415,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpe
         then:
         noExceptionThrown()
         executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':processMyTestBinaryMyTestResources', ':myTestBinaryTest'
-
-        when:
-        succeeds ':checkTaskType'
-
-        then:
-        noExceptionThrown()
     }
 
     private void testCaseReadingResourceFile() {
