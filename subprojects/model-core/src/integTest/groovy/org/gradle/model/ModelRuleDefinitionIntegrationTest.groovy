@@ -61,4 +61,20 @@ model {
         output.contains("applying rule source")
         output.contains("strings = [a, b]")
     }
+
+    def "first parameter of @Rules method must be assignable to RuleSource"() {
+        buildFile << '''
+class MyPlugin extends RuleSource {
+    @Rules
+    void rules(Project project) {
+    }
+}
+apply plugin: MyPlugin
+'''
+
+        expect:
+        fails 'model'
+        failure.assertHasCause('''Type MyPlugin is not a valid rule source:
+- Method MyPlugin#rules is not a valid rule method: first parameter must be a RuleSource subtype''')
+    }
 }

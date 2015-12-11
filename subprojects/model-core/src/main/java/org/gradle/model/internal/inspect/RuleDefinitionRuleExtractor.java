@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.RuleSource;
@@ -29,10 +28,17 @@ import java.util.Collections;
 import java.util.List;
 
 public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Rules> {
-    @Nullable
+    private static final ModelType<RuleSource> RULE_SOURCE_MODEL_TYPE = ModelType.of(RuleSource.class);
+
     @Override
-    public <R, S> ExtractedModelRule registration(final MethodRuleDefinition<R, S> ruleDefinition) {
-        final ModelType<? extends RuleSource> type = ruleDefinition.getSubjectReference().getType().asSubtype(ModelType.of(RuleSource.class));
+    public <R, S> ExtractedModelRule registration(final MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
+        ModelType<?> subjectType = ruleDefinition.getReferences().get(0).getType();
+        if (!RULE_SOURCE_MODEL_TYPE.isAssignableFrom(subjectType)) {
+            problems.add(ruleDefinition, "first parameter must be a RuleSource subtype");
+            return null;
+        }
+
+        final ModelType<? extends RuleSource> ruleSourceType = subjectType.asSubtype(RULE_SOURCE_MODEL_TYPE);
         return new ExtractedModelRule() {
             @Override
             public void apply(ModelRegistry modelRegistry, ModelPath scope) {
@@ -41,12 +47,12 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
                             @Override
                             public void execute(MutableModelNode subjectNode, List<ModelView<?>> modelViews) {
                                 Object[] parameters = new Object[1 + modelViews.size()];
-                                parameters[0] = DirectInstantiator.INSTANCE.newInstance(type.getConcreteClass());
+                                parameters[0] = DirectInstantiator.INSTANCE.newInstance(ruleSourceType.getConcreteClass());
                                 for (int i = 1; i < parameters.length; i++) {
                                     parameters[i] = modelViews.get(i + 1).getInstance();
                                 }
                                 ruleDefinition.getRuleInvoker().invoke(parameters);
-                                subjectNode.applyToSelf(type.getConcreteClass());
+                                subjectNode.applyToSelf(ruleSourceType.getConcreteClass());
                             }
                         }));
             }

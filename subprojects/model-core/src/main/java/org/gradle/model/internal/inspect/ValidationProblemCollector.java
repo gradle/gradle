@@ -39,6 +39,12 @@ public class ValidationProblemCollector {
         problems.add(problem);
     }
 
+    public void add(MethodRuleDefinition<?, ?> method, String problem) {
+        StringBuilder sb = new StringBuilder();
+        method.getDescriptor().describeTo(sb);
+        problems.add("Method " + sb + " is not a valid rule method: " + problem);
+    }
+
     public void add(Method method, String problem) {
         String description = MethodDescription.name(method.getName())
                 .takes(method.getGenericParameterTypes())

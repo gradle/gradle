@@ -17,26 +17,31 @@
 package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ExtractedModelAction;
 import org.gradle.model.internal.core.ExtractedModelRule;
+import org.gradle.model.internal.core.ModelActionRole;
 
 import java.lang.annotation.Annotation;
 
 @ThreadSafe
 public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
-
-    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
-        validate(ruleDefinition);
+    @Override
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
+        validate(ruleDefinition, problems);
+        if (problems.hasProblems()) {
+            return null;
+        }
         return new ExtractedModelAction(getMutationType(), new MethodBackedModelAction<S>(ruleDefinition));
     }
 
     protected abstract ModelActionRole getMutationType();
 
-    private void validate(MethodRuleDefinition<?, ?> ruleDefinition) {
+    private void validate(MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
         if (!ruleDefinition.getReturnType().getRawClass().equals(Void.TYPE)) {
-            throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "only void can be used as return type for mutation rules");
+            problems.add(ruleDefinition, "only void can be used as return type for rules " + getDescription());
+        }
+        if (ruleDefinition.getReferences().isEmpty()) {
+            problems.add(ruleDefinition, "rules " + getDescription() + " must have at least one parameter");
         }
     }
 

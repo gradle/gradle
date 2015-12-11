@@ -53,7 +53,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        ruleHandler.registration(ruleMethod)
+        extract(ruleMethod)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
@@ -79,7 +79,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         def mockRegistry = Mock(ModelRegistry)
 
         when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
+        def registration = extract(ruleDefinitionForMethod("validTypeRule"))
 
         then:
         registration instanceof ExtractedModelAction
@@ -98,7 +98,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
     def "only applies ComponentModelBasePlugin when implementation not set"() {
         when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationTypeRule"))
+        def registration = extract(ruleDefinitionForMethod("noImplementationTypeRule"))
 
         then:
         registration instanceof ExtractedModelAction

@@ -17,7 +17,6 @@
 package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
 import org.gradle.model.internal.core.*;
@@ -38,9 +37,8 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
         return modelName;
     }
 
-    @Nullable
     @Override
-    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
         String modelName = determineModelName(ruleDefinition);
 
         ModelPath modelPath = ModelPath.path(modelName);

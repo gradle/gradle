@@ -22,6 +22,7 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.ExtractedModelRule;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.inspect.ValidationProblemCollector;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
@@ -49,7 +50,8 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
         this.builderInterface = ModelType.of(builderInterface);
     }
 
-    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
+    @Override
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
         try {
             ModelType<? extends T> type = readType(ruleDefinition);
             ModelSchema<? extends T> schema = schemaStore.getSchema(type);

@@ -45,7 +45,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        ruleHandler.registration(ruleMethod)
+        extract(ruleMethod)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
@@ -67,7 +67,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         def mockRegistry = Mock(ModelRegistry)
 
         when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
+        def registration = extract(ruleDefinitionForMethod("validTypeRule"))
 
         then:
         registration instanceof ExtractedModelAction

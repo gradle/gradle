@@ -107,15 +107,9 @@ public class ModelRuleExtractor {
 
         for (Method method : methods) {
             MethodRuleDefinition<?, ?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
-            MethodModelRuleExtractor handler = getMethodHandler(ruleDefinition);
-            if (handler != null) {
-                validateRuleMethod(method, problems);
-                if (!problems.hasProblems()) {
-                    ExtractedModelRule registration = handler.registration(ruleDefinition);
-                    registrations.add(registration);
-                }
-            } else {
-                validateNonRuleMethod(method, problems);
+            ExtractedModelRule registration = getMethodHandler(ruleDefinition, method, problems);
+            if (registration != null) {
+                registrations.add(registration);
             }
         }
 
@@ -127,18 +121,26 @@ public class ModelRuleExtractor {
     }
 
     @Nullable
-    private MethodModelRuleExtractor getMethodHandler(MethodRuleDefinition<?, ?> ruleDefinition) {
+    private ExtractedModelRule getMethodHandler(MethodRuleDefinition<?, ?> ruleDefinition, Method method, ValidationProblemCollector problems) {
         MethodModelRuleExtractor handler = null;
         for (MethodModelRuleExtractor candidateHandler : handlers) {
             if (candidateHandler.isSatisfiedBy(ruleDefinition)) {
                 if (handler == null) {
                     handler = candidateHandler;
                 } else {
-                    throw invalid(ruleDefinition.getDescriptor(), "can only be one of " + describeHandlers());
+                    problems.add(method, "can only be one of " + describeHandlers());
+                    validateRuleMethod(method, problems);
+                    return null;
                 }
             }
         }
-        return handler;
+        if (handler != null) {
+            validateRuleMethod(method, problems);
+            return handler.registration(ruleDefinition, problems);
+        } else {
+            validateNonRuleMethod(method, problems);
+            return null;
+        }
     }
 
     private void validate(Class<?> source, ValidationProblemCollector problems) {

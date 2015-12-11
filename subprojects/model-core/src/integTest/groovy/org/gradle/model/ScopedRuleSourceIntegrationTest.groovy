@@ -116,7 +116,8 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: Rules#addTasks")
-        failure.assertHasCause("InvalidRuleSource#invalidRule is not a valid model rule method")
+        failure.assertHasCause('''Type InvalidRuleSource is not a valid rule source:
+- Method InvalidRuleSource#invalidRule is not a valid rule method: only void can be used as return type for rules annotated with @Mutate''')
     }
 
     def "unbound inputs of scoped rules are reported and their scope is shown"() {

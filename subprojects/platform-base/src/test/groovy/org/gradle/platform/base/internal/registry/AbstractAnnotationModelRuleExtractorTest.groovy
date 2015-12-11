@@ -16,8 +16,11 @@
 
 package org.gradle.platform.base.internal.registry
 
+import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
+import org.gradle.model.internal.inspect.ValidationProblemCollector
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -50,7 +53,11 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends Specifica
         annotationName << [annotation.getSimpleName()]
     }
 
-    def ruleDefinitionForMethod(String methodName) {
+    ExtractedModelRule extract(MethodRuleDefinition<?, ?> definition) {
+        ruleHandler.registration(definition, new ValidationProblemCollector(ModelType.of(ruleClass)))
+    }
+
+    MethodRuleDefinition<?, ?> ruleDefinitionForMethod(String methodName) {
         for (Method candidate : ruleClass.getDeclaredMethods()) {
             if (candidate.getName().equals(methodName)) {
                 return DefaultMethodRuleDefinition.create(ruleClass, candidate)
@@ -59,7 +66,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends Specifica
         throw new IllegalArgumentException("Not a test method name")
     }
 
-    def getStringDescription(MethodRuleDefinition ruleDefinition) {
+    String getStringDescription(MethodRuleDefinition ruleDefinition) {
         def builder = new StringBuilder()
         ruleDefinition.descriptor.describeTo(builder)
         builder.toString()

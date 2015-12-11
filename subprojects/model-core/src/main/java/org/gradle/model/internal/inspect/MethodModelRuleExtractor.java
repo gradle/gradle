@@ -23,5 +23,5 @@ public interface MethodModelRuleExtractor {
 
     String getDescription();
 
-    <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition);
+    <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems);
 }

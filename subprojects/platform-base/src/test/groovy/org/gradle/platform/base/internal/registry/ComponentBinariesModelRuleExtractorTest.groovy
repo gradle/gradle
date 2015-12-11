@@ -42,7 +42,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         def mockRegistry = Mock(ModelRegistry)
 
         when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod(ruleName))
+        def registration = extract(ruleDefinitionForMethod(ruleName))
 
         then:
         registration instanceof ExtractedModelAction
@@ -72,7 +72,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        ruleHandler.registration(ruleMethod)
+        extract(ruleMethod)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)

@@ -23,10 +23,7 @@ import org.gradle.model.internal.core.DependencyOnlyExtractedModelRule
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.inspect.AbstractAnnotationDrivenModelRuleExtractor
-import org.gradle.model.internal.inspect.MethodModelRuleExtractors
-import org.gradle.model.internal.inspect.MethodRuleDefinition
-import org.gradle.model.internal.inspect.ModelRuleExtractor
+import org.gradle.model.internal.inspect.*
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import spock.lang.Specification
 
@@ -47,7 +44,7 @@ class ScopedRuleTest extends Specification {
 
     class DependencyAddingModelRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<HasDependencies> {
         @Override
-        def <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
+        def <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
             new DependencyOnlyExtractedModelRule([ImperativePlugin])
         }
     }
