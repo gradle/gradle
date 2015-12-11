@@ -342,6 +342,21 @@ This element was created by testrule > create(item) and can be mutated as the fo
   - $itemClass.name (or assignment compatible type thereof)"""
     }
 
+    static class NamedRules extends RuleSource {}
+
+    def "named(String, RuleSource) fails when named element requested in chain filtered collection with incompatible type"() {
+        when:
+        accessedBy { map, action -> map.withType(specialItemClass).withType(itemClass).named("item", NamedRules) }
+
+        then:
+        def ex = thrown ModelRuleExecutionException
+        ex.cause instanceof InvalidModelRuleException
+        ex.cause.cause instanceof ModelRuleBindingException
+        normaliseLineSeparators(ex.cause.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
+This element was created by testrule > create(item) and can be mutated as the following types:
+  - $itemClass.name (or assignment compatible type thereof)"""
+    }
+
     def "named(String, DeferredModelAction) fails when named element requested in filtered collection with incompatible type"() {
         when:
         accessedByDeferred() { map, action -> ((NodeBackedModelMap) map.withType(specialItemClass)).named("item", action) }
@@ -572,35 +587,6 @@ This element was created by testrule > create(item) and can be mutated as the fo
         InvalidModelRuleException e = thrown()
         e.cause instanceof ModelRuleBindingException
         e.cause.message.startsWith("Model reference to element '${path.child('foo')}' with type java.lang.String is invalid due to incompatible types.")
-    }
-
-    /**
-     * This test documents the current behaviour, not necessarily the desired.
-     *
-     * Ideally, we'd get a failure here indicating that container item 'foo' is not String & NamedThing
-     */
-    def "rules targeting item of mismatched type are allowed"() {
-        def classLoader = new GroovyClassLoader(getClass().classLoader)
-        def setOtherToName = classLoader.parseClass """
-            import org.gradle.model.*
-
-            class SetOtherToName extends RuleSource {
-                @Mutate
-                void set($itemClass.name thing) {
-                    thing.other = thing.name
-                }
-            }
-        """
-
-        when:
-        mutate {
-            withType(String).named("foo", setOtherToName)
-            create("foo")
-        }
-        realize()
-
-        then:
-        realizeChild("foo").other == "foo"
     }
 
     def "can register mutate rule for all items using filtered container"() {
@@ -1064,7 +1050,7 @@ This element was created by testrule > create(item) and can be mutated as the fo
             .registerModelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
                 it.path "beans" type mmType action { c ->
-                    c.named("element", ElementRules)
+                    c.named("missingElement", ElementRules)
                 }
             }
 
@@ -1074,14 +1060,11 @@ This element was created by testrule > create(item) and can be mutated as the fo
 
         then:
         UnboundModelRulesException e = thrown()
-        normaliseLineSeparators(e.message).contains('''
-  NodeBackedModelMapSpec.ElementRules#connectElementToInput
+        normaliseLineSeparators(e.message).contains("""
+  testrule > named(missingElement, $ElementRules.name)
     subject:
-      - <no path> NodeBackedModelMapSpec.Bean (parameter 1) [*]
-          scope: beans.element
-    inputs:
-      - <no path> String (parameter 2) [*]
-''')
+      - beans.missingElement NodeBackedModelMapSpec.Bean [*]
+""")
     }
 
     static class SetOther extends RuleSource {

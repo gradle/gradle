@@ -364,7 +364,9 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     @Override
     public void named(String name, Class<? extends RuleSource> ruleSource) {
         viewState.assertCanMutate();
-        modelNode.applyToLink(name, ruleSource);
+        ModelRuleDescriptor descriptor = sourceDescriptor.append("named(%s, %s)", name, ruleSource.getName());
+        ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
+        modelNode.applyToLink(ModelActionRole.Defaults, new FilteringActionWrapper<T>(elementFilter, DirectNodeNoInputsModelAction.of(subject, descriptor, new ApplyRuleSource(ruleSource))));
     }
 
     // Called from transformed DSL rules
@@ -539,6 +541,19 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
             elementFilter.validateCanBindAction(modelNode, delegate);
             delegate.execute(modelNode, inputs);
+        }
+    }
+
+    private static class ApplyRuleSource implements Action<MutableModelNode> {
+        private final ModelType<? extends RuleSource> rules;
+
+        public ApplyRuleSource(Class<? extends RuleSource> rules) {
+            this.rules = ModelType.of(rules);
+        }
+
+        @Override
+        public void execute(MutableModelNode node) {
+            node.applyToSelf(rules.getConcreteClass());
         }
     }
 }
