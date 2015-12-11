@@ -33,6 +33,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
     def includesParser = Mock(SourceIncludesParser)
     def includes
     def includePaths = []
+    def candidates = [] as Set
 
     def setup() {
         includes = Mock(SourceIncludes)
@@ -47,7 +48,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
     }
 
     def getDependencies() {
-        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes) as List
+        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes, candidates) as List
     }
 
     def "handles source file with no includes"() {
@@ -74,6 +75,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
 
         then:
         dependencies == quotedDeps(header1, header2)
+        // candidates == [ header1, header2 ]
     }
 
     def "locates quoted includes relative to source directory"() {
@@ -152,22 +154,14 @@ class DefaultSourceIncludesResolverTest extends Specification {
     }
 
     def quotedDeps(File... files) {
-        return files.collect {dep([ sourceDirectory ] + includePaths, it)}
+        return files.collect {dep(it)}
     }
 
     def systemDeps(File... files) {
-        return files.collect {dep(includePaths, it)}
+        return files.collect {dep(it)}
     }
 
-    def dep(List paths, File dependencyFile) {
-        List<File> candidates = []
-        for (File path : paths) {
-            def candidate = new File(path, dependencyFile.name)
-            candidates.add(candidate)
-            if (dependencyFile.absolutePath == candidate.absolutePath) {
-                break
-            }
-        }
-        return new ResolvedInclude(dependencyFile.name, dependencyFile, candidates)
+    def dep(File dependencyFile) {
+        return new ResolvedInclude(dependencyFile.name, dependencyFile)
     }
 }

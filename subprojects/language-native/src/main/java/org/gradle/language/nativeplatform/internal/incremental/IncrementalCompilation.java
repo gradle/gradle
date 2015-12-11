@@ -17,6 +17,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 public interface IncrementalCompilation {
     List<File> getRecompile();
@@ -24,4 +25,6 @@ public interface IncrementalCompilation {
     List<File> getRemoved();
 
     CompilationState getFinalState();
+
+    Set<File> getIncludeCandidates();
 }

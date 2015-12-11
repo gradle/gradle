@@ -17,17 +17,14 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.List;
 
 public class ResolvedInclude implements Serializable {
     private final String include;
     private final File dependencyFile;
-    private final List<File> candidates;
 
-    public ResolvedInclude(String include, File dependencyFile, List<File> candidates) {
+    public ResolvedInclude(String include, File dependencyFile) {
         this.include = include;
         this.dependencyFile = dependencyFile;
-        this.candidates = candidates;
     }
 
     public boolean isUnknown() {
@@ -62,10 +59,6 @@ public class ResolvedInclude implements Serializable {
         return dependencyFile;
     }
 
-    public List<File> getCandidates() {
-        return candidates;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -80,10 +73,7 @@ public class ResolvedInclude implements Serializable {
         if (!include.equals(that.include)) {
             return false;
         }
-        if (dependencyFile != null ? !dependencyFile.equals(that.dependencyFile) : that.dependencyFile != null) {
-            return false;
-        }
-        return candidates.equals(that.candidates);
+        return !(dependencyFile != null ? !dependencyFile.equals(that.dependencyFile) : that.dependencyFile != null);
 
     }
 
@@ -94,7 +84,7 @@ public class ResolvedInclude implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("Resolved include '%s' -> '%s' %s", include, resolved(), candidates);
+        return String.format("Resolved include '%s' -> '%s'", include, resolved());
     }
 
     private String resolved() {

@@ -28,7 +28,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -72,13 +71,17 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         final IncrementalCompilation compilation = cacheAccess.useCache("process source files", new Factory<IncrementalCompilation>() {
             public IncrementalCompilation create() {
                 DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
-                IncrementalCompileProcessor processor = createProcessor(compileStateCache, sourceIncludesParser, spec.getIncludeRoots(), spec.getIncrementalInputs());
+                IncrementalCompileProcessor processor = createProcessor(compileStateCache, sourceIncludesParser, spec.getIncludeRoots());
                 // TODO - do not hold the lock while processing the source files - this prevents other tasks from executing concurrently
                 return processor.processSourceFiles(spec.getSourceFiles());
             }
         });
 
         spec.setSourceFileIncludes(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
+
+        for (File includeFile : compilation.getIncludeCandidates()) {
+            ((IncrementalTaskInputsInternal)spec.getIncrementalInputs()).newInput(includeFile);
+        }
 
         if (sourceFilesUseMacroIncludes(spec.getSourceFiles(), compilation.getFinalState())) {
             logger.info("The path to some #include files could not be determined.  Falling back to slow path which includes all files in the include search path as inputs for {}.", task.getName());
@@ -168,9 +171,9 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         return task;
     }
 
-    private IncrementalCompileProcessor createProcessor(PersistentStateCache<CompilationState> compileStateCache, SourceIncludesParser sourceIncludesParser, Iterable<File> includes, IncrementalTaskInputs taskInputs) {
+    private IncrementalCompileProcessor createProcessor(PersistentStateCache<CompilationState> compileStateCache, SourceIncludesParser sourceIncludesParser, Iterable<File> includes) {
         DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(includes));
 
-        return new IncrementalCompileProcessor(compileStateCache, dependencyParser, sourceIncludesParser, fileSnapshotter, taskInputs);
+        return new IncrementalCompileProcessor(compileStateCache, dependencyParser, sourceIncludesParser, fileSnapshotter);
     }
 }

@@ -17,16 +17,19 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultIncrementalCompilation implements IncrementalCompilation {
     private final List<File> recompile;
     private final List<File> removed;
     private CompilationState finalState;
+    private final Set<File> includeCandidates;
 
-    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed) {
+    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed, Set<File> includeCandidates) {
         this.finalState = finalState;
         this.recompile = recompile;
         this.removed = removed;
+        this.includeCandidates = includeCandidates;
     }
 
     public List<File> getRecompile() {
@@ -39,5 +42,9 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
 
     public CompilationState getFinalState() {
         return finalState;
+    }
+
+    public Set<File> getIncludeCandidates() {
+        return includeCandidates;
     }
 }

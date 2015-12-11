@@ -23,7 +23,6 @@ import org.gradle.language.nativeplatform.internal.incremental.sourceparser.Defa
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultSourceIncludes;
 
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
 public class CompilationStateSerializer implements Serializer<CompilationState> {
@@ -98,9 +97,7 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
             if (decoder.readBoolean()) {
                 included = fileSerializer.read(decoder);
             }
-            List<File> candidates = fileListSerializer.read(decoder);
-
-            return new ResolvedInclude(include, included, candidates);
+            return new ResolvedInclude(include, included);
         }
 
         public void write(Encoder encoder, ResolvedInclude value) throws Exception {
@@ -111,7 +108,6 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
                 encoder.writeBoolean(true);
                 fileSerializer.write(encoder, value.getFile());
             }
-            fileListSerializer.write(encoder, value.getCandidates());
         }
     }
 

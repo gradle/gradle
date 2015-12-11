@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.language.nativeplatform.internal.incremental
-import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal
+
 import org.gradle.api.internal.changedetection.state.FileSnapshot
 import org.gradle.api.internal.changedetection.state.FileSnapshotter
 import org.gradle.cache.PersistentStateCache
@@ -31,10 +31,9 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def includesParser = Mock(SourceIncludesParser)
     def dependencyParser = Mock(SourceIncludesResolver)
-    def taskInputs = Mock(IncrementalTaskInputsInternal)
     def fileSnapshotter = Stub(FileSnapshotter)
     def stateCache = new DummyPersistentStateCache()
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, dependencyParser, includesParser, fileSnapshotter, taskInputs)
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, dependencyParser, includesParser, fileSnapshotter)
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -43,6 +42,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def dep3 = sourceFile("dep3")
     def dep4 = sourceFile("dep4")
     def sourceFiles
+    def candidates = [] as Set
 
     Map<TestFile, List<ResolvedInclude>> graph = [:]
     List<TestFile> modified = []
@@ -91,7 +91,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def resolve(TestFile sourceFile) {
         Set<ResolvedInclude> deps = graph[sourceFile]
         SourceIncludes includes = includes(deps)
-        1 * dependencyParser.resolveIncludes(sourceFile, includes) >> deps
+        1 * dependencyParser.resolveIncludes(sourceFile, includes, candidates) >> deps
     }
 
     private static SourceIncludes includes(Set<ResolvedInclude> deps) {
@@ -252,7 +252,7 @@ class IncrementalCompileProcessorTest extends Specification {
         parse(dep5)
         resolve(dep5)
 
-        1 * dependencyParser.resolveIncludes(source2, includes(deps(dep3, dep4))) >> deps(dep3, dep5)
+        1 * dependencyParser.resolveIncludes(source2, includes(deps(dep3, dep4)), candidates) >> deps(dep3, dep5)
 
         then:
         with (state) {
@@ -407,7 +407,7 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     Set<ResolvedInclude> deps(File... dep) {
-        dep.collect {new ResolvedInclude(it.name, it, [ it ])} as Set
+        dep.collect {new ResolvedInclude(it.name, it)} as Set
     }
 
     class DummyPersistentStateCache implements PersistentStateCache<CompilationState> {
