@@ -76,6 +76,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Update to HttpClient 4.4.1
+
+Gradle uses the Apache HttpComponents HttpClient library internally for features like dependency resolution and publication. This library has been updated
+from version 4.2.2 to 4.4.1. As part of this upgrade, certain system properties are no longer taken into account when creating clients used for resolving and
+publishing dependencies from HTTP repositories. Specifically, the 'http.keepAlive' and 'http.maxConnections' system properties are now ignored.
+
 ### Scala plugin no longer adds 'scalaConsole' tasks
 
 Adding the 'scala' plugin to your build will no longer create 'scalaConsole' tasks which launch a Scala REPL from the Gradle build. This capability has been
