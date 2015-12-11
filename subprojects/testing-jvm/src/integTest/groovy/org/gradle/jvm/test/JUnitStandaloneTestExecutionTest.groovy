@@ -60,6 +60,25 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         outputContains "build using task: :myTestBinary"
     }
 
+    def "fails with a reasonable error when no repository is declared"() {
+        given:
+        applyJUnitPluginAndDoNotDeclareRepo()
+
+        and:
+        testSuiteComponent()
+
+        and:
+        passingTestCase()
+
+        when:
+        fails ':myTestBinaryTest'
+
+        then:
+        failure.assertHasDescription "Could not resolve all dependencies for 'Test 'myTest:binary'' source set 'Java source 'myTest:java''"
+        failure.assertHasCause "Cannot resolve external dependency junit:junit:4.12 because no repositories are defined."
+
+    }
+
     def "fails if no JUnit version is specified"() {
         given:
         applyJUnitPlugin()
@@ -122,7 +141,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         }
 
         and:
-        standaloneTestBinary(true, useLib, useExternalDep)
+        standaloneTestCase(true, useLib, useExternalDep)
 
         when:
         succeeds ':myTestBinaryTest'
@@ -166,7 +185,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         }
 
         and:
-        standaloneTestBinary(false, useLib, useExternalDep)
+        standaloneTestCase(false, useLib, useExternalDep)
 
         when:
         fails ':myTestBinaryTest'
@@ -215,7 +234,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
 
         and:
         suites.each { name ->
-            standaloneTestBinary(true, false, false, name)
+            standaloneTestCase(true, false, false, name)
         }
 
         when:
@@ -239,7 +258,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         testSuiteComponent()
 
         and:
-        standaloneTestBinary(false, false, false)
+        failingTestCase()
 
         when:
         executer.withArgument('--dry-run')
@@ -460,7 +479,11 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         '''
     }
 
-    private void applyJUnitPlugin() {
+    private void applyJUnitPluginAndDoNotDeclareRepo() {
+        applyJUnitPlugin(false)
+    }
+
+    private void applyJUnitPlugin(boolean declareRepo = true) {
         buildFile << '''import org.gradle.jvm.plugins.JUnitTestSuitePlugin
             plugins {
                 id 'jvm-component'
@@ -468,10 +491,13 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
                 id 'junit-test-suite'
             }
 
+        '''
+        if (declareRepo) {
+            buildFile << '''
             repositories {
                 jcenter()
-            }
-        '''
+            }'''
+        }
     }
 
     private enum SourceSetConfiguration {
@@ -553,7 +579,15 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
         }'''.stripMargin()
     }
 
-    private void standaloneTestBinary(boolean passing, boolean hasLibraryDependency, boolean hasExternalDependency, String name='myTest') {
+    private void passingTestCase() {
+        standaloneTestCase(true, false, false)
+    }
+
+    private void failingTestCase() {
+        standaloneTestCase(false, false, false)
+    }
+
+    private void standaloneTestCase(boolean passing, boolean hasLibraryDependency, boolean hasExternalDependency, String name='myTest') {
 
         // todo: the value '0' is used, where it should in reality be 42, because we're using the API jar when resolving dependencies
         // where we should be using the runtime jar instead. This will be fixed in another story.
