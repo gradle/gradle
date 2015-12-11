@@ -143,7 +143,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(22)
         failureHasCause("""Type BadRuleSource is not a valid rule source:
-- Method process(java.lang.String) is not a valid rule method: first parameter of a rule method must be of type org.gradle.api.artifacts.ComponentMetadataDetails""")
+- Method process(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type org.gradle.api.artifacts.ComponentMetadataDetails""")
 
     }
 

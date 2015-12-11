@@ -29,7 +29,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ExtractedModelRule;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
@@ -64,18 +63,6 @@ public class ModelRuleExtractor {
         }));
 
         return "[" + desc + "]";
-    }
-
-    private static RuntimeException invalid(ModelRuleDescriptor rule, String reason) {
-        StringBuilder sb = new StringBuilder();
-        rule.describeTo(sb);
-        return invalid(sb.toString(), reason);
-    }
-
-    private static RuntimeException invalid(String ruleDescription, String reason) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(ruleDescription).append(" is not a valid rule method").append(": ").append(reason);
-        return new InvalidModelRuleDeclarationException(sb.toString());
     }
 
     public Iterable<ExtractedModelRule> extract(Class<?> source) {
@@ -128,7 +115,7 @@ public class ModelRuleExtractor {
                 if (handler == null) {
                     handler = candidateHandler;
                 } else {
-                    problems.add(method, "can only be one of " + describeHandlers());
+                    problems.add(method, "Can only be one of " + describeHandlers());
                     validateRuleMethod(method, problems);
                     return null;
                 }
@@ -147,31 +134,31 @@ public class ModelRuleExtractor {
         int modifiers = source.getModifiers();
 
         if (Modifier.isInterface(modifiers)) {
-            problems.add("must be a class, not an interface");
+            problems.add("Must be a class, not an interface");
         }
 
         if (!RuleSource.class.isAssignableFrom(source) || !source.getSuperclass().equals(RuleSource.class)) {
-            problems.add("rule source classes must directly extend " + RuleSource.class.getName());
+            problems.add("Rule source classes must directly extend " + RuleSource.class.getName());
         }
 
         if (Modifier.isAbstract(modifiers)) {
-            problems.add("class cannot be abstract");
+            problems.add("Class cannot be abstract");
         }
 
         if (source.getEnclosingClass() != null) {
             if (Modifier.isStatic(modifiers)) {
                 if (Modifier.isPrivate(modifiers)) {
-                    problems.add("class cannot be private");
+                    problems.add("Class cannot be private");
                 }
             } else {
-                problems.add("enclosed classes must be static and non private");
+                problems.add("Enclosed classes must be static and non private");
             }
         }
 
         Constructor<?>[] constructors = source.getDeclaredConstructors();
         for (Constructor<?> constructor : constructors) {
             if (constructor.getParameterTypes().length > 0) {
-                problems.add("cannot declare a constructor that takes arguments");
+                problems.add("Cannot declare a constructor that takes arguments");
                 break;
             }
         }
@@ -180,24 +167,24 @@ public class ModelRuleExtractor {
         for (Field field : fields) {
             int fieldModifiers = field.getModifiers();
             if (!field.isSynthetic() && !(Modifier.isStatic(fieldModifiers) && Modifier.isFinal(fieldModifiers))) {
-                problems.add("field " + field.getName() + " is not static final");
+                problems.add("Field " + field.getName() + " is not static final");
             }
         }
     }
 
     private void validateRuleMethod(Method ruleMethod, ValidationProblemCollector problems) {
         if (Modifier.isPrivate(ruleMethod.getModifiers())) {
-            problems.add(ruleMethod, "a rule method cannot be private");
+            problems.add(ruleMethod, "A rule method cannot be private");
         }
 
         if (ruleMethod.getTypeParameters().length > 0) {
-            problems.add(ruleMethod, "cannot have type variables (i.e. cannot be a generic method)");
+            problems.add(ruleMethod, "Cannot have type variables (i.e. cannot be a generic method)");
         }
 
         // TODO validations on method: synthetic, bridge methods, varargs, abstract, native
         ModelType<?> returnType = ModelType.returnType(ruleMethod);
         if (returnType.isRawClassOfParameterizedType()) {
-            problems.add(ruleMethod, "raw type " + returnType + " used for return type (all type parameters must be specified of parameterized type)");
+            problems.add(ruleMethod, "Raw type " + returnType + " used for return type (all type parameters must be specified of parameterized type)");
         }
 
         int i = 0;
@@ -205,14 +192,14 @@ public class ModelRuleExtractor {
             ++i;
             ModelType<?> modelType = ModelType.of(type);
             if (modelType.isRawClassOfParameterizedType()) {
-                problems.add(ruleMethod, "raw type " + modelType + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
+                problems.add(ruleMethod, "Raw type " + modelType + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
             }
         }
     }
 
     private void validateNonRuleMethod(Method method, ValidationProblemCollector problems) {
         if (!Modifier.isPrivate(method.getModifiers()) && !Modifier.isStatic(method.getModifiers()) && !method.isSynthetic()) {
-            problems.add(method, "a method that is not annotated as a rule must be private");
+            problems.add(method, "A method that is not annotated as a rule must be private");
         }
     }
 

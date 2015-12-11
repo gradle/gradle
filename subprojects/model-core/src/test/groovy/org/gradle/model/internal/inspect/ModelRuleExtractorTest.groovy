@@ -151,7 +151,7 @@ class ModelRuleExtractorTest extends Specification {
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
         e.message == """Type $HasGenericModelRule.name is not a valid rule source:
-- Method thing() is not a valid rule method: cannot have type variables (i.e. cannot be a generic method)"""
+- Method thing() is not a valid rule method: Cannot have type variables (i.e. cannot be a generic method)"""
     }
 
     static class HasMultipleRuleAnnotations extends RuleSource {
@@ -169,7 +169,7 @@ class ModelRuleExtractorTest extends Specification {
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
         e.message == """Type ${HasMultipleRuleAnnotations.name} is not a valid rule source:
-- Method thing() is not a valid rule method: can only be one of [annotated with @Model and returning a model element, annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate, annotated with @Rules]"""
+- Method thing() is not a valid rule method: Can only be one of [annotated with @Model and returning a model element, annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate, annotated with @Rules]"""
     }
 
     static class ConcreteGenericModelType extends RuleSource {
@@ -220,7 +220,7 @@ class ModelRuleExtractorTest extends Specification {
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
         e.message == """Type ${GenericMutationRule.name} is not a valid rule source:
-- Method mutate(T) is not a valid rule method: cannot have type variables (i.e. cannot be a generic method)"""
+- Method mutate(T) is not a valid rule method: Cannot have type variables (i.e. cannot be a generic method)"""
     }
 
     static class NonVoidMutationRule extends RuleSource {
@@ -235,7 +235,7 @@ class ModelRuleExtractorTest extends Specification {
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
         e.message == """Type $NonVoidMutationRule.name is not a valid rule source:
-- Method ModelRuleExtractorTest.NonVoidMutationRule#mutate is not a valid rule method: only void can be used as return type for rules annotated with @Mutate"""
+- Method mutate(java.lang.String) is not a valid rule method: A method annotated with @Mutate must return void"""
     }
 
     static class NoSubjectMutationRule extends RuleSource {
@@ -250,7 +250,7 @@ class ModelRuleExtractorTest extends Specification {
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
         e.message == """Type $NoSubjectMutationRule.name is not a valid rule source:
-- Method ModelRuleExtractorTest.NoSubjectMutationRule#mutate is not a valid rule method: rules annotated with @Mutate must have at least one parameter"""
+- Method mutate() is not a valid rule method: A method annotated with @Mutate must have at least one parameter"""
     }
 
     static class RuleWithEmptyInputPath extends RuleSource {
@@ -490,7 +490,7 @@ ${ManagedWithNonManageableParents.name}
         then:
         InvalidModelRuleDeclarationException e = thrown()
         e.message == """Type $HasRuleWithUncheckedModelMap.name is not a valid rule source:
-- Method modelPath(org.gradle.model.ModelMap) is not a valid rule method: raw type org.gradle.model.ModelMap used for parameter 1 (all type parameters must be specified of parameterized type)"""
+- Method modelPath(org.gradle.model.ModelMap) is not a valid rule method: Raw type org.gradle.model.ModelMap used for parameter 1 (all type parameters must be specified of parameterized type)"""
     }
 
     static class NotEverythingAnnotated extends RuleSource {
@@ -505,7 +505,7 @@ ${ManagedWithNonManageableParents.name}
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
         e.message == """Type ${NotEverythingAnnotated.name} is not a valid rule source:
-- Method mutate(java.lang.String) is not a valid rule method: a method that is not annotated as a rule must be private"""
+- Method mutate(java.lang.String) is not a valid rule method: A method that is not annotated as a rule must be private"""
     }
 
     static class PrivateAnnotated extends RuleSource {
@@ -520,7 +520,7 @@ ${ManagedWithNonManageableParents.name}
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
         e.message == """Type ${PrivateAnnotated.name} is not a valid rule source:
-- Method notOk(java.lang.String) is not a valid rule method: a rule method cannot be private"""
+- Method notOk(java.lang.String) is not a valid rule method: A rule method cannot be private"""
     }
 
     static class SeveralProblems {
@@ -545,17 +545,17 @@ ${ManagedWithNonManageableParents.name}
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
         e.message == '''Type org.gradle.model.internal.inspect.ModelRuleExtractorTest$SeveralProblems is not a valid rule source:
-- rule source classes must directly extend org.gradle.model.RuleSource
-- field field1 is not static final
-- field field2 is not static final
-- Method multipleProblems(java.util.List, T) is not a valid rule method: can only be one of [annotated with @Model and returning a model element, annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate, annotated with @Rules]
-- Method multipleProblems(java.util.List, T) is not a valid rule method: a rule method cannot be private
-- Method multipleProblems(java.util.List, T) is not a valid rule method: cannot have type variables (i.e. cannot be a generic method)
-- Method multipleProblems(java.util.List, T) is not a valid rule method: raw type java.util.List used for parameter 1 (all type parameters must be specified of parameterized type)
-- Method notOk() is not a valid rule method: a rule method cannot be private
-- Method notOk() is not a valid rule method: cannot have type variables (i.e. cannot be a generic method)
-- Method ModelRuleExtractorTest.SeveralProblems#notOk is not a valid rule method: rules annotated with @Mutate must have at least one parameter
-- Method notARule() is not a valid rule method: a method that is not annotated as a rule must be private'''
+- Rule source classes must directly extend org.gradle.model.RuleSource
+- Field field1 is not static final
+- Field field2 is not static final
+- Method multipleProblems(java.util.List, T) is not a valid rule method: Can only be one of [annotated with @Model and returning a model element, annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate, annotated with @Rules]
+- Method multipleProblems(java.util.List, T) is not a valid rule method: A rule method cannot be private
+- Method multipleProblems(java.util.List, T) is not a valid rule method: Cannot have type variables (i.e. cannot be a generic method)
+- Method multipleProblems(java.util.List, T) is not a valid rule method: Raw type java.util.List used for parameter 1 (all type parameters must be specified of parameterized type)
+- Method notOk() is not a valid rule method: A rule method cannot be private
+- Method notOk() is not a valid rule method: Cannot have type variables (i.e. cannot be a generic method)
+- Method notOk() is not a valid rule method: A method annotated with @Mutate must have at least one parameter
+- Method notARule() is not a valid rule method: A method that is not annotated as a rule must be private'''
     }
 
     def "extracted rules are cached"() {

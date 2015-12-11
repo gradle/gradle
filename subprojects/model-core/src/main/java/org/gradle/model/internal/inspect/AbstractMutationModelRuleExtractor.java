@@ -27,7 +27,7 @@ import java.lang.annotation.Annotation;
 public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
     @Override
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
-        validate(ruleDefinition, problems);
+        validateIsVoidRule(ruleDefinition, problems);
         if (problems.hasProblems()) {
             return null;
         }
@@ -35,14 +35,4 @@ public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> e
     }
 
     protected abstract ModelActionRole getMutationType();
-
-    private void validate(MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
-        if (!ruleDefinition.getReturnType().getRawClass().equals(Void.TYPE)) {
-            problems.add(ruleDefinition, "only void can be used as return type for rules " + getDescription());
-        }
-        if (ruleDefinition.getReferences().isEmpty()) {
-            problems.add(ruleDefinition, "rules " + getDescription() + " must have at least one parameter");
-        }
-    }
-
 }

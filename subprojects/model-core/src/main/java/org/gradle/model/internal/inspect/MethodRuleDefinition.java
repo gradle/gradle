@@ -22,9 +22,11 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.List;
 
 public interface MethodRuleDefinition<R, S> {
+    Method getMethod();
 
     String getMethodName();
 

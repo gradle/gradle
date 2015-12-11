@@ -24,24 +24,20 @@ import org.gradle.model.internal.core.*;
 @ThreadSafe
 public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Model> {
 
-    protected String determineModelName(MethodRuleDefinition<?, ?> ruleDefinition) {
+    protected ModelPath determineModelName(MethodRuleDefinition<?, ?> ruleDefinition) {
         String annotationValue = ruleDefinition.getAnnotation(Model.class).value();
         String modelName = (annotationValue == null || annotationValue.isEmpty()) ? ruleDefinition.getMethodName() : annotationValue;
 
         try {
-            ModelPath.validatePath(modelName);
+            return ModelPath.validatedPath(modelName);
         } catch (Exception e) {
             throw new InvalidModelRuleDeclarationException(String.format("Path of declared model element created by rule %s is invalid.", ruleDefinition.getDescriptor()), e);
         }
-
-        return modelName;
     }
 
     @Override
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
-        String modelName = determineModelName(ruleDefinition);
-
-        ModelPath modelPath = ModelPath.path(modelName);
+        ModelPath modelPath = determineModelName(ruleDefinition);
         ModelRegistrations.Builder registration = ModelRegistrations.of(modelPath).descriptor(ruleDefinition.getDescriptor());
 
         buildRegistration(ruleDefinition, modelPath, registration);

@@ -40,9 +40,7 @@ public class ValidationProblemCollector {
     }
 
     public void add(MethodRuleDefinition<?, ?> method, String problem) {
-        StringBuilder sb = new StringBuilder();
-        method.getDescriptor().describeTo(sb);
-        problems.add("Method " + sb + " is not a valid rule method: " + problem);
+        add(method.getMethod(), problem);
     }
 
     public void add(Method method, String problem) {

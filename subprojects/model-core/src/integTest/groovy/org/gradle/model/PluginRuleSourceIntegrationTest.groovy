@@ -102,8 +102,8 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyPlugin']")
         failure.assertHasCause('''Type MyPlugin$Rules is not a valid rule source:
-- enclosed classes must be static and non private
-- cannot declare a constructor that takes arguments''')
+- Enclosed classes must be static and non private
+- Cannot declare a constructor that takes arguments''')
     }
 
     def "informative error message when two plugins declare model at the same path"() {

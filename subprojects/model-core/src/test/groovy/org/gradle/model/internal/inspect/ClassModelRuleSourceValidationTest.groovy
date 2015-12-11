@@ -35,16 +35,16 @@ class ClassModelRuleSourceValidationTest extends Specification {
 
         where:
         type                               | reason
-        OuterClass.AbstractClass           | "class cannot be abstract"
-        OuterClass.AnInterface             | "must be a class, not an interface"
-        OuterClass.InnerInstanceClass      | "enclosed classes must be static and non private"
-        new RuleSource() {}.getClass()     | "enclosed classes must be static and non private"
-        OuterClass.HasTwoConstructors      | "cannot declare a constructor that takes arguments"
-        OuterClass.HasInstanceVar          | "field foo is not static final"
-        OuterClass.HasFinalInstanceVar     | "field foo is not static final"
-        OuterClass.HasNonFinalStaticVar    | "field foo is not static final"
-        OuterClass.DoesNotExtendRuleSource | "rule source classes must directly extend org.gradle.model.RuleSource"
-        OuterClass.HasSuperclass           | "rule source classes must directly extend org.gradle.model.RuleSource"
+        OuterClass.AbstractClass           | "Class cannot be abstract"
+        OuterClass.AnInterface             | "Must be a class, not an interface"
+        OuterClass.InnerInstanceClass      | "Enclosed classes must be static and non private"
+        new RuleSource() {}.getClass()     | "Enclosed classes must be static and non private"
+        OuterClass.HasTwoConstructors      | "Cannot declare a constructor that takes arguments"
+        OuterClass.HasInstanceVar          | "Field foo is not static final"
+        OuterClass.HasFinalInstanceVar     | "Field foo is not static final"
+        OuterClass.HasNonFinalStaticVar    | "Field foo is not static final"
+        OuterClass.DoesNotExtendRuleSource | "Rule source classes must directly extend org.gradle.model.RuleSource"
+        OuterClass.HasSuperclass           | "Rule source classes must directly extend org.gradle.model.RuleSource"
     }
 
     @Unroll

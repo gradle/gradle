@@ -63,6 +63,10 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
         return new DefaultMethodRuleDefinition<T, R, S>(method, ModelType.of(source), returnType);
     }
 
+    public Method getMethod() {
+        return method.getMethod();
+    }
+
     public String getMethodName() {
         return method.getName();
     }

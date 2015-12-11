@@ -49,19 +49,19 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         ValidationProblemCollector problems = new ValidationProblemCollector(ruleSourceType);
 
         if (mutateMethods.size() == 0) {
-            problems.add("must have at exactly one method annotated with @" + Mutate.class.getName());
+            problems.add("Must have at exactly one method annotated with @" + Mutate.class.getName());
         } else {
             if (mutateMethods.size() > 1) {
-                problems.add("more than one method is annotated with @" + Mutate.class.getName());
+                problems.add("More than one method is annotated with @" + Mutate.class.getName());
             }
 
             for (Method ruleMethod : mutateMethods) {
                 if (ruleMethod.getReturnType() != Void.TYPE) {
-                    problems.add(ruleMethod, "a rule method must return void");
+                    problems.add(ruleMethod, "A rule method must return void");
                 }
                 Type[] parameterTypes = ruleMethod.getGenericParameterTypes();
                 if (parameterTypes.length == 0 || !subjectType.isAssignableFrom(ModelType.of(parameterTypes[0]))) {
-                    problems.add(ruleMethod, String.format("first parameter of a rule method must be of type %s", subjectType));
+                    problems.add(ruleMethod, String.format("First parameter of a rule method must be of type %s", subjectType));
                 }
             }
         }
