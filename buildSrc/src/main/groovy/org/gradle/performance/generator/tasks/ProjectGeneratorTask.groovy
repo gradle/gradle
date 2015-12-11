@@ -16,41 +16,34 @@
 
 package org.gradle.performance.generator.tasks
 
-import org.gradle.api.GradleException
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.OutputDirectory
-
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
-
+import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 import org.gradle.performance.generator.*
 
 abstract class ProjectGeneratorTask extends DefaultTask {
     @OutputDirectory
     File destDir
-
     int sourceFiles = 1
     Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
     int filesPerPackage = 100
     boolean useSubProjectNumberInSourceFileNames = false
     List<String> additionalProjectFiles = []
-
     final List<TestProject> projects = []
     List<String> rootProjectTemplates = ['root-project']
     List<String> subProjectTemplates = ['project-with-source']
     final SimpleTemplateEngine engine = new SimpleTemplateEngine()
     final Map<File, Template> templates = [:]
-
     Map<String, Object> templateArgs = [:]
-
     final DependencyGraph dependencyGraph = new DependencyGraph()
     int numberOfExternalDependencies = 0
-
     MavenJarCreator mavenJarCreator = new MavenJarCreator()
-
     Random random = new Random(1L)
+    boolean buildReceipts = false
 
     def ProjectGeneratorTask() {
         setProjects(1)
@@ -118,11 +111,11 @@ abstract class ProjectGeneratorTask extends DefaultTask {
 
     MavenRepository generateDependencyRepository() {
         MavenRepository repo = new RepositoryBuilder(getDestDir())
-                .withArtifacts(dependencyGraph.size)
-                .withDepth(dependencyGraph.depth)
-                .withSnapshotVersions(dependencyGraph.useSnapshotVersions)
-                .withMavenJarCreator(mavenJarCreator)
-                .create()
+            .withArtifacts(dependencyGraph.size)
+            .withDepth(dependencyGraph.depth)
+            .withSnapshotVersions(dependencyGraph.useSnapshotVersions)
+            .withMavenJarCreator(mavenJarCreator)
+            .create()
         return repo;
     }
 
@@ -166,16 +159,16 @@ abstract class ProjectGeneratorTask extends DefaultTask {
         files.addAll(['build.gradle', 'pom.xml', 'build.xml'])
         files.addAll(additionalProjectFiles)
 
-        args += [projectName  : testProject.name,
+        args += [projectName     : testProject.name,
                  subprojectNumber: testProject.subprojectNumber,
-                 propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)),
-                 repository: testProject.repository,
-                 dependencies: testProject.dependencies,
-                 testProject: testProject ]
+                 propertyCount   : (testProject.linesOfCodePerSourceFile.intdiv(7)),
+                 repository      : testProject.repository,
+                 dependencies    : testProject.dependencies,
+                 testProject     : testProject]
 
         args += templateArgs
-
         args += taskArgs
+        args << [buildReceipts: buildReceipts]
 
         files.each { String name ->
             generateWithTemplate(projectDir, name, name, args)

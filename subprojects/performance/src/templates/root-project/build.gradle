@@ -1,0 +1,15 @@
+<% if (buildReceipts) { %>
+buildscript {
+    repositories {
+        maven { url 'https://plugins.gradle.org/m2/' }
+    }
+    dependencies {
+        classpath 'com.gradle:build-receipt-plugin:1.0'
+    }
+}
+apply plugin: 'com.gradle.build-receipt'
+buildReceiptLicense {
+    agreementUrl = 'https://gradle.com/terms-of-service'
+    agree = 'yes'
+}
+<% } %>
