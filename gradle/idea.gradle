@@ -195,7 +195,7 @@ idea {
 
         node.append(new XmlParser().parseText('''
             <component name="CompilerWorkspaceConfiguration">
-              <option name="COMPILER_PROCESS_HEAP_SIZE" value="1024" />
+              <option name="COMPILER_PROCESS_HEAP_SIZE" value="1536" />
             </component>
         '''))
 
