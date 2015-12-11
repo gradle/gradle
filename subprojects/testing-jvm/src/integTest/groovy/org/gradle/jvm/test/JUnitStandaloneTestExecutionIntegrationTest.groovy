@@ -15,28 +15,20 @@
  */
 
 package org.gradle.jvm.test
+
 import groovy.transform.NotYetImplemented
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.hamcrest.Matchers
 import spock.lang.Unroll
 
-class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpec {
+class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationSpec {
 
     def "creates a JUnit test suite binary"() {
         given:
         applyJUnitPlugin()
 
         and:
-        buildFile << '''
-            model {
-                components {
-                    myTest(JUnitTestSuiteSpec) {
-                        jUnitVersion '4.12'
-                    }
-                }
-            }
-        '''
+        myTestSuiteSpec()
 
         when:
         run 'components'
@@ -464,22 +456,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpe
 
     private void applyJUnitPluginAndDoNotDeclareRepo() {
         applyJUnitPlugin(false)
-    }
-
-    private void applyJUnitPlugin(boolean declareRepo = true) {
-        buildFile << '''
-            plugins {
-                id 'jvm-component'
-                id 'java-lang'
-                id 'junit-test-suite'
-            }
-        '''
-        if (declareRepo) {
-            buildFile << '''
-            repositories {
-                jcenter()
-            }'''
-        }
     }
 
     private enum SourceSetConfiguration {
