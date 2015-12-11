@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
+import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.Usage
@@ -119,6 +120,7 @@ class DefaultIvyPublicationTest extends Specification {
         moduleDependency.version >> "version"
         moduleDependency.configuration >> "dep-configuration"
         moduleDependency.artifacts >> [artifact]
+        moduleDependency.excludeRules >> [new DefaultExcludeRule("excludeGroup", "excludeModule")]
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -137,6 +139,11 @@ class DefaultIvyPublicationTest extends Specification {
             revision == "version"
             confMapping == "runtime->dep-configuration"
             artifacts == [artifact]
+            excludeRules.size == 1
+            with(excludeRules[0]) {
+                it.group == "excludeGroup"
+                it.module == "excludeModule"
+            }
         }
     }
 
@@ -144,7 +151,7 @@ class DefaultIvyPublicationTest extends Specification {
         given:
         def publication = createPublication()
         def projectDependency = Mock(ProjectDependency)
-
+        projectDependency.excludeRules >> [new DefaultExcludeRule("excludeGroup", "excludeModule")]
         and:
         projectDependencyResolver.resolve(projectDependency) >> DefaultModuleVersionIdentifier.newId("pub-org", "pub-module", "pub-revision")
         projectDependency.configuration >> "dep-configuration"
@@ -166,6 +173,11 @@ class DefaultIvyPublicationTest extends Specification {
             revision == "pub-revision"
             confMapping == "runtime->dep-configuration"
             artifacts == []
+            excludeRules.size == 1
+            with(excludeRules[0]) {
+                it.group == "excludeGroup"
+                it.module == "excludeModule"
+            }
         }
     }
 

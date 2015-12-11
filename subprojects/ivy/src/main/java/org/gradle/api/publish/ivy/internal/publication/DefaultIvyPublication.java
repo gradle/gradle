@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -42,6 +43,7 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Set;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
@@ -116,12 +118,13 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private void addProjectDependency(ProjectDependency dependency, String confMapping) {
         ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
-        ivyDependencies.add(new DefaultIvyDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping));
+        ivyDependencies.add(new DefaultIvyDependency(
+                identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping, Collections.<DependencyArtifact>emptyList(), dependency.getExcludeRules()));
     }
 
     private void addModuleDependency(ModuleDependency dependency, String confMapping) {
-        ivyDependencies.add(new DefaultIvyDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), confMapping, dependency.getArtifacts()));
-     }
+        ivyDependencies.add(new DefaultIvyDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), confMapping, dependency.getArtifacts(), dependency.getExcludeRules()));
+    }
 
     public void configurations(Action<? super IvyConfigurationContainer> config) {
         config.execute(configurations);
