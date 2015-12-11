@@ -141,7 +141,7 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
-        fails "tasks"
+        fails "taskWithUnboundRuleSourceApplied"
 
         and:
         failureCauseContains '''
