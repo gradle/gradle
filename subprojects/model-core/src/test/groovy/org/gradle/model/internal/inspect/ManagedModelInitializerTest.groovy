@@ -23,7 +23,7 @@ import org.gradle.model.Unmanaged
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
-import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry
+import org.gradle.model.internal.manage.schema.extract.DefaultConstructibleTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
@@ -38,7 +38,7 @@ class ManagedModelInitializerTest extends ProjectRegistrySpec {
 
     @Override
     protected NodeInitializerRegistry createNodeInitializerRegistry() {
-        // Not shared across tests as test may add constructable types only applying to that particular test
+        // Not shared across tests as test may add constructible types only applying to that particular test
         return  new TestNodeInitializerRegistry()
     }
 
@@ -62,10 +62,10 @@ A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T
 
     def "should fail with a contextual exception for a managed model element with an unknown property type"() {
         when:
-        def constructableTypesRegistry = new DefaultConstructableTypesRegistry()
+        def constructibleTypesRegistry = new DefaultConstructibleTypesRegistry()
         NodeInitializer nodeInitializer = Mock()
-        constructableTypesRegistry.registerConstructableType(ModelType.of(Credentials), nodeInitializer)
-        nodeInitializerRegistry.registerStrategy(constructableTypesRegistry)
+        constructibleTypesRegistry.registerConstructibleType(ModelType.of(Credentials), nodeInitializer)
+        nodeInitializerRegistry.registerStrategy(constructibleTypesRegistry)
         realizeNodeOfType(ManagedWithUnsupportedType)
 
         then:
@@ -150,7 +150,7 @@ It must be one of:
         void setStream(FileInputStream stream)
     }
 
-    def "should fail with a reasonable exception when a type is not managed and not constructable"() {
+    def "should fail with a reasonable exception when a type is not managed and not constructible"() {
         when:
         realizeNodeOfType(NonManaged)
 

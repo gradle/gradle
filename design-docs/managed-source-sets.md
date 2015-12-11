@@ -174,7 +174,7 @@ model {
 
 ### Implementation
 
-- Add creation strategy for `LanguageSourceSet` backed by type registration (`ConstructableTypesRegistry`).
+- Add creation strategy for `LanguageSourceSet` backed by type registration (`ConstructibleTypesRegistry`).
 
 ### Test cases
 - Can not create a top level LSS for an LSS type that has not been registered

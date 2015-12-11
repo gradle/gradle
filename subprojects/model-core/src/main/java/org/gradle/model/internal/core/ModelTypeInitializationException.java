@@ -46,14 +46,14 @@ public class ModelTypeInitializationException extends GradleException {
     public ModelTypeInitializationException(NodeInitializerContext<?> context,
                                             ModelSchemaStore schemaStore,
                                             Iterable<? extends ModelType<?>> scalarTypes,
-                                            Iterable<? extends ModelType<?>> constructableTypes) {
-        super(toMessage(context, schemaStore, scalarTypes, constructableTypes));
+                                            Iterable<? extends ModelType<?>> constructibleTypes) {
+        super(toMessage(context, schemaStore, scalarTypes, constructibleTypes));
     }
 
     private static <T> String toMessage(NodeInitializerContext<T> context,
                                     ModelSchemaStore schemaStore,
                                     Iterable<? extends ModelType<?>> scalarTypes,
-                                    Iterable<? extends ModelType<?>> constructableTypes) {
+                                    Iterable<? extends ModelType<?>> constructibleTypes) {
 
         Optional<? extends NodeInitializerContext.PropertyContext> propertyContextOptional = context.getPropertyContextOptional();
         StringBuilder s = new StringBuilder();
@@ -65,7 +65,7 @@ public class ModelTypeInitializationException extends GradleException {
                 s.append(String.format("Its property '%s %s' is not a valid managed collection%n", modelProperty.getType().getName(), modelProperty.getName()));
                 CollectionSchema<?, ?> schema = (CollectionSchema) schemaStore.getSchema(modelProperty.getType());
                 s.append(String.format("A managed collection can not contain '%s's%n", schema.getElementType()));
-                appendManagedCollections(s, 1, constructableTypes);
+                appendManagedCollections(s, 1, constructibleTypes);
             } else if (isAScalarCollection(modelProperty)) {
                 ModelType<?> innerType = modelProperty.getType().getTypeVariables().get(0);
                 s.append(String.format("Its property '%s %s' is not a valid scalar collection%n", modelProperty.getType().getName(), modelProperty.getName()));
@@ -76,15 +76,15 @@ public class ModelTypeInitializationException extends GradleException {
                 s.append(String.format("It must be one of:%n"));
                 s.append(String.format("    - %s%n", MANAGED_TYPE_DESCRIPTION));
                 s.append("    - A managed collection. ");
-                appendManagedCollections(s, 1, constructableTypes);
+                appendManagedCollections(s, 1, constructibleTypes);
                 s.append(String.format("%n    - A scalar collection. %s%n    - %s", explainScalarCollections(scalarTypes), UNMANAGED_PROPERTY_DESCRIPTION));
-                maybeAppendConstructables(s, constructableTypes, 1);
+                maybeAppendConstructibles(s, constructibleTypes, 1);
             }
         } else {
             s.append(String.format("A model element of type: '%s' can not be constructed.%n", context.getModelType().getName()));
             s.append(String.format("It must be one of:%n"));
             s.append(String.format("    - %s", MANAGED_TYPE_DESCRIPTION));
-            maybeAppendConstructables(s, constructableTypes, 1);
+            maybeAppendConstructibles(s, constructibleTypes, 1);
         }
         return s.toString();
     }
@@ -93,17 +93,17 @@ public class ModelTypeInitializationException extends GradleException {
         return String.format("A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (%s)", describe(scalarTypes));
     }
 
-    private static String appendManagedCollections(StringBuilder s, int pad, Iterable<? extends ModelType<?>> constructableTypes) {
+    private static String appendManagedCollections(StringBuilder s, int pad, Iterable<? extends ModelType<?>> constructibleTypes) {
         s.append(String.format("A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:%n        - %s", MANAGED_TYPE_DESCRIPTION));
-        maybeAppendConstructables(s, constructableTypes, pad + 1);
+        maybeAppendConstructibles(s, constructibleTypes, pad + 1);
         return s.toString();
     }
 
-    private static void maybeAppendConstructables(StringBuilder s, Iterable<? extends ModelType<?>> constructableTypes, int pad) {
-        if (!Iterables.isEmpty(constructableTypes)) {
+    private static void maybeAppendConstructibles(StringBuilder s, Iterable<? extends ModelType<?>> constructibleTypes, int pad) {
+        if (!Iterables.isEmpty(constructibleTypes)) {
             String padding = pad(pad);
             s.append(String.format("%n%s- or a type which Gradle is capable of constructing:", padding));
-            for (ModelType<?> modelType : constructableTypes) {
+            for (ModelType<?> modelType : constructibleTypes) {
                 s.append(String.format("%n    %s- %s", padding, modelType.getName()));
             }
         }

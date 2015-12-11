@@ -16,29 +16,10 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Map;
-
-public class DefaultConstructableTypesRegistry implements ConstructableTypesRegistry {
-    private Map<ModelType<?>, NodeInitializer> mappings = Maps.newLinkedHashMap();
-
-    @Override
-    public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema) {
-        return mappings.get(schema.getType());
-    }
-
-    @Override
-    public Iterable<ModelType<?>> supportedTypes() {
-        return ImmutableSet.copyOf(mappings.keySet());
-    }
-
-    @Override
-    public <T> void registerConstructableType(ModelType<T> type, NodeInitializer nodeInitializer) {
-        mappings.put(type, nodeInitializer);
-    }
+// TODO:DAZ Remove this: it's only used for testing
+public interface ConstructibleTypesRegistry extends NodeInitializerExtractionStrategy {
+    <T> void registerConstructibleType(ModelType<T> type, NodeInitializer nodeInitializer);
 }

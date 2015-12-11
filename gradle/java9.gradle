@@ -78,9 +78,9 @@ task java9Test(type: Test) {
         "ATestClassWithBrokenConstructor",
         "ATestClassWithBrokenRunner",
         "ATestClassWithRunner",
-        "ATestClassWithRunnerThatBreaksAfterRuningSomeTests",
+        "ATestClassWithRunnerThatBreaksAfterRunningSomeTests",
         "ATestClassWithSeveralMethods",
-        "ATestClassWithUnconstructableRunner"
+        "ATestClassWithUnconstructibleRunner"
     ].collect { "**/*${it}*" }
 }
 

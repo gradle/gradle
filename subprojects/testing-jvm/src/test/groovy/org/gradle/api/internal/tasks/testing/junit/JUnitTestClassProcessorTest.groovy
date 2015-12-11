@@ -30,12 +30,12 @@ import spock.lang.Unroll
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED
 
 class JUnitTestClassProcessorTest extends Specification {
-    
+
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
     def processor = Mock(TestResultProcessor)
     def spec = new JUnitSpec([] as Set, [] as Set, [] as Set)
-    
+
     @Subject classProcessor = withSpec(spec)
 
     JUnitTestClassProcessor withSpec(spec) {
@@ -170,27 +170,27 @@ class JUnitTestClassProcessorTest extends Specification {
         0 * processor._
 
         where:
-        testClass                               |testMethodName         |failure
-        ABrokenTestClass                        |'broken'           |ABrokenTestClass.failure
-        ABrokenJunit3TestClass                  |'testBroken'           |ABrokenJunit3TestClass.failure
-        ATestClassWithBrokenRunner              |'initializationError'  |CustomRunnerWithBrokenRunMethod.failure
-        ATestClassWithUnconstructableRunner     |'initializationError'  |CustomRunnerWithBrokenConstructor.failure
-        ATestClassWithBrokenBeforeClassMethod   |'classMethod'          |ATestClassWithBrokenBeforeClassMethod.failure
-        ATestClassWithBrokenConstructor         |'test'                 |ATestClassWithBrokenConstructor.failure
-        ATestClassWithBrokenBeforeMethod        |'test'                 |ATestClassWithBrokenBeforeMethod.failure
-        ATestClassWithBrokenSuiteMethod         |'initializationError'  |ATestClassWithBrokenSuiteMethod.failure
+        testClass                             |testMethodName        |failure
+        ABrokenTestClass                      |'broken'              |ABrokenTestClass.failure
+        ABrokenJunit3TestClass                |'testBroken'          |ABrokenJunit3TestClass.failure
+        ATestClassWithBrokenRunner            |'initializationError' |CustomRunnerWithBrokenRunMethod.failure
+        ATestClassWithUnconstructibleRunner   |'initializationError' |CustomRunnerWithBrokenConstructor.failure
+        ATestClassWithBrokenBeforeClassMethod |'classMethod'         |ATestClassWithBrokenBeforeClassMethod.failure
+        ATestClassWithBrokenConstructor       |'test'                |ATestClassWithBrokenConstructor.failure
+        ATestClassWithBrokenBeforeMethod      |'test'                |ATestClassWithBrokenBeforeMethod.failure
+        ATestClassWithBrokenSuiteMethod       |'initializationError' |ATestClassWithBrokenSuiteMethod.failure
         ATestSetUpWithBrokenSetUp               |AJunit3TestClass.name  |ATestSetUpWithBrokenSetUp.failure
     }
 
     def executesATestClassWithRunnerThatBreaksAfterRunningSomeTests() {
-        when: process(ATestClassWithRunnerThatBreaksAfterRuningSomeTests)
+        when: process(ATestClassWithRunnerThatBreaksAfterRunningSomeTests)
 
         then: 1 * processor.started({ it.id == 1 }, { it.parentId == null })
 
-        then: 1 * processor.started({ it.id == 2 && it.name == 'ok1' && it.className == ATestClassWithRunnerThatBreaksAfterRuningSomeTests.name }, { it.parentId == 1 })
+        then: 1 * processor.started({ it.id == 2 && it.name == 'ok1' && it.className == ATestClassWithRunnerThatBreaksAfterRunningSomeTests.name }, { it.parentId == 1 })
         then: 1 * processor.completed(2, { it.resultType == null })
 
-        then: 1 * processor.started({ it.id == 3 && it.name == 'broken' && it.className == ATestClassWithRunnerThatBreaksAfterRuningSomeTests.name }, { it.parentId == 1 })
+        then: 1 * processor.started({ it.id == 3 && it.name == 'broken' && it.className == ATestClassWithRunnerThatBreaksAfterRunningSomeTests.name }, { it.parentId == 1 })
         then: 1 * processor.failure(3, CustomRunnerWithRunMethodThatBreaksAfterRunningSomeTests.failure)
         then: 1 * processor.completed(3, { it.resultType == null })
 

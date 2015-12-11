@@ -211,7 +211,7 @@ public class CustomRunner extends Runner {
 }
 
 @RunWith(CustomRunnerWithBrokenConstructor.class)
-public class ATestClassWithUnconstructableRunner {}
+public class ATestClassWithUnconstructibleRunner {}
 
 public class CustomRunnerWithBrokenConstructor extends Runner {
     static RuntimeException failure = new RuntimeException()
@@ -250,7 +250,7 @@ public class CustomRunnerWithBrokenRunMethod extends Runner {
 }
 
 @RunWith(CustomRunnerWithRunMethodThatBreaksAfterRunningSomeTests.class)
-public class ATestClassWithRunnerThatBreaksAfterRuningSomeTests {}
+public class ATestClassWithRunnerThatBreaksAfterRunningSomeTests {}
 
 public class CustomRunnerWithRunMethodThatBreaksAfterRunningSomeTests extends Runner {
     static RuntimeException failure = new RuntimeException()

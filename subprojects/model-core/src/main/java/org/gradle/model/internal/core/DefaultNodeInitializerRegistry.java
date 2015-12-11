@@ -50,15 +50,15 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
 
     private ModelTypeInitializationException canNotConstructTypeException(NodeInitializerContext<?> context) {
         Iterable<ModelType<?>> scalars = Iterables.concat(ScalarTypes.TYPES, ScalarTypes.NON_FINAL_TYPES);
-        ImmutableSortedSet.Builder<ModelType<Object>> constructableTypes = ImmutableSortedSet.orderedBy(ModelType.displayOrder());
+        ImmutableSortedSet.Builder<ModelType<Object>> constructibleTypes = ImmutableSortedSet.orderedBy(ModelType.displayOrder());
         for (NodeInitializerExtractionStrategy extractor : additionalStrategies) {
-            for (ModelType<?> constructableType : extractor.supportedTypes()) {
-                if (context.getBaseType().isAssignableFrom(constructableType)) {
-                    constructableTypes.add(Cast.<ModelType<Object>>uncheckedCast(constructableType));
+            for (ModelType<?> constructibleType : extractor.supportedTypes()) {
+                if (context.getBaseType().isAssignableFrom(constructibleType)) {
+                    constructibleTypes.add(Cast.<ModelType<Object>>uncheckedCast(constructibleType));
                 }
             }
         }
-        return new ModelTypeInitializationException(context, schemaStore, scalars, constructableTypes.build());
+        return new ModelTypeInitializationException(context, schemaStore, scalars, constructibleTypes.build());
     }
 
     @Override
