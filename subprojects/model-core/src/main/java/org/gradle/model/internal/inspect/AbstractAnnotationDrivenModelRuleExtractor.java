@@ -39,12 +39,9 @@ public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annot
         return String.format("annotated with @%s", annotationType.getSimpleName());
    }
 
-    protected void validateIsVoidRule(MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
+    protected void validateIsVoidMethod(MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
         if (!ruleDefinition.getReturnType().getRawClass().equals(Void.TYPE)) {
             problems.add(ruleDefinition, "A method " + getDescription() + " must return void");
-        }
-        if (ruleDefinition.getReferences().isEmpty()) {
-            problems.add(ruleDefinition, "A method " + getDescription() + " must have at least one parameter");
         }
     }
 }

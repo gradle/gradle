@@ -32,31 +32,37 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
 
     @Override
     public <R, S> ExtractedModelRule registration(final MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
-        validateIsVoidRule(ruleDefinition, problems);
-
-        if (ruleDefinition.getReferences().isEmpty()) {
+        validateIsVoidMethod(ruleDefinition, problems);
+        if (ruleDefinition.getReferences().size() < 2) {
+            problems.add(ruleDefinition, "A method " + getDescription() + " must have at least two parameters");
             return null;
         }
-        ModelType<?> subjectType = ruleDefinition.getReferences().get(0).getType();
-        if (!RULE_SOURCE_MODEL_TYPE.isAssignableFrom(subjectType)) {
+
+        ModelType<?> ruleType = ruleDefinition.getReferences().get(0).getType();
+        if (!RULE_SOURCE_MODEL_TYPE.isAssignableFrom(ruleType)) {
             problems.add(ruleDefinition, "The first parameter of a method " + getDescription() + " must be a subtype of RuleSource");
         }
         if (problems.hasProblems()) {
             return null;
         }
 
-        final ModelType<? extends RuleSource> ruleSourceType = subjectType.asSubtype(RULE_SOURCE_MODEL_TYPE);
+        final ModelType<? extends RuleSource> ruleSourceType = ruleType.asSubtype(RULE_SOURCE_MODEL_TYPE);
+
         return new ExtractedModelRule() {
             @Override
             public void apply(ModelRegistry modelRegistry, ModelPath scope) {
-                modelRegistry.configure(ModelActionRole.Initialize,
-                        DirectNodeInputUsingModelAction.of(ModelReference.of(scope), ruleDefinition.getDescriptor(), ruleDefinition.getTailReferences(), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                final ModelReference<?> targetReference = ruleDefinition.getReferences().get(1);
+                List<ModelReference<?>> inputs = ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size());
+
+                modelRegistry.configure(ModelActionRole.Defaults,
+                        DirectNodeInputUsingModelAction.of(targetReference, ruleDefinition.getDescriptor(), inputs, new BiAction<MutableModelNode, List<ModelView<?>>>() {
                             @Override
                             public void execute(MutableModelNode subjectNode, List<ModelView<?>> modelViews) {
-                                Object[] parameters = new Object[1 + modelViews.size()];
+                                Object[] parameters = new Object[2 + modelViews.size()];
                                 parameters[0] = DirectInstantiator.INSTANCE.newInstance(ruleSourceType.getConcreteClass());
-                                for (int i = 1; i < parameters.length; i++) {
-                                    parameters[i] = modelViews.get(i + 1).getInstance();
+                                parameters[1] = subjectNode.asImmutable(targetReference.getType(), ruleDefinition.getDescriptor()).getInstance();
+                                for (int i = 2; i < parameters.length; i++) {
+                                    parameters[i] = modelViews.get(i).getInstance();
                                 }
                                 ruleDefinition.getRuleInvoker().invoke(parameters);
                                 subjectNode.applyToSelf(ruleSourceType.getConcreteClass());

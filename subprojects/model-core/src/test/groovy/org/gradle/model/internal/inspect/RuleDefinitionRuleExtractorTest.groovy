@@ -39,7 +39,7 @@ class RuleDefinitionRuleExtractorTest extends Specification {
         }
     }
 
-    def "rule method must have first parameter that be assignable to RuleSource and have void return type"() {
+    def "rule method must have first parameter that is assignable to RuleSource and have void return type"() {
         when:
         extractor.extract(InvalidSignature)
 
@@ -47,8 +47,8 @@ class RuleDefinitionRuleExtractorTest extends Specification {
         def e = thrown(InvalidModelRuleDeclarationException)
         e.message == """Type ${InvalidSignature.name} is not a valid rule source:
 - Method broken3(java.lang.String) is not a valid rule method: A method annotated with @Rules must return void
-- Method broken3(java.lang.String) is not a valid rule method: The first parameter of a method annotated with @Rules must be a subtype of RuleSource
+- Method broken3(java.lang.String) is not a valid rule method: A method annotated with @Rules must have at least two parameters
 - Method broken1(java.lang.String, ${RuleSource.name}) is not a valid rule method: The first parameter of a method annotated with @Rules must be a subtype of RuleSource
-- Method broken2() is not a valid rule method: A method annotated with @Rules must have at least one parameter"""
+- Method broken2() is not a valid rule method: A method annotated with @Rules must have at least two parameters"""
     }
 }

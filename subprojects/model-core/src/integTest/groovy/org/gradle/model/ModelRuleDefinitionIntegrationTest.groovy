@@ -20,25 +20,45 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.base.LanguageSourceSet
 
 class ModelRuleDefinitionIntegrationTest extends AbstractIntegrationSpec {
-    def "rule can define additional rules using a @Rules method"() {
+    def "@Rule method can apply rules to a particular target"() {
         buildFile << '''
+@Managed
+interface Thing {
+    String getName()
+    void setName(String name)
+}
+
 class MyPlugin extends RuleSource {
-    @Rules
-    void rules(OtherRules rules) {
-        println "applying rule source"
-        assert rules != null
+    @Model
+    void p1(Thing t) {
+        assert t.name == 'default'
+        t.name = 'p1'
     }
 
-    @Mutate
-    void strings(@Path('strings') List<String> strings) {
-        strings << 'b'
+    @Model
+    void p2(Thing t) {
+        assert t.name == null
+        t.name = 'p2'
+    }
+
+    @Rules
+    void rules(CalculateName rules, @Path('p1') Thing t) {
+        println "applying rules to $t"
+        assert rules != null
+        assert t != null
     }
 }
 
-class OtherRules extends RuleSource {
-    @Model
-    void strings(List<String> strings) {
-        strings << 'a'
+class CalculateName extends RuleSource {
+    @Defaults
+    void defaultName(Thing t) {
+        t.name = 'default'
+    }
+
+    @Finalize
+    void finalizeName(Thing t) {
+        assert t.name == 'p1'
+        t.name = 'p1 finalized'
     }
 }
 
@@ -48,7 +68,8 @@ model {
     tasks {
         show(Task) {
             doLast {
-                println "strings = " + $.strings
+                println "p1 = " + $.p1.name
+                println "p2 = " + $.p2.name
             }
         }
     }
@@ -59,15 +80,36 @@ model {
         run 'show'
 
         then:
-        output.contains("applying rule source")
-        output.contains("strings = [a, b]")
+        output.contains("applying rules to Thing 'p1'")
+        output.contains("p1 = p1 finalized")
+        output.contains("p2 = p2")
+    }
+
+    def "reports failure in @Rules method"() {
+        buildFile << '''
+class MyPlugin extends RuleSource {
+    @Model
+    void strings(List<String> s) {}
+
+    @Rules
+    void rules(RuleSource rules, List<String> s) {
+        throw new RuntimeException("broken")
+    }
+}
+
+apply plugin: MyPlugin
+'''
+        expect:
+        fails("model")
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
+        failure.assertHasCause("broken")
     }
 
     def "first parameter of @Rules method must be assignable to RuleSource"() {
         buildFile << '''
 class MyPlugin extends RuleSource {
     @Rules
-    void rules(LanguageSourceSet lss) {
+    void rules(LanguageSourceSet lss, String string) {
     }
 }
 apply plugin: MyPlugin
@@ -76,6 +118,6 @@ apply plugin: MyPlugin
         expect:
         fails 'model'
         failure.assertHasCause("""Type MyPlugin is not a valid rule source:
-- Method rules(${LanguageSourceSet.name}) is not a valid rule method: The first parameter of a method annotated with @Rules must be a subtype of RuleSource""")
+- Method rules(${LanguageSourceSet.name}, ${String.name}) is not a valid rule method: The first parameter of a method annotated with @Rules must be a subtype of RuleSource""")
     }
 }

@@ -27,7 +27,10 @@ import java.lang.annotation.Annotation;
 public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
     @Override
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
-        validateIsVoidRule(ruleDefinition, problems);
+        validateIsVoidMethod(ruleDefinition, problems);
+        if (ruleDefinition.getReferences().isEmpty()) {
+            problems.add(ruleDefinition, "A method " + getDescription() + " must have at least one parameter");
+        }
         if (problems.hasProblems()) {
             return null;
         }
