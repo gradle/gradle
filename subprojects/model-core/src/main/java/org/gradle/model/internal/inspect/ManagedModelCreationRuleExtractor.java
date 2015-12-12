@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.inspect;
 
-import net.jcip.annotations.NotThreadSafe;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Cast;
 import org.gradle.model.InvalidModelRuleDeclarationException;
@@ -24,7 +23,6 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.manage.schema.extract.SpecializedMapNodeInitializer;
@@ -36,7 +34,6 @@ import java.util.Map;
 
 import static org.gradle.model.internal.core.NodeInitializerContext.forType;
 
-@NotThreadSafe
 public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
     private final ModelSchemaStore schemaStore;
 
@@ -54,18 +51,15 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     }
 
     @Override
-    protected <T, S> void buildRegistration(MethodRuleDefinition<T, S> ruleDefinition, final ModelPath modelPath, ModelRegistrations.Builder registration) {
+    protected <T, S> void buildRegistration(MethodRuleDefinition<T, S> ruleDefinition, final ModelPath modelPath, ModelRegistrations.Builder registration, ValidationProblemCollector problems) {
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         if (references.isEmpty()) {
-            throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule has to take a managed model element instance as the first argument");
+            problems.add(ruleDefinition, "A method annotated with @Model must either take at least one parameter or have a non-void return type");
+            return;
         }
 
         ModelType<T> modelType = Cast.uncheckedCast(references.get(0).getType());
         final ModelSchema<T> modelSchema = getModelSchema(modelType, ruleDefinition);
-        if (modelSchema instanceof ScalarValueSchema) {
-            throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.");
-        }
-
         List<ModelReference<?>> bindings = ruleDefinition.getReferences();
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         final ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();

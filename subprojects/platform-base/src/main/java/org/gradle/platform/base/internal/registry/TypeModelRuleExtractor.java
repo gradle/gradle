@@ -53,7 +53,10 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
     @Override
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
         try {
-            ModelType<? extends T> type = readType(ruleDefinition);
+            ModelType<? extends T> type = readType(ruleDefinition, problems);
+            if (problems.hasProblems()) {
+                return null;
+            }
             ModelSchema<? extends T> schema = schemaStore.getSchema(type);
             TypeBuilderInternal<T> builder = typeBuilderFactory.create(schema);
             ruleDefinition.getRuleInvoker().invoke(builder);
@@ -74,27 +77,33 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
                                                                                         ModelType<P> type, ModelType<I> implModelType,
                                                                                         TypeBuilderInternal<T> builder);
 
-    protected ModelType<? extends T> readType(MethodRuleDefinition<?, ?> ruleDefinition) {
-        assertIsVoidMethod(ruleDefinition);
+    protected ModelType<? extends T> readType(MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
+        validateIsVoidMethod(ruleDefinition, problems);
         if (ruleDefinition.getReferences().size() != 1) {
-            throw new InvalidModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
+            problems.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), builderInterface.toString()));
+            return null;
         }
+
         ModelReference<?> subjectReference = ruleDefinition.getSubjectReference();
-        @SuppressWarnings("ConstantConditions") ModelType<?> builder = subjectReference.getType();
+        ModelType<?> builder = subjectReference.getType();
         if (!builderInterface.isAssignableFrom(builder)) {
-            throw new InvalidModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
+            problems.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), builderInterface.toString()));
+            return null;
         }
         if (builder.getTypeVariables().size() != 1) {
-            throw new InvalidModelException(String.format("Parameter of type '%s' must declare a type parameter.", builderInterface.toString()));
+            problems.add(ruleDefinition, String.format("Parameter of type %s must declare a type parameter.", builderInterface.toString()));
+            return null;
         }
+
         ModelType<?> subType = builder.getTypeVariables().get(0);
 
         if (subType.isWildcard()) {
-            throw new InvalidModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
+            problems.add(ruleDefinition, String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
+            return null;
         }
-
         if (!baseInterface.isAssignableFrom(subType)) {
-            throw new InvalidModelException(String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
+            problems.add(ruleDefinition, String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
+            return null;
         }
 
         return subType.asSubtype(baseInterface);
@@ -110,7 +119,7 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
     protected ModelType<? extends U> determineImplementationType(ModelType<? extends T> type, TypeBuilderInternal<T> builder) {
         for (Class<?> internalView : builder.getInternalViews()) {
             if (!internalView.isInterface()) {
-                throw new InvalidModelException(String.format("Internal view '%s' must be an interface.", internalView.getName()));
+                throw new InvalidModelException(String.format("Internal view %s must be an interface.", internalView.getName()));
             }
         }
 
@@ -122,24 +131,24 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
         ModelType<? extends T> implementationType = ModelType.of(implementation);
 
         if (!baseImplementation.isAssignableFrom(implementationType)) {
-            throw new InvalidModelException(String.format("%s implementation '%s' must extend '%s'.", StringUtils.capitalize(modelName), implementationType, baseImplementation));
+            throw new InvalidModelException(String.format("%s implementation %s must extend %s.", StringUtils.capitalize(modelName), implementationType, baseImplementation));
         }
 
         ModelType<? extends U> asSubclass = implementationType.asSubtype(baseImplementation);
         if (!type.isAssignableFrom(asSubclass)) {
-            throw new InvalidModelException(String.format("%s implementation '%s' must implement '%s'.", StringUtils.capitalize(modelName), asSubclass, type));
+            throw new InvalidModelException(String.format("%s implementation %s must implement %s.", StringUtils.capitalize(modelName), asSubclass, type));
         }
 
         for (Class<?> internalView : builder.getInternalViews()) {
             if (!internalView.isAssignableFrom(implementation)) {
-                throw new InvalidModelException(String.format("%s implementation '%s' must implement internal view '%s'.", StringUtils.capitalize(modelName), asSubclass, internalView.getName()));
+                throw new InvalidModelException(String.format("%s implementation %s must implement internal view %s.", StringUtils.capitalize(modelName), asSubclass, internalView.getName()));
             }
         }
 
         try {
             asSubclass.getRawClass().getConstructor();
         } catch (NoSuchMethodException nsmException) {
-            throw new InvalidModelException(String.format("%s implementation '%s' must have public default constructor.", StringUtils.capitalize(modelName), asSubclass));
+            throw new InvalidModelException(String.format("%s implementation %s must have public default constructor.", StringUtils.capitalize(modelName), asSubclass));
         }
 
         return asSubclass;

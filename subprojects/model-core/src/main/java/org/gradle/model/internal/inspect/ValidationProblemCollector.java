@@ -43,6 +43,10 @@ public class ValidationProblemCollector {
         add(method.getMethod(), problem);
     }
 
+    public void add(MethodRuleDefinition<?, ?> method, String problem, Throwable cause) {
+        add(method.getMethod(), problem + ": " + cause.getMessage());
+    }
+
     public void add(Method method, String problem) {
         String description = MethodDescription.name(method.getName())
                 .takes(method.getGenericParameterTypes())

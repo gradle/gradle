@@ -235,7 +235,7 @@ class ModelRuleExtractorTest extends Specification {
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
         e.message == """Type $NonVoidMutationRule.name is not a valid rule source:
-- Method mutate(java.lang.String) is not a valid rule method: A method annotated with @Mutate must return void"""
+- Method mutate(java.lang.String) is not a valid rule method: A method annotated with @Mutate must have void return type."""
     }
 
     static class NoSubjectMutationRule extends RuleSource {
@@ -383,7 +383,8 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == "Path of declared model element created by rule ModelRuleExtractorTest.InvalidModelNameViaAnnotation#foo is invalid."
+        e.message == """Type ${InvalidModelNameViaAnnotation.name} is not a valid rule source:
+- Method foo() is not a valid rule method: The declared model element path ' ' is not a valid path: Model element name ' ' has illegal first character ' ' (names must start with an ASCII letter or underscore)."""
     }
 
     static class RuleSourceCreatingAClassAnnotatedWithManaged extends RuleSource {
@@ -415,7 +416,8 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == 'ModelRuleExtractorTest.RuleSourceWithAVoidReturningNoArgumentMethod#bar is not a valid model rule method: a void returning model element creation rule has to take a managed model element instance as the first argument'
+        e.message == """Type ${RuleSourceWithAVoidReturningNoArgumentMethod.name} is not a valid rule source:
+- Method bar() is not a valid rule method: A method annotated with @Model must either take at least one parameter or have a non-void return type"""
     }
 
     static class RuleSourceCreatingManagedWithNestedPropertyOfInvalidManagedType extends RuleSource {
@@ -536,6 +538,10 @@ ${ManagedWithNonManageableParents.name}
         private <T> String multipleProblems(List list, T value) {
             "broken"
         }
+
+        @Model(":)")
+        void thing() {
+        }
     }
 
     def "collects all validation problems"() {
@@ -555,7 +561,9 @@ ${ManagedWithNonManageableParents.name}
 - Method notOk() is not a valid rule method: A rule method cannot be private
 - Method notOk() is not a valid rule method: Cannot have type variables (i.e. cannot be a generic method)
 - Method notOk() is not a valid rule method: A method annotated with @Mutate must have at least one parameter
-- Method notARule() is not a valid rule method: A method that is not annotated as a rule must be private'''
+- Method notARule() is not a valid rule method: A method that is not annotated as a rule must be private
+- Method thing() is not a valid rule method: The declared model element path ':)' is not a valid path: Model element name ':)' has illegal first character ':' (names must start with an ASCII letter or underscore).
+- Method thing() is not a valid rule method: A method annotated with @Model must either take at least one parameter or have a non-void return type'''
     }
 
     def "extracted rules are cached"() {

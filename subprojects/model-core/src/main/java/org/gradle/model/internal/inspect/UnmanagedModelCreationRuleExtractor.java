@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.inspect;
 
-import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.BiAction;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -24,7 +23,6 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
-@ThreadSafe
 public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
     @Override
     public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> element) {
@@ -32,7 +30,7 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
     }
 
     @Override
-    protected <R, S> void buildRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelPath modelPath, ModelRegistrations.Builder registration) {
+    protected <R, S> void buildRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelPath modelPath, ModelRegistrations.Builder registration, ValidationProblemCollector problems) {
         ModelType<R> modelType = ruleDefinition.getReturnType();
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();

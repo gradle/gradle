@@ -16,14 +16,12 @@
 
 package org.gradle.model.internal.inspect;
 
-import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ExtractedModelAction;
 import org.gradle.model.internal.core.ExtractedModelRule;
 import org.gradle.model.internal.core.ModelActionRole;
 
 import java.lang.annotation.Annotation;
 
-@ThreadSafe
 public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
     @Override
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {

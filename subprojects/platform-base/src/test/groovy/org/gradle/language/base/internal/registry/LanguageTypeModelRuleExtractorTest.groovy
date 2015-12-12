@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.AbstractBuildableModelElement
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.internal.LanguageSourceSetFactory
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.InvalidModelRuleDeclarationException
@@ -29,7 +30,6 @@ import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
-import org.gradle.language.base.internal.LanguageSourceSetFactory
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
 import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
 import spock.lang.Unroll
@@ -48,7 +48,30 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
     }
 
     @Unroll
-    def "decent error message for #descr"() {
+    def "decent error message for rule declaration problem - #descr"() {
+        def ruleMethod = ruleDefinitionForMethod(methodName)
+        def ruleDescription = getStringDescription(ruleMethod.method)
+
+        when:
+        extract(ruleMethod)
+
+        then:
+        def ex = thrown(InvalidModelRuleDeclarationException)
+        ex.message == """Type ${ruleClass.name} is not a valid rule source:
+- Method ${ruleDescription} is not a valid rule method: ${expectedMessage}"""
+
+        where:
+        methodName                    | expectedMessage                                                                                           | descr
+        "returnValue"                 | "A method annotated with @LanguageType must have void return type."                                       | "non void method"
+        "noParams"                    | "A method annotated with @LanguageType must have a single parameter of type ${LanguageTypeBuilder.name}." | "no LanguageTypeBuilder subject"
+        "wrongSubject"                | "A method annotated with @LanguageType must have a single parameter of type ${LanguageTypeBuilder.name}." | "wrong rule subject type"
+        "rawLanguageTypeBuilder"      | "Parameter of type org.gradle.platform.base.LanguageTypeBuilder must declare a type parameter."           | "non typed ModelMap parameter"
+        "wildcardLanguageTypeBuilder" | "Language type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                  | "wild card ModelMap parameter"
+        "wrongSubType"                | "Language type 'java.lang.String' is not a subtype of 'org.gradle.language.base.LanguageSourceSet'."      | "public type not extending LanguageSourceSet"
+    }
+
+    @Unroll
+    def "decent error message for rule behaviour problem - #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
         def ruleDescription = getStringDescription(ruleMethod)
 
@@ -62,17 +85,11 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         ex.cause.message == expectedMessage
 
         where:
-        methodName                          | expectedMessage                                                                                                              | descr
-        "returnValue"                       | "Method annotated with @LanguageType must not have a return value."                                                          | "non void method"
-        "noParams"                          | "Method annotated with @LanguageType must have a single parameter of type '${LanguageTypeBuilder.name}'."                    | "no LanguageTypeBuilder subject"
-        "wrongSubject"                      | "Method annotated with @LanguageType must have a single parameter of type '${LanguageTypeBuilder.name}'."                    | "wrong rule subject type"
-        "rawLanguageTypeBuilder"            | "Parameter of type 'org.gradle.platform.base.LanguageTypeBuilder' must declare a type parameter."                            | "non typed ModelMap parameter"
-        "wildcardLanguageTypeBuilder"       | "Language type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                                     | "wild card ModelMap parameter"
-        "notImplementingLibraryType"        | "Language implementation '${NotImplementingCustomLanguageSourceSet.name}' must implement '${CustomLanguageSourceSet.name}'." | "implementation not implementing type class"
-        "wrongSubType"                      | "Language type 'java.lang.String' is not a subtype of 'org.gradle.language.base.LanguageSourceSet'."                         | "implementation not extending BaseComponentSpec"
-        "notExtendingBaseLanguageSourceSet" | "Language implementation '${NotExtendingBaseLanguageSourceSet.name}' must extend '${BaseLanguageSourceSet.name}'."           | "implementation not extending ${BaseLanguageSourceSet.name}"
-        "noPublicCtorImplementation"        | "Language implementation '${ImplementationWithNoPublicConstructor.name}' must have public default constructor."              | "implementation with not public default constructor"
-        "noLanguageName"                    | "Language type '${CustomLanguageSourceSet.name}' cannot be registered without a language name."                              | "no language name set"
+        methodName                          | expectedMessage                                                                                                          | descr
+        "notImplementingLibraryType"        | "Language implementation ${NotImplementingCustomLanguageSourceSet.name} must implement ${CustomLanguageSourceSet.name}." | "implementation not implementing type class"
+        "notExtendingBaseLanguageSourceSet" | "Language implementation ${NotExtendingBaseLanguageSourceSet.name} must extend ${BaseLanguageSourceSet.name}."           | "implementation not extending ${BaseLanguageSourceSet.name}"
+        "noPublicCtorImplementation"        | "Language implementation ${ImplementationWithNoPublicConstructor.name} must have public default constructor."            | "implementation with not public default constructor"
+        "noLanguageName"                    | "Language type '${CustomLanguageSourceSet.name}' cannot be registered without a language name."                          | "no language name set"
     }
 
     def "applies ComponentModelBasePlugin and creates language type rule"() {

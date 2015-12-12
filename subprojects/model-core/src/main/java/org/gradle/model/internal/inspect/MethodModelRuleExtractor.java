@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.ExtractedModelRule;
 
 public interface MethodModelRuleExtractor {
@@ -23,5 +24,11 @@ public interface MethodModelRuleExtractor {
 
     String getDescription();
 
+    /**
+     * Should only be called when {@link #isSatisfiedBy(MethodRuleDefinition)} return true.
+     *
+     * @return The extracted rule, or null when there are problems with the rule definition. Problems should be collected using the given collector.
+     */
+    @Nullable
     <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems);
 }

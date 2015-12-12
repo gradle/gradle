@@ -17,11 +17,9 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.reflect.TypeToken;
-import net.jcip.annotations.ThreadSafe;
 
 import java.lang.annotation.Annotation;
 
-@ThreadSafe
 public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annotation> implements MethodModelRuleExtractor {
     private final Class<T> annotationType;
 
@@ -41,7 +39,7 @@ public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annot
 
     protected void validateIsVoidMethod(MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
         if (!ruleDefinition.getReturnType().getRawClass().equals(Void.TYPE)) {
-            problems.add(ruleDefinition, "A method " + getDescription() + " must return void");
+            problems.add(ruleDefinition, "A method " + getDescription() + " must have void return type.");
         }
     }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.platform.base.internal.registry
 
+import org.gradle.internal.reflect.MethodDescription
+import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
@@ -54,7 +56,12 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends Specifica
     }
 
     ExtractedModelRule extract(MethodRuleDefinition<?, ?> definition) {
-        ruleHandler.registration(definition, new ValidationProblemCollector(ModelType.of(ruleClass)))
+        def problems = new ValidationProblemCollector(ModelType.of(ruleClass))
+        def registration = ruleHandler.registration(definition, problems)
+        if (problems.hasProblems()) {
+            throw new InvalidModelRuleDeclarationException(problems.format())
+        }
+        return registration
     }
 
     MethodRuleDefinition<?, ?> ruleDefinitionForMethod(String methodName) {
@@ -70,5 +77,11 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends Specifica
         def builder = new StringBuilder()
         ruleDefinition.descriptor.describeTo(builder)
         builder.toString()
+    }
+
+    String getStringDescription(Method method) {
+        return MethodDescription.name(method.getName())
+                .takes(method.getGenericParameterTypes())
+                .toString();
     }
 }

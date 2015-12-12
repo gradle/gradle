@@ -16,36 +16,38 @@
 
 package org.gradle.model.internal.inspect;
 
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
 import org.gradle.model.internal.core.*;
 
-@ThreadSafe
 public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Model> {
 
-    protected ModelPath determineModelName(MethodRuleDefinition<?, ?> ruleDefinition) {
+    private ModelPath determineModelName(MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
         String annotationValue = ruleDefinition.getAnnotation(Model.class).value();
         String modelName = (annotationValue == null || annotationValue.isEmpty()) ? ruleDefinition.getMethodName() : annotationValue;
 
         try {
-            return ModelPath.validatedPath(modelName);
+            ModelPath.validatePath(modelName);
         } catch (Exception e) {
-            throw new InvalidModelRuleDeclarationException(String.format("Path of declared model element created by rule %s is invalid.", ruleDefinition.getDescriptor()), e);
+            problems.add(ruleDefinition, "The declared model element path '" + modelName + "' is not a valid path", e);
         }
+        return ModelPath.path(modelName);
     }
 
     @Override
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
-        ModelPath modelPath = determineModelName(ruleDefinition);
+        ModelPath modelPath = determineModelName(ruleDefinition, problems);
+
         ModelRegistrations.Builder registration = ModelRegistrations.of(modelPath).descriptor(ruleDefinition.getDescriptor());
 
-        buildRegistration(ruleDefinition, modelPath, registration);
+        buildRegistration(ruleDefinition, modelPath, registration, problems);
+        if (problems.hasProblems()) {
+            return null;
+        }
 
         registration.hidden(ruleDefinition.isAnnotationPresent(Hidden.class));
 
         return new ExtractedModelRegistration(registration.build());
     }
 
-    protected abstract <R, S> void buildRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelPath modelPath, ModelRegistrations.Builder registration);
+    protected abstract <R, S> void buildRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelPath modelPath, ModelRegistrations.Builder registration, ValidationProblemCollector problems);
 }

@@ -117,8 +117,8 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: Rules#addTasks")
-        failure.assertHasCause("""Type InvalidRuleSource is not a valid rule source:
-- Method invalidRule(${Task.name}) is not a valid rule method: A method annotated with @Mutate must return void""")
+        failure.assertHasCause('''Type InvalidRuleSource is not a valid rule source:
+- Method invalidRule(org.gradle.api.Task) is not a valid rule method: A method annotated with @Mutate must have void return type.''')
     }
 
     def "unbound inputs of scoped rules are reported and their scope is shown"() {
