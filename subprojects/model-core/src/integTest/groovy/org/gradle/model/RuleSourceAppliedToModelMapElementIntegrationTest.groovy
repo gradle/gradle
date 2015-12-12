@@ -18,7 +18,7 @@ package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
+class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule source can be applied to ModelMap element"() {
         when:

@@ -19,7 +19,7 @@ package org.gradle.model
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.base.LanguageSourceSet
 
-class ModelRuleDefinitionIntegrationTest extends AbstractIntegrationSpec {
+class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSpec {
     def "@Rule method can apply rules to a particular target"() {
         buildFile << '''
 @Managed
