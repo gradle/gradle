@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package sample.markdown
+package sample.documentation
 
-import org.gradle.language.base.sources.BaseLanguageSourceSet
+import org.gradle.language.base.LanguageSourceSet
+import org.gradle.model.Managed
 
-class DefaultMarkdownSourceSet extends BaseLanguageSourceSet implements MarkdownSourceSet {
-    File outputDir
-    String taskName
+@Managed
+interface TextSourceSet extends LanguageSourceSet {
 }

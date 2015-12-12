@@ -16,6 +16,7 @@
 
 package sample.markdown
 
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
@@ -25,10 +26,17 @@ class MarkdownHtmlCompile extends SourceTask {
     @OutputDirectory
     File destinationDir
 
+    @Input
+    boolean smartQuotes
+
+    @Input
+    boolean generateIndex
+
     @TaskAction
     void process() {
         def encoding = "UTF-8"
-        PegDownProcessor processor = new PegDownProcessor()
+
+        PegDownProcessor processor = new PegDownProcessor(smartQuotes ? org.pegdown.Extensions.QUOTES : org.pegdown.Extensions.NONE)
 
         getSource().each { sourceFile ->
             String markdown = sourceFile.getText(encoding)
@@ -36,10 +44,12 @@ class MarkdownHtmlCompile extends SourceTask {
             File outputFile = new File(destinationDir, sourceFile.name.replace(".md", ".html"))
             outputFile.write(html, encoding)
         }
-        generateIndex()
+        if (generateIndex) {
+            doGenerateIndex()
+        }
     }
 
-    def generateIndex() {
+    def doGenerateIndex() {
         File indexFile = new File(destinationDir, "index.html")
         indexFile.withWriter { writer ->
             def markup = new groovy.xml.MarkupBuilder(writer)  // the builder

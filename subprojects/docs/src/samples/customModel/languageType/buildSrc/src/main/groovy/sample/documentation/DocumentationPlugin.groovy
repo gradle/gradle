@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 package sample.documentation
-
-import org.gradle.api.Action
 import org.gradle.api.Task
-import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.Copy
 import org.gradle.model.ModelMap
 import org.gradle.model.Path
 import org.gradle.model.RuleSource
@@ -32,25 +30,27 @@ class DocumentationPlugin extends RuleSource {
     void register(BinaryTypeBuilder<DocumentationBinary> builder) {
     }
 
+    @LanguageType
+    void registerText(LanguageTypeBuilder<TextSourceSet> builder) {
+        builder.languageName = "text"
+    }
+
     @ComponentBinaries
-    void createBinariesForBinaryComponent(ModelMap<DocumentationBinary> binaries, DocumentationComponent component) {
-        binaries.create("binary")
+    void configureExplodedDocs(ModelMap<DocumentationBinary> binaries, DocumentationComponent component, @Path("buildDir") File buildDir) {
+        binaries.create("exploded") { binary ->
+            outputDir = new File(buildDir, "${component.name}/${binary.name}")
+        }
     }
 
     @BinaryTasks
-    void createZip(ModelMap<Task> tasks, final DocumentationBinary binary, @Path("buildDir") final File buildDir) {
-        tasks.create(binary.tasks.taskName("zip"), Zip, new Action<Zip>() {
-            @Override
-            public void execute(Zip zipBinary) {
-                binary.inputs.withType(DocumentationSourceSet) { source ->
-                    zipBinary.into(source.name) {
-                        from(source.outputDir)
-                    }
-                    zipBinary.dependsOn source.taskName
-                }
-                zipBinary.setDestinationDir(new File(buildDir, binary.name))
-                zipBinary.setArchiveName(binary.name + ".zip")
+    void copyTextDocumentation(ModelMap<Task> tasks, final DocumentationBinary binary) {
+        binary.inputs.withType(TextSourceSet.class) { textSourceSet ->
+            def taskName = binary.tasks.taskName("compile", name)
+            def outputDir = new File(binary.outputDir, name)
+            tasks.create(taskName, Copy) {
+                from textSourceSet.source
+                destinationDir = outputDir
             }
-        });
+        }
     }
 }

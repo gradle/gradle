@@ -15,11 +15,10 @@
  */
 
 package sample.markdown
-
-import org.gradle.model.Defaults
+import org.gradle.api.Task
 import org.gradle.model.ModelMap
-import org.gradle.model.Path
 import org.gradle.model.RuleSource
+import org.gradle.platform.base.BinaryTasks
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
 import sample.documentation.DocumentationBinary
@@ -28,19 +27,18 @@ class MarkdownPlugin extends RuleSource {
     @LanguageType
     void declareMarkdownLanguage(LanguageTypeBuilder<MarkdownSourceSet> builder) {
         builder.setLanguageName("Markdown")
-        builder.defaultImplementation(DefaultMarkdownSourceSet)
     }
 
-    @Defaults
-    void createMarkdownHtmlCompilerTasks(ModelMap<DocumentationBinary> binaries, @Path("buildDir") File buildDir) {
-        binaries.beforeEach { binary ->
-            inputs.withType(MarkdownSourceSet.class) { markdownSourceSet ->
-                taskName = binary.tasks.taskName("compile", name)
-                outputDir = new File(buildDir, "${binary.name}/src/${name}")
-                binary.tasks.create(markdownSourceSet.taskName, MarkdownHtmlCompile) {
-                    source = markdownSourceSet.source
-                    destinationDir = markdownSourceSet.outputDir
-                }
+    @BinaryTasks
+    void processMarkdownDocumentation(ModelMap<Task> tasks, final DocumentationBinary binary) {
+        binary.inputs.withType(MarkdownSourceSet.class) { markdownSourceSet ->
+            def taskName = binary.tasks.taskName("compile", name)
+            def outputDir = new File(binary.outputDir, name)
+            tasks.create(taskName, MarkdownHtmlCompile) { compileTask ->
+                compileTask.source = markdownSourceSet.source
+                compileTask.destinationDir = outputDir
+                compileTask.smartQuotes = markdownSourceSet.smartQuotes
+                compileTask.generateIndex = markdownSourceSet.generateIndex
             }
         }
     }
