@@ -16,12 +16,11 @@
 
 package org.gradle.model
 
-import org.gradle.api.Task
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
-    def "rule source can be applied in scope of a collection builder element"() {
+    def "rule source can be applied to ModelMap element"() {
         when:
         buildScript '''
             class MessageTask extends DefaultTask {
