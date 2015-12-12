@@ -17,13 +17,9 @@
 package org.gradle.api.publish.ivy.internal.publication
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.DependencyArtifact
-import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.*
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
-import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.Usage
@@ -104,7 +100,7 @@ class DefaultIvyPublicationTest extends Specification {
         publication.configurations.size() == 2
         publication.configurations.runtime.extends == [] as Set
         publication.configurations."default".extends == ["runtime"] as Set
-        
+
         publication.dependencies.empty
     }
 
@@ -113,6 +109,7 @@ class DefaultIvyPublicationTest extends Specification {
         def publication = createPublication()
         def moduleDependency = Mock(ModuleDependency)
         def artifact = Mock(DependencyArtifact)
+        def exclude = Mock(ExcludeRule)
 
         when:
         moduleDependency.group >> "org"
@@ -120,7 +117,7 @@ class DefaultIvyPublicationTest extends Specification {
         moduleDependency.version >> "version"
         moduleDependency.configuration >> "dep-configuration"
         moduleDependency.artifacts >> [artifact]
-        moduleDependency.excludeRules >> [new DefaultExcludeRule("excludeGroup", "excludeModule")]
+        moduleDependency.excludeRules >> [exclude]
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -139,11 +136,7 @@ class DefaultIvyPublicationTest extends Specification {
             revision == "version"
             confMapping == "runtime->dep-configuration"
             artifacts == [artifact]
-            excludeRules.size == 1
-            with(excludeRules[0]) {
-                it.group == "excludeGroup"
-                it.module == "excludeModule"
-            }
+            excludeRules == [exclude]
         }
     }
 
@@ -151,10 +144,12 @@ class DefaultIvyPublicationTest extends Specification {
         given:
         def publication = createPublication()
         def projectDependency = Mock(ProjectDependency)
-        projectDependency.excludeRules >> [new DefaultExcludeRule("excludeGroup", "excludeModule")]
+        def exclude = Mock(ExcludeRule)
+
         and:
         projectDependencyResolver.resolve(projectDependency) >> DefaultModuleVersionIdentifier.newId("pub-org", "pub-module", "pub-revision")
         projectDependency.configuration >> "dep-configuration"
+        projectDependency.excludeRules >> [exclude]
 
         when:
         publication.from(componentWithDependency(projectDependency))
@@ -173,11 +168,7 @@ class DefaultIvyPublicationTest extends Specification {
             revision == "pub-revision"
             confMapping == "runtime->dep-configuration"
             artifacts == []
-            excludeRules.size == 1
-            with(excludeRules[0]) {
-                it.group == "excludeGroup"
-                it.module == "excludeModule"
-            }
+            excludeRules == [exclude]
         }
     }
 

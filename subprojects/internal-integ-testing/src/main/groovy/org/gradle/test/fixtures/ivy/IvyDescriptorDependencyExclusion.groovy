@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,7 @@
 
 package org.gradle.test.fixtures.ivy
 
-class IvyDescriptorDependency {
+class IvyDescriptorDependencyExclusion {
     String org
     String module
-    String revision
-    String conf
-    Collection<IvyDescriptorDependencyExclusion> exclusions = []
-
-    IvyDescriptorDependency hasConf(def conf) {
-        assert this.conf == conf
-        return this
-    }
 }
