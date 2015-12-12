@@ -40,7 +40,7 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
 
         ModelType<?> ruleType = ruleDefinition.getReferences().get(0).getType();
         if (!RULE_SOURCE_MODEL_TYPE.isAssignableFrom(ruleType)) {
-            problems.add(ruleDefinition, "The first parameter of a method " + getDescription() + " must be a subtype of RuleSource");
+            problems.add(ruleDefinition, "The first parameter of a method " + getDescription() + " must be a subtype of " + RuleSource.class.getName());
         }
         if (problems.hasProblems()) {
             return null;

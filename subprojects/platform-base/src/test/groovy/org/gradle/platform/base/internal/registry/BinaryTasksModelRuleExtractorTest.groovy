@@ -15,6 +15,7 @@
  */
 
 package org.gradle.platform.base.internal.registry
+
 import org.gradle.api.Task
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
@@ -23,7 +24,6 @@ import org.gradle.model.internal.core.*
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryTasks
-import org.gradle.platform.base.InvalidModelException
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -42,24 +42,39 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
     @Unroll
     def "decent error message for #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
-        def ruleDescription = getStringDescription(ruleMethod)
+        def ruleDescription = getStringDescription(ruleMethod.method)
 
         when:
         extract(ruleMethod)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
-        ex.message == "${ruleDescription} is not a valid BinaryTask model rule method."
-        ex.cause instanceof InvalidModelException
-        ex.cause.message == expectedMessage
+        ex.message == """Type ${ruleClass.name} is not a valid rule source:
+- Method ${ruleDescription} is not a valid rule method: ${expectedMessage}"""
 
         where:
-        methodName          | expectedMessage                                                                                                             | descr
-        "returnValue"       | "Method annotated with @BinaryTasks must not have a return value."                                                          | "non void method"
-        "noParams"          | "Method annotated with @BinaryTasks must have a parameter of type '${ModelMap.name}'."                                      | "no ModelMap subject"
-        "wrongSubject"      | "Method annotated with @BinaryTasks first parameter must be of type '${ModelMap.name}'."                                    | "wrong rule subject type"
-        "noBinaryParameter" | "Method annotated with @BinaryTasks must have one parameter extending BinarySpec. Found no parameter extending BinarySpec." | "no component spec parameter"
-        "rawModelMap"       | "Parameter of type '${ModelMap.simpleName}' must declare a type parameter extending 'Task'."                                | "non typed ModelMap parameter"
+        methodName                 | expectedMessage                                                                                                                     | descr
+        "returnValue"              | "A method annotated with @BinaryTasks must have void return type."                                                                  | "non void method"
+        "noParams"                 | "A method annotated with @BinaryTasks must have at least two parameters."                                                           | "no ModelMap subject"
+        "wrongSubject"             | "The first parameter of a method annotated with @BinaryTasks must be of type org.gradle.model.ModelMap."                            | "wrong rule subject type"
+        "noBinaryParameter"        | "A method annotated with @BinaryTasks must have one parameter extending BinarySpec. Found no parameter extending BinarySpec."       | "no binary spec parameter"
+        "multipleBinaryParameters" | "A method annotated with @BinaryTasks must have one parameter extending BinarySpec. Found multiple parameter extending BinarySpec." | "multiple binary spec parameters"
+        "rawModelMap"              | "Parameter of type ${ModelMap.simpleName} must declare a type parameter extending Task."                                            | "non typed ModelMap parameter"
+    }
+
+    def "reports multiple problems with rule definition"() {
+        def ruleMethod = ruleDefinitionForMethod("multipleProblems")
+        def ruleDescription = getStringDescription(ruleMethod.method)
+
+        when:
+        extract(ruleMethod)
+
+        then:
+        def ex = thrown(InvalidModelRuleDeclarationException)
+        ex.message == """Type ${ruleClass.name} is not a valid rule source:
+- Method ${ruleDescription} is not a valid rule method: A method annotated with @BinaryTasks must have void return type.
+- Method ${ruleDescription} is not a valid rule method: The first parameter of a method annotated with @BinaryTasks must be of type org.gradle.model.ModelMap.
+- Method ${ruleDescription} is not a valid rule method: A method annotated with @BinaryTasks must have one parameter extending BinarySpec. Found no parameter extending BinarySpec."""
     }
 
     @Unroll
@@ -97,7 +112,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         }
 
         @BinaryTasks
-        static void wrongSubject(binary) {
+        static void wrongSubject(BinarySpec binary, String input) {
         }
 
         @BinaryTasks
@@ -106,6 +121,14 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
 
         @BinaryTasks
         static void noBinaryParameter(ModelMap<Task> builder) {
+        }
+
+        @BinaryTasks
+        static void multipleBinaryParameters(ModelMap<Task> builder, BinarySpec b1, BinarySpec b2) {
+        }
+
+        @BinaryTasks
+        private <T> T multipleProblems(String p1, String p2) {
         }
 
         @BinaryTasks

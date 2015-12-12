@@ -41,13 +41,16 @@ import static org.gradle.model.internal.core.NodePredicate.allLinks;
 public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<BinaryTasks> {
     @Override
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
-        return createRegistration(ruleDefinition);
+        return createRegistration(ruleDefinition, problems);
     }
 
-    private <R, S extends BinarySpec> ExtractedModelRule createRegistration(MethodRuleDefinition<R, ?> ruleDefinition) {
+    private <R, S extends BinarySpec> ExtractedModelRule createRegistration(MethodRuleDefinition<R, ?> ruleDefinition, ValidationProblemCollector problems) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
-            verifyMethodSignature(dataCollector, ruleDefinition);
+            verifyMethodSignature(dataCollector, ruleDefinition, problems);
+            if (problems.hasProblems()) {
+                return null;
+            }
 
             final Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
             final BinaryTaskRule<R, S> binaryTaskRule = new BinaryTaskRule<R, S>(binaryType, ruleDefinition);
@@ -70,10 +73,10 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         }
     }
 
-    private void verifyMethodSignature(RuleMethodDataCollector taskDataCollector, MethodRuleDefinition<?, ?> ruleDefinition) {
-        assertIsVoidMethod(ruleDefinition);
-        visitSubject(taskDataCollector, ruleDefinition, Task.class);
-        visitDependency(taskDataCollector, ruleDefinition, ModelType.of(BinarySpec.class));
+    private void verifyMethodSignature(RuleMethodDataCollector taskDataCollector, MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
+        validateIsVoidMethod(ruleDefinition, problems);
+        visitSubject(taskDataCollector, ruleDefinition, Task.class, problems);
+        visitDependency(taskDataCollector, ruleDefinition, ModelType.of(BinarySpec.class), problems);
     }
 
     //TODO extract common general method reusable by all AnnotationRuleDefinitionHandler

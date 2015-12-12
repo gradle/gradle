@@ -33,13 +33,16 @@ import static org.gradle.model.internal.core.NodePredicate.allLinks;
 public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentBinaries> {
     @Override
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
-        return createRegistration(ruleDefinition);
+        return createRegistration(ruleDefinition, problems);
     }
 
-    private <R, S extends BinarySpec, C extends ComponentSpec> ExtractedModelRule createRegistration(MethodRuleDefinition<R, ?> ruleDefinition) {
+    private <R, S extends BinarySpec, C extends ComponentSpec> ExtractedModelRule createRegistration(MethodRuleDefinition<R, ?> ruleDefinition, ValidationProblemCollector problems) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
-            visitAndVerifyMethodSignature(dataCollector, ruleDefinition);
+            visitAndVerifyMethodSignature(dataCollector, ruleDefinition, problems);
+            if (problems.hasProblems()) {
+                return null;
+            }
 
             Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
             Class<C> componentType = dataCollector.getParameterType(ComponentSpec.class);
@@ -52,10 +55,10 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         }
     }
 
-    private void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition) {
-        assertIsVoidMethod(ruleDefinition);
-        visitSubject(dataCollector, ruleDefinition, BinarySpec.class);
-        visitDependency(dataCollector, ruleDefinition, ModelType.of(ComponentSpec.class));
+    private void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
+        validateIsVoidMethod(ruleDefinition, problems);
+        visitSubject(dataCollector, ruleDefinition, BinarySpec.class, problems);
+        visitDependency(dataCollector, ruleDefinition, ModelType.of(ComponentSpec.class), problems);
     }
 
     private class ComponentBinariesRule<R, S extends BinarySpec, C extends ComponentSpec> extends ModelMapBasedRule<R, S, ComponentSpec, ComponentSpecContainer> {

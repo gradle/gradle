@@ -118,6 +118,6 @@ apply plugin: MyPlugin
         expect:
         fails 'model'
         failure.assertHasCause("""Type MyPlugin is not a valid rule source:
-- Method rules(${LanguageSourceSet.name}, ${String.name}) is not a valid rule method: The first parameter of a method annotated with @Rules must be a subtype of RuleSource""")
+- Method rules(${LanguageSourceSet.name}, ${String.name}) is not a valid rule method: The first parameter of a method annotated with @Rules must be a subtype of ${RuleSource.name}""")
     }
 }
