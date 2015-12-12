@@ -20,11 +20,11 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
-import org.gradle.internal.Cast;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.type.ModelTypes;
 
 import java.util.List;
 
@@ -50,11 +50,11 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
 
     private ModelTypeInitializationException canNotConstructTypeException(NodeInitializerContext<?> context) {
         Iterable<ModelType<?>> scalars = Iterables.concat(ScalarTypes.TYPES, ScalarTypes.NON_FINAL_TYPES);
-        ImmutableSortedSet.Builder<ModelType<Object>> constructibleTypes = ImmutableSortedSet.orderedBy(ModelType.displayOrder());
+        ImmutableSortedSet.Builder<ModelType<?>> constructibleTypes = ImmutableSortedSet.orderedBy(ModelTypes.displayOrder());
         for (NodeInitializerExtractionStrategy extractor : additionalStrategies) {
             for (ModelType<?> constructibleType : extractor.supportedTypes()) {
                 if (context.getBaseType().isAssignableFrom(constructibleType)) {
-                    constructibleTypes.add(Cast.<ModelType<Object>>uncheckedCast(constructibleType));
+                    constructibleTypes.add(constructibleType);
                 }
             }
         }

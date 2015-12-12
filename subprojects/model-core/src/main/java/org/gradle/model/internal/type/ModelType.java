@@ -17,7 +17,6 @@
 package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Ordering;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
 import net.jcip.annotations.ThreadSafe;
@@ -230,15 +229,6 @@ public abstract class ModelType<T> {
      */
     public String getDisplayName() {
         return wrapper.getRepresentation(false);
-    }
-
-    public static <T> Ordering<ModelType<T>> displayOrder() {
-        return new Ordering<ModelType<T>>() {
-            @Override
-            public int compare(ModelType<T> left, ModelType<T> right) {
-                return left.getDisplayName().compareTo(right.getDisplayName());
-            }
-        };
     }
 
     /**

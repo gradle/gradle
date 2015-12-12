@@ -21,6 +21,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
@@ -34,7 +35,6 @@ import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.*;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -84,11 +84,7 @@ public class ModelRuleExtractor {
         final Method[] methods = source.getDeclaredMethods();
 
         // sort for determinism
-        Arrays.sort(methods, new Comparator<Method>() {
-            public int compare(Method o1, Method o2) {
-                return o1.toString().compareTo(o2.toString());
-            }
-        });
+        Arrays.sort(methods, Ordering.usingToString());
 
         ImmutableList.Builder<ExtractedModelRule> registrations = ImmutableList.builder();
 

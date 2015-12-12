@@ -514,7 +514,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         private final ModelActionRole role;
         private final DeferredModelAction action;
 
-        protected DeferredActionWrapper(ModelReference<T> subject, ModelActionRole role, DeferredModelAction action) {
+        public DeferredActionWrapper(ModelReference<T> subject, ModelActionRole role, DeferredModelAction action) {
             super(subject, action.getDescriptor(), Collections.<ModelReference<?>>emptyList());
             this.role = role;
             this.action = action;

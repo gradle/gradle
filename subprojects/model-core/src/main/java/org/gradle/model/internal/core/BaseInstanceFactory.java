@@ -17,16 +17,13 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import org.gradle.internal.Cast;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.type.ModelTypes;
 
 import java.lang.reflect.Modifier;
 import java.util.Collections;
@@ -106,7 +103,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
     @Override
     public Set<ModelType<? extends T>> getSupportedTypes() {
-        return ImmutableSet.copyOf(registrations.keySet());
+        return ImmutableSortedSet.copyOf(ModelTypes.<T>displayOrder(), registrations.keySet());
     }
 
     private String getConstructibleTypeNames() {
@@ -114,21 +111,11 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
         if (constructibleTypes.isEmpty()) {
             return "(None)";
         }
-        List<String> names = Lists.newArrayList();
-        for (ModelType<?> type : constructibleTypes) {
-            names.add(type.toString());
-        }
-        Collections.sort(names);
-        return Joiner.on(", ").join(names);
+        return Joiner.on(", ").join(constructibleTypes);
     }
 
     private Set<ModelType<? extends T>> getConstructibleTypes() {
-        return Sets.filter(getSupportedTypes(), new Predicate<ModelType<? extends T>>() {
-            @Override
-            public boolean apply(ModelType<? extends T> registeredType) {
-                return !baseInterface.equals(registeredType);
-            }
-        });
+        return Sets.difference(getSupportedTypes(), Collections.singleton(baseInterface));
     }
 
     private <S extends T> TypeRegistration<S> getRegistration(ModelType<S> type) {

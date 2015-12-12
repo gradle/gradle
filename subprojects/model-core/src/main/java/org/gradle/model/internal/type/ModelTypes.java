@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.type;
 
+import com.google.common.collect.Ordering;
 import org.gradle.model.ModelMap;
 import org.gradle.model.ModelSet;
 import org.gradle.model.collection.ManagedSet;
@@ -67,5 +68,14 @@ public abstract class ModelTypes {
             new ModelType.Parameter<I>() {
             }, type
         ).build();
+    }
+
+    public static <T> Ordering<ModelType<? extends T>> displayOrder() {
+        return new Ordering<ModelType<? extends T>>() {
+            @Override
+            public int compare(ModelType<? extends T> left, ModelType<? extends T> right) {
+                return left.getDisplayName().compareTo(right.getDisplayName());
+            }
+        };
     }
 }
