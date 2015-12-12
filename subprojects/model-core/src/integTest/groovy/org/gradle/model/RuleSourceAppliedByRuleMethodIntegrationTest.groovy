@@ -85,7 +85,64 @@ model {
         output.contains("p2 = p2")
     }
 
-    def "reports failure in @Rules method"() {
+    def "@Rule method can apply rules to target of current rule source"() {
+        buildFile << '''
+@Managed
+interface Thing {
+    String getName()
+    void setName(String name)
+}
+
+class MyPlugin extends RuleSource {
+    @Model
+    void p1(Thing t) {
+    }
+
+    @Rules
+    void rules(CalculateName rules, Thing t) {
+    }
+}
+
+class CalculateName extends RuleSource {
+    @Rules
+    void rules(SpecializeName rules, Thing t) {
+    }
+}
+
+class SpecializeName extends RuleSource {
+    @Defaults
+    void defaultName(Thing t) {
+        t.name = 'default'
+    }
+
+    @Finalize
+    void finalizeName(Thing t) {
+        assert t.name == 'default'
+        t.name = 'finalized'
+    }
+}
+
+apply plugin: MyPlugin
+
+model {
+    tasks {
+        show(Task) {
+            doLast {
+                println "p1 = " + $.p1.name
+            }
+        }
+    }
+}
+'''
+
+        when:
+        run 'show'
+
+        then:
+        output.contains("p1 = finalized")
+    }
+
+    def "reports exception thrown by @Rules method"() {
         buildFile << '''
 class MyPlugin extends RuleSource {
     @Model
@@ -103,6 +160,59 @@ apply plugin: MyPlugin
         fails("model")
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
         failure.assertHasCause("broken")
+    }
+
+    def "reports failure thrown by rule method on applied RuleSource"() {
+        buildFile << '''
+@Managed
+interface Thing {
+    String getName()
+    void setName(String name)
+}
+
+class MyPlugin extends RuleSource {
+    @Model
+    void p1(Thing t) {
+    }
+
+    @Rules
+    void rules(CalculateName rules, Thing t) {
+    }
+}
+
+class CalculateName extends RuleSource {
+    @Defaults
+    void defaultName(Thing t) {
+        throw new RuntimeException("broken")
+    }
+}
+
+apply plugin: MyPlugin
+'''
+
+        expect:
+        fails 'model'
+        failure.assertHasCause("Exception thrown while executing model rule: CalculateName#defaultName")
+        failure.assertHasCause("broken")
+    }
+
+    def "@Rules method is not executed when target is not required"() {
+        buildFile << '''
+class MyPlugin extends RuleSource {
+    @Model
+    void strings(List<String> s) {}
+
+    @Rules
+    void rules(RuleSource rules, List<String> s) {
+        throw new RuntimeException("broken")
+    }
+}
+
+apply plugin: MyPlugin
+'''
+        expect:
+        succeeds("tasks")
+        fails("model")
     }
 
     def "first parameter of @Rules method must be assignable to RuleSource"() {
