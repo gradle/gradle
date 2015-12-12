@@ -70,6 +70,13 @@ public interface MutableModelNode extends ModelNode {
      */
     void applyToSelf(ModelActionRole type, ModelAction<?> action);
 
+    /**
+     * Applies an action to all linked nodes of this node that satisfy the given predicate.
+     *
+     * The predicate and the type returned by {@link ModelAction#getSubject()} are both used to filter the nodes,
+     * such that the action is applied only to those linked nodes with a view of the requested type available that
+     * also satisfy the predicate.
+     */
     void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction<?> action);
 
     /**
@@ -89,6 +96,18 @@ public interface MutableModelNode extends ModelNode {
      */
     void applyToSelf(Class<? extends RuleSource> rules);
 
+    /**
+     * Applies an action that defines further rules in the given role to the child of this node that is addressed by the subject of the action.
+     */
+    void defineRulesForLink(ModelActionRole role, ModelAction<?> action);
+
+    /**
+     * Applies a rule source to all linked nodes of this node that satisfy the given predicate.
+     *
+     * The predicate and the type returned by {@link ModelAction#getSubject()} are both used to filter the nodes,
+     * such that the action is applied only to those linked nodes with a view of the requested type available that
+     * also satisfy the predicate.
+     */
     void applyTo(NodePredicate predicate, Class<? extends RuleSource> rules);
 
     /**

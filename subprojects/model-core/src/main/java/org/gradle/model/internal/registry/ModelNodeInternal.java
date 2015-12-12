@@ -208,6 +208,11 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     @Override
+    public void defineRulesForLink(ModelActionRole role, ModelAction<?> action) {
+        applyToLink(role, action);
+    }
+
+    @Override
     public void defineRulesFor(NodePredicate predicate, ModelActionRole role, ModelAction<?> action) {
         applyTo(predicate, role, action);
     }

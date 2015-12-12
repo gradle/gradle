@@ -366,7 +366,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append("named(%s, %s)", name, ruleSource.getName());
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.applyToLink(ModelActionRole.Defaults, new FilteringActionWrapper<T>(elementFilter, DirectNodeNoInputsModelAction.of(subject, descriptor, new ApplyRuleSource(ruleSource))));
+        modelNode.defineRulesForLink(ModelActionRole.Defaults, new FilteringActionWrapper<T>(elementFilter, DirectNodeNoInputsModelAction.of(subject, descriptor, new ApplyRuleSource(ruleSource))));
     }
 
     // Called from transformed DSL rules
