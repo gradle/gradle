@@ -18,7 +18,7 @@ package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
+class RuleSourceAppliedAsProjectPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin class can expose model rules"() {
         when:
