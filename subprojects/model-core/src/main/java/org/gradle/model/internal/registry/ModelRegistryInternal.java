@@ -20,8 +20,8 @@ import com.google.common.collect.Multimap;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 
-public interface ModelRegistryInternal extends ModelRegistry {
-    <T extends ModelNodeInternal> T registerNode(T node, Multimap<ModelActionRole, ? extends ModelAction<?>> actions);
+interface ModelRegistryInternal extends ModelRegistry {
+    void registerNode(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction<?>> actions);
 
     <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator, ModelPath scope);
 

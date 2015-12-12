@@ -65,15 +65,13 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
-    public <T extends ModelNodeInternal> T registerNode(T node, Multimap<ModelActionRole, ? extends ModelAction<?>> actions) {
+    public void registerNode(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction<?>> actions) {
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
         // ModelPath.validateName(name);
 
         addRuleBindings(node, actions);
         modelGraph.add(node);
         ruleBindings.nodeCreated(node);
-
-        return node;
     }
 
     private void addRuleBindings(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction<?>> actions) {
