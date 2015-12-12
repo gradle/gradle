@@ -123,7 +123,7 @@ And combining:
 - Add `@Rules` annotation and allow to be attached to method.
 - A `@Rules` method can accept inputs but not do anything with them at this stage.
 - A `@Rules` method must accept two parameters. The first is the `RuleSource` to configure, the second is the target for the `RuleSource`.
-- The method is invoked and the rules applied when subject is transitioned to `initialized`.
+- The method is invoked and the rules applied when target is transitioned to `initialized`.
 - Can be applied to:
     - Top-level `RuleSource`
     - Rules source applied via `ModelMap.withType()`
@@ -137,12 +137,19 @@ And combining:
 
 - Plugin can use a `@Rules` method to define a `RuleSource`, and the rules on the `RuleSource` are applied  
 - Plugin can specify a target for the `RuleSource` and this is used to resolve by type and by path references
+- `RuleSource` applied using `@Rules` can define all kinds of rules, including `@Defaults` rules.
 - Error cases as above 
 - Useful descriptor for rules in `RuleSource`.
 
+#### Backlog
+
+TBD - Rule precedence
+TBD - Support type registration rules?
+TBD - Support `@ComponentBinaries` and `@BinaryTasks` rules?
+
 ### Rule method can bind inputs of rules of a `RuleSource` implementation
 
-- Allow `@Input` properties to be declared on `RuleSource` subtypes.
+- Allow `@RuleInput` properties to be declared on `RuleSource` subtypes.
 - Getter and setter must be abstract.
 - Generate and cache an implementation class.
 - Allow a `@Rules` method to set the values of the `RuleSource` properties:
@@ -154,13 +161,17 @@ And combining:
     - Can read property during `@Rule` method invocation
 - Userguide and sample
 - Error when `RuleSource` used with `null` value for input property.
-- Error when setting `@Input` property to a value that not a model element.
-- Error when reading or mutating `@Input` property outside `@Rule` method.
-- Error when mutating `@Input` property in own rule execution.
+- Error when setting `@RuleInput` property to a value that not a model element.
+- Error when reading or mutating `@RuleInput` property outside `@Rule` method.
+- Error when mutating `@RuleInput` property in own rule execution.
 
 #### Test cases
 
 - Error cases as above.
+
+#### Backlog
+
+TBD - Add an API to allow `RuleSource` to be applied, and inputs build, for `ModelMap` and `ModelSet` elements, plus for a `@Managed` type.
 
 ### Rule method can bind subject of rules of a `RuleSource` implementation
 
@@ -170,5 +181,25 @@ And combining:
 
 ### `RuleSource` methods can be applied to all subjects of matching type
 
-- Add `@Each` annotation. When applied to a rule method, the rule method is applied to each
-- Alternatively/additionally, allow this to be added to a `RuleSource`
+Candidates:
+
+- Add `@Each` annotation. When applied to a rule method, the rule method is applied to each matching subject.
+- Change all by-type rules to apply to all matching subjects (which would actually be the case for `@Path` as well). Add a `@Single` annotation to declare that exactly one is expected.
+
+### Rule should not be applied to a given binary more than once
+
+- Change `ModelMap.put()` to add a reference to an element.
+- Change rule application to ignore references.
+- Change model report to format references as a link to the target element.
+
+### Rule should not be applied to a given task more than once
+
+- Apply the above to `tasks`.
+
+### Rule should not be applied to a given source set more than once
+
+- Apply the above to `sources`.
+
+### Core plugins apply rules using `RuleSource` instead of iteration
+
+Use these features in the core plugins.
