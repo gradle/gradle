@@ -16,6 +16,7 @@
 
 package org.gradle.model
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.base.LanguageSourceSet
 
@@ -142,6 +143,52 @@ model {
         output.contains("p1 = finalized")
     }
 
+    @NotYetImplemented
+    def "@Rule method can apply abstract RuleSource"() {
+        buildFile << '''
+@Managed
+interface Thing {
+    String getName()
+    void setName(String name)
+}
+
+class MyPlugin extends RuleSource {
+    @Model
+    void p1(Thing t) {
+    }
+
+    @Rules
+    void rules(CalculateName rules, Thing t) {
+    }
+}
+
+abstract class CalculateName extends RuleSource {
+    @Defaults
+    void defaultName(Thing t) {
+        t.name = 'default'
+    }
+}
+
+apply plugin: MyPlugin
+
+model {
+    tasks {
+        show(Task) {
+            doLast {
+                println "p1 = " + $.p1.name
+            }
+        }
+    }
+}
+'''
+
+        when:
+        run 'show'
+
+        then:
+        output.contains("p1 = default")
+    }
+
     def "reports exception thrown by @Rules method"() {
         buildFile << '''
 class MyPlugin extends RuleSource {
@@ -162,7 +209,7 @@ apply plugin: MyPlugin
         failure.assertHasCause("broken")
     }
 
-    def "reports failure thrown by rule method on applied RuleSource"() {
+    def "reports exception thrown by rule method on applied RuleSource"() {
         buildFile << '''
 @Managed
 interface Thing {
@@ -230,4 +277,65 @@ apply plugin: MyPlugin
         failure.assertHasCause("""Type MyPlugin is not a valid rule source:
 - Method rules(${LanguageSourceSet.name}, ${String.name}) is not a valid rule method: The first parameter of a method annotated with @Rules must be a subtype of ${RuleSource.name}""")
     }
+
+    def "reports declaration problem with applied RuleSource"() {
+        buildFile << '''
+class MyPlugin extends RuleSource {
+    @Model
+    void strings(List<String> s) {}
+
+    @Rules
+    void rules(BrokenRuleSource rules, List<String> s) {
+    }
+}
+
+class BrokenRuleSource extends RuleSource {
+    @Validate
+    private void broken() { }
+}
+
+apply plugin: MyPlugin
+'''
+        expect:
+        fails("model")
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
+        failure.assertHasCause('''Type BrokenRuleSource is not a valid rule source:
+- Method broken() is not a valid rule method: A rule method cannot be private
+- Method broken() is not a valid rule method: A method annotated with @Validate must have at least one parameter''')
+    }
+
+    def "reports unbound parameters for rules on applied RuleSource"() {
+        buildScript '''
+class UnboundRuleSource extends RuleSource {
+    @Mutate
+    void unboundRule(String string, Integer integer, @Path("some.inner.path") String withPath) {
+    }
+}
+
+class MyPlugin extends RuleSource {
+    @Model
+    void strings(List<String> s) {}
+
+    @Rules
+    void rules(UnboundRuleSource rules, List<String> s) {
+    }
+}
+
+apply type: MyPlugin
+        '''
+
+        expect:
+        fails "model"
+        failure.assertHasCause('''The following model rules could not be applied due to unbound inputs and/or subjects:
+
+  UnboundRuleSource#unboundRule
+    subject:
+      - <no path> String (parameter 1) [*]
+          scope: strings
+    inputs:
+      - <no path> Integer (parameter 2) [*]
+      - strings.some.inner.path String (parameter 3) [*]
+''')
+    }
+
 }
