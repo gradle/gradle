@@ -19,17 +19,17 @@ package org.gradle.platform.base.internal.registry
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.ExtractedModelRule
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.ValidationProblemCollector
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
 import java.lang.reflect.Method
 
-public abstract class AbstractAnnotationModelRuleExtractorTest extends Specification{
+public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRegistrySpec {
     def ruleDefinition = Mock(MethodRuleDefinition)
 
     protected abstract AbstractAnnotationDrivenComponentModelRuleExtractor getRuleHandler();

@@ -15,10 +15,11 @@
  */
 
 package org.gradle.model.internal.inspect
+
 import org.gradle.model.*
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.manage.schema.extract.ModelStoreTestUtils
 import org.gradle.model.internal.registry.DefaultModelRegistry
@@ -26,14 +27,13 @@ import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TextUtil
-import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.beans.Introspector
 
-class ModelRuleExtractorTest extends Specification {
-    ModelRegistry registry = new DefaultModelRegistry(null)
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
+class ModelRuleExtractorTest extends ProjectRegistrySpec {
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(schemaStore))
+    ModelRegistry registry = new DefaultModelRegistry(extractor)
 
     static class ModelThing {
         final String name

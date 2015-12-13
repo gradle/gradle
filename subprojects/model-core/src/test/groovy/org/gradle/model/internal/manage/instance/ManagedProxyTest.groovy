@@ -17,15 +17,11 @@
 package org.gradle.model.internal.manage.instance
 
 import org.gradle.model.Managed
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.schema.StructSchema
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Specification
 
-class ManagedProxyTest extends Specification {
-
-    def schemaStore = DefaultModelSchemaStore.instance
-    def factory = ManagedProxyFactory.INSTANCE
+class ManagedProxyTest extends ProjectRegistrySpec {
 
     @Managed
     static private interface ManagedType {
@@ -35,7 +31,7 @@ class ManagedProxyTest extends Specification {
     def "a useful type name is used in stacktrace for a generated managed model type"() {
         def state = [get: { throw new RuntimeException("from state") }] as ModelElementState
         given:
-        def proxy = factory.createProxy(state, (StructSchema) schemaStore.getSchema(ModelType.of(ManagedType)), null, null)
+        def proxy = proxyFactory.createProxy(state, (StructSchema) schemaStore.getSchema(ModelType.of(ManagedType)), null, null)
 
         when:
         proxy.self

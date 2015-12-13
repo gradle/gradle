@@ -19,7 +19,6 @@ package org.gradle.language.base.internal
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.*
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.*
@@ -33,7 +32,7 @@ import java.lang.annotation.Annotation
 
 class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
     final static ModelType<ComponentSpecFactory> FACTORY_REGISTRY_TYPE = ModelType.of(ComponentSpecFactory)
-    ComponentTypeModelRuleExtractor ruleHandler = new ComponentTypeModelRuleExtractor(DefaultModelSchemaStore.getInstance())
+    ComponentTypeModelRuleExtractor ruleHandler = new ComponentTypeModelRuleExtractor(schemaStore)
 
     @Override
     Class<? extends Annotation> getAnnotation() { return ComponentType }

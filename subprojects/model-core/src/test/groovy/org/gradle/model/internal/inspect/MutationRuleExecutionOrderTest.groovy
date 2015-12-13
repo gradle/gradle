@@ -21,11 +21,10 @@ import org.gradle.model.Mutate
 import org.gradle.model.Path
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
-import spock.lang.Specification
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 
-class MutationRuleExecutionOrderTest extends Specification {
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
+class MutationRuleExecutionOrderTest extends ProjectRegistrySpec {
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(schemaStore))
     def modelRegistry = new ModelRegistryHelper(extractor)
 
     static class MutationRecorder {

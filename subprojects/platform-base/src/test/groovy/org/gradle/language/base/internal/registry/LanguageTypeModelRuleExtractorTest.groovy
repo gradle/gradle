@@ -25,7 +25,6 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.*
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
@@ -40,7 +39,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
     Class<?> ruleClass = Rules
 
-    LanguageTypeModelRuleExtractor ruleHandler = new LanguageTypeModelRuleExtractor(DefaultModelSchemaStore.getInstance())
+    LanguageTypeModelRuleExtractor ruleHandler = new LanguageTypeModelRuleExtractor(schemaStore)
 
     @Override
     Class<? extends Annotation> getAnnotation() {

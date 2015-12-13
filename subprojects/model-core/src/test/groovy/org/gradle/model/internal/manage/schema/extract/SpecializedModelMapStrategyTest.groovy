@@ -19,12 +19,10 @@ package org.gradle.model.internal.manage.schema.extract
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Shared
 import spock.lang.Specification
 
 class SpecializedModelMapStrategyTest extends Specification {
-    @Shared
-    def store = DefaultModelSchemaStore.getInstance()
+    def store = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor())
 
     def "assembles schema for model map subtype"() {
         expect:

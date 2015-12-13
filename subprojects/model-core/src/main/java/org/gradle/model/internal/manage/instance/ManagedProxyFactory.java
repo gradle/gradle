@@ -31,10 +31,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 public class ManagedProxyFactory {
-
-    // Used for testing
-    public static final ManagedProxyFactory INSTANCE = new ManagedProxyFactory();
-
     private final ManagedProxyClassGenerator proxyClassGenerator = new ManagedProxyClassGenerator();
     private final LoadingCache<CacheKey<?>, Class<?>> generatedImplementationTypes = CacheBuilder.newBuilder()
         .weakValues()

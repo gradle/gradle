@@ -17,28 +17,30 @@
 package org.gradle.model.internal.fixture
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.typeconversion.TypeConverter
+import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.NodeInitializerRegistry
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
 
 @SuppressWarnings("GrMethodMayBeStatic")
 class ProjectRegistrySpec extends Specification {
-    ModelRegistry registry
-    ModelSchemaStore schemaStore
-    ManagedProxyFactory proxyFactory
-    NodeInitializerRegistry nodeInitializerRegistry
+    public static final DefaultModelSchemaStore SCHEMA_STORE = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor())
+    public static final ManagedProxyFactory MANAGED_PROXY_FACTORY = new ManagedProxyFactory()
+    public static final DefaultNodeInitializerRegistry NODE_INITIALIZER_REGISTRY = new DefaultNodeInitializerRegistry(SCHEMA_STORE)
+
+    ModelRegistry registry = createModelRegistry()
+    ModelSchemaStore schemaStore = SCHEMA_STORE
+    ManagedProxyFactory proxyFactory = MANAGED_PROXY_FACTORY
+    NodeInitializerRegistry nodeInitializerRegistry = createNodeInitializerRegistry()
 
     def setup() {
-        registry = createModelRegistry()
-        schemaStore = createModelSchemaStore()
-        proxyFactory = createManagedProxyFactory()
-        nodeInitializerRegistry = createNodeInitializerRegistry()
-        registerService "schemaStore", ModelSchemaStore, DefaultModelSchemaStore.instance
+        registerService "schemaStore", ModelSchemaStore, schemaStore
         registerService "proxyFactory", ManagedProxyFactory, proxyFactory
         registerService "serviceRegistry", ServiceRegistry, Mock(ServiceRegistry)
         registerService "typeConverter", TypeConverter, Mock(TypeConverter)
@@ -49,16 +51,8 @@ class ProjectRegistrySpec extends Specification {
         return new ModelRegistryHelper()
     }
 
-    protected ModelSchemaStore createModelSchemaStore() {
-        return DefaultModelSchemaStore.instance
-    }
-
-    protected ManagedProxyFactory createManagedProxyFactory() {
-        return ManagedProxyFactory.INSTANCE
-    }
-
     protected NodeInitializerRegistry createNodeInitializerRegistry() {
-        return TestNodeInitializerRegistry.INSTANCE
+        return NODE_INITIALIZER_REGISTRY
     }
 
     protected <T> void registerService(String path, Class<T> type, T instance) {

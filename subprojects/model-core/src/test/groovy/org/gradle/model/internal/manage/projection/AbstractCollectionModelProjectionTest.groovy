@@ -15,25 +15,23 @@
  */
 
 package org.gradle.model.internal.manage.projection
+
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.ModelViewClosedException
-import org.gradle.model.internal.core.*
-import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelRegistrations
+import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.schema.ManagedImplSchema
 import org.gradle.model.internal.manage.schema.StructSchema
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Specification
 
 import static org.gradle.model.internal.core.NodeInitializerContext.forType
 
-abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>> extends Specification {
+abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>> extends ProjectRegistrySpec {
 
-    def schemaStore = DefaultModelSchemaStore.instance
-    def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
     def collectionPath = ModelPath.path("collection")
-    def registry = new ModelRegistryHelper()
     def internalType
     def internalTypeSchema
     def collectionProperty

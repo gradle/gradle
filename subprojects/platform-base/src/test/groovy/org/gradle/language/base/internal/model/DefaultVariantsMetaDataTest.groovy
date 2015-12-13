@@ -17,16 +17,16 @@
 package org.gradle.language.base.internal.model
 
 import org.gradle.api.Named
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
 import org.gradle.platform.base.Variant
 import org.gradle.platform.base.internal.BinarySpecInternal
 import org.gradle.platform.base.internal.VariantAspectExtractionStrategy
 import spock.lang.Specification
 
 class DefaultVariantsMetaDataTest extends Specification {
-    def schemaStore = new DefaultModelSchemaStore(new ModelSchemaExtractor([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
+    def schemaStore = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
 
     def "should extract variants from a binary spec"() {
         given:

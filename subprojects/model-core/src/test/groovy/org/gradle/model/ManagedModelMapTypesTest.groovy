@@ -15,16 +15,14 @@
  */
 
 package org.gradle.model
+
 import org.gradle.api.Named
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
-import spock.lang.Specification
 
-class ManagedModelMapTypesTest extends Specification {
-
-    def schemaStore = DefaultModelSchemaStore.instance
+class ManagedModelMapTypesTest extends ProjectRegistrySpec {
 
     @Managed
     abstract static class ManagedThing {}

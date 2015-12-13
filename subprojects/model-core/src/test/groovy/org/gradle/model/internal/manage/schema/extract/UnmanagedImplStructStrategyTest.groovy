@@ -23,12 +23,10 @@ import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
-import spock.lang.Shared
 import spock.lang.Specification
 
 class UnmanagedImplStructStrategyTest extends Specification {
-    @Shared
-    def store = DefaultModelSchemaStore.getInstance()
+    def store = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor())
 
     def "assembles schema for unmanaged type"() {
         expect:

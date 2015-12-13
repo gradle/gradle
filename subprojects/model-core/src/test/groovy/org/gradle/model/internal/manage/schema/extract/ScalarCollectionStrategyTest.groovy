@@ -22,12 +22,10 @@ import org.gradle.model.internal.manage.schema.ScalarCollectionSchema
 import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
-import spock.lang.Shared
 import spock.lang.Specification
 
 class ScalarCollectionStrategyTest extends Specification {
-    @Shared
-    def store = DefaultModelSchemaStore.getInstance()
+    def store = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor())
 
     def "assembles schema for a Set"() {
         expect:

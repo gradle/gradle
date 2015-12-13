@@ -23,18 +23,17 @@ import org.gradle.internal.typeconversion.DefaultTypeConverter
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.core.UnmanagedStruct
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.instance.ModelElementState
 import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.Matchers
-import spock.lang.Specification
 import spock.lang.Unroll
 
-class ManagedProxyClassGeneratorTest extends Specification {
+class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
     static def generator = new ManagedProxyClassGenerator()
     static Map<Class<?>, Map<Class<?>, Class<?>>> generated = [:].withDefault { [:] }
-    def schemaStore = DefaultModelSchemaStore.instance
     def typeConverter = new DefaultTypeConverter(Stub(FileResolver))
 
     def "generates a proxy class for an interface"() {

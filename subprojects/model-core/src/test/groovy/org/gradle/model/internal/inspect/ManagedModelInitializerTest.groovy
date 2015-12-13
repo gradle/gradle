@@ -20,9 +20,12 @@ import org.gradle.api.credentials.Credentials
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
 import org.gradle.model.Unmanaged
-import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
+import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.core.ModelTypeInitializationException
+import org.gradle.model.internal.core.NodeInitializer
+import org.gradle.model.internal.core.NodeInitializerRegistry
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
-import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultConstructibleTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
 import org.gradle.model.internal.type.ModelType
@@ -39,7 +42,7 @@ class ManagedModelInitializerTest extends ProjectRegistrySpec {
     @Override
     protected NodeInitializerRegistry createNodeInitializerRegistry() {
         // Not shared across tests as test may add constructible types only applying to that particular test
-        return  new TestNodeInitializerRegistry()
+        return new DefaultNodeInitializerRegistry(SCHEMA_STORE)
     }
 
     def "should fail with a contextual exception for managed collections properties"() {
