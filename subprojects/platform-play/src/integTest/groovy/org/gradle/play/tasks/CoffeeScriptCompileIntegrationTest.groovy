@@ -19,10 +19,6 @@ package org.gradle.play.tasks
 import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileIntegrationTest {
-    @Override
-    String getDefaultSourceSet() {
-        return "CoffeeScript"
-    }
 
     def setup() {
         buildFile << """
@@ -49,9 +45,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
-        matchesExpectedRaw("test.js")
-        matchesExpectedRaw(copied("test.js"))
-        matchesExpected("test.min.js")
+        hasProcessedCoffeeScript("test")
         assetsJar.containsDescendants(
                 "public/test.js",
                 "public/test.min.js"
@@ -106,15 +100,10 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
-        matchesExpectedRaw("test1.js")
-        matchesExpectedRaw("ExtraCoffeeScript", "xxx/test2.js")
-        matchesExpectedRaw("AnotherCoffeeScript", "a/b/c/test3.js")
-        matchesExpectedRaw(copied("test1.js"))
-        matchesExpectedRaw(copied("ExtraCoffeeScriptJavaScript", "xxx/test2.js"))
-        matchesExpectedRaw(copied("AnotherCoffeeScriptJavaScript", "a/b/c/test3.js"))
-        matchesExpected("test1.min.js")
-        matchesExpected("ExtraCoffeeScriptJavaScript", "xxx/test2.min.js")
-        matchesExpected("AnotherCoffeeScriptJavaScript", "a/b/c/test3.min.js")
+        hasProcessedCoffeeScript("CoffeeScript", "test1")
+        hasProcessedCoffeeScript("ExtraCoffeeScript", "xxx/test2")
+        hasProcessedCoffeeScript("AnotherCoffeeScript", "a/b/c/test3")
+
         assetsJar.containsDescendants(
                 "public/test1.js",
                 "public/xxx/test2.js",
@@ -168,9 +157,10 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         succeeds "assemble"
 
         when:
-        compiled("test.js").delete()
-        copied("test.js").delete()
-        minified("test.min.js").delete()
+        hasProcessedCoffeeScript("test")
+        compiledCoffeeScript("test.js").delete()
+        processedJavaScript("test.js").delete()
+        processedJavaScript("test.min.js").delete()
         assetsJar.file.delete()
         succeeds "assemble"
 
@@ -180,9 +170,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
                 ":minifyPlayBinaryCoffeeScriptJavaScript",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
-        compiled("test.js").exists()
-        copied("test.js").exists()
-        minified("test.min.js").exists()
+
+        hasProcessedCoffeeScript("test")
     }
 
     def "cleans removed source file on compile" () {
@@ -206,9 +195,9 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         succeeds "assemble"
 
         then:
-        ! compiled("test2.js").exists()
-        ! copied("test2.js").exists()
-        ! minified("test2.min.js").exists()
+        ! compiledCoffeeScript("test2.js").exists()
+        ! processedJavaScript("test2.js").exists()
+        ! processedJavaScript("test2.min.js").exists()
         assetsJar.countFiles("public/test2.js") == 0
         assetsJar.countFiles("public/test2.min.js") == 0
     }
