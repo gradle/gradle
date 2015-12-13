@@ -18,10 +18,6 @@ package org.gradle.testfixtures.internal;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor;
 
 public class TestGlobalScopeServices extends GlobalScopeServices {
     public TestGlobalScopeServices() {
@@ -31,15 +27,5 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
     @Override
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager) {
         return new InMemoryCacheFactory();
-    }
-
-    @Override
-    protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor) {
-        return DefaultModelSchemaStore.getInstance();
-    }
-
-    @Override
-    protected ManagedProxyFactory createManagedProxyFactory() {
-        return ManagedProxyFactory.INSTANCE;
     }
 }
