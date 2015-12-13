@@ -30,8 +30,7 @@ import spock.lang.Unroll
  * Test the binding of rules by the registry.
  */
 class ModelRuleBindingTest extends ProjectRegistrySpec {
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(schemaStore))
-    def modelRegistry = new DefaultModelRegistry(extractor)
+    def modelRegistry = new DefaultModelRegistry(modelRuleExtractor)
 
     static class AmbiguousBindingsInOneSource extends RuleSource {
         @Mutate

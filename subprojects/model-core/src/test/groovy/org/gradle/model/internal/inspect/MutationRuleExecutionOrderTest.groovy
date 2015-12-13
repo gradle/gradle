@@ -24,8 +24,7 @@ import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 
 class MutationRuleExecutionOrderTest extends ProjectRegistrySpec {
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(schemaStore))
-    def modelRegistry = new ModelRegistryHelper(extractor)
+    def modelRegistry = new ModelRegistryHelper(modelRuleExtractor)
 
     static class MutationRecorder {
         def mutations = []

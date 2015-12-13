@@ -16,16 +16,13 @@
 package org.gradle.model.internal.fixture;
 
 import org.gradle.api.internal.rules.RuleAwarePolymorphicNamedEntityInstantiator;
-import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor;
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
 public class ModelRegistryHelper extends DefaultModelRegistry {
     public ModelRegistryHelper() {
-        super(new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(new DefaultModelSchemaStore(new DefaultModelSchemaExtractor()))));
+        super(ProjectRegistrySpec.MODEL_RULE_EXTRACTOR);
     }
 
     public ModelRegistryHelper(ModelRuleExtractor ruleExtractor) {
