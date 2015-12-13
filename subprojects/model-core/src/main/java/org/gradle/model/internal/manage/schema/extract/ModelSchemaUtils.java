@@ -100,6 +100,13 @@ public class ModelSchemaUtils {
         }
 
         // Ignore overrides of Object and GroovyObject methods
+        return isObjectMethod(method);
+    }
+
+    /**
+     * Is defined by Object or GroovyObject?
+     */
+    public static boolean isObjectMethod(Method method) {
         return IGNORED_METHODS.contains(METHOD_EQUIVALENCE.wrap(method));
     }
 

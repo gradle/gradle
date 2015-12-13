@@ -31,6 +31,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ExtractedModelRule;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
@@ -136,10 +137,6 @@ public class ModelRuleExtractor {
             problems.add("Rule source classes must directly extend " + RuleSource.class.getName());
         }
 
-        if (Modifier.isAbstract(modifiers)) {
-            problems.add("Class cannot be abstract");
-        }
-
         if (source.getEnclosingClass() != null) {
             if (Modifier.isStatic(modifiers)) {
                 if (Modifier.isPrivate(modifiers)) {
@@ -171,6 +168,9 @@ public class ModelRuleExtractor {
         if (Modifier.isPrivate(ruleMethod.getModifiers())) {
             problems.add(ruleMethod, "A rule method cannot be private");
         }
+        if (Modifier.isAbstract(ruleMethod.getModifiers())) {
+            problems.add(ruleMethod, "A rule method cannot be abstract");
+        }
 
         if (ruleMethod.getTypeParameters().length > 0) {
             problems.add(ruleMethod, "Cannot have type variables (i.e. cannot be a generic method)");
@@ -193,7 +193,7 @@ public class ModelRuleExtractor {
     }
 
     private void validateNonRuleMethod(Method method, ValidationProblemCollector problems) {
-        if (!Modifier.isPrivate(method.getModifiers()) && !Modifier.isStatic(method.getModifiers()) && !method.isSynthetic()) {
+        if (!Modifier.isPrivate(method.getModifiers()) && !Modifier.isStatic(method.getModifiers()) && !method.isSynthetic() && !ModelSchemaUtils.isObjectMethod(method)) {
             problems.add(method, "A method that is not annotated as a rule must be private");
         }
     }

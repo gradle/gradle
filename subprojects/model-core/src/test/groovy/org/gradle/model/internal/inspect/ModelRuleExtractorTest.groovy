@@ -67,6 +67,40 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         extract(ClassWithNonRuleMethods).empty
     }
 
+    static abstract class AbstractRules extends RuleSource {}
+
+    def "rule class can be abstract"() {
+        expect:
+        extract(AbstractRules).empty
+    }
+
+    static abstract class AbstractMethodsRules extends RuleSource {
+        @Mutate
+        abstract void thing(String s)
+    }
+
+    def "rule class cannot have abstract methods"() {
+        when:
+        extract(AbstractMethodsRules)
+
+        then:
+        def e = thrown(InvalidModelRuleDeclarationException)
+        e.message == """Type $AbstractMethodsRules.name is not a valid rule source:
+- Method thing(java.lang.String) is not a valid rule method: A rule method cannot be abstract"""
+    }
+
+    def "rule class cannot have Groovy meta methods"() {
+        when:
+        extract(WithGroovyMeta).empty
+
+        then:
+        def e = thrown(InvalidModelRuleDeclarationException)
+        e.message == """Type $WithGroovyMeta.name is not a valid rule source:
+- Method methodMissing(java.lang.String, java.lang.Object) is not a valid rule method: A method that is not annotated as a rule must be private
+- Method propertyMissing(java.lang.String) is not a valid rule method: A method that is not annotated as a rule must be private
+- Method propertyMissing(java.lang.String, java.lang.Object) is not a valid rule method: A method that is not annotated as a rule must be private"""
+    }
+
     static class SimpleModelCreationRuleInferredName extends RuleSource {
         @Model
         static ModelThing modelPath() {
@@ -612,5 +646,25 @@ ${ManagedWithNonManageableParents.name}
 
         // Remove soft references
         Introspector.flushFromCaches(clazz)
+    }
+}
+
+class WithGroovyMeta extends RuleSource {
+    @Override
+    Object getProperty(String property) {
+        null
+    }
+
+    @Override
+    Object invokeMethod(String name, Object args) {
+        null
+    }
+
+    def propertyMissing(String name) {
+        null
+    }
+    def propertyMissing(String name, def value) {
+    }
+    def methodMissing(String name, def args) {
     }
 }

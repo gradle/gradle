@@ -35,7 +35,6 @@ class ClassModelRuleSourceValidationTest extends Specification {
 
         where:
         type                               | reason
-        OuterClass.AbstractClass           | "Class cannot be abstract"
         OuterClass.AnInterface             | "Must be a class, not an interface"
         OuterClass.InnerInstanceClass      | "Enclosed classes must be static and non private"
         new RuleSource() {}.getClass()     | "Enclosed classes must be static and non private"
