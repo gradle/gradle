@@ -26,6 +26,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
@@ -35,16 +36,15 @@ import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.*;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
 public class ModelRuleExtractor {
 
-    final LoadingCache<Class<?>, List<ExtractedModelRule>> cache = CacheBuilder.newBuilder()
+    final LoadingCache<Class<?>, RuleSourceSchema<?>> cache = CacheBuilder.newBuilder()
             .weakKeys()
-            .build(new CacheLoader<Class<?>, List<ExtractedModelRule>>() {
-                public List<ExtractedModelRule> load(Class<?> source) throws Exception {
+            .build(new CacheLoader<Class<?>, RuleSourceSchema<?>>() {
+                public RuleSourceSchema<?> load(Class<?> source) {
                     return doExtract(source);
                 }
             });
@@ -65,9 +65,9 @@ public class ModelRuleExtractor {
         return "[" + desc + "]";
     }
 
-    public Iterable<ExtractedModelRule> extract(Class<?> source) {
+    public <T> RuleSourceSchema<T> extract(Class<T> source) throws InvalidModelRuleDeclarationException {
         try {
-            return cache.get(source);
+            return Cast.uncheckedCast(cache.get(source));
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (UncheckedExecutionException e) {
@@ -75,7 +75,7 @@ public class ModelRuleExtractor {
         }
     }
 
-    private List<ExtractedModelRule> doExtract(Class<?> source) {
+    private <T> RuleSourceSchema<T> doExtract(Class<T> source) {
         ValidationProblemCollector problems = new ValidationProblemCollector(ModelType.of(source));
 
         // TODO - exceptions thrown here should point to some extensive documentation on the concept of class rule sources
@@ -100,7 +100,7 @@ public class ModelRuleExtractor {
             throw new InvalidModelRuleDeclarationException(problems.format());
         }
 
-        return registrations.build();
+        return new RuleSourceSchema<T>(ModelType.of(source), registrations.build());
     }
 
     @Nullable

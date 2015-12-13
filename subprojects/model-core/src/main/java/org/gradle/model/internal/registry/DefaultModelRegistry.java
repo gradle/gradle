@@ -133,7 +133,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
     @Override
     public ModelRegistry configure(Class<? extends RuleSource> rules, ModelPath scope) {
-        Iterable<ExtractedModelRule> extractedRules = ruleExtractor.extract(rules);
+        Iterable<ExtractedModelRule> extractedRules = ruleExtractor.extract(rules).getRules();
         for (ExtractedModelRule extractedRule : extractedRules) {
             if (!extractedRule.getRuleDependencies().isEmpty()) {
                 throw new IllegalStateException(String.format("Rule source %s cannot have plugin dependencies (introduced by rule %s)", rules, extractedRule));

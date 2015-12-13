@@ -47,7 +47,7 @@ class ModelRuleExtractorTest extends Specification {
 
     def "can inspect class with no rules"() {
         expect:
-        extractor.extract(EmptyClass).empty
+        extract(EmptyClass).empty
     }
 
     static class ClassWithNonRuleMethods extends RuleSource {
@@ -64,7 +64,7 @@ class ModelRuleExtractorTest extends Specification {
 
     def "can have non-rule methods that would be invalid rules"() {
         expect:
-        extractor.extract(ClassWithNonRuleMethods).empty
+        extract(ClassWithNonRuleMethods).empty
     }
 
     static class SimpleModelCreationRuleInferredName extends RuleSource {
@@ -75,7 +75,7 @@ class ModelRuleExtractorTest extends Specification {
     }
 
     List<ExtractedModelRule> extract(Class<?> source) {
-        extractor.extract(source)
+        extractor.extract(source).rules
     }
 
     void registerRules(Class<?> clazz) {
@@ -362,7 +362,7 @@ class ModelRuleExtractorTest extends Specification {
         registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).descriptor("integers").build())
 
         then:
-        extractor.extract(MutationAndFinalizeRules)*.action*.descriptor == [
+        extract(MutationAndFinalizeRules)*.action*.descriptor == [
             MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1"),
             MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate1"),
             MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3")

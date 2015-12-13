@@ -48,7 +48,7 @@ public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwar
         ModelRegistry modelRegistry = target.getModelRegistry();
         Iterable<Class<? extends RuleSource>> declaredSources = ruleDetector.getDeclaredSources(clazz);
         for (Class<? extends RuleSource> ruleSource : declaredSources) {
-            Iterable<ExtractedModelRule> rules = ruleInspector.extract(ruleSource);
+            Iterable<ExtractedModelRule> rules = ruleInspector.extract(ruleSource).getRules();
             for (ExtractedModelRule rule : rules) {
                 for (Class<?> dependency : rule.getRuleDependencies()) {
                     target.getPluginManager().apply(dependency);
