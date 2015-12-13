@@ -49,16 +49,18 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         }
 
         ModelType<? extends RuleSource> ruleSourceType = ruleType.asSubtype(RULE_SOURCE_MODEL_TYPE);
-        return new RuleSourceDefinitionAction(ruleDefinition, ruleSourceType);
+        return new RuleSourceDefinitionAction(ruleDefinition, ruleSourceType, context.getRuleExtractor());
     }
 
     private static class RuleSourceDefinitionAction implements ExtractedModelRule {
         private final MethodRuleDefinition<?, ?> ruleDefinition;
         private final ModelType<? extends RuleSource> ruleSourceType;
+        private final ModelRuleExtractor ruleExtractor;
 
-        public RuleSourceDefinitionAction(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType) {
+        public RuleSourceDefinitionAction(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor) {
             this.ruleDefinition = ruleDefinition;
             this.ruleSourceType = ruleSourceType;
+            this.ruleExtractor = ruleExtractor;
         }
 
         @Override
@@ -70,6 +72,7 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
                     DirectNodeInputUsingModelAction.of(targetReference, ruleDefinition.getDescriptor(), inputs, new BiAction<MutableModelNode, List<ModelView<?>>>() {
                         @Override
                         public void execute(MutableModelNode subjectNode, List<ModelView<?>> modelViews) {
+                            RuleSourceSchema<? extends RuleSource> ruleSourceSchema = ruleExtractor.extract(ruleSourceType.getConcreteClass());
                             Object[] parameters = new Object[2 + modelViews.size()];
                             parameters[0] = DirectInstantiator.INSTANCE.newInstance(ruleSourceType.getConcreteClass());
                             parameters[1] = subjectNode.asImmutable(targetReference.getType(), ruleDefinition.getDescriptor()).getInstance();

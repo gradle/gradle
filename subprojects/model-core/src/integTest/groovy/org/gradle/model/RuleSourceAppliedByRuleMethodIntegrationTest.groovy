@@ -196,9 +196,12 @@ class MyPlugin extends RuleSource {
     void strings(List<String> s) {}
 
     @Rules
-    void rules(RuleSource rules, List<String> s) {
+    void rules(OtherRules rules, List<String> s) {
         throw new RuntimeException("broken")
     }
+}
+
+class OtherRules extends RuleSource {
 }
 
 apply plugin: MyPlugin
