@@ -100,6 +100,6 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         then:
         executedAndNotSkipped ":compilePlayBinaryPlayCoffeeScript", ":compilePlayBinaryPlayExtraCoffeeScript"
         hasProcessedCoffeeScript("test")
-        hasProcessedCoffeeScript("ExtraCoffeeScript", "test2")
+        hasProcessedCoffeeScript("extraCoffeeScript", "test2")
     }
 }
