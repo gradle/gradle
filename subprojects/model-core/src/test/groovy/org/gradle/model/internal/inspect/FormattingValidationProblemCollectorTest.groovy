@@ -19,10 +19,10 @@ package org.gradle.model.internal.inspect
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
-class ValidationProblemCollectorTest extends Specification {
+class FormattingValidationProblemCollectorTest extends Specification {
     def "formats message with a single problem"() {
         given:
-        def collector = new ValidationProblemCollector(ModelType.of(String))
+        def collector = new FormattingValidationProblemCollector(ModelType.of(String))
         collector.add("does not extend RuleSource")
 
         expect:
@@ -31,7 +31,7 @@ class ValidationProblemCollectorTest extends Specification {
 
     def "formats message with a single problem with a long message"() {
         given:
-        def collector = new ValidationProblemCollector(ModelType.of(String))
+        def collector = new FormattingValidationProblemCollector(ModelType.of(String))
         collector.add("does not extend RuleSource and is not really that great, it could be much simpler")
 
         expect:
@@ -41,7 +41,7 @@ class ValidationProblemCollectorTest extends Specification {
 
     def "formats message with a single method problem"() {
         given:
-        def collector = new ValidationProblemCollector(ModelType.of(String))
+        def collector = new FormattingValidationProblemCollector(ModelType.of(String))
         collector.add(String.class.getMethod("indexOf", String), "is not annotated with anything.")
 
         expect:
@@ -51,7 +51,7 @@ class ValidationProblemCollectorTest extends Specification {
 
     def "formats message with multiple problems"() {
         given:
-        def collector = new ValidationProblemCollector(ModelType.of(String))
+        def collector = new FormattingValidationProblemCollector(ModelType.of(String))
         collector.add("does not extend RuleSource")
         collector.add("does not have any rule method")
 

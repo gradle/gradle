@@ -22,7 +22,7 @@ import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
-import org.gradle.model.internal.inspect.ValidationProblemCollector
+import org.gradle.model.internal.inspect.FormattingValidationProblemCollector
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Unroll
 
@@ -56,7 +56,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
     }
 
     ExtractedModelRule extract(MethodRuleDefinition<?, ?> definition) {
-        def problems = new ValidationProblemCollector(ModelType.of(ruleClass))
+        def problems = new FormattingValidationProblemCollector(ModelType.of(ruleClass))
         def registration = ruleHandler.registration(definition, problems)
         if (problems.hasProblems()) {
             throw new InvalidModelRuleDeclarationException(problems.format())

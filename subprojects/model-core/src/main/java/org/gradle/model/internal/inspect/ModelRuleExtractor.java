@@ -40,8 +40,7 @@ import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
 public class ModelRuleExtractor {
-
-    final LoadingCache<Class<?>, RuleSourceSchema<?>> cache = CacheBuilder.newBuilder()
+    private final LoadingCache<Class<?>, RuleSourceSchema<?>> cache = CacheBuilder.newBuilder()
             .weakKeys()
             .build(new CacheLoader<Class<?>, RuleSourceSchema<?>>() {
                 public RuleSourceSchema<?> load(Class<?> source) {
@@ -76,11 +75,11 @@ public class ModelRuleExtractor {
     }
 
     private <T> RuleSourceSchema<T> doExtract(Class<T> source) {
-        ValidationProblemCollector problems = new ValidationProblemCollector(ModelType.of(source));
+        FormattingValidationProblemCollector problems = new FormattingValidationProblemCollector(ModelType.of(source));
 
         // TODO - exceptions thrown here should point to some extensive documentation on the concept of class rule sources
 
-        validate(source, problems);
+        validateClass(source, problems);
         final Method[] methods = source.getDeclaredMethods();
 
         // sort for determinism
@@ -126,7 +125,7 @@ public class ModelRuleExtractor {
         }
     }
 
-    private void validate(Class<?> source, ValidationProblemCollector problems) {
+    private void validateClass(Class<?> source, ValidationProblemCollector problems) {
         int modifiers = source.getModifiers();
 
         if (Modifier.isInterface(modifiers)) {

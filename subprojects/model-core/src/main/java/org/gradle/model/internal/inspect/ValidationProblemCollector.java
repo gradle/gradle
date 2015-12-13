@@ -16,54 +16,28 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.internal.reflect.MethodDescription;
-import org.gradle.model.internal.type.ModelType;
-
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
-public class ValidationProblemCollector {
-    private final ModelType<?> source;
-    private final List<String> problems = new ArrayList<String>();
+public interface ValidationProblemCollector {
+    boolean hasProblems();
 
-    public ValidationProblemCollector(ModelType<?> source) {
-        this.source = source;
-    }
+    /**
+     * Adds a problem with a rule source class.
+     */
+    void add(String problem);
 
-    public boolean hasProblems() {
-        return !problems.isEmpty();
-    }
+    /**
+     * Adds a problem with a rule method.
+     */
+    void add(MethodRuleDefinition<?, ?> method, String problem);
 
-    public void add(String problem) {
-        problems.add(problem);
-    }
+    /**
+     * Adds a problem with a rule method.
+     */
+    void add(MethodRuleDefinition<?, ?> method, String problem, Throwable cause);
 
-    public void add(MethodRuleDefinition<?, ?> method, String problem) {
-        add(method.getMethod(), problem);
-    }
-
-    public void add(MethodRuleDefinition<?, ?> method, String problem, Throwable cause) {
-        add(method.getMethod(), problem + ": " + cause.getMessage());
-    }
-
-    public void add(Method method, String problem) {
-        String description = MethodDescription.name(method.getName())
-                .takes(method.getGenericParameterTypes())
-                .toString();
-        problems.add("Method " + description + " is not a valid rule method: " + problem);
-    }
-
-    public String format() {
-        StringBuilder errorString = new StringBuilder(String.format("Type %s is not a valid rule source:", source));
-        if (problems.size() == 1 && errorString.length() + problems.get(0).length() < 80) {
-            errorString.append(' ');
-            errorString.append(problems.get(0));
-        } else {
-            for (String problem : problems) {
-                errorString.append(String.format("\n- %s", problem));
-            }
-        }
-        return errorString.toString();
-    }
+    /**
+     * Adds a problem with a rule method.
+     */
+    void add(Method method, String problem);
 }
