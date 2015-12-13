@@ -25,6 +25,7 @@ import org.gradle.api.reporting.model.internal.TextModelReportRenderer;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 
@@ -69,7 +70,11 @@ public class ModelReport extends DefaultTask {
         textModelReportRenderer.setOutput(textOutput);
         textModelReportRenderer.startProject(project);
 
-        textModelReportRenderer.render(getModelRegistry().realizeNode(ModelPath.ROOT));
+        ModelRegistry modelRegistry = getModelRegistry();
+        ModelNode rootNode = modelRegistry.realizeNode(ModelPath.ROOT);
+        // Ensure binding validation has been done. This should happen elsewhere
+        modelRegistry.bindAllReferences();
+        textModelReportRenderer.render(rootNode);
 
         textModelReportRenderer.completeProject(project);
         textModelReportRenderer.complete();
