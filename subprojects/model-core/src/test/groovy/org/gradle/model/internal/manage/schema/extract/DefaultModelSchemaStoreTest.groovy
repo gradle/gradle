@@ -15,18 +15,21 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
+
 import groovy.transform.CompileStatic
 import org.gradle.model.Managed
 import org.gradle.model.ModelSet
 import org.gradle.model.internal.manage.schema.ManagedImplStructSchema
+import org.gradle.model.internal.manage.schema.ModelSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Unroll
 
 import java.beans.Introspector
+import java.util.concurrent.CopyOnWriteArraySet
 
-class DefaultModelSchemaStoreTest extends Specification {
+class DefaultModelSchemaStoreTest extends ConcurrentSpec {
 
     def store = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor());
 
@@ -37,6 +40,22 @@ class DefaultModelSchemaStoreTest extends Specification {
 
         expect:
         store.getSchema(type1).is(store.getSchema(type2))
+    }
+
+    def "each thread receives same schema object"() {
+        def seen = new CopyOnWriteArraySet()
+
+        when:
+        async {
+            5.times {
+                start {
+                    seen << store.getSchema(SimpleManagedType)
+                }
+            }
+        }
+
+        then:
+        seen.size() == 1
     }
 
     @Unroll
@@ -70,10 +89,10 @@ class DefaultModelSchemaStoreTest extends Specification {
     @Unroll
     def "does not hold strong reference to a managed #type type"() {
         given:
-        def modelType = ModelType.of(new GroovyClassLoader(getClass().classLoader).parseClass("@${Managed.name} $type ManagedType {}"))
+        def cl = new GroovyClassLoader(getClass().classLoader)
 
         when:
-        def schema = store.getSchema(modelType)
+        def schema = addClass(cl, "@${Managed.name} $type ManagedType {}")
 
         then:
         store.cache.size() > 0
@@ -128,7 +147,7 @@ class DefaultModelSchemaStoreTest extends Specification {
         store.cache.size() == 6
     }
 
-    private void addClass(GroovyClassLoader cl, String impl) {
+    private ModelSchema addClass(GroovyClassLoader cl, String impl) {
         def type = cl.parseClass(impl)
         store.getSchema(ModelType.of(type))
     }

@@ -17,7 +17,6 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
-import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
@@ -26,7 +25,6 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.List;
 import java.util.Set;
 
-@ThreadSafe
 public class ScalarCollectionStrategy implements ModelSchemaExtractionStrategy {
 
     public final static List<ModelType<?>> TYPES = ImmutableList.<ModelType<?>>of(

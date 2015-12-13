@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.manage.schema.ModelMapSchema;
@@ -25,7 +24,6 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
-@ThreadSafe
 public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
 
     private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {

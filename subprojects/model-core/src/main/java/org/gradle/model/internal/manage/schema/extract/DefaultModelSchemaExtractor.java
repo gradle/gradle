@@ -20,7 +20,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
@@ -29,7 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 
-@ThreadSafe
 public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
 
     private final List<? extends ModelSchemaExtractionStrategy> strategies;

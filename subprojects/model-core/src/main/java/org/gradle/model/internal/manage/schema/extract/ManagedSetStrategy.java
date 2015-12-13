@@ -16,11 +16,9 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.type.ModelType;
 
-@ThreadSafe
 public class ManagedSetStrategy extends SetStrategy {
 
     public ManagedSetStrategy() {

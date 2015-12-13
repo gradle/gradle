@@ -16,15 +16,15 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
-@NotThreadSafe
+@ThreadSafe
 public class DefaultModelSchemaStore implements ModelSchemaStore {
-
+    final Object lock = new Object();
     final ModelSchemaCache cache = new ModelSchemaCache();
     final ModelSchemaExtractor schemaExtractor;
 
@@ -33,7 +33,9 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
     }
 
     public <T> ModelSchema<T> getSchema(ModelType<T> type) {
-        return schemaExtractor.extract(type, cache);
+        synchronized (lock) {
+            return schemaExtractor.extract(type, cache);
+        }
     }
 
     @Override
@@ -43,11 +45,15 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
 
     @Override
     public void cleanUp() {
-        cache.cleanUp();
+        synchronized (lock) {
+            cache.cleanUp();
+        }
     }
 
     public long size() {
-        return cache.size();
+        synchronized (lock) {
+            return cache.size();
+        }
     }
 
 }

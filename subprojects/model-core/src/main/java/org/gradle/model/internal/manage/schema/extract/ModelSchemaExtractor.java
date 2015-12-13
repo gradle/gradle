@@ -16,12 +16,10 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
-@ThreadSafe
 public interface ModelSchemaExtractor {
     <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache);
 }
