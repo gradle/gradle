@@ -164,11 +164,6 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyToLink(String name, Class<? extends RuleSource> rules) {
-        modelRegistry.configure(rules, getPath().child(name));
-    }
-
-    @Override
     public void applyToSelf(Class<? extends RuleSource> rules) {
         modelRegistry.configure(rules, getPath());
     }

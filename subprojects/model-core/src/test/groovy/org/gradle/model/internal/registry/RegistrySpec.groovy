@@ -90,10 +90,6 @@ abstract class RegistrySpec extends Specification {
 
         }
 
-        @Override
-        void applyToLink(String name, Class<? extends RuleSource> rules) {
-
-        }
 
         @Override
         void applyToSelf(Class<? extends RuleSource> rules) {

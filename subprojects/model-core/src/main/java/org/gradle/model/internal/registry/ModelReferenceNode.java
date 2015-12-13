@@ -110,11 +110,6 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyToLink(String name, Class<? extends RuleSource> rules) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void applyToSelf(Class<? extends RuleSource> rules) {
         throw new UnsupportedOperationException();
     }

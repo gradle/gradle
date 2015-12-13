@@ -87,11 +87,6 @@ public interface MutableModelNode extends ModelNode {
     void applyToLink(ModelActionRole type, ModelAction<?> action);
 
     /**
-     * Applies the given rules to a node linked from this node.
-     */
-    void applyToLink(String name, Class<? extends RuleSource> rules);
-
-    /**
      * Applies the given rules to this node.
      */
     void applyToSelf(Class<? extends RuleSource> rules);
