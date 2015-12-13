@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.RuleSource;
@@ -30,50 +31,60 @@ import java.util.List;
 public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Rules> {
     private static final ModelType<RuleSource> RULE_SOURCE_MODEL_TYPE = ModelType.of(RuleSource.class);
 
+    @Nullable
     @Override
-    public <R, S> ExtractedModelRule registration(final MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
-        validateIsVoidMethod(ruleDefinition, problems);
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
+        validateIsVoidMethod(ruleDefinition, context);
         if (ruleDefinition.getReferences().size() < 2) {
-            problems.add(ruleDefinition, "A method " + getDescription() + " must have at least two parameters");
+            context.add(ruleDefinition, "A method " + getDescription() + " must have at least two parameters");
             return null;
         }
 
         ModelType<?> ruleType = ruleDefinition.getReferences().get(0).getType();
         if (!RULE_SOURCE_MODEL_TYPE.isAssignableFrom(ruleType)) {
-            problems.add(ruleDefinition, "The first parameter of a method " + getDescription() + " must be a subtype of " + RuleSource.class.getName());
+            context.add(ruleDefinition, "The first parameter of a method " + getDescription() + " must be a subtype of " + RuleSource.class.getName());
         }
-        if (problems.hasProblems()) {
+        if (context.hasProblems()) {
             return null;
         }
 
-        final ModelType<? extends RuleSource> ruleSourceType = ruleType.asSubtype(RULE_SOURCE_MODEL_TYPE);
+        ModelType<? extends RuleSource> ruleSourceType = ruleType.asSubtype(RULE_SOURCE_MODEL_TYPE);
+        return new RuleSourceDefinitionAction(ruleDefinition, ruleSourceType);
+    }
 
-        return new ExtractedModelRule() {
-            @Override
-            public void apply(ModelRegistry modelRegistry, ModelPath scope) {
-                final ModelReference<?> targetReference = ruleDefinition.getReferences().get(1);
-                List<ModelReference<?>> inputs = ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size());
+    private static class RuleSourceDefinitionAction implements ExtractedModelRule {
+        private final MethodRuleDefinition<?, ?> ruleDefinition;
+        private final ModelType<? extends RuleSource> ruleSourceType;
 
-                modelRegistry.configure(ModelActionRole.Defaults,
-                        DirectNodeInputUsingModelAction.of(targetReference, ruleDefinition.getDescriptor(), inputs, new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                            @Override
-                            public void execute(MutableModelNode subjectNode, List<ModelView<?>> modelViews) {
-                                Object[] parameters = new Object[2 + modelViews.size()];
-                                parameters[0] = DirectInstantiator.INSTANCE.newInstance(ruleSourceType.getConcreteClass());
-                                parameters[1] = subjectNode.asImmutable(targetReference.getType(), ruleDefinition.getDescriptor()).getInstance();
-                                for (int i = 2; i < parameters.length; i++) {
-                                    parameters[i] = modelViews.get(i).getInstance();
-                                }
-                                ruleDefinition.getRuleInvoker().invoke(parameters);
-                                subjectNode.applyToSelf(ruleSourceType.getConcreteClass());
+        public RuleSourceDefinitionAction(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType) {
+            this.ruleDefinition = ruleDefinition;
+            this.ruleSourceType = ruleSourceType;
+        }
+
+        @Override
+        public void apply(ModelRegistry modelRegistry, ModelPath scope) {
+            final ModelReference<?> targetReference = ruleDefinition.getReferences().get(1);
+            List<ModelReference<?>> inputs = ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size());
+
+            modelRegistry.configure(ModelActionRole.Defaults,
+                    DirectNodeInputUsingModelAction.of(targetReference, ruleDefinition.getDescriptor(), inputs, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                        @Override
+                        public void execute(MutableModelNode subjectNode, List<ModelView<?>> modelViews) {
+                            Object[] parameters = new Object[2 + modelViews.size()];
+                            parameters[0] = DirectInstantiator.INSTANCE.newInstance(ruleSourceType.getConcreteClass());
+                            parameters[1] = subjectNode.asImmutable(targetReference.getType(), ruleDefinition.getDescriptor()).getInstance();
+                            for (int i = 2; i < parameters.length; i++) {
+                                parameters[i] = modelViews.get(i).getInstance();
                             }
-                        }));
-            }
+                            ruleDefinition.getRuleInvoker().invoke(parameters);
+                            subjectNode.applyToSelf(ruleSourceType.getConcreteClass());
+                        }
+                    }));
+        }
 
-            @Override
-            public List<? extends Class<?>> getRuleDependencies() {
-                return Collections.emptyList();
-            }
-        };
+        @Override
+        public List<? extends Class<?>> getRuleDependencies() {
+            return Collections.emptyList();
+        }
     }
 }

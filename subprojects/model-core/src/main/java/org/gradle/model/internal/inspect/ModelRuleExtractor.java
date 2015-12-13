@@ -75,11 +75,11 @@ public class ModelRuleExtractor {
     }
 
     private <T> RuleSourceSchema<T> doExtract(Class<T> source) {
-        FormattingValidationProblemCollector problems = new FormattingValidationProblemCollector(ModelType.of(source));
+        DefaultMethodModelRuleExtractionContext context = new DefaultMethodModelRuleExtractionContext(source, this);
 
         // TODO - exceptions thrown here should point to some extensive documentation on the concept of class rule sources
 
-        validateClass(source, problems);
+        validateClass(source, context);
         final Method[] methods = source.getDeclaredMethods();
 
         // sort for determinism
@@ -89,38 +89,38 @@ public class ModelRuleExtractor {
 
         for (Method method : methods) {
             MethodRuleDefinition<?, ?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
-            ExtractedModelRule registration = getMethodHandler(ruleDefinition, method, problems);
+            ExtractedModelRule registration = getMethodHandler(ruleDefinition, method, context);
             if (registration != null) {
                 registrations.add(registration);
             }
         }
 
-        if (problems.hasProblems()) {
-            throw new InvalidModelRuleDeclarationException(problems.format());
+        if (context.hasProblems()) {
+            throw new InvalidModelRuleDeclarationException(context.problems.format());
         }
 
         return new RuleSourceSchema<T>(ModelType.of(source), registrations.build());
     }
 
     @Nullable
-    private ExtractedModelRule getMethodHandler(MethodRuleDefinition<?, ?> ruleDefinition, Method method, ValidationProblemCollector problems) {
+    private ExtractedModelRule getMethodHandler(MethodRuleDefinition<?, ?> ruleDefinition, Method method, MethodModelRuleExtractionContext context) {
         MethodModelRuleExtractor handler = null;
         for (MethodModelRuleExtractor candidateHandler : handlers) {
             if (candidateHandler.isSatisfiedBy(ruleDefinition)) {
                 if (handler == null) {
                     handler = candidateHandler;
                 } else {
-                    problems.add(method, "Can only be one of " + describeHandlers());
-                    validateRuleMethod(method, problems);
+                    context.add(method, "Can only be one of " + describeHandlers());
+                    validateRuleMethod(method, context);
                     return null;
                 }
             }
         }
         if (handler != null) {
-            validateRuleMethod(method, problems);
-            return handler.registration(ruleDefinition, problems);
+            validateRuleMethod(method, context);
+            return handler.registration(ruleDefinition, context);
         } else {
-            validateNonRuleMethod(method, problems);
+            validateNonRuleMethod(method, context);
             return null;
         }
     }

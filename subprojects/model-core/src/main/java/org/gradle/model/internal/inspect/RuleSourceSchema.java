@@ -17,19 +17,22 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.model.internal.core.ExtractedModelRule;
-import org.gradle.model.internal.manage.schema.AbstractModelSchema;
+import org.gradle.model.internal.manage.schema.AbstractStructSchema;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * The schema for a {@link org.gradle.model.RuleSource}.
  */
-public class RuleSourceSchema<T> extends AbstractModelSchema<T> {
+public class RuleSourceSchema<T> extends AbstractStructSchema<T> {
     private final List<ExtractedModelRule> rules;
 
     public RuleSourceSchema(ModelType<T> type, List<ExtractedModelRule> rules) {
-        super(type);
+        super(type, Collections.<ModelProperty<?>>emptyList(), Collections.<ModelSchemaAspect>emptyList());
         this.rules = rules;
     }
 

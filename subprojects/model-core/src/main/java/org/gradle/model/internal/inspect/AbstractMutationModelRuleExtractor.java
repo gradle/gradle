@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.ExtractedModelAction;
 import org.gradle.model.internal.core.ExtractedModelRule;
 import org.gradle.model.internal.core.ModelActionRole;
@@ -23,13 +24,14 @@ import org.gradle.model.internal.core.ModelActionRole;
 import java.lang.annotation.Annotation;
 
 public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
+    @Nullable
     @Override
-    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
-        validateIsVoidMethod(ruleDefinition, problems);
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
+        validateIsVoidMethod(ruleDefinition, context);
         if (ruleDefinition.getReferences().isEmpty()) {
-            problems.add(ruleDefinition, "A method " + getDescription() + " must have at least one parameter");
+            context.add(ruleDefinition, "A method " + getDescription() + " must have at least one parameter");
         }
-        if (problems.hasProblems()) {
+        if (context.hasProblems()) {
             return null;
         }
         return new ExtractedModelAction(getMutationType(), new MethodBackedModelAction<S>(ruleDefinition));

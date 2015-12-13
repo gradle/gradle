@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.api.Nullable;
 import org.gradle.model.Model;
 import org.gradle.model.internal.core.*;
 
@@ -33,14 +34,15 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
         return ModelPath.path(modelName);
     }
 
+    @Nullable
     @Override
-    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
-        ModelPath modelPath = determineModelName(ruleDefinition, problems);
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
+        ModelPath modelPath = determineModelName(ruleDefinition, context);
 
         ModelRegistrations.Builder registration = ModelRegistrations.of(modelPath).descriptor(ruleDefinition.getDescriptor());
 
-        buildRegistration(ruleDefinition, modelPath, registration, problems);
-        if (problems.hasProblems()) {
+        buildRegistration(ruleDefinition, modelPath, registration, context);
+        if (context.hasProblems()) {
             return null;
         }
 

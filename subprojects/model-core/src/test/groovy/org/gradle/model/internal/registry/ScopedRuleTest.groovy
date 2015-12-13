@@ -43,7 +43,7 @@ class ScopedRuleTest extends ProjectRegistrySpec {
 
     class DependencyAddingModelRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<HasDependencies> {
         @Override
-        def <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems) {
+        def <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
             new DependencyOnlyExtractedModelRule([ImperativePlugin])
         }
     }

@@ -27,8 +27,8 @@ public interface MethodModelRuleExtractor {
     /**
      * Should only be called when {@link #isSatisfiedBy(MethodRuleDefinition)} return true.
      *
-     * @return The extracted rule, or null when there are problems with the rule definition. Problems should be collected using the given collector.
+     * @return The extracted rule, or null when there are problems with the rule definition. Problems should be collected using the given context.
      */
     @Nullable
-    <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, ValidationProblemCollector problems);
+    <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context);
 }
