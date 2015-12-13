@@ -71,6 +71,14 @@ Unordered and not all appropriately story sized.
 - Documentation does not mention copy-on-write semantics for mutable properties of type scalar collection.
 - Support `Collection` of scalar as property type, at least for mutable property.
 
+### Inspection
+
+- Collect all validation problems
+- Detect zero-args constructors (or allow)
+- Detect overrides of Groovy MOP methods (or allow)
+
+Same for `RuleSource` inspection
+
 ## Cleanup
 
 We've introduced different mechanisms for deferring configuration.

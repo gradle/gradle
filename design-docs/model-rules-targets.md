@@ -150,7 +150,7 @@ TBD - Support `@ComponentBinaries` and `@BinaryTasks` rules?
 ### Rule method can bind inputs of rules of a `RuleSource` implementation
 
 - Allow `@RuleInput` properties to be declared on `RuleSource` subtypes.
-- Getter and setter must be abstract.
+- Getter and setter must be abstract, allow `RuleSource` types to be abstract.
 - Generate and cache an implementation class.
 - Allow a `@Rules` method to set the values of the `RuleSource` properties:
      - Inputs should be at or after `initialized`.
@@ -161,13 +161,17 @@ TBD - Support `@ComponentBinaries` and `@BinaryTasks` rules?
     - Can read property during `@Rule` method invocation
 - Userguide and sample
 - Error when `RuleSource` used with `null` value for input property.
+- Error when `RuleSource` with inputs is applied as plugin, or to element of ModelMap.
 - Error when setting `@RuleInput` property to a value that not a model element.
 - Error when reading or mutating `@RuleInput` property outside `@Rule` method.
 - Error when mutating `@RuleInput` property in own rule execution.
+- Validation error when abstract `RuleSource` has abstract method.
 
 #### Test cases
 
 - Error cases as above.
+- Reasonable `toString` for generated `RuleSource` implementation.
+- Reasonable error message for missing method or missing property on generated `RuleSource` implementation.
 
 #### Backlog
 
