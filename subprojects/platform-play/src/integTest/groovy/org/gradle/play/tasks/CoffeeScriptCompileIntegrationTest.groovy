@@ -100,9 +100,9 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
-        hasProcessedCoffeeScript("CoffeeScript", "test1")
-        hasProcessedCoffeeScript("ExtraCoffeeScript", "xxx/test2")
-        hasProcessedCoffeeScript("AnotherCoffeeScript", "a/b/c/test3")
+        hasProcessedCoffeeScript("coffeeScript", "test1")
+        hasProcessedCoffeeScript("extraCoffeeScript", "xxx/test2")
+        hasProcessedCoffeeScript("anotherCoffeeScript", "a/b/c/test3")
 
         assetsJar.containsDescendants(
                 "public/test1.js",

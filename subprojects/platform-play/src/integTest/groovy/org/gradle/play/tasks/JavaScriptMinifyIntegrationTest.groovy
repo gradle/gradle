@@ -23,7 +23,7 @@ import static org.gradle.play.integtest.fixtures.Repositories.*
 class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegrationTest {
 
     TestFile getProcessedJavaScriptDir(String sourceSet) {
-        file("build/src/play/binary/minifyPlayBinaryPlay${sourceSet ?: "JavaScript"}")
+        file("build/src/play/binary/minifyPlayBinaryPlay${sourceSet != null ? sourceSet.capitalize() : "JavaScript"}")
     }
 
     void hasProcessedJavaScript(String fileName) {
