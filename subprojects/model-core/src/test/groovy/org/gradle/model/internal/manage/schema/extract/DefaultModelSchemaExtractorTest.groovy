@@ -27,7 +27,6 @@ import org.gradle.model.internal.manage.schema.*
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Ignore
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -39,9 +38,8 @@ import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagem
 import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.UNMANAGED
 
 @SuppressWarnings("GroovyPointlessBoolean")
-class ModelSchemaExtractorTest extends Specification {
-    @Shared
-    def store = DefaultModelSchemaStore.getInstance()
+class DefaultModelSchemaExtractorTest extends Specification {
+    def store = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor())
     def classLoader = new GroovyClassLoader(getClass().classLoader)
     static final List<Class<? extends Serializable>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
@@ -949,7 +947,7 @@ interface Managed${typeName} {
                 }
             }
         }
-        def extractor = new ModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
+        def extractor = new DefaultModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
         def store = new DefaultModelSchemaStore(extractor)
 
         then:
@@ -959,7 +957,7 @@ interface Managed${typeName} {
 
     def "custom strategy can register dependency on other type"() {
         def strategy = Mock(ModelSchemaExtractionStrategy)
-        def extractor = new ModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
+        def extractor = new DefaultModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
         def store = new DefaultModelSchemaStore(extractor)
 
         when:
@@ -982,7 +980,7 @@ interface Managed${typeName} {
     def "validator is invoked after all dependencies have been visited"() {
         def strategy = Mock(ModelSchemaExtractionStrategy)
         def validator = Mock(Action)
-        def extractor = new ModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
+        def extractor = new DefaultModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
         def store = new DefaultModelSchemaStore(extractor)
 
         when:
@@ -1098,7 +1096,7 @@ interface Managed${typeName} {
     }
 
     def "properties are extracted from unmanaged type with managed super-type"() {
-        def extractor = new ModelSchemaExtractor([
+        def extractor = new DefaultModelSchemaExtractor([
             new TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(UnmanagedSuperType)
         ], new ModelSchemaAspectExtractor())
         def store = new DefaultModelSchemaStore(extractor)
@@ -1201,7 +1199,7 @@ interface Managed${typeName} {
     def "aspects can be extracted"() {
         def aspect = new MyAspect()
         def aspectExtractionStrategy = Mock(ModelSchemaAspectExtractionStrategy)
-        def extractor = new ModelSchemaExtractor([], new ModelSchemaAspectExtractor([aspectExtractionStrategy]))
+        def extractor = new DefaultModelSchemaExtractor([], new ModelSchemaAspectExtractor([aspectExtractionStrategy]))
         def store = new DefaultModelSchemaStore(extractor)
 
         when:
