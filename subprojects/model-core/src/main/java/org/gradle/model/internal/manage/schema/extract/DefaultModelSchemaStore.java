@@ -34,6 +34,10 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
 
     public <T> ModelSchema<T> getSchema(ModelType<T> type) {
         synchronized (lock) {
+            ModelSchema<T> schema = cache.get(type);
+            if (schema != null) {
+                return schema;
+            }
             return schemaExtractor.extract(type, cache);
         }
     }
