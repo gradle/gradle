@@ -246,6 +246,39 @@ apply plugin: MyPlugin
         failure.assertHasCause("broken")
     }
 
+    def "reports exception thrown by rule source constructor"() {
+        buildFile << '''
+@Managed
+interface Thing {
+    String getName()
+    void setName(String name)
+}
+
+class MyPlugin extends RuleSource {
+    @Model
+    void p1(Thing t) {
+    }
+
+    @Rules
+    void rules(CalculateName rules, Thing t) {
+    }
+}
+
+class CalculateName extends RuleSource {
+    CalculateName() {
+        throw new RuntimeException("broken")
+    }
+}
+
+apply plugin: MyPlugin
+'''
+
+        expect:
+        fails 'model'
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
+        failure.assertHasCause("broken")
+    }
+
     def "@Rules method is not executed when target is not required"() {
         buildFile << '''
 class MyPlugin extends RuleSource {

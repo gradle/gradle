@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.internal.registry
 
+import org.gradle.internal.Factory
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.ExtractedModelRule
@@ -23,6 +24,7 @@ import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.inspect.DefaultMethodModelRuleExtractionContext
 import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -55,7 +57,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
     }
 
     ExtractedModelRule extract(MethodRuleDefinition<?, ?> definition) {
-        def context = new DefaultMethodModelRuleExtractionContext(ruleClass, null)
+        def context = new DefaultMethodModelRuleExtractionContext(ModelType.of(ruleClass), null)
         def registration = ruleHandler.registration(definition, context)
         if (context.hasProblems()) {
             throw new InvalidModelRuleDeclarationException(context.problems.format())
@@ -66,7 +68,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
     MethodRuleDefinition<?, ?> ruleDefinitionForMethod(String methodName) {
         for (Method candidate : ruleClass.getDeclaredMethods()) {
             if (candidate.getName().equals(methodName)) {
-                return DefaultMethodRuleDefinition.create(ruleClass, candidate)
+                return DefaultMethodRuleDefinition.create(ruleClass, candidate, { ruleClass.newInstance() } as Factory)
             }
         }
         throw new IllegalArgumentException("Not a test method name")

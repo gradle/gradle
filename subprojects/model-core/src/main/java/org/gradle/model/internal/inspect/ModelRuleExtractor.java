@@ -27,6 +27,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
@@ -75,12 +76,15 @@ public class ModelRuleExtractor {
         }
     }
 
-    private <T> RuleSourceSchema<T> doExtract(Class<T> source) {
-        DefaultMethodModelRuleExtractionContext context = new DefaultMethodModelRuleExtractionContext(source, this);
+    private <T> RuleSourceSchema<T> doExtract(final Class<T> source) {
+        final ModelType<T> type = ModelType.of(source);
+        DefaultMethodModelRuleExtractionContext context = new DefaultMethodModelRuleExtractionContext(type, this);
 
         // TODO - exceptions thrown here should point to some extensive documentation on the concept of class rule sources
 
         validateClass(source, context);
+
+        Factory<T> factory = new RuleSourceFactory<T>(type);
         final Method[] methods = source.getDeclaredMethods();
 
         // sort for determinism
@@ -89,7 +93,7 @@ public class ModelRuleExtractor {
         ImmutableList.Builder<ExtractedModelRule> registrations = ImmutableList.builder();
 
         for (Method method : methods) {
-            MethodRuleDefinition<?, ?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
+            MethodRuleDefinition<?, ?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method, factory);
             ExtractedModelRule registration = getMethodHandler(ruleDefinition, method, context);
             if (registration != null) {
                 registrations.add(registration);
@@ -100,7 +104,7 @@ public class ModelRuleExtractor {
             throw new InvalidModelRuleDeclarationException(context.problems.format());
         }
 
-        return new RuleSourceSchema<T>(ModelType.of(source), registrations.build());
+        return new RuleSourceSchema<T>(type, registrations.build(), factory);
     }
 
     @Nullable
@@ -198,4 +202,26 @@ public class ModelRuleExtractor {
         }
     }
 
+    private static class RuleSourceFactory<T> implements Factory<T> {
+        // Reference class via `ModelType` to avoid strong reference
+        private final ModelType<T> type;
+
+        public RuleSourceFactory(ModelType<T> type) {
+            this.type = type;
+        }
+
+        @Override
+        public T create() {
+            try {
+                Class<T> concreteClass = type.getConcreteClass();
+                Constructor<T> declaredConstructor = concreteClass.getDeclaredConstructor();
+                declaredConstructor.setAccessible(true);
+                return declaredConstructor.newInstance();
+            } catch (InvocationTargetException e) {
+                throw UncheckedException.throwAsUncheckedException(e.getTargetException());
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+    }
 }

@@ -24,9 +24,9 @@ class DefaultMethodModelRuleExtractionContext implements MethodModelRuleExtracti
     final FormattingValidationProblemCollector problems;
     private final ModelRuleExtractor extractor;
 
-    public DefaultMethodModelRuleExtractionContext(Class<?> ruleSourceClass, ModelRuleExtractor extractor) {
+    public DefaultMethodModelRuleExtractionContext(ModelType<?> ruleSourceClass, ModelRuleExtractor extractor) {
         this.extractor = extractor;
-        this.problems = new FormattingValidationProblemCollector(ModelType.of(ruleSourceClass));
+        this.problems = new FormattingValidationProblemCollector(ruleSourceClass);
     }
 
     @Override

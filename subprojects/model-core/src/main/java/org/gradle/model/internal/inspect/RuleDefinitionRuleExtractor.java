@@ -18,7 +18,6 @@ package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.RuleSource;
 import org.gradle.model.Rules;
 import org.gradle.model.internal.core.*;
@@ -74,7 +73,7 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
                         public void execute(MutableModelNode subjectNode, List<ModelView<?>> modelViews) {
                             RuleSourceSchema<? extends RuleSource> ruleSourceSchema = ruleExtractor.extract(ruleSourceType.getConcreteClass());
                             Object[] parameters = new Object[2 + modelViews.size()];
-                            parameters[0] = DirectInstantiator.INSTANCE.newInstance(ruleSourceType.getConcreteClass());
+                            parameters[0] = ruleSourceSchema.getFactory().create();
                             parameters[1] = subjectNode.asImmutable(targetReference.getType(), ruleDefinition.getDescriptor()).getInstance();
                             for (int i = 2; i < parameters.length; i++) {
                                 parameters[i] = modelViews.get(i).getInstance();

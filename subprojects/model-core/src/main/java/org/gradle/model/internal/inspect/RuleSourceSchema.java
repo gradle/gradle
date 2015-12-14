@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.ExtractedModelRule;
 import org.gradle.model.internal.manage.schema.AbstractStructSchema;
 import org.gradle.model.internal.manage.schema.ModelProperty;
@@ -30,10 +31,16 @@ import java.util.List;
  */
 public class RuleSourceSchema<T> extends AbstractStructSchema<T> {
     private final List<ExtractedModelRule> rules;
+    private final Factory<T> factory;
 
-    public RuleSourceSchema(ModelType<T> type, List<ExtractedModelRule> rules) {
+    public RuleSourceSchema(ModelType<T> type, List<ExtractedModelRule> rules, Factory<T> factory) {
         super(type, Collections.<ModelProperty<?>>emptyList(), Collections.<ModelSchemaAspect>emptyList());
         this.rules = rules;
+        this.factory = factory;
+    }
+
+    public Factory<T> getFactory() {
+        return factory;
     }
 
     public List<ExtractedModelRule> getRules() {
