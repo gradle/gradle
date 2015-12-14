@@ -10,6 +10,8 @@ dependencies {
 strictCompile()
 useTestFixtures()
 
+classpathManifest.input = null
+
 configurations.runtime {
     artifacts.clear()
 }

@@ -96,10 +96,10 @@ class ClasspathManifest extends DefaultTask {
     @Input
     Properties getProperties() {
         def properties = new Properties()
-        properties.runtime = input.fileCollection {
+        properties.runtime = input ? input.fileCollection {
             (it instanceof ExternalDependency) || (it instanceof FileCollectionDependency)
-        }.collect { it.name }.join(',')
-        properties.projects = input.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.archivesBaseName }.join(',')
+        }.collect { it.name }.join(',') : ''
+        properties.projects = input ? input.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.archivesBaseName }.join(',') : ''
         return properties
     }
 
