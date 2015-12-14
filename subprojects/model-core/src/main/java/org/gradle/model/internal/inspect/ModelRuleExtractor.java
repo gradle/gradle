@@ -32,6 +32,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ExtractedModelRule;
+import org.gradle.model.internal.manage.instance.GeneratedViewState;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
 import org.gradle.model.internal.type.ModelType;
@@ -240,7 +241,22 @@ public class ModelRuleExtractor {
 
         @Override
         public T create() {
-            return proxyFactory.createProxy(null, schema, null, null);
+            return proxyFactory.createProxy(new GeneratedViewState() {
+                @Override
+                public String getDisplayName() {
+                    return "rule source " + schema.getType().getDisplayName();
+                }
+
+                @Override
+                public Object get(String name) {
+                    return null;
+                }
+
+                @Override
+                public void set(String name, Object value) {
+
+                }
+            }, schema);
         }
     }
 }

@@ -24,6 +24,7 @@ import org.gradle.model.Managed
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.core.UnmanagedStruct
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
+import org.gradle.model.internal.manage.instance.GeneratedViewState
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.instance.ModelElementState
 import org.gradle.model.internal.manage.schema.StructSchema
@@ -33,16 +34,22 @@ import spock.lang.Unroll
 
 class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
     static def generator = new ManagedProxyClassGenerator()
-    static Map<Class<?>, Map<Class<?>, Class<?>>> generated = [:].withDefault { [:] }
+    static Map<List<?>, Class<?>> generated = [:]
     def typeConverter = new DefaultTypeConverter(Stub(FileResolver))
 
-    def "generates a proxy class for an interface"() {
+    def "generates a node backed view class for an interface"() {
         expect:
-        def impl = newInstance(SomeType)
+        def impl = newNodeBackedInstance(SomeType)
         impl instanceof SomeType
     }
 
-    def "generates a proxy class for an interface with type parameters"() {
+    def "generates a view class for an interface"() {
+        expect:
+        def impl = newSimpleInstance(SomeType)
+        impl instanceof SomeType
+    }
+
+    def "generates a view class for an interface with type parameters"() {
         when:
         def generatedType = generate(SomeTypeWithParameters)
 
@@ -56,7 +63,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         generatedType.getMethod("setOptional", Optional).genericParameterTypes*.actualTypeArguments == [[Boolean]]
     }
 
-    def "mixes in ManagedInstance"() {
+    def "mixes in ManagedInstance to node backed view"() {
         def node = Stub(MutableModelNode)
         def state = Mock(ModelElementState) {
             getBackingNode() >> node
@@ -90,10 +97,16 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         1 * state.get("value") >> { 1 }
     }
 
+    def "does not mix in ManagedInstance for view that is not node backed"() {
+        expect:
+        def impl = newSimpleInstance(SomeType)
+        !(impl instanceof ManagedInstance)
+    }
+
     @Unroll
     def "only generates the requested boolean getter methods"() {
         given:
-        def impl = newInstance(type)
+        def impl = newNodeBackedInstance(type)
 
         when:
         def methods = impl.class.declaredMethods
@@ -143,7 +156,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
     }
 
     def "equals() returns false for non-compatible types"() {
-        def impl = newInstance(SomeType)
+        def impl = newNodeBackedInstance(SomeType)
         expect:
         !impl.equals(null)
         !impl.equals(1)
@@ -458,7 +471,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         impl.toString() == "<delegate>"
     }
 
-    def "mixes in toString() implementation that delegates to element state"() {
+    def "mixes in toString() implementation that delegates to node state"() {
         def state = Stub(ModelElementState) {
             getDisplayName() >> "<display-name>"
         }
@@ -469,9 +482,20 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         impl.toString() == "<display-name>"
     }
 
+    def "mixes in toString() implementation that delegates to view state"() {
+        def state = Stub(GeneratedViewState) {
+            getDisplayName() >> "<display-name>"
+        }
+
+        expect:
+        def proxyClass = generateSimpleView(SomeType)
+        def impl = proxyClass.newInstance(state, typeConverter)
+        impl.toString() == "<display-name>"
+    }
+
     def "reports contract type rather than implementation class in groovy missing property error message"() {
         given:
-        def impl = newInstance(SomeType)
+        def impl = newNodeBackedInstance(SomeType)
 
         when:
         impl.unknown
@@ -491,7 +515,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
     @NotYetImplemented
     def "reports contract type rather than implementation class when attempting to set read-only property"() {
         given:
-        def impl = newInstance(SomeTypeWithReadOnly)
+        def impl = newNodeBackedInstance(SomeTypeWithReadOnly)
 
         when:
         impl.readOnly = '12'
@@ -503,7 +527,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
 
     def "reports contract type rather than implementation class when attempting to invoke unknown method"() {
         given:
-        def impl = newInstance(SomeType)
+        def impl = newNodeBackedInstance(SomeType)
 
         when:
         impl.unknown('12')
@@ -515,7 +539,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
 
     def "reports contract type rather than implementation class when attempting to invoke configure method for property that does not have one"() {
         given:
-        def impl = newInstance(SomeType)
+        def impl = newNodeBackedInstance(SomeType)
 
         when:
         impl.value { broken }
@@ -646,21 +670,34 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         File       | "[new File('foo')]"
     }
 
-    def <T> T newInstance(Class<T> type) {
+    def <T> T newNodeBackedInstance(Class<T> type) {
         def generated = generate(type)
         return generated.newInstance(Stub(ModelElementState), typeConverter)
     }
 
+    def <T> T newSimpleInstance(Class<T> type) {
+        def generated = generate(GeneratedViewState, type, null)
+        return generated.newInstance(Stub(GeneratedViewState), typeConverter)
+    }
+
+    def <T, M extends T, D extends T> Class<? extends T> generateSimpleView(Class<T> viewType) {
+        return generate(GeneratedViewState, viewType, null)
+    }
+
     def <T, M extends T, D extends T> Class<? extends T> generate(Class<T> managedType, Class<D> delegateType = null) {
-        Map<Class<?>, Class<?>> generatedForDelegateType = generated[managedType]
-        Class<? extends T> generated = generatedForDelegateType[delegateType] as Class<? extends T>
-        if (generated == null) {
+        return generate(ModelElementState, managedType, delegateType)
+    }
+
+    def <T, M extends T, D extends T> Class<? extends T> generate(Class<? extends GeneratedViewState> backingStateType, Class<T> managedType, Class<D> delegateType) {
+        def key = [backingStateType, managedType, delegateType]
+        Class<?> generatedClass = generated[key] as Class<? extends T>
+        if (generatedClass == null) {
             def managedSchema = schemaStore.getSchema(managedType)
             def delegateSchema = delegateType == null ? null : schemaStore.getSchema(delegateType)
-            generated = generator.generate((StructSchema) managedSchema, (StructSchema) delegateSchema)
-            generatedForDelegateType[delegateType] = generated
+            generatedClass = generator.generate(backingStateType, (StructSchema) managedSchema, (StructSchema) delegateSchema)
+            generated[key] = generatedClass
         }
-        return generated
+        return generatedClass
     }
 
     @Managed

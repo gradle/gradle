@@ -163,6 +163,8 @@ class MyPlugin extends RuleSource {
 abstract class CalculateName extends RuleSource {
     @Defaults
     void defaultName(Thing t) {
+        println "applying defaults from " + toString()
+        assert this == this
         t.name = 'default'
     }
 }
@@ -184,6 +186,7 @@ model {
         run 'show'
 
         then:
+        output.contains("applying defaults from rule source CalculateName")
         output.contains("p1 = default")
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,19 @@
 
 package org.gradle.model.internal.manage.instance;
 
-import groovy.lang.Closure;
-import org.gradle.model.internal.core.MutableModelNode;
-
-public interface ModelElementState extends GeneratedViewState {
-    MutableModelNode getBackingNode();
+public interface GeneratedViewState {
+    /**
+     * Returns a display name to use for the view, eg as its toString() value or in error messages.
+     */
+    String getDisplayName();
 
     /**
-     * Applies the given action to the value of the given property.
+     * Returns the value of the given property.
      */
-    void apply(String name, Closure<?> action);
+    Object get(String name);
+
+    /**
+     * Sets the value of the given property.
+     */
+    void set(String name, Object value);
 }

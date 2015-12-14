@@ -37,16 +37,31 @@ public class ManagedProxyFactory {
         .build(new CacheLoader<CacheKey<?>, Class<?>>() {
             @Override
             public Class<?> load(CacheKey<?> key) throws Exception {
-                return proxyClassGenerator.generate(key.schema, key.delegateSchema);
+                return proxyClassGenerator.generate(key.backingStateType, key.schema, key.delegateSchema);
             }
         });
 
+    /**
+     * Generates a view of the given type.
+     */
+    public <T> T createProxy(GeneratedViewState state, StructSchema<T> viewSchema) {
+        try {
+            Class<? extends T> generatedClass = Cast.uncheckedCast(generatedImplementationTypes.get(new CacheKey<T>(GeneratedViewState.class, viewSchema, null)));
+            Constructor<? extends T> constructor = generatedClass.getConstructor(GeneratedViewState.class, TypeConverter.class);
+            return constructor.newInstance(state, null);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getTargetException());
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    /**
+     * Generates a view of the given type.
+     */
     public <T> T createProxy(ModelElementState state, StructSchema<T> viewSchema, @Nullable StructSchema<? extends T> delegateSchema, TypeConverter typeConverter) {
         try {
-            Class<? extends T> generatedClass = getGeneratedImplementation(viewSchema, delegateSchema);
-            if (generatedClass == null) {
-                throw new IllegalStateException("No managed implementation class available for: " + viewSchema.getType());
-            }
+            Class<? extends T> generatedClass = Cast.uncheckedCast(generatedImplementationTypes.get(new CacheKey<T>(ModelElementState.class, viewSchema, delegateSchema)));
             if (delegateSchema == null) {
                 Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class, TypeConverter.class);
                 return constructor.newInstance(state, typeConverter);
@@ -63,15 +78,13 @@ public class ManagedProxyFactory {
         }
     }
 
-    private <T> Class<? extends T> getGeneratedImplementation(StructSchema<T> schema, StructSchema<? extends T> delegateSchema) throws java.util.concurrent.ExecutionException {
-        return Cast.uncheckedCast(generatedImplementationTypes.get(new CacheKey<T>(schema, delegateSchema)));
-    }
-
     private static class CacheKey<T> {
+        private final Class<? extends GeneratedViewState> backingStateType;
         private final StructSchema<T> schema;
         private final @Nullable StructSchema<? extends T> delegateSchema;
 
-        private CacheKey(StructSchema<T> schema, @Nullable StructSchema<? extends T> delegateSchema) {
+        private CacheKey(Class<? extends GeneratedViewState> backingStateType, StructSchema<T> schema, @Nullable StructSchema<? extends T> delegateSchema) {
+            this.backingStateType = backingStateType;
             this.schema = schema;
             this.delegateSchema = delegateSchema;
         }
@@ -87,17 +100,20 @@ public class ManagedProxyFactory {
 
             CacheKey<?> cacheKey = (CacheKey<?>) o;
 
+            if (!backingStateType.equals(cacheKey.backingStateType)) {
+                return false;
+            }
             if (!schema.equals(cacheKey.schema)) {
                 return false;
             }
             return !(delegateSchema != null ? !delegateSchema.equals(cacheKey.delegateSchema) : cacheKey.delegateSchema != null);
-
         }
 
         @Override
         public int hashCode() {
             int result = schema.hashCode();
             result = 31 * result + (delegateSchema != null ? delegateSchema.hashCode() : 0);
+            result = 31 * result + backingStateType.hashCode();
             return result;
         }
     }
