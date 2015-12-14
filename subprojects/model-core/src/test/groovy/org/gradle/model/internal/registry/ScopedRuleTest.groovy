@@ -29,7 +29,7 @@ import org.gradle.model.internal.inspect.*
 class ScopedRuleTest extends ProjectRegistrySpec {
 
     def extractors = [new DependencyAddingModelRuleExtractor()] + MethodModelRuleExtractors.coreExtractors(schemaStore)
-    ModelRegistry registry = new ModelRegistryHelper(new ModelRuleExtractor(extractors))
+    ModelRegistry registry = new ModelRegistryHelper(new ModelRuleExtractor(extractors, proxyFactory))
 
     static class RuleSourceUsingRuleWithDependencies extends RuleSource {
         @HasDependencies

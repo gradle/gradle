@@ -19,10 +19,10 @@ package org.gradle.model.internal.inspect
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.RuleSource
 import org.gradle.model.Rules
-import spock.lang.Specification
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 
-class RuleDefinitionRuleExtractorTest extends Specification {
-    def extractor = new ModelRuleExtractor([new RuleDefinitionRuleExtractor()])
+class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
+    def extractor = new ModelRuleExtractor([new RuleDefinitionRuleExtractor()], proxyFactory)
 
     static class InvalidSignature extends RuleSource {
         @Rules

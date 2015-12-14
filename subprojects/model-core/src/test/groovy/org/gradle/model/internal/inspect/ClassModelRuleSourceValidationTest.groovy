@@ -18,15 +18,16 @@ package org.gradle.model.internal.inspect
 
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.RuleSource
-import spock.lang.Specification
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import spock.lang.Unroll
 
-class ClassModelRuleSourceValidationTest extends Specification {
+class ClassModelRuleSourceValidationTest extends ProjectRegistrySpec {
+    def extractor = new ModelRuleExtractor([], proxyFactory)
 
     @Unroll
     def "invalid #type - #reason"() {
         when:
-        new ModelRuleExtractor([]).extract(type)
+        extractor.extract(type)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -49,7 +50,7 @@ class ClassModelRuleSourceValidationTest extends Specification {
     @Unroll
     def "valid #type"() {
         when:
-        new ModelRuleExtractor([]).extract(type)
+        extractor.extract(type)
 
         then:
         noExceptionThrown()

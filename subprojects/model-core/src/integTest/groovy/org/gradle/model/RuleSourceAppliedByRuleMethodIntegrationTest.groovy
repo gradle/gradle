@@ -16,7 +16,6 @@
 
 package org.gradle.model
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.base.LanguageSourceSet
 
@@ -143,7 +142,6 @@ model {
         output.contains("p1 = finalized")
     }
 
-    @NotYetImplemented
     def "@Rule method can apply abstract RuleSource"() {
         buildFile << '''
 @Managed

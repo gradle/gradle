@@ -32,7 +32,7 @@ import spock.lang.Unroll
 import java.beans.Introspector
 
 class ModelRuleExtractorTest extends ProjectRegistrySpec {
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(schemaStore))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(schemaStore), proxyFactory)
     ModelRegistry registry = new DefaultModelRegistry(extractor)
 
     static class ModelThing {
@@ -54,11 +54,13 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         static List thing() {
             []
         }
+
         static <T> List<T> genericThing() {
             []
         }
 
         private doStuff() {}
+
         private <T> T selectThing(List<T> list) { null }
     }
 
@@ -72,6 +74,12 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
     def "rule class can be abstract"() {
         expect:
         extract(AbstractRules).empty
+    }
+
+    def "can create instance of abstract rule class"() {
+        expect:
+        def schema = extractor.extract(AbstractRules)
+        schema.factory.create() instanceof AbstractRules
     }
 
     static abstract class AbstractMethodsRules extends RuleSource {
@@ -136,6 +144,12 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
             assert registration.path.toString() == "modelPath"
         }
         0 * _
+    }
+
+    def "can create instance of rule class"() {
+        expect:
+        def schema = extractor.extract(SimpleModelCreationRuleInferredName)
+        schema.factory.create() instanceof SimpleModelCreationRuleInferredName
     }
 
     static class ParameterizedModel extends RuleSource {
@@ -397,9 +411,9 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         extract(MutationAndFinalizeRules)*.action*.descriptor == [
-            MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1"),
-            MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate1"),
-            MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3")
+                MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1"),
+                MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate1"),
+                MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3")
         ]
 
     }
@@ -531,6 +545,7 @@ ${ManagedWithNonManageableParents.name}
 
     static class NotEverythingAnnotated extends RuleSource {
         void mutate(String thing) {}
+
         private void ok() {}
     }
 
@@ -546,7 +561,7 @@ ${ManagedWithNonManageableParents.name}
 
     static class PrivateAnnotated extends RuleSource {
         @Mutate
-        private void notOk(String subject) { }
+        private void notOk(String subject) {}
     }
 
     def "no private methods may be annotated"() {
@@ -568,7 +583,8 @@ ${ManagedWithNonManageableParents.name}
 
         public void notARule() {}
 
-        @Mutate @Validate
+        @Mutate
+        @Validate
         private <T> String multipleProblems(List list, T value) {
             "broken"
         }

@@ -32,12 +32,14 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ExtractedModelRule;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.*;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
@@ -51,9 +53,11 @@ public class ModelRuleExtractor {
             });
 
     private final Iterable<MethodModelRuleExtractor> handlers;
+    private final ManagedProxyFactory proxyFactory;
 
-    public ModelRuleExtractor(Iterable<MethodModelRuleExtractor> handlers) {
+    public ModelRuleExtractor(Iterable<MethodModelRuleExtractor> handlers, ManagedProxyFactory proxyFactory) {
         this.handlers = handlers;
+        this.proxyFactory = proxyFactory;
     }
 
     private String describeHandlers() {
@@ -84,7 +88,7 @@ public class ModelRuleExtractor {
 
         validateClass(source, context);
 
-        Factory<T> factory = new RuleSourceFactory<T>(type);
+        Factory<T> factory = Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(new RuleSourceSchema<T>(type, Collections.<ExtractedModelRule>emptyList(), null), proxyFactory) : new ConcreteRuleSourceFactory<T>(type);
         final Method[] methods = source.getDeclaredMethods();
 
         // sort for determinism
@@ -202,18 +206,18 @@ public class ModelRuleExtractor {
         }
     }
 
-    private static class RuleSourceFactory<T> implements Factory<T> {
+    private static class ConcreteRuleSourceFactory<T> implements Factory<T> {
         // Reference class via `ModelType` to avoid strong reference
         private final ModelType<T> type;
 
-        public RuleSourceFactory(ModelType<T> type) {
+        public ConcreteRuleSourceFactory(ModelType<T> type) {
             this.type = type;
         }
 
         @Override
         public T create() {
+            Class<T> concreteClass = type.getConcreteClass();
             try {
-                Class<T> concreteClass = type.getConcreteClass();
                 Constructor<T> declaredConstructor = concreteClass.getDeclaredConstructor();
                 declaredConstructor.setAccessible(true);
                 return declaredConstructor.newInstance();
@@ -222,6 +226,21 @@ public class ModelRuleExtractor {
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
+        }
+    }
+
+    private static class AbstractRuleSourceFactory<T> implements Factory<T> {
+        private final RuleSourceSchema<T> schema;
+        private final ManagedProxyFactory proxyFactory;
+
+        public AbstractRuleSourceFactory(RuleSourceSchema<T> schema, ManagedProxyFactory proxyFactory) {
+            this.schema = schema;
+            this.proxyFactory = proxyFactory;
+        }
+
+        @Override
+        public T create() {
+            return proxyFactory.createProxy(null, schema, null, null);
         }
     }
 }
