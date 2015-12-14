@@ -402,6 +402,16 @@ level cache, and reducing the cache size.
 - Add internal support for `DefaultSourceDirectorySet`-like class for use with `LanguageSourceSet`.  It would not use the default Ant exclude patterns.
 - We should try to leverage the existing PatternSet caching where that makes sense.
 
+## Story: Making "discovered" inputs a public feature
+
+We currently use discovered inputs to extract #include headers from native source files. This is an internal feature of `IncrementalTaskInputs` and is only used by the `IncrementalNativeCompiler`. To make this a public feature that build authors can use to add their own discovered inputs, we need to make this feature more friendly.
+
+### Open Issues
+
+- When discovered inputs changed, without knowing which source files contributed to the discovered inputs, we should mark the task inputs as incremental=false and treat it like a rebuild.  We don't do this because `IncrementalNativeCompiler` doesn't handle this case.
+- When discovering inputs, we should make sure that all source files are visited each time or provide a way to incrementally discover inputs.
+- We may want to revisit the API so that we know the mapping between source and discovered inputs better.
+- We should provide documentation/samples for using discovered inputs.
 
 ## Story: TBD
 
