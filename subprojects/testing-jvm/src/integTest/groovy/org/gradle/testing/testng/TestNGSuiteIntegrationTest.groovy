@@ -17,14 +17,40 @@
 
 package org.gradle.testing.testng
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
+import org.junit.Test
 import spock.lang.Issue
 
 @TargetCoverage({TestNGCoverage.STANDARD_COVERAGE})
 public class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
+
+    /**
+     * https://discuss.gradle.org/t/npe-when-accessing-missing-property-in-usetestng-block-2-11-nightly/13226
+     * https://discuss.gradle.org/t/calling-suitexmlbuilder-changes-invocation-context-in-usetestng-block-2-11-nightly/13227
+     */
+    @Test
+    @NotYetImplemented
+    def "can reference suiteXmlBuilder"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            test {
+              useTestNG {
+                println "Property from task: " + name
+                suiteXmlBuilder()
+                println "Property from task: " + name
+              }
+            }
+        """
+        when:
+        run "help"
+        then:
+        noExceptionThrown()
+    }
 
     @Issue("GRADLE-3020")
     def "can specify test suite by string"() {
