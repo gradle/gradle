@@ -22,52 +22,6 @@ Where possible, binary dependencies will be replaced with source dependencies be
 
 So, for example, application A and library B might normally be built separately, as part of different builds. In this instance, application A would have a binary dependency on library B, consuming it as a jar downloaded from a binary repository. When application A and library B are both imported in the same workspace, however, application A would have a source dependency on library B.
 
-## From Daz
-
-1. Import an eclipse workspace with 2 single-project Gradle builds that are unrelated. Buildship asks Gradle for the eclipse projects for each of these, and gets exactly the same as if there was no workspace (no change to binary dependencies). This will drive out the Workspace API and get it configured into Buildship.
-
-2. As above, but with 2 related single-project Gradle builds. When you ask Gradle for the EclipseProjects, the binary dependency between the builds is replaced by a source dependency.
-
-3. Setup as for 2, but when the depended-on Eclipse project is closed, Buildship removes it from the Gradle Workspace and asks again for the Eclipse project model. Since there will be only 1 project in the workspace, no dependency substitution will occur.
-
-Once this is done, we can move onto multi-project builds. If we can enforce that we add/remove (or open/close) the _entire_ multiproject build as one unit, then this would be a start, because we wouldn't have to handle a partially open multiproject. ("Selecting a subset of projects")
-
-To deal with partially open multiproject builds, Gradle will need to build the jar for the closed project, and make that available as a file-backed binary dependency. This is because we don't know how/if the project has been published to a repository: luckily Gradle knows how to build the jar, so it can satisfy the dependency locally.
-
-This is going to be pretty cool stuff: it will start us down the path to true composite builds, driven from the IDE.
-
-##### From Adam
-
-We should consider a `ProjectWorkspace` as equivalent to `ProjectConnection` in the following ways:
-
-1. It represents a collection of Gradle projects. A workspace represents some ad hoc collection of projects, a ProjectConnection represents the projects defined for a particular build.
-2. You can ask for specific models for that collection of projects.
-
-So, I'd expect to see way to ask for the EclipseProject model for a workspace, in the same way I can ask for an EclipseProject model for a build (as represented by a ProjectConnection).
-
-Some options:
-
-1. Introduce some common abstraction that both ProjectConnection and ProjectWorkspace share, such as an interface they both extend. This would have, say, a `model(type)` method.
-2. Add a `ProjectWorkspace.model(type)` method, and perhaps a `ProjectConnection.toWorkspace()` method so you can get hold of the implicit workspace for a build.
-3. Add a GradleConnector.model(type, <thing-with-projects>) method.
-
-We should think about renaming and maybe splitting up ProjectConnection using an add-deprecate-remove cycle.
-
-Buildship would use a single ProjectWorkspace instance, adding and removing Gradle projects as these are imported or the corresponding Eclipse projects are opened or closed. It would use this workspace to load up the EclipseProject models. It would still need to use a ProjectConnection to do everything else.
-
-Implementation-wise, the tooling consumer can pull the Eclipse models from each separate build and stitch them together using the publication and classpath library GAVs for each project, and apply some project name deduping. I'd split both of these into separate stories. Later we should push some of this down into the tooling provider, to progress towards real composite builds.
-
-A story split might be something like:
-
-1. client can query EclipseProject model for a workspace where all projects come from the same Gradle build.
-2. client can query EclipseProject model for a workspace where projects come from different Gradle builds.
-3. Eclipse model for a workspace uses source dependency instead of binary dependency between the projects of that workspace.
-4. Eclipse model for a workspace does not include duplicate project names.
-
-We should also avoid adding a GAV to a project, as a Gradle project does not have a GAV, its publication do.
-
-We also need some stories for querying an IdeaProject from a workspace.
-
 ## Stories
 
 ### Story - Tooling client can query EclipseProject model for a workspace where all projects come from the same Gradle build.
