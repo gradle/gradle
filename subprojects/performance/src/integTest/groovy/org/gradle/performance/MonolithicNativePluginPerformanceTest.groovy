@@ -38,7 +38,7 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = [] // TODO: Add '2.10', 'last' once 2.10 is released.
+        runner.targetVersions = [ '2.10-rc-1' ]
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
 
@@ -51,8 +51,7 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         def result = runner.run()
 
         then:
-        result.assertEveryBuildSucceeds()
-        // TODO: when 2.10 is available result.assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject                   | maxExecutionTimeRegression | parallelWorkers
