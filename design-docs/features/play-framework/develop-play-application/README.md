@@ -1,10 +1,13 @@
 # Build author develops Play application in IDE
 
-- [ ] Developer views build failure message in Play application
+- [x] Developer views build failure message in Play application
+- [ ] IDE imported Play project has all sources configured for module
+- [ ] IDE imported Play project has correct external dependencies configured
+- [ ] IDE imported Play project has correct local component dependencies configured
+- [ ] IDE imported Play project has correct source and target JVM configured
 - [ ] Developer views Java and Scala compilation failure in Play application
 - [ ] Developer views Asset compilation failures in Play application
 - [ ] Developer views build failure stack trace in Play application
-- [ ] Developer imports Play application project into IDE (* multiple stories *)
 
 ## Open Issues
 
