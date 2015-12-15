@@ -1,6 +1,19 @@
 # Developer uses subset of a multi-project Gradle build from IDE
 
+This features allows a developer to work in a single IDE session on a subset of projects that would normally be part of the same build.
+
+This allows a developer to efficiently work on part of a large code base with many projects, by focusing on only a certain set of projects and reducing the amount of work the IDE must do in indexing and compilation.
+
+Out-of-scope for this feature would be the ability to run builds using the workspace definition from the IDE or the command-line.
+
+## Project substitution
+
 Large multi-project builds may consist of hundreds of projects. If a developer only works on a subset of these projects, the developer pays a penalty in terms of build execution performance as project dependencies have to be rebuilt (even though up-to-date checks might kick in). Another factor that slows down development is the re-indexing of changed files in the IDE. This feature allows for selectively substituting project dependencies with binary dependencies in Buildship.
+
+Building on the workspace concept from the previous feature, Gradle will replace source dependencies with binary dependencies where appropriate.
+
+For example, application A and library B might normally be built together as part of the same build. Application A would have a source dependency on library B. When application A is imported in a workspace and library B is not, application A would have a binary dependency on library B, either using a jar downloaded from a repository or built locally.
+
 
 For example, application A and library B might normally be built together as part of the same build. Application A would have a source dependency on library B. When application A is imported in a workspace and library B is not, application A would have a binary dependency on library B, either using a jar downloaded from a repository or built locally.
 
@@ -43,5 +56,4 @@ Build on the workspace concept from the previous feature, to replace source depe
 ##### Open issues
 
 - Out-of-scope for this feature would be the ability to run builds using the workspace definition from the IDE or the command-line.
-- The import screen is only one entry point for this functionality. Should we have other dialogs/screen to allow for substitution? What about changing a workspace after
-it has been created?
+- The import screen is only one entry point for this functionality. Should we have other dialogs/screen to allow for substitution? What about changing a workspace after it has been created?
