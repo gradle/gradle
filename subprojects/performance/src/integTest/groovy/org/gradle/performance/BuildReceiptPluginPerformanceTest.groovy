@@ -18,33 +18,36 @@ package org.gradle.performance
 
 import org.gradle.performance.categories.BRPPerformanceTest
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
-
-import static org.gradle.performance.measure.Duration.millis
 
 @Category(BRPPerformanceTest)
-class BuildReceiptPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class BuildReceiptPluginPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
-    @Unroll("Project '#testProject' clean build")
-    def "clean build"() {
+    def "build receipt plugin comparison"() {
         given:
-        runner.testId = "clean build $testProject with receipts"
-        runner.testProject = testProject
-        runner.tasksToRun = ['clean', 'build']
-        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.8', 'last']
+        runner.testGroup = "build receipt plugin"
+        runner.testId = "compare with vs new without build receipt plugin build"
+        def opts = ["-Dreceipt", "-Dreceipt.dump"]
+        def tasks = ['clean', 'build']
 
-        //Suppress sending the receipt data over the network using -Dreceipt.dump
-        runner.args += ["-Dreceipt", "-Dreceipt.dump"]
+        runner.baseline {
+            projectName("largeJavaSwModelProjectWithoutBuildReceipts").displayName("with plugin").invocation {
+                gradleOpts(*opts)
+                tasksToRun(*tasks).useDaemon()
+            }
+        }
+
+        runner.buildSpec {
+            projectName("largeJavaSwModelProjectWithBuildReceipts").displayName("without plugin").invocation {
+                gradleOpts(*opts)
+                tasksToRun(*tasks).useDaemon()
+            }
+        }
 
         when:
-        def result = runner.run()
+        runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                                | maxExecutionTimeRegression
-        "largeJavaSwModelProjectWithBuildReceipts" | millis(500)
+        noExceptionThrown()
     }
+
 }

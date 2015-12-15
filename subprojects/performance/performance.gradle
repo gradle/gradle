@@ -595,15 +595,24 @@ task performanceExperiments(type: Test) {
     }
 }
 
+Map buildReceiptParams = [projects: 10, sourceFiles: 5, template: 'project-with-source']
+
 task largeJavaSwModelProjectWithBuildReceipts(type: JvmProjectGeneratorTask) {
-    projects = 100
-    sourceFiles = 1000
     buildReceipts = true
-    subProjectTemplates = ['project-with-source']
+    projects = buildReceiptParams.projects
+    sourceFiles = buildReceiptParams.sourceFiles
+    subProjectTemplates = [buildReceiptParams.template]
+}
+
+task largeJavaSwModelProjectWithoutBuildReceipts(type: JvmProjectGeneratorTask) {
+    buildReceipts = false
+    projects = buildReceiptParams.projects
+    sourceFiles = buildReceiptParams.sourceFiles
+    subProjectTemplates = [buildReceiptParams.template]
 }
 
 task buildReceiptPluginPerformanceTest(type: Test) {
-    dependsOn largeJavaSwModelProjectWithBuildReceipts
+    dependsOn largeJavaSwModelProjectWithBuildReceipts, largeJavaSwModelProjectWithoutBuildReceipts
     finalizedBy report
     options {
         includeCategories 'org.gradle.performance.categories.BRPPerformanceTest'
