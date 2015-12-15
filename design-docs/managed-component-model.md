@@ -448,7 +448,7 @@ This also means that all validation that currently happens in schema extraction 
   * check view types
     * view types must not have state (i.e. non-static fields)
     * internal view types must be interfaces
-    * (public) view type should not provide concrete implementations for any `Object`` (except `toString()``) or `GroovyObject`` methods or define `propertyMissing()` or `methodMissing()` methods
+    * (public) view type should not provide concrete implementations for any `Object` (except `toString()`) or `GroovyObject` methods or define `propertyMissing()` or `methodMissing()` methods
   * we collect all the methods from the public type and the internal views: these are the methods that the delegate object needs to provide; the different view proxies are going to delegate to this instance
     * we tag each method that is not abstract with `IMPLEMENTED_BY_VIEW_TYPE`
     * we try to match the rest of the methods against the methods from the default implementation (if any)   and mark them as `IMPLEMENTED_BY_DEFAULT_IMPLEMENTATION`
