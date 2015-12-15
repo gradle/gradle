@@ -50,6 +50,9 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
 
                 @Model
                 void someone(Person person, Names names) {
+                    assert person == person
+                    assert person.name == null
+
                     person.name = names.name
                 }
 
@@ -296,6 +299,46 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
 
         and:
         failure.assertHasCause("Invalid managed model type Person: only paired getter/setter methods are supported (invalid methods: void Person#foo())")
+    }
+
+    def "two views of the same element are equal"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Address {
+                String getCity()
+                void setCity(String name)
+            }
+
+            @Managed
+            interface Person {
+                String getName()
+                void setName(String name)
+                Address getAddress()
+                Address getPostalAddress()
+                void setPostalAddress(Address a)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void someone(Person person) {
+                    person.postalAddress = person.address
+                }
+
+                @Mutate
+                void tasks(ModelMap<Task> tasks, Person p1, Person p2) {
+                    assert p1 == p2
+                    assert p1.address == p2.address
+                    assert p1.postalAddress == p2.postalAddress
+                    assert p1.postalAddress == p1.address
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "help"
     }
 
     def "reports managed interface type in missing property error message"() {

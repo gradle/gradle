@@ -162,44 +162,38 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         !impl.equals(1)
     }
 
-    def "Two views are equal when they are backed by the same node"() {
-        def node1 = Mock(MutableModelNode)
-        def node2 = Mock(MutableModelNode)
-        def state1 = Mock(ModelElementState) {
-            getBackingNode() >> node1
-        }
-        def state1alternative = Mock(ModelElementState) {
-            getBackingNode() >> node1
-        }
-        def state2 = Mock(ModelElementState) {
-            getBackingNode() >> node2
-        }
+    def "Two node backed views are equal when their state objects are equal"() {
+        def state1 = Mock(ModelElementState)
+        def state2 = Mock(ModelElementState)
 
         when:
         Class<? extends SomeType> proxyClass = generate(SomeType)
-        SomeType impl1 = proxyClass.newInstance(state1, typeConverter)
-        SomeType impl1alternative = proxyClass.newInstance(state1alternative, typeConverter)
-        SomeType impl2 = proxyClass.newInstance(state2, typeConverter)
+        def impl1 = proxyClass.newInstance(state1, typeConverter)
+        def sameState = proxyClass.newInstance(state1, typeConverter)
+        def sameStateDifferentType = generate(SomeTypeWithReadOnly).newInstance(state1, typeConverter)
+        def impl2 = proxyClass.newInstance(state2, typeConverter)
 
         then:
-        Matchers.strictlyEquals(impl1, impl1alternative)
+        Matchers.strictlyEquals(impl1, sameState)
+        Matchers.strictlyEquals(impl1, sameStateDifferentType)
         !impl1.equals(impl2)
     }
 
-    def "hashCode() works as expected"() {
-        def node = Mock(MutableModelNode)
-        def state = Mock(ModelElementState) {
-            getBackingNode() >> node
-        }
+    def "Two views are equal when their state objects are equal"() {
+        def state1 = Mock(GeneratedViewState)
+        def state2 = Mock(GeneratedViewState)
 
         when:
-        Class<? extends SomeType> proxyClass = generate(SomeType)
-        SomeType impl = proxyClass.newInstance(state, typeConverter)
-        def hashCode = impl.hashCode()
+        Class<? extends SomeType> proxyClass = generateSimpleView(SomeType)
+        def impl1 = proxyClass.newInstance(state1, typeConverter)
+        def sameState = proxyClass.newInstance(state1, typeConverter)
+        def sameStateDifferentType = generateSimpleView(SomeTypeWithReadOnly).newInstance(state1, typeConverter)
+        def impl2 = proxyClass.newInstance(state2, typeConverter)
 
         then:
-        hashCode == 123
-        1 * node.hashCode() >> 123
+        Matchers.strictlyEquals(impl1, sameState)
+        Matchers.strictlyEquals(impl1, sameStateDifferentType)
+        !impl1.equals(impl2)
     }
 
     @Unroll

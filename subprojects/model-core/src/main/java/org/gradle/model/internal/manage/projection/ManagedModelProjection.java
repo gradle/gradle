@@ -92,6 +92,24 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     return String.format("%s '%s'", getType(), modelNode.getPath().toString());
                 }
 
+                @Override
+                public boolean equals(Object obj) {
+                    if (obj == this) {
+                        return true;
+                    }
+                    if (obj == null || obj.getClass() != getClass()) {
+                        return false;
+                    }
+
+                    State other = Cast.uncheckedCast(obj);
+                    return modelNode == other.getBackingNode();
+                }
+
+                @Override
+                public int hashCode() {
+                    return modelNode.hashCode();
+                }
+
                 public Object get(String name) {
                     if (propertyViews.containsKey(name)) {
                         return propertyViews.get(name);

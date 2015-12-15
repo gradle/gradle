@@ -58,6 +58,44 @@ class RuleSourceAppliedAsProjectPluginIntegrationTest extends AbstractIntegratio
         output.contains "value: [foo]"
     }
 
+    def "plugin RuleSource can be abstract"() {
+        buildFile << '''
+@Managed
+interface Thing {
+    String getName()
+    void setName(String name)
+}
+
+abstract class MyPlugin extends RuleSource {
+    @Model
+    void p1(Thing t) {
+        println "creating " + t + " from " + toString()
+        assert this == this
+        t.name = 'name'
+    }
+}
+
+apply plugin: MyPlugin
+
+model {
+    tasks {
+        show(Task) {
+            doLast {
+                println "p1 = " + $.p1.name
+            }
+        }
+    }
+}
+'''
+
+        when:
+        run 'show'
+
+        then:
+        output.contains("creating Thing 'p1' from rule source MyPlugin")
+        output.contains("p1 = name")
+    }
+
     def "configuration in script is not executed if not needed"() {
         given:
         buildScript '''

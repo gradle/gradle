@@ -16,6 +16,11 @@
 
 package org.gradle.model.internal.manage.instance;
 
+/**
+ * The backing state for a generated view.
+ *
+ * Implementations should provide an equals() and hashCode() method.
+ */
 public interface GeneratedViewState {
     /**
      * Returns a display name to use for the view, eg as its toString() value or in error messages.

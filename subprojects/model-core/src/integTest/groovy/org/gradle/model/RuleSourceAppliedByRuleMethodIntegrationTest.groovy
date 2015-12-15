@@ -157,6 +157,8 @@ class MyPlugin extends RuleSource {
 
     @Rules
     void rules(CalculateName rules, Thing t) {
+        println "applying " + rules + " to " + t
+        assert rules == rules
     }
 }
 
@@ -186,6 +188,7 @@ model {
         run 'show'
 
         then:
+        output.contains("applying rule source CalculateName to Thing 'p1'")
         output.contains("applying defaults from rule source CalculateName")
         output.contains("p1 = default")
     }

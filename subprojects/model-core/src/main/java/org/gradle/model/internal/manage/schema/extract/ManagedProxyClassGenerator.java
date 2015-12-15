@@ -58,19 +58,20 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private static final Type CLASS_TYPE = Type.getType(Class.class);
     private static final Type CLOSURE_TYPE = Type.getType(Closure.class);
     private static final Type TYPE_CONVERTER_TYPE = Type.getType(TypeConverter.class);
-    private static final Type MODELTYPE_TYPE = Type.getType(ModelType.class);
+    private static final Type MODEL_TYPE_TYPE = Type.getType(ModelType.class);
     private static final Type GENERATED_VIEW_STATE_TYPE = Type.getType(GeneratedViewState.class);
     private static final Type MODEL_ELEMENT_STATE_TYPE = Type.getType(ModelElementState.class);
+    private static final Type GENERATED_VIEW_TYPE = Type.getType(GeneratedView.class);
+    private static final String GET_VIEW_STATE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(GENERATED_VIEW_STATE_TYPE);
     private static final String STATE_SET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE);
     private static final String STATE_GET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
     private static final String STATE_APPLY_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, CLOSURE_TYPE);
     private static final String MANAGED_INSTANCE_TYPE = Type.getInternalName(ManagedInstance.class);
     private static final String TO_STRING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(STRING_TYPE);
-    private static final String MUTABLE_MODEL_NODE_TYPE = Type.getInternalName(MutableModelNode.class);
     private static final String GET_BACKING_NODE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(MutableModelNode.class));
-    private static final String MODELTYPE_INTERNAL_NAME = MODELTYPE_TYPE.getInternalName();
-    private static final String MODELTYPE_OF_METHOD_DESCRIPTOR = Type.getMethodDescriptor(MODELTYPE_TYPE, CLASS_TYPE);
-    private static final String GET_MANAGED_TYPE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(MODELTYPE_TYPE);
+    private static final String MODEL_TYPE_INTERNAL_NAME = MODEL_TYPE_TYPE.getInternalName();
+    private static final String MODEL_TYPE_OF_METHOD_DESCRIPTOR = Type.getMethodDescriptor(MODEL_TYPE_TYPE, CLASS_TYPE);
+    private static final String GET_MANAGED_TYPE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(MODEL_TYPE_TYPE);
     private static final String GET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
     private static final String MISSING_PROPERTY_EXCEPTION_TYPE = Type.getInternalName(MissingPropertyException.class);
     private static final String CLASS_INTERNAL_NAME = Type.getInternalName(Class.class);
@@ -141,6 +142,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         final ImmutableSet.Builder<String> interfacesToImplement = ImmutableSet.builder();
         final ImmutableSet.Builder<Class<?>> typesToDelegate = ImmutableSet.builder();
         typesToDelegate.add(viewClass);
+        interfacesToImplement.add(GENERATED_VIEW_TYPE.getInternalName());
         if (backingStateType == ModelElementState.class) {
             interfacesToImplement.add(MANAGED_INSTANCE_TYPE);
         }
@@ -193,7 +195,10 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         writeStaticConstructor(visitor, generatedType, viewClass);
         writeConstructor(visitor, generatedType, superclassType, delegateSchema, Type.getType(backingStateType));
         writeToString(visitor, generatedType, viewClass, delegateSchema);
-        writeManagedInstanceMethods(visitor, generatedType);
+        writeGeneratedViewMethods(visitor, generatedType);
+        if (backingStateType == ModelElementState.class) {
+            writeManagedInstanceMethods(visitor, generatedType);
+        }
         if (delegateSchema != null) {
             declareDelegateField(visitor, delegateSchema);
             writeDelegateMethods(visitor, generatedType, delegateSchema, typesToDelegate);
@@ -268,7 +273,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private void writeManagedTypeStaticField(Type generatedType, Class<?> managedTypeClass, MethodVisitor constructorVisitor) {
         constructorVisitor.visitLdcInsn(Type.getType(managedTypeClass));
-        constructorVisitor.visitMethodInsn(INVOKESTATIC, MODELTYPE_INTERNAL_NAME, "of", MODELTYPE_OF_METHOD_DESCRIPTOR, false);
+        constructorVisitor.visitMethodInsn(INVOKESTATIC, MODEL_TYPE_INTERNAL_NAME, "of", MODEL_TYPE_OF_METHOD_DESCRIPTOR, false);
         constructorVisitor.visitFieldInsn(PUTSTATIC, generatedType.getInternalName(), MANAGED_TYPE_FIELD_NAME, Type.getDescriptor(ModelType.class));
     }
 
@@ -352,6 +357,12 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private void putClassOnStack(MethodVisitor methodVisitor, Class<?> managedTypeClass) {
         putConstantOnStack(methodVisitor, managedTypeClass.getName());
         methodVisitor.visitMethodInsn(INVOKESTATIC, CLASS_INTERNAL_NAME, "forName", FOR_NAME_METHOD_DESCRIPTOR, false);
+    }
+
+    private void writeGeneratedViewMethods(ClassWriter visitor, Type generatedType) {
+        MethodVisitor methodVisitor = declareMethod(visitor, "__view_state__", GET_VIEW_STATE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, ACC_PUBLIC | ACC_SYNTHETIC);
+        putStateFieldValueOnStack(methodVisitor, generatedType);
+        finishVisitingMethod(methodVisitor, ARETURN);
     }
 
     private void writeManagedInstanceMethods(ClassVisitor visitor, Type generatedType) {
@@ -557,36 +568,39 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private void writeHashCodeMethod(ClassVisitor visitor, Type generatedType) {
         MethodVisitor methodVisitor = declareMethod(visitor, "hashCode", HASH_CODE_METHOD_DESCRIPTOR, null);
-        methodVisitor.visitVarInsn(ALOAD, 0);
-        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, false);
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MUTABLE_MODEL_NODE_TYPE, "hashCode", HASH_CODE_METHOD_DESCRIPTOR, true);
-        methodVisitor.visitInsn(IRETURN);
+        putStateFieldValueOnStack(methodVisitor, generatedType);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, GENERATED_VIEW_STATE_TYPE.getInternalName(), "hashCode", HASH_CODE_METHOD_DESCRIPTOR, true);
         finishVisitingMethod(methodVisitor, Opcodes.IRETURN);
     }
 
     private void writeEqualsMethod(ClassVisitor cw, Type generatedType) {
         MethodVisitor methodVisitor = cw.visitMethod(Opcodes.ACC_PUBLIC, "equals", EQUALS_METHOD_DESCRIPTOR, null, null);
         methodVisitor.visitCode();
+
+        // if (arg == this) { return true; }
         methodVisitor.visitVarInsn(ALOAD, 0);
         methodVisitor.visitVarInsn(ALOAD, 1);
         Label notSameLabel = new Label();
         methodVisitor.visitJumpInsn(IF_ACMPNE, notSameLabel);
         methodVisitor.visitInsn(ICONST_1);
         methodVisitor.visitInsn(IRETURN);
+
+        // if (!(age instanceof GeneratedView)) { return false; }
         methodVisitor.visitLabel(notSameLabel);
         methodVisitor.visitVarInsn(ALOAD, 1);
-        methodVisitor.visitTypeInsn(INSTANCEOF, MANAGED_INSTANCE_TYPE);
-        Label notManagedInstanceLabel = new Label();
-        methodVisitor.visitJumpInsn(IFNE, notManagedInstanceLabel);
+        methodVisitor.visitTypeInsn(INSTANCEOF, GENERATED_VIEW_TYPE.getInternalName());
+        Label generatedViewLabel = new Label();
+        methodVisitor.visitJumpInsn(IFNE, generatedViewLabel);
         methodVisitor.visitInsn(ICONST_0);
         methodVisitor.visitInsn(IRETURN);
-        methodVisitor.visitLabel(notManagedInstanceLabel);
-        methodVisitor.visitVarInsn(ALOAD, 0);
-        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, false);
+
+        // return state.equals(((GeneratedView)arg).__view_state());
+        methodVisitor.visitLabel(generatedViewLabel);
+        putStateFieldValueOnStack(methodVisitor, generatedType);
         methodVisitor.visitVarInsn(ALOAD, 1);
-        methodVisitor.visitTypeInsn(CHECKCAST, MANAGED_INSTANCE_TYPE);
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MANAGED_INSTANCE_TYPE, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MUTABLE_MODEL_NODE_TYPE, "equals", EQUALS_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitTypeInsn(CHECKCAST, GENERATED_VIEW_TYPE.getInternalName());
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, GENERATED_VIEW_TYPE.getInternalName(), "__view_state__", GET_VIEW_STATE_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, GENERATED_VIEW_STATE_TYPE.getInternalName(), "equals", EQUALS_METHOD_DESCRIPTOR, true);
         finishVisitingMethod(methodVisitor, Opcodes.IRETURN);
     }
 
@@ -670,7 +684,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void putManagedTypeFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType) {
-        putStaticFieldValueOnStack(methodVisitor, generatedType, MANAGED_TYPE_FIELD_NAME, MODELTYPE_TYPE);
+        putStaticFieldValueOnStack(methodVisitor, generatedType, MANAGED_TYPE_FIELD_NAME, MODEL_TYPE_TYPE);
     }
 
     private void putDelegateFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType, Type delegateType) {
@@ -846,5 +860,9 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private void invokeSuperMethod(MethodVisitor methodVisitor, Class<?> superClass, Method method) {
         putThisOnStack(methodVisitor);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(superClass), method.getName(), Type.getMethodDescriptor(method), false);
+    }
+
+    public interface GeneratedView {
+        GeneratedViewState __view_state__();
     }
 }
