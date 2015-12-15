@@ -414,6 +414,70 @@ This should be done as core model finalization rules for Component, Binary and L
 Only extensible types (BinarySpec, ComponentSpec, LanguageSourceSet) can have internal views for now.
 Once any type can have internal views, another story will be needed to assert that the implementation of this very story for extensible types works for any types.
 
+## Allow managed types to extend non-managed interfaces
+
+Plugin author should be able to reuse existing types (from an existing external library perhaps) as a public type or as an internal view type
+in declaring managed types.
+
+We already do most things the same way with managed and unmanaged views of an element. For example we always generate a proxy. It makes sense
+to make a further step, and merge managed and unmanaged structs together. The idea is basically to drop `@Managed` as a concept, and simply check
+if all methods declared by the public type and internal views can be implemented either by:
+
+* a concrete implementation on the public type (internal views are required to be interfaces, so no implementation is possible there)
+* the default implementation
+* as a managed property
+
+This also means that all validation that currently happens in schema extraction will be pushed to when the `InstanceFactory` is being validated, or when
+`@Model` triggers an instance of a type to be created in a managed fashion.
+
+### Implementation
+
+* Deprecate `@Managed` annotation
+
+* **Struct schema extraction**—instead of a separate managed/unmanaged version, we only have one `StructSchema`. The schema extraction is lenient (i.e. it does not report any errors), as we need to extract schemas from types that will never be used to instantiate model elements, and we must allow "errors" to be present there (think of `ClassLoader.getResource(URL)`). All validation happening in schema extraction needs to be moved to before instantiation.
+
+  * first we get the methods from the type as usual, indexed into a `Multimap` by signature with all their overrides (the overrides are only needed in order to extract annotations defined in super-types)
+  * we try to find methods that belong to a property (`getX()`, `isX()`, `setX()`) and index them by property name; we leave all methods we cannot identify as belonging to a property in an "arbitrary methods" bucket.
+  * we check each property if we can actually make the methods belonging to it work as a property (i.e. check if they getter returns a type that's compatible with the setter etc.)—if we _can_ make it a property, we create a `ModelViewProperty` out of it; otherwise we put the methods back into "arbitrary methods".
+  * we extract aspects from the properties we could make sense of in the usual way.
+
+* **Type registration** happens as it does now, supplying a public type, some internal view types, and a default implementation.
+
+* **InstanceFactory validation** actually builds each public type registration into an immutable `ExtensibleTypeRegistration` object that we store indexed by public type.
+
+  * we collect all the methods from the public type and the internal views: these are the methods that the delegate object needs to provide; the different view proxies are going to delegate to this instance
+    * we tag each method that is not abstract with `IMPLEMENTED_BY_VIEW_TYPE`
+    * we try to match the rest of the methods against the methods from the default implementation (if any)   and mark them as `IMPLEMENTED_BY_DEFAULT_IMPLEMENTATION`
+    * the rest of the methods remain tagged as `GENERATED`
+  * we repeat the same process with the methods as we did for the schema, and group the methods belonging to potential managed properties; we leave all other methods in an "arbitrary methods" bucket.
+  However, if there is a method that does not make sense as a property accessor (e.g. `getX(int)`), or if the property itself does not make sense (incompatible type derived from getter and setter), we fail.
+  * depending on the methods collected for each potential managed property:
+    * if all methods are implemented (either by the public type or the default implementation), we throw that property away (we won't need to add a child node for it)
+    * if all methods are abstract, we run the usual validation required for managed properties, and store a `ManagedProperty` instance with the data about the property (we will create a child node for this property); we also record if the getter was annotated with `@Unmanaged`.
+    * if some of the methods are abstract, while others have implementations, we fail
+  * if there are any methods left in the "arbitrary methods" bucket without an implementation, we fail
+  * we store the information about the `ManagedProperty`'s and the "arbitrary methods" in the `ExtensibleTypeRegistration` object in the `InstanceFactory`, indexed by public type
+
+For non-extensible types that are instantiated via `@Model`, follow the same validation steps, but only based on a public type (there's no internal views, and no default implementation). This should happen in the `@Model` rule extractor.
+
+* **Node initialization** happens similar to how it does now with some changes:
+
+  * the `ExtensibleNodeInitializer` keeps a reference to the `ExtensibleTypeRegistration`
+  * during the discovery of the node (`Discover`), projections are created based on the type registration
+
+* **Viewing the node**
+
+  * the proxy generator takes the schema of the requested view and the `ExtensibleTypeRegistration` (both received from the `StructProjection`)
+  * it generates each method found in the view schema based on the type registration; it either
+    * delegates to the implementation in the view type (only allowed for the public type now)
+    * delegates to the default implementation
+    * delegates to a managed property
+  * the logic in the proxy generator is reduced, as there are no decisions to make there (and hence no chance of illegal states to arise)
+
+### Test cases
+
+* all current test cases for managed and unmanaged type validation and instantiation should keep working, but without `@Managed` being specified
+* using `@Managed` on a type shows a deprecation warning
 
 # Feature 6: Managed Model usability
 
