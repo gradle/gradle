@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class PatternSpecFactory {
+    public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
 
     public Spec<FileTreeElement> createSpec(PatternSet patternSet) {
         return Specs.and(createIncludeSpec(patternSet), Specs.not(createExcludeSpec(patternSet)));
