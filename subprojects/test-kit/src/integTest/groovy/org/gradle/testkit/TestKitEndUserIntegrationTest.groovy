@@ -851,6 +851,25 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         killDaemons()
     }
 
+    def "successfully execute functional test if Tooling API JAR is added to the test classpath ordered before the TestKit JAR"() {
+        buildFile << """
+            dependencies {
+                testCompile files(gradleApi().resolve() + gradleTestKit().resolve())
+            }
+        """
+        writeTest successfulSpockTest('BuildLogicFunctionalTest')
+
+        when:
+        succeeds('build')
+
+        then:
+        executedAndNotSkipped(':test')
+        assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
+    }
+
     private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
         File daemonBaseDir = new File(new TempTestKitDirProvider().getDir(), 'daemon')
         DaemonLogsAnalyzer.newAnalyzer(daemonBaseDir, executer.distribution.version.version)
@@ -961,6 +980,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
                         .withDebug($GradleRunnerIntegTestRunner.debug)
+                        .forwardOutput()
                         .build()
 
                     then:
