@@ -45,6 +45,7 @@ For example, application A and library B might normally be built separately, as 
     - Is the separate `GradleWorkspaceBuilder` helpful?
 - `EclipseWorkspace` represents the set of projects that are open in Eclipse: this is the only model that can currently be requested for a `GradleWorkspace`
 
+```java
 
     interface GradleWorkspaceBuilder {
         /**
@@ -91,7 +92,7 @@ For example, application A and library B might normally be built separately, as 
             return ConnectorServices.createGradleWorkspace();
         }
     }
-
+```
 
 ##### Test cases
 
