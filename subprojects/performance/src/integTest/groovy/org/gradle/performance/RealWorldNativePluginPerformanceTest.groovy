@@ -30,9 +30,9 @@ import spock.lang.Unroll
 import static org.gradle.performance.measure.Duration.millis
 
 @Category(NativePerformanceTest)
-class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' measuring incremental build speed")
-    def "build monolithic native project"() {
+    def "build real world native project"() {
         given:
         runner.testId = "build monolithic native project $testProject" + (parallelWorkers ? " (parallel)" : "")
         runner.testProject = testProject
