@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.jvm.internal.JvmAssembly;
+import org.gradle.jvm.internal.JvmBinarySpecInternal;
 import org.gradle.jvm.internal.WithDependencies;
 import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.platform.JavaPlatform;
@@ -60,6 +61,9 @@ public class JUnitTestSuitePlugin extends RuleSource {
         @BinaryType
         public void registerJUnitBinary(BinaryTypeBuilder<JUnitTestSuiteBinarySpec> builder) {
             builder.defaultImplementation(DefaultJUnitTestSuiteBinarySpec.class);
+            // TODO: LPTR the internal view should NOT have to be declared here, but on the JVM binary instead.
+            // This is going to be fixed in a different story.
+            builder.internalView(JvmBinarySpecInternal.class);
         }
 
         @BinaryTasks

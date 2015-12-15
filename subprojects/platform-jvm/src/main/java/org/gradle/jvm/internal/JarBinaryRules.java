@@ -17,14 +17,12 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.api.Action;
-import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
 
@@ -32,10 +30,10 @@ import java.io.File;
 public class JarBinaryRules extends RuleSource {
     @Defaults
     void configureJarBinaries(final ComponentSpec jvmLibrary, final ProjectLayout projectLayout, final JavaToolChainRegistry toolChains) {
-        jvmLibrary.getBinaries().withType(JvmBinarySpec.class).beforeEach(new Action<JvmBinarySpec>() {
+        jvmLibrary.getBinaries().withType(JvmBinarySpecInternal.class).beforeEach(new Action<JvmBinarySpecInternal>() {
             @Override
-            public void execute(JvmBinarySpec jvmBinary) {
-                BinaryNamingScheme namingScheme = ((BinarySpecInternal) jvmBinary).getNamingScheme();
+            public void execute(JvmBinarySpecInternal jvmBinary) {
+                BinaryNamingScheme namingScheme = jvmBinary.getNamingScheme();
                 jvmBinary.setClassesDir(namingScheme.getOutputDirectory(projectLayout.getBuildDir(), "classes"));
                 jvmBinary.setResourcesDir(namingScheme.getOutputDirectory(projectLayout.getBuildDir(), "resources"));
             }
