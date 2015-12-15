@@ -56,12 +56,12 @@ For example, application A and library B might normally be built separately, as 
         /**
          * Remove all projects in the build from this workspace.
          */
-        GradleWorkspaceBuilder removeProjects(GradleBuild build)
+        GradleWorkspaceBuilder removeProjects(GradleBuild build);
 
         /**
          * Builds a workspace containing the configured builds.
          */
-        GradleWorkspace build()
+        GradleWorkspace build();
     }
 
     interface GradleWorkspace {
@@ -78,13 +78,13 @@ For example, application A and library B might normally be built separately, as 
         /**
          * The root project of each Gradle build that is included in this workspace.
          */
-        Set<HierarchicalEclipseProject> getRootProjects();
+        <T extends HierarchicalEclipseProject> Set<T> getRootProjects(Class<T> type);
 
         /**
          * A flattened set of all projects in the Eclipse workspace.
          * Note that not all projects necessarily share the same root
          */
-        Set<HierarchicalEclipseProject> getAllProjects();
+        <T extends HierarchicalEclipseProject> Set<T> getAllProjects(Class<T> type);
     }
 
     public abstract class GradleConnector {
@@ -138,10 +138,32 @@ should be rendered in Eclipse's project view section.
 If any of the module dependencies matches on the coordinates of one of the selected projects, they'll be able to form
  a workspace. Buildship will treat the matching projects as source dependencies instead of binary dependencies.
 
-
 ### Story - Buildship uses Gradle workspace to query EclipseProject model for all imported Gradle builds.
 
 Once the `GradleWorkspace` API is available, Buildship should be updated to use this for constructing the `EclipseProject` model for all imported Gradle projects. When multiple gradle projects are imported and configured via the `GradleWorkspace`, Buildship will get the advantages of project name deduplication as well as dependency substitution.
+
+##### API Usage
+
+```
+    // Create a project connection and get the `GradleBuild` instance for each imported Gradle project
+    ProjectConnection connection1 = GradleConnector.newConnector().forProjectDirectory(new File("project1")).connect();
+    GradleBuild build1 = connection1.getModel(GradleBuild.class);
+    ProjectConnection connection2 = GradleConnector.newConnector().forProjectDirectory(new File("project2")).connect();
+    GradleBuild build2 = connection2.getModel(GradleBuild.class);
+
+    // Construct a `GradleWorkspace` for all imported Gradle projects, and get the `EclipseWorkspace` model for this
+    GradleWorkspace gradleWorkspace = GradleConnector.newWorkspaceBuilder().addProjects(build1).addProjects(build2).build()
+    EclipseWorkspace eclipseWorkspace = gradleWorkspace.model(EclipseWorkspace.class)
+
+    // Iterate over all of the `EclipseProject` instances and configure the Eclipse projects accordingly
+    for (EclipseProject project  : eclipseWorkspace.getAllProjects(EclipseProject.class)) {
+
+        // These 2 dependency sets already have the correct dependency substitution in place
+        Set<EclipseProjectDependency> projectDependencies = project.getProjectDependencies();
+        Set<ExternalDependency> externalDependencies = project.getClasspath();
+    }
+    
+```
 
 ##### Test cases
 
