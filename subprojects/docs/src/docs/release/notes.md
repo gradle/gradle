@@ -68,6 +68,12 @@ build script on project or external module dependencies will be included in the 
 
 This feature was contributed by [Eike Kohnert](https://github.com/andrena-eike-kohnert).
 
+### Tooling API exposes source language level on IdeaProject model
+
+The `IdeaProject` model now exposes the Java source language level via the
+<a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
+IDE providers use this method to automatically determine the source language level.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -117,12 +123,6 @@ To tweak the name of the Java runtime to use, the name can be configured via
             javaRuntimeName = "JavaSE-1.8"
         }
     }
-
-### Tooling API exposes source language level on IdeaProject model
-
-The `IdeaProject` model now exposes the Java source language level via the
-<a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-IDE providers use this method to automatically determine the source language level.
 
 ## External contributions
 
