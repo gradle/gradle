@@ -451,7 +451,7 @@
         </note>
         <section>
             <title>Standalone JUnit test suites</title>
-            <para>The Java software model supports defining standalone JUnit test suites as components of the model. Standalone test suite are components that are self contained, in the sense that there is no component under test: everything being tests must belong to the test suite sources.</para>
+            <para>The Java software model supports defining standalone JUnit test suites as components of the model. Standalone test suite are components that are self contained, in the sense that there is no component under test: everything being tested must belong to the test suite sources.</para>
             <para>A test suite is declared by creating a component of type <apilink class="org.gradle.jvm.test.JUnitTestSuiteSpec"/>, which is available when you apply the <literal>junit-test-suite</literal> plugin:</para>
             <sample id="testing-junit-standalone" dir="javaLibraryPlugin/testing-junit-standalone" title="Using the JUnit plugin">
                 <sourcefile file="build.gradle" snippet="use-plugin"/>
