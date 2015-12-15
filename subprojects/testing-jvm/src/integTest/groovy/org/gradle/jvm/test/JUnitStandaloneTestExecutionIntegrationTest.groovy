@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.hamcrest.Matchers
 import spock.lang.Unroll
 
-class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
+class JUnitStandaloneTestExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "should apply junit plugin using explicit class reference"() {
         given:
