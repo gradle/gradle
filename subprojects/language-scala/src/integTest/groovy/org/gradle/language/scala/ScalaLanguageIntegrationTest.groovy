@@ -16,10 +16,14 @@
 
 package org.gradle.language.scala
 
+import groovy.transform.NotYetImplemented
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
 import org.gradle.language.scala.fixtures.BadScalaLibrary
 import org.gradle.language.scala.fixtures.TestScalaComponent
+import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 class ScalaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     TestJvmComponent app = new TestScalaComponent()
@@ -44,5 +48,62 @@ class ScalaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         badApp.compilerErrors.each {
             assert errorOutput.contains(it)
         }
+    }
+
+    @Issue("GRADLE-3371")
+    @Issue("GRADLE-3370")
+    @NotYetImplemented
+    @IgnoreIf({GradleContextualExecuter.parallel}) // this test is always parallel
+    def "multi-project build is multi-process safe"() {
+        given:
+        def projects = (1..4)
+        projects.each {
+            def projectName = "project$it"
+            def projectDir = testDirectory.file(projectName)
+            def buildFile = projectDir.file("build.gradle")
+            def srcDir = projectDir.file("src/main/scala/org/${projectName}")
+            def sourceFile = srcDir.file("Main.scala")
+            srcDir.mkdirs()
+            buildFile << """
+    plugins {
+        id 'jvm-component'
+        id 'scala-lang'
+    }
+    repositories{
+        mavenCentral()
+    }
+    model {
+        components {
+            main(JvmLibrarySpec)
+        }
+    }
+"""
+            sourceFile << """
+package org.${projectName};
+object Main {}
+"""
+            settingsFile << """
+    include '$projectName'
+"""
+        }
+        buildFile.text = """
+def startBuild = new java.util.concurrent.CountDownLatch(${projects.size()})
+allprojects {
+    tasks.withType(PlatformScalaCompile) {
+        doFirst {
+            logger.lifecycle "\$name is waiting for the compile tasks"
+            startBuild.countDown()
+            startBuild.await()
+        }
+        options.forkOptions.jvmArgs += '-Dzinc.dir=${testDirectory}/.zinc'
+    }
+}
+"""
+        executer.withArgument("--parallel")
+        executer.withArgument("--max-workers=${projects.size()}")
+        when:
+        succeeds("build")
+        then:
+        noExceptionThrown()
     }
 }
