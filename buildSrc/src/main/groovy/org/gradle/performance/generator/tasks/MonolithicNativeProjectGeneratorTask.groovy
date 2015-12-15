@@ -18,6 +18,22 @@ package org.gradle.performance.generator.tasks
 
 import org.gradle.performance.generator.*
 
+/**
+ * Generates native projects with prebuilt library dependencies, using a non-standard layout
+ * and with intentionally unused source files in each source set. It currently uses a single
+ * component per project so we can use parallel project execution. Generates headers, C and C++
+ * files.
+ *
+ * "monolithic" here means the project follows a monorepo layout. If we used intra-parallel
+ * execution, this might be built as a single project with many components instead.
+ *
+ * The project also allows for "overlapping" inputs where the build output and source files are
+ * arranged in a way to force the project to include the root directory as an input.
+ *
+ * We may also eventually include overlapping source directories, where a single directory is used
+ * to build multiple components where none/some/a lot of the source files are shared between components
+ * in a way that doesn't allow us to reuse the compilation steps (we don't do this now).
+ */
 class MonolithicNativeProjectGeneratorTask extends ProjectGeneratorTask {
 
     def generateRootProject() {
