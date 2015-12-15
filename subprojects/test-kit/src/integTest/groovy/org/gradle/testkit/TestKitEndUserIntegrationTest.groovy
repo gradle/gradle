@@ -980,7 +980,6 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
                         .withDebug($GradleRunnerIntegTestRunner.debug)
-                        .forwardOutput()
                         .build()
 
                     then:
