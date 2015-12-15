@@ -10,7 +10,7 @@ The defined stories introduce the concept of a ‘Gradle workspace’ to the too
 
 A tooling API client will be able to define a workspace and query it in the same way that a `ProjectConnection` can be queried. While the projects contained in a workspace may come from separate Gradle builds, the workspace will present as if it were a single, unified Gradle build containing all the projects in the workspace.
 
-This will provide the developer with a view of all the projects in the workspace, so that the developer search or usages or make changes to any of these projects. When the developer compiles or runs tests from withing the IDE, these changes will be picked up for any dependent project. However, IDE actions that delegate to Gradle will not operate on a composite build, since these actions are not (yet) workspace-aware.
+This will provide the developer with a view of all the projects in the workspace, so that the developer searches or uses or makes changes to any of these projects. When the developer compiles or runs tests from withing the IDE, these changes will be picked up for any dependent project. However, IDE actions that delegate to Gradle will not operate on a composite build, since these actions are not (yet) workspace-aware.
 
 Out-of-scope for this feature would be the ability to run builds using the workspace definition from the IDE or from the command-line. This would be an additional feature.
 
@@ -81,15 +81,15 @@ For example, application A and library B might normally be built separately, as 
         Set<HierarchicalEclipseProject> getRootProjects();
 
         /**
-         * A Flattened set of all projects in the Eclipse workspace.
+         * A flattened set of all projects in the Eclipse workspace.
          * Note that not all projects necessarily share the same root
          */
         Set<HierarchicalEclipseProject> getAllProjects();
     }
 
     public abstract class GradleConnector {
-        public static GradleWorkspace newWorkspaceBuilder() {
-            return ConnectorServices.createGradleWorkspace();
+        public static GradleWorkspaceBuilder newWorkspaceBuilder() {
+            return ConnectorServices.createGradleWorkspaceBuilder();
         }
     }
 ```
@@ -109,7 +109,7 @@ For example, application A and library B might normally be built separately, as 
 
 ##### Open issues
 
-- The `HierarchicalEclipseProject` api will become difficult to fulfil when we have selective removal of gradle projects from the hierarchy.
+- The `HierarchicalEclipseProject` api will become difficult to fulfill when we have selective removal of gradle projects from the hierarchy.
 - Should be able to query an `IdeaProject` from a `GradleWorkspace`.
 
 ### Story - Eclipse model for a workspace does not include duplicate project names
