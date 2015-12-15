@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.model.idea;
 
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.HasGradleProject;
-import org.gradle.tooling.model.HierarchicalElement;
+import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
+import org.gradle.tooling.model.*;
 import org.gradle.tooling.model.java.JavaSourceAware;
 
 /**
@@ -31,9 +30,11 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject, JavaS
 
     /**
      * {@inheritDoc}
+     * @throws UnsupportedMethodException For Gradle versions older than 2.11, where this method is not supported.
      * @since 2.11
      */
-    IdeaModuleJavaSourceSettings getJavaSourceSettings();
+    @Nullable @Incubating
+    IdeaModuleJavaSourceSettings getJavaSourceSettings() throws UnsupportedMethodException;
 
     /**
      * All content roots. Most idea modules have a single content root.

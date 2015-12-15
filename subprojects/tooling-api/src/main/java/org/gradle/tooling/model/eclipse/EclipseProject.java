@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.tooling.model.eclipse;
+
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.tooling.model.*;
@@ -39,9 +40,10 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
 
     /**
      * {@inheritDoc}
+     * @throws UnsupportedMethodException For Gradle versions older than 2.10, where this method is not supported.
      */
-    @Nullable
-    EclipseJavaSourceSettings getJavaSourceSettings();
+    @Nullable @Incubating
+    EclipseJavaSourceSettings getJavaSourceSettings() throws UnsupportedMethodException;
 
     /**
      * The gradle project that is associated with this project.

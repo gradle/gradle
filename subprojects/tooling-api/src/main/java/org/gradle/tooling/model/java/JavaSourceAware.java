@@ -32,7 +32,7 @@ public interface JavaSourceAware {
      * Returns the settings for Java sources or {@code null} if not a Java element.
      *
      * @return The source settings.
-     * @throws UnsupportedMethodException For Gradle versions older than 2.10, where this method is not supported.
+     * @throws UnsupportedMethodException For Gradle versions where this method is not supported.
      */
     @Nullable
     JavaSourceSettings getJavaSourceSettings() throws UnsupportedMethodException;

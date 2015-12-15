@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.model.idea;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.java.JavaSourceAware;
@@ -31,6 +32,7 @@ public interface IdeaProject extends HierarchicalElement, JavaSourceAware {
      * {@inheritDoc}
      * @since 2.11
      */
+    @Incubating
     IdeaProjectJavaSourceSettings getJavaSourceSettings();
 
     /**

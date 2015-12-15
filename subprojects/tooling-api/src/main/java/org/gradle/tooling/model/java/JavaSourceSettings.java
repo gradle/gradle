@@ -18,6 +18,7 @@ package org.gradle.tooling.model.java;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
 /**
  * Describes Java source settings.
@@ -38,13 +39,17 @@ public interface JavaSourceSettings {
      * Returns the target bytecode level.
      *
      * @return The target bytecode language level. Never returns {@code null}.
+     * @throws UnsupportedMethodException For Gradle versions older than 2.11, where this method is not supported.
+     * @since 2.11
      */
-    JavaVersion getTargetBytecodeLevel();
+    JavaVersion getTargetBytecodeLevel() throws UnsupportedMethodException;
 
     /**
      * Returns the target java runtime.
      *
      * @return The target java runtime. Never returns {@code null}.
+     * @throws UnsupportedMethodException For Gradle versions older than 2.11, where this method is not supported.
+     * @since 2.11
      */
-    JavaRuntime getTargetRuntime();
+    JavaRuntime getTargetRuntime() throws UnsupportedMethodException;
 }
