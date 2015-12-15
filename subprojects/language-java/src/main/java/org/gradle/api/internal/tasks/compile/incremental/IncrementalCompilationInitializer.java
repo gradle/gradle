@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 
 import java.util.Collection;
 
@@ -40,8 +41,9 @@ class IncrementalCompilationInitializer {
             return; //do nothing. No classes need recompilation.
         }
 
-        PatternSet classesToDelete = new PatternSet();
-        PatternSet sourceToCompile = new PatternSet();
+        Factory<PatternSet> patternSetFactory = fileOperations.getFileResolver().getPatternSetFactory();
+        PatternSet classesToDelete = patternSetFactory.create();
+        PatternSet sourceToCompile = patternSetFactory.create();
 
         preparePatterns(staleClasses, classesToDelete, sourceToCompile);
 

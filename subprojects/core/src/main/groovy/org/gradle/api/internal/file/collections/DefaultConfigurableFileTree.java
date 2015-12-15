@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultConfigurableFileTree extends CompositeFileTree implements ConfigurableFileTree {
-    private PatternSet patternSet = new PatternSet();
+    private PatternSet patternSet;
     private Object dir;
     private final FileResolver resolver;
     private final FileCopier fileCopier;
@@ -51,6 +51,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver, FileCopier fileCopier) {
         this.resolver = resolver;
         this.fileCopier = fileCopier;
+        patternSet = resolver.getPatternSetFactory().create();
         ConfigureUtil.configureByMap(args, this);
         buildDependency = new DefaultTaskDependency(taskResolver);
     }

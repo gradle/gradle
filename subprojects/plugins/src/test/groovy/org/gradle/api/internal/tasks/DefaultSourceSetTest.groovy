@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.Task
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.tasks.SourceSet
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
@@ -29,7 +30,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
 class DefaultSourceSetTest {
-    private final FileResolver fileResolver = [resolve: {it as File}] as FileResolver
+    private final FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
     private final TaskResolver taskResolver = [resolveTask: {name -> [getName: {name}] as Task}] as TaskResolver
 
     private DefaultSourceSet sourceSet(String name) {
@@ -130,7 +131,7 @@ class DefaultSourceSetTest {
         sourceSet.resources { srcDir 'src/resources' }
         assertThat(sourceSet.resources.srcDirs, equalTo([new File('src/resources').canonicalFile] as Set))
     }
-    
+
     @Test public void canConfigureJavaSource() {
         SourceSet sourceSet = sourceSet('main')
         sourceSet.java { srcDir 'src/java' }

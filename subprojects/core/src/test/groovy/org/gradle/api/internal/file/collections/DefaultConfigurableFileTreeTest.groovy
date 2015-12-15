@@ -19,7 +19,9 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.copy.FileCopier
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.StopExecutionException
@@ -27,10 +29,12 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.AbstractTestForPatternSet
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.WrapUtil
+import org.jmock.Expectations
 import org.jmock.integration.junit4.JUnit4Mockery
 import org.junit.Before
 import org.junit.Rule
@@ -46,9 +50,9 @@ import static org.junit.Assert.*
 class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     JUnit4Mockery context = new JUnit4GroovyMockery();
     TaskResolver taskResolverStub = context.mock(TaskResolver)
-    FileCopier fileCopier = context.mock(FileCopier)
     DefaultConfigurableFileTree fileSet
-    FileResolver fileResolverStub = [resolve: {it as File}] as FileResolver
+    FileResolver fileResolverStub = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
+    FileCopier fileCopier = new FileCopier(DirectInstantiator.INSTANCE, fileResolverStub, context.mock(FileLookup))
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     File testDir = tmpDir.testDirectory
 
@@ -107,7 +111,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
 
         fileSet.visitContents(resolveContext)
     }
-    
+
     @Test public void testCanScanForFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
@@ -295,6 +299,9 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     @Test
     public void canGetAndSetTaskDependencies() {
         FileResolver fileResolverStub = context.mock(FileResolver.class);
+        context.checking {
+            addGetPatternSetFactory(delegate, fileResolverStub)
+        }
         fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub, fileCopier)
 
         assertThat(fileSet.getBuiltBy(), isEmpty());
@@ -317,5 +324,10 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         }
 
         assertThat(fileSet.getBuildDependencies().getDependencies(null), equalTo((Set) WrapUtil.toSet(task)));
+    }
+
+    static void addGetPatternSetFactory(Expectations expectations, FileResolver resolverMock) {
+        expectations.allowing(resolverMock).getPatternSetFactory();
+        expectations.will(expectations.returnValue(TestFiles.getPatternSetFactory()));
     }
 }

@@ -28,6 +28,10 @@ import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.initialization.loadercache.*;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
+import org.gradle.api.tasks.util.internal.InternalPatternSet;
+import org.gradle.api.tasks.util.internal.PatternSpecFactory;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
@@ -35,6 +39,7 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.initialization.*;
+import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -190,12 +195,12 @@ public class GlobalScopeServices {
         );
     }
 
-    FileResolver createFileResolver(FileSystem fileSystem) {
-        return new IdentityFileResolver(fileSystem);
+    FileResolver createFileResolver(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
+        return new IdentityFileResolver(fileSystem, patternSetFactory);
     }
 
-    FileLookup createFileLookup(FileSystem fileSystem) {
-        return new DefaultFileLookup(fileSystem);
+    FileLookup createFileLookup(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
+        return new DefaultFileLookup(fileSystem, patternSetFactory);
     }
 
     ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore, ManagedProxyFactory managedProxyFactory) {
@@ -250,5 +255,18 @@ public class GlobalScopeServices {
 
     StringInterner createStringInterner() {
         return new StringInterner();
+    }
+
+    PatternSpecFactory createPatternSpecFactory() {
+        return new CachingPatternSpecFactory();
+    }
+
+    protected Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
+        return new Factory<PatternSet>() {
+            @Override
+            public PatternSet create() {
+                return new InternalPatternSet(patternSpecFactory);
+            }
+        };
     }
 }

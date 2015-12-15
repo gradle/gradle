@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -24,7 +25,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
 public class DefaultSourceSetContainerTest {
-    private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(null, null, DirectInstantiator.INSTANCE);
+    private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(TestFiles.resolver(), null, DirectInstantiator.INSTANCE);
 
     @Test
     public void createsASourceSet() {

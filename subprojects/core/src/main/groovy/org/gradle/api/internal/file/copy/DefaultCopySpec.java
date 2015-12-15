@@ -52,12 +52,13 @@ public class DefaultCopySpec implements CopySpecInternal {
     private Boolean includeEmptyDirs;
     private DuplicatesStrategy duplicatesStrategy;
 
+
     public DefaultCopySpec(FileResolver resolver, Instantiator instantiator) {
         this.fileResolver = resolver;
         this.instantiator = instantiator;
         sourcePaths = new LinkedHashSet<Object>();
         childSpecs = new ArrayList<CopySpecInternal>();
-        patternSet = new PatternSet();
+        patternSet = resolver.getPatternSetFactory().create();
         duplicatesStrategy = null;
     }
 
@@ -485,7 +486,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         public PatternSet getPatternSet() {
-            PatternSet patterns = new PatternSet();
+            PatternSet patterns = fileResolver.getPatternSetFactory().create();
             patterns.setCaseSensitive(isCaseSensitive());
             patterns.include(this.getAllIncludes());
             patterns.includeSpecs(getAllIncludeSpecs());

@@ -35,13 +35,15 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final String name;
     private final String displayName;
     private final FileResolver fileResolver;
-    private final PatternSet patterns = new PatternSet();
-    private final PatternSet filter = new PatternSet();
+    private final PatternSet patterns;
+    private final PatternSet filter;
 
     public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver) {
         this.name = name;
         this.displayName = displayName;
         this.fileResolver = fileResolver;
+        this.patterns = fileResolver.getPatternSetFactory().create();
+        this.filter = fileResolver.getPatternSetFactory().create();
     }
 
     public DefaultSourceDirectorySet(String name, FileResolver fileResolver) {
