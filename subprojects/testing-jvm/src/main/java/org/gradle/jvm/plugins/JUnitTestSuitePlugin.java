@@ -50,13 +50,7 @@ import java.util.Set;
  * @since 2.11
  */
 @Incubating
-public class JUnitTestSuitePlugin implements Plugin<Project> {
-    @Override
-    public void apply(Project target) {
-    }
-
-    @SuppressWarnings("unused")
-    static class Rules extends RuleSource {
+public class JUnitTestSuitePlugin extends RuleSource {
 
         @ComponentType
         public void register(ComponentTypeBuilder<JUnitTestSuiteSpec> builder) {
@@ -198,5 +192,5 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                 .withVariantDimension(platform, selectedPlatforms);
         }
 
-    }
+
 }
