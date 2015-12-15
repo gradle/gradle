@@ -501,7 +501,7 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
     }
 
     private enum SourceSetConfiguration {
-        NONE('no source set is declared', false, false, ' { jUnitVersion "4.12" }'),
+        NONE('no source set is declared', false, false, '{ jUnitVersion "4.12" }'),
         EXPLICIT_NO_DEPS('an explicit source set configuration is used', false, false, '''{
                         jUnitVersion '4.12'
                         sources {
@@ -528,6 +528,12 @@ class JUnitStandaloneTestExecutionTest extends AbstractIntegrationSpec {
                                     module 'org.apache.commons:commons-lang3:3.4'
                                 }
                             }
+                        }
+                    }'''),
+        SUITE_WIDE_EXTERNAL_DEP('a suite-wide dependency onto an external library', false, true, '''{
+                        jUnitVersion '4.12'
+                        dependencies {
+                            module 'org.apache.commons:commons-lang3:3.4'
                         }
                     }''')
         private final String description

@@ -17,10 +17,13 @@ package org.gradle.jvm.test.internal;
 
 import org.gradle.jvm.JvmComponentSpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
+import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.component.BaseComponentSpec;
+import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
 
 public class DefaultJUnitTestSuiteSpec extends BaseComponentSpec implements JUnitTestSuiteSpec {
     private String junitVersion;
+    private final DependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
     @Override
     public String getJUnitVersion() {
@@ -30,6 +33,11 @@ public class DefaultJUnitTestSuiteSpec extends BaseComponentSpec implements JUni
     @Override
     public void setJUnitVersion(String junitVersion) {
         this.junitVersion = junitVersion;
+    }
+
+    @Override
+    public DependencySpecContainer getDependencies() {
+        return dependencies;
     }
 
     @Override

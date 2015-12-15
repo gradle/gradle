@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.jvm.internal.JvmAssembly;
+import org.gradle.jvm.internal.WithDependencies;
 import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -133,9 +134,10 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                 @Override
                 public void execute(JUnitTestSuiteBinarySpec jUnitTestSuiteBinarySpec) {
                     final String jUnitVersion = testSuite.getJUnitVersion();
-                    ((BinarySpecInternal)jUnitTestSuiteBinarySpec).setNamingScheme(namingScheme);
+                    ((BinarySpecInternal) jUnitTestSuiteBinarySpec).setNamingScheme(namingScheme);
                     jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);
                     jUnitTestSuiteBinarySpec.setTargetPlatform(platform);
+                    ((WithDependencies) jUnitTestSuiteBinarySpec).setDependencies(testSuite.getDependencies().getDependencies());
                     testSuite.getSources().all(new Action<LanguageSourceSet>() {
                         @Override
                         public void execute(LanguageSourceSet languageSourceSet) {

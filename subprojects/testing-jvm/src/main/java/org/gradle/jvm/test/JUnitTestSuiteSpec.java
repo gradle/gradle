@@ -16,6 +16,7 @@
 package org.gradle.jvm.test;
 
 import org.gradle.api.Incubating;
+import org.gradle.platform.base.DependencySpecContainer;
 
 /**
  * Represents a JUnit test suite.
@@ -26,4 +27,9 @@ import org.gradle.api.Incubating;
 public interface JUnitTestSuiteSpec extends JvmTestSuiteSpec {
     String getJUnitVersion();
     void setJUnitVersion(String junitVersion);
+
+    /**
+     * The set of dependencies applicable to the entire test suite.
+     */
+    DependencySpecContainer getDependencies();
 }

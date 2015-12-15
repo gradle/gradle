@@ -198,7 +198,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="dependencies">
         <title>Dependencies</title>
         <para>A component in the Java software model can declare dependencies on other Java libraries.
             If component <literal>main</literal> depends on library <literal>util</literal>, this means that the <firstterm>API</firstterm> of <literal>util</literal>
@@ -463,6 +463,7 @@
                 <output args="testBinaryTest" ignoreExtraLines="true" outputFile="junit-standalone.out"/>
             </sample>
             <para>It is possible to configure source sets in a <link linkend="source_sets">similar way as libraries</link>.</para>
+            <para>A test suite being a component can also <link linkend="dependencies">declare dependencies onto other components</link>.</para>
         </section>
 
     </section>

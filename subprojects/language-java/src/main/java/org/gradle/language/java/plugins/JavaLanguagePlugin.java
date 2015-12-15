@@ -16,6 +16,7 @@
 
 package org.gradle.language.java.plugins;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -26,10 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmByteCode;
-import org.gradle.jvm.internal.DependencyResolvingClasspath;
-import org.gradle.jvm.internal.JarBinarySpecInternal;
-import org.gradle.jvm.internal.JvmAssembly;
-import org.gradle.jvm.internal.WithJvmAssembly;
+import org.gradle.jvm.internal.*;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
@@ -148,18 +146,25 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         }
 
         private Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {
-            return binary instanceof JarBinarySpecInternal
-                ? compileJarDependencies((JarBinarySpecInternal) binary, sourceSet)
-                : sourceSet.getDependencies().getDependencies();
-        }
-
-        private Iterable<DependencySpec> compileJarDependencies(final JarBinarySpecInternal binary, final DependentSourceSet sourceSet) {
             return concat(
                 sourceSet.getDependencies().getDependencies(),
-                binary.getDependencies(),
-                binary.getApiDependencies()
-            );
+                componentDependenciesOf(binary),
+                apiDependenciesOf(binary));
         }
+
+        private Iterable<DependencySpec> componentDependenciesOf(BinarySpec binary) {
+            return binary instanceof WithDependencies
+                ? ((WithDependencies) binary).getDependencies()
+                : NO_DEPENDENCIES;
+        }
+
+        private Iterable<DependencySpec> apiDependenciesOf(BinarySpec binary) {
+            return binary instanceof JarBinarySpecInternal
+                ? ((JarBinarySpecInternal) binary).getApiDependencies()
+                : NO_DEPENDENCIES;
+        }
+
+        private static final Iterable<DependencySpec> NO_DEPENDENCIES = ImmutableSet.of();
 
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof WithJvmAssembly;
