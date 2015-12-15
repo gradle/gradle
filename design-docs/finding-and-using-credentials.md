@@ -149,6 +149,20 @@ ivy {
 }
 ```
 
+## Story: S3 Repositories can be configured with crededentials providers
+A current shortcomming with gradle is the inability to model credentials providers. A credentilas provder is something which produces credentials and in most casees, sources those credentials from a particular location. There are several places from where credentials can be sourced: local file system, environment variables, the CLI, a network resource, etc. A credentials provider is responsible for locating (and or) producing one __type__ of crenentials only. The goal of this story is to retrofit the existing S3 resource/repository support to use credentials providers to configure AWS credentilas for S3 repositories. Two secondary aims of this story is to 1. provide the mechanics and a level of reuse such that credentials providers can be used to configure credentials for other repository types and 2. more generally, the same mechanism can be leveraged anywhere else in gradle where credentials may be required. #1 and #2 will not be achieved by this story alone and later stories will have to implement those features. 
+
+## Implementation 
+- Existing credentials and configuration must remain backward compatible. In this case `org.gradle.api.credentials.AwsCredentials` only.
+
+WIP
+
+## Testscoverge
+WIP
+
+## DSL
+WIP
+
 ## Candidate Stories
 
 * ~~Implement an authentication scheme to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata.~~
