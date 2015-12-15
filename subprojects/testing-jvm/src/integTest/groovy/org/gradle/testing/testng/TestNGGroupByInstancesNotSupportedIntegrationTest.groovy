@@ -17,13 +17,11 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-
-import static org.hamcrest.Matchers.startsWith
 
 public class TestNGGroupByInstancesNotSupportedIntegrationTest extends AbstractIntegrationSpec {
 
     def "run tests using TestNG version not supporting groupByInstances"() {
+        given:
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
@@ -35,17 +33,16 @@ public class TestNGGroupByInstancesNotSupportedIntegrationTest extends AbstractI
             import org.testng.annotations.Test;
 
             public class SimpleTest {
-                
+
                 @Test
                 public void test() {}
            }
         """
 
-        when: fails "test"
+        when:
+        fails "test"
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("Gradle Test Executor 1").assertTestFailed("execution failure", startsWith("org.gradle.api.internal.tasks.testing.TestSuiteExecutionException"))
+        failure.assertHasCause("Grouping tests by instances is not supported by this version of TestNG.")
     }
-
 }

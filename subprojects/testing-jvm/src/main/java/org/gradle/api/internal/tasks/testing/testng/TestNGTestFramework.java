@@ -70,6 +70,8 @@ public class TestNGTestFramework implements TestFramework {
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         verifyConfigFailurePolicy();
+        verifyPreserveOrder();
+        verifyGroupByInstances();
         options.setTestResources(testTask.getTestSrcDirs());
         List<File> suiteFiles = options.getSuites(testTask.getTemporaryDir());
         return new TestClassProcessorFactoryImpl(options.getOutputDirectory(), new TestNGSpec(options, filter), suiteFiles);
@@ -77,14 +79,36 @@ public class TestNGTestFramework implements TestFramework {
 
     private void verifyConfigFailurePolicy() {
         if (!options.getConfigFailurePolicy().equals(TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY)) {
-            try {
-                Class<?> testNg = classLoaderFactory.create().loadClass("org.testng.TestNG");
-                testNg.getMethod("setConfigFailurePolicy", String.class);
-            } catch (ClassNotFoundException e) {
-                throw new GradleException("Could not load TestNG.", e);
-            } catch (NoSuchMethodException e) {
-                throw new InvalidUserDataException(String.format("The version of TestNG used does not support setting config failure policy to '%s'.", options.getConfigFailurePolicy()));
-            }
+            verifyMethodExists("setConfigFailurePolicy", String.class,
+                String.format("The version of TestNG used does not support setting config failure policy to '%s'.", options.getConfigFailurePolicy()));
+        }
+    }
+
+    private void verifyPreserveOrder() {
+        if (options.getPreserveOrder()) {
+            verifyMethodExists("setPreserveOrder", boolean.class, "Preserving the order of tests is not supported by this version of TestNG.");
+        }
+    }
+
+    private void verifyGroupByInstances() {
+        if (options.getGroupByInstances()) {
+            verifyMethodExists("setGroupByInstances", boolean.class, "Grouping tests by instances is not supported by this version of TestNG.");
+        }
+    }
+
+    private void verifyMethodExists(String methodName, Class<?> parameterType, String failureMessage) {
+        try {
+            createTestNg().getMethod(methodName, parameterType);
+        } catch (NoSuchMethodException e) {
+            throw new InvalidUserDataException(failureMessage, e);
+        }
+    }
+
+    private Class<?> createTestNg() {
+        try {
+            return classLoaderFactory.create().loadClass("org.testng.TestNG");
+        } catch (ClassNotFoundException e) {
+            throw new GradleException("Could not load TestNG.", e);
         }
     }
 

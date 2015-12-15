@@ -90,15 +90,9 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         testNg.setDefaultTestName(options.getDefaultTestName());
         testNg.setParallel(options.getParallel());
         testNg.setThreadCount(options.getThreadCount());
-        String configFailurePolicy = options.getConfigFailurePolicy();
-        try {
-            JavaReflectionUtil.method(TestNG.class, Object.class, "setConfigFailurePolicy", String.class).invoke(testNg, configFailurePolicy);
-        } catch (NoSuchMethodException e) {
-            if (!configFailurePolicy.equals(TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY)) {
-                // Should not reach this point as this is validated in the test framework implementation - just propagate the failure
-                throw e;
-            }
-        }
+        invokeVerifiedMethod(testNg, "setConfigFailurePolicy", String.class, options.getConfigFailurePolicy(), TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY);
+        invokeVerifiedMethod(testNg, "setPreserveOrder", boolean.class, options.getPreserveOrder(), false);
+        invokeVerifiedMethod(testNg, "setGroupByInstances", boolean.class, options.getGroupByInstances(), false);
         try {
             JavaReflectionUtil.method(TestNG.class, Object.class, "setAnnotations").invoke(testNg, options.getAnnotations());
         } catch (NoSuchMethodException e) {
@@ -133,23 +127,18 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
         }
         testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator, timeProvider)));
-
-        try {
-            JavaReflectionUtil.method(TestNG.class, void.class, "setPreserveOrder", boolean.class).invoke(testNg, options.getPreserveOrder());
-        } catch (NoSuchMethodException e) {
-            if (options.getPreserveOrder()) {
-                throw new GradleException("Preserving the order of tests is not supported by this version of TestNG.", e);
-            }
-        }
-        try {
-            JavaReflectionUtil.method(TestNG.class, void.class, "setGroupByInstances", boolean.class).invoke(testNg, options.getGroupByInstances());
-        } catch (NoSuchMethodException e) {
-            if (options.getGroupByInstances()) {
-                throw new GradleException("Grouping tests by instances is not supported by this version of TestNG.", e);
-            }
-        }
-
         testNg.run();
+    }
+
+    private void invokeVerifiedMethod(TestNG testNg, String methodName, Class<?> paramClass, Object value, Object defaultValue) {
+        try {
+            JavaReflectionUtil.method(TestNG.class, Object.class, methodName, paramClass).invoke(testNg, value);
+        } catch (NoSuchMethodException e) {
+            if (!value.equals(defaultValue)) {
+                // Should not reach this point as this is validated in the test framework implementation - just propagate the failure
+                throw e;
+            }
+        }
     }
 
     private ITestListener adaptListener(ITestListener listener) {
