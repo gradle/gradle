@@ -443,7 +443,8 @@ This also means that all validation that currently happens in schema extraction 
 
 * **Type registration** happens as it does now, supplying a public type, some internal view types, and a default implementation.
 
-* **InstanceFactory validation** actually builds each public type registration into an immutable `ExtensibleTypeRegistration` object that we store indexed by public type.
+* **Managed type validation** happens in two places: a) when `InstanceFactory` is validated (we have internal views and a potential default implementation to take into account here), and
+b) when a type is instantiated in a managed fashion via `@Model`.
 
   * check view types
     * view types must not have state (i.e. non-static fields)
@@ -460,13 +461,11 @@ This also means that all validation that currently happens in schema extraction 
     * if all methods are abstract, we run the usual validation required for managed properties, and store a `ManagedProperty` instance with the data about the property (we will create a child node for this property); we also record if the getter was annotated with `@Unmanaged`.
     * if some of the methods are abstract, while others have implementations, we fail
   * if there are any methods left in the "arbitrary methods" bucket without an implementation, we fail
-  * we store the information about the `ManagedProperty`'s and the "arbitrary methods" in the `ExtensibleTypeRegistration` object in the `InstanceFactory`, indexed by public type
-
-For non-extensible types that are instantiated via `@Model`, follow the same validation steps, but only based on a public type (there's no internal views, and no default implementation). This should happen in the `@Model` rule extractor.
+  * we store the information about the `ManagedProperty`'s and the "arbitrary methods" in the `ManagedType` object (should probably be cached in `InstanceFactory`, too)
 
 * **Node initialization** happens similar to how it does now with some changes:
 
-  * the `ExtensibleNodeInitializer` keeps a reference to the `ExtensibleTypeRegistration`
+  * the `ManagedNodeInitializer` keeps a reference to the `ExtensibleTypeRegistration`
   * during the discovery of the node (`Discover`), projections are created based on the type registration
 
 * **Viewing the node**
@@ -482,6 +481,7 @@ For non-extensible types that are instantiated via `@Model`, follow the same val
 
 * all current test cases for managed and unmanaged type validation and instantiation should keep working, but without `@Managed` being specified
 * using `@Managed` on a type shows a deprecation warning
+* managed type validation
 
 # Feature 6: Managed Model usability
 
