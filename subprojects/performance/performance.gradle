@@ -4,6 +4,8 @@ import org.gradle.performance.generator.tasks.MonolithicNativeProjectGeneratorTa
 import org.gradle.performance.generator.tasks.NativeProjectGeneratorTask
 import org.gradle.performance.generator.tasks.ProjectGeneratorTask
 
+import java.util.regex.Pattern
+
 apply plugin: 'javascript-base'
 
 configurations {
@@ -595,6 +597,24 @@ task performanceExperiments(type: Test) {
     }
 }
 
+task buildReceiptReport {
+    def reportDir = new File(buildDir, "performance-tests/report")
+    inputs.files sourceSets.testFixtures.runtimeClasspath
+    outputs.dir reportDir
+
+    doLast {
+        def cl = new URLClassLoader(sourceSets.testFixtures.runtimeClasspath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
+        def store = cl.loadClass("org.gradle.performance.results.AllResultsStore").newInstance()
+        def filteredStore = cl.loadClass("org.gradle.performance.results.FilteredResultsStore").newInstance(store, Pattern.compile(".*?build receipt plugin.*?"))
+        try {
+            def generator = cl.loadClass("org.gradle.performance.results.ReportGenerator").newInstance()
+            generator.generate(filteredStore, reportDir)
+        } finally {
+            filteredStore.close()
+        }
+    }
+}
+
 Map buildReceiptParams = [projects: 10, sourceFiles: 5, template: 'project-with-source']
 
 task largeJavaSwModelProjectWithBuildReceipts(type: JvmProjectGeneratorTask) {
@@ -613,7 +633,7 @@ task largeJavaSwModelProjectWithoutBuildReceipts(type: JvmProjectGeneratorTask) 
 
 task buildReceiptPluginPerformanceTest(type: Test) {
     dependsOn largeJavaSwModelProjectWithBuildReceipts, largeJavaSwModelProjectWithoutBuildReceipts
-    finalizedBy report
+    finalizedBy buildReceiptReport
     options {
         includeCategories 'org.gradle.performance.categories.BRPPerformanceTest'
     }
