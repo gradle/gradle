@@ -132,6 +132,10 @@ To tweak the name of the Java runtime to use, the name can be configured via
         }
     }
 
+### SourceTask adds injected getPatternSetFactory method
+
+An injected getPatternSetFactory method has been added to the `org.gradle.api.tasks.SourceTask` class. This is a possible breaking change for unit tests of tasks that extend the SourceTask class.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
