@@ -22,12 +22,11 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.reflect.DirectInstantiator;
 
-import java.util.concurrent.ExecutorService;
-
 public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable {
-    private final ExecutorService executor;
+    private final StoppableExecutor executor;
     private final JavaVersion javaVersion;
     private final ClassLoader classLoader;
 
@@ -58,7 +57,7 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
 
     @Override
     public void stop() {
-        executor.shutdown();
+        executor.stop();
     }
 
     @Override
