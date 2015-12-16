@@ -207,8 +207,8 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
             return size;
         }
 
-        public void copyTo(OutputStream outstr) {
-            generator.execute(outstr);
+        public void copyTo(OutputStream output) {
+            generator.execute(output);
         }
 
         public InputStream open() {

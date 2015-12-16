@@ -63,9 +63,9 @@ public interface FileTreeElement {
      * Copies the content of this file to an output stream. Generally, calling this method is more performant than
      * calling {@code new FileInputStream(getFile())}.
      *
-     * @param outstr The output stream to write to. The caller is responsible for closing this stream.
+     * @param output The output stream to write to. The caller is responsible for closing this stream.
      */
-    void copyTo(OutputStream outstr);
+    void copyTo(OutputStream output);
 
     /**
      * Copies this file to the given target file. Does not copy the file if the target is already a copy of this file.
