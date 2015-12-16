@@ -112,27 +112,26 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         visit(visitor);
     }
 
-    /**
-     * Process the specified file or directory.  Note that the startFile parameter
-     * may be either a directory or a file.  If it is a directory, then its contents
-     * (but not the directory itself) will be checked with isAllowed and notified to
-     * the listener.  If it is a file, the file will be checked and notified.
-     */
     public void visit(FileVisitor visitor) {
         visitFrom(visitor, dir, new RelativePath(false));
     }
 
-    public void visitFrom(FileVisitor visitor, File dir, RelativePath path) {
+    /**
+     * Process the specified file or directory.  If it is a directory, then its contents
+     * (but not the directory itself) will be checked with {@link #isAllowed(FileTreeElement, Spec)} and notified to
+     * the listener.  If it is a file, the file will be checked and notified.
+     */
+    public void visitFrom(FileVisitor visitor, File fileOrDirectory, RelativePath path) {
         AtomicBoolean stopFlag = new AtomicBoolean();
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
-        if (dir.exists()) {
-            if (dir.isFile()) {
-                processSingleFile(dir, visitor, spec, stopFlag);
+        if (fileOrDirectory.exists()) {
+            if (fileOrDirectory.isFile()) {
+                processSingleFile(fileOrDirectory, visitor, spec, stopFlag);
             } else {
-                walkDir(dir, path, visitor, spec, stopFlag);
+                walkDir(fileOrDirectory, path, visitor, spec, stopFlag);
             }
         } else {
-            LOGGER.info("file or directory '{}', not found", dir);
+            LOGGER.info("file or directory '{}', not found", fileOrDirectory);
         }
     }
 
