@@ -27,7 +27,7 @@ class GradleRunnerIntegTestRunner extends AbstractMultiTestRunner {
      */
     public static boolean debug
 
-    private static final IntegrationTestBuildContext BUILD_CONTEXT = new IntegrationTestBuildContext()
+    protected static final IntegrationTestBuildContext BUILD_CONTEXT = new IntegrationTestBuildContext()
 
     GradleRunnerIntegTestRunner(Class<?> target) {
         super(target)
@@ -38,9 +38,9 @@ class GradleRunnerIntegTestRunner extends AbstractMultiTestRunner {
         [true, false].each { add(new GradleRunnerExecution(it)) }
     }
 
-    private static class GradleRunnerExecution extends AbstractMultiTestRunner.Execution {
+    protected static class GradleRunnerExecution extends AbstractMultiTestRunner.Execution {
 
-        private final boolean debug
+        protected final boolean debug
         private String gradleUserHomeSetting
 
         GradleRunnerExecution(boolean debug) {

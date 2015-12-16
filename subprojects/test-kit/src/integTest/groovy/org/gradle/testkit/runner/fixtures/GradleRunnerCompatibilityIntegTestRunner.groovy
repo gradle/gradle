@@ -19,13 +19,11 @@ package org.gradle.testkit.runner.fixtures
 import groovy.transform.Sortable
 import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.testkit.runner.internal.dist.GradleDistribution
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution
 import org.gradle.util.GradleVersion
-import org.gradle.wrapper.GradleUserHomeLookup
 
 import java.lang.annotation.Annotation
 
@@ -40,23 +38,17 @@ import static org.gradle.testkit.runner.fixtures.FeatureCompatibility.*
  * - The most recent released Gradle version
  * - The Gradle version under development
  */
-class GradleRunnerCompatibilityIntegTestRunner extends AbstractMultiTestRunner {
+class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunner {
     /**
      * Read by tests to configure themselves to determine the Gradle distribution used for test execution.
      */
     public static GradleDistribution distribution
 
     /**
-     * Read by tests to configure themselves for debug or not.
-     */
-    public static boolean debug
-
-    /**
      * TestKit features annotations read by tests to determine the minimum compatible Gradle version.
      */
     private static final List<? extends Annotation> TESTKIT_FEATURES = [PluginClasspathInjection]
 
-    private static final IntegrationTestBuildContext BUILD_CONTEXT = new IntegrationTestBuildContext()
     private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
 
     GradleRunnerCompatibilityIntegTestRunner(Class<?> target) {
@@ -107,15 +99,13 @@ class GradleRunnerCompatibilityIntegTestRunner extends AbstractMultiTestRunner {
         }
     }
 
-    private static class GradleRunnerExecution extends AbstractMultiTestRunner.Execution {
+    private static class GradleRunnerExecution extends GradleRunnerIntegTestRunner.GradleRunnerExecution {
 
         private final TestedGradleDistribution testedGradleDistribution
-        private final boolean debug
-        private String gradleUserHomeSetting
 
         GradleRunnerExecution(TestedGradleDistribution testedGradleDistribution, boolean debug) {
+            super(debug)
             this.testedGradleDistribution = testedGradleDistribution
-            this.debug = debug
         }
 
         @Override
@@ -125,16 +115,8 @@ class GradleRunnerCompatibilityIntegTestRunner extends AbstractMultiTestRunner {
 
         @Override
         protected void before() {
+            super.before()
             GradleRunnerCompatibilityIntegTestRunner.distribution = testedGradleDistribution.gradleDistribution
-            GradleRunnerCompatibilityIntegTestRunner.debug = debug
-            gradleUserHomeSetting = System.setProperty(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY, BUILD_CONTEXT.gradleUserHomeDir.absolutePath)
-        }
-
-        @Override
-        protected void after() {
-            if (gradleUserHomeSetting) {
-                System.setProperty(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY, gradleUserHomeSetting)
-            }
         }
 
         @Override
@@ -143,11 +125,11 @@ class GradleRunnerCompatibilityIntegTestRunner extends AbstractMultiTestRunner {
                 return false
             }
 
-            !debug || !testDetails.getAnnotation(NoDebug)
+            super.isTestEnabled(testDetails)
         }
 
         private boolean isDebugModeAndBuildOutputCaptured(AbstractMultiTestRunner.TestDetails testDetails) {
-            def captureBuildOutputInDebug = testDetails.getAnnotation(CaptureBuildOutputInDebug)
+            CaptureBuildOutputInDebug captureBuildOutputInDebug = testDetails.getAnnotation(CaptureBuildOutputInDebug)
             debug && captureBuildOutputInDebug && !isSupported(CaptureBuildOutputInDebug, testedGradleDistribution.gradleVersion)
         }
     }
