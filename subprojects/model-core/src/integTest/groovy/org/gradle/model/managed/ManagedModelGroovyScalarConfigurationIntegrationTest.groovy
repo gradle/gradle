@@ -156,7 +156,31 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         // not including char, Character, and String since Groovy auto-coerces to String,
         // or boolean/Boolean since those are special cased for 'true'
         varname << ['theBigDecimal', 'theBigInteger', 'theDouble', 'thedouble', 'thefloat', 'theFloat', 'theint',
-                    'theInteger', 'theLong', 'thelong', 'theshort', 'theShort', 'thebyte', 'theByte', 'theThing']
+                    'theInteger', 'theLong', 'thelong', 'theshort', 'theShort', 'thebyte', 'theByte']
+    }
+
+    void 'reports supported input types for enum property'() {
+        when:
+        buildFile << CLASSES
+        buildFile << """
+            model {
+                props {
+                    theThing = $value
+                }
+            }
+            """
+
+        then:
+        fails 'printResolvedValues'
+
+        and:
+        failure.assertHasLineNumber(111)
+        failure.assertHasCause("""Cannot convert the provided notation to an object of type Thing: $value.
+The following types/formats are supported:
+  - One of the following values: 'TOASTER', 'NOT_A_TOASTER'""")
+
+        where:
+        value << ["12", "false"]
     }
 
     @Unroll
@@ -166,7 +190,7 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         buildFile << """
             model {
                 props {
-                    $varname = '${value}foo'
+                    $varname = '42foo'
                 }
             }
             """
@@ -178,21 +202,21 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         failure.assertThatCause(containsString("Cannot coerce string value '42foo' to type $type.simpleName"))
 
         where:
-        varname         | value | type
-        'theBigDecimal' | 42    | BigDecimal
-        'theBigInteger' | 42    | BigInteger
-        'theDouble'     | 42    | Double
-        'thedouble'     | 42    | double
-        'thefloat'      | 42    | float
-        'theFloat'      | 42    | Float
-        'theint'        | 42    | int
-        'theInteger'    | 42    | Integer
-        'theLong'       | 42    | Long
-        'thelong'       | 42    | long
-        'theshort'      | 42    | short
-        'theShort'      | 42    | Short
-        'thebyte'       | 42    | byte
-        'theByte'       | 42    | Byte
+        varname         | type
+        'theBigDecimal' | BigDecimal
+        'theBigInteger' | BigInteger
+        'theDouble'     | Double
+        'thedouble'     | double
+        'thefloat'      | float
+        'theFloat'      | Float
+        'theint'        | int
+        'theInteger'    | Integer
+        'theLong'       | Long
+        'thelong'       | long
+        'theshort'      | short
+        'theShort'      | Short
+        'thebyte'       | byte
+        'theByte'       | Byte
     }
 
     @Unroll
