@@ -65,17 +65,17 @@ class GradleRunnerCompatibilityIntegTestRunner extends AbstractMultiTestRunner {
 
     @Override
     protected void createExecutions() {
-        determineTestGradleRuntimes().each { gradleRuntime ->
+        determineTestedGradleDistributions().each { testedGradleDistribution ->
             [true, false].each { debug ->
-                add(new GradleRunnerExecution(gradleRuntime, debug))
+                add(new GradleRunnerExecution(testedGradleDistribution, debug))
             }
         }
     }
 
-    private Set<TestedGradleRuntime> determineTestGradleRuntimes() {
-        [TestedGradleRuntime.forVersion(getMinCompatibleVersion()),
-         TestedGradleRuntime.mostRecentFinalRelease(),
-         TestedGradleRuntime.underDevelopment()] as SortedSet
+    private Set<TestedGradleDistribution> determineTestedGradleDistributions() {
+        [TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
+         TestedGradleDistribution.mostRecentFinalRelease(),
+         TestedGradleDistribution.underDevelopment()] as SortedSet
     }
 
     private GradleVersion getMinCompatibleVersion() {
@@ -89,43 +89,43 @@ class GradleRunnerCompatibilityIntegTestRunner extends AbstractMultiTestRunner {
 
     @TupleConstructor
     @Sortable(includes = ['gradleVersion'])
-    private static class TestedGradleRuntime {
+    private static class TestedGradleDistribution {
         final GradleVersion gradleVersion
         final GradleDistribution gradleDistribution
 
-        static TestedGradleRuntime forVersion(GradleVersion gradleVersion) {
-            new TestedGradleRuntime(gradleVersion, new VersionBasedGradleDistribution(gradleVersion.version))
+        static TestedGradleDistribution forVersion(GradleVersion gradleVersion) {
+            new TestedGradleDistribution(gradleVersion, new VersionBasedGradleDistribution(gradleVersion.version))
         }
 
-        static TestedGradleRuntime mostRecentFinalRelease() {
-            new TestedGradleRuntime(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version,
+        static TestedGradleDistribution mostRecentFinalRelease() {
+            new TestedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version,
                                     new VersionBasedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version.version))
         }
 
-        static TestedGradleRuntime underDevelopment() {
-            new TestedGradleRuntime(BUILD_CONTEXT.version, new InstalledGradleDistribution(BUILD_CONTEXT.gradleHomeDir))
+        static TestedGradleDistribution underDevelopment() {
+            new TestedGradleDistribution(BUILD_CONTEXT.version, new InstalledGradleDistribution(BUILD_CONTEXT.gradleHomeDir))
         }
     }
 
     private static class GradleRunnerExecution extends AbstractMultiTestRunner.Execution {
 
-        private final TestedGradleRuntime testedGradleRuntime
+        private final TestedGradleDistribution testedGradleDistribution
         private final boolean debug
         private String gradleUserHomeSetting
 
-        GradleRunnerExecution(TestedGradleRuntime testedGradleRuntime, boolean debug) {
-            this.testedGradleRuntime = testedGradleRuntime
+        GradleRunnerExecution(TestedGradleDistribution testedGradleDistribution, boolean debug) {
+            this.testedGradleDistribution = testedGradleDistribution
             this.debug = debug
         }
 
         @Override
         protected String getDisplayName() {
-            "version = $testedGradleRuntime.gradleVersion.version, debug = $debug"
+            "version = $testedGradleDistribution.gradleVersion.version, debug = $debug"
         }
 
         @Override
         protected void before() {
-            GradleRunnerCompatibilityIntegTestRunner.distribution = testedGradleRuntime.gradleDistribution
+            GradleRunnerCompatibilityIntegTestRunner.distribution = testedGradleDistribution.gradleDistribution
             GradleRunnerCompatibilityIntegTestRunner.debug = debug
             gradleUserHomeSetting = System.setProperty(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY, BUILD_CONTEXT.gradleUserHomeDir.absolutePath)
         }
@@ -148,7 +148,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends AbstractMultiTestRunner {
 
         private boolean isDebugModeAndBuildOutputCaptured(AbstractMultiTestRunner.TestDetails testDetails) {
             def captureBuildOutputInDebug = testDetails.getAnnotation(CaptureBuildOutputInDebug)
-            debug && captureBuildOutputInDebug && !isSupported(CaptureBuildOutputInDebug, testedGradleRuntime.gradleVersion)
+            debug && captureBuildOutputInDebug && !isSupported(CaptureBuildOutputInDebug, testedGradleDistribution.gradleVersion)
         }
     }
 }

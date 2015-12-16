@@ -38,9 +38,9 @@ class AbstractGradleRunnerCompatibilityIntegrationTest extends AbstractGradleRun
             gradleRunner.withGradleInstallation(((InstalledGradleDistribution) gradleDistribution).gradleHome)
         } else if (gradleDistribution instanceof VersionBasedGradleDistribution) {
             gradleRunner.withGradleVersion(((VersionBasedGradleDistribution) gradleDistribution).gradleVersion)
+        } else {
+            throw unsupportedGradleDistributionException()
         }
-
-        throw unsupportedGradleDistributionException()
     }
 
     @Override
@@ -51,9 +51,9 @@ class AbstractGradleRunnerCompatibilityIntegrationTest extends AbstractGradleRun
             return super.daemons()
         } else if (gradleDistribution instanceof VersionBasedGradleDistribution) {
             return daemons(testKitDir, TEST_KIT_DAEMON_DIR_NAME, ((VersionBasedGradleDistribution) gradleDistribution).gradleVersion)
+        } else {
+            throw unsupportedGradleDistributionException()
         }
-
-        throw unsupportedGradleDistributionException()
     }
 
     private RuntimeException unsupportedGradleDistributionException() {
