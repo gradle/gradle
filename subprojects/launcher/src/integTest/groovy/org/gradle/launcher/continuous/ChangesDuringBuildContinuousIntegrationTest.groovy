@@ -17,21 +17,17 @@
 package org.gradle.launcher.continuous
 // Continuous build will trigger a rebuild when an input file is changed during build execution
 class ChangesDuringBuildContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
-    def setup() {
-        buildFile << """
-        |apply plugin: 'java'
-        |""".stripMargin()
-    }
-
     def "should trigger rebuild when java source file is changed during build execution"() {
         given:
         file("src/main/java/Thing.java") << "class Thing {}"
 
         when:
         buildFile << """
+apply plugin: 'java'
 gradle.taskGraph.afterTask { Task task ->
-    if(task.path == ':classes') {
+    if(task.path == ':classes' && !file('changetrigged').exists()) {
        file("src/main/java/Thing.java").text = "class Thing { private static final boolean CHANGED=true; }"
+       file('changetrigged').text = 'done'
     }
 }
 """
