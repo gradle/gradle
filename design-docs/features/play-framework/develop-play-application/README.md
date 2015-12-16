@@ -1,10 +1,6 @@
-# Build author develops Play application in IDE
+# Build author develops Play application via browser and text editor
 
 - [x] Developer views build failure message in Play application
-- [ ] IDE imported Play project has all sources configured for module
-- [ ] IDE imported Play project has correct external dependencies configured
-- [ ] IDE imported Play project has correct local component dependencies configured
-- [ ] IDE imported Play project has correct source and target JVM configured
 - [ ] Developer views Java and Scala compilation failure in Play application
 - [ ] Developer views Asset compilation failures in Play application
 - [ ] Developer views build failure stack trace in Play application
@@ -38,8 +34,6 @@ Failures in CoffeeScript compilation are rendered with content of the failing fi
 This mechanism will be generally applicable to custom asset compilation tasks.
 
 ### Story: Developer views build failure stack trace in Play application
-
-### Story: Developer imports Play application project into IDE (* multiple stories *)
 
 ## Future stories and features
 
