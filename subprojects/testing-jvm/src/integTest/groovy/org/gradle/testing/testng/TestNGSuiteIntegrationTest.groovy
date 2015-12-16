@@ -17,7 +17,6 @@
 
 package org.gradle.testing.testng
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -33,23 +32,28 @@ public class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
      * https://discuss.gradle.org/t/calling-suitexmlbuilder-changes-invocation-context-in-usetestng-block-2-11-nightly/13227
      */
     @Test
-    @NotYetImplemented
     def "can reference suiteXmlBuilder"() {
         given:
-        buildFile << """
+        buildFile << '''
             apply plugin: 'java'
             test {
               useTestNG {
-                println "Property from task: " + name
+                println "Property from task: $name"
                 suiteXmlBuilder()
-                println "Property from task: " + name
+                println "Property from task again: $name"
               }
             }
-        """
+        '''
+
         when:
         run "help"
+
         then:
         noExceptionThrown()
+
+        and:
+        outputContains 'Property from task: test'
+        outputContains 'Property from task again: test'
     }
 
     @Issue("GRADLE-3020")

@@ -190,7 +190,7 @@ public class TestNGOptions extends TestFrameworkOptions {
 
     public Object propertyMissing(final String name) {
         if (suiteXmlBuilder != null) {
-            return suiteXmlBuilder.getMetaClass().invokeMissingMethod(suiteXmlBuilder, name, null);
+            return suiteXmlBuilder.getMetaClass().getProperty(suiteXmlBuilder, name);
         }
 
         throw new MissingPropertyException(name, getClass());
