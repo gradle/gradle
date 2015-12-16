@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.exceptions;
+package org.gradle.internal.exceptions
 
-public interface DiagnosticsVisitor {
-    /**
-     * Adds the description of some candidate.
-     */
-    DiagnosticsVisitor candidate(String displayName);
+import spock.lang.Specification
 
-    /**
-     * Adds an example for the previous candidate. Can have multiple examples.
-     */
-    DiagnosticsVisitor example(String example);
+class ValueCollectingDiagnosticsVisitorTest extends Specification {
+    def "collects union of potential values"() {
+        def visitor = new ValueCollectingDiagnosticsVisitor()
 
-    /**
-     * Adds a set of potential values for the previous candidate, if known.
-     */
-    DiagnosticsVisitor values(Iterable<?> values);
+        given:
+        visitor.candidate("thing 1").values(["a", "b"])
+        visitor.candidate("thing 2").values(["a", 1.2, false])
+        visitor.candidate("thing 3")
+
+        expect:
+        visitor.values == ["a", "b", "false", "1.2"] as Set
+    }
 }

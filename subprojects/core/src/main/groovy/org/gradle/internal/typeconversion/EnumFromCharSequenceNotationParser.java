@@ -23,7 +23,6 @@ import org.gradle.util.GUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 public class EnumFromCharSequenceNotationParser<T extends Enum> implements ValueAwareNotationParser<T> {
@@ -34,7 +33,7 @@ public class EnumFromCharSequenceNotationParser<T extends Enum> implements Value
         this.type = enumType;
     }
 
-    public T parseNotation(CharSequence notation) throws UnsupportedNotationException, TypeConversionException {
+    public T parseNotation(CharSequence notation) throws TypeConversionException {
         final String enumString = notation.toString();
         List<? extends T> enumConstants = Arrays.asList(type.getEnumConstants());
         T match = CollectionUtils.findFirst(enumConstants, new Spec<T>() {
@@ -56,14 +55,11 @@ public class EnumFromCharSequenceNotationParser<T extends Enum> implements Value
     @Override
     public void describe(DiagnosticsVisitor visitor) {
         List<String> values = new ArrayList<String>();
-        describeValues(values);
-        visitor.candidate(String.format("One of the following values: %s", GUtil.toString(values)));
-    }
-
-    public void describeValues(Collection<String> collector) {
         final Enum[] enumConstants = type.getEnumConstants();
         for (Enum enumConstant : enumConstants) {
-            collector.add(enumConstant.name());
+            values.add(enumConstant.name());
         }
+        visitor.candidate(String.format("One of the following values: %s", GUtil.toString(values)));
+        visitor.values(values);
     }
 }

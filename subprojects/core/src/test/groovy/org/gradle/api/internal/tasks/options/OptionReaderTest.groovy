@@ -36,32 +36,31 @@ class OptionReaderTest extends Specification {
         options[0].description == "simple flag"
         options[0].argumentType == Void.TYPE
         options[0].optionElement.elementName == "setActive"
-        options[0].availableValues == []
+        options[0].availableValues == [] as Set
 
         options[1].name == "booleanValue"
         options[1].description == "boolean value"
         options[1].argumentType == Void.TYPE
         options[1].optionElement.elementName == "setBooleanValue"
-        options[1].availableValues == []
+        options[1].availableValues == [] as Set
 
         options[2].name == "enumValue"
         options[2].description == "enum value"
         options[2].argumentType == TestEnum
         options[2].optionElement.elementName == "setEnumValue"
-        options[2].availableValues == ["ABC", "DEF"]
+        options[2].availableValues == ["ABC", "DEF"] as Set
 
         options[3].name == "objectValue"
         options[3].description == "object value"
         options[3].argumentType == Object
         options[3].optionElement.elementName == "setObjectValue"
-        options[3].availableValues == []
+        options[3].availableValues == [] as Set
 
         options[4].name == "stringValue"
         options[4].description == "string value"
         options[4].argumentType == String
         options[4].optionElement.elementName == "setStringValue"
-        options[4].availableValues == ["dynValue1", "dynValue2"]
-
+        options[4].availableValues == ["dynValue1", "dynValue2"] as Set
     }
 
     def "fail when multiple methods define same option"() {
@@ -115,7 +114,7 @@ class OptionReaderTest extends Specification {
         options[1].name == "field2"
         options[1].description == "Descr Field2"
         options[1].argumentType == String
-        options[1].availableValues == ["dynValue1", "dynValue2"]
+        options[1].availableValues == ["dynValue1", "dynValue2"] as Set
 
         options[2].name == "field3"
         options[2].description == "Descr Field3"

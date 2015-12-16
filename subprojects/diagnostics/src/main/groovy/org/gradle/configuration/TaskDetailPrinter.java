@@ -174,8 +174,8 @@ public class TaskDetailPrinter {
             final String optionString = String.format("--%s", currentOption);
             output.text(INDENT).withStyle(UserInput).text(optionString);
 
-            List<List<String>> availableValuesByDescriptor = collect(descriptorsForCurrentName, new Transformer<List<String>, OptionDescriptor>() {
-                public List<String> transform(OptionDescriptor original) {
+            List<Set<String>> availableValuesByDescriptor = collect(descriptorsForCurrentName, new Transformer<Set<String>, OptionDescriptor>() {
+                public Set<String> transform(OptionDescriptor original) {
                     return original.getAvailableValues();
                 }
             });

@@ -53,8 +53,6 @@ public class OptionNotationParserFactory {
         public void describe(DiagnosticsVisitor visitor) {
         }
 
-        public void describeValues(Collection<String> collector) {
-        }
     }
 
     private static class NoDescriptionValuesJustReturningParser implements ValueAwareNotationParser<String> {
@@ -67,8 +65,6 @@ public class OptionNotationParserFactory {
             visitor.candidate("Instances of String or CharSequence.");
         }
 
-        public void describeValues(Collection<String> collector) {
-        }
     }
 
     private static class ValueAwareCompositeNotationParser<T> extends CompositeNotationParser<CharSequence, T> implements ValueAwareNotationParser<T> {
@@ -79,10 +75,5 @@ public class OptionNotationParserFactory {
             this.delegates = delegates;
         }
 
-        public void describeValues(Collection<String> collector) {
-            for (ValueAwareNotationParser<? extends T> delegate : delegates) {
-                delegate.describeValues(collector);
-            }
-        }
     }
 }

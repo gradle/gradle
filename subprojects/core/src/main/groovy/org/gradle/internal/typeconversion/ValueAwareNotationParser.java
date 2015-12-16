@@ -16,8 +16,5 @@
 
 package org.gradle.internal.typeconversion;
 
-import java.util.Collection;
-
 public interface ValueAwareNotationParser<T> extends NotationParser<CharSequence, T> {
-    void describeValues(Collection<String> collector);
 }
