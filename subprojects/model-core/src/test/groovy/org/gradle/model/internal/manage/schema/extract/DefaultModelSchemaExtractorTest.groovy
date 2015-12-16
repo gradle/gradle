@@ -1210,8 +1210,8 @@ interface Managed${typeName} {
         resultSchema.hasAspect(MyAspect)
         resultSchema.getAspect(MyAspect) == aspect
 
-        1 * aspectExtractionStrategy.extract(_, _) >> { ModelSchemaExtractionContext<?> extractionContext, Iterable<ModelProperty<?>> properties ->
-            assert properties*.name == ["calculatedProp", "prop"]
+        1 * aspectExtractionStrategy.extract(_, _) >> { ModelSchemaExtractionContext<?> extractionContext, List<ModelPropertyExtractionResult> propertyResults ->
+            assert propertyResults*.property*.name == ["calculatedProp", "prop"]
             return new ModelSchemaAspectExtractionResult(aspect)
         }
         0 * _

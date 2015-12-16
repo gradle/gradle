@@ -17,9 +17,10 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.manage.schema.ModelProperty;
+
+import java.util.List;
 
 public interface ModelSchemaAspectExtractionStrategy {
     @Nullable
-    ModelSchemaAspectExtractionResult extract(ModelSchemaExtractionContext<?> extractionContext, Iterable<ModelProperty<?>> properties);
+    ModelSchemaAspectExtractionResult extract(ModelSchemaExtractionContext<?> extractionContext, List<ModelPropertyExtractionResult<?>> propertyResults);
 }

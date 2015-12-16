@@ -16,6 +16,8 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.model.internal.core.UnmanagedStruct;
@@ -70,12 +72,18 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
     }
 
     @Override
-    protected <P> Action<ModelSchema<P>> createPropertyValidator(ModelSchemaExtractionContext<?> extractionContext, ModelProperty<P> property) {
+    protected <P> Action<ModelSchema<P>> createPropertyValidator(ModelSchemaExtractionContext<?> extractionContext, ModelPropertyExtractionResult<P> propertyResult) {
         return Actions.doNothing();
     }
 
     @Override
-    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
+    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects) {
+        Iterable<ModelProperty<?>> properties = Iterables.transform(propertyResults, new Function<ModelPropertyExtractionResult<?>, ModelProperty<?>>() {
+            @Override
+            public ModelProperty<?> apply(ModelPropertyExtractionResult<?> propertyResult) {
+                return propertyResult.getProperty();
+            }
+        });
         return new UnmanagedImplStructSchema<R>(extractionContext.getType(), properties, aspects, extractionContext.getType().getConcreteClass().getAnnotation(UnmanagedStruct.class) != null);
     }
 }

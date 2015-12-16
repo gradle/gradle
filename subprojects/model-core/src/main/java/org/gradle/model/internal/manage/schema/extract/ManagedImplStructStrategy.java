@@ -20,30 +20,20 @@ import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.manage.schema.*;
-import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.*;
+import java.util.*;
 
-import static org.gradle.model.internal.manage.schema.extract.MethodType.*;
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.*;
+import static org.gradle.model.internal.manage.schema.extract.MethodType.*;
 
 public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySupport {
 
@@ -284,10 +274,11 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
     }
 
     @Override
-    protected <P> Action<ModelSchema<P>> createPropertyValidator(final ModelSchemaExtractionContext<?> parentContext, final ModelProperty<P> property) {
+    protected <P> Action<ModelSchema<P>> createPropertyValidator(final ModelSchemaExtractionContext<?> parentContext, final ModelPropertyExtractionResult<P> propertyResult) {
         return new Action<ModelSchema<P>>() {
             @Override
             public void execute(ModelSchema<P> propertySchema) {
+                ModelProperty<P> property = propertyResult.getProperty();
                 // Do not validate unmanaged properties
                 if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
                     return;
@@ -302,10 +293,7 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
                 boolean isAllowedPropertyTypeOfManagedType = propertySchema instanceof ManagedImplSchema
                     || propertySchema instanceof ScalarValueSchema;
 
-                boolean isDeclaredAsHavingUnmanagedType = false;
-                for (WeaklyTypeReferencingMethod<?, P> getter: property.getGetters()) {
-                    isDeclaredAsHavingUnmanagedType = isDeclaredAsHavingUnmanagedType || getter.getMethod().isAnnotationPresent(Unmanaged.class);
-                }
+                boolean isDeclaredAsHavingUnmanagedType = propertyResult.getGetter().isAnnotationPresent(Unmanaged.class);
 
                 if (isAllowedPropertyTypeOfManagedType && isDeclaredAsHavingUnmanagedType) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
@@ -335,8 +323,15 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
     }
 
     @Override
-    protected <R> ManagedImplStructSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
-        return new ManagedImplStructSchema<R>(extractionContext.getType(), properties, aspects);
+    protected <R> ManagedImplStructSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects) {
+        ModelType<R> type = extractionContext.getType();
+        Iterable<ModelProperty<?>> properties = Iterables.transform(propertyResults, new Function<ModelPropertyExtractionResult<?>, ModelProperty<?>>() {
+            @Override
+            public ModelProperty<?> apply(ModelPropertyExtractionResult<?> propertyResult) {
+                return propertyResult.getProperty();
+            }
+        });
+        return new ManagedImplStructSchema<R>(type, properties, aspects);
     }
 
     private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Method method) {
