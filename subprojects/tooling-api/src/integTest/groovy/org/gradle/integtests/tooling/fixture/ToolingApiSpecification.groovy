@@ -59,8 +59,9 @@ abstract class ToolingApiSpecification extends Specification {
     RetryRule retryRule = retryIf(
         // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
         { t ->
-            GradleVersion.version(targetDist.version.baseVersion.version) < GradleVersion.version("1.3") &&
-            t.cause != null && t.cause.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./}
+           GradleVersion.version(targetDist.version.baseVersion.version) < GradleVersion.version("1.3") && t.cause != null &&
+                (t.cause.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
+                || t.cause.message.contains("Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) }
     );
 
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
