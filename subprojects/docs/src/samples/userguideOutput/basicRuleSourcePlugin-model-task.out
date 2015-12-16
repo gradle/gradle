@@ -21,6 +21,7 @@ Root project
           | Creator: 	PersonRules#person
     + father
           | Type:   	Person
+          | Value:  	Person 'person.father'
           | Creator: 	PersonRules#person
     + firstName
           | Type:   	java.lang.String
@@ -41,6 +42,7 @@ Root project
           | Creator: 	PersonRules#person
     + mother
           | Type:   	Person
+          | Value:  	Person 'person.mother'
           | Creator: 	PersonRules#person
     + userGroups
           | Type:   	java.util.List<java.lang.String>
