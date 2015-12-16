@@ -20,6 +20,7 @@ import com.google.common.base.Optional;
 import groovy.lang.Closure;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.internal.core.*;
@@ -209,6 +210,11 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
     @Override
     public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        ModelView<?> modelView = this.asImmutable(ModelType.untyped(), modelNodeInternal, null);
+        Object instance = modelView.getInstance();
+        if (null != instance && !JavaReflectionUtil.hasDefaultToString(instance)) {
+            return Optional.fromNullable(instance.toString());
+        }
         return Optional.absent();
     }
 
