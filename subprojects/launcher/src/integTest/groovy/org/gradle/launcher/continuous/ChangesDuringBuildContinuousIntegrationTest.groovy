@@ -15,6 +15,9 @@
  */
 
 package org.gradle.launcher.continuous
+
+import spock.lang.Unroll
+
 // Continuous build will trigger a rebuild when an input file is changed during build execution
 class ChangesDuringBuildContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     def "should trigger rebuild when java source file is changed during build execution"() {
@@ -45,5 +48,145 @@ gradle.taskGraph.afterTask { Task task ->
 
         then:
         assert classloader.loadClass('Thing').getDeclaredField("CHANGED") != null
+    }
+
+    def "new build should be triggered when input files to tasks are changed after each task has been executed, but before the build has completed"(changingInput) {
+        given:
+        ['a', 'b', 'c', 'd'].each { file(it).createDir() }
+
+        when:
+        buildFile << """
+            task a {
+              inputs.dir "a"
+              doLast {}
+            }
+            task b {
+              dependsOn "a"
+              inputs.dir "b"
+              doLast {}
+            }
+            task c {
+              dependsOn "b"
+              inputs.dir "c"
+              doLast {}
+            }
+            task d {
+              dependsOn "c"
+              inputs.dir "d"
+              doLast {}
+            }
+
+            gradle.taskGraph.afterTask { Task task ->
+                if(task.path == ':$changingInput' && !file('changetrigged').exists()) {
+                   file('$changingInput/input.txt').text = 'New input file'
+                   file('changetrigged').text = 'done'
+                }
+            }
+        """
+
+        then:
+        def result = succeeds("d")
+        sendEOT()
+        result.executedTasks == [':a', ':b', ':c', ':d', ':a', ':b', ':c', ':d']
+        result.assertOutputContains('Change detected, executing build...')
+
+        where:
+        changingInput << ['a', 'b', 'c', 'd']
+    }
+
+    def "new build should be triggered when input files to tasks are changed during the task is executing"(changingInput) {
+        given:
+        ['a', 'b', 'c', 'd'].each { file(it).createDir() }
+
+        when:
+        buildFile << """
+            def taskAction = { Task task ->
+                if(task.path == ':$changingInput' && !file('changetrigged').exists()) {
+                   file('$changingInput/input.txt').text = 'New input file'
+                   file('changetrigged').text = 'done'
+                }
+            }
+
+            task a {
+              inputs.dir "a"
+              doLast taskAction
+            }
+            task b {
+              dependsOn "a"
+              inputs.dir "b"
+              doLast taskAction
+            }
+            task c {
+              dependsOn "b"
+              inputs.dir "c"
+              doLast taskAction
+            }
+            task d {
+              dependsOn "c"
+              inputs.dir "d"
+              doLast taskAction
+            }
+        """
+
+        then:
+        def result = succeeds("d")
+        sendEOT()
+        result.executedTasks == [':a', ':b', ':c', ':d', ':a', ':b', ':c', ':d']
+        result.assertOutputContains('Change detected, executing build...')
+
+        where:
+        changingInput << ['a', 'b', 'c', 'd']
+    }
+
+    @Unroll
+    def "check build executing and failing in task :c - change in :#changingInput"(changingInput, shouldTrigger) {
+        given:
+        ['a', 'b', 'c', 'd'].each { file(it).createDir() }
+
+        when:
+        buildFile << """
+            task a {
+              inputs.dir "a"
+              doLast {}
+            }
+            task b {
+              dependsOn "a"
+              inputs.dir "b"
+              doLast {}
+            }
+            task c {
+              dependsOn "b"
+              inputs.dir "c"
+              doLast {
+                throw new Exception("Failure in :c")
+              }
+            }
+            task d {
+              dependsOn "c"
+              inputs.dir "d"
+              doLast {}
+            }
+        """
+
+        then:
+        def result = fails("d")
+
+        when:
+        file("$changingInput/input.txt").text = 'input changed'
+
+        then:
+        if (shouldTrigger) {
+            fails()
+        } else {
+            noBuildTriggered()
+        }
+        sendEOT()
+
+        where:
+        changingInput | shouldTrigger
+        'a'           | true
+        'b'           | true
+        'c'           | true
+        'd'           | false
     }
 }
