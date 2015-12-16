@@ -52,7 +52,7 @@ import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive;
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.platform.base.ComponentSpecContainer} named {@code componentSpecs} to the project.
+ * Adds a {@link org.gradle.platform.base.ComponentSpecContainer} named {@code components} to the model.
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
