@@ -25,7 +25,8 @@ class BuildReceiptPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
     def "build receipt plugin comparison"() {
         given:
         runner.testGroup = "build receipt plugin"
-        runner.testId = "compare with vs new without build receipt plugin build"
+
+        runner.testId = "large java project with and without build receipt"
         def opts = ["-Dreceipt", "-Dreceipt.dump"]
         def tasks = ['clean', 'build']
 

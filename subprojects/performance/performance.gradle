@@ -615,7 +615,7 @@ task buildReceiptReport {
     }
 }
 
-Map buildReceiptParams = [projects: 10, sourceFiles: 5, template: 'project-with-source']
+Map buildReceiptParams = [projects: 100, sourceFiles: 50, template: 'project-with-source']
 
 task largeJavaSwModelProjectWithBuildReceipts(type: JvmProjectGeneratorTask) {
     buildReceipts = true
