@@ -36,7 +36,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
     def "can wait for filesystem change"() {
         when:
-        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, new DefaultFileWatcherFactory(executorFactory))
+        def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
         def w = wf.createChangeWaiter(c)
@@ -61,7 +61,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
     def "escapes on cancel"() {
         when:
-        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, new DefaultFileWatcherFactory(executorFactory))
+        def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
         def w = wf.createChangeWaiter(c)
@@ -95,7 +95,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         }
         when:
-        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, fileWatcherFactory)
+        def wf = new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
         def w = wf.createChangeWaiter(c)
@@ -125,7 +125,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
     def "waits until there is a quiet period - #description"(String description, Closure fileChanger) {
         when:
         def quietPeriod = 1000L
-        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, new DefaultFileWatcherFactory(executorFactory), quietPeriod)
+        def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory), quietPeriod)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
         def w = wf.createChangeWaiter(c)

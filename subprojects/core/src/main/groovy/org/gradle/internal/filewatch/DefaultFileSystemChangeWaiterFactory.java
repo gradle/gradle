@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.ExecutorFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -32,16 +31,14 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWaiterFactory {
-    private final ExecutorFactory executorFactory;
     private final FileWatcherFactory fileWatcherFactory;
     private final long quietPeriodMillis;
 
-    public DefaultFileSystemChangeWaiterFactory(ExecutorFactory executorFactory, FileWatcherFactory fileWatcherFactory) {
-        this(executorFactory, fileWatcherFactory, 250L);
+    public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory) {
+        this(fileWatcherFactory, 250L);
     }
 
-    public DefaultFileSystemChangeWaiterFactory(ExecutorFactory executorFactory, FileWatcherFactory fileWatcherFactory, long quietPeriodMillis) {
-        this.executorFactory = executorFactory;
+    public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis) {
         this.fileWatcherFactory = fileWatcherFactory;
         this.quietPeriodMillis = quietPeriodMillis;
     }
