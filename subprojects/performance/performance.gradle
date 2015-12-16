@@ -605,7 +605,7 @@ task buildReceiptReport {
     doLast {
         def cl = new URLClassLoader(sourceSets.testFixtures.runtimeClasspath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
         def store = cl.loadClass("org.gradle.performance.results.AllResultsStore").newInstance()
-        def filteredStore = cl.loadClass("org.gradle.performance.results.FilteredResultsStore").newInstance(store, Pattern.compile(".*?build receipt plugin.*?"))
+        def filteredStore = cl.loadClass("org.gradle.performance.results.FilteredResultsStore").newInstance(store, Pattern.compile(".*?build receipt.*?"))
         try {
             def generator = cl.loadClass("org.gradle.performance.results.ReportGenerator").newInstance()
             generator.generate(filteredStore, reportDir)
