@@ -3,7 +3,6 @@
 - [x] Continuous build will trigger a rebuild when an input file is changed during build execution
 - [ ] Developer is able to easily determine the task/file that triggered a rebuild
 - [ ] Continuous build will trigger a rebuild when build configuration file changes
-- [ ] Continuous build does not trigger rebuild when an intermediate file is changed
 
 ## Backlog / Open Issues / Not in scope
 
