@@ -110,15 +110,14 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
                 logger.println("Change detected, executing build...").println();
             }
 
-            FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
+            final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(cancellationToken);
             try {
-                lastResult = executeBuildAndAccumulateInputs(action, requestContext, actionParameters, fileSystemSubsetBuilder, buildSessionScopeServices);
+                lastResult = executeBuildAndAccumulateInputs(action, requestContext, actionParameters, waiter, buildSessionScopeServices);
             } catch (ReportedException t) {
                 lastResult = t;
             }
 
-            final FileSystemSubset toWatch = fileSystemSubsetBuilder.build();
-            if (toWatch.isEmpty()) {
+            if (!waiter.isWatching()) {
                 logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
                 if (lastResult instanceof ReportedException) {
                     throw (ReportedException) lastResult;
@@ -128,8 +127,6 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
                 cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
                     @Override
                     public void execute(BuildCancellationToken cancellationToken) {
-                        FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(cancellationToken);
-                        waiter.watch(toWatch);
                         waiter.wait(new Runnable() {
                             @Override
                             public void run() {
@@ -160,11 +157,13 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
         }
     }
 
-    private Object executeBuildAndAccumulateInputs(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, final FileSystemSubset.Builder fileSystemSubsetBuilder, ServiceRegistry buildSessionScopeServices) {
+    private Object executeBuildAndAccumulateInputs(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, final FileSystemChangeWaiter waiter, ServiceRegistry buildSessionScopeServices) {
         TaskInputsListener listener = new TaskInputsListener() {
             @Override
             public void onExecute(TaskInternal taskInternal, FileCollectionInternal fileSystemInputs) {
+                FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
                 fileSystemInputs.registerWatchPoints(fileSystemSubsetBuilder);
+                waiter.watch(fileSystemSubsetBuilder.build());
             }
         };
         listenerManager.addListener(listener);

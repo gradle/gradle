@@ -16,12 +16,9 @@
 
 package org.gradle.internal.filewatch.jdk7;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import com.sun.nio.file.ExtendedWatchEventModifier;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
@@ -32,6 +29,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 class WatchServiceRegistrar implements FileWatcherListener {
     private static final boolean FILE_TREE_WATCHING_SUPPORTED = OperatingSystem.current().isWindows();
@@ -43,9 +42,8 @@ class WatchServiceRegistrar implements FileWatcherListener {
 
     private final WatchService watchService;
     private final FileWatcherListener delegate;
-    private FileSystemSubset fileSystemSubset;
-    private FileSystemSubset unfilteredFileSystemSubset;
-    private Iterable<? extends File> roots;
+    private final Lock lock = new ReentrantLock();
+    private final WatchPointsRegistry watchPointsRegistry = new WatchPointsRegistry();
 
     WatchServiceRegistrar(WatchService watchService, FileWatcherListener delegate) {
         this.watchService = watchService;
@@ -53,43 +51,30 @@ class WatchServiceRegistrar implements FileWatcherListener {
     }
 
     void watch(FileSystemSubset fileSystemSubset) throws IOException {
-        this.fileSystemSubset = fileSystemSubset;
-        this.unfilteredFileSystemSubset = fileSystemSubset.unfiltered();
-        this.roots = fileSystemSubset.getRoots();
+        lock.lock();
+        try {
+            final WatchPointsRegistry.Delta delta = watchPointsRegistry.appendFileSystemSubset(fileSystemSubset);
+            Iterable<? extends File> startingWatchPoints = delta.getStartingWatchPoints();
 
-        // Turn the requested watch points into actual enclosing directories that exist
-        Iterable<File> enclosingDirsThatExist = Iterables.transform(roots, new Function<File, File>() {
-            @Override
-            public File apply(File input) {
-                File target = input;
-                while (!target.isDirectory()) {
-                    target = target.getParentFile();
-                }
-                return target;
-            }
-        });
-
-        // Collapse the set
-        Iterable<? extends File> startingWatchPoints = FileUtils.calculateRoots(enclosingDirsThatExist);
-
-        for (File dir : startingWatchPoints) {
-            if (FILE_TREE_WATCHING_SUPPORTED) {
-                if (inUnfilteredSubsetOrAncestorOfAnyRoot(dir)) {
+            for (File dir : startingWatchPoints) {
+                if (FILE_TREE_WATCHING_SUPPORTED) {
                     watchDir(dir.toPath());
-                }
-            } else {
-                Files.walkFileTree(dir.toPath(), new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult preVisitDirectory(Path path, BasicFileAttributes attrs) throws IOException {
-                        if (inUnfilteredSubsetOrAncestorOfAnyRoot(path.toFile())) {
-                            watchDir(path);
-                            return FileVisitResult.CONTINUE;
-                        } else {
-                            return FileVisitResult.SKIP_SUBTREE;
+                } else {
+                    Files.walkFileTree(dir.toPath(), new SimpleFileVisitor<Path>() {
+                        @Override
+                        public FileVisitResult preVisitDirectory(Path path, BasicFileAttributes attrs) throws IOException {
+                            if (delta.inUnfilteredSubsetOrAncestorOfAnyRoot(path.toFile())) {
+                                watchDir(path);
+                                return FileVisitResult.CONTINUE;
+                            } else {
+                                return FileVisitResult.SKIP_SUBTREE;
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -106,42 +91,33 @@ class WatchServiceRegistrar implements FileWatcherListener {
         }
     }
 
-    private boolean inUnfilteredSubsetOrAncestorOfAnyRoot(File file) {
-        if (unfilteredFileSystemSubset.contains(file)) {
-            return true;
-        } else {
-            String absolutePathWithSeparator = file.getAbsolutePath() + File.separator;
-            for (File root : roots) {
-                if (root.equals(file) || root.getPath().startsWith(absolutePathWithSeparator)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
 
     @Override
     public void onChange(FileWatcher watcher, FileWatcherEvent event) {
-        if (event.getType().equals(FileWatcherEvent.Type.UNDEFINED) || event.getFile() == null) {
-            delegate.onChange(watcher, event);
-            return;
-        }
-
-        File file = event.getFile();
-        maybeFire(watcher, event);
-
-        if (watcher.isRunning() && file.isDirectory() && event.getType().equals(FileWatcherEvent.Type.CREATE)) {
-            try {
-                newDirectory(watcher, file);
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+        lock.lock();
+        try {
+            if (event.getType().equals(FileWatcherEvent.Type.UNDEFINED) || event.getFile() == null) {
+                delegate.onChange(watcher, event);
+                return;
             }
+
+            File file = event.getFile();
+            maybeFire(watcher, event);
+
+            if (watcher.isRunning() && file.isDirectory() && event.getType().equals(FileWatcherEvent.Type.CREATE)) {
+                try {
+                    newDirectory(watcher, file);
+                } catch (IOException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
     private void maybeFire(FileWatcher watcher, FileWatcherEvent event) {
-        if (fileSystemSubset.contains(event.getFile())) {
+        if (watchPointsRegistry.shouldFire(event.getFile())) {
             delegate.onChange(watcher, event);
         }
     }
@@ -169,5 +145,6 @@ class WatchServiceRegistrar implements FileWatcherListener {
             }
         }
     }
+
 }
 

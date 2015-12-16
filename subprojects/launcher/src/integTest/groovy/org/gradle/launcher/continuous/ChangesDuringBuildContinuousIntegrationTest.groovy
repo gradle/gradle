@@ -15,9 +15,6 @@
  */
 
 package org.gradle.launcher.continuous
-
-import groovy.transform.NotYetImplemented
-
 // Continuous build will trigger a rebuild when an input file is changed during build execution
 class ChangesDuringBuildContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     def setup() {
@@ -26,7 +23,6 @@ class ChangesDuringBuildContinuousIntegrationTest extends Java7RequiringContinuo
         |""".stripMargin()
     }
 
-    @NotYetImplemented
     def "should trigger rebuild when java source file is changed during build execution"() {
         given:
         file("src/main/java/Thing.java") << "class Thing {}"

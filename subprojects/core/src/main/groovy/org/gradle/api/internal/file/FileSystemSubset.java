@@ -109,6 +109,17 @@ public class FileSystemSubset {
         private Builder() {
         }
 
+        public Builder add(FileSystemSubset fileSystemSubset) {
+            lock.lock();
+            try {
+                files.addAll(fileSystemSubset.files);
+                trees.addAll(fileSystemSubset.trees);
+                return this;
+            } finally {
+                lock.unlock();
+            }
+        }
+
         public Builder add(File file) {
             lock.lock();
             try {
