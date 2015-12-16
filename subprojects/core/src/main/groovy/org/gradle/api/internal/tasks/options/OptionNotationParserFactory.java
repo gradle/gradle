@@ -16,37 +16,31 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.typeconversion.CompositeNotationParser;
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class OptionNotationParserFactory {
-    public NotationParser<CharSequence, Object> toComposite(Class<?> targetType) throws OptionValidationException {
+    public <T> NotationParser<CharSequence, T> toComposite(Class<T> targetType) throws OptionValidationException {
         assert targetType != null : "resultingType cannot be null";
-        List<NotationParser<CharSequence, ?>> parsers = new ArrayList<NotationParser<CharSequence, ?>>();
-
         if (targetType == Void.TYPE) {
-            parsers.add(new UnsupportedNotationParser());
+            return new UnsupportedNotationParser<T>();
         }
+
         if (targetType.isAssignableFrom(String.class)) {
-            parsers.add(new NoDescriptionValuesJustReturningParser());
+            return Cast.uncheckedCast(new NoDescriptionValuesJustReturningParser());
         }
         if (targetType.isEnum()) {
-            parsers.add(new EnumFromCharSequenceNotationParser<Enum>(targetType.asSubclass(Enum.class)));
+            return Cast.uncheckedCast(new EnumFromCharSequenceNotationParser<Enum>(targetType.asSubclass(Enum.class)));
         }
-        if (parsers.isEmpty()) {
-            throw new OptionValidationException(String.format("Don't know how to convert strings to type '%s'.", targetType.getName()));
-        }
-        return new CompositeNotationParser<CharSequence, Object>(parsers);
+
+        throw new OptionValidationException(String.format("Don't know how to convert strings to type '%s'.", targetType.getName()));
     }
 
-    private static class UnsupportedNotationParser implements NotationParser<CharSequence, Object> {
+    private static class UnsupportedNotationParser<T> implements NotationParser<CharSequence, T> {
 
-        public Object parseNotation(CharSequence notation) {
+        public T parseNotation(CharSequence notation) {
             throw new UnsupportedOperationException();
         }
 
@@ -56,7 +50,7 @@ public class OptionNotationParserFactory {
 
     }
 
-    private static class NoDescriptionValuesJustReturningParser implements NotationParser<CharSequence, Object> {
+    private static class NoDescriptionValuesJustReturningParser implements NotationParser<CharSequence, String> {
         public String parseNotation(CharSequence notation) {
             return notation.toString();
         }

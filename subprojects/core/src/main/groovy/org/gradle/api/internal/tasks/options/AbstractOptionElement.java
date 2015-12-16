@@ -73,7 +73,7 @@ abstract class AbstractOptionElement implements OptionElement {
         return notationParser;
     }
 
-    protected static NotationParser<CharSequence, Object> createNotationParserOrFail(OptionNotationParserFactory optionNotationParserFactory, String optionName, Class<?> optionType, Class<?> declaringClass) {
+    protected static <T> NotationParser<CharSequence, T> createNotationParserOrFail(OptionNotationParserFactory optionNotationParserFactory, String optionName, Class<T> optionType, Class<?> declaringClass) {
         try {
             return optionNotationParserFactory.toComposite(optionType);
         } catch (OptionValidationException ex) {
