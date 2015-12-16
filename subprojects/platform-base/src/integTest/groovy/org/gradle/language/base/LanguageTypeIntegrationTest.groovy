@@ -22,14 +22,12 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
-        interface CustomLanguageSourceSet extends LanguageSourceSet {}
-        class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {}
+        @Managed interface CustomLanguageSourceSet extends LanguageSourceSet {}
 
         class CustomLanguagePlugin extends RuleSource {
             @LanguageType
             void declareCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
                 builder.setLanguageName("custom")
-                builder.defaultImplementation(DefaultCustomLanguageSourceSet)
             }
         }
 

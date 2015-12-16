@@ -29,9 +29,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
     @Managed interface SampleLibrary extends ComponentSpec {}
     @Managed interface SampleBinary extends BinarySpec {}
     @Managed interface OtherSampleBinary extends SampleBinary {}
-
-    interface LibrarySourceSet extends LanguageSourceSet {}
-    class DefaultLibrarySourceSet extends BaseLanguageSourceSet implements LibrarySourceSet { }
+    @Managed interface LibrarySourceSet extends LanguageSourceSet {}
 
     class MyBinaryDeclarationModel implements Plugin<Project> {
         void apply(final Project project) {}
@@ -58,7 +56,6 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
             @LanguageType
             void registerSourceSet(LanguageTypeBuilder<LibrarySourceSet> builder) {
                 builder.setLanguageName("librarySource")
-                builder.defaultImplementation(DefaultLibrarySourceSet)
             }
         }
     }

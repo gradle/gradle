@@ -69,7 +69,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         model {
             functionalSources(FunctionalSourceSet) {
-                lssElement(JavaSourceSet)
+                lssElement(SomeJavaSourceSet)
             }
         }
         """
@@ -84,10 +84,10 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
                 lssElement()
             }
         }
-        def functionalSourceSetCreator = "functionalSources(org.gradle.language.base.FunctionalSourceSet) { ... } @ build.gradle line 20, column 13"
+        def functionalSourceSetCreator = "functionalSources(org.gradle.language.base.FunctionalSourceSet) { ... } @ build.gradle line 16, column 13"
         reportOutput.modelNode.functionalSources.@type[0] == "org.gradle.language.base.FunctionalSourceSet"
         reportOutput.modelNode.functionalSources.@creator[0] == functionalSourceSetCreator
-        reportOutput.modelNode.functionalSources.lssElement.@type[0] == "org.gradle.language.java.JavaSourceSet"
+        reportOutput.modelNode.functionalSources.lssElement.@type[0] == "SomeJavaSourceSet"
         reportOutput.modelNode.functionalSources.lssElement.@creator[0] == functionalSourceSetCreator + " > create(lssElement)"
     }
 
@@ -166,7 +166,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         class Rules extends RuleSource {
             @Model
             void functionalSources(FunctionalSourceSet sources) {
-                sources.create("myJavaSourceSet", JavaSourceSet) { LanguageSourceSet lss ->
+                sources.create("myJavaSourceSet", SomeJavaSourceSet) { LanguageSourceSet lss ->
                     lss.source.srcDir "src/main/myJavaSourceSet"
                 }
             }
@@ -185,7 +185,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         model {
             functionalSources(FunctionalSourceSet){
-                myJavaSourceSet(JavaSourceSet) {
+                myJavaSourceSet(SomeJavaSourceSet) {
                     source {
                         srcDir "src/main/myJavaSourceSet"
                     }
@@ -199,7 +199,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
-        modelNode.functionalSources.myJavaSourceSet.@type[0] == 'org.gradle.language.java.JavaSourceSet'
+        modelNode.functionalSources.myJavaSourceSet.@type[0] == 'SomeJavaSourceSet'
         modelNode.sources.@nodeValue[0]  == '[]'
 
         and:
@@ -213,7 +213,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             model {
                 functionalSources(FunctionalSourceSet){
-                    myJavaSourceSet(JavaSourceSet) {
+                    myJavaSourceSet(SomeJavaSourceSet) {
                         source {
                             srcDir "src/main/myJavaSourceSet"
                         }
@@ -234,7 +234,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: Java source 'functionalSources:myJavaSourceSet'"
+        output.contains "sources display name: SomeJavaSourceSet 'functionalSources:myJavaSourceSet'"
     }
 
     def "can reference sourceSet elements using specialized type in a rule"() {
@@ -243,11 +243,10 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("functionalSources.myJavaSourceSet") JavaSourceSet sourceSet) {
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("functionalSources.myJavaSourceSet") SomeJavaSourceSet sourceSet) {
                     tasks.create("printSource") {
                         doLast {
                             println "sources display name: ${sourceSet.displayName}"
-                            println "sources classpath: ${sourceSet.compileClasspath.files.files}"
                         }
                     }
                 }
@@ -256,7 +255,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
             apply type: TaskRules
             model {
                 functionalSources(FunctionalSourceSet){
-                    myJavaSourceSet(JavaSourceSet) {
+                    myJavaSourceSet(SomeJavaSourceSet) {
                         source {
                             srcDir "src/main/myJavaSourceSet"
                         }
@@ -269,8 +268,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printSource"
 
         then:
-        output.contains "sources display name: Java source 'functionalSources:myJavaSourceSet'"
-        output.contains "sources classpath: []"
+        output.contains "sources display name: SomeJavaSourceSet 'functionalSources:myJavaSourceSet'"
     }
 
     def "elements in FunctionalSourceSet are not created when defined"() {
@@ -279,7 +277,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
             ${registerJavaLanguage()}
             model {
                 functionalSources(FunctionalSourceSet){
-                    ss1(JavaSourceSet) {
+                    ss1(SomeJavaSourceSet) {
                         println "created ss1"
                     }
                     beforeEach {
@@ -317,7 +315,7 @@ after ss1
 
         model {
             functionalSources(FunctionalSourceSet){
-                myJavaSourceSet(JavaSourceSet)
+                myJavaSourceSet(SomeJavaSourceSet)
             }
         }
 
@@ -340,37 +338,33 @@ after ss1
 
     private String registerJavaLanguage() {
         return """
-            import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet
-
+            @Managed interface SomeJavaSourceSet extends LanguageSourceSet {}
             class JavaLangRuleSource extends RuleSource {
-
                 @LanguageType
-                void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
+                void registerLanguage(LanguageTypeBuilder<SomeJavaSourceSet> builder) {
                     builder.setLanguageName("java");
-                    builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
                 }
-
-        }
-        apply plugin: JavaLangRuleSource
-        """
+            }
+            apply plugin: JavaLangRuleSource
+        """.stripIndent()
     }
 
 
     private String addPrintSourceDirTask(){
         """
-class PrintSourceDirectoryRules extends RuleSource {
-    @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet fss) {
-        tasks.create("printSourceDirs") {
-          doLast {
-            fss.each { lss ->
-                println ("source dirs: \${lss.source.getSrcDirs()}")
+            class PrintSourceDirectoryRules extends RuleSource {
+                @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet fss) {
+                    tasks.create("printSourceDirs") {
+                      doLast {
+                        fss.each { lss ->
+                            println ("source dirs: \${lss.source.getSrcDirs()}")
+                        }
+                      }
+                  }
+                }
             }
-          }
-      }
-    }
-}
-apply plugin: PrintSourceDirectoryRules
-"""
+            apply plugin: PrintSourceDirectoryRules
+        """.stripIndent()
     }
 
 }

@@ -38,11 +38,7 @@ class DefaultCustomTestBinary extends BaseBinarySpec implements CustomTestBinary
     String data
 }
 
-interface CustomTestSourceSet extends LanguageSourceSet {
-}
-
-class DefaultCustomTestSourceSet extends BaseLanguageSourceSet implements CustomTestSourceSet {
-}
+@Managed interface CustomTestSourceSet extends LanguageSourceSet {}
 
 class TestSuitePlugin extends RuleSource {
     @ComponentType
@@ -58,7 +54,6 @@ class TestSuitePlugin extends RuleSource {
     @LanguageType
     void registerLanguageType(LanguageTypeBuilder<CustomTestSourceSet> builder) {
         builder.setLanguageName("custom")
-        builder.defaultImplementation(DefaultCustomTestSourceSet)
     }
 
     @Mutate
