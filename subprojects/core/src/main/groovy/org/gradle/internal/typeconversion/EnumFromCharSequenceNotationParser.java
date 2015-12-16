@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class EnumFromCharSequenceNotationParser<T extends Enum> implements NotationParser<CharSequence, T> {
+public class EnumFromCharSequenceNotationParser<T extends Enum> implements NotationConverter<CharSequence, T> {
     private final Class<? extends T> type;
 
     public EnumFromCharSequenceNotationParser(Class<? extends T> enumType) {
@@ -33,7 +33,8 @@ public class EnumFromCharSequenceNotationParser<T extends Enum> implements Notat
         this.type = enumType;
     }
 
-    public T parseNotation(CharSequence notation) throws TypeConversionException {
+    @Override
+    public void convert(CharSequence notation, NotationConvertResult<? super T> result) throws TypeConversionException {
         final String enumString = notation.toString();
         List<? extends T> enumConstants = Arrays.asList(type.getEnumConstants());
         T match = CollectionUtils.findFirst(enumConstants, new Spec<T>() {
@@ -47,9 +48,8 @@ public class EnumFromCharSequenceNotationParser<T extends Enum> implements Notat
                             enumString, type.getName(), CollectionUtils.toStringList(Arrays.asList(type.getEnumConstants()))
                     )
             );
-        } else {
-            return match;
         }
+        result.converted(match);
     }
 
     @Override

@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.options;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
+import org.gradle.internal.typeconversion.NotationConverter;
+import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter;
 import org.gradle.internal.typeconversion.NotationParser;
 
 public class OptionNotationParserFactory {
@@ -32,7 +34,8 @@ public class OptionNotationParserFactory {
             return Cast.uncheckedCast(new NoDescriptionValuesJustReturningParser());
         }
         if (targetType.isEnum()) {
-            return Cast.uncheckedCast(new EnumFromCharSequenceNotationParser<Enum>(targetType.asSubclass(Enum.class)));
+            NotationConverter<CharSequence, T> converter = Cast.uncheckedCast(new EnumFromCharSequenceNotationParser<Enum>(targetType.asSubclass(Enum.class)));
+            return new NotationConverterToNotationParserAdapter<CharSequence, T>(converter);
         }
 
         throw new OptionValidationException(String.format("Don't know how to convert strings to type '%s'.", targetType.getName()));

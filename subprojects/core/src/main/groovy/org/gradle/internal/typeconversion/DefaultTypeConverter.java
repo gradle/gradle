@@ -19,6 +19,7 @@ package org.gradle.internal.typeconversion;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
 import java.io.File;
@@ -275,18 +276,6 @@ public class DefaultTypeConverter implements TypeConverter {
         protected abstract void convertNumberToNumber(Number n, NotationConvertResult<? super T> result);
     }
 
-    private static class EnumConverter<T extends Enum> extends CharSequenceConverter<T> {
-        private final Class<? extends T> enumType;
-
-        public EnumConverter(Class<? extends T> enumType) {
-            this.enumType = enumType;
-        }
-
-        public void convert(String notation, NotationConvertResult<? super T> result) throws TypeConversionException {
-            result.converted((T)new EnumFromCharSequenceNotationParser(enumType).parseNotation(notation));
-        }
-    }
-
     public DefaultTypeConverter(final FileResolver fileResolver) {
         fileParser = build(new CharSequenceNotationConverter<Object, File>(new CharSequenceConverter<File>() {
             public void convert(String notation, NotationConvertResult<? super File> result) throws TypeConversionException {
@@ -311,11 +300,8 @@ public class DefaultTypeConverter implements TypeConverter {
         }
 
         if (type.isEnum()) {
-            return NotationParserBuilder
-                .toType(type)
-                .noImplicitConverters()
-                .converter(new CharSequenceNotationConverter(new EnumConverter(type)))
-                .toComposite().parseNotation(notation);
+            Class<? extends Enum> enumType = Cast.uncheckedCast(type);
+            return convertEnum(enumType, notation);
         }
 
         NotationParser<Object, ?> parser;
@@ -329,5 +315,14 @@ public class DefaultTypeConverter implements TypeConverter {
         }
 
         return parser.parseNotation(notation);
+    }
+
+    private <T extends Enum<T>> T convertEnum(Class<T> type, Object notation) {
+        return NotationParserBuilder
+                .toType(type)
+                .noImplicitConverters()
+                .fromCharSequence(new EnumFromCharSequenceNotationParser<T>(type))
+                .toComposite()
+                .parseNotation(notation);
     }
 }

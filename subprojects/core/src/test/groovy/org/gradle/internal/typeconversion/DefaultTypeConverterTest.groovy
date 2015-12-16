@@ -154,6 +154,6 @@ The following types/formats are supported:
         def e = thrown(UnsupportedNotationException)
         e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to an object of type Thing: ${cl.toString()}.
 The following types/formats are supported:
-  - String or CharSequence instances.""")
+  - One of the following values: 'SOME_THING', 'SOME_OTHER_THING'""")
     }
 }

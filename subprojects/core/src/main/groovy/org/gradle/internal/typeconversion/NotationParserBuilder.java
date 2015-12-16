@@ -89,7 +89,7 @@ public class NotationParserBuilder<T> {
     /**
      * Adds a converter that accepts any CharSequence notation.
      */
-    public NotationParserBuilder<T> fromCharSequence(NotationConverter<String, ? extends T> converter) {
+    public NotationParserBuilder<T> fromCharSequence(NotationConverter<? super String, ? extends T> converter) {
         this.notationParsers.add(new CharSequenceNotationConverter<Object, T>(converter));
         return this;
     }
