@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class EnumFromCharSequenceNotationParser<T extends Enum> implements ValueAwareNotationParser<T> {
+public class EnumFromCharSequenceNotationParser<T extends Enum> implements NotationParser<CharSequence, T> {
     private final Class<? extends T> type;
 
     public EnumFromCharSequenceNotationParser(Class<? extends T> enumType) {
