@@ -1,0 +1,79 @@
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.idea.IdeaContentRoot
+import org.gradle.tooling.model.idea.IdeaModule
+import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.tooling.model.idea.IdeaSourceDirectory
+
+def connection = GradleConnector.newConnector().forProjectDirectory(file("../play-app")).connect()
+renderIdeaProject(connection.getModel(IdeaProject))
+renderEclipseWorkspace(connection.getModel(EclipseProject))
+
+def renderIdeaProject(IdeaProject idea) {
+    print """
+IDEA project: ${idea.name}"""
+    for (IdeaModule module  : idea.modules) {
+        renderIdeaModule(module)
+    }
+    println()
+}
+
+def renderIdeaModule(IdeaModule module) {
+    print """
+IDEA module: $module.name"""
+    for (IdeaContentRoot contentRoot : module.contentRoots) {
+        renderContentRoot(contentRoot)
+    }
+    println()
+}
+
+private void renderContentRoot(IdeaContentRoot contentRoot) {
+    def contentRootPath = relativePath(project.rootDir.parentFile, contentRoot.rootDirectory)
+    print """
+    Content root: $contentRootPath"""
+    contentRoot.sourceDirectories.each { srcDir ->
+        print """
+        source: ${ideaSourceDirectory(contentRoot, srcDir)}"""
+    }
+    contentRoot.testDirectories.each { srcDir ->
+        print """
+        test: ${ideaSourceDirectory(contentRoot, srcDir)}"""
+    }
+}
+
+def ideaSourceDirectory(IdeaContentRoot contentRoot, IdeaSourceDirectory srcDir) {
+    def rendered = relativePath(contentRoot.rootDirectory, srcDir.directory)
+    if (srcDir.generated) {
+        rendered += " (generated)"
+    }
+    return rendered
+}
+
+def relativePath(File root, File dir) {
+    def rootPath = root.absolutePath
+    def dirPath = dir.absolutePath
+    if (dirPath.startsWith(rootPath)) {
+        return dir.absolutePath.substring(root.absolutePath.length() + 1)
+    }
+    return dirPath
+}
+
+def renderEclipseWorkspace(EclipseProject project) {
+    print "Eclipse workspace:"
+    renderEclipseProject(project)
+    println()
+}
+
+def renderEclipseProject(EclipseProject project) {
+    print """
+Eclipse project: ${project.name}"""
+    project.sourceDirectories.each {
+        print """
+    source: ${it.path}"""
+    }
+    println()
+
+    project.children.each {
+        renderEclipseProject(it)
+    }
+}

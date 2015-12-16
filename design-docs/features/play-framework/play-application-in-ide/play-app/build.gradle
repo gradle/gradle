@@ -1,0 +1,21 @@
+plugins {
+    id 'play'
+}
+
+repositories {
+    jcenter()
+    maven {
+        name "typesafe-maven-release"
+        url "https://repo.typesafe.com/typesafe/maven-releases"
+    }
+    ivy {
+        name "typesafe-ivy-release"
+        url "https://repo.typesafe.com/typesafe/ivy-releases"
+        layout "ivy"
+    }
+}
+
+dependencies {
+    play 'commons-lang:commons-lang:2.6'
+    playTest "com.google.guava:guava:17.0"
+}
