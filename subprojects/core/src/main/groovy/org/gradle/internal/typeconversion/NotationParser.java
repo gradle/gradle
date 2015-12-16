@@ -25,12 +25,12 @@ import org.gradle.internal.exceptions.DiagnosticsVisitor;
 public interface NotationParser<N, T> {
     /**
      * @throws UnsupportedNotationException When the supplied notation is not handled by this parser.
-     * @throws TypeConversionException When the supplied notation is recognised by this parser but is badly formed and cannot be converted to the target type.
+     * @throws TypeConversionException When the supplied notation cannot be converted to the target type.
      */
-    T parseNotation(N notation) throws UnsupportedNotationException, TypeConversionException;
+    T parseNotation(N notation) throws TypeConversionException;
 
     /**
-     * Describes the formats that the parser accepts.
+     * Describes the formats and values that the parser accepts.
      */
     void describe(DiagnosticsVisitor visitor);
 }

@@ -296,7 +296,7 @@ public class DefaultTypeConverter implements TypeConverter {
         registerConverters();
     }
 
-    public Object convert(Object notation, Class<?> type, boolean primitive) throws UnsupportedNotationException, TypeConversionException {
+    public Object convert(Object notation, Class<?> type, boolean primitive) throws TypeConversionException {
 
         if (notation == null) {
             if (primitive) {
