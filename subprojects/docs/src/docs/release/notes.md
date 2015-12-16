@@ -82,6 +82,10 @@ IDE providers use this method to automatically determine the source language lev
 - Target Java version and JVM for IDEA
 - Generated `.classpath` project references correct JVM version
 
+### Continuous build improvements
+
+Continuous build will now trigger a rebuild when an input file is changed during build execution.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
