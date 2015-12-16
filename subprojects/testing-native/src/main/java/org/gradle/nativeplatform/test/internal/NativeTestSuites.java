@@ -21,7 +21,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.nativeplatform.internal.configure.NativeBinaryRules;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
@@ -30,6 +29,9 @@ import org.gradle.platform.base.test.TestSuiteContainer;
 
 import java.io.File;
 import java.util.Collection;
+
+import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.executableFileFor;
+import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.installationDirFor;
 
 /**
  * Functions for creation and configuration of native test suites.
@@ -72,7 +74,7 @@ public class NativeTestSuites {
                 testBinary.setToolChain(testedBinary.getToolChain());
                 testBinary.getExecutable().setToolChain(testedBinary.getToolChain());
                 testBinary.getExecutable().setFile(executableFileFor(testBinary, buildDir));
-                testBinary.getInstallation().setDirectory(installDir(testBinary, buildDir));
+                testBinary.getInstallation().setDirectory(installationDirFor(testBinary, buildDir));
             }
         });
     }
@@ -83,14 +85,6 @@ public class NativeTestSuites {
 
     public static <S> Collection<S> testedBinariesWithType(Class<S> type, NativeTestSuiteSpec testSuite) {
         return testSuite.getTestedComponent().getBinaries().withType(type).values();
-    }
-
-    private static File executableFileFor(NativeTestSuiteBinarySpecInternal testBinary, File buildDir) {
-        return NativeBinaryRules.executableFileFor(testBinary, buildDir);
-    }
-
-    private static File installDir(NativeTestSuiteBinarySpecInternal testBinary, File buildDir) {
-        return NativeBinaryRules.installationDirFor(testBinary, buildDir);
     }
 
     private static BinaryNamingScheme namingSchemeFor(NativeTestSuiteSpec testSuite, NativeBinarySpecInternal testedBinary, String typeString) {
