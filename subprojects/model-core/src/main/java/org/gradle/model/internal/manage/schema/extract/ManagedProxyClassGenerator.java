@@ -427,12 +427,15 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             writeConfigureMethod(visitor, generatedType, property);
             writeSetMethod(visitor, generatedType, property);
             writeTypeConvertingSetter(visitor, generatedType, viewClass, property);
-            writeReadOnlySetter(visitor, generatedType, viewClass, property);
 
             // Delegated properties are handled in writeDelegateMethods()
             if (delegatePropertyNames.contains(propertyName)) {
                 continue;
             }
+
+            // TODO - this should be applied to all methods, including delegating methods
+            writeReadOnlySetter(visitor, generatedType, viewClass, property);
+
             switch (property.getStateManagementType()) {
                 case MANAGED:
                     writeGetters(visitor, generatedType, property);
