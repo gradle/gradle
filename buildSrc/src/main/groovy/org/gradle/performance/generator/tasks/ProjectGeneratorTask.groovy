@@ -16,6 +16,7 @@
 
 package org.gradle.performance.generator.tasks
 
+import groovy.json.JsonSlurper
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.gradle.api.DefaultTask
@@ -44,6 +45,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     MavenJarCreator mavenJarCreator = new MavenJarCreator()
     Random random = new Random(1L)
     boolean buildReceipts = false
+    File buildReceiptPluginInfo
 
     def ProjectGeneratorTask() {
         setProjects(1)
@@ -160,17 +162,25 @@ abstract class ProjectGeneratorTask extends DefaultTask {
         files.addAll(additionalProjectFiles)
 
         args += [
-            projectName: testProject.name,
+            projectName     : testProject.name,
             subprojectNumber: testProject.subprojectNumber,
-            propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)),
-            repository: testProject.repository,
-            dependencies: testProject.dependencies,
-            testProject: testProject
+            propertyCount   : (testProject.linesOfCodePerSourceFile.intdiv(7)),
+            repository      : testProject.repository,
+            dependencies    : testProject.dependencies,
+            testProject     : testProject
         ]
 
         args += templateArgs
         args += taskArgs
         args.buildReceipts = buildReceipts
+
+        if (buildReceipts) {
+            assert buildReceiptPluginInfo.exists()
+            def jsonSlurper = new JsonSlurper()
+            def json = jsonSlurper.parseText(buildReceiptPluginInfo.text)
+            assert json.versionNumber
+            args.buildReceiptsPluginVersion = json.versionNumber
+        }
 
         files.each { String name ->
             generateWithTemplate(projectDir, name, name, args)
