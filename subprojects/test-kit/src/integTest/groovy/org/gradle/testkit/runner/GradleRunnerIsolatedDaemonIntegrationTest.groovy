@@ -36,7 +36,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
     }
 
     @Rule
-    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(15000)
+    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(20000)
 
     def "configuration in default Gradle user home directory is ignored for test execution with daemon"() {
         given:
