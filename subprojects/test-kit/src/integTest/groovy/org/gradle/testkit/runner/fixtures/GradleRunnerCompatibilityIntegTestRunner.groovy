@@ -37,6 +37,8 @@ import static org.gradle.testkit.runner.fixtures.FeatureCompatibility.*
  * - The minimum Gradle version a feature is compatible with (if no specific feature is provided, then the minimum Gradle version is used that supports TestKit)
  * - The most recent released Gradle version
  * - The Gradle version under development
+ *
+ * The range of versions used for compatibility testing can be controlled with the system property "org.gradle.integtest.testkit.compatibility".
  */
 class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunner {
     /**
@@ -49,6 +51,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
      */
     private static final List<? extends Annotation> TESTKIT_FEATURES = [PluginClasspathInjection]
 
+    private static final String COMPATIBILITY_SYSPROP_NAME = 'org.gradle.integtest.testkit.compatibility'
     private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
 
     GradleRunnerCompatibilityIntegTestRunner(Class<?> target) {
@@ -65,9 +68,15 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
     }
 
     private Set<TestedGradleDistribution> determineTestedGradleDistributions() {
-        [TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
-         TestedGradleDistribution.mostRecentFinalRelease(),
-         TestedGradleDistribution.underDevelopment()] as SortedSet
+        String version = System.getProperty(COMPATIBILITY_SYSPROP_NAME, 'current')
+
+        switch(version) {
+            case 'all': return [TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
+                                TestedGradleDistribution.mostRecentFinalRelease(),
+                                TestedGradleDistribution.underDevelopment()] as SortedSet
+            case 'current': return [TestedGradleDistribution.underDevelopment()] as Set
+            default: throw new IllegalArgumentException("Invalid value for $COMPATIBILITY_SYSPROP_NAME system property: $version (valid values: 'all', 'current')")
+        }
     }
 
     private GradleVersion getMinCompatibleVersion() {
