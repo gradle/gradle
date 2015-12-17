@@ -318,6 +318,8 @@ Test cases:
     - Multiple single project builds running concurrently
     - Multiproject build with --parallel
     - Single project build with intra-project parallelization enabled
+- User setting the "zinc.dir" system property on the compile task does not have an effect (we still use the GRADLE_USER_HOME
+directory) and a warning is shown.
 
 ## Later features and stories
 
