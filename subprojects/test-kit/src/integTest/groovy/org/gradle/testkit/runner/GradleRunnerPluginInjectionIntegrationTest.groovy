@@ -21,53 +21,17 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.testkit.runner.fixtures.CaptureBuildOutputInDebug
+import org.gradle.testkit.runner.fixtures.PluginClasspathInjection
 import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@PluginClasspathInjection
+@CaptureBuildOutputInDebug
 @UsesNativeServices
-class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
-
-    def "cannot use feature when target gradle version is < 2.8"() {
-        given:
-        compilePluginProjectSources()
-        buildFile << pluginDeclaration()
-
-        when:
-        runner('helloWorld1')
-            .withGradleVersion("2.7")
-            .withPluginClasspath(getPluginClasspath())
-            .build()
-
-        then:
-        def e = thrown InvalidRunnerConfigurationException
-        e.cause instanceof UnsupportedVersionException
-        e.cause.message == "The version of Gradle you are using (2.7) does not support the plugin classpath injection feature used by GradleRunner. Support for this is available in Gradle 2.8 and all later versions."
-    }
-
-    def "can use manual injection with older versions that do not support injection"() {
-        given:
-        compilePluginProjectSources()
-        buildFile << """
-            buildscript {
-                dependencies {
-                    classpath files(${pluginClasspath.collect { "'${it.absolutePath.replace("\\", "\\\\")}'" }.join(", ")})
-                }
-            }
-            apply plugin: 'com.company.helloworld1'
-        """
-
-        when:
-        def result = runner('helloWorld1')
-            .withGradleVersion("2.7")
-            .forwardOutput()
-            .build()
-
-        then:
-        result.task(":helloWorld1").outcome == SUCCESS
-    }
+class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
     def "unresolvable plugin for provided empty classpath fails build and indicates searched locations"() {
         when:

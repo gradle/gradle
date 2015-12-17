@@ -17,12 +17,14 @@
 package org.gradle.testkit.runner
 
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
+import org.gradle.testkit.runner.fixtures.CaptureBuildOutputInDebug
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 
-class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+@CaptureBuildOutputInDebug
+class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
     static final String OUT = "-- out --"
     static final String ERR = "-- err --"
@@ -48,8 +50,6 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerInteg
         result.output.findAll(ERR).size() == 1
         standardOutput.toString().findAll(OUT).size() == 1
         standardError.toString().findAll(ERR).size() == 1
-        stdStreams.stdErr.empty
-        stdStreams.stdOut.empty
     }
 
     def "can forward test execution output to System.out and System.err"() {

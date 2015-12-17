@@ -68,7 +68,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
     }
 
     private Set<TestedGradleDistribution> determineTestedGradleDistributions() {
-        String version = System.getProperty(COMPATIBILITY_SYSPROP_NAME, 'current')
+        String version = System.getProperty(COMPATIBILITY_SYSPROP_NAME, 'all')
 
         switch(version) {
             case 'all': return [TestedGradleDistribution.forVersion(getMinCompatibleVersion()),

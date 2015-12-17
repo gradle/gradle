@@ -16,11 +16,12 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.testkit.runner.fixtures.CaptureBuildOutputInDebug
 import org.gradle.util.TextUtil
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
-class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
     def "execute build for expected failure"() {
         given:
@@ -48,6 +49,7 @@ class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegr
         result.taskPaths(FAILED) == [':helloWorld']
     }
 
+    @CaptureBuildOutputInDebug
     def "execute build for expected failure but succeeds"() {
         given:
         buildFile << helloWorldTask()

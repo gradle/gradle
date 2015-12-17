@@ -16,11 +16,12 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.testkit.runner.fixtures.CaptureBuildOutputInDebug
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class GradleRunnerArgumentsIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+class GradleRunnerArgumentsIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
     def "can execute build without specifying any arguments"() {
         when:
@@ -30,6 +31,7 @@ class GradleRunnerArgumentsIntegrationTest extends AbstractGradleRunnerIntegrati
         result.task(":help")
     }
 
+    @CaptureBuildOutputInDebug
     def "execute build for multiple tasks"() {
         given:
         buildFile << helloWorldTask()
