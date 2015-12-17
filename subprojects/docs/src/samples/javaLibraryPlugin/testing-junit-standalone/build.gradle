@@ -33,3 +33,14 @@ model {
 repositories {
     jcenter()
 }
+
+// START SNIPPET configure-resources
+model {
+    tasks.processTestBinaryTestResources {
+        // uncomment lines
+        filter { String line ->
+            line.replaceAll('<!-- (.+?) -->', '$1')
+        }
+    }
+}
+// END SNIPPET configure-resources

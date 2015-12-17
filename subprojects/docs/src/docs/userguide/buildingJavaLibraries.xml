@@ -458,12 +458,16 @@
             </sample>
             <para>In the example above, <literal>test</literal> is the name of our test suite. By convention, Gradle will create two source sets for the test suite, based on the name of the component: one for Java sources, and the other for resources: <filename>src/test/java</filename> and <filename>src/resources/java</filename>. If the component was named <literal>integTest</literal>, then sources and resources would have been found respectively in <filename>src/integTest/java</filename> and <filename>src/integTest/resources</filename>.</para>
             <para>Once the component is created, the test suite can be executed running the <literal>&lt;&lt;test suite name&gt;&gt;BinaryTest</literal> task:</para>
-            <sample id="testing-junit-standalone" dir="javaLibraryPlugin/testing-junit-standalone" title="Executing the test suite">
+            <sample id="testing-junit-standalone-run" dir="javaLibraryPlugin/testing-junit-standalone" title="Executing the test suite">
                 <sourcefile file="src/test/java/org/gradle/MyTest.java"/>
                 <output args="testBinaryTest" ignoreExtraLines="true" outputFile="junit-standalone.out"/>
             </sample>
             <para>It is possible to configure source sets in a <link linkend="source_sets">similar way as libraries</link>.</para>
             <para>A test suite being a component can also <link linkend="dependencies">declare dependencies onto other components</link>.</para>
+            <para>A test suite can also contain resources, in which case it is possible to configure the resource processing task:</para>
+            <sample id="testing-junit-standalone-resources" dir="javaLibraryPlugin/testing-junit-standalone" title="Executing the test suite">
+                <sourcefile file="build.gradle" snippet="configure-resources"/>
+            </sample>
         </section>
 
     </section>
