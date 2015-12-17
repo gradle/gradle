@@ -261,12 +261,12 @@ class DefaultFileWatcherFactoryTest extends Specification {
     def "watcher should register to watch all added directories - #scenario"() {
         given:
         def listener = Mock(FileWatcherListener)
-        def fileEventMatchedLatch = new CountDownLatch(2)
         def subdir1 = testDir.file('src/main/java')
         def subdir1File = subdir1.file("SomeFile.java")
         def subdir2 = testDir.file('src/main/groovy')
         def subdir2File = subdir2.file("SomeFile.groovy")
         def filesToSee = ([subdir1File, subdir2File].collect { it.absolutePath } as Set).asSynchronized()
+        def fileEventMatchedLatch = new CountDownLatch(filesToSee.size())
 
         if (subdir1Create) {
             subdir1.mkdirs()
@@ -286,8 +286,10 @@ class DefaultFileWatcherFactoryTest extends Specification {
         waitOn(fileEventMatchedLatch, false)
         then:
         (1.._) * listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
-            if (filesToSee.remove(event.file.absolutePath)) {
-                fileEventMatchedLatch.countDown()
+            if (event.file.isFile()) {
+                if (filesToSee.remove(event.file.absolutePath)) {
+                    fileEventMatchedLatch.countDown()
+                }
             }
         }
         filesToSee.isEmpty()
