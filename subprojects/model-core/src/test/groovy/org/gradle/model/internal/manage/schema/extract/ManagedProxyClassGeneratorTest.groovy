@@ -449,7 +449,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(UnsupportedPropertyValueException)
-        e.message == "Could not set property 'value' to value not-a-number."
+        e.message == "Cannot set property: value for class: ${SomeType.name} to value: not-a-number."
         e.cause instanceof TypeConversionException
 
         and:
@@ -517,7 +517,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(UnsupportedPropertyValueException)
-        e.message == "Could not set property 'value' to value not-a-number."
+        e.message == "Cannot set property: value for class: ${SomeType.name} to value: not-a-number."
         e.cause instanceof TypeConversionException
 
         and:
@@ -579,7 +579,6 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         e.message == "No such property: unknown for class: ${SomeType.name}"
     }
 
-    @NotYetImplemented
     def "reports contract type rather than implementation class when attempting to set read-only property"() {
         given:
         def impl = newNodeBackedInstance(SomeTypeWithReadOnly)
@@ -618,9 +617,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
 
     def "reports contract type rather than implementation class when attempting to invoke set method for property that does not have one"() {
         given:
-        def state = Mock(ModelElementState) {
-            get("readOnly") >> true
-        }
+        def state = Mock(ModelElementState)
         def impl = generate(SomeTypeWithReadOnlyProperty).newInstance(state, typeConverter)
 
         when:

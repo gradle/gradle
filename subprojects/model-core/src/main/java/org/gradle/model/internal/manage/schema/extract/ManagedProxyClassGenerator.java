@@ -22,6 +22,8 @@ import com.google.common.collect.*;
 import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import groovy.lang.ReadOnlyPropertyException;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
@@ -76,12 +78,14 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private static final String GET_MANAGED_TYPE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(MODEL_TYPE_TYPE);
     private static final String GET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
     private static final String MISSING_PROPERTY_EXCEPTION_TYPE = Type.getInternalName(MissingPropertyException.class);
+    private static final String READ_ONLY_PROPERTY_EXCEPTION_TYPE = Type.getInternalName(ReadOnlyPropertyException.class);
     private static final String CLASS_INTERNAL_NAME = Type.getInternalName(Class.class);
     private static final String FOR_NAME_METHOD_DESCRIPTOR = Type.getMethodDescriptor(CLASS_TYPE, STRING_TYPE);
     private static final String HASH_CODE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(int.class));
     private static final String EQUALS_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(boolean.class), OBJECT_TYPE);
     private static final String OBJECT_ARRAY_TYPE = Type.getInternalName(Object[].class);
     private static final String MISSING_METHOD_EXCEPTION_TYPE = Type.getInternalName(MissingMethodException.class);
+    private static final Type TYPE_CONVERSION_EXCEPTION_TYPE = Type.getType(TypeConversionException.class);
     private static final String MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, CLASS_TYPE);
     private static final String METHOD_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
     private static final String SET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
@@ -318,15 +322,15 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         }
     }
 
-    private void writeGroovyMethods(ClassVisitor visitor, Class<?> managedTypeClass) {
+    private void writeGroovyMethods(ClassVisitor visitor, Class<?> viewClass) {
         // Object propertyMissing(String name)
         MethodVisitor methodVisitor = declareMethod(visitor, "propertyMissing", GET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
 
-        // throw new MissingPropertyException(name, <managed-type>.class)
+        // throw new MissingPropertyException(name, <view-type>.class)
         methodVisitor.visitTypeInsn(NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
         methodVisitor.visitInsn(DUP);
         putFirstMethodArgumentOnStack(methodVisitor);
-        putClassOnStack(methodVisitor, managedTypeClass);
+        putClassOnStack(methodVisitor, viewClass);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MISSING_PROPERTY_EXCEPTION_TYPE, "<init>", MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR, false);
         finishVisitingMethod(methodVisitor, ATHROW);
 
@@ -334,22 +338,22 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
         methodVisitor = declareMethod(visitor, "propertyMissing", SET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
 
-        // throw new MissingPropertyException(name, <managed-type>.class)
+        // throw new MissingPropertyException(name, <view-type>.class)
         methodVisitor.visitTypeInsn(NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
         methodVisitor.visitInsn(DUP);
         putFirstMethodArgumentOnStack(methodVisitor);
-        putClassOnStack(methodVisitor, managedTypeClass);
+        putClassOnStack(methodVisitor, viewClass);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MISSING_PROPERTY_EXCEPTION_TYPE, "<init>", MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR, false);
         finishVisitingMethod(methodVisitor, ATHROW);
 
         // Object methodMissing(String name, Object args)
         methodVisitor = declareMethod(visitor, "methodMissing", METHOD_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
 
-        // throw new MissingMethodException(name, <managed-type>.class, args)
+        // throw new MissingMethodException(name, <view-type>.class, args)
         methodVisitor.visitTypeInsn(NEW, MISSING_METHOD_EXCEPTION_TYPE);
         methodVisitor.visitInsn(DUP);
         putMethodArgumentOnStack(methodVisitor, 1);
-        putClassOnStack(methodVisitor, managedTypeClass);
+        putClassOnStack(methodVisitor, viewClass);
         putMethodArgumentOnStack(methodVisitor, 2);
         methodVisitor.visitTypeInsn(CHECKCAST, OBJECT_ARRAY_TYPE);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MISSING_METHOD_EXCEPTION_TYPE, "<init>", MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR, false);
@@ -422,7 +426,8 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
             writeConfigureMethod(visitor, generatedType, property);
             writeSetMethod(visitor, generatedType, property);
-            createTypeConvertingSetter(visitor, generatedType, property);
+            writeTypeConvertingSetter(visitor, generatedType, viewClass, property);
+            writeReadOnlySetter(visitor, generatedType, viewClass, property);
 
             // Delegated properties are handled in writeDelegateMethods()
             if (delegatePropertyNames.contains(propertyName)) {
@@ -443,6 +448,22 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                     }
                     break;
             }
+        }
+    }
+
+    private void writeReadOnlySetter(ClassVisitor visitor, Type generatedType, Class<?> viewClass, ModelProperty<?> property) {
+        if (!property.isWritable()) {
+            // Adds a void set$PropName(Object value) method that fails
+            String setterName = "set" + StringUtils.capitalize(property.getName());
+            MethodVisitor methodVisitor = declareMethod(visitor, setterName, SET_OBJECT_PROPERTY_DESCRIPTOR, null, ACC_PUBLIC | ACC_SYNTHETIC);
+
+            // throw new ReadOnlyPropertyException(name, <view-type>.class)
+            methodVisitor.visitTypeInsn(NEW, READ_ONLY_PROPERTY_EXCEPTION_TYPE);
+            methodVisitor.visitInsn(DUP);
+            putConstantOnStack(methodVisitor, property.getName());
+            putClassOnStack(methodVisitor, viewClass);
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, READ_ONLY_PROPERTY_EXCEPTION_TYPE, "<init>", MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR, false);
+            finishVisitingMethod(methodVisitor, ATHROW);
         }
     }
 
@@ -536,7 +557,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     // the overload of type Object for Groovy coercions:  public void setFoo(Object foo)
-    private void createTypeConvertingSetter(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
+    private void writeTypeConvertingSetter(ClassVisitor visitor, Type generatedType, Class<?> viewClass, ModelProperty<?> property) {
         if (!property.isWritable() || !(property.getSchema() instanceof ScalarValueSchema)) {
             return;
         }
@@ -574,12 +595,14 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         // catch(TypeConversionException e) { throw ... }
         Label startCatch = new Label();
         methodVisitor.visitLabel(startCatch);
-        methodVisitor.visitTryCatchBlock(startTry, endTry, startCatch, Type.getInternalName(TypeConversionException.class));
+        methodVisitor.visitTryCatchBlock(startTry, endTry, startCatch, TYPE_CONVERSION_EXCEPTION_TYPE.getInternalName());
         methodVisitor.visitVarInsn(ASTORE, 2); // store thrown exception
+        putClassOnStack(methodVisitor, viewClass);
         methodVisitor.visitLdcInsn(property.getName());
         putFirstMethodArgumentOnStack(methodVisitor);
         methodVisitor.visitVarInsn(ALOAD, 2);
-        methodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(ManagedProxyClassGenerator.class), "propertyValueConvertFailure", Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE, Type.getType(TypeConversionException.class)), false);
+        methodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(ManagedProxyClassGenerator.class), "propertyValueConvertFailure",
+                Type.getMethodDescriptor(Type.VOID_TYPE, CLASS_TYPE, STRING_TYPE, OBJECT_TYPE, TYPE_CONVERSION_EXCEPTION_TYPE), false);
         finishVisitingMethod(methodVisitor);
     }
 
@@ -881,8 +904,8 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     // Called from generated code on failure to convert the supplied value for a property to the property type
     @SuppressWarnings("unused")
-    public static void propertyValueConvertFailure(String propertyName, Object value, TypeConversionException failure) throws UnsupportedPropertyValueException {
-        throw new UnsupportedPropertyValueException(String.format("Could not set property '%s' to value %s.", propertyName, value), failure);
+    public static void propertyValueConvertFailure(Class<?> viewType, String propertyName, Object value, TypeConversionException failure) throws UnsupportedPropertyValueException {
+        throw new UnsupportedPropertyValueException(String.format("Cannot set property: %s for class: %s to value: %s.", propertyName, viewType.getName(), value), failure);
     }
 
     public interface GeneratedView {
