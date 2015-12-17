@@ -159,16 +159,18 @@ abstract class ProjectGeneratorTask extends DefaultTask {
         files.addAll(['build.gradle', 'pom.xml', 'build.xml'])
         files.addAll(additionalProjectFiles)
 
-        args += [projectName     : testProject.name,
-                 subprojectNumber: testProject.subprojectNumber,
-                 propertyCount   : (testProject.linesOfCodePerSourceFile.intdiv(7)),
-                 repository      : testProject.repository,
-                 dependencies    : testProject.dependencies,
-                 testProject     : testProject]
+        args += [
+            projectName: testProject.name,
+            subprojectNumber: testProject.subprojectNumber,
+            propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)),
+            repository: testProject.repository,
+            dependencies: testProject.dependencies,
+            testProject: testProject
+        ]
 
         args += templateArgs
         args += taskArgs
-        args << [buildReceipts: buildReceipts]
+        args.buildReceipts = buildReceipts
 
         files.each { String name ->
             generateWithTemplate(projectDir, name, name, args)
