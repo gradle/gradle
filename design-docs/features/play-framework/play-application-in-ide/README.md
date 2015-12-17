@@ -7,6 +7,7 @@
 - [ ] Play application project imported into IDE has correct local component dependencies configured for multiproject build
 - [ ] Play application project imported into IDE has correct Java source and target JVM configured
 - [ ] Play application project imported into IDE has correct Scala language settings configured
+- [ ] Gradle project with a multiple Software Model components can be imported into the IDE
 
 ## Stories
 
@@ -41,6 +42,7 @@ This story makes use of a simple tooling client that demonstrates the output of 
 ##### Out of scope
 
 - No sources or dependencies will be configured for the imported project. This will be handled in later stories.
+- The behaviour of importing a project with multiple Software Model components remains undefined.
 
 ### Story: Single-component project imported into IDE has component sources configured
 

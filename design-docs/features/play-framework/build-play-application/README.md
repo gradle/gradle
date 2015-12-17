@@ -11,7 +11,7 @@
 - [x] Developer uses minified javascript assets in Play application
 - [x] Developer configures dependencies for Play application
 - [x] Scala compiler daemons synchronize the creation of Zinc compiler
-- [] Developer configures template sources using java imports
+- [ ] Developer configures template sources using java imports
 
 #### Later features and stories
 
