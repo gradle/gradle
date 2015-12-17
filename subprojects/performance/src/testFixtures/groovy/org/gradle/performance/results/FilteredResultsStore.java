@@ -29,10 +29,26 @@ import java.util.regex.Pattern;
 public class FilteredResultsStore implements ResultsStore, Closeable {
     private final AllResultsStore delegate;
     private final Pattern pattern;
+    private final boolean include;
+    private final Predicate<String> inclusionPredicate;
+    private final Predicate<String> exclusionPredicate;
 
-    public FilteredResultsStore(AllResultsStore delegate, Pattern pattern) {
+    public FilteredResultsStore(AllResultsStore delegate, Pattern p, boolean include) {
         this.delegate = delegate;
-        this.pattern = pattern;
+        this.pattern = p;
+        this.include = include;
+        inclusionPredicate = new Predicate<String>() {
+            @Override
+            public boolean apply(@Nullable String input) {
+                return pattern.matcher(input).matches();
+            }
+        };
+        exclusionPredicate = new Predicate<String>() {
+            @Override
+            public boolean apply(@Nullable String input) {
+                return pattern.matcher(input).matches();
+            }
+        };
     }
 
     @Override
@@ -42,12 +58,7 @@ public class FilteredResultsStore implements ResultsStore, Closeable {
 
     @Override
     public List<String> getTestNames() {
-        Iterable<String> filtered = Iterables.filter(delegate.getTestNames(), new Predicate<String>() {
-            @Override
-            public boolean apply(@Nullable String input) {
-                return pattern.matcher(input).matches();
-            }
-        });
+        Iterable<String> filtered = Iterables.filter(delegate.getTestNames(), include ? inclusionPredicate : exclusionPredicate);
         return Lists.newArrayList(filtered);
     }
 
