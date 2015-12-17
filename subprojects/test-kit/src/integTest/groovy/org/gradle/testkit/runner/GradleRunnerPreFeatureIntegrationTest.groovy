@@ -18,18 +18,13 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.tooling.UnsupportedVersionException
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
-    ReleasedVersionDistributions distributions = new ReleasedVersionDistributions()
-
-    def setup() {
-        println distributions.all.collect { it.version }.sort()
-    }
 
     def "cannot use feature when target gradle version is < 2.8"() {
         given:
@@ -67,6 +62,22 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
 
         then:
         result.task(":helloWorld1").outcome == SUCCESS
+    }
+
+    @Debug
+    def "build result output is not captured if executed in debug mode and targets gradle version is < 2.9"() {
+        given:
+        buildFile << helloWorldTask()
+
+        when:
+        def result = runner('helloWorld')
+                .withGradleVersion('2.8')
+                .build()
+
+        then:
+        result.task(":helloWorld").outcome == SUCCESS
+        result.output.contains(':helloWorld')
+        !result.output.contains('Hello world!')
     }
 
     private void compilePluginProjectSources(int counter = 1) {

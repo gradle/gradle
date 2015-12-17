@@ -67,7 +67,7 @@ class GradleRunnerIntegTestRunner extends AbstractMultiTestRunner {
 
         @Override
         protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
-            !debug || !testDetails.getAnnotation(NoDebug)
+            (!debug || !testDetails.getAnnotation(NoDebug)) && (debug || !testDetails.getAnnotation(Debug))
         }
     }
 
