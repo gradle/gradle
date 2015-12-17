@@ -38,6 +38,7 @@ class ContinuousBuildCancellationCrossVersionSpec extends ContinuousBuildTooling
         runBuild {
             cyclicBarrierHttpServer.waitFor()
             cancel()
+            sleep(500) // give time for cancellation to get delivered
             cyclicBarrierHttpServer.release()
         }
 
