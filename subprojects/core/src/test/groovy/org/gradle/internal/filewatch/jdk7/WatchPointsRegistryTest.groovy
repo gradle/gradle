@@ -33,7 +33,7 @@ class WatchPointsRegistryTest extends Specification {
     TestFile rootDir
 
     def setup() {
-        registry = new WatchPointsRegistry()
+        registry = new WatchPointsRegistry(false)
         rootDir = testDir.createDir("root")
     }
 

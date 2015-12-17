@@ -28,11 +28,13 @@ import java.io.File;
 
 class WatchPointsRegistry {
     private FileSystemSubset combinedFileSystemSubset;
-    private ImmutableCollection<? extends File> currentRoots;
+    private ImmutableCollection<? extends File> currentWatchPoints;
+    private final boolean createNewStartingPointsUnderExistingRoots;
 
-    WatchPointsRegistry() {
+    public WatchPointsRegistry(boolean createNewStartingPointsUnderExistingRoots) {
+        this.createNewStartingPointsUnderExistingRoots = createNewStartingPointsUnderExistingRoots;
         combinedFileSystemSubset = FileSystemSubset.builder().build();
-        currentRoots = ImmutableSet.of();
+        currentWatchPoints = ImmutableSet.of();
     }
 
     public Delta appendFileSystemSubset(FileSystemSubset fileSystemSubset) {
@@ -57,24 +59,33 @@ class WatchPointsRegistry {
         private Delta init() {
             roots = fileSystemSubset.getRoots();
             unfiltered = fileSystemSubset.unfiltered();
-
-            startingWatchPoints = calculateStartingWatchPoints(roots, unfiltered);
-            if (!currentRoots.isEmpty()) {
-                final ImmutableSet.Builder<File> newStartingPoints = ImmutableSet.builder();
-                Iterable<? extends File> combinedRoots = FileUtils.calculateRoots(Iterables.concat(currentRoots, startingWatchPoints));
-                for (File file : combinedRoots) {
-                    if (!currentRoots.contains(file)) {
-                        newStartingPoints.add(file);
-                    }
+            Iterable<? extends File> startingWatchPointCandidates = calculateStartingWatchPoints(roots, unfiltered);
+            if (!currentWatchPoints.isEmpty()) {
+                if (createNewStartingPointsUnderExistingRoots) {
+                    startingWatchPoints = filterCurrentWatchPoints(startingWatchPointCandidates);
+                    currentWatchPoints = ImmutableSet.<File>builder().addAll(currentWatchPoints).addAll(startingWatchPoints).build();
+                } else {
+                    Iterable<? extends File> combinedRoots = FileUtils.calculateRoots(Iterables.concat(currentWatchPoints, startingWatchPointCandidates));
+                    startingWatchPoints = filterCurrentWatchPoints(combinedRoots);
+                    currentWatchPoints = ImmutableSet.copyOf(combinedRoots);
                 }
-                startingWatchPoints = newStartingPoints.build();
-                currentRoots = ImmutableSet.copyOf(combinedRoots);
                 combinedFileSystemSubset = FileSystemSubset.builder().add(combinedFileSystemSubset).add(fileSystemSubset).build();
             } else {
-                currentRoots = ImmutableSet.copyOf(startingWatchPoints);
+                startingWatchPoints = startingWatchPointCandidates;
                 combinedFileSystemSubset = fileSystemSubset;
+                currentWatchPoints = ImmutableSet.copyOf(startingWatchPoints);
             }
             return this;
+        }
+
+        private ImmutableSet<File> filterCurrentWatchPoints(Iterable<? extends File> startingWatchPointCandidates) {
+            final ImmutableSet.Builder<File> newStartingPoints = ImmutableSet.builder();
+            for (File file : startingWatchPointCandidates) {
+                if (!currentWatchPoints.contains(file)) {
+                    newStartingPoints.add(file);
+                }
+            }
+            return newStartingPoints.build();
         }
 
         private Iterable<? extends File> calculateStartingWatchPoints(final Iterable<? extends File> roots, final FileSystemSubset unfiltered) {

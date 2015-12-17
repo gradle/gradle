@@ -46,7 +46,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
     private final WatchService watchService;
     private final FileWatcherListener delegate;
     private final Lock lock = new ReentrantLock();
-    private final WatchPointsRegistry watchPointsRegistry = new WatchPointsRegistry();
+    private final WatchPointsRegistry watchPointsRegistry = new WatchPointsRegistry(!FILE_TREE_WATCHING_SUPPORTED);
 
     WatchServiceRegistrar(WatchService watchService, FileWatcherListener delegate) {
         this.watchService = watchService;

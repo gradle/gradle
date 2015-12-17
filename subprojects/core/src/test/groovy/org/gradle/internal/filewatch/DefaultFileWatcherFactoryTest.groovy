@@ -29,6 +29,7 @@ import org.junit.Rule
 import org.spockframework.lang.ConditionBlock
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+import spock.lang.Unroll
 import spock.util.concurrent.BlockingVariable
 
 import java.util.concurrent.CountDownLatch
@@ -37,6 +38,8 @@ import java.util.concurrent.TimeUnit
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class DefaultFileWatcherFactoryTest extends Specification {
+    // enable debug logging by removing comment from following line
+    //@Rule org.gradle.logging.ConfigureLogging logging = new org.gradle.logging.ConfigureLogging({ println it })
 
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
@@ -253,9 +256,55 @@ class DefaultFileWatcherFactoryTest extends Specification {
         onErrorStatus.get().right.message == "!!"
     }
 
-    private void waitOn(CountDownLatch latch) {
+    @Unroll
+    def "watcher should register to watch all added directories - #scenario"() {
+        given:
+        def listener = Mock(FileWatcherListener)
+        def fileEventMatchedLatch = new CountDownLatch(2)
+        def subdir1 = testDir.file('src/main/java')
+        def subdir1File = subdir1.file("SomeFile.java")
+        def subdir2 = testDir.file('src/main/groovy')
+        def subdir2File = subdir2.file("SomeFile.groovy")
+        def filesToSee = ([subdir1File, subdir2File].collect { it.absolutePath } as Set).asSynchronized()
+
+        if (subdir1Create) {
+            subdir1.mkdirs()
+        }
+        if (subdir2Create) {
+            subdir2.mkdirs()
+        }
+        if (parentCreate) {
+            subdir1.getParentFile().mkdirs()
+        }
+        when:
+        fileWatcher = fileWatcherFactory.watch(onError, listener)
+        fileWatcher.watch(FileSystemSubset.builder().add(subdir1).build())
+        subdir1.createFile("SomeFile.java").text = "Hello world"
+        fileWatcher.watch(FileSystemSubset.builder().add(subdir2).build())
+        subdir2.createFile("SomeFile.groovy").text = "Hello world"
+        waitOn(fileEventMatchedLatch, false)
+        then:
+        (1.._) * listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
+            if (filesToSee.remove(event.file.absolutePath)) {
+                fileEventMatchedLatch.countDown()
+            }
+        }
+        filesToSee.isEmpty()
+        where:
+        scenario                         | subdir1Create | subdir2Create | parentCreate
+        'both exist'                     | true          | true          | false
+        'first exists'                   | true          | false         | false
+        'second exists'                  | false         | true          | false
+        'neither exists - parent exists' | false         | false         | true
+        'neither exists'                 | false         | false         | false
+    }
+
+    private void waitOn(CountDownLatch latch, boolean checkLatch = true) {
         //println "waiting..."
         latch.await(waitForEventsMillis, TimeUnit.MILLISECONDS)
+        if (checkLatch) {
+            assert latch.count == 0 : "CountDownLatch didn't count down to zero within $waitForEventsMillis ms"
+        }
     }
 
     @ConditionBlock
