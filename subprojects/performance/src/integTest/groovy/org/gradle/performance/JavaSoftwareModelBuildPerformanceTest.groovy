@@ -75,7 +75,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         where:
         testProject                                  | maxTimeRegression | maxMemoryRegression
         "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(1000)      | mbytes(5)
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(5000)      | mbytes(50)
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(10000)      | mbytes(50)
     }
 
     @Unroll("Project '#testProject' measuring incremental build when no API is declared")
