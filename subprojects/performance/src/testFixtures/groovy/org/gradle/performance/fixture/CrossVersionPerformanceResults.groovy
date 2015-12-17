@@ -16,6 +16,8 @@
 
 package org.gradle.performance.fixture
 
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import org.gradle.api.logging.Logging
 
 public class CrossVersionPerformanceResults extends PerformanceTestResult {
@@ -99,7 +101,10 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
         }
     }
 
-    private String checkBaselineVersion(Closure fails, Closure provideMessage) {
+    private String checkBaselineVersion(
+        @ClosureParams(value = SimpleType, options = ["org.gradle.performance.fixture.BaselineVersion"]) Closure<?> fails,
+        @ClosureParams(value = SimpleType, options = ["org.gradle.performance.fixture.BaselineVersion"]) Closure<String> provideMessage
+    ) {
         def failed = false
         def failure = new StringBuilder()
         baselineVersions.values().each {

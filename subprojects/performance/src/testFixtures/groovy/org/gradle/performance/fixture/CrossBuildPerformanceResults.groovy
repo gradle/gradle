@@ -46,6 +46,12 @@ class CrossBuildPerformanceResults extends PerformanceTestResult {
         buildResults.keySet()
     }
 
+    MeasuredOperationList buildResult(String displayName) {
+        def matches = builds.findAll { it.displayName == displayName }
+        assert matches.size() == 1
+        buildResult(matches.first())
+    }
+
     List<Exception> getFailures() {
         buildResults.values().collect() {
             it.exception

@@ -19,8 +19,14 @@ package org.gradle.performance
 import org.gradle.performance.categories.BRPPerformanceTest
 import org.junit.experimental.categories.Category
 
+import static org.gradle.performance.measure.DataAmount.mbytes
+import static org.gradle.performance.measure.Duration.millis
+
 @Category(BRPPerformanceTest)
 class BuildReceiptPluginPerformanceTest extends AbstractCrossBuildPerformanceTest {
+
+    private static final String WITH_PLUGIN_LABEL = "with plugin"
+    private static final String WITHOUT_PLUGIN_LABEL = "without plugin"
 
     def "build receipt plugin comparison"() {
         given:
@@ -31,24 +37,32 @@ class BuildReceiptPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         def tasks = ['clean', 'build']
 
         runner.baseline {
-            projectName("largeJavaSwModelProjectWithoutBuildReceipts").displayName("with plugin").invocation {
+            projectName("largeJavaSwModelProjectWithBuildReceipts").displayName(WITHOUT_PLUGIN_LABEL).invocation {
                 gradleOpts(*opts)
                 tasksToRun(*tasks).useDaemon()
             }
         }
 
         runner.buildSpec {
-            projectName("largeJavaSwModelProjectWithBuildReceipts").displayName("without plugin").invocation {
+            projectName("largeJavaSwModelProjectWithoutBuildReceipts").displayName(WITH_PLUGIN_LABEL).invocation {
                 gradleOpts(*opts)
                 tasksToRun(*tasks).useDaemon()
             }
         }
 
         when:
-        runner.run()
+        def results = runner.run()
 
         then:
-        noExceptionThrown()
+        results.assertEveryBuildSucceeds()
+
+        def (with, without) = [results.buildResult(WITH_PLUGIN_LABEL), results.buildResult(WITHOUT_PLUGIN_LABEL)]
+
+        // cannot be more than one second slower
+        with.totalTime.average - without.totalTime.average < millis(1000)
+
+        // cannot use 20MB more “memory”
+        with.totalMemoryUsed.average - without.totalMemoryUsed.average < mbytes(20)
     }
 
 }
