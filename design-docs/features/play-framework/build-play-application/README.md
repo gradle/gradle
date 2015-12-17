@@ -298,6 +298,27 @@ model {
     - Removal of javascript source removes minified javascript
     - Removal of coffeescript source removes both minified and non-minified javascript
 
+### Scala compiler daemons synchronize the creation of Zinc compiler objects
+When a Zinc compiler is instantiated, it tries to create a jar file under the Zinc cache directory.  By default,
+this cache directory is ~/.zinc.  Once the jar file is created, it does not create it again unless there is a change
+in scala or java version.  But if several compilers are created when the jar file does not exist, multiple compilers
+can try to create the jar file at the same time or a compiler can try to use the jar file before another compiler has
+finished creating it.  This results in ClassDefNotFound errors from the compile task.
+
+We need to do the following:
+- Synchronize the creation of Zinc compiler objects across all builds on a system so that only one compiler
+object tries to create the jar file and others do not attempt to use it until the file is fully created.
+- Change the Zinc cache dir to use a cache directory under GRADLE_USER_HOME in a Gradle version-specific directory so
+that it won't conflict with other non-Gradle Zinc compilers.
+- Use the existing CacheRepository capability to manage access to the Zinc cache dir.
+
+Test cases:
+- compiler-interface.jar is created under GRADLE_USER_HOME after a scala compile and not under ~/.zinc.
+- Multiple Scala compile tasks succeed under the following scenarios (when compiler-interface.jar both exists and not):
+    - Multiple single project builds running concurrently
+    - Multiproject build with --parallel
+    - Single project build with intra-project parallelization enabled
+
 ## Later features and stories
 
 ### Developer adds default Play repositories to build script
