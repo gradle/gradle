@@ -20,6 +20,8 @@ import org.gradle.api.Action
 import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.internal.Pair
 import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.logging.ConfigureLogging
+import org.gradle.logging.internal.LogEvent
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
@@ -39,8 +41,13 @@ import java.util.concurrent.atomic.AtomicReference
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class DefaultFileWatcherFactoryTest extends Specification {
-    // enable debug logging by removing comment from following line
-    //@Rule org.gradle.logging.ConfigureLogging logging = new org.gradle.logging.ConfigureLogging({ println it })
+    @Rule
+    ConfigureLogging logging = new ConfigureLogging({
+        if (it instanceof LogEvent) {
+            println "[${it.timestamp}] ${it}"
+            it.throwable?.printStackTrace()
+        }
+    })
 
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
