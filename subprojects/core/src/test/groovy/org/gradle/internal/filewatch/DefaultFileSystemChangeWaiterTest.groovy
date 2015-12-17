@@ -57,6 +57,9 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         then:
         waitFor.done
+
+        cleanup:
+        w.stop()
     }
 
     def "escapes on cancel"() {
@@ -82,6 +85,9 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         then:
         waitFor.done
+
+        cleanup:
+        w.stop()
     }
 
     def "escapes on exception"() {
@@ -119,6 +125,9 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         then:
         waitFor.done
+
+        cleanup:
+        w.stop()
     }
 
     @Unroll
@@ -151,6 +160,9 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         waitFor.done
         lastChangeRef.get() != 0
         Math.round((System.nanoTime() - lastChangeRef.get()) / 1000000L) >= Math.round(quietPeriod * 0.99)
+
+        cleanup:
+        w.stop()
 
         where:
         description            | fileChanger

@@ -112,29 +112,33 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
 
             final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(cancellationToken);
             try {
-                lastResult = executeBuildAndAccumulateInputs(action, requestContext, actionParameters, waiter, buildSessionScopeServices);
-            } catch (ReportedException t) {
-                lastResult = t;
-            }
-
-            if (!waiter.isWatching()) {
-                logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
-                if (lastResult instanceof ReportedException) {
-                    throw (ReportedException) lastResult;
+                try {
+                    lastResult = executeBuildAndAccumulateInputs(action, requestContext, actionParameters, waiter, buildSessionScopeServices);
+                } catch (ReportedException t) {
+                    lastResult = t;
                 }
-                return lastResult;
-            } else {
-                cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
-                    @Override
-                    public void execute(BuildCancellationToken cancellationToken) {
-                        waiter.wait(new Runnable() {
-                            @Override
-                            public void run() {
-                                logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(actionParameters));
-                            }
-                        });
+
+                if (!waiter.isWatching()) {
+                    logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
+                    if (lastResult instanceof ReportedException) {
+                        throw (ReportedException) lastResult;
                     }
-                });
+                    return lastResult;
+                } else {
+                    cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
+                        @Override
+                        public void execute(BuildCancellationToken cancellationToken) {
+                            waiter.wait(new Runnable() {
+                                @Override
+                                public void run() {
+                                    logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(actionParameters));
+                                }
+                            });
+                        }
+                    });
+                }
+            } finally {
+                waiter.stop();
             }
         }
 

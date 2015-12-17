@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -100,10 +99,6 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         }
 
         public void wait(Runnable notifier) {
-            if (cancellationToken.isCancellationRequested()) {
-                return;
-            }
-
             Runnable cancellationHandler = new Runnable() {
                 @Override
                 public void run() {
@@ -111,6 +106,9 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 }
             };
             try {
+                if (cancellationToken.isCancellationRequested()) {
+                    return;
+                }
                 cancellationToken.addCallback(cancellationHandler);
                 notifier.run();
                 lock.lock();
@@ -131,13 +129,18 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 throw UncheckedException.throwAsUncheckedException(e);
             } finally {
                 cancellationToken.removeCallback(cancellationHandler);
-                CompositeStoppable.stoppable(watcher).stop();
+                watcher.stop();
             }
         }
 
         @Override
         public boolean isWatching() {
             return watching;
+        }
+
+        @Override
+        public void stop() {
+            watcher.stop();
         }
     }
 
