@@ -25,6 +25,8 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
+import org.gradle.internal.reflect.UnsupportedPropertyValueException;
+import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.core.MutableModelNode;
@@ -448,7 +450,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         if (property.isWritable() && property.getSchema() instanceof ScalarValueSchema) {
 
             // TODO - should we support this?
-            // Adds a void $propName(Object value) method that sets the value
+            // Adds a void $propName(Object value) method that simply delegates to the converting setter method
             MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE), null);
             putThisOnStack(methodVisitor);
             putFirstMethodArgumentOnStack(methodVisitor);
@@ -554,15 +556,30 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitVarInsn(ALOAD, 1); // put var #1 ('foo') on the stack
         methodVisitor.visitLdcInsn(boxedType); // push the constant Class onto the stack
         methodVisitor.visitInsn(propertyClass.isPrimitive() ? ICONST_1 : ICONST_0); // push int 1 or 0 (interpreted as true or false) onto the stack
+        Label startTry = new Label();
+        methodVisitor.visitLabel(startTry);
         methodVisitor.visitMethodInsn(INVOKEINTERFACE, TYPE_CONVERTER_TYPE.getInternalName(), "convert", COERCE_TO_SCALAR_DESCRIPTOR, true);
+        Label endTry = new Label();
+        methodVisitor.visitLabel(endTry);
         methodVisitor.visitTypeInsn(CHECKCAST, boxedType.getInternalName());
 
         if (propertyClass.isPrimitive()) {
             unboxType(methodVisitor, propertyClass);
         }
 
-        // invoke the typed setter, popping 'this' and 'converted' from the stack
+        // invoke the typed setter
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), setter.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, propertyType), false);
+        methodVisitor.visitInsn(RETURN);
+
+        // catch(TypeConversionException e) { throw ... }
+        Label startCatch = new Label();
+        methodVisitor.visitLabel(startCatch);
+        methodVisitor.visitTryCatchBlock(startTry, endTry, startCatch, Type.getInternalName(TypeConversionException.class));
+        methodVisitor.visitVarInsn(ASTORE, 2); // store thrown exception
+        methodVisitor.visitLdcInsn(property.getName());
+        putFirstMethodArgumentOnStack(methodVisitor);
+        methodVisitor.visitVarInsn(ALOAD, 2);
+        methodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(ManagedProxyClassGenerator.class), "propertyValueConvertFailure", Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE, Type.getType(TypeConversionException.class)), false);
         finishVisitingMethod(methodVisitor);
     }
 
@@ -860,6 +877,12 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private void invokeSuperMethod(MethodVisitor methodVisitor, Class<?> superClass, Method method) {
         putThisOnStack(methodVisitor);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(superClass), method.getName(), Type.getMethodDescriptor(method), false);
+    }
+
+    // Called from generated code on failure to convert the supplied value for a property to the property type
+    @SuppressWarnings("unused")
+    public static void propertyValueConvertFailure(String propertyName, Object value, TypeConversionException failure) throws UnsupportedPropertyValueException {
+        throw new UnsupportedPropertyValueException(String.format("Could not set property '%s' to value %s.", propertyName, value), failure);
     }
 
     public interface GeneratedView {

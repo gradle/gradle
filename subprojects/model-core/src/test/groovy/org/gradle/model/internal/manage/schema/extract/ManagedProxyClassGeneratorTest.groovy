@@ -19,7 +19,9 @@ package org.gradle.model.internal.manage.schema.extract
 import com.google.common.base.Optional
 import groovy.transform.NotYetImplemented
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.reflect.UnsupportedPropertyValueException
 import org.gradle.internal.typeconversion.DefaultTypeConverter
+import org.gradle.internal.typeconversion.TypeConversionException
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.core.UnmanagedStruct
@@ -402,6 +404,58 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         0 * state._
     }
 
+    def "mixes in converting setter for managed property with scalar type"() {
+        def state = Mock(ModelElementState)
+
+        given:
+        def proxyClass = generate(SomeType)
+        def impl = proxyClass.newInstance(state, typeConverter)
+
+        when:
+        impl.value = "12"
+        impl.primitive = "14"
+
+        then:
+        1 * state.set("value", 12)
+        1 * state.set("primitive", 14L)
+        0 * state._
+    }
+
+    def "mixes in converting setter for delegated property with scalar type"() {
+        def state = Mock(ModelElementState)
+        def delegate = Mock(UnmanagedImplType)
+
+        given:
+        def proxyClass = generate(PublicUnmanagedType, UnmanagedImplType)
+        def impl = proxyClass.newInstance(state, typeConverter, delegate)
+
+        when:
+        impl.intValue = "12"
+
+        then:
+        1 * delegate.setIntValue(12)
+        0 * delegate._
+    }
+
+    def "converting setter for property with scalar type reports conversion problem"() {
+        def state = Mock(ModelElementState)
+
+        given:
+        def proxyClass = generate(SomeType)
+        def impl = proxyClass.newInstance(state, typeConverter)
+
+        when:
+        impl.value = "not-a-number"
+
+        then:
+        def e = thrown(UnsupportedPropertyValueException)
+        e.message == "Could not set property 'value' to value not-a-number."
+        e.cause instanceof TypeConversionException
+
+        and:
+        0 * state._
+    }
+
     def "mixes in set method for managed property with scalar type"() {
         def state = Mock(ModelElementState)
 
@@ -449,6 +503,25 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         then:
         1 * delegate.setIntValue(123)
         0 * delegate._
+    }
+
+    def "set method for property with scalar type reports conversion problem"() {
+        def state = Mock(ModelElementState)
+
+        given:
+        def proxyClass = generate(SomeType)
+        def impl = proxyClass.newInstance(state, typeConverter)
+
+        when:
+        impl.value "not-a-number"
+
+        then:
+        def e = thrown(UnsupportedPropertyValueException)
+        e.message == "Could not set property 'value' to value not-a-number."
+        e.cause instanceof TypeConversionException
+
+        and:
+        0 * state._
     }
 
     def "mixes in toString() implementation that delegates to delegate object when it has a displayName property"() {

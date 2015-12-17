@@ -148,7 +148,8 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         fails 'printResolvedValues'
 
         and:
-        failure.assertThatCause(containsString('Cannot convert the provided notation to an object of type'))
+        failure.assertHasLineNumber(111)
+        failure.assertHasCause("Could not set property '$varname' to value java.lang.Object")
         failure.assertThatCause(containsString('The following types/formats are supported:'))
         failure.assertThatCause(containsString('CharSequence instances'))
 
@@ -175,6 +176,7 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
 
         and:
         failure.assertHasLineNumber(111)
+        failure.assertHasCause("Could not set property 'theThing' to value $value.")
         failure.assertHasCause("""Cannot convert the provided notation to an object of type Thing: $value.
 The following types/formats are supported:
   - One of the following values: 'TOASTER', 'NOT_A_TOASTER'""")
@@ -235,11 +237,13 @@ The following types/formats are supported:
         fails 'printResolvedValues'
 
         and:
-        failure.assertThatCause(containsString("Cannot assign null value to primitive type $type"))
-        failure.assertThatCause(containsString('The following types/formats are supported:'))
-        failure.assertThatCause(containsString('CharSequence instances'))
+        failure.assertHasLineNumber(111)
+        failure.assertHasCause("Could not set property '$varname' to value null.")
+        failure.assertHasCause("""Cannot assign null value to primitive type $type.
+The following types/formats are supported:
+  - String or CharSequence instances.""")
 
-        where:
+                where:
         varname     | type
         'bool1'     | boolean
         'thedouble' | double
@@ -307,7 +311,9 @@ The following types/formats are supported:
         fails 'printResolvedValues'
 
         and:
-        failure.assertThatCause(containsString("Cannot coerce string value 'IS_NOT_A_TOASTER' to an enum value of type 'Thing'"))
+        failure.assertHasLineNumber(111)
+        failure.assertHasCause("Could not set property 'theThing' to value IS_NOT_A_TOASTER.")
+        failure.assertHasCause("Cannot coerce string value 'IS_NOT_A_TOASTER' to an enum value of type 'Thing'")
     }
 
     @Unroll
