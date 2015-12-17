@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
+import org.gradle.util.RetryRule
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.spockframework.lang.ConditionBlock
@@ -39,8 +40,13 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
+import static org.gradle.util.RetryRule.retryIf
+
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class DefaultFileWatcherFactoryTest extends Specification {
+    @Rule
+    RetryRule retryRule = retryIf({ true });
+
     @Rule
     ConfigureLogging logging = new ConfigureLogging({
         if (it instanceof LogEvent) {
