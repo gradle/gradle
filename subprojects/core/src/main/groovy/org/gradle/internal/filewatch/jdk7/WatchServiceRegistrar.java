@@ -19,6 +19,8 @@ package org.gradle.internal.filewatch.jdk7;
 import com.sun.nio.file.ExtendedWatchEventModifier;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
@@ -33,6 +35,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 class WatchServiceRegistrar implements FileWatcherListener {
+    private final static Logger LOG = Logging.getLogger(WatchServiceRegistrar.class);
     private static final boolean FILE_TREE_WATCHING_SUPPORTED = OperatingSystem.current().isWindows();
     private static final WatchEvent.Modifier[] WATCH_MODIFIERS =
         FILE_TREE_WATCHING_SUPPORTED
@@ -57,6 +60,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
             Iterable<? extends File> startingWatchPoints = delta.getStartingWatchPoints();
 
             for (File dir : startingWatchPoints) {
+                LOG.debug("Handling starting point {}", dir);
                 if (FILE_TREE_WATCHING_SUPPORTED) {
                     watchDir(dir.toPath());
                 } else {
@@ -67,6 +71,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
                                 watchDir(path);
                                 return FileVisitResult.CONTINUE;
                             } else {
+                                LOG.debug("Skipping watching for {}, filtered by WatchPointsRegistry", path);
                                 return FileVisitResult.SKIP_SUBTREE;
                             }
                         }
@@ -79,6 +84,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
     }
 
     private void watchDir(Path dir) throws IOException {
+        LOG.debug("Registering watch for {}", dir);
         try {
             dir.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
         } catch (IOException e) {
@@ -97,6 +103,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
         lock.lock();
         try {
             if (event.getType().equals(FileWatcherEvent.Type.UNDEFINED) || event.getFile() == null) {
+                LOG.debug("Calling onChange with event {}", event);
                 delegate.onChange(watcher, event);
                 return;
             }
@@ -118,7 +125,10 @@ class WatchServiceRegistrar implements FileWatcherListener {
 
     private void maybeFire(FileWatcher watcher, FileWatcherEvent event) {
         if (watchPointsRegistry.shouldFire(event.getFile())) {
+            LOG.debug("Calling onChange with event {}", event);
             delegate.onChange(watcher, event);
+        } else {
+            LOG.debug("Ignoring event {}", event);
         }
     }
 
@@ -126,6 +136,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
         if (!watcher.isRunning()) {
             return;
         }
+        LOG.debug("Begin - newDirectory {}", dir);
         if (dir.exists()) {
             if (!FILE_TREE_WATCHING_SUPPORTED) {
                 watchDir(dir.toPath());
@@ -144,6 +155,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
                 }
             }
         }
+        LOG.debug("End - newDirectory {}", dir);
     }
 
 }
