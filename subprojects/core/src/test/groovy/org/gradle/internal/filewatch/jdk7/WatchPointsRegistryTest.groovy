@@ -33,7 +33,7 @@ class WatchPointsRegistryTest extends Specification {
     TestFile rootDir
 
     def setup() {
-        registry = new WatchPointsRegistry(false)
+        registry = new WatchPointsRegistry(true)
         rootDir = testDir.createDir("root")
     }
 
@@ -67,8 +67,9 @@ class WatchPointsRegistryTest extends Specification {
     }
 
 
-    def "child doesn't get added when parent has already been added"() {
+    def "child doesn't get added when parent has already been added when createNewStartingPointsUnderExistingRoots==false"() {
         given:
+        registry = new WatchPointsRegistry(false)
         def dirs = [rootDir.createDir("a/b"), rootDir.createDir("a/b/c")]
 
         when:
@@ -121,6 +122,53 @@ class WatchPointsRegistryTest extends Specification {
 
         then:
         delta.startingWatchPoints as Set == [dirs[1]]as Set
+    }
+
+
+    def "parent gets added when directory doesn't exist"() {
+        given:
+        def dirs = [rootDir.createDir("a/b").file("c")]
+
+        when:
+        def delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[0]))
+
+        then:
+        delta.startingWatchPoints as Set == [dirs[0].getParentFile()] as Set
+    }
+
+    def "directory gets added when first one doesn't exist"() {
+        given:
+        def dirs = [rootDir.createDir("a/b").file("c"), rootDir.createDir("a/b/d")]
+
+        when:
+        def delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[0]))
+
+        then:
+        delta.startingWatchPoints as Set == [dirs[0].getParentFile()] as Set
+
+        when:
+        delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[1]))
+
+        then:
+        delta.startingWatchPoints as Set == [dirs[1]] as Set
+    }
+
+    def "directory doesn't get added when createNewStartingPointsUnderExistingRoots==false"() {
+        given:
+        registry = new WatchPointsRegistry(false)
+        def dirs = [rootDir.createDir("a/b").file("c"), rootDir.createDir("a/b/d")]
+
+        when:
+        def delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[0]))
+
+        then:
+        delta.startingWatchPoints as Set == [dirs[0].getParentFile()] as Set
+
+        when:
+        delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[1]))
+
+        then:
+        delta.startingWatchPoints.isEmpty()
     }
 
     private static FileSystemSubset createFileSystemSubset(Iterable<File> dirs) {
