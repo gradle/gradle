@@ -177,7 +177,9 @@ class DefaultFileWatcherFactoryTest extends Specification {
         when:
         fileWatcher = fileWatcherFactory.watch(onError) { watcher, event ->
             eventLatch.countDown()
-            waitOn(stopLatch)
+            try {
+                waitOn(stopLatch)
+            } catch(e) {}
             result.set(watcher.running)
         }
         fileWatcher.watch(fileSystemSubset)

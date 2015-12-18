@@ -29,10 +29,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.WatchService;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class WatchServiceFileWatcherBacking {
 
@@ -41,6 +43,7 @@ public class WatchServiceFileWatcherBacking {
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean running = new AtomicBoolean();
     private final AtomicBoolean stopped = new AtomicBoolean();
+    private final AtomicReference<SoftReference<Thread>> pollerThreadReference = new AtomicReference<SoftReference<Thread>>();
 
     private final Action<? super Throwable> onError;
     private final WatchServiceRegistrar watchServiceRegistrar;
@@ -77,6 +80,7 @@ public class WatchServiceFileWatcherBacking {
                 @Override
                 public void run() {
                     if (!stopped.get()) {
+                        pollerThreadReference.set(new SoftReference<Thread>(Thread.currentThread()));
                         running.set(true);
                         try {
                             try {
@@ -144,6 +148,7 @@ public class WatchServiceFileWatcherBacking {
     private void stop() {
         if (stopped.compareAndSet(false, true)) {
             if (running.compareAndSet(true, false)) {
+                interruptPollerThread();
                 try {
                     watchService.close();
                 } catch (IOException e) {
@@ -151,6 +156,17 @@ public class WatchServiceFileWatcherBacking {
                 } catch (ClosedWatchServiceException e) {
                     // ignore
                 }
+            }
+        }
+    }
+
+    private void interruptPollerThread() {
+        SoftReference<Thread> threadSoftReference = pollerThreadReference.getAndSet(null);
+        if (threadSoftReference != null) {
+            Thread pollerThread = threadSoftReference.get();
+            if (pollerThread != null && pollerThread != Thread.currentThread()) {
+                // only interrupt poller thread if it's not current thread
+                pollerThread.interrupt();
             }
         }
     }
