@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileWatcherFactory.class);
 
-    public static final int STOP_TIMEOUT_SECONDS = 5;
+    private static final int STOP_TIMEOUT_SECONDS = 10;
     private final StoppableExecutor executor;
     private final JavaVersion javaVersion;
     private final ClassLoader classLoader;
