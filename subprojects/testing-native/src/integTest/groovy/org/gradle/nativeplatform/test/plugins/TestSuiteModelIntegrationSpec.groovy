@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform
+package org.gradle.nativeplatform.test.plugins
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -237,7 +237,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         then:
         output.contains "sources data: foo"
     }
-    
+
     def "test suite binaries container elements and their tasks containers are visible in model report"() {
         given:
         withTestBinaryFactory()
