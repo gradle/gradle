@@ -37,12 +37,15 @@ class MyPlugin extends RuleSource {
 }
 apply plugin: MyPlugin
 
-
 model {
     thing {
+        conf {
+            println "outer 1"
+        }
         someProp.conf {
+            println "outer 2"
             // not a rule
-            conf { }
+            conf { println "inner 1" }
         }
     }
     tasks {
@@ -53,5 +56,51 @@ model {
 
         expect:
         succeeds "show"
+        output.contains("outer 1")
+        output.contains("outer 2")
+        output.contains("inner 1")
+    }
+
+    def "rules can contain arbitrary code that includes methods calls with input references and closure parameters"() {
+        buildFile << '''
+class UnmanagedThing {
+    def conf(String value, Closure cl) {
+        cl.delegate = this
+        cl.call(value)
+    }
+}
+
+class MyPlugin extends RuleSource {
+    @Model
+    UnmanagedThing thing() { return new UnmanagedThing() }
+    @Model
+    String param() { return "param" }
+}
+apply plugin: MyPlugin
+
+model {
+    thing {
+        conf($.param) {
+            println "outer 1: " + it
+            // not a rule
+            conf($.param) {
+                println "inner 1: " + it
+            }
+            conf($('param')) {
+                println "inner 2: " + it
+            }
+        }
+    }
+    tasks {
+        show(Task) { doLast { println $.thing } }
+    }
+}
+'''
+
+        expect:
+        succeeds "show"
+        output.contains("outer 1: param")
+        output.contains("inner 1: param")
+        output.contains("inner 2: param")
     }
 }
