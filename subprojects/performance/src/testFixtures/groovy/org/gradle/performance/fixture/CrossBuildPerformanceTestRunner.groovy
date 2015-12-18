@@ -81,7 +81,7 @@ class CrossBuildPerformanceTestRunner {
                 operatingSystem: OperatingSystem.current().toString(),
                 versionUnderTest: GradleVersion.current().getVersion(),
                 vcsBranch: Git.current().branchName,
-                vcsCommit: Git.current().commitId,
+                vcsCommits: [Git.current().commitId],
                 testTime: System.currentTimeMillis()
         )
 

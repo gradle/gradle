@@ -17,6 +17,10 @@
 package org.gradle.performance
 
 import org.gradle.performance.categories.BRPPerformanceTest
+import org.gradle.performance.fixture.BuildExperimentRunner
+import org.gradle.performance.fixture.BuildExperimentSpec
+import org.gradle.performance.fixture.BuildReceiptPerformanceTestRunner
+import org.gradle.performance.fixture.GradleSessionProvider
 import org.junit.experimental.categories.Category
 
 import static org.gradle.performance.measure.DataAmount.mbytes
@@ -27,6 +31,24 @@ class BuildReceiptPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
 
     private static final String WITH_PLUGIN_LABEL = "with plugin"
     private static final String WITHOUT_PLUGIN_LABEL = "without plugin"
+
+    void setup() {
+        runner = new BuildReceiptPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
+            @Override
+            protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+                builder.invocationCount(5).warmUpCount(1)
+                super.defaultSpec(builder)
+            }
+
+            @Override
+            protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
+                super.finalizeSpec(builder)
+            }
+        }
+
+        runner.incomingDir = System.getProperty('incomingArtifactDir')
+        assert runner.incomingDir
+    }
 
     def "build receipt plugin comparison"() {
         given:
