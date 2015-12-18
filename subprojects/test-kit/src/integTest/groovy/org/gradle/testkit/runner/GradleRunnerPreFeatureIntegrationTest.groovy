@@ -21,11 +21,14 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "build result does not capture tasks when target gradle version is < 2.5"() {
         given:
         buildFile << helloWorldTask()
