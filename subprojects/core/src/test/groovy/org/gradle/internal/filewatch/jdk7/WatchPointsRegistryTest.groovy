@@ -17,12 +17,12 @@
 package org.gradle.internal.filewatch.jdk7
 
 import org.gradle.api.internal.file.FileSystemSubset
+import org.gradle.internal.filewatch.jdk7.WatchPointsRegistry.Delta
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
-
 
 @UsesNativeServices
 class WatchPointsRegistryTest extends Specification {
@@ -46,7 +46,7 @@ class WatchPointsRegistryTest extends Specification {
         def delta = registry.appendFileSystemSubset(fileSystemSubset)
 
         then:
-        delta.startingWatchPoints as Set == dirs as Set
+        checkWatchPoints delta, dirs
     }
 
     def "correct roots are calculated when adding entries to registry"() {
@@ -54,16 +54,16 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b/c"), rootDir.createDir("a/b/d")]
 
         when:
-        def delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[0]))
+        def delta = appendDir(dirs[0])
 
         then:
-        delta.startingWatchPoints as Set == [dirs[0]] as Set
+        checkWatchPoints delta, [dirs[0]]
 
         when:
-        delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[1]))
+        delta = appendDir(dirs[1])
 
         then:
-        delta.startingWatchPoints as Set == [dirs[1]] as Set
+        checkWatchPoints delta, [dirs[1]]
     }
 
 
@@ -73,13 +73,13 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b"), rootDir.createDir("a/b/c")]
 
         when:
-        def delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[0]))
+        def delta = appendDir(dirs[0])
 
         then:
-        delta.startingWatchPoints as Set == [dirs[0]] as Set
+        checkWatchPoints delta, [dirs[0]]
 
         when:
-        delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[1]))
+        delta = appendDir(dirs[1])
 
         then:
         delta.startingWatchPoints.size() == 0
@@ -90,10 +90,10 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b"), rootDir.createDir("a/b/c")]
 
         when:
-        def delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs))
+        def delta = appendDir(dirs)
 
         then:
-        delta.startingWatchPoints as Set == [dirs[0]] as Set
+        checkWatchPoints delta, [dirs[0]]
     }
 
     def "parent gets added when child has been added before it"() {
@@ -101,16 +101,16 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b/c"), rootDir.createDir("a/b")]
 
         when:
-        def delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[0]))
+        def delta = appendDir(dirs[0])
 
         then:
-        delta.startingWatchPoints as Set == [dirs[0]] as Set
+        checkWatchPoints delta, [dirs[0]]
 
         when:
-        delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[1]))
+        delta = appendDir(dirs[1])
 
         then:
-        delta.startingWatchPoints as Set == [dirs[1]] as Set
+        checkWatchPoints delta, [dirs[1]]
     }
 
     def "only parent gets added when child is added at the same time as the parent - child before parent"() {
@@ -118,7 +118,7 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b/c"), rootDir.createDir("a/b")]
 
         when:
-        def delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs))
+        def delta = appendDir(dirs)
 
         then:
         delta.startingWatchPoints as Set == [dirs[1]]as Set
@@ -130,10 +130,10 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b").file("c")]
 
         when:
-        def delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[0]))
+        def delta = appendDir(dirs[0])
 
         then:
-        delta.startingWatchPoints as Set == [dirs[0].getParentFile()] as Set
+        checkWatchPoints delta, [dirs[0].getParentFile()]
     }
 
     def "directory gets added when first one doesn't exist"() {
@@ -141,16 +141,16 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b").file("c"), rootDir.createDir("a/b/d")]
 
         when:
-        def delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[0]))
+        def delta = appendDir(dirs[0])
 
         then:
-        delta.startingWatchPoints as Set == [dirs[0].getParentFile()] as Set
+        checkWatchPoints delta, [dirs[0].getParentFile()]
 
         when:
-        delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[1]))
+        delta = appendDir(dirs[1])
 
         then:
-        delta.startingWatchPoints as Set == [dirs[1]] as Set
+        checkWatchPoints delta, [dirs[1]]
     }
 
     def "directory doesn't get added when createNewStartingPointsUnderExistingRoots==false"() {
@@ -159,16 +159,28 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b").file("c"), rootDir.createDir("a/b/d")]
 
         when:
-        def delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[0]))
+        def delta = appendDir(dirs[0])
 
         then:
-        delta.startingWatchPoints as Set == [dirs[0].getParentFile()] as Set
+        checkWatchPoints delta, [dirs[0].getParentFile()]
 
         when:
-        delta = registry.appendFileSystemSubset(createFileSystemSubset(dirs[1]))
+        delta = appendDir(dirs[1])
 
         then:
         delta.startingWatchPoints.isEmpty()
+    }
+
+    private void checkWatchPoints(Delta delta, Collection<File> files) {
+        assert delta.startingWatchPoints as Set == files as Set
+    }
+
+    private Delta appendDir(Iterable<File> dirs) {
+        registry.appendFileSystemSubset(createFileSystemSubset(dirs))
+    }
+
+    private Delta appendDir(File dir) {
+        registry.appendFileSystemSubset(createFileSystemSubset(dir))
     }
 
     private static FileSystemSubset createFileSystemSubset(Iterable<File> dirs) {
