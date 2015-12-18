@@ -25,7 +25,10 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.reflect.DirectInstantiator;
 
+import java.util.concurrent.TimeUnit;
+
 public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable {
+    public static final int STOP_TIMEOUT_SECONDS = 5;
     private final StoppableExecutor executor;
     private final JavaVersion javaVersion;
     private final ClassLoader classLoader;
@@ -57,7 +60,7 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
 
     @Override
     public void stop() {
-        executor.stop();
+        executor.stop(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     @Override
