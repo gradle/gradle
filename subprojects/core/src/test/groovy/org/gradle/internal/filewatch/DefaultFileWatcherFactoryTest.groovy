@@ -334,9 +334,9 @@ class DefaultFileWatcherFactoryTest extends Specification {
         scenario                         | subdir1Create | subdir2Create | parentCreate
         'both exist'                     | true          | true          | false
         'first exists'                   | true          | false         | false
-        //'second exists'                  | false         | true          | false
-        //'neither exists - parent exists' | false         | false         | true
-        //'neither exists'                 | false         | false         | false
+        'second exists'                  | false         | true          | false
+        'neither exists - parent exists' | false         | false         | true
+        'neither exists'                 | false         | false         | false
     }
 
     def "checks for scenario when the first directory to watch doesn't exist"() {
