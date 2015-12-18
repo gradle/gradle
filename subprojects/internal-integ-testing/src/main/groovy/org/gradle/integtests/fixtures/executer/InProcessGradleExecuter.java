@@ -469,14 +469,14 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionFailure assertHasCause(String description) {
-            assertThatCause(normalizedLineSeparators(startsWith(description)));
+            assertThatCause(startsWith(description));
             return this;
         }
 
-        public ExecutionFailure assertThatCause(final Matcher<String> matcher) {
+        public ExecutionFailure assertThatCause(Matcher<String> matcher) {
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
-            assertThat(causes, Matchers.<Throwable>hasItem(hasMessage(matcher)));
+            assertThat(causes, Matchers.<Throwable>hasItem(hasMessage(normalizedLineSeparators(matcher))));
             outputFailure.assertThatCause(matcher);
             return this;
         }
