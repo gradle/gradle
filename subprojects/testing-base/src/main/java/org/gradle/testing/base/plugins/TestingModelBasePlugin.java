@@ -16,6 +16,7 @@
 
 package org.gradle.testing.base.plugins;
 
+import org.gradle.api.Incubating;
 import org.gradle.model.Defaults;
 import org.gradle.model.Model;
 import org.gradle.model.ModelMap;
@@ -32,6 +33,7 @@ import org.gradle.platform.base.test.TestSuiteSpec;
  *
  * Copies test binaries from {@code testSuites} into {@code binaries}.
  */
+@Incubating
 public class TestingModelBasePlugin extends RuleSource {
 
     @Model
