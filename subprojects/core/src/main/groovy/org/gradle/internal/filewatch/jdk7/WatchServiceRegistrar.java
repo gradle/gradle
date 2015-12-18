@@ -83,18 +83,35 @@ class WatchServiceRegistrar implements FileWatcherListener {
         }
     }
 
-    private void watchDir(Path dir) throws IOException {
+    protected void watchDir(Path dir) throws IOException {
         LOG.debug("Registering watch for {}", dir);
-        try {
-            dir.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
-        } catch (IOException e) {
-            // Windows at least will sometimes throw odd exceptions like java.nio.file.AccessDeniedException
-            // if the file gets deleted while the watch is being set up.
-            // So, we just ignore the exception if the dir doesn't exist anymore
-            if (Files.exists(dir)) {
-                throw e;
+        int retryCount = 0;
+        IOException lastException = null;
+        while (retryCount++ < 2) {
+            try {
+                dir.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
+                return;
+            } catch (IOException e) {
+                lastException = e;
+
+                if (e instanceof FileSystemException && e.getMessage() != null && e.getMessage().contains("Bad file descriptor")) {
+                    // retry after getting "Bad file descriptor" exception
+                    continue;
+                }
+
+                // Windows at least will sometimes throw odd exceptions like java.nio.file.AccessDeniedException
+                // if the file gets deleted while the watch is being set up.
+                // So, we just ignore the exception if the dir doesn't exist anymore
+                if (!Files.exists(dir)) {
+                    // return silently when directory doesn't exist
+                    return;
+                } else {
+                    // no retry
+                    throw e;
+                }
             }
         }
+        throw lastException;
     }
 
 
