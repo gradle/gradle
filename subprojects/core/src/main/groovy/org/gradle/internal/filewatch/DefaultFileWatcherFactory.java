@@ -24,10 +24,14 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
 public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileWatcherFactory.class);
+
     public static final int STOP_TIMEOUT_SECONDS = 5;
     private final StoppableExecutor executor;
     private final JavaVersion javaVersion;
@@ -60,7 +64,12 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
 
     @Override
     public void stop() {
-        executor.stop(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        try {
+            executor.stop(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            // could be caused by https://bugs.openjdk.java.net/browse/JDK-8011537 ignore problems in stopping
+            LOGGER.debug("Problem shutting down executor. The problem might be caused by JDK-8011537.", e);
+        }
     }
 
     @Override
