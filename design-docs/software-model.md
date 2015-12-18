@@ -92,6 +92,9 @@ These should be rationalised and ideally replaced with model rules.
 
 ## Tasks
 
+- Support build items as input, infer dependencies
+- Support `copy.from $.some.buildItem`
+- Support `dependsOn $.tasks.withType(t)`
 - Remove `TaskContainer` view from model space
 - Prevent illegal mutation of `Task` in model space
 - Task command line arguments are applied _after_ all configuration rules
