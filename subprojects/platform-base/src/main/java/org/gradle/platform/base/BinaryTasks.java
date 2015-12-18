@@ -44,12 +44,12 @@ import java.lang.annotation.Target;
  *
  * class MyCustomBinariesPlugin extends RuleSource {
  *     {@literal @}BinaryType
- *     void register(BinaryTypeBuilder<SampleBinary> builder) {
+ *     void register(BinaryTypeBuilder&lt;SampleBinary&gt; builder) {
  *         builder.defaultImplementation(DefaultSampleBinary)
  *     }
  *
  *     {@literal @}BinaryTasks
- *     void createBinaryTasks(ModelMap<Task> tasks, SampleBinary binary) {
+ *     void createBinaryTasks(ModelMap&lt;Task&gt; tasks, SampleBinary binary) {
  *         tasks.create("${binary.name}Task1", MyCustomBinaryCreationTask)
  *         tasks.create("${binary.name}Task2") {
  *             dependsOn "${binary.name}Task1"
