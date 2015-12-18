@@ -26,7 +26,37 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
-    def "cannot use feature when target gradle version is < 2.8"() {
+    def "build result does not capture tasks when target gradle version is < 2.5"() {
+        given:
+        buildFile << helloWorldTask()
+
+        when:
+        def result = runner('helloWorld')
+                .withGradleVersion('2.4')
+                .build()
+
+        then:
+        result.tasks.empty
+        result.output.contains(':helloWorld')
+    }
+
+    @Debug
+    def "build result output is not captured when executed in debug mode and targets gradle version is < 2.9"() {
+        given:
+        buildFile << helloWorldTask()
+
+        when:
+        def result = runner('helloWorld')
+                .withGradleVersion('2.8')
+                .build()
+
+        then:
+        result.task(":helloWorld").outcome == SUCCESS
+        result.output.contains(':helloWorld')
+        !result.output.contains('Hello world!')
+    }
+
+    def "cannot use plugin classpath feature when target gradle version is < 2.8"() {
         given:
         buildFile << pluginDeclaration()
 
@@ -62,22 +92,6 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
 
         then:
         result.task(":helloWorld1").outcome == SUCCESS
-    }
-
-    @Debug
-    def "build result output is not captured if executed in debug mode and targets gradle version is < 2.9"() {
-        given:
-        buildFile << helloWorldTask()
-
-        when:
-        def result = runner('helloWorld')
-                .withGradleVersion('2.8')
-                .build()
-
-        then:
-        result.task(":helloWorld").outcome == SUCCESS
-        result.output.contains(':helloWorld')
-        !result.output.contains('Hello world!')
     }
 
     private void compilePluginProjectSources(int counter = 1) {
