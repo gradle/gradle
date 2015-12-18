@@ -18,6 +18,7 @@ dependencies {
     compile project(':core')
     compile project(':platformNative')
     compile project(':languageNative')
+    compile project(':testingBase')
 
     testCompile libraries.groovy
 

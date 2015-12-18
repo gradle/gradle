@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile project(':core')
-    compile project(':reporting')
-    compile project(':platformBase')
-    testCompile libraries.groovy
-}
-
-useTestFixtures()
-useTestFixtures(project: ':messaging')
-
-
+/**
+ * Plugin classes for generic support for testing.
+ */
+package org.gradle.testing.base.plugins;

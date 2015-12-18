@@ -20,7 +20,10 @@ import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
-import org.gradle.model.*;
+import org.gradle.model.Defaults;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -29,9 +32,7 @@ import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.test.TestSuiteContainer;
-import org.gradle.platform.base.test.TestSuiteSpec;
+import org.gradle.testing.base.plugins.TestingModelBasePlugin;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries.
@@ -41,13 +42,11 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
+        project.getPluginManager().apply(TestingModelBasePlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @Model
-        void testSuites(TestSuiteContainer testSuites) {}
-
         @Defaults
         void attachTestedBinarySourcesToTestBinaries(ModelMap<BinarySpec> binaries) {
             binaries.withType(NativeTestSuiteBinarySpecInternal.class).afterEach(new Action<NativeTestSuiteBinarySpecInternal>() {
@@ -81,15 +80,6 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
             }
         }
 
-        @Defaults
-        public void copyTestBinariesToGlobalContainer(ModelMap<BinarySpec> binaries, TestSuiteContainer testSuites) {
-            for (TestSuiteSpec testSuite : testSuites.withType(TestSuiteSpec.class).values()) {
-                for (BinarySpecInternal binary : testSuite.getBinaries().withType(BinarySpecInternal.class).values()) {
-                    binaries.put(binary.getProjectScopedName(), binary);
-                }
-            }
-        }
-
         @Mutate
         void attachBinariesToCheckLifecycle(ModelMap<Task> tasks, final ModelMap<NativeTestSuiteBinarySpec> binaries) {
             // TODO - binaries aren't an input to this rule, they're an input to the action
@@ -103,5 +93,4 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
             });
         }
     }
-
 }
