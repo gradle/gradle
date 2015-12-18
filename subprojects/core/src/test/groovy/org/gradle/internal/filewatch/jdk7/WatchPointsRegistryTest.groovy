@@ -153,6 +153,35 @@ class WatchPointsRegistryTest extends Specification {
         checkWatchPoints delta, [dirs[1]]
     }
 
+    def "directories get added when both don't originally exist"() {
+        given:
+        def dirs = [rootDir.file("a/b/c"), rootDir.file("a/b/d")]
+
+        when:
+        def delta = appendDir(dirs[0])
+
+        then:
+        checkWatchPoints delta, [dirs[0].getParentFile().getParentFile().getParentFile()]
+        and: 'should fire for actual file'
+        registry.shouldFire(dirs[0].createFile("file.txt"))
+        and: 'should not file for files in sibling directories that arent watched'
+        !registry.shouldFire(dirs[1].createFile("file2.txt"))
+        and: 'should not fire for files in parent directories'
+        !registry.shouldFire(dirs[0].getParentFile().getParentFile().getParentFile().createFile("file.txt"))
+        !registry.shouldFire(dirs[0].getParentFile().getParentFile().createFile("file.txt"))
+        !registry.shouldFire(dirs[0].getParentFile().createFile("file.txt"))
+
+        when:
+        dirs*.createDir()
+        delta = appendDir(dirs[1])
+
+        then:
+        checkWatchPoints delta, [dirs[1]]
+        and:
+        registry.shouldFire(dirs[0].createFile("file.txt"))
+        registry.shouldFire(dirs[1].createFile("file2.txt"))
+    }
+
     def "directory doesn't get added when createNewStartingPointsUnderExistingRoots==false"() {
         given:
         registry = new WatchPointsRegistry(false)
