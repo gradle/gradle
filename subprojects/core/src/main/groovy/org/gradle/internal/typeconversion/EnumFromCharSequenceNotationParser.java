@@ -44,7 +44,7 @@ public class EnumFromCharSequenceNotationParser<T extends Enum> implements Notat
         });
         if (match == null) {
             throw new TypeConversionException(
-                    String.format("Cannot coerce string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
+                    String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
                             enumString, type.getName(), CollectionUtils.toStringList(Arrays.asList(type.getEnumConstants()))
                     )
             );

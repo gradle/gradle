@@ -37,7 +37,7 @@ class EnumFromCharSequenceNotationParserSpec extends Specification{
 
         then:
         def e = thrown(TypeConversionException)
-        e.message == "Cannot coerce string value 'notKnown' to an enum value of type 'org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParserSpec\$TestEnum' (valid case insensitive values: [ENUM1, ENUM2, ENUM3, ENUM_4_1])"
+        e.message == "Cannot convert string value 'notKnown' to an enum value of type 'org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParserSpec\$TestEnum' (valid case insensitive values: [ENUM1, ENUM2, ENUM3, ENUM_4_1])"
     }
 
     static enum TestEnum {

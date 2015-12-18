@@ -150,8 +150,9 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         and:
         failure.assertHasLineNumber(111)
         failure.assertHasCause("Cannot set property: $varname for class: Props to value: java.lang.Object")
-        failure.assertThatCause(containsString('The following types/formats are supported:'))
-        failure.assertThatCause(containsString('CharSequence instances'))
+        failure.assertThatCause(containsString('''The following types/formats are supported:
+  - A String or CharSequence
+  - Any Number'''))
 
         where:
         // not including char, Character, and String since Groovy auto-coerces to String,
@@ -186,7 +187,7 @@ The following types/formats are supported:
     }
 
     @Unroll
-    void 'number types require stringified numeric inputs'() {
+    void 'number types require stringified numeric inputs - #varname'() {
         when:
         buildFile << CLASSES
         buildFile << """
@@ -201,7 +202,9 @@ The following types/formats are supported:
         fails 'printResolvedValues'
 
         and:
-        failure.assertThatCause(containsString("Cannot coerce string value '42foo' to type $type.simpleName"))
+        failure.assertHasLineNumber(111)
+        failure.assertHasCause("Cannot set property: ${varname} for class: Props to value: 42foo.")
+        failure.assertHasCause("Cannot convert value '42foo' to type $type.simpleName")
 
         where:
         varname         | type
@@ -239,9 +242,9 @@ The following types/formats are supported:
         and:
         failure.assertHasLineNumber(111)
         failure.assertHasCause("Cannot set property: $varname for class: Props to value: null.")
-        failure.assertHasCause("""Cannot assign null value to primitive type $type.
+        failure.assertHasCause("""Cannot convert a null value to an object of type $type.
 The following types/formats are supported:
-  - String or CharSequence instances.""")
+  - A String or CharSequence""")
 
                 where:
         varname     | type
@@ -313,7 +316,7 @@ The following types/formats are supported:
         and:
         failure.assertHasLineNumber(111)
         failure.assertHasCause("Cannot set property: theThing for class: Props to value: IS_NOT_A_TOASTER.")
-        failure.assertHasCause("Cannot coerce string value 'IS_NOT_A_TOASTER' to an enum value of type 'Thing'")
+        failure.assertHasCause("Cannot convert string value 'IS_NOT_A_TOASTER' to an enum value of type 'Thing'")
     }
 
     @Unroll
@@ -524,9 +527,10 @@ The following types/formats are supported:
         fails 'model'
 
         and:
-        failure.assertThatCause(containsString('Cannot convert the provided notation to an object of type File'))
-        failure.assertThatCause(containsString('The following types/formats are supported:'))
-        failure.assertThatCause(containsString('CharSequence instances'))
+        failure.assertHasCause('Cannot convert the provided notation to an object of type File: ')
+        failure.assertThatCause(containsString('''The following types/formats are supported:
+  - A String or CharSequence
+  - A File'''))
     }
 
     void 'can convert CharSequence to File for multi-project build'() {
