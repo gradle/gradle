@@ -92,10 +92,12 @@ class WatchServiceRegistrar implements FileWatcherListener {
                 dir.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
                 return;
             } catch (IOException e) {
+                LOG.debug("Exception in registering for watching of " + dir, e);
                 lastException = e;
 
                 if (e instanceof FileSystemException && e.getMessage() != null && e.getMessage().contains("Bad file descriptor")) {
                     // retry after getting "Bad file descriptor" exception
+                    LOG.debug("Retrying after 'Bad file descriptor'");
                     continue;
                 }
 
@@ -104,6 +106,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
                 // So, we just ignore the exception if the dir doesn't exist anymore
                 if (!Files.exists(dir)) {
                     // return silently when directory doesn't exist
+                    LOG.debug("Return silently since directory doesn't exist.");
                     return;
                 } else {
                     // no retry
@@ -111,6 +114,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
                 }
             }
         }
+        LOG.debug("Retry count exceeded, throwing last exception");
         throw lastException;
     }
 
