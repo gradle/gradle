@@ -23,7 +23,10 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.ModelViewClosedException;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.TypeCompatibilityModelProjectionSupport;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -79,10 +82,6 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
             }
 
             class State implements ModelElementState {
-
-                State() {
-                }
-
                 @Override
                 public MutableModelNode getBackingNode() {
                     return modelNode;
