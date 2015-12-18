@@ -64,16 +64,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
     protected void createExecutions() {
         determineTestedGradleDistributions().each { testedGradleDistribution ->
             def releasedDist = RELEASED_VERSION_DISTRIBUTIONS.getDistribution(testedGradleDistribution.gradleVersion)
-
-            if (releasedDist && !releasedDist.worksWith(Jvm.current())) {
-                add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current JVM'))
-            } else if (releasedDist && !releasedDist.worksWith(OperatingSystem.current())) {
-                add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current OS'))
-            } else {
-                [true, false].each { debug ->
-                    add(new GradleRunnerExecution(testedGradleDistribution, debug))
-                }
-            }
+            addExecutions(releasedDist, testedGradleDistribution)
         }
     }
 
@@ -86,6 +77,20 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
                                 TestedGradleDistribution.underDevelopment()] as SortedSet
             case 'current': return [TestedGradleDistribution.underDevelopment()] as Set
             default: throw new IllegalArgumentException("Invalid value for $COMPATIBILITY_SYSPROP_NAME system property: $version (valid values: 'all', 'current')")
+        }
+    }
+
+    private void addExecutions(releasedDist, TestedGradleDistribution testedGradleDistribution) {
+        if (releasedDist && !releasedDist.worksWith(Jvm.current())) {
+            add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current JVM'))
+        } else if (releasedDist && !releasedDist.isToolingApiTargetJvmSupported(Jvm.current().javaVersion)) {
+            add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current JVM due to an incompatibility with the tooling API'))
+        } else if (releasedDist && !releasedDist.worksWith(OperatingSystem.current())) {
+            add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current OS'))
+        } else {
+            [true, false].each { debug ->
+                add(new GradleRunnerExecution(testedGradleDistribution, debug))
+            }
         }
     }
 
