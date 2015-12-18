@@ -20,6 +20,7 @@ import groovy.transform.Sortable
 import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.internal.jvm.Jvm
 import org.gradle.testkit.runner.internal.dist.GradleDistribution
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution
@@ -61,8 +62,16 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
     @Override
     protected void createExecutions() {
         determineTestedGradleDistributions().each { testedGradleDistribution ->
-            [true, false].each { debug ->
-                add(new GradleRunnerExecution(testedGradleDistribution, debug))
+            def releasedDist = RELEASED_VERSION_DISTRIBUTIONS.getDistribution(testedGradleDistribution.gradleVersion)
+
+            if (releasedDist && !releasedDist.worksWith(Jvm.current())) {
+                add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current JVM'))
+            } else if (releasedDist && !releasedDist.worksWith(Jvm.current())) {
+                add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current OS'))
+            } else {
+                [true, false].each { debug ->
+                    add(new GradleRunnerExecution(testedGradleDistribution, debug))
+                }
             }
         }
     }
@@ -105,6 +114,27 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
 
         static TestedGradleDistribution underDevelopment() {
             new TestedGradleDistribution(BUILD_CONTEXT.version, new InstalledGradleDistribution(BUILD_CONTEXT.gradleHomeDir))
+        }
+    }
+
+    private static class IgnoredGradleRunnerExecution extends AbstractMultiTestRunner.Execution {
+
+        private final TestedGradleDistribution testedGradleDistribution
+        private final String reason
+
+        IgnoredGradleRunnerExecution(TestedGradleDistribution testedGradleDistribution, String reason) {
+            this.testedGradleDistribution = testedGradleDistribution
+            this.reason = reason
+        }
+
+        @Override
+        protected String getDisplayName() {
+            "$testedGradleDistribution.gradleVersion.version $reason"
+        }
+
+        @Override
+        protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
+            false
         }
     }
 
