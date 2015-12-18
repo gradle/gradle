@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.test
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.hamcrest.Matchers
 import spock.lang.Unroll
@@ -224,10 +223,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         executedAndNotSkipped(suites.collect { ":${it}BinaryTest" } as String[])
     }
 
-    @NotYetImplemented
-    // this has been deferred to a later story, where test binaries will
-    // be segregated from "regular" binaries
-    def "assemble does not compile nor run test suite"() {
+   def "assemble does not compile nor run test suite"() {
         given:
         applyJUnitPlugin()
 
@@ -510,7 +506,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
     private void testSuiteComponent(SourceSetConfiguration config = SourceSetConfiguration.EXPLICIT_NO_DEPS) {
         buildFile << """
             model {
-                components {
+                testSuites {
                     myTest(JUnitTestSuiteSpec) ${config.configuration}
                 }
             }
