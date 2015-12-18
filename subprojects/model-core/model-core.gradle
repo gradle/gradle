@@ -17,7 +17,7 @@
 /*
  * The model management core.
  */
-apply plugin: "groovy"
+apply plugin: 'groovy'
 
 dependencies {
     compile libraries.slf4j_api
@@ -31,11 +31,11 @@ dependencies {
 
     testCompile libraries.groovy
 
-    integTestCompile project(":core")
+    integTestCompile project(':core')
     integTestRuntime project(':plugins')
 
-    testFixturesCompile project(":internalTesting")
-    testFixturesCompile project(":core")
+    testFixturesCompile project(':internalTesting')
+    testFixturesCompile project(':core')
 }
 
 useTestFixtures()

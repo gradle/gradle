@@ -22,11 +22,11 @@ dependencies {
 
     testCompile libraries.groovy
 
-    integTestRuntime project(":ideNative")
+    integTestRuntime project(':ideNative')
 }
 
 useTestFixtures()
-useTestFixtures(project: ":platformNative")
+useTestFixtures(project: ':platformNative')
 useTestFixtures(project: ':diagnostics')
 
 useClassycle()
