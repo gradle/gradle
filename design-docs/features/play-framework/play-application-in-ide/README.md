@@ -30,6 +30,14 @@ This story makes use of a simple tooling client that demonstrates the output of 
     Eclipse workspace:
     Eclipse project: play-app
 
+##### Implementation notes
+
+- IDEA content root and Eclipse project directory should be the project directory of the Gradle project containing the component
+- Module/project should have `null` Java source settings.
+- Eclipse natures and builders should be empty.
+- Classpaths/dependencies should be empty.
+- Manually test import into Eclipse and IDEA at this point
+
 ##### Out of scope
 
 - No sources or dependencies will be configured for the imported project. This will be handled in later stories.
@@ -60,6 +68,15 @@ This story makes use of a simple tooling client that demonstrates the output of 
         source: app
         source: conf
         source: test
+
+##### Implementation notes
+
+- Source directories should include only those source directories that contain JVM source files or resources, as this is
+what 'source directory' means to both Eclipse and IDEA:
+    - Import Jvm library: should get Java and resources dirs
+    - Import native library: should get content root but no source dirs
+- Module/project should have non-null Java source settings when there are source directories.
+- Manually test import into Eclipse and IDEA
 
 ##### Out of scope
 
@@ -105,10 +122,22 @@ This story makes use of a simple tooling client that demonstrates the output of 
         source: build/playBinary/src/compilePlayBinaryCoffeeScript
         source: test
 
+##### Implementation notes
+
+- Introduce an (internal) abstraction that says:
+    - here are my production source sets
+    - here are my generated production source sets
+    - here are my test source sets
+    - here are my generated test source sets
+- Play application component implements this, or play plugin provides an implementation of this in some form
+- IDE import uses this abstraction instead of anything Play specific
+- IDE import must know _nothing_ of Play. It should understand JVM components only.
+- Manually test import into Eclipse and IDEA
+
 ##### Open issues
 
-- Should all asset directories be added as production source directories?
-- Should we add generated sources to the eclipse project?
+- Should all asset directories be added as production source directories? yes, if they end up as classpath resources without transformation, otherwise no
+- Should we add generated sources to the eclipse project? yes, otherwise it can't compile stuff
 
 ##### Out of scope
 
@@ -121,6 +150,31 @@ When a Play application is imported into the IDE, the appropriate external depen
 - The external dependencies in the 'playPlatform' and 'play' configurations end up in `EclipseProject.classpath` and `IdeaModule.dependencies` (with the appropriate scope)
 - The external dependencies in the 'playTest' configuration end up in `EclipseProject.classpath` (with the appropriate scope)
 
+##### Implementation notes
+
+- Introduce an (internal) abstraction that says:
+    - Here are my compile time dependencies
+    - Here are my runtime dependencies
+    - Here are my test compile dependencies
+    - Here are my test runtime dependencies
+    - Here are my dependencies merged into a single classpath
+- Here 'dependency' means something like:
+    - Local (this is for the following story)
+        - The identity of the target _component_
+    - External
+        - A human consumable display name for the library
+        - The GAV of the library, if known.
+        - The location of the jar, if any.
+        - The location of the source zip, if any.
+        - The location of the Javadoc zip, if any.
+- Play application component implements this, or play plugin provides an implementation in some form
+- IDE import uses this abstraction instead of anything Play specific
+- Manually test import into Eclipse and IDEA
+
+##### Open questions
+
+- Resolution failures?
+
 ### Story: Play application project imported into IDE has correct local component dependencies configured for multiproject build
 
 When a multiproject Gradle build containing Play application projects is imported into the IDE, the appropriate local dependencies should be configured for the test and productions sources.
@@ -128,7 +182,18 @@ When a multiproject Gradle build containing Play application projects is importe
 - The project dependencies in the 'playPlatform' and 'play' configurations should end up in `EclipseProject.classpath` and `IdeaModule.dependencies` (with the appropriate scope)
 - The project dependencies in the 'playTest' configuration end up in `EclipseProject.classpath` (with the appropriate scope)
 
+##### Open questions
+
+- Local dependencies can be both play libraries and general JVM libraries. Which are supported for this story?
+
 ### Story: Play application project imported into IDE has correct Java source and target JVM configured
+
+##### Implementation plan
+
+- Add an abstraction to expose these. Language level should live on source set.
 
 ### Story: Play application project imported into IDE has correct Scala language settings configured
 
+##### Implementation plan
+
+- Add an abstraction to expose these. Language level should live on source set.
