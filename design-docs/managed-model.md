@@ -332,6 +332,17 @@ Other issues:
 - Add `all(Action<? super T)` method to `ModelSet`.
 - Add DSL support for `all { }` rule.
 
+### Story: Display managed properties of `@Managed` subtypes of extensible types in reports
+
+Make sure `@Managed` subtypes of extensible types (`ComponentSpec`, `BinarySpec`, `LanguageSourceSet`) show up in a
+friendly way in both the `model` and `components` reports.
+
+#### Test cases
+
+- Managed instances in `model` report display their public type
+- Managed instances in `components` report display their public type
+- Managed properties are visible in `model` report
+
 ## Backlog
 
 - Documentation and samples
