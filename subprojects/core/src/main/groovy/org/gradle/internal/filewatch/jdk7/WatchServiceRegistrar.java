@@ -56,11 +56,12 @@ class WatchServiceRegistrar implements FileWatcherListener {
     void watch(FileSystemSubset fileSystemSubset) throws IOException {
         lock.lock();
         try {
+            LOG.debug("Begin - adding watches for {}", fileSystemSubset);
             final WatchPointsRegistry.Delta delta = watchPointsRegistry.appendFileSystemSubset(fileSystemSubset);
             Iterable<? extends File> startingWatchPoints = delta.getStartingWatchPoints();
 
             for (File dir : startingWatchPoints) {
-                LOG.debug("Handling starting point {}", dir);
+                LOG.debug("Begin - handling starting point {}", dir);
                 if (FILE_TREE_WATCHING_SUPPORTED) {
                     watchDir(dir.toPath());
                 } else {
@@ -77,7 +78,9 @@ class WatchServiceRegistrar implements FileWatcherListener {
                         }
                     });
                 }
+                LOG.debug("End - handling starting point {}", dir);
             }
+            LOG.debug("End - adding watches for {}", fileSystemSubset);
         } finally {
             lock.unlock();
         }
