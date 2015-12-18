@@ -26,7 +26,8 @@ public interface PerformanceResults {
     String getVcsBranch();
     long getTestTime();
 
-    List<String> getVcsCommits();
+    String getVcsCommit();
+
     /**
      * Returns the results of the experiments executed as part of this performance test.
      */

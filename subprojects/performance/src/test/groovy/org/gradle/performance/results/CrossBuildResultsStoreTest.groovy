@@ -97,7 +97,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         crossBuildPerformanceResults.operatingSystem == "windows"
         crossBuildPerformanceResults.testTime == 100
         crossBuildPerformanceResults.vcsBranch == "master"
-        crossBuildPerformanceResults.vcsCommits[0] == "abcdef"
+        crossBuildPerformanceResults.vcsCommit == "abcdef"
 
         and:
         def operation = crossBuildPerformanceResults.buildResult(secondSpecification).first

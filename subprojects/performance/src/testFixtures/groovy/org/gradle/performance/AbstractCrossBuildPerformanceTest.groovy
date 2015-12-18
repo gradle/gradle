@@ -33,7 +33,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     static def resultStore = new CrossBuildResultsStore()
 
-    def runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
+    final def runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             builder.invocationCount(5).warmUpCount(1)

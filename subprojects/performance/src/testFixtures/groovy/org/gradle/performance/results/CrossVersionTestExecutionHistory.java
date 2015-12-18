@@ -125,8 +125,8 @@ public class CrossVersionTestExecutionHistory implements TestExecutionHistory {
         }
 
         @Override
-        public List<String> getVcsCommits() {
-            return result.getVcsCommits();
+        public String getVcsCommit() {
+            return result.getVcsCommit();
         }
 
         public List<MeasuredOperationList> getExperiments() {

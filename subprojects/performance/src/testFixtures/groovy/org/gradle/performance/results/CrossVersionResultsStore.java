@@ -16,9 +16,6 @@
 
 package org.gradle.performance.results;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import org.gradle.internal.UncheckedException;
 import org.gradle.performance.fixture.BaselineVersion;
 import org.gradle.performance.fixture.CrossVersionPerformanceResults;
@@ -79,7 +76,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         statement.setString(7, results.getOperatingSystem());
                         statement.setString(8, results.getJvm());
                         statement.setString(9, results.getVcsBranch());
-                        statement.setString(10, Joiner.on("|").join(results.getVcsCommits()));
+                        statement.setString(10, results.getVcsCommit());
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
                         keys.next();
@@ -172,7 +169,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         performanceResults.setOperatingSystem(testExecutions.getString(7));
                         performanceResults.setJvm(testExecutions.getString(8));
                         performanceResults.setVcsBranch(testExecutions.getString(9).trim());
-                        performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(10)));
+                        performanceResults.setVcsCommit(testExecutions.getString(10));
 
                         results.add(performanceResults);
                         allBranches.add(performanceResults.getVcsBranch());
@@ -214,10 +211,6 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not load results from datastore '%s'.", dbFile), e);
         }
-    }
-
-    public static List<String> splitVcsCommits(String string) {
-        return ImmutableList.copyOf(Splitter.on("|").split(string));
     }
 
     private String[] toArray(Object object) {

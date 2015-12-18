@@ -16,7 +16,6 @@
 
 package org.gradle.performance.results;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.performance.measure.DataAmount;
@@ -25,9 +24,7 @@ import org.gradle.performance.measure.Duration;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
     @Override
@@ -39,177 +36,134 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
     public void render(final TestExecutionHistory testHistory, Writer writer) throws IOException {
         new MetricsHtml(writer) {{
             html();
-            head();
-            headSection(this);
-            title().text(String.format("Profile test %s report", testHistory.getName())).end();
-            script();
-            text("$(function() {\n");
-            text("$.ajax({ url:'" + testHistory.getId() + ".json\', dataType: 'json',");
-            text("  success: function(data) {\n");
-            text("    var labels = data.labels;\n");
-            text("    var options = { series: { points: { show: true }, lines: { show: true } }, legend: { noColumns: 0, margin: 1 }, grid: { hoverable: true, clickable: true }, xaxis: { tickFormatter: function(index, value) { return labels[index]; } } };\n");
-            text("    $.plot('#executionTimeChart', data.totalTime, options);\n");
-            text("    $.plot('#heapUsageChart', data.heapUsage, options);\n");
-            text("    $('#executionTimeChart').bind('plothover', function (event, pos, item) {\n");
-            text("      if (!item) {\n");
-            text("        $('#tooltip').hide();\n");
-            text("      } else {\n");
-            text("        var text = 'Version: ' + item.series.label + ', date: ' + labels[item.datapoint[0]] + ', execution time: ' + item.datapoint[1] + 's';\n");
-            text("        $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();\n");
-            text("      }\n");
-            text("    });\n");
-            text("    $('#heapUsageChart').bind('plothover', function (event, pos, item) {\n");
-            text("      if (!item) {\n");
-            text("        $('#tooltip').hide();\n");
-            text("      } else {\n");
-            text("        var text = 'Version: ' + item.series.label + ', date: ' + labels[item.datapoint[0]] + ', heap usage: ' + item.datapoint[1] + 'mb';\n");
-            text("        $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();\n");
-            text("      }\n");
-            text("    });\n");
-            text("  }\n");
-            text("});\n");
-            text("});");
-            end();
-            end();
-            body();
-            div().id("content");
-            h2().text(String.format("Test %s", testHistory.getName())).end();
-            h3().text("Average execution time").end();
-            div().id("executionTimeChart").classAttr("chart");
-            p().text("Loading...").end();
-            end();
-            h3().text("Average heap usage").end();
-            div().id("heapUsageChart").classAttr("chart");
-            p().text("Loading...").end();
-            end();
-            div().id("tooltip").end();
-            h3().text("Test history").end();
-            div().id("controls").end();
-            table().classAttr("history");
-            tr().classAttr("control-groups");
-            th().colspan("4").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average build time").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average configuration time").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average execution time").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average heap usage (old measurement)").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average total heap usage").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max heap usage").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max uncollected heap").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max committed heap").end();
-            th().colspan("4").text("Details").end();
-            end();
-            tr();
-            th().text("Date").end();
-            th().text("Test version").end();
-            th().text("Branch").end();
-            th().text("Git commit").end();
-            for (int i = 0; i < 8; i++) {
-                for (String label : testHistory.getExperimentLabels()) {
-                    th().classAttr("numeric").text(label).end();
-                }
-            }
-            th().text("Operating System").end();
-            th().text("JVM").end();
-            end();
-            for (PerformanceResults results : testHistory.getPerformanceResults()) {
-                tr();
-                td().text(format.timestamp(new Date(results.getTestTime()))).end();
-                td().text(results.getVersionUnderTest()).end();
-                td().text(results.getVcsBranch()).end();
-
-                td();
-                List<Link> vcsCommits = urlify(results.getVcsCommits());
-                for (int i = 0; i < vcsCommits.size(); i++) {
-                    Link vcsCommit = vcsCommits.get(i);
-                    a().href(vcsCommit.getValue()).text(vcsCommit.getLabel()).end();
-                    if (i != vcsCommits.size() - 1) {
-                        text(" | ");
-                    }
-                }
+                head();
+                    headSection(this);
+                    title().text(String.format("Profile test %s report", testHistory.getName())).end();
+                    script();
+                        text("$(function() {\n");
+                        text("$.ajax({ url:'" + testHistory.getId() + ".json\', dataType: 'json',");
+                        text("  success: function(data) {\n");
+                        text("    var labels = data.labels;\n");
+                        text("    var options = { series: { points: { show: true }, lines: { show: true } }, legend: { noColumns: 0, margin: 1 }, grid: { hoverable: true, clickable: true }, xaxis: { tickFormatter: function(index, value) { return labels[index]; } } };\n");
+                        text("    $.plot('#executionTimeChart', data.totalTime, options);\n");
+                        text("    $.plot('#heapUsageChart', data.heapUsage, options);\n");
+                        text("    $('#executionTimeChart').bind('plothover', function (event, pos, item) {\n");
+                        text("      if (!item) {\n");
+                        text("        $('#tooltip').hide();\n");
+                        text("      } else {\n");
+                        text("        var text = 'Version: ' + item.series.label + ', date: ' + labels[item.datapoint[0]] + ', execution time: ' + item.datapoint[1] + 's';\n");
+                        text("        $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();\n");
+                        text("      }\n");
+                        text("    });\n");
+                        text("    $('#heapUsageChart').bind('plothover', function (event, pos, item) {\n");
+                        text("      if (!item) {\n");
+                        text("        $('#tooltip').hide();\n");
+                        text("      } else {\n");
+                        text("        var text = 'Version: ' + item.series.label + ', date: ' + labels[item.datapoint[0]] + ', heap usage: ' + item.datapoint[1] + 'mb';\n");
+                        text("        $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();\n");
+                        text("      }\n");
+                        text("    });\n");
+                        text("  }\n");
+                        text("});\n");
+                        text("});");
+                    end();
                 end();
-
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
-                    public DataSeries<Duration> transform(MeasuredOperationList original) {
-                        return original.getTotalTime();
-                    }
-                });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
-                    public DataSeries<Duration> transform(MeasuredOperationList original) {
-                        return original.getConfigurationTime();
-                    }
-                });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
-                    public DataSeries<Duration> transform(MeasuredOperationList original) {
-                        return original.getExecutionTime();
-                    }
-                });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
-                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
-                        return original.getTotalMemoryUsed();
-                    }
-                });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
-                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
-                        return original.getTotalHeapUsage();
-                    }
-                });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
-                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
-                        return original.getMaxHeapUsage();
-                    }
-                });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
-                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
-                        return original.getMaxUncollectedHeap();
-                    }
-                });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
-                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
-                        return original.getMaxCommittedHeap();
-                    }
-                });
-                td().text(results.getOperatingSystem()).end();
-                td().text(results.getJvm()).end();
+                body();
+                div().id("content");
+                    h2().text(String.format("Test %s", testHistory.getName())).end();
+                    h3().text("Average execution time").end();
+                    div().id("executionTimeChart").classAttr("chart");
+                        p().text("Loading...").end();
+                    end();
+                    h3().text("Average heap usage").end();
+                    div().id("heapUsageChart").classAttr("chart");
+                        p().text("Loading...").end();
+                    end();
+                    div().id("tooltip").end();
+                    h3().text("Test history").end();
+                    div().id("controls").end();
+                    table().classAttr("history");
+                        tr().classAttr("control-groups");
+                            th().colspan("4").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average build time").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average configuration time").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average execution time").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average heap usage (old measurement)").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average total heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max uncollected heap").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max committed heap").end();
+                            th().colspan("4").text("Details").end();
+                        end();
+                        tr();
+                            th().text("Date").end();
+                            th().text("Test version").end();
+                            th().text("Branch").end();
+                            th().text("Git commit").end();
+                            for (int i = 0; i < 8; i++) {
+                                for (String label : testHistory.getExperimentLabels()) {
+                                    th().classAttr("numeric").text(label).end();
+                                }
+                            }
+                            th().text("Operating System").end();
+                            th().text("JVM").end();
+                        end();
+                        for (PerformanceResults results : testHistory.getPerformanceResults()) {
+                            tr();
+                                td().text(format.timestamp(new Date(results.getTestTime()))).end();
+                                td().text(results.getVersionUnderTest()).end();
+                                td().text(results.getVcsBranch()).end();
+                                String commit = results.getVcsCommit();
+                                td().a().href(String.format("https://github.com/gradle/gradle/commit/%s", commit)).text(commit).end().end();
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                public DataSeries<Duration> transform(MeasuredOperationList original) {
+                                    return original.getTotalTime();
+                                }
+                                });
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                    public DataSeries<Duration> transform(MeasuredOperationList original) {
+                                        return original.getConfigurationTime();
+                                    }
+                                });
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                    public DataSeries<Duration> transform(MeasuredOperationList original) {
+                                        return original.getExecutionTime();
+                                    }
+                                });
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
+                                        return original.getTotalMemoryUsed();
+                                    }
+                                });
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
+                                        return original.getTotalHeapUsage();
+                                    }
+                                });
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
+                                        return original.getMaxHeapUsage();
+                                    }
+                                });
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
+                                        return original.getMaxUncollectedHeap();
+                                    }
+                                });
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
+                                        return original.getMaxCommittedHeap();
+                                    }
+                                });
+                                td().text(results.getOperatingSystem()).end();
+                                td().text(results.getJvm()).end();
+                            end();
+                        }
+                    end();
                 end();
-            }
-            end();
-            end();
-            footer(this);
+                footer(this);
             endAll();
         }};
-    }
-
-    private static class Link {
-        private final String label;
-        private final String value;
-
-        public Link(String label, String value) {
-            this.label = label;
-            this.value = value;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public String getValue() {
-            return value;
-        }
-    }
-
-    private List<Link> urlify(List<String> commits) {
-        Link gradleUrl = new Link(commits.get(0), String.format("https://github.com/gradle/gradle/commit/%s", commits.get(0).trim()));
-        if (commits.size() == 1) {
-            return Collections.singletonList(gradleUrl);
-        } else if (commits.size() == 2) {
-            Link dotComUrl = new Link(commits.get(1), String.format("https://github.com/gradle/dotcom/commit/%s", commits.get(1).trim()));
-            List<Link> links = Lists.newArrayList();
-            links.add(gradleUrl);
-            links.add(dotComUrl);
-            return links;
-        } else {
-            throw new IllegalArgumentException("No more than 2 commit shas are supported");
-        }
     }
 
 }

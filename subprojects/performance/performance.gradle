@@ -639,8 +639,6 @@ task largeJavaSwModelProjectWithoutBuildReceipts(type: JvmProjectGeneratorTask) 
 task buildReceiptPluginPerformanceTest(type: Test) {
     dependsOn largeJavaSwModelProjectWithBuildReceipts, largeJavaSwModelProjectWithoutBuildReceipts
     finalizedBy buildReceiptReport
-    systemProperties += ['incomingArtifactDir': "${rootDir}/incoming/"]
-
     options {
         includeCategories 'org.gradle.performance.categories.BRPPerformanceTest'
     }
