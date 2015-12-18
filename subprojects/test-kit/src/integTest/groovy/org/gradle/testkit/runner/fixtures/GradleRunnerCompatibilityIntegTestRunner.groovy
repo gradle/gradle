@@ -21,6 +21,7 @@ import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.internal.dist.GradleDistribution
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution
@@ -66,7 +67,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
 
             if (releasedDist && !releasedDist.worksWith(Jvm.current())) {
                 add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current JVM'))
-            } else if (releasedDist && !releasedDist.worksWith(Jvm.current())) {
+            } else if (releasedDist && !releasedDist.worksWith(OperatingSystem.current())) {
                 add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current OS'))
             } else {
                 [true, false].each { debug ->
