@@ -395,6 +395,34 @@ class DefaultFileWatcherFactoryTest extends Specification {
         filesSeen == [subdir1File.absolutePath] as Set
     }
 
+
+    def "should support watching directory that didn't exist when watching started"() {
+        given:
+        def listener = Mock(FileWatcherListener)
+        def fileEventMatchedLatch = new CountDownLatch(1)
+        def filesSeen = ([] as Set).asSynchronized()
+        listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
+            if (event.file.isFile()) {
+                filesSeen.add(event.file.absolutePath)
+                fileEventMatchedLatch.countDown()
+            }
+        }
+        fileWatcher = fileWatcherFactory.watch(onError, listener)
+        def subdir = testDir.file('src/main/java')
+        def subdirFile = subdir.file("SomeFile.java")
+
+        when: 'Adds watch for non-existing directory'
+        fileWatcher.watch(FileSystemSubset.builder().add(subdir).build())
+
+        and: 'Creates file'
+        subdirFile.createFile().text = 'Some content'
+        waitOn(fileEventMatchedLatch)
+
+        then: 'File should have been noticed'
+        filesSeen.size() == 1
+        filesSeen[0] == subdirFile.absolutePath
+    }
+
     private void waitOn(CountDownLatch latch, boolean checkLatch = true) {
         //println "waiting..."
         latch.await(waitForEventsMillis, TimeUnit.MILLISECONDS)
