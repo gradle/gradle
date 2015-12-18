@@ -149,12 +149,16 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
     }
 
     private static void signal(Lock lock, Condition condition, Runnable runnable) {
+        boolean interrupted = Thread.interrupted();
         lock.lock();
         try {
             runnable.run();
             condition.signal();
         } finally {
             lock.unlock();
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 

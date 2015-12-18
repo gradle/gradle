@@ -16,6 +16,7 @@
 
 package org.gradle.internal.filewatch.jdk7;
 
+import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -88,8 +89,10 @@ public class WatchServiceFileWatcherBacking {
                             } catch (InterruptedException e) {
                                 // just stop
                             } catch (Throwable t) {
-                                stop();
-                                onError.execute(t);
+                                if (!(Throwables.getRootCause(t) instanceof InterruptedException)) {
+                                    stop();
+                                    onError.execute(t);
+                                }
                             }
                         } finally {
                             stop();
@@ -124,6 +127,7 @@ public class WatchServiceFileWatcherBacking {
                     deliverEvents(events);
                 }
             } catch (ClosedWatchServiceException e) {
+                LOGGER.debug("Received ClosedWatchServiceException, stopping");
                 stop();
             }
         }
@@ -131,11 +135,12 @@ public class WatchServiceFileWatcherBacking {
 
     private void deliverEvents(List<FileWatcherEvent> events) {
         for (FileWatcherEvent event : events) {
+            if (!isRunning()) {
+                LOGGER.debug("File watching isn't running, breaking out of event delivery.");
+                break;
+            }
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Received file system event: {}", event);
-            }
-            if (!isRunning()) {
-                break;
             }
             watchServiceRegistrar.onChange(fileWatcher, event);
         }
@@ -148,6 +153,7 @@ public class WatchServiceFileWatcherBacking {
     private void stop() {
         if (stopped.compareAndSet(false, true)) {
             if (running.compareAndSet(true, false)) {
+                LOGGER.debug("Stopping file watching");
                 interruptPollerThread();
                 try {
                     watchService.close();
@@ -166,6 +172,7 @@ public class WatchServiceFileWatcherBacking {
             Thread pollerThread = threadSoftReference.get();
             if (pollerThread != null && pollerThread != Thread.currentThread()) {
                 // only interrupt poller thread if it's not current thread
+                LOGGER.debug("Interrupting poller thread '{}'", pollerThread.getName());
                 pollerThread.interrupt();
             }
         }

@@ -206,6 +206,30 @@ class DefaultFileWatcherFactoryTest extends Specification {
         await { assert !fileWatcher.running }
     }
 
+    def "can interrupt watcher event delivery"() {
+        when:
+        def eventReceivedLatch = new CountDownLatch(1)
+        def interruptedLatch = new CountDownLatch(1)
+        fileWatcher = fileWatcherFactory.watch(onError) { watcher, event ->
+            eventReceivedLatch.countDown()
+            try {
+                Thread.sleep(100000)
+            } catch (InterruptedException e) {
+                interruptedLatch.countDown()
+                throw e
+            }
+        }
+        fileWatcher.watch(fileSystemSubset)
+
+        and:
+        testDir.file("new") << "new"
+
+        then:
+        waitOn(eventReceivedLatch)
+        fileWatcher.stop()
+        waitOn(interruptedLatch)
+    }
+
     def "watcher can detects all files added to watched directory"() {
         when:
         def eventReceivedLatch = new CountDownLatch(1)

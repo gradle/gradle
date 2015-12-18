@@ -16,6 +16,7 @@
 
 package org.gradle.internal.filewatch.jdk7;
 
+import com.google.common.base.Throwables;
 import com.sun.nio.file.ExtendedWatchEventModifier;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import org.gradle.api.internal.file.FileSystemSubset;
@@ -88,6 +89,9 @@ class WatchServiceRegistrar implements FileWatcherListener {
 
     protected void watchDir(Path dir) throws IOException {
         LOG.debug("Registering watch for {}", dir);
+        if (Thread.currentThread().isInterrupted()) {
+            LOG.debug("Skipping adding watch since current thread is interrupted.");
+        }
         int retryCount = 0;
         IOException lastException = null;
         while (retryCount++ < 2) {
@@ -128,14 +132,14 @@ class WatchServiceRegistrar implements FileWatcherListener {
         try {
             if (event.getType().equals(FileWatcherEvent.Type.UNDEFINED) || event.getFile() == null) {
                 LOG.debug("Calling onChange with event {}", event);
-                delegate.onChange(watcher, event);
+                deliverEventToDelegate(watcher, event);
                 return;
             }
 
             File file = event.getFile();
             maybeFire(watcher, event);
 
-            if (watcher.isRunning() && file.isDirectory() && event.getType().equals(FileWatcherEvent.Type.CREATE)) {
+            if (!Thread.currentThread().isInterrupted() && watcher.isRunning() && file.isDirectory() && event.getType().equals(FileWatcherEvent.Type.CREATE)) {
                 try {
                     newDirectory(watcher, file);
                 } catch (IOException e) {
@@ -147,10 +151,26 @@ class WatchServiceRegistrar implements FileWatcherListener {
         }
     }
 
+    protected void deliverEventToDelegate(FileWatcher watcher, FileWatcherEvent event) {
+        if(!Thread.currentThread().isInterrupted()) {
+            try {
+                delegate.onChange(watcher, event);
+            } catch (RuntimeException e) {
+                if (Throwables.getRootCause(e) instanceof InterruptedException) {
+                    // delivery was interrupted, return silently
+                    return;
+                }
+                throw e;
+            }
+        } else {
+            LOG.debug("Skipping event delivery since current thread is interrupted.");
+        }
+    }
+
     private void maybeFire(FileWatcher watcher, FileWatcherEvent event) {
         if (watchPointsRegistry.shouldFire(event.getFile())) {
             LOG.debug("Calling onChange with event {}", event);
-            delegate.onChange(watcher, event);
+            deliverEventToDelegate(watcher, event);
         } else {
             LOG.debug("Ignoring event {}", event);
         }
