@@ -43,22 +43,24 @@ class DefaultTypeConverterTest extends Specification {
         File       | _
     }
 
-    def "widens numeric types to Long"() {
+    def "widens numeric values to Long"() {
         expect:
         converter.convert(12 as Byte, Long.class, false) == 12L
         converter.convert(123 as Short, Long.class, false) == 123L
         converter.convert(123 as Integer, Long.class, false) == 123L
         converter.convert(123 as Long, Long.class, false) == 123L
+        converter.convert(123 as Double, Long.class, false) == 123L
         converter.convert(123 as BigInteger, Long.class, false) == 123L
         converter.convert(123 as BigDecimal, Long.class, false) == 123L
     }
 
-    def "widens numeric types to primitive Long"() {
+    def "widens numeric values to primitive Long"() {
         expect:
         converter.convert(12 as Byte, Long.class, true) == 12L
         converter.convert(123 as Short, Long.class, true) == 123L
         converter.convert(123 as Integer, Long.class, true) == 123L
         converter.convert(123 as Long, Long.class, true) == 123L
+        converter.convert(123 as Double, Long.class, true) == 123L
         converter.convert(123 as BigInteger, Long.class, true) == 123L
         converter.convert(123 as BigDecimal, Long.class, true) == 123L
     }
@@ -193,6 +195,30 @@ The following types/formats are supported:
         "0.123" | _
     }
 
+    def "converts numeric values to Double"() {
+        expect:
+        converter.convert(12 as Byte, Double.class, false) == 12L
+        converter.convert(123 as Short, Double.class, false) == 123L
+        converter.convert(123 as Integer, Double.class, false) == 123L
+        converter.convert(123 as Long, Double.class, false) == 123L
+        converter.convert(123 as Float, Double.class, false) == 123L
+        converter.convert(123 as Double, Double.class, false) == 123L
+        converter.convert(123 as BigInteger, Double.class, false) == 123L
+        converter.convert(123 as BigDecimal, Double.class, false) == 123L
+    }
+
+    def "converts numeric values to primitive double"() {
+        expect:
+        converter.convert(12 as Byte, Double.class, true) == 12L
+        converter.convert(123 as Short, Double.class, true) == 123L
+        converter.convert(123 as Integer, Double.class, true) == 123L
+        converter.convert(123 as Long, Double.class, true) == 123L
+        converter.convert(123 as Float, Double.class, true) == 123L
+        converter.convert(123 as Double, Double.class, true) == 123L
+        converter.convert(123 as BigInteger, Double.class, true) == 123L
+        converter.convert(123 as BigDecimal, Double.class, true) == 123L
+    }
+
     def "converts CharSequence to Boolean"() {
         expect:
         converter.convert("123", Boolean.class, false) == false
@@ -249,6 +275,18 @@ The following types/formats are supported:
         value << ["", "123"]
     }
 
+    def "cannot convert string that is not exactly one character long to primitive char"() {
+        when:
+        converter.convert(value, Character.class, true)
+
+        then:
+        def e = thrown(TypeConversionException)
+        e.message == "Cannot convert string value '${value}' with length ${value.length()} to type char"
+
+        where:
+        value << ["", "123"]
+    }
+
     def "cannot convert arbitrary type to Character"() {
         when:
         def cl = {}
@@ -257,6 +295,19 @@ The following types/formats are supported:
         then:
         def e = thrown(UnsupportedNotationException)
         e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to an object of type Character: ${cl.toString()}.
+The following types/formats are supported:
+  - A String or CharSequence
+  - A Character""")
+    }
+
+    def "cannot convert arbitrary type to primitive char"() {
+        when:
+        def cl = {}
+        converter.convert(cl, Character.class, true)
+
+        then:
+        def e = thrown(UnsupportedNotationException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to an object of type char: ${cl.toString()}.
 The following types/formats are supported:
   - A String or CharSequence
   - A Character""")

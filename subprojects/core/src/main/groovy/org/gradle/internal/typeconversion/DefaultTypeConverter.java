@@ -56,15 +56,6 @@ public class DefaultTypeConverter implements TypeConverter {
         parsers.put(type, build(new CharSequenceNotationConverter<Object, T>(converter), type));
     }
 
-    private void convertToCharacter(String notation, NotationConvertResult<? super Character> result, Class<?> type) throws TypeConversionException {
-        if (notation.length() != 1) {
-            throw new TypeConversionException(String.format("Cannot convert string value '%s' with length %d to type %s",
-                    notation, notation.length(), type.getSimpleName()));
-        }
-
-        result.converted(notation.charAt(0));
-    }
-
     private void registerConverters() {
         registerConverter(new DoubleNumberConverter(Double.class), Double.class);
         registerConverter(new DoubleNumberConverter(double.class), double.class);
@@ -81,22 +72,18 @@ public class DefaultTypeConverter implements TypeConverter {
         registerConverter(new BigDecimalNumberConverter(), BigDecimal.class);
         registerConverter(new BigIntegerNumberConverter(), BigInteger.class);
 
-        CharSequenceConverter<Boolean> booleanConverter = new CharSequenceConverter<Boolean>(Boolean.class) {
-            public void convert(String notation, NotationConvertResult<? super Boolean> result) throws TypeConversionException {
-                result.converted("true".equals(notation));
-            }
-        };
+        CharSequenceConverter<Boolean> booleanConverter = new BooleanConverter();
         registerStringConverter(booleanConverter, Boolean.class);
         registerStringConverter(booleanConverter, boolean.class);
 
-        registerStringConverter(new CharacterConverter(), Character.class);
-        registerStringConverter(new CharacterConverter(), char.class);
+        registerStringConverter(new CharacterConverter(Character.class, Character.class), Character.class);
+        registerStringConverter(new CharacterConverter(Character.class, char.class), char.class);
 
         registerConverter(new StringConverter(), String.class);
     }
 
     private abstract static class CharSequenceConverter<T> implements NotationConverter<String, T> {
-        private final Class<T> type;
+        final Class<T> type;
 
         public CharSequenceConverter(Class<T> type) {
             this.type = type;
@@ -151,7 +138,7 @@ public class DefaultTypeConverter implements TypeConverter {
                 }
             } else if (notation instanceof Number) {
                 try {
-                    convertNumberToNumber(toBigDecimal(notation), result);
+                    convertNumberToNumber(toBigDecimal((Number) notation), result);
                 } catch (ArithmeticException e) {
                     throw new TypeConversionException(String.format("Cannot convert value '%s' to type %s",
                         notation, type.getSimpleName()), e);
@@ -159,8 +146,20 @@ public class DefaultTypeConverter implements TypeConverter {
             }
         }
 
-        private BigDecimal toBigDecimal(Object notation) {
-            return new BigDecimal(notation.toString());
+        private static BigDecimal toBigDecimal(Number notation) {
+            if (notation instanceof BigDecimal) {
+                return (BigDecimal) notation;
+            }
+            if (notation instanceof BigInteger) {
+                return new BigDecimal((BigInteger) notation);
+            }
+            if (notation instanceof Float) {
+                return new BigDecimal(notation.floatValue());
+            }
+            if (notation instanceof Double) {
+                return new BigDecimal(notation.doubleValue());
+            }
+            return new BigDecimal(notation.longValue());
         }
 
         protected abstract void convertNumberToNumber(BigDecimal n, NotationConvertResult<? super T> result);
@@ -294,13 +293,31 @@ public class DefaultTypeConverter implements TypeConverter {
         }
     }
 
+    private static class BooleanConverter extends CharSequenceConverter<Boolean> {
+        public BooleanConverter() {
+            super(Boolean.class);
+        }
+
+        public void convert(String notation, NotationConvertResult<? super Boolean> result) throws TypeConversionException {
+            result.converted("true".equals(notation));
+        }
+    }
+
     private class CharacterConverter extends CharSequenceConverter<Character> {
-        public CharacterConverter() {
-            super(Character.class);
+        private final Class<Character> target;
+
+        public CharacterConverter(Class<Character> boxed, Class<Character> target) {
+            super(boxed);
+            this.target = target;
         }
 
         public void convert(String notation, NotationConvertResult<? super Character> result) throws TypeConversionException {
-            convertToCharacter(notation, result, Character.class);
+            if (notation.length() != 1) {
+                throw new TypeConversionException(String.format("Cannot convert string value '%s' with length %d to type %s",
+                        notation, notation.length(), target.getSimpleName()));
+            }
+
+            result.converted(notation.charAt(0));
         }
     }
 }
