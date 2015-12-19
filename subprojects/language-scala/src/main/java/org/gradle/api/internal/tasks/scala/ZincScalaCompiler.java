@@ -21,6 +21,13 @@ import com.google.common.collect.Lists;
 import com.typesafe.zinc.*;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.*;
+import org.gradle.internal.Factory;
+import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.logging.Logger;
@@ -34,29 +41,55 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
 public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
     private static final Logger LOGGER = Logging.getLogger(ZincScalaCompiler.class);
     private final Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
+    private final File gradleUserHome;
 
-    public ZincScalaCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath) {
+    public ZincScalaCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, File gradleUserHome) {
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;
+        this.gradleUserHome = gradleUserHome;
     }
 
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
-        return Compiler.execute(scalaClasspath, zincClasspath, spec);
+        return Compiler.execute(scalaClasspath, zincClasspath, gradleUserHome, spec);
     }
 
     // need to defer loading of Zinc/sbt/Scala classes until we are
     // running in the compiler daemon and have them on the class path
     private static class Compiler {
-        static WorkResult execute(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, ScalaJavaJointCompileSpec spec) {
+        static WorkResult execute(final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath, File gradleUserHome, ScalaJavaJointCompileSpec spec) {
             LOGGER.info("Compiling with Zinc Scala compiler.");
 
-            xsbti.Logger logger = new SbtLoggerAdapter();
+            final xsbti.Logger logger = new SbtLoggerAdapter();
 
-            com.typesafe.zinc.Compiler compiler = createCompiler(scalaClasspath, zincClasspath, logger);
+            CacheRepository cacheRepository = ZincCompilerServices.getInstance(gradleUserHome).get(CacheRepository.class);
+            PersistentCache zincCache = cacheRepository.cache("zinc")
+                                            .withDisplayName("Zinc compiler cache")
+                                            .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
+                                            .open();
+            final File cacheDir = zincCache.getBaseDir();
+
+            // We have to set this system property here, before we create the compiler because the property is read statically
+            // when the com.typesafe.zinc.Compiler class is loaded
+            if (System.getProperty("zinc.dir") != null && !System.getProperty("zinc.dir").equals(cacheDir.getAbsolutePath())) {
+                LOGGER.warn("In order to ensure parallel-safe Zinc cache directories, setting a user-supplied cache directory is not supported and will be ignored.");
+            }
+            System.setProperty("zinc.dir", cacheDir.getAbsolutePath());
+
+            com.typesafe.zinc.Compiler compiler = zincCache.useCache("initialize", new Factory<com.typesafe.zinc.Compiler>() {
+                @Override
+                public com.typesafe.zinc.Compiler create() {
+                    return createCompiler(scalaClasspath, zincClasspath, logger, cacheDir);
+                }
+            });
+            zincCache.close();
+
+            //com.typesafe.zinc.Compiler compiler = createCompiler(scalaClasspath, zincClasspath, logger, cacheDir);
             List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
             List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
             Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
@@ -92,14 +125,15 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             return options;
         }
 
-        static com.typesafe.zinc.Compiler createCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, xsbti.Logger logger) {
+        static com.typesafe.zinc.Compiler createCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, xsbti.Logger logger, File cacheDir) {
             ScalaLocation scalaLocation = ScalaLocation.fromPath(Lists.newArrayList(scalaClasspath));
             SbtJars sbtJars = SbtJars.fromPath(Lists.newArrayList(zincClasspath));
             Setup setup = Setup.create(scalaLocation, sbtJars, Jvm.current().getJavaHome(), true);
             if (LOGGER.isDebugEnabled()) {
                 Setup.debug(setup, logger);
             }
-            return com.typesafe.zinc.Compiler.getOrCreate(setup, logger);
+            com.typesafe.zinc.Compiler compiler = com.typesafe.zinc.Compiler.getOrCreate(setup, logger);
+            return compiler;
         }
     }
 
@@ -122,6 +156,25 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
 
         public void trace(F0<Throwable> exception) {
             LOGGER.trace(exception.apply().toString());
+        }
+    }
+
+    private static class ZincCompilerServices extends DefaultServiceRegistry {
+        private static ZincCompilerServices instance;
+
+        private ZincCompilerServices(File gradleUserHome) {
+            super(NativeServices.getInstance());
+
+            addProvider(new GlobalScopeServices(true));
+            addProvider(new CacheRepositoryServices(gradleUserHome, null));
+        }
+
+        public static ZincCompilerServices getInstance(File gradleUserHome) {
+            if (instance == null) {
+                NativeServices.initialize(gradleUserHome);
+                instance = new ZincCompilerServices(gradleUserHome);
+            }
+            return instance;
         }
     }
 }

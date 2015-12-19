@@ -437,6 +437,14 @@ public class TestFile extends File {
         return this;
     }
 
+    public Set<String> allDescendants() {
+        Set<String> names = new TreeSet<String>();
+        if (isDirectory()) {
+            visit(names, "", this);
+        }
+        return names;
+    }
+
     private void visit(Set<String> names, String prefix, File file) {
         for (File child : file.listFiles()) {
             if (child.isFile()) {
