@@ -21,7 +21,6 @@ import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.projection.ManagedModelProjection;
 import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
@@ -91,8 +90,7 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
                     // This shouldn't be needed, but if there's no actual value referenced, model report can only
                     // show the type of the node if we do this for now. It should use the schema instead to find
                     // the type of the property node instead.
-                    ManagedImplStructSchema<P> structSchema = (ManagedImplStructSchema<P>) propertySchema;
-                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, null, proxyFactory, typeConverter);
+                    ModelProjection projection = new EmptyReferenceProjection<P>(propertySchema.getType());
                     ModelRegistration registration = ModelRegistrations.of(childPath)
                         .withProjection(projection)
                         .descriptor(descriptor).build();
