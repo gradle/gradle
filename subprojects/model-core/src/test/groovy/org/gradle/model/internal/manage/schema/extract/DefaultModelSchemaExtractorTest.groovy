@@ -52,16 +52,26 @@ class DefaultModelSchemaExtractorTest extends Specification {
     static class EmptyStaticClass {}
 
     def "must be interface"() {
-        expect:
-        fail EmptyStaticClass, "must be defined as an interface or an abstract class"
+        when:
+        extract(EmptyStaticClass)
+
+        then:
+        def e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type $EmptyStaticClass.name is not a valid model element type:
+- must be defined as an interface or an abstract class."""
     }
 
     @Managed
     static interface ParameterizedEmptyInterface<T> {}
 
     def "cannot parameterize"() {
-        expect:
-        fail ParameterizedEmptyInterface, "cannot be a parameterized type"
+        when:
+        extract(ParameterizedEmptyInterface)
+
+        then:
+        def e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type $ParameterizedEmptyInterface.name is not a valid model element type:
+- cannot be a parameterized type."""
     }
 
     @Managed
@@ -1526,6 +1536,21 @@ interface Managed${typeName} {
     def "reject overloaded non-property methods from managed supertype overridden in managed type"() {
         expect:
         fail ManagedTypeExtendingManagedTypeWithOverloadedMethod, "overridden methods not supported"
+    }
+
+    @Managed
+    static class MultipleProblems<T extends List<?>> {
+    }
+
+    def "collects all problems for a type"() {
+        when:
+        extract(MultipleProblems)
+
+        then:
+        def e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type $MultipleProblems.name is not a valid model element type:
+- must be defined as an interface or an abstract class.
+- cannot be a parameterized type."""
     }
 
     String getName(ModelType<?> modelType) {

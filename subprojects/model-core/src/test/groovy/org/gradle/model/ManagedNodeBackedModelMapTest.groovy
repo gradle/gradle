@@ -86,7 +86,8 @@ class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInt
         then:
         def e = thrown ModelRuleExecutionException
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == "Invalid managed model type $Invalid.name: cannot be a parameterized type."
+        e.cause.message == """Type $Invalid.name is not a valid model element type:
+- cannot be a parameterized type."""
     }
 
     abstract class ConstructibleNamedThing implements NamedThingInterface {}

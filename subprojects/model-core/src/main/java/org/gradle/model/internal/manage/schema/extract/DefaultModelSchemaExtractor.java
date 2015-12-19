@@ -102,6 +102,9 @@ public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
 
         for (ModelSchemaExtractionStrategy strategy : strategies) {
             strategy.extract(extractionContext);
+            if (extractionContext.hasProblems()) {
+                throw new InvalidManagedModelElementTypeException(extractionContext);
+            }
             if (extractionContext.getResult() != null) {
                 cache.set(type, extractionContext.getResult());
                 return;

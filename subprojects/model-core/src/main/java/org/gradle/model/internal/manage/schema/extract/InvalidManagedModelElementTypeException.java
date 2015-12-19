@@ -70,6 +70,25 @@ public class InvalidManagedModelElementTypeException extends RuntimeException {
         return out.toString();
     }
 
+    private static String getMessage(DefaultModelSchemaExtractionContext<?> extractionContext) {
+        StringWriter out = new StringWriter();
+        PrintWriter writer = new PrintWriter(out);
+        writer.print(extractionContext.getProblems().format());
+
+        if (extractionContext.getParent() != null) {
+            writer.println();
+            writer.println();
+            writer.println("The type was analyzed due to the following dependencies:");
+            writer.print(createPathString(extractionContext));
+        }
+
+        return out.toString();
+    }
+
+    public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext) {
+        super(getMessage((DefaultModelSchemaExtractionContext<?>) extractionContext), null);
+    }
+
     public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext, String message) {
         this(extractionContext, message, null);
     }

@@ -20,9 +20,12 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Actions;
+import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
+import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtractionContext<T> {
@@ -33,11 +36,13 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
     private final List<Action<? super ModelSchema<T>>> validators;
     private ModelSchema<T> result;
     private final List<DefaultModelSchemaExtractionContext<?>> children = Lists.newArrayList();
+    private final FormattingValidationProblemCollector problems;
 
     private DefaultModelSchemaExtractionContext(DefaultModelSchemaExtractionContext<?> parent, ModelType<T> type, String description, Action<? super ModelSchema<T>> validator) {
         this.parent = parent;
         this.type = type;
         this.description = description;
+        this.problems = new FormattingValidationProblemCollector("model element type", type);
         this.validators = Lists.newArrayListWithCapacity(2);
         if (validator != null) {
             validators.add(validator);
@@ -58,6 +63,35 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
 
     public ModelType<T> getType() {
         return type;
+    }
+
+    public FormattingValidationProblemCollector getProblems() {
+        return problems;
+    }
+
+    @Override
+    public boolean hasProblems() {
+        return problems.hasProblems();
+    }
+
+    @Override
+    public void add(String problem) {
+        problems.add(problem);
+    }
+
+    @Override
+    public void add(Method method, String problem) {
+        problems.add(method, problem);
+    }
+
+    @Override
+    public void add(MethodRuleDefinition<?, ?> method, String problem) {
+        problems.add(method, problem);
+    }
+
+    @Override
+    public void add(MethodRuleDefinition<?, ?> method, String problem, Throwable cause) {
+        problems.add(method, problem, cause);
     }
 
     public String getDescription() {

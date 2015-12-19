@@ -59,11 +59,11 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
 
     private void validateManagedType(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {
         if (!typeClass.isInterface() && !Modifier.isAbstract(typeClass.getModifiers())) {
-            throw new InvalidManagedModelElementTypeException(extractionContext, "must be defined as an interface or an abstract class.");
+            extractionContext.add("must be defined as an interface or an abstract class.");
         }
 
         if (typeClass.getTypeParameters().length > 0) {
-            throw new InvalidManagedModelElementTypeException(extractionContext, "cannot be a parameterized type.");
+            extractionContext.add("cannot be a parameterized type.");
         }
 
         Constructor<?> customConstructor = findCustomConstructor(typeClass);

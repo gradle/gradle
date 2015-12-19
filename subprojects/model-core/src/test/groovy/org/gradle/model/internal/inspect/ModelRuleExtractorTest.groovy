@@ -351,8 +351,8 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == "Declaration of model rule ModelRuleExtractorTest.RuleWithEmptyInputPath#create is invalid."
-        e.cause.message == "Cannot use an empty string as a model path."
+        e.message == """Type ${RuleWithEmptyInputPath.name} is not a valid rule source:
+- Method create(java.lang.String) is not a valid rule method: The declared model element path '' used for parameter 1 is not a valid path: Cannot use an empty string as a model path."""
     }
 
     static class RuleWithInvalidInputPath extends RuleSource {
@@ -366,8 +366,8 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == "Declaration of model rule ModelRuleExtractorTest.RuleWithInvalidInputPath#create is invalid."
-        e.cause.message == "Model element name '!!!!' has illegal first character '!' (names must start with an ASCII letter or underscore)."
+        e.message == """Type ${RuleWithInvalidInputPath.name} is not a valid rule source:
+- Method create(java.lang.String) is not a valid rule method: The declared model element path '!!!!' used for parameter 1 is not a valid path: Model element name '!!!!' has illegal first character '!' (names must start with an ASCII letter or underscore)."""
     }
 
     static class MutationRules extends RuleSource {
@@ -488,7 +488,8 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         InvalidModelRuleDeclarationException e = thrown()
         e.message == 'Declaration of model rule ModelRuleExtractorTest.RuleSourceCreatingAClassAnnotatedWithManaged#bar is invalid.'
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == "Invalid managed model type $ManagedAnnotatedClass.name: must be defined as an interface or an abstract class."
+        e.cause.message == """Type $ManagedAnnotatedClass.name is not a valid model element type:
+- must be defined as an interface or an abstract class."""
     }
 
     static class RuleSourceWithAVoidReturningNoArgumentMethod extends RuleSource {
@@ -528,7 +529,9 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "Declaration of model rule ModelRuleExtractorTest.$inspected.simpleName#bar is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type.
+        e.cause.message == TextUtil.toPlatformLineSeparators("""Type $invalidTypeName is not a valid model element type:
+- cannot be a parameterized type.
+
 The type was analyzed due to the following dependencies:
 ${managedType.name}
   \\--- property 'managedWithNestedInvalidManagedType' (${nestedManagedType.name})
@@ -556,7 +559,9 @@ ${managedType.name}
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "Declaration of model rule ModelRuleExtractorTest.RuleSourceCreatingManagedWithNonManageableParent#bar is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type.
+        e.cause.message == TextUtil.toPlatformLineSeparators("""Type $invalidTypeName is not a valid model element type:
+- cannot be a parameterized type.
+
 The type was analyzed due to the following dependencies:
 ${ManagedWithNonManageableParents.name}
   \\--- property 'invalidManaged' declared by ${AnotherManagedWithPropertyOfInvalidManagedType.name}, ${ManagedWithPropertyOfInvalidManagedType.name} ($invalidTypeName)""")
@@ -624,7 +629,7 @@ ${ManagedWithNonManageableParents.name}
 
         @Mutate
         @Validate
-        private <T> String multipleProblems(List list, T value) {
+        private <T> String multipleProblems(@Path('') List list, @Path(':)') T value) {
             "broken"
         }
 
@@ -647,6 +652,8 @@ ${ManagedWithNonManageableParents.name}
 - Method multipleProblems(java.util.List, T) is not a valid rule method: A rule method cannot be private
 - Method multipleProblems(java.util.List, T) is not a valid rule method: Cannot have type variables (i.e. cannot be a generic method)
 - Method multipleProblems(java.util.List, T) is not a valid rule method: Raw type java.util.List used for parameter 1 (all type parameters must be specified of parameterized type)
+- Method multipleProblems(java.util.List, T) is not a valid rule method: The declared model element path '' used for parameter 1 is not a valid path: Cannot use an empty string as a model path.
+- Method multipleProblems(java.util.List, T) is not a valid rule method: The declared model element path ':)' used for parameter 2 is not a valid path: Model element name ':)' has illegal first character ':' (names must start with an ASCII letter or underscore).
 - Method notOk() is not a valid rule method: A rule method cannot be private
 - Method notOk() is not a valid rule method: Cannot have type variables (i.e. cannot be a generic method)
 - Method notOk() is not a valid rule method: A method annotated with @Mutate must have at least one parameter
