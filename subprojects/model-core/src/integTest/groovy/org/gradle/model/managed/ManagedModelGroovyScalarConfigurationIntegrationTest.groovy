@@ -402,6 +402,32 @@ The following types/formats are supported:
         output.contains 'prop theThing     : NOT_A_TOASTER'
     }
 
+    void 'scalar conversion works from a Groovy RuleSource'() {
+        when:
+        buildFile << CLASSES
+        buildFile << '''
+            class ConvertRules extends RuleSource {
+                @Mutate
+                void change(Props p) {
+                    p.theBoolean = 'true'
+                    p.thelong = '123'
+                    p.theString = p.thelong
+                    p.theThing = null
+                }
+            }
+            apply plugin: ConvertRules
+        '''
+
+        then:
+        succeeds 'printResolvedValues'
+
+        and:
+        output.contains 'prop theBoolean   : true'
+        output.contains 'prop thelong      : 123'
+        output.contains 'prop theString    : 123'
+        output.contains 'prop theThing     : null'
+    }
+
     void 'can convert CharSequence to File'() {
         when:
         buildFile << '''
