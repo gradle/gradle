@@ -22,7 +22,6 @@ import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
@@ -121,19 +120,8 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
                 return element.annotationType().equals(Path.class);
             }
         });
-        String path = pathAnnotation == null ? null : pathAnnotation.value();
+        ModelPath path = pathAnnotation == null ? null : ModelPath.path(pathAnnotation.value());
         ModelType<?> cast = ModelType.of(method.getGenericParameterTypes()[i]);
-        return ModelReference.of(path == null ? null : validPath(path), cast, String.format("parameter %s", i + 1));
+        return ModelReference.of(path, cast, String.format("parameter %s", i + 1));
     }
-
-    private ModelPath validPath(String path) {
-        try {
-            return ModelPath.validatedPath(path);
-        } catch (ModelPath.InvalidPathException e) {
-            throw new InvalidModelRuleDeclarationException(getDescriptor(), e);
-        } catch (ModelPath.InvalidNameException e) {
-            throw new InvalidModelRuleDeclarationException(getDescriptor(), e);
-        }
-    }
-
 }

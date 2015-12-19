@@ -24,10 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FormattingValidationProblemCollector implements ValidationProblemCollector {
+    private final String role;
     private final ModelType<?> source;
     private final List<String> problems = new ArrayList<String>();
 
-    public FormattingValidationProblemCollector(ModelType<?> source) {
+    public FormattingValidationProblemCollector(String role, ModelType<?> source) {
+        this.role = role;
         this.source = source;
     }
 
@@ -60,7 +62,7 @@ public class FormattingValidationProblemCollector implements ValidationProblemCo
     }
 
     public String format() {
-        StringBuilder errorString = new StringBuilder(String.format("Type %s is not a valid rule source:", source));
+        StringBuilder errorString = new StringBuilder(String.format("Type %s is not a valid %s:", source, role));
         if (problems.size() == 1 && errorString.length() + problems.get(0).length() < 80) {
             errorString.append(' ');
             errorString.append(problems.get(0));

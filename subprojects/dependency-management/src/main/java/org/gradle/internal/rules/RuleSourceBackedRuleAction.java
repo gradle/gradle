@@ -46,7 +46,7 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
                 return element.isAnnotationPresent(Mutate.class);
             }
         });
-        FormattingValidationProblemCollector problems = new FormattingValidationProblemCollector(ruleSourceType);
+        FormattingValidationProblemCollector problems = new FormattingValidationProblemCollector("rule source", ruleSourceType);
 
         if (mutateMethods.size() == 0) {
             problems.add("Must have at exactly one method annotated with @" + Mutate.class.getName());

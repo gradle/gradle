@@ -32,6 +32,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ExtractedModelRule;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.manage.instance.GeneratedViewState;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelProperty;
@@ -140,13 +142,13 @@ public class ModelRuleExtractor {
                     handler = candidateHandler;
                 } else {
                     context.add(method, "Can only be one of " + describeHandlers());
-                    validateRuleMethod(method, context);
+                    validateRuleMethod(ruleDefinition, method, context);
                     return null;
                 }
             }
         }
         if (handler != null) {
-            validateRuleMethod(method, context);
+            validateRuleMethod(ruleDefinition, method, context);
             return handler.registration(ruleDefinition, context);
         } else {
             validateNonRuleMethod(method, context);
@@ -192,7 +194,7 @@ public class ModelRuleExtractor {
         }
     }
 
-    private void validateRuleMethod(Method ruleMethod, ValidationProblemCollector problems) {
+    private void validateRuleMethod(MethodRuleDefinition<?, ?> ruleDefinition, Method ruleMethod, ValidationProblemCollector problems) {
         if (Modifier.isPrivate(ruleMethod.getModifiers())) {
             problems.add(ruleMethod, "A rule method cannot be private");
         }
@@ -210,12 +212,17 @@ public class ModelRuleExtractor {
             problems.add(ruleMethod, "Raw type " + returnType + " used for return type (all type parameters must be specified of parameterized type)");
         }
 
-        int i = 0;
-        for (Type type : ruleMethod.getGenericParameterTypes()) {
-            ++i;
-            ModelType<?> modelType = ModelType.of(type);
-            if (modelType.isRawClassOfParameterizedType()) {
-                problems.add(ruleMethod, "Raw type " + modelType + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
+        for (int i = 0; i < ruleDefinition.getReferences().size(); i++) {
+            ModelReference<?> reference = ruleDefinition.getReferences().get(i);
+            if (reference.getType().isRawClassOfParameterizedType()) {
+                problems.add(ruleMethod, "Raw type " + reference.getType() + " used for parameter " + (i+1) + " (all type parameters must be specified of parameterized type)");
+            }
+            if (reference.getPath() != null) {
+                try {
+                    ModelPath.validatePath(reference.getPath().toString());
+                } catch (Exception e) {
+                    problems.add(ruleDefinition, "The declared model element path '" + reference.getPath() + "' used for parameter " + (i+1) + " is not a valid path", e);
+                }
             }
         }
     }

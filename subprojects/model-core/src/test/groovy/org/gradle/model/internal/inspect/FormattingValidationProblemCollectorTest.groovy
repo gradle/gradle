@@ -22,41 +22,41 @@ import spock.lang.Specification
 class FormattingValidationProblemCollectorTest extends Specification {
     def "formats message with a single problem"() {
         given:
-        def collector = new FormattingValidationProblemCollector(ModelType.of(String))
+        def collector = new FormattingValidationProblemCollector("<thing>", ModelType.of(String))
         collector.add("does not extend RuleSource")
 
         expect:
-        collector.format() == 'Type java.lang.String is not a valid rule source: does not extend RuleSource'
+        collector.format() == 'Type java.lang.String is not a valid <thing>: does not extend RuleSource'
     }
 
     def "formats message with a single problem with a long message"() {
         given:
-        def collector = new FormattingValidationProblemCollector(ModelType.of(String))
+        def collector = new FormattingValidationProblemCollector("<thing>", ModelType.of(String))
         collector.add("does not extend RuleSource and is not really that great, it could be much simpler")
 
         expect:
-        collector.format() == '''Type java.lang.String is not a valid rule source:
+        collector.format() == '''Type java.lang.String is not a valid <thing>:
 - does not extend RuleSource and is not really that great, it could be much simpler'''
     }
 
     def "formats message with a single method problem"() {
         given:
-        def collector = new FormattingValidationProblemCollector(ModelType.of(String))
+        def collector = new FormattingValidationProblemCollector("<thing>", ModelType.of(String))
         collector.add(String.class.getMethod("indexOf", String), "is not annotated with anything.")
 
         expect:
-        collector.format() == '''Type java.lang.String is not a valid rule source:
+        collector.format() == '''Type java.lang.String is not a valid <thing>:
 - Method indexOf(java.lang.String) is not a valid rule method: is not annotated with anything.'''
     }
 
     def "formats message with multiple problems"() {
         given:
-        def collector = new FormattingValidationProblemCollector(ModelType.of(String))
+        def collector = new FormattingValidationProblemCollector("<thing>", ModelType.of(String))
         collector.add("does not extend RuleSource")
         collector.add("does not have any rule method")
 
         expect:
-        collector.format() == '''Type java.lang.String is not a valid rule source:
+        collector.format() == '''Type java.lang.String is not a valid <thing>:
 - does not extend RuleSource
 - does not have any rule method'''
     }
