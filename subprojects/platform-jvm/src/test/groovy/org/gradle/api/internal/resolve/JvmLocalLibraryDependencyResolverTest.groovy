@@ -92,7 +92,6 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         requested = Mock(ModuleVersionSelector)
         metadata.requested >> requested
         metadata.selector >> selector
-
     }
 
     private ProjectInternal mockProject(String path) {
