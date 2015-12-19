@@ -22,7 +22,6 @@ import org.gradle.model.Managed
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryType
@@ -35,10 +34,7 @@ import spock.lang.Unroll
 import java.lang.annotation.Annotation
 
 class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
-    def aspectExtractor = new ModelSchemaAspectExtractor()
-    BinaryTypeModelRuleExtractor ruleHandler = new BinaryTypeModelRuleExtractor(
-            new DefaultModelSchemaStore(new DefaultModelSchemaExtractor([], aspectExtractor))
-    )
+    BinaryTypeModelRuleExtractor ruleHandler = new BinaryTypeModelRuleExtractor(new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies()))
 
     @Override
     Class<? extends Annotation> getAnnotation() {

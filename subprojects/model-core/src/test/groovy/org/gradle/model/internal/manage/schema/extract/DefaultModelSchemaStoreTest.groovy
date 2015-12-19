@@ -30,10 +30,10 @@ import java.beans.Introspector
 import java.util.concurrent.CopyOnWriteArraySet
 
 class DefaultModelSchemaStoreTest extends ConcurrentSpec {
+    def extractor = DefaultModelSchemaExtractor.withDefaultStrategies()
+    def store = new DefaultModelSchemaStore(extractor)
 
-    def store = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor());
-
-    def "can get schema"() {
+    def "caches schema for a type"() {
         // intentionally use two different “instances” of the same type
         def type1 = ModelType.of(SimpleManagedType)
         def type2 = ModelType.of(SimpleManagedType)

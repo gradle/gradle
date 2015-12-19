@@ -25,7 +25,7 @@ import org.gradle.model.internal.type.ModelTypes
 import spock.lang.Specification
 
 class UnmanagedCollectionStrategyTest extends Specification {
-    def store = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor())
+    def store = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
 
     def "assembles schema for list"() {
         expect:

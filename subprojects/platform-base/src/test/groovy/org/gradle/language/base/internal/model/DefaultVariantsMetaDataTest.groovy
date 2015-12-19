@@ -26,7 +26,7 @@ import org.gradle.platform.base.internal.VariantAspectExtractionStrategy
 import spock.lang.Specification
 
 class DefaultVariantsMetaDataTest extends Specification {
-    def schemaStore = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
+    def schemaStore = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
 
     def "should extract variants from a binary spec"() {
         given:

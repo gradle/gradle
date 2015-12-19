@@ -31,7 +31,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class VariantsMatcherTest extends Specification {
-    def schemaStore = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
+    def schemaStore = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
 
     @Unroll
     def "should filter binaries based on requirements"() {

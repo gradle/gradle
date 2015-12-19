@@ -30,8 +30,6 @@ import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
 import java.util.regex.Pattern
 
 import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.MANAGED
@@ -39,7 +37,7 @@ import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagem
 
 @SuppressWarnings("GroovyPointlessBoolean")
 class DefaultModelSchemaExtractorTest extends Specification {
-    def store = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor())
+    def store = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
     def classLoader = new GroovyClassLoader(getClass().classLoader)
     static final List<Class<? extends Serializable>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
@@ -947,17 +945,16 @@ interface Managed${typeName} {
                 }
             }
         }
-        def extractor = new DefaultModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
+        def extractor = new DefaultModelSchemaExtractor([strategy])
         def store = new DefaultModelSchemaStore(extractor)
 
         then:
         store.getSchema(CustomThing) instanceof ScalarValueSchema
-        store.getSchema(UnmanagedThing) instanceof UnmanagedImplStructSchema
     }
 
     def "custom strategy can register dependency on other type"() {
         def strategy = Mock(ModelSchemaExtractionStrategy)
-        def extractor = new DefaultModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
+        def extractor = new DefaultModelSchemaExtractor([strategy])
         def store = new DefaultModelSchemaStore(extractor)
 
         when:
@@ -971,6 +968,7 @@ interface Managed${typeName} {
         }
         1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)
+            extractionContext.found(new ScalarValueSchema<UnmanagedThing>(extractionContext.type))
         }
 
         and:
@@ -980,7 +978,7 @@ interface Managed${typeName} {
     def "validator is invoked after all dependencies have been visited"() {
         def strategy = Mock(ModelSchemaExtractionStrategy)
         def validator = Mock(Action)
-        def extractor = new DefaultModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
+        def extractor = new DefaultModelSchemaExtractor([strategy])
         def store = new DefaultModelSchemaStore(extractor)
 
         when:
@@ -995,7 +993,7 @@ interface Managed${typeName} {
         }
         1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)
-            return null;
+            extractionContext.found(new ScalarValueSchema<UnmanagedThing>(extractionContext.type))
         }
 
         then:
@@ -1096,9 +1094,7 @@ interface Managed${typeName} {
     }
 
     def "properties are extracted from unmanaged type with managed super-type"() {
-        def extractor = new DefaultModelSchemaExtractor([
-            new TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(UnmanagedSuperType)
-        ], new ModelSchemaAspectExtractor())
+        def extractor = DefaultModelSchemaExtractor.withDefaultStrategies()
         def store = new DefaultModelSchemaStore(extractor)
 
         when:
@@ -1199,7 +1195,7 @@ interface Managed${typeName} {
     def "aspects can be extracted"() {
         def aspect = new MyAspect()
         def aspectExtractionStrategy = Mock(ModelSchemaAspectExtractionStrategy)
-        def extractor = new DefaultModelSchemaExtractor([], new ModelSchemaAspectExtractor([aspectExtractionStrategy]))
+        def extractor = DefaultModelSchemaExtractor.withDefaultStrategies([], new ModelSchemaAspectExtractor([aspectExtractionStrategy]))
         def store = new DefaultModelSchemaStore(extractor)
 
         when:
@@ -1540,11 +1536,3 @@ interface Managed${typeName} {
         clazz.name
     }
 }
-
-@Retention(RetentionPolicy.RUNTIME)
-@interface CustomTestAnnotation {
-    String value();
-}
-
-@Retention(RetentionPolicy.RUNTIME)
-@interface CustomTestAnnotation2 {}

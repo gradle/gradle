@@ -27,8 +27,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class VariantsMetaDataHelperTest extends Specification {
-
-    def schemaStore = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
+    def schemaStore = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
 
     @Unroll("Incompatible variant dimensions for #referenceClass.simpleName(#dimensions) onto #candidateClass.simpleName are #expectedIncompatible")
     def "computes the set of incompatible variant dimensions"() {

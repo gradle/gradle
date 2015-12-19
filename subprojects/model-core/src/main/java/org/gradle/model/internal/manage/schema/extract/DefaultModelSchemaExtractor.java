@@ -32,12 +32,8 @@ public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
 
     private final List<? extends ModelSchemaExtractionStrategy> strategies;
 
-    public DefaultModelSchemaExtractor() {
-        this(Collections.<ModelSchemaExtractionStrategy>emptyList(), new ModelSchemaAspectExtractor());
-    }
-
-    public DefaultModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies, ModelSchemaAspectExtractor aspectExtractor) {
-        this.strategies = ImmutableList.<ModelSchemaExtractionStrategy>builder()
+    public static DefaultModelSchemaExtractor withDefaultStrategies(List<? extends ModelSchemaExtractionStrategy> strategies, ModelSchemaAspectExtractor aspectExtractor) {
+        return new DefaultModelSchemaExtractor(ImmutableList.<ModelSchemaExtractionStrategy>builder()
             .addAll(strategies)
             .add(new PrimitiveStrategy())
             .add(new EnumStrategy())
@@ -50,7 +46,15 @@ public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
             .add(new UnmanagedCollectionStrategy(aspectExtractor))
             .add(new ManagedImplStructStrategy(aspectExtractor))
             .add(new UnmanagedImplStructStrategy(aspectExtractor))
-            .build();
+            .build());
+    }
+
+    public static DefaultModelSchemaExtractor withDefaultStrategies() {
+        return withDefaultStrategies(Collections.<ModelSchemaExtractionStrategy>emptyList(), new ModelSchemaAspectExtractor());
+    }
+
+    public DefaultModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies) {
+        this.strategies = strategies;
     }
 
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {

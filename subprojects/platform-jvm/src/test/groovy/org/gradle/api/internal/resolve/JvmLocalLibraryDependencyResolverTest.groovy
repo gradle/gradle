@@ -82,7 +82,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         variants.nonNullVariantAxes >> ['targetPlatform']
         variants.declaredVariantAxes >> ['targetPlatform']
         variants.getVariantAxisType(_) >> ModelType.of(JavaPlatform)
-        def schemaStore = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
+        def schemaStore = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
         def libraryAdapter = new JvmLocalLibraryMetaDataAdapter()
         def errorMessageBuilder = new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
         def variantDimensionSelectorFactories = [DefaultVariantAxisCompatibilityFactory.of(JavaPlatform, new DefaultJavaPlatformVariantAxisCompatibility())]

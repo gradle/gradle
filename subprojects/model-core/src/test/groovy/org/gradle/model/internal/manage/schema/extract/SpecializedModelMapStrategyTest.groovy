@@ -22,7 +22,7 @@ import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class SpecializedModelMapStrategyTest extends Specification {
-    def store = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor())
+    def store = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
 
     def "assembles schema for model map subtype"() {
         expect:
