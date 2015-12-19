@@ -32,7 +32,7 @@ import spock.lang.Unroll
 import java.beans.Introspector
 
 class ModelRuleExtractorTest extends ProjectRegistrySpec {
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(schemaStore), proxyFactory)
+    def static extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(SCHEMA_STORE), MANAGED_PROXY_FACTORY)
     ModelRegistry registry = new DefaultModelRegistry(extractor)
 
     static class ModelThing {
@@ -86,11 +86,33 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         @RuleInput
         abstract String getValue()
         abstract void setValue(String value)
+        @RuleInput
+        abstract int getNumber()
+        abstract void setNumber(int value)
     }
 
     def "rule class can have abstract getter and setter"() {
         expect:
         extract(AbstractPropertyRules).empty
+    }
+
+    def "can create instance of rule class with abstract getter and setter"() {
+        when:
+        def schema = extractor.extract(AbstractPropertyRules)
+        def instance = schema.factory.create()
+
+        then:
+        instance instanceof AbstractPropertyRules
+        instance.value == null
+        instance.number == 0
+
+        when:
+        instance.value = "12"
+        instance.number = 12
+
+        then:
+        instance.value == "12"
+        instance.number == 12
     }
 
     def "can create instance of rule class with abstract property"() {
@@ -656,6 +678,7 @@ ${ManagedWithNonManageableParents.name}
         ''')
 
         when:
+        def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(SCHEMA_STORE), MANAGED_PROXY_FACTORY)
         extractor.extract(source)
 
         then:

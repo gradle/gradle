@@ -43,10 +43,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
@@ -66,7 +63,12 @@ public class ModelRuleExtractor {
     public ModelRuleExtractor(Iterable<MethodModelRuleExtractor> handlers, ManagedProxyFactory proxyFactory) {
         this.handlers = handlers;
         this.proxyFactory = proxyFactory;
-        this.schemaStore = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor(Collections.singletonList(new UnmanagedImplStructStrategy(new ModelSchemaAspectExtractor()))));
+        this.schemaStore = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor(Collections.singletonList(new UnmanagedImplStructStrategy(new ModelSchemaAspectExtractor()) {
+            @Override
+            protected ModelProperty.StateManagementType determineStateManagementType(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getterContext) {
+                return ModelProperty.StateManagementType.MANAGED;
+            }
+        })));
     }
 
     private String describeHandlers() {
@@ -98,7 +100,7 @@ public class ModelRuleExtractor {
         validateClass(source, context);
 
         StructSchema<T> schema = (StructSchema<T>) schemaStore.getSchema(source);
-        Factory<T> factory = Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(new RuleSourceSchema<T>(type, Collections.<ExtractedModelRule>emptyList(), null), proxyFactory) : new ConcreteRuleSourceFactory<T>(type);
+        Factory<T> factory = Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema, proxyFactory) : new ConcreteRuleSourceFactory<T>(type);
 
         // sort for determinism
         Set<Method> methods = new TreeSet<Method>(Ordering.usingToString());
@@ -248,10 +250,10 @@ public class ModelRuleExtractor {
     }
 
     private static class AbstractRuleSourceFactory<T> implements Factory<T> {
-        private final RuleSourceSchema<T> schema;
+        private final StructSchema<T> schema;
         private final ManagedProxyFactory proxyFactory;
 
-        public AbstractRuleSourceFactory(RuleSourceSchema<T> schema, ManagedProxyFactory proxyFactory) {
+        public AbstractRuleSourceFactory(StructSchema<T> schema, ManagedProxyFactory proxyFactory) {
             this.schema = schema;
             this.proxyFactory = proxyFactory;
         }
@@ -259,6 +261,8 @@ public class ModelRuleExtractor {
         @Override
         public T create() {
             return proxyFactory.createProxy(new GeneratedViewState() {
+                Map<String, Object> values = new HashMap<String, Object>();
+
                 @Override
                 public String getDisplayName() {
                     return "rule source " + schema.getType().getDisplayName();
@@ -266,12 +270,12 @@ public class ModelRuleExtractor {
 
                 @Override
                 public Object get(String name) {
-                    return null;
+                    return values.get(name);
                 }
 
                 @Override
                 public void set(String name, Object value) {
-
+                    values.put(name, value);
                 }
             }, schema);
         }

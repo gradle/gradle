@@ -64,6 +64,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private static final Type TYPE_CONVERTER_TYPE = Type.getType(TypeConverter.class);
     private static final Type MODEL_TYPE_TYPE = Type.getType(ModelType.class);
     private static final Type GENERATED_VIEW_STATE_TYPE = Type.getType(GeneratedViewState.class);
+    private static final String GENERATED_VIEW_STATE_TYPE_NAME = GENERATED_VIEW_STATE_TYPE.getInternalName();
     private static final Type MODEL_ELEMENT_STATE_TYPE = Type.getType(ModelElementState.class);
     private static final Type GENERATED_VIEW_TYPE = Type.getType(GeneratedView.class);
     private static final String GET_VIEW_STATE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(GENERATED_VIEW_STATE_TYPE);
@@ -310,7 +311,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private void writeDefaultToString(ClassVisitor visitor, Type generatedType) {
         MethodVisitor methodVisitor = declareMethod(visitor, "toString", TO_STRING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE);
         putStateFieldValueOnStack(methodVisitor, generatedType);
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, GENERATED_VIEW_STATE_TYPE.getInternalName(), "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, GENERATED_VIEW_STATE_TYPE_NAME, "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, true);
         finishVisitingMethod(methodVisitor, ARETURN);
     }
 
@@ -548,7 +549,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         throwExceptionBecauseCalledOnItself(methodVisitor);
 
         methodVisitor.visitLabel(calledOutsideOfConstructor);
-        putNodeStateFieldValueOnStack(methodVisitor, generatedType);
+        putStateFieldValueOnStack(methodVisitor, generatedType);
         putConstantOnStack(methodVisitor, propertyName);
         putFirstMethodArgumentOnStack(methodVisitor, propertyType);
         if (propertyClass.isPrimitive()) {
@@ -612,7 +613,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private void writeHashCodeMethod(ClassVisitor visitor, Type generatedType) {
         MethodVisitor methodVisitor = declareMethod(visitor, "hashCode", HASH_CODE_METHOD_DESCRIPTOR, null);
         putStateFieldValueOnStack(methodVisitor, generatedType);
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, GENERATED_VIEW_STATE_TYPE.getInternalName(), "hashCode", HASH_CODE_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, GENERATED_VIEW_STATE_TYPE_NAME, "hashCode", HASH_CODE_METHOD_DESCRIPTOR, true);
         finishVisitingMethod(methodVisitor, Opcodes.IRETURN);
     }
 
@@ -643,7 +644,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitVarInsn(ALOAD, 1);
         methodVisitor.visitTypeInsn(CHECKCAST, GENERATED_VIEW_TYPE.getInternalName());
         methodVisitor.visitMethodInsn(INVOKEINTERFACE, GENERATED_VIEW_TYPE.getInternalName(), "__view_state__", GET_VIEW_STATE_METHOD_DESCRIPTOR, true);
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, GENERATED_VIEW_STATE_TYPE.getInternalName(), "equals", EQUALS_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, GENERATED_VIEW_STATE_TYPE_NAME, "equals", EQUALS_METHOD_DESCRIPTOR, true);
         finishVisitingMethod(methodVisitor, Opcodes.IRETURN);
     }
 
@@ -663,7 +664,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void invokeStateSetMethod(MethodVisitor methodVisitor) {
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "set", STATE_SET_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, GENERATED_VIEW_STATE_TYPE_NAME, "set", STATE_SET_METHOD_DESCRIPTOR, true);
     }
 
     private void putConstantOnStack(MethodVisitor methodVisitor, Object value) {
@@ -762,7 +763,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                 Type.getMethodDescriptor(propertyType),
                 AsmClassGeneratorUtils.signature(getter));
 
-            putNodeStateFieldValueOnStack(methodVisitor, generatedType);
+            putStateFieldValueOnStack(methodVisitor, generatedType);
             putConstantOnStack(methodVisitor, property.getName());
             invokeStateGetMethod(methodVisitor);
             castFirstStackElement(methodVisitor, propertyClass);
@@ -818,7 +819,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void invokeStateGetMethod(MethodVisitor methodVisitor) {
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE_INTERNAL_NAME, "get", STATE_GET_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, GENERATED_VIEW_STATE_TYPE_NAME, "get", STATE_GET_METHOD_DESCRIPTOR, true);
     }
 
     private void writeNonAbstractMethodWrapper(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Method method) {

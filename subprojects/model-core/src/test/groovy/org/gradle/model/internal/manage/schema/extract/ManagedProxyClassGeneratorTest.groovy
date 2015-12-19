@@ -628,6 +628,38 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         e.message.startsWith("No signature of method: ${SomeTypeWithReadOnlyProperty.name}.readOnly() is applicable")
     }
 
+    def "generates getter and setter that delegates to state for abstract property "() {
+        def state = Mock(GeneratedViewState)
+
+        def proxy = generateSimpleView(SomeType)
+        def instance = proxy.newInstance(state, typeConverter)
+
+        when:
+        instance.value
+
+        then:
+        1 * state.get("value") >> 10
+
+        when:
+        instance.value = 12
+
+        then:
+        1 * state.set("value", 12)
+    }
+
+    def "generates getter that delegates to state for abstract read-only property "() {
+        def state = Mock(GeneratedViewState)
+
+        def proxy = generateSimpleView(SomeTypeWithReadOnlyProperty)
+        def instance = proxy.newInstance(state, typeConverter)
+
+        when:
+        instance.value
+
+        then:
+        1 * state.get("value") >> Stub(SomeType)
+    }
+
     @Unroll
     def "can read and write #value to managed property of type #primitiveType"() {
         def loader = new GroovyClassLoader(getClass().classLoader)
@@ -642,7 +674,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         """
 
         def data = [:]
-        def state = Mock(ModelElementState)
+        def state = Mock(GeneratedViewState)
         state.get(_) >> { args ->
             data[args[0]]
         }
@@ -650,7 +682,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
             data[args[0]] = args[1]
         }
 
-        def proxy = generate(interfaceWithPrimitiveProperty)
+        def proxy = generateSimpleView(interfaceWithPrimitiveProperty)
         def instance = proxy.newInstance(state, typeConverter)
 
         then:
@@ -688,7 +720,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
 
 
         def data = [:]
-        def state = Mock(ModelElementState)
+        def state = Mock(GeneratedViewState)
         state.get(_) >> { args ->
             data[args[0]]
         }
@@ -696,7 +728,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
             data[args[0]] = args[1]
         }
 
-        def proxy = generate(clazz)
+        def proxy = generateSimpleView(clazz)
         def instance = proxy.newInstance(state, typeConverter)
 
         then:

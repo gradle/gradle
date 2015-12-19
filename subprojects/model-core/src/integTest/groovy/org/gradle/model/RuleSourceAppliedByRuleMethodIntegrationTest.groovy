@@ -208,8 +208,9 @@ class MyPlugin extends RuleSource {
 
     @Rules
     void rules(CalculateName rules, Thing t) {
-//        assert rules.defaultName == null
-//        rules.defaultName = 'default'
+        assert rules.defaultName == null
+        rules.defaultName = 'default'
+        assert rules.defaultName == 'default'
     }
 }
 
@@ -221,7 +222,10 @@ abstract class CalculateName extends RuleSource {
     @Defaults
     void defaultName(Thing t) {
 //        assert defaultName == 'default'
-        t.name = 'default'
+        assert defaultName == null
+        defaultName = 'default'
+        assert defaultName == 'default'
+        t.name = defaultName
     }
 }
 
