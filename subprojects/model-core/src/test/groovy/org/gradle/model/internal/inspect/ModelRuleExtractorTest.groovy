@@ -82,6 +82,23 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         schema.factory.create() instanceof AbstractRules
     }
 
+    static abstract class AbstractPropertyRules extends RuleSource {
+        @RuleInput
+        abstract String getValue()
+        abstract void setValue(String value)
+    }
+
+    def "rule class can have abstract getter and setter"() {
+        expect:
+        extract(AbstractPropertyRules).empty
+    }
+
+    def "can create instance of rule class with abstract property"() {
+        expect:
+        def schema = extractor.extract(AbstractPropertyRules)
+        schema.factory.create() instanceof AbstractPropertyRules
+    }
+
     static abstract class AbstractMethodsRules extends RuleSource {
         @Mutate
         abstract void thing(String s)
@@ -665,22 +682,3 @@ ${ManagedWithNonManageableParents.name}
     }
 }
 
-class WithGroovyMeta extends RuleSource {
-    @Override
-    Object getProperty(String property) {
-        null
-    }
-
-    @Override
-    Object invokeMethod(String name, Object args) {
-        null
-    }
-
-    def propertyMissing(String name) {
-        null
-    }
-    def propertyMissing(String name, def value) {
-    }
-    def methodMissing(String name, def args) {
-    }
-}

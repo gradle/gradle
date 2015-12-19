@@ -193,6 +193,58 @@ model {
         output.contains("p1 = default")
     }
 
+    def "@Rule method can apply abstract RuleSource with input properties"() {
+        buildFile << '''
+@Managed
+interface Thing {
+    String getName()
+    void setName(String name)
+}
+
+class MyPlugin extends RuleSource {
+    @Model
+    void p1(Thing t) {
+    }
+
+    @Rules
+    void rules(CalculateName rules, Thing t) {
+//        assert rules.defaultName == null
+//        rules.defaultName = 'default'
+    }
+}
+
+abstract class CalculateName extends RuleSource {
+    @RuleInput
+    abstract String getDefaultName()
+    abstract void setDefaultName(String n)
+
+    @Defaults
+    void defaultName(Thing t) {
+//        assert defaultName == 'default'
+        t.name = 'default'
+    }
+}
+
+apply plugin: MyPlugin
+
+model {
+    tasks {
+        show(Task) {
+            doLast {
+                println "p1 = " + $.p1.name
+            }
+        }
+    }
+}
+'''
+
+        when:
+        run 'show'
+
+        then:
+        output.contains("p1 = default")
+    }
+
     def "reports exception thrown by @Rules method"() {
         buildFile << '''
 class MyPlugin extends RuleSource {

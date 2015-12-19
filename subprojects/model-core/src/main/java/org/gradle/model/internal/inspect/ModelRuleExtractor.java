@@ -34,13 +34,19 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ExtractedModelRule;
 import org.gradle.model.internal.manage.instance.GeneratedViewState;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.StructSchema;
+import org.gradle.model.internal.manage.schema.extract.*;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
@@ -55,10 +61,12 @@ public class ModelRuleExtractor {
 
     private final Iterable<MethodModelRuleExtractor> handlers;
     private final ManagedProxyFactory proxyFactory;
+    private final ModelSchemaStore schemaStore;
 
     public ModelRuleExtractor(Iterable<MethodModelRuleExtractor> handlers, ManagedProxyFactory proxyFactory) {
         this.handlers = handlers;
         this.proxyFactory = proxyFactory;
+        this.schemaStore = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor(Collections.singletonList(new UnmanagedImplStructStrategy(new ModelSchemaAspectExtractor()))));
     }
 
     private String describeHandlers() {
@@ -89,14 +97,23 @@ public class ModelRuleExtractor {
 
         validateClass(source, context);
 
+        StructSchema<T> schema = (StructSchema<T>) schemaStore.getSchema(source);
         Factory<T> factory = Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(new RuleSourceSchema<T>(type, Collections.<ExtractedModelRule>emptyList(), null), proxyFactory) : new ConcreteRuleSourceFactory<T>(type);
-        final Method[] methods = source.getDeclaredMethods();
 
         // sort for determinism
-        Arrays.sort(methods, Ordering.usingToString());
+        Set<Method> methods = new TreeSet<Method>(Ordering.usingToString());
+        methods.addAll(Arrays.asList(source.getDeclaredMethods()));
+
+        for (ModelProperty<?> property : schema.getProperties()) {
+            for (WeaklyTypeReferencingMethod<?, ?> method : property.getGetters()) {
+                methods.remove(method.getMethod());
+            }
+            if (property.getSetter() != null) {
+                methods.remove(property.getSetter().getMethod());
+            }
+        }
 
         ImmutableList.Builder<ExtractedModelRule> registrations = ImmutableList.builder();
-
         for (Method method : methods) {
             MethodRuleDefinition<?, ?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method, factory);
             ExtractedModelRule registration = getMethodHandler(ruleDefinition, method, context);

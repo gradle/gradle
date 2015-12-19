@@ -14,15 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.extract;
+package org.gradle.model.internal.inspect
 
-public class TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy extends ManagedImplStructStrategy {
-    public TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(Class<?> delegateType) {
-        this(delegateType, new ModelSchemaAspectExtractor());
+import org.gradle.model.RuleSource
+
+class WithGroovyMeta extends RuleSource {
+    @Override
+    Object getProperty(String property) {
+        null
     }
 
-    public TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(Class<?> delegateType, ModelSchemaAspectExtractor aspectExtractor) {
-        super(aspectExtractor);
+    @Override
+    Object invokeMethod(String name, Object args) {
+        null
     }
 
+    def propertyMissing(String name) {
+        null
+    }
+
+    def propertyMissing(String name, def value) {
+    }
+
+    def methodMissing(String name, def args) {
+    }
 }
