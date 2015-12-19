@@ -99,6 +99,7 @@ public class ModelProperty<T> {
         return getters;
     }
 
+    @Nullable
     public WeaklyTypeReferencingMethod<?, Void> getSetter() {
         return setter;
     }
