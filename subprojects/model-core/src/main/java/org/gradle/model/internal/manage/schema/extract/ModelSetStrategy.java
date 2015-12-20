@@ -37,25 +37,23 @@ public class ModelSetStrategy implements ModelSchemaExtractionStrategy {
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         if (modelType.isAssignableFrom(type)) {
-            validateType(modelType, extractionContext, type);
+            if (!type.getRawClass().equals(ModelSet.class)) {
+                extractionContext.add(String.format("subtyping %s is not supported", ModelSet.class.getName()));
+                return;
+            }
+            if (type.isHasWildcardTypeVariables()) {
+                extractionContext.add(String.format("type parameter of %s cannot be a wildcard", ModelSet.class.getName()));
+                return;
+            }
 
-            ModelType<?> elementType = type.getTypeVariables().get(0);
+            List<ModelType<?>> typeVariables = type.getTypeVariables();
+            if (typeVariables.isEmpty()) {
+                extractionContext.add(String.format("type parameter of %s has to be specified", ModelSet.class.getName()));
+                return;
+            }
 
+            ModelType<?> elementType = typeVariables.get(0);
             extractionContext.found(getModelSchema(extractionContext, elementType));
-        }
-    }
-
-    private <T> void validateType(ModelType<?> modelType, ModelSchemaExtractionContext<T> extractionContext, ModelType<T> type) {
-        if (!type.getRawClass().equals(modelType.getConcreteClass())) {
-            throw new InvalidManagedModelElementTypeException(extractionContext, String.format("subtyping %s is not supported", modelType.getConcreteClass().getName()));
-        }
-        if (type.isHasWildcardTypeVariables()) {
-            throw new InvalidManagedModelElementTypeException(extractionContext, String.format("type parameter of %s cannot be a wildcard", modelType.getConcreteClass().getName()));
-        }
-
-        List<ModelType<?>> typeVariables = type.getTypeVariables();
-        if (typeVariables.isEmpty()) {
-            throw new InvalidManagedModelElementTypeException(extractionContext, String.format("type parameter of %s has to be specified", modelType.getConcreteClass().getName()));
         }
     }
 

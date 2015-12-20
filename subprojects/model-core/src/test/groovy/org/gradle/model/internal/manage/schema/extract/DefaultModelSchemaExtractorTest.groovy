@@ -596,16 +596,17 @@ class DefaultModelSchemaExtractorTest extends Specification {
         fail ChildWithNoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").returns(void.class).owner(NoGettersOrSetters).takes(String)})")
     }
 
-    def "type argument of a managed set has to be specified"() {
+    def "type argument of a model set has to be specified"() {
         given:
-        def type = ModelType.returnType(TypeHolder.getDeclaredMethod("noParam"))
+        def type = ModelType.of(ModelSet.class)
 
-        expect:
-        fail type, "type parameter of $ModelSet.name has to be specified"
-    }
+        when:
+        extract(type)
 
-    static interface TypeHolder {
-        ModelSet noParam();
+        then:
+        def e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type $type is not a valid model element type:
+- type parameter of $ModelSet.name has to be specified"""
     }
 
     @Managed
@@ -635,9 +636,14 @@ class DefaultModelSchemaExtractorTest extends Specification {
     }
 
     @Unroll
-    def "type argument of a managed set cannot be a wildcard - #type"() {
-        expect:
-        fail type, "type parameter of $ModelSet.name cannot be a wildcard"
+    def "type argument of a model set cannot be a wildcard - #type"() {
+        when:
+        extract(type)
+
+        then:
+        def e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type $type is not a valid model element type:
+- type parameter of $ModelSet.name cannot be a wildcard"""
 
         where:
         type << [
@@ -647,7 +653,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
         ]
     }
 
-    def "type argument of a managed set has to be a valid managed type"() {
+    def "type argument of a model set has to be a valid managed type"() {
         given:
         def type = new ModelType<ModelSet<SetterOnly>>() {}
 
@@ -663,23 +669,25 @@ $type
   \\--- element type ($SetterOnly.name)"""
     }
 
-    def "specializations of managed set are not supported"() {
+    def "specializations of model set are not supported"() {
         given:
         def type = new ModelType<SpecialModelSet<A1>>() {}
 
-        expect:
-        fail type, "subtyping $ModelSet.name is not supported"
+        when:
+        extract(type)
+
+        then:
+        def e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type $type is not a valid model element type:
+- subtyping $ModelSet.name is not supported"""
     }
 
-    def "managed sets of managed set are supported"() {
+    def "model sets of model set are supported"() {
         given:
         def type = new ModelType<ModelSet<ModelSet<A1>>>() {}
 
-        when:
-        store.getSchema(type)
-
-        then:
-        noExceptionThrown()
+        expect:
+        store.getSchema(type) instanceof ModelSetSchema
     }
 
     static class MyBigInteger extends BigInteger {
@@ -1585,7 +1593,7 @@ interface Managed${typeName} {
         fail ManagedTypeExtendingManagedTypeWithOverloadedMethod, "overridden methods not supported"
     }
 
-    static class MultipleProblemsSuper {
+    static abstract class MultipleProblemsSuper {
         private String field1
 
         MultipleProblemsSuper(String s) {

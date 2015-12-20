@@ -18,6 +18,7 @@ package org.gradle.model
 
 import org.gradle.api.Named
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
+import org.gradle.model.internal.manage.schema.ModelMapSchema
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
@@ -41,7 +42,8 @@ class ManagedModelMapTypesTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown InvalidManagedModelElementTypeException
-        e.message == "Invalid managed model type $ModelMap.name: type parameter of $ModelMap.name has to be specified."
+        e.message == """Type $ModelMap.name is not a valid model element type:
+- type parameter of $ModelMap.name has to be specified."""
     }
 
     @Managed
@@ -55,15 +57,15 @@ class ManagedModelMapTypesTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown InvalidManagedModelElementTypeException
-        e.message.startsWith "Invalid managed model type $ModelMap.name<?>: type parameter of $ModelMap.name cannot be a wildcard."
+        e.message.startsWith("""Type $ModelMap.name<?> is not a valid model element type:
+- type parameter of $ModelMap.name cannot be a wildcard.""")
     }
 
     def "can have map of map"() {
-        when:
-        schemaStore.getSchema(ModelTypes.modelMap(ModelTypes.modelMap(NamedThingInterface)))
+        def type = ModelTypes.modelMap(ModelTypes.modelMap(NamedThingInterface))
 
-        then:
-        noExceptionThrown()
+        expect:
+        schemaStore.getSchema(type) instanceof ModelMapSchema
     }
 
     @Managed

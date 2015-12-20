@@ -35,15 +35,19 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
         ModelType<T> type = extractionContext.getType();
         if (MODEL_MAP_MODEL_TYPE.isAssignableFrom(type)) {
             if (!type.getRawClass().equals(ModelMap.class)) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("subtyping %s is not supported.", ModelMap.class.getName()));
+                extractionContext.add(String.format("subtyping %s is not supported.", ModelMap.class.getName()));
+                return;
             }
+
             if (type.isHasWildcardTypeVariables()) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("type parameter of %s cannot be a wildcard.", ModelMap.class.getName()));
+                extractionContext.add(String.format("type parameter of %s cannot be a wildcard.", ModelMap.class.getName()));
+                return;
             }
 
             List<ModelType<?>> typeVariables = type.getTypeVariables();
             if (typeVariables.isEmpty()) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("type parameter of %s has to be specified.", ModelMap.class.getName()));
+                extractionContext.add(String.format("type parameter of %s has to be specified.", ModelMap.class.getName()));
+                return;
             }
 
             ModelType<?> elementType = typeVariables.get(0);
