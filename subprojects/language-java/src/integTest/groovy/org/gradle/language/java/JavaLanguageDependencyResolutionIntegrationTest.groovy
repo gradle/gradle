@@ -86,7 +86,7 @@ model {
         buildFile << '''
 class DependencyResolutionObserver extends RuleSource {
     @Validate
-    void checkThatCyclicDependencyIsDefined(CollectionBuilder<Task> tasks) {
+    void checkThatCyclicDependencyIsDefined(ModelMap<Task> tasks) {
         def mainJar =  tasks.get('compileMainJarMainJava')
         def main2Jar = tasks.get('compileMain2JarMain2Java')
     }
@@ -635,7 +635,7 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.type.ModelType
 
 class DependencyResolutionObserver extends RuleSource {
-    @Mutate void createCheckTask(CollectionBuilder<Task> tasks) {
+    @Mutate void createCheckTask(ModelMap<Task> tasks) {
         tasks.create('checkDependenciesForMainJar') {
             doLast {
                 def task = tasks.get('compileMainJarMainJava')
@@ -673,7 +673,7 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.type.ModelType
 
 class DependencyResolutionObserver extends RuleSource {
-    @Mutate void createCheckTask(CollectionBuilder<Task> tasks) {
+    @Mutate void createCheckTask(ModelMap<Task> tasks) {
         tasks.create('checkDependenciesForMainJar') {
             doLast {
                 def task = tasks.get('compileMainJarMainJava')

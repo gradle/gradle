@@ -83,27 +83,6 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         "sampleLibBinaryOne" | "binary lifecycle task"
     }
 
-    @Unroll
-    def "can use CollectionBuilder as the first parameter of a BinaryTasks annotated rule"() {
-        given:
-        buildFile << """
-        class BinaryTasksPlugin implements Plugin<Project> {
-            void apply(final Project project) {}
-
-            static class Rules extends RuleSource {
-                @BinaryTasks
-                void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary) {
-                    tasks.create("usingCollectionBuilder")
-                }
-            }
-        }
-        apply plugin: BinaryTasksPlugin
-"""
-
-        expect:
-        succeeds "usingCollectionBuilder"
-    }
-
     def "can reference rule-added tasks in model"() {
         given:
         buildFile << '''

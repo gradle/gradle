@@ -39,7 +39,6 @@ public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
             .add(new EnumStrategy())
             .add(new JdkValueTypeStrategy())
             .add(new ModelSetStrategy())
-            .add(new ManagedSetStrategy())
             .add(new SpecializedMapStrategy())
             .add(new ModelMapStrategy())
             .add(new ScalarCollectionStrategy())

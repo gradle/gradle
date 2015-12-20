@@ -254,7 +254,6 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("""Model reference to element 'tasks' with type java.lang.Integer (parameter 1) is invalid due to incompatible types.
 This element was created by Project.<init>.tasks() and can be mutated as the following types:
   - org.gradle.model.ModelMap<org.gradle.api.Task>
-  - org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>
   - org.gradle.api.tasks.TaskContainer (or assignment compatible type thereof)""")
     }
 

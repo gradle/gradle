@@ -19,11 +19,9 @@ package org.gradle.model.collection.internal;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Nullable;
 import org.gradle.model.ModelMap;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
@@ -33,14 +31,10 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ModelMapModelProjection<I> implements ModelProjection {
-
-    @SuppressWarnings("deprecation")
-    private final static Set<Class<?>> SUPPORTED_CONTAINER_TYPES = ImmutableSet.<Class<?>>of(ModelMap.class, CollectionBuilder.class);
     private static final ModelType<ManagedInstance> MANAGED_INSTANCE_TYPE = ModelType.of(ManagedInstance.class);
 
     public static <T> ModelProjection unmanaged(ModelType<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
@@ -95,7 +89,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
 
     private Class<? extends I> itemType(ModelType<?> targetType) {
         Class<?> targetClass = targetType.getRawClass();
-        if (SUPPORTED_CONTAINER_TYPES.contains(targetClass)) {
+        if (targetClass.equals(ModelMap.class)) {
             Class<?> targetItemClass = targetType.getTypeVariables().get(0).getRawClass();
             if (targetItemClass.isAssignableFrom(baseItemType)) {
                 return baseItemType;
@@ -153,11 +147,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     @Override
     public Iterable<String> getWritableTypeDescriptions(final MutableModelNode node) {
         final Collection<? extends Class<?>> creatableTypes = getCreatableTypes();
-        return Iterables.transform(SUPPORTED_CONTAINER_TYPES, new Function<Class<?>, String>() {
-            public String apply(Class<?> containerType) {
-                return getContainerTypeDescription(containerType, creatableTypes);
-            }
-        });
+        return Collections.singleton(getContainerTypeDescription(ModelMap.class, creatableTypes));
     }
 
     @Override

@@ -98,18 +98,6 @@ class Rules extends RuleSource {
         assert c.toString() == "ModelMap<CustomComponent> 'components'"
         assert !(c instanceof ComponentSpecContainer)
     }
-
-    @Defaults
-    void verifyAsCollectionBuilder(CollectionBuilder<ComponentSpec> c) {
-//        assert c.toString() == "CollectionBuilder<ComponentSpec> 'components'"
-        assert !(c instanceof ComponentSpecContainer)
-    }
-
-    @Defaults
-    void verifyAsSpecializedCollectionBuilder(CollectionBuilder<CustomComponent> c) {
-//        assert c.toString() == "CollectionBuilder<CustomComponent> 'components'"
-        assert !(c instanceof ComponentSpecContainer)
-    }
 }
 
 apply plugin: Rules
@@ -543,7 +531,6 @@ afterEach CustomComponent 'newComponent'"""
 
         where:
         projectionType                     | fullQualified
-        "CollectionBuilder<ComponentSpec>" | "org.gradle.model.collection.CollectionBuilder<org.gradle.platform.base.ComponentSpec>"
         "ModelMap<ComponentSpec>"          | "org.gradle.model.ModelMap<org.gradle.platform.base.ComponentSpec>"
         "ComponentSpecContainer"           | "org.gradle.platform.base.ComponentSpecContainer"
     }
@@ -663,15 +650,10 @@ afterEach CustomComponent 'newComponent'"""
         output.contains "names: [customMainB1MainSomeLang]"
     }
 
-    def "can view components container as a model map and as a collection builder"() {
+    def "can view components container as a model map"() {
         given:
         buildFile << '''
             class ComponentsRules extends RuleSource {
-                @Mutate
-                void addViaCollectionBuilder(@Path("components") CollectionBuilder<ComponentSpec> components) {
-                    components.create("viaCollectionBuilder", CustomComponent)
-                }
-
                 @Mutate
                 void addViaModelMap(@Path("components") ModelMap<ComponentSpec> components) {
                     components.create("viaModelMap", CustomComponent)
@@ -694,7 +676,7 @@ afterEach CustomComponent 'newComponent'"""
         succeeds "printComponentNames"
 
         then:
-        output.contains "component names: [main, viaCollectionBuilder, viaModelMap]"
+        output.contains "component names: [main, viaModelMap]"
     }
 
     @Issue("android problem with 2.8-rc-1")

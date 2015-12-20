@@ -18,8 +18,6 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.model.ModelMap
-import org.gradle.model.collection.CollectionBuilder
 import spock.lang.Unroll
 
 class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
@@ -67,7 +65,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can register binaries using @ComponentBinaries when viewing binaries container as #binariesContainerType.simpleName"() {
         when:
-        buildFile << withSimpleComponentBinaries(binariesContainerType)
+        buildFile << withSimpleComponentBinaries()
         buildFile << '''
 
         model {
@@ -90,9 +88,6 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds "checkModel"
-
-        where:
-        binariesContainerType << [CollectionBuilder, ModelMap]
     }
 
     def "links binaries to component"() {
@@ -301,14 +296,14 @@ model {
         assert modelReport.components.custom.binaries.myBinary.valueFromComponent.@nodeValue[0] == 'configured-value'
     }
 
-    String withSimpleComponentBinaries(Class<? extends CollectionBuilder> binariesContainerType = ModelMap) {
+    String withSimpleComponentBinaries() {
         """
          class MyComponentBinariesPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
             static class Rules extends RuleSource {
                 @ComponentBinaries
-                void createBinariesForSampleLibrary(${binariesContainerType.simpleName}<SampleBinary> binaries, SampleLibrary library) {
+                void createBinariesForSampleLibrary(ModelMap<SampleBinary> binaries, SampleLibrary library) {
                     binaries.create("binary")
                     binaries.create("otherBinary", OtherSampleBinary)
                 }

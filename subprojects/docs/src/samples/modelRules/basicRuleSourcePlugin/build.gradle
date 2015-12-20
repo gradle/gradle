@@ -33,7 +33,7 @@ interface Person {
   Person getFather()
 
 // START SNIPPET property-type-managedset
-  ManagedSet<Person> getChildren()
+  ModelSet<Person> getChildren()
 // END SNIPPET property-type-managedset
 
 // START SNIPPET property-type-file

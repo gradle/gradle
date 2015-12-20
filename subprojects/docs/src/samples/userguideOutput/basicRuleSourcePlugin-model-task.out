@@ -14,7 +14,7 @@ Root project
           | Type:   	int
           | Creator: 	PersonRules#person
     + children
-          | Type:   	org.gradle.model.collection.ManagedSet<Person>
+          | Type:   	org.gradle.model.ModelSet<Person>
           | Creator: 	PersonRules#person
     + employed
           | Type:   	boolean

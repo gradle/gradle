@@ -37,9 +37,7 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
 
         ModelType<?> builder = ruleDefinition.getSubjectReference().getType();
 
-        @SuppressWarnings("deprecation")
-        Class<?> containerClass = org.gradle.model.collection.CollectionBuilder.class;
-        if (!ModelType.of(containerClass).isAssignableFrom(builder)) {
+        if (!ModelType.of(ModelMap.class).isAssignableFrom(builder)) {
             problems.add(ruleDefinition, String.format("The first parameter of a method %s must be of type %s.", getDescription(), ModelMap.class.getName()));
             return;
         }

@@ -39,7 +39,6 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
         this.schemaStore = schemaStore;
         this.allStrategies = Lists.newArrayList(
             new ModelSetNodeInitializerExtractionStrategy(),
-            new ManagedSetNodeInitializerExtractionStrategy(),
             new SpecializedMapNodeInitializerExtractionStrategy(),
             new ModelMapNodeInitializerExtractionStrategy(),
             new ScalarCollectionNodeInitializerExtractionStrategy(),
