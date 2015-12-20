@@ -20,17 +20,13 @@ import com.google.common.collect.Lists;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.model.internal.type.ModelType;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Deque;
 
 @Contextual
 public class InvalidManagedModelElementTypeException extends RuntimeException {
 
-    private static String createPathString(DefaultModelSchemaExtractionContext<?> extractionContext) {
+    private static void createPathString(DefaultModelSchemaExtractionContext<?> extractionContext, StringBuilder out) {
         StringBuilder prefix = new StringBuilder("  ");
-        StringWriter out = new StringWriter();
-        PrintWriter writer = new PrintWriter(out);
 
         Deque<String> descriptions = Lists.newLinkedList();
         DefaultModelSchemaExtractionContext<?> current = extractionContext;
@@ -39,47 +35,43 @@ public class InvalidManagedModelElementTypeException extends RuntimeException {
             current = current.getParent();
         }
 
-        writer.println(descriptions.pop());
+        out.append(descriptions.pop());
+        out.append('\n');
 
         while (!descriptions.isEmpty()) {
-            writer.print(prefix);
-            writer.print("\\--- ");
-            writer.print(descriptions.pop());
+            out.append(prefix);
+            out.append("\\--- ");
+            out.append(descriptions.pop());
 
             if (!descriptions.isEmpty()) {
-                writer.println();
+                out.append('\n');
                 prefix.append("  ");
             }
         }
-
-        return out.toString();
     }
 
     private static String getMessage(DefaultModelSchemaExtractionContext<?> extractionContext, String message) {
         ModelType<?> type = extractionContext.getType();
-        StringWriter out = new StringWriter();
-        PrintWriter writer = new PrintWriter(out);
-        writer.print("Invalid managed model type " + type + ": " + message);
+        StringBuilder out = new StringBuilder();
+        out.append("Invalid managed model type ").append(type).append(": ").append(message);
 
         if (extractionContext.getParent() != null) {
-            writer.println();
-            writer.println("The type was analyzed due to the following dependencies:");
-            writer.print(createPathString(extractionContext));
+            out.append('\n');
+            out.append("The type was analyzed due to the following dependencies:\n");
+            createPathString(extractionContext, out);
         }
 
         return out.toString();
     }
 
     private static String getMessage(DefaultModelSchemaExtractionContext<?> extractionContext) {
-        StringWriter out = new StringWriter();
-        PrintWriter writer = new PrintWriter(out);
-        writer.print(extractionContext.getProblems().format());
+        StringBuilder out = new StringBuilder();
+        out.append(extractionContext.getProblems().format());
 
         if (extractionContext.getParent() != null) {
-            writer.println();
-            writer.println();
-            writer.println("The type was analyzed due to the following dependencies:");
-            writer.print(createPathString(extractionContext));
+            out.append("\n\n");
+            out.append("The type was analyzed due to the following dependencies:\n");
+            createPathString(extractionContext, out);
         }
 
         return out.toString();

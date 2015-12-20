@@ -26,7 +26,6 @@ import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 import java.beans.Introspector
@@ -529,13 +528,13 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "Declaration of model rule ModelRuleExtractorTest.$inspected.simpleName#bar is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == TextUtil.toPlatformLineSeparators("""Type $invalidTypeName is not a valid model element type:
+        e.cause.message == """Type $invalidTypeName is not a valid model element type:
 - Cannot be a parameterized type.
 
 The type was analyzed due to the following dependencies:
 ${managedType.name}
   \\--- property 'managedWithNestedInvalidManagedType' (${nestedManagedType.name})
-    \\--- property 'invalidManaged' ($invalidTypeName)""")
+    \\--- property 'invalidManaged' ($invalidTypeName)"""
 
         where:
         inspected                                                        | managedType                                    | nestedManagedType
@@ -559,12 +558,12 @@ ${managedType.name}
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "Declaration of model rule ModelRuleExtractorTest.RuleSourceCreatingManagedWithNonManageableParent#bar is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == TextUtil.toPlatformLineSeparators("""Type $invalidTypeName is not a valid model element type:
+        e.cause.message == """Type $invalidTypeName is not a valid model element type:
 - Cannot be a parameterized type.
 
 The type was analyzed due to the following dependencies:
 ${ManagedWithNonManageableParents.name}
-  \\--- property 'invalidManaged' declared by ${AnotherManagedWithPropertyOfInvalidManagedType.name}, ${ManagedWithPropertyOfInvalidManagedType.name} ($invalidTypeName)""")
+  \\--- property 'invalidManaged' declared by ${AnotherManagedWithPropertyOfInvalidManagedType.name}, ${ManagedWithPropertyOfInvalidManagedType.name} ($invalidTypeName)"""
 
         where:
         invalidTypeName = "$ParametrizedManaged.name<$String.name>"

@@ -25,7 +25,6 @@ import org.gradle.model.ModelSet
 import org.gradle.model.Unmanaged
 import org.gradle.model.internal.manage.schema.*
 import org.gradle.model.internal.type.ModelType
-import org.gradle.util.TextUtil
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -673,10 +672,10 @@ class DefaultModelSchemaExtractorTest extends Specification {
         then:
         InvalidManagedModelElementTypeException e = thrown()
         def invalidMethodDescription = MethodDescription.name("setName").returns(void.class).owner(SetterOnly).takes(String)
-        e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: ${invalidMethodDescription}).
+        e.message == """Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: ${invalidMethodDescription}).
 The type was analyzed due to the following dependencies:
 $type
-  \\--- element type ($SetterOnly.name)""")
+  \\--- element type ($SetterOnly.name)"""
     }
 
     def "specializations of managed set are not supported"() {
