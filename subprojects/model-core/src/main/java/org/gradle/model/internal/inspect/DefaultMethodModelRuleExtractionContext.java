@@ -18,6 +18,7 @@ package org.gradle.model.internal.inspect;
 
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 class DefaultMethodModelRuleExtractionContext implements MethodModelRuleExtractionContext {
@@ -42,6 +43,11 @@ class DefaultMethodModelRuleExtractionContext implements MethodModelRuleExtracti
     @Override
     public void add(Method method, String problem) {
         problems.add(method, problem);
+    }
+
+    @Override
+    public void add(Constructor<?> constructor, String problem) {
+        problems.add(constructor, problem);
     }
 
     @Override

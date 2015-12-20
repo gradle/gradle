@@ -19,6 +19,7 @@ package org.gradle.model.internal.inspect;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +60,14 @@ public class FormattingValidationProblemCollector implements ValidationProblemCo
                 .takes(method.getGenericParameterTypes())
                 .toString();
         problems.add("Method " + description + " is not a valid rule method: " + problem);
+    }
+
+    @Override
+    public void add(Constructor<?> constructor, String problem) {
+        String description = MethodDescription.name(constructor.getDeclaringClass().getSimpleName())
+                .takes(constructor.getGenericParameterTypes())
+                .toString();
+        problems.add("Constructor " + description + " is not valid: " + problem);
     }
 
     public String format() {

@@ -25,6 +25,7 @@ import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -82,6 +83,11 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
     @Override
     public void add(Method method, String problem) {
         problems.add(method, problem);
+    }
+
+    @Override
+    public void add(Constructor<?> constructor, String problem) {
+        problems.add(constructor, problem);
     }
 
     @Override

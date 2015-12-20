@@ -60,4 +60,20 @@ class FormattingValidationProblemCollectorTest extends Specification {
 - does not extend RuleSource
 - does not have any rule method'''
     }
+
+    static class WithConstructor {
+        WithConstructor(String s) {}
+    }
+
+    def "formats message with constructor problems"() {
+        given:
+        def collector = new FormattingValidationProblemCollector("<thing>", ModelType.of(WithConstructor))
+        collector.add(WithConstructor.getDeclaredConstructor(String), "doesn't do anything")
+        collector.add(WithConstructor.getDeclaredConstructor(String), "should accept an int")
+
+        expect:
+        collector.format() == """Type ${WithConstructor.name} is not a valid <thing>:
+- Constructor WithConstructor(java.lang.String) is not valid: doesn't do anything
+- Constructor WithConstructor(java.lang.String) is not valid: should accept an int"""
+    }
 }

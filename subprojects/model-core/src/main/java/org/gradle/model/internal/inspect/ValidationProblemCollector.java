@@ -16,13 +16,14 @@
 
 package org.gradle.model.internal.inspect;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 public interface ValidationProblemCollector {
     boolean hasProblems();
 
     /**
-     * Adds a problem with a rule source class.
+     * Adds a problem with the type.
      */
     void add(String problem);
 
@@ -37,7 +38,12 @@ public interface ValidationProblemCollector {
     void add(MethodRuleDefinition<?, ?> method, String problem, Throwable cause);
 
     /**
-     * Adds a problem with a rule method.
+     * Adds a problem with a method.
      */
     void add(Method method, String problem);
+
+    /**
+     * Adds a problem with a constructor.
+     */
+    void add(Constructor<?> constructor, String problem);
 }
