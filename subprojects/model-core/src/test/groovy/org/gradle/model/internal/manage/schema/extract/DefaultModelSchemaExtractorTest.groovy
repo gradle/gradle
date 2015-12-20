@@ -58,7 +58,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
         then:
         def e = thrown(InvalidManagedModelElementTypeException)
         e.message == """Type $EmptyStaticClass.name is not a valid model element type:
-- must be defined as an interface or an abstract class."""
+- Must be defined as an interface or an abstract class."""
     }
 
     @Managed
@@ -71,7 +71,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
         then:
         def e = thrown(InvalidManagedModelElementTypeException)
         e.message == """Type $ParameterizedEmptyInterface.name is not a valid model element type:
-- cannot be a parameterized type."""
+- Cannot be a parameterized type."""
     }
 
     @Managed
@@ -821,10 +821,29 @@ $type
     }
 
     def "custom constructors are not allowed"() {
-        expect:
-        fail ConstructorWithArguments, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(ConstructorWithArguments).takes(String)})")
-        fail AdditionalConstructorWithArguments, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(AdditionalConstructorWithArguments).takes(String)})")
-        fail CustomConstructorInSuperClass, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(SuperConstructorWithArguments).takes(String)})")
+        when:
+        extract(ConstructorWithArguments)
+
+        then:
+        def e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type $ConstructorWithArguments.name is not a valid model element type:
+- Constructor ConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
+
+        when:
+        extract(AdditionalConstructorWithArguments)
+
+        then:
+        e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type $AdditionalConstructorWithArguments.name is not a valid model element type:
+- Constructor AdditionalConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
+
+        when:
+        extract(CustomConstructorInSuperClass)
+
+        then:
+        e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type $CustomConstructorInSuperClass.name is not a valid model element type:
+- Constructor SuperConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
     }
 
     @Managed
@@ -1540,6 +1559,10 @@ interface Managed${typeName} {
 
     @Managed
     static class MultipleProblems<T extends List<?>> {
+        MultipleProblems(String s) {
+        }
+        MultipleProblems(Long s) {
+        }
     }
 
     def "collects all problems for a type"() {
@@ -1549,8 +1572,9 @@ interface Managed${typeName} {
         then:
         def e = thrown(InvalidManagedModelElementTypeException)
         e.message == """Type $MultipleProblems.name is not a valid model element type:
-- must be defined as an interface or an abstract class.
-- cannot be a parameterized type."""
+- Must be defined as an interface or an abstract class.
+- Cannot be a parameterized type.
+- Constructor MultipleProblems(java.lang.String) is not valid: Custom constructors are not supported."""
     }
 
     String getName(ModelType<?> modelType) {

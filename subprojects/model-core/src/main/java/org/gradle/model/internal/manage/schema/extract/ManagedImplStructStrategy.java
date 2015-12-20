@@ -20,7 +20,10 @@ import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.internal.reflect.MethodDescription;
@@ -29,11 +32,17 @@ import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
-import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.*;
 import static org.gradle.model.internal.manage.schema.extract.MethodType.*;
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.*;
 
 public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySupport {
 
@@ -53,22 +62,25 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
                 if (type.isAnnotationPresent(Managed.class)) {
                     validateManagedType(extractionContext, type);
                 }
+                validateType(extractionContext, type);
             }
         });
     }
 
     private void validateManagedType(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {
         if (!typeClass.isInterface() && !Modifier.isAbstract(typeClass.getModifiers())) {
-            extractionContext.add("must be defined as an interface or an abstract class.");
+            extractionContext.add("Must be defined as an interface or an abstract class.");
         }
 
         if (typeClass.getTypeParameters().length > 0) {
-            extractionContext.add("cannot be a parameterized type.");
+            extractionContext.add("Cannot be a parameterized type.");
         }
+    }
 
+    private void validateType(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {
         Constructor<?> customConstructor = findCustomConstructor(typeClass);
         if (customConstructor != null) {
-            throw invalidMethod(extractionContext, "custom constructors are not allowed", customConstructor);
+            extractionContext.add(customConstructor, "Custom constructors are not supported.");
         }
 
         ensureNoInstanceScopedFields(extractionContext, typeClass);
@@ -76,33 +88,16 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
     }
 
     private Constructor<?> findCustomConstructor(Class<?> typeClass) {
-        Class<?> superClass = typeClass.getSuperclass();
-        if (superClass != null && !superClass.equals(Object.class)) {
-            Constructor<?> customSuperConstructor = findCustomConstructor(typeClass.getSuperclass());
-            if (customSuperConstructor != null) {
-                return customSuperConstructor;
-            }
-        }
         Constructor<?>[] constructors = typeClass.getConstructors();
-        if (constructors.length == 0 || (constructors.length == 1 && constructors[0].getParameterTypes().length == 0)) {
-            return null;
-        } else {
-            for (Constructor<?> constructor : constructors) {
-                if (constructor.getParameterTypes().length > 0) {
-                    return constructor;
-                }
+        for (Constructor<?> constructor : constructors) {
+            if (constructor.getParameterTypes().length > 0) {
+                return constructor;
             }
-            //this should never happen
-            throw new RuntimeException(String.format("Expected a constructor taking at least one argument in %s but no such constructors were found", typeClass.getName()));
         }
+        return null;
     }
 
     private void ensureNoInstanceScopedFields(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {
-        Class<?> superClass = typeClass.getSuperclass();
-        if (superClass != null && !superClass.equals(Object.class)) {
-            ensureNoInstanceScopedFields(extractionContext, superClass);
-        }
-
         List<Field> declaredFields = Arrays.asList(typeClass.getDeclaredFields());
         Iterable<Field> instanceScopedFields = Iterables.filter(declaredFields, new Predicate<Field>() {
             public boolean apply(Field field) {
@@ -120,11 +115,6 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
     }
 
     private void ensureNoProtectedOrPrivateMethods(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {
-        Class<?> superClass = typeClass.getSuperclass();
-        if (superClass != null && !superClass.equals(Object.class)) {
-            ensureNoProtectedOrPrivateMethods(extractionContext, superClass);
-        }
-
         Iterable<Method> protectedAndPrivateMethods = Iterables.filter(Arrays.asList(typeClass.getDeclaredMethods()), new Predicate<Method>() {
             @Override
             public boolean apply(Method method) {
@@ -336,10 +326,6 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
 
     private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Method method) {
         return invalidMethod(extractionContext, message, MethodDescription.of(method));
-    }
-
-    private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Constructor<?> constructor) {
-        return invalidMethod(extractionContext, message, MethodDescription.of(constructor));
     }
 
     private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, MethodDescription methodDescription) {

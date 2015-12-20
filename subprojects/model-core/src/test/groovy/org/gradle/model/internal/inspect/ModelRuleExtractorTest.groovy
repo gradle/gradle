@@ -489,7 +489,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         e.message == 'Declaration of model rule ModelRuleExtractorTest.RuleSourceCreatingAClassAnnotatedWithManaged#bar is invalid.'
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == """Type $ManagedAnnotatedClass.name is not a valid model element type:
-- must be defined as an interface or an abstract class."""
+- Must be defined as an interface or an abstract class."""
     }
 
     static class RuleSourceWithAVoidReturningNoArgumentMethod extends RuleSource {
@@ -530,7 +530,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         e.message == "Declaration of model rule ModelRuleExtractorTest.$inspected.simpleName#bar is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == TextUtil.toPlatformLineSeparators("""Type $invalidTypeName is not a valid model element type:
-- cannot be a parameterized type.
+- Cannot be a parameterized type.
 
 The type was analyzed due to the following dependencies:
 ${managedType.name}
@@ -560,7 +560,7 @@ ${managedType.name}
         e.message == "Declaration of model rule ModelRuleExtractorTest.RuleSourceCreatingManagedWithNonManageableParent#bar is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == TextUtil.toPlatformLineSeparators("""Type $invalidTypeName is not a valid model element type:
-- cannot be a parameterized type.
+- Cannot be a parameterized type.
 
 The type was analyzed due to the following dependencies:
 ${ManagedWithNonManageableParents.name}
