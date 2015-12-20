@@ -18,10 +18,13 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
+import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -36,10 +39,11 @@ public class ScalarCollectionStrategy implements ModelSchemaExtractionStrategy {
         ModelType<T> type = extractionContext.getType();
         Class<? super T> rawClass = type.getRawClass();
         List<ModelType<?>> typeVariables = type.getTypeVariables();
-        if (TYPES.contains(rawClass) && typeVariables.size() > 0) {
-            ModelType<?> firstVariableType = typeVariables.get(0);
-            if (ScalarTypes.isScalarType(firstVariableType)) {
-                extractionContext.found(createSchema(extractionContext, type, firstVariableType));
+        if (TYPES.contains(rawClass)) {
+            if (typeVariables.size() > 0 && ScalarTypes.isScalarType(typeVariables.get(0))) {
+                extractionContext.found(createSchema(extractionContext, type, typeVariables.get(0)));
+            } else {
+                extractionContext.found(new UnmanagedImplStructSchema<T>(type, Collections.<ModelProperty<?>>emptySet(), Collections.<ModelSchemaAspect>emptySet(), false));
             }
         }
     }

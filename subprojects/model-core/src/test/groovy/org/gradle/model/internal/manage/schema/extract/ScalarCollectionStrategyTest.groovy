@@ -20,6 +20,7 @@ import org.gradle.model.internal.manage.schema.CompositeSchema
 import org.gradle.model.internal.manage.schema.ManagedImplSchema
 import org.gradle.model.internal.manage.schema.ScalarCollectionSchema
 import org.gradle.model.internal.manage.schema.StructSchema
+import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import spock.lang.Specification
@@ -27,7 +28,7 @@ import spock.lang.Specification
 class ScalarCollectionStrategyTest extends Specification {
     def store = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
 
-    def "assembles schema for a Set"() {
+    def "assembles schema for a Set of scalar type"() {
         expect:
         def schema = store.getSchema(ModelTypes.set(ModelType.of(String)))
         schema instanceof ScalarCollectionSchema
@@ -38,7 +39,7 @@ class ScalarCollectionStrategyTest extends Specification {
         schema.elementTypeSchema == store.getSchema(ModelType.of(String))
     }
 
-    def "assembles schema for a List"() {
+    def "assembles schema for a List of scalar type"() {
         expect:
         def schema = store.getSchema(ModelTypes.list(ModelType.of(String)))
         schema instanceof ScalarCollectionSchema
@@ -48,4 +49,16 @@ class ScalarCollectionStrategyTest extends Specification {
         schema.elementType == ModelType.of(String)
         schema.elementTypeSchema == store.getSchema(ModelType.of(String))
     }
+
+    def "assembles schema for List of non-scalar type"() {
+        expect:
+        def schema = store.getSchema(ModelTypes.list(ModelType.of(Runnable)))
+        schema instanceof UnmanagedImplStructSchema
+        !(schema instanceof ManagedImplSchema)
+        !(schema instanceof CompositeSchema)
+        schema instanceof StructSchema
+        !schema.annotated
+        schema.propertyNames.empty
+    }
+
 }
