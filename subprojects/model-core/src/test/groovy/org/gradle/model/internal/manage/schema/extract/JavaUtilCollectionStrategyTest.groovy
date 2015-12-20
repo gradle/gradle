@@ -25,7 +25,7 @@ import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import spock.lang.Specification
 
-class ScalarCollectionStrategyTest extends Specification {
+class JavaUtilCollectionStrategyTest extends Specification {
     def store = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
 
     def "assembles schema for a Set of scalar type"() {

@@ -28,7 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class ScalarCollectionStrategy implements ModelSchemaExtractionStrategy {
+public class JavaUtilCollectionStrategy implements ModelSchemaExtractionStrategy {
 
     public final static List<Class<?>> TYPES = ImmutableList.<Class<?>>of(
         List.class,
