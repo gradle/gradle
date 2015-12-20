@@ -43,6 +43,7 @@ public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
             .add(new ModelMapStrategy())
             .add(new JavaUtilCollectionStrategy())
             .add(new ManagedImplStructStrategy(aspectExtractor))
+            .add(new RuleSourceSchemaExtractionStrategy(aspectExtractor))
             .add(new UnmanagedImplStructStrategy(aspectExtractor))
             .build());
     }

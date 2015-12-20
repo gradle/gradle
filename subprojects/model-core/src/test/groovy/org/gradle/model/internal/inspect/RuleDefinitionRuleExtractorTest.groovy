@@ -22,7 +22,7 @@ import org.gradle.model.Rules
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 
 class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
-    def extractor = new ModelRuleExtractor([new RuleDefinitionRuleExtractor()], proxyFactory)
+    def extractor = new ModelRuleExtractor([new RuleDefinitionRuleExtractor()], proxyFactory, schemaStore)
 
     static class InvalidSignature extends RuleSource {
         @Rules

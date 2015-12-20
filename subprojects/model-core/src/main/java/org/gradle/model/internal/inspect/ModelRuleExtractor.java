@@ -37,9 +37,10 @@ import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.manage.instance.GeneratedViewState;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.StructSchema;
-import org.gradle.model.internal.manage.schema.extract.*;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
@@ -62,15 +63,10 @@ public class ModelRuleExtractor {
     private final ManagedProxyFactory proxyFactory;
     private final ModelSchemaStore schemaStore;
 
-    public ModelRuleExtractor(Iterable<MethodModelRuleExtractor> handlers, ManagedProxyFactory proxyFactory) {
+    public ModelRuleExtractor(Iterable<MethodModelRuleExtractor> handlers, ManagedProxyFactory proxyFactory, ModelSchemaStore schemaStore) {
         this.handlers = handlers;
         this.proxyFactory = proxyFactory;
-        this.schemaStore = new DefaultModelSchemaStore(new DefaultModelSchemaExtractor(Collections.singletonList(new UnmanagedImplStructStrategy(new ModelSchemaAspectExtractor()) {
-            @Override
-            protected ModelProperty.StateManagementType determineStateManagementType(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getterContext) {
-                return ModelProperty.StateManagementType.MANAGED;
-            }
-        })));
+        this.schemaStore = schemaStore;
     }
 
     private String describeHandlers() {
@@ -99,9 +95,10 @@ public class ModelRuleExtractor {
 
         // TODO - exceptions thrown here should point to some extensive documentation on the concept of class rule sources
 
-        validateClass(source, context);
-
-        StructSchema<T> schema = (StructSchema<T>) schemaStore.getSchema(source);
+        StructSchema<T> schema = getSchema(source, context);
+        if (schema == null) {
+            throw new InvalidModelRuleDeclarationException(context.problems.format());
+        }
         Factory<T> factory = Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema, proxyFactory) : new ConcreteRuleSourceFactory<T>(type);
 
         // sort for determinism
@@ -133,6 +130,20 @@ public class ModelRuleExtractor {
         return new RuleSourceSchema<T>(type, registrations.build(), factory);
     }
 
+    private <T> StructSchema<T> getSchema(Class<T> source, DefaultMethodModelRuleExtractionContext context) {
+        if (!RuleSource.class.isAssignableFrom(source) || !source.getSuperclass().equals(RuleSource.class)) {
+            context.add("Rule source classes must directly extend " + RuleSource.class.getName());
+        }
+
+        ModelSchema<T> schema = schemaStore.getSchema(source);
+        if (!(schema instanceof StructSchema)) {
+            return null;
+        }
+
+        validateClass(source, context);
+        return (StructSchema<T>) schema;
+    }
+
     @Nullable
     private ExtractedModelRule getMethodHandler(MethodRuleDefinition<?, ?> ruleDefinition, Method method, MethodModelRuleExtractionContext context) {
         MethodModelRuleExtractor handler = null;
@@ -161,10 +172,6 @@ public class ModelRuleExtractor {
 
         if (Modifier.isInterface(modifiers)) {
             problems.add("Must be a class, not an interface");
-        }
-
-        if (!RuleSource.class.isAssignableFrom(source) || !source.getSuperclass().equals(RuleSource.class)) {
-            problems.add("Rule source classes must directly extend " + RuleSource.class.getName());
         }
 
         if (source.getEnclosingClass() != null) {

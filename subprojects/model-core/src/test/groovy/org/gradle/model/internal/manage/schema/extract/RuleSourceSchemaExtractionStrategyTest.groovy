@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
-import org.gradle.model.internal.core.UnmanagedStruct
+import org.gradle.model.RuleSource
 import org.gradle.model.internal.manage.schema.CompositeSchema
 import org.gradle.model.internal.manage.schema.ManagedImplSchema
 import org.gradle.model.internal.manage.schema.ModelProperty
@@ -26,12 +26,30 @@ import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import spock.lang.Specification
 
-class UnmanagedImplStructStrategyTest extends Specification {
+class RuleSourceSchemaExtractionStrategyTest extends Specification {
     def store = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
 
-    def "assembles schema for unmanaged type"() {
+    def "assembles schema for RuleSource type"() {
         expect:
-        def schema = store.getSchema(ModelType.of(SomeType))
+        def schema = store.getSchema(ModelType.of(RuleSource))
+        schema instanceof UnmanagedImplStructSchema
+        !(schema instanceof ManagedImplSchema)
+        !(schema instanceof CompositeSchema)
+        schema instanceof StructSchema
+        !schema.annotated
+        schema.propertyNames.empty
+        schema.properties.isEmpty()
+    }
+
+    static abstract class SomeRules extends RuleSource {
+        abstract String getReadOnlyString()
+        abstract List<String> getStrings()
+        abstract void setStrings(List<String> strings)
+    }
+
+    def "assembles schema for RuleSource subtype"() {
+        expect:
+        def schema = store.getSchema(ModelType.of(SomeRules))
         schema instanceof UnmanagedImplStructSchema
         !(schema instanceof ManagedImplSchema)
         !(schema instanceof CompositeSchema)
@@ -39,44 +57,8 @@ class UnmanagedImplStructStrategyTest extends Specification {
         !schema.annotated
         schema.propertyNames == ['readOnlyString', 'strings'] as SortedSet
         schema.properties*.name == ['readOnlyString', 'strings']
-        schema.properties.every { it.stateManagementType == ModelProperty.StateManagementType.UNMANAGED }
+        schema.properties.every { it.stateManagementType == ModelProperty.StateManagementType.MANAGED }
         schema.getProperty('readOnlyString').schema == store.getSchema(ModelType.of(String))
         schema.getProperty('strings').schema == store.getSchema(ModelTypes.list(ModelType.of(String)))
-    }
-
-    def "assembles schema for unmanaged type marked with @UnmanagedStruct"() {
-        expect:
-        def schema = store.getSchema(ModelType.of(SomeStruct))
-        schema instanceof UnmanagedImplStructSchema
-        !(schema instanceof ManagedImplSchema)
-        !(schema instanceof CompositeSchema)
-        schema instanceof StructSchema
-        schema.annotated
-        schema.propertyNames == ['readOnlyString'] as SortedSet
-    }
-
-    def "assembles schema for unmanaged type that references itself"() {
-        expect:
-        def schema = store.getSchema(ModelType.of(Person))
-        schema instanceof UnmanagedImplStructSchema
-        schema.propertyNames == ['parent'] as SortedSet
-        schema.properties*.name == ['parent']
-        schema.getProperty('parent').schema == schema
-    }
-
-    interface SomeType {
-        String getReadOnlyString()
-
-        List<String> getStrings()
-        void setStrings(List<String> strings)
-    }
-
-    @UnmanagedStruct
-    interface SomeStruct {
-        String getReadOnlyString()
-    }
-
-    interface Person {
-        Person getParent()
     }
 }

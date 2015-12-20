@@ -31,7 +31,7 @@ import spock.lang.Unroll
 import java.beans.Introspector
 
 class ModelRuleExtractorTest extends ProjectRegistrySpec {
-    def static extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(SCHEMA_STORE), MANAGED_PROXY_FACTORY)
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(SCHEMA_STORE), MANAGED_PROXY_FACTORY, SCHEMA_STORE)
     ModelRegistry registry = new DefaultModelRegistry(extractor)
 
     static class ModelThing {
@@ -125,7 +125,27 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         abstract void thing(String s)
     }
 
-    def "rule class cannot have abstract methods"() {
+    static class NotRuleSource {
+    }
+
+    @Managed
+    static abstract class ManagedThing {
+    }
+
+    def "rule class must extend RuleSource"() {
+        when:
+        extract(type)
+
+        then:
+        def e = thrown(InvalidModelRuleDeclarationException)
+        e.message == """Type $type.name is not a valid rule source:
+- Rule source classes must directly extend org.gradle.model.RuleSource"""
+
+        where:
+        type << [Long, RuleSource, NotRuleSource, ManagedThing]
+    }
+
+    def "rule class cannot have abstract rule methods"() {
         when:
         extract(AbstractMethodsRules)
 
@@ -684,7 +704,6 @@ ${ManagedWithNonManageableParents.name}
         ''')
 
         when:
-        def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(SCHEMA_STORE), MANAGED_PROXY_FACTORY)
         extractor.extract(source)
 
         then:
