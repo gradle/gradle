@@ -43,6 +43,9 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         }
 
         validateTypeHierarchy(extractionContext, type);
+        if (extractionContext.hasProblems()) {
+            return;
+        }
 
         CandidateMethods candidateMethods = ModelSchemaUtils.getCandidateMethods(type.getRawClass());
         validateMethodDeclarationHierarchy(extractionContext, candidateMethods);

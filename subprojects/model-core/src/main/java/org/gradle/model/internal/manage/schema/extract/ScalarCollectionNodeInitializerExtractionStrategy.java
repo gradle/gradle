@@ -27,6 +27,7 @@ import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
+import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
@@ -43,7 +44,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         ModelType<T> type = schema.getType();
         Class<? super T> rawClass = type.getRawClass();
         ModelType<? super T> rawCollectionType = ModelType.of(rawClass);
-        if (TYPES.contains(rawCollectionType) && ScalarTypes.isScalarType(schema.getElementType())) {
+        if (TYPES.contains(rawCollectionType) && (schema.getElementTypeSchema() instanceof ScalarValueSchema)) {
             if (schema.getType().getRawClass() == List.class) {
                 return new ProjectionOnlyNodeInitializer(
                     ScalarCollectionModelProjection.get(

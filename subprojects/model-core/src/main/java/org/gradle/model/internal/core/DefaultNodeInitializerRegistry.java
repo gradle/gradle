@@ -17,7 +17,6 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -48,7 +47,6 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     }
 
     private ModelTypeInitializationException canNotConstructTypeException(NodeInitializerContext<?> context) {
-        Iterable<ModelType<?>> scalars = Iterables.concat(ScalarTypes.TYPES, ScalarTypes.NON_FINAL_TYPES);
         ImmutableSortedSet.Builder<ModelType<?>> constructibleTypes = ImmutableSortedSet.orderedBy(ModelTypes.displayOrder());
         for (NodeInitializerExtractionStrategy extractor : additionalStrategies) {
             for (ModelType<?> constructibleType : extractor.supportedTypes()) {
@@ -57,7 +55,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
                 }
             }
         }
-        return new ModelTypeInitializationException(context, schemaStore, scalars, constructibleTypes.build());
+        return new ModelTypeInitializationException(context, schemaStore, ScalarTypes.TYPES, constructibleTypes.build());
     }
 
     @Override

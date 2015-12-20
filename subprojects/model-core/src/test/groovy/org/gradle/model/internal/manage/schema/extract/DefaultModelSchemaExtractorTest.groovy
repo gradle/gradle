@@ -25,7 +25,6 @@ import org.gradle.model.ModelSet
 import org.gradle.model.Unmanaged
 import org.gradle.model.internal.manage.schema.*
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -648,20 +647,6 @@ class DefaultModelSchemaExtractorTest extends Specification {
         ]
     }
 
-    //TODO - AK
-    @Ignore
-    def "type argument of a managed set has to be managed"() {
-        given:
-        def type = new ModelType<ModelSet<Object>>() {}
-
-        when:
-        extract(type)
-
-        then:
-        InvalidManagedModelElementTypeException e = thrown()
-        e.message == "Invalid managed model type ${new ModelType<ModelSet<Object>>() {}}: cannot create a managed set of type $Object.name as it is an unmanaged type. Only @Managed types are allowed."
-    }
-
     def "type argument of a managed set has to be a valid managed type"() {
         given:
         def type = new ModelType<ModelSet<SetterOnly>>() {}
@@ -709,10 +694,18 @@ $type
         }
     }
 
-    def "cannot subclass non final value type"() {
+    static class MyFile extends File {
+        MyFile(String s) {
+            super(s)
+        }
+    }
+
+    def "subclasses of non final scalar types are treated as unmanaged"() {
         expect:
-        fail MyBigInteger, Pattern.quote("subclasses of java.math.BigInteger are not supported")
-        fail MyBigDecimal, Pattern.quote("subclasses of java.math.BigDecimal are not supported")
+        extract(type) instanceof UnmanagedImplStructSchema
+
+        where:
+        type << [MyBigInteger, MyBigDecimal, MyFile]
     }
 
     static enum MyEnum {
