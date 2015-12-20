@@ -189,7 +189,7 @@ public class ModelRuleExtractor {
         for (Field field : fields) {
             int fieldModifiers = field.getModifiers();
             if (!field.isSynthetic() && !(Modifier.isStatic(fieldModifiers) && Modifier.isFinal(fieldModifiers))) {
-                problems.add("Field " + field.getName() + " is not static final");
+                problems.add(field, "Fields must be static final.");
             }
         }
     }

@@ -49,6 +49,16 @@ class FormattingValidationProblemCollectorTest extends Specification {
 - Method indexOf(java.lang.String) is not a valid rule method: is not annotated with anything.'''
     }
 
+    def "formats message with a problem with inherited method"() {
+        given:
+        def collector = new FormattingValidationProblemCollector("<thing>", ModelType.of(WithConstructor))
+        collector.add(SuperClass.class.getMethod("thing"), "is not annotated with anything.")
+
+        expect:
+        collector.format() == """Type ${WithConstructor.name} is not a valid <thing>:
+- Method SuperClass.thing() is not a valid rule method: is not annotated with anything."""
+    }
+
     def "formats message with multiple problems"() {
         given:
         def collector = new FormattingValidationProblemCollector("<thing>", ModelType.of(String))
@@ -61,7 +71,13 @@ class FormattingValidationProblemCollectorTest extends Specification {
 - does not have any rule method'''
     }
 
-    static class WithConstructor {
+    static class SuperClass {
+        private String value
+        void thing() { }
+    }
+
+    static class WithConstructor extends SuperClass {
+        String value
         WithConstructor(String s) {}
     }
 
@@ -75,5 +91,19 @@ class FormattingValidationProblemCollectorTest extends Specification {
         collector.format() == """Type ${WithConstructor.name} is not a valid <thing>:
 - Constructor WithConstructor(java.lang.String) is not valid: doesn't do anything
 - Constructor WithConstructor(java.lang.String) is not valid: should accept an int"""
+    }
+
+    def "formats message with field problems"() {
+        given:
+        def collector = new FormattingValidationProblemCollector("<thing>", ModelType.of(WithConstructor))
+        collector.add(WithConstructor.getDeclaredField("value"), "should have an initializer")
+        collector.add(WithConstructor.getDeclaredField("value"), "should accept an int")
+        collector.add(SuperClass.getDeclaredField("value"), "cannot have fields")
+
+        expect:
+        collector.format() == """Type ${WithConstructor.name} is not a valid <thing>:
+- Field value is not valid: should have an initializer
+- Field value is not valid: should accept an int
+- Field SuperClass.value is not valid: cannot have fields"""
     }
 }

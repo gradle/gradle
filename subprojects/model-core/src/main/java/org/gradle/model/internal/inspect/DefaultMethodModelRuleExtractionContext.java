@@ -19,6 +19,7 @@ package org.gradle.model.internal.inspect;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 class DefaultMethodModelRuleExtractionContext implements MethodModelRuleExtractionContext {
@@ -38,6 +39,11 @@ class DefaultMethodModelRuleExtractionContext implements MethodModelRuleExtracti
     @Override
     public boolean hasProblems() {
         return problems.hasProblems();
+    }
+
+    @Override
+    public void add(Field field, String problem) {
+        problems.add(field, problem);
     }
 
     @Override

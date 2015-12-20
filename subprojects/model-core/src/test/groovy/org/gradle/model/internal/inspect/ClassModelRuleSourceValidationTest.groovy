@@ -40,9 +40,9 @@ class ClassModelRuleSourceValidationTest extends ProjectRegistrySpec {
         OuterClass.InnerInstanceClass      | "Enclosed classes must be static and non private"
         new RuleSource() {}.getClass()     | "Enclosed classes must be static and non private"
         OuterClass.HasTwoConstructors      | "Cannot declare a constructor that takes arguments"
-        OuterClass.HasInstanceVar          | "Field foo is not static final"
-        OuterClass.HasFinalInstanceVar     | "Field foo is not static final"
-        OuterClass.HasNonFinalStaticVar    | "Field foo is not static final"
+        OuterClass.HasInstanceVar          | "Field foo is not valid: Fields must be static final."
+        OuterClass.HasFinalInstanceVar     | "Field foo is not valid: Fields must be static final."
+        OuterClass.HasNonFinalStaticVar    | "Field foo is not valid: Fields must be static final."
         OuterClass.DoesNotExtendRuleSource | "Rule source classes must directly extend org.gradle.model.RuleSource"
         OuterClass.HasSuperclass           | "Rule source classes must directly extend org.gradle.model.RuleSource"
     }

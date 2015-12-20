@@ -645,8 +645,8 @@ ${ManagedWithNonManageableParents.name}
         def e = thrown(InvalidModelRuleDeclarationException)
         e.message == '''Type org.gradle.model.internal.inspect.ModelRuleExtractorTest$SeveralProblems is not a valid rule source:
 - Rule source classes must directly extend org.gradle.model.RuleSource
-- Field field1 is not static final
-- Field field2 is not static final
+- Field field1 is not valid: Fields must be static final.
+- Field field2 is not valid: Fields must be static final.
 - Method multipleProblems(java.util.List, T) is not a valid rule method: Can only be one of [annotated with @Model and returning a model element, annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate, annotated with @Rules]
 - Method multipleProblems(java.util.List, T) is not a valid rule method: A rule method cannot be private
 - Method multipleProblems(java.util.List, T) is not a valid rule method: Cannot have type variables (i.e. cannot be a generic method)

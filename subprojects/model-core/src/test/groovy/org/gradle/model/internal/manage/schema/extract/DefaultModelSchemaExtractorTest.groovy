@@ -856,11 +856,24 @@ $type
     }
 
     def "instance scoped fields are not allowed"() {
-        expect:
-        fail WithInstanceScopedField, Pattern.quote("instance scoped fields are not allowed (found fields: private int ${WithInstanceScopedField.name}.age, private java.lang.String ${WithInstanceScopedField.name}.name)")
-        fail WithInstanceScopedFieldInSuperclass, Pattern.quote("instance scoped fields are not allowed (found fields: private int ${WithInstanceScopedField.name}.age, private java.lang.String ${WithInstanceScopedField.name}.name)")
-    }
+        when:
+        extract(WithInstanceScopedField)
 
+        then:
+        def e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type ${WithInstanceScopedField.name} is not a valid model element type:
+- Field name is not valid: Fields must be static final.
+- Field age is not valid: Fields must be static final."""
+
+        when:
+        extract(WithInstanceScopedFieldInSuperclass)
+
+        then:
+        e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type ${WithInstanceScopedFieldInSuperclass.name} is not a valid model element type:
+- Field WithInstanceScopedField.name is not valid: Fields must be static final.
+- Field WithInstanceScopedField.age is not valid: Fields must be static final."""
+    }
 
     @Managed
     static abstract class ProtectedAbstractMethods {
@@ -874,13 +887,23 @@ $type
     }
 
     def "protected abstract methods are not allowed"() {
-        given:
-        def getterDescription = MethodDescription.name("getName").owner(ProtectedAbstractMethods).takes().returns(String)
-        def setterDescription = MethodDescription.name("setName").owner(ProtectedAbstractMethods).returns(void.class).takes(String)
+        when:
+        extract(ProtectedAbstractMethods)
 
-        expect:
-        fail ProtectedAbstractMethods, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
-        fail ProtectedAbstractMethodsInSuper, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
+        then:
+        def e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type ${ProtectedAbstractMethods.name} is not a valid model element type:
+- Method getName() is not a valid rule method: Protected and private methods are not supported.
+- Method setName(java.lang.String) is not a valid rule method: Protected and private methods are not supported."""
+
+        when:
+        extract(ProtectedAbstractMethodsInSuper)
+
+        then:
+        e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type ${ProtectedAbstractMethodsInSuper.name} is not a valid model element type:
+- Method ProtectedAbstractMethods.getName() is not a valid rule method: Protected and private methods are not supported.
+- Method ProtectedAbstractMethods.setName(java.lang.String) is not a valid rule method: Protected and private methods are not supported."""
     }
 
     @Managed
@@ -897,13 +920,23 @@ $type
     }
 
     def "protected and private non-abstract methods are not allowed"() {
-        given:
-        def getterDescription = MethodDescription.name("getName").owner(ProtectedAndPrivateNonAbstractMethods).takes().returns(String)
-        def setterDescription = MethodDescription.name("setName").owner(ProtectedAndPrivateNonAbstractMethods).returns(void.class).takes(String)
+        when:
+        extract(ProtectedAndPrivateNonAbstractMethods)
 
-        expect:
-        fail ProtectedAndPrivateNonAbstractMethods, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
-        fail ProtectedAndPrivateNonAbstractMethodsInSuper, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
+        then:
+        def e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type ${ProtectedAndPrivateNonAbstractMethods.name} is not a valid model element type:
+- Method setName(java.lang.String) is not a valid rule method: Protected and private methods are not supported.
+- Method getName() is not a valid rule method: Protected and private methods are not supported."""
+
+        when:
+        extract(ProtectedAndPrivateNonAbstractMethodsInSuper)
+
+        then:
+        e = thrown(InvalidManagedModelElementTypeException)
+        e.message == """Type ${ProtectedAndPrivateNonAbstractMethodsInSuper.name} is not a valid model element type:
+- Method ProtectedAndPrivateNonAbstractMethods.setName(java.lang.String) is not a valid rule method: Protected and private methods are not supported.
+- Method ProtectedAndPrivateNonAbstractMethods.getName() is not a valid rule method: Protected and private methods are not supported."""
     }
 
     interface SomeMap extends ModelMap<List<String>> {
@@ -1556,11 +1589,20 @@ interface Managed${typeName} {
         fail ManagedTypeExtendingManagedTypeWithOverloadedMethod, "overridden methods not supported"
     }
 
-    @Managed
-    static class MultipleProblems<T extends List<?>> {
-        MultipleProblems(String s) {
+    static class MultipleProblemsSuper {
+        private String field1
+
+        MultipleProblemsSuper(String s) {
         }
-        MultipleProblems(Long s) {
+        private String getPrivate() { field1 }
+    }
+
+    @Managed
+    static class MultipleProblems<T extends List<?>> extends MultipleProblemsSuper {
+        private String field2
+
+        MultipleProblems(String s) {
+            super(s)
         }
     }
 
@@ -1573,7 +1615,11 @@ interface Managed${typeName} {
         e.message == """Type $MultipleProblems.name is not a valid model element type:
 - Must be defined as an interface or an abstract class.
 - Cannot be a parameterized type.
-- Constructor MultipleProblems(java.lang.String) is not valid: Custom constructors are not supported."""
+- Constructor MultipleProblems(java.lang.String) is not valid: Custom constructors are not supported.
+- Field field2 is not valid: Fields must be static final.
+- Constructor MultipleProblemsSuper(java.lang.String) is not valid: Custom constructors are not supported.
+- Field MultipleProblemsSuper.field1 is not valid: Fields must be static final.
+- Method MultipleProblemsSuper.getPrivate() is not a valid rule method: Protected and private methods are not supported."""
     }
 
     String getName(ModelType<?> modelType) {

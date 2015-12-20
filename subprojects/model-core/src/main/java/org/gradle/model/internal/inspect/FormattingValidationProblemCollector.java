@@ -20,6 +20,7 @@ import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,11 +56,23 @@ public class FormattingValidationProblemCollector implements ValidationProblemCo
     }
 
     @Override
+    public void add(Field field, String problem) {
+        if (field.getDeclaringClass().equals(source.getConcreteClass())) {
+            problems.add("Field " + field.getName() + " is not valid: " + problem);
+        } else {
+            problems.add("Field " + field.getDeclaringClass().getSimpleName() + '.' + field.getName() + " is not valid: " + problem);
+        }
+    }
+
+    @Override
     public void add(Method method, String problem) {
-        String description = MethodDescription.name(method.getName())
-                .takes(method.getGenericParameterTypes())
-                .toString();
-        problems.add("Method " + description + " is not a valid rule method: " + problem);
+        MethodDescription description = MethodDescription.name(method.getName())
+                .takes(method.getGenericParameterTypes());
+        if (method.getDeclaringClass().equals(source.getConcreteClass())) {
+            problems.add("Method " + description + " is not a valid rule method: " + problem);
+        } else {
+            problems.add("Method " + method.getDeclaringClass().getSimpleName() + '.' + description + " is not a valid rule method: " + problem);
+        }
     }
 
     @Override

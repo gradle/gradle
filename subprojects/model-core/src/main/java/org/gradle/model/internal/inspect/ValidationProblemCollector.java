@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public interface ValidationProblemCollector {
@@ -36,6 +37,11 @@ public interface ValidationProblemCollector {
      * Adds a problem with a rule method.
      */
     void add(MethodRuleDefinition<?, ?> method, String problem, Throwable cause);
+
+    /**
+     * Adds a problem with a field.
+     */
+    void add(Field field, String problem);
 
     /**
      * Adds a problem with a method.

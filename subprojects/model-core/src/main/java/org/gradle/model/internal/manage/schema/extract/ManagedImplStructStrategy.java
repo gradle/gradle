@@ -19,11 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.internal.reflect.MethodDescription;
@@ -99,32 +95,23 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
 
     private void ensureNoInstanceScopedFields(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {
         List<Field> declaredFields = Arrays.asList(typeClass.getDeclaredFields());
-        Iterable<Field> instanceScopedFields = Iterables.filter(declaredFields, new Predicate<Field>() {
-            public boolean apply(Field field) {
-                return !Modifier.isStatic(field.getModifiers()) && !field.getName().equals("metaClass");
+        for (Field field : declaredFields) {
+            int fieldModifiers = field.getModifiers();
+            if (!field.isSynthetic() && !(Modifier.isStatic(fieldModifiers) && Modifier.isFinal(fieldModifiers))) {
+                extractionContext.add(field, "Fields must be static final.");
             }
-        });
-        ImmutableSortedSet<String> sortedDescriptions = ImmutableSortedSet.copyOf(Iterables.transform(instanceScopedFields, new Function<Field, String>() {
-            public String apply(Field field) {
-                return field.toString();
-            }
-        }));
-        if (!sortedDescriptions.isEmpty()) {
-            throw new InvalidManagedModelElementTypeException(extractionContext, "instance scoped fields are not allowed (found fields: " + Joiner.on(", ").join(sortedDescriptions) + ").");
         }
     }
 
     private void ensureNoProtectedOrPrivateMethods(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {
-        Iterable<Method> protectedAndPrivateMethods = Iterables.filter(Arrays.asList(typeClass.getDeclaredMethods()), new Predicate<Method>() {
-            @Override
-            public boolean apply(Method method) {
-                int modifiers = method.getModifiers();
-                return !method.isSynthetic() && (Modifier.isProtected(modifiers) || Modifier.isPrivate(modifiers));
+        // sort for determinism
+        Method[] methods = typeClass.getDeclaredMethods();
+        Arrays.sort(methods, Ordering.usingToString());
+        for (Method method : methods) {
+            int modifiers = method.getModifiers();
+            if (!method.isSynthetic() && !Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)) {
+                extractionContext.add(method, "Protected and private methods are not supported.");
             }
-        });
-
-        if (!Iterables.isEmpty(protectedAndPrivateMethods)) {
-            throw invalidMethods(extractionContext, "protected and private methods are not allowed", protectedAndPrivateMethods);
         }
     }
 
