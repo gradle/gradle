@@ -119,6 +119,73 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'people: p1, p2'
     }
 
+    def "rule can create a map of various supported types"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Thing extends Named {
+              void setValue(String value)
+              String getValue()
+            }
+
+            class Rules extends RuleSource {
+              @Model
+              void mapThings(ModelSet<ModelMap<Thing>> things) {
+                things.create {
+                    a(Thing) {
+                        value = '1'
+                    }
+                    b(Thing)
+                }
+              }
+              @Model
+              void setThings(ModelSet<ModelSet<Thing>> things) {
+                things.create {
+                    create { value = '1' }
+                }
+              }
+              @Model
+              void setStrings(ModelSet<Set<String>> strings) {
+                strings.create {
+                    add 'a'
+                }
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              mapThings {
+                create {
+                    a(Thing)
+                }
+              }
+              setStrings {
+                create {
+                    add 'b'
+                }
+              }
+              tasks {
+                create("print") {
+                  doLast {
+                    println "mapThings: " + ($.mapThings as List)*.keySet()
+                    println "setThings: " + ($.setThings as List)
+                    println "setStrings: " + ($.setStrings as List)
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "print"
+
+        and:
+        output.contains "mapThings: [[a, b], [a]]"
+        output.contains "setThings: [[Thing 'setThings.0.0']]"
+        output.contains "setStrings: [[a], [b]]"
+    }
+
     def "managed model type has property of collection of managed types"() {
         when:
         buildScript '''

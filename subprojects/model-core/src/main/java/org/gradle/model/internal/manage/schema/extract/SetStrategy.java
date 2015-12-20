@@ -42,10 +42,6 @@ public abstract class SetStrategy extends CollectionStrategy {
     }
 
     protected <T, E> ModelSchema<T> getModelSchema(ModelType<?> modelType, final ModelSchemaExtractionContext<T> extractionContext, final ModelType<E> elementType) {
-        if (modelType.isAssignableFrom(elementType)) {
-            throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", modelType.getConcreteClass().getName()));
-        }
-
         final CollectionSchema<T, E> schema = new ModelSetSchema<T, E>(extractionContext.getType(), elementType);
         extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
             @Override

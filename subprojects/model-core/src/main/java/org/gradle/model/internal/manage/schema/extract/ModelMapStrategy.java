@@ -47,11 +47,6 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
             }
 
             ModelType<?> elementType = typeVariables.get(0);
-
-            if (ModelMap.class.equals(elementType.getRawClass())) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s.", ModelMap.class.getName()));
-            }
-
             extractionContext.found(getModelSchema(extractionContext, elementType));
         }
     }

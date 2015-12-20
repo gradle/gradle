@@ -58,13 +58,12 @@ class ManagedModelMapTypesTest extends ProjectRegistrySpec {
         e.message.startsWith "Invalid managed model type $ModelMap.name<?>: type parameter of $ModelMap.name cannot be a wildcard."
     }
 
-    def "cannot have map of map"() {
+    def "can have map of map"() {
         when:
         schemaStore.getSchema(ModelTypes.modelMap(ModelTypes.modelMap(NamedThingInterface)))
 
         then:
-        def e = thrown InvalidManagedModelElementTypeException
-        e.message.endsWith "org.gradle.model.ModelMap cannot be used as type parameter of org.gradle.model.ModelMap."
+        noExceptionThrown()
     }
 
     @Managed
@@ -102,8 +101,6 @@ class ManagedModelMapTypesTest extends ProjectRegistrySpec {
         then:
         def e = thrown InvalidManagedModelElementTypeException
         e.message == "Invalid managed model type org.gradle.model.ManagedModelMapTypesTest\$WritableMapProperty: property 'map' cannot have a setter (org.gradle.model.ModelMap<org.gradle.model.NamedThingInterface> properties must be read only)."
-
-
     }
 
     def "set cannot be writable"() {

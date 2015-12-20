@@ -686,12 +686,15 @@ $type
         fail type, "subtyping $ModelSet.name is not supported"
     }
 
-    def "managed sets of managed set are not supported"() {
+    def "managed sets of managed set are supported"() {
         given:
         def type = new ModelType<ModelSet<ModelSet<A1>>>() {}
 
-        expect:
-        fail type, "$ModelSet.name cannot be used as type parameter of $ModelSet.name"
+        when:
+        store.getSchema(type)
+
+        then:
+        noExceptionThrown()
     }
 
     static class MyBigInteger extends BigInteger {

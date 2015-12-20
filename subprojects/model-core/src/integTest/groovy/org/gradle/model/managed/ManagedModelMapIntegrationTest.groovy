@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
 
-    def "rule can create a map interface backed managed model elements"() {
+    def "rule can create a map of model elements"() {
         when:
         buildScript '''
             @Managed
@@ -71,7 +71,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
         output.contains "things: a:1,b:2"
     }
 
-    def "rule can create a managed collection of abstract class backed managed model elements"() {
+    def "rule can create a map of abstract class backed managed model elements"() {
         when:
         buildScript '''
             @Managed
@@ -121,6 +121,88 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains "containerThings: a:1,b:2"
         output.contains "things: a:1,b:2"
+    }
+
+    def "rule can create a map of various supported types"() {
+        // TODO - can't actually add anything to these maps yet
+        when:
+        buildScript '''
+            @Managed
+            interface Thing extends Named {
+              void setValue(String value)
+              String getValue()
+            }
+
+            class Rules extends RuleSource {
+              @Model
+              void mapThings(ModelMap<ModelMap<Thing>> things) {
+              }
+              @Model
+              void setThings(ModelMap<ModelSet<Thing>> things) {
+              }
+              @Model
+              void setStrings(ModelMap<Set<String>> strings) {
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              mapThings {
+              }
+              setThings {
+              }
+              setStrings {
+              }
+              tasks {
+                create("print") {
+                  doLast {
+                    println "mapThings: " + $.mapThings.keySet()
+                    println "setThings: " + $.setThings.keySet()
+                    println "setStrings: " + $.setStrings.keySet()
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "print"
+
+        and:
+        output.contains "mapThings: []"
+        output.contains "setThings: []"
+        output.contains "setStrings: []"
+    }
+
+    def "fails when rule creates a map of unsupported type"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Container {
+              ModelMap<InputStream> getThings()
+            }
+
+            model {
+              container(Container)
+              tasks {
+                create("print") {
+                  doLast {
+                    println $.container
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        fails "print"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: container(Container) @ build.gradle line 8, column 15")
+        failure.assertHasCause("""A model element of type: 'Container' can not be constructed.
+Its property 'org.gradle.model.ModelMap<java.io.InputStream> things' is not a valid managed collection
+A managed collection can not contain 'java.io.InputStream's""")
     }
 
     def "reports failure that occurs in collection item initializer"() {

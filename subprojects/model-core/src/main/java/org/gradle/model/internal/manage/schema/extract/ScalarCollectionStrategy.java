@@ -27,17 +27,16 @@ import java.util.Set;
 
 public class ScalarCollectionStrategy implements ModelSchemaExtractionStrategy {
 
-    public final static List<ModelType<?>> TYPES = ImmutableList.<ModelType<?>>of(
-        ModelType.of(List.class),
-        ModelType.of(Set.class)
+    public final static List<Class<?>> TYPES = ImmutableList.<Class<?>>of(
+        List.class,
+        Set.class
     );
 
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         Class<? super T> rawClass = type.getRawClass();
-        ModelType<? super T> rawCollectionType = ModelType.of(rawClass);
         List<ModelType<?>> typeVariables = type.getTypeVariables();
-        if (TYPES.contains(rawCollectionType) && typeVariables.size() > 0) {
+        if (TYPES.contains(rawClass) && typeVariables.size() > 0) {
             ModelType<?> firstVariableType = typeVariables.get(0);
             if (ScalarTypes.isScalarType(firstVariableType)) {
                 extractionContext.found(createSchema(extractionContext, type, firstVariableType));
