@@ -79,7 +79,8 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         statement.setString(7, results.getOperatingSystem());
                         statement.setString(8, results.getJvm());
                         statement.setString(9, results.getVcsBranch());
-                        statement.setString(10, Joiner.on("|").join(results.getVcsCommits()));
+                        String vcs = results.getVcsCommits() == null ? null :  Joiner.on("|").join(results.getVcsCommits());
+                        statement.setString(10, vcs);
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
                         keys.next();
@@ -217,7 +218,10 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     }
 
     public static List<String> splitVcsCommits(String string) {
-        return ImmutableList.copyOf(Splitter.on("|").split(string));
+        if (null != string) {
+            return ImmutableList.copyOf(Splitter.on("|").split(string));
+        }
+        return Collections.emptyList();
     }
 
     private String[] toArray(Object object) {
