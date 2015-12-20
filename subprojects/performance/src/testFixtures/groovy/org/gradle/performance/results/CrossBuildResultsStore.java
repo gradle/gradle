@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -34,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.performance.results.CrossVersionResultsStore.splitVcsCommits;
 
 public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossBuildPerformanceResults>, Closeable {
 
@@ -62,7 +65,7 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                         statement.setString(4, results.getOperatingSystem());
                         statement.setString(5, results.getJvm());
                         statement.setString(6, results.getVcsBranch());
-                        statement.setString(7, results.getVcsCommit());
+                        statement.setString(7, Joiner.on(",").join(results.getVcsCommits()));
                         statement.setString(8, results.getTestGroup());
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
@@ -169,7 +172,7 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                         performanceResults.setOperatingSystem(testExecutions.getString(4));
                         performanceResults.setJvm(testExecutions.getString(5));
                         performanceResults.setVcsBranch(testExecutions.getString(6).trim());
-                        performanceResults.setVcsCommit(testExecutions.getString(7));
+                        performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(7)));
                         performanceResults.setTestGroup(testExecutions.getString(8));
 
                         if (ignore(performanceResults)) {
@@ -216,9 +219,9 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
     }
 
     private boolean ignore(CrossBuildPerformanceResults performanceResults) {
-        return performanceResults.getVcsCommit().equals("be4e537ebdaab43fd1dae5c4b1d52a56987f5be2")
-                || performanceResults.getVcsCommit().equals("508ccbeb7633413609bd3be205c40f30a8c5f2bb")
-                || performanceResults.getVcsCommit().equals("fdd431387993e1d7e4d6d3aec31a43ec4b533567");
+        return performanceResults.getVcsCommits().get(0).equals("be4e537ebdaab43fd1dae5c4b1d52a56987f5be2")
+                || performanceResults.getVcsCommits().get(0).equals("508ccbeb7633413609bd3be205c40f30a8c5f2bb")
+                || performanceResults.getVcsCommits().get(0).equals("fdd431387993e1d7e4d6d3aec31a43ec4b533567");
     }
 
     private List<String> toList(Object object) {

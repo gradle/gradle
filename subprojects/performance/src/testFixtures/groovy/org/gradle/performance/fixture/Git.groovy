@@ -30,11 +30,15 @@ class Git {
         return git
     }
 
+    static String shorten(String sha) {
+        return sha[0..6]
+    }
+
     private Git() {
         def repository = new FileRepositoryBuilder().findGitDir().build()
         try {
             branchName = repository.branch
-            commitId = repository.resolve(repository.fullBranch).name
+            commitId = shorten(repository.resolve(repository.fullBranch).name)
         } finally {
             repository.close()
         }

@@ -55,16 +55,16 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         assert testId
 
         def results = new CrossVersionPerformanceResults(
-                testId: testId,
-                testProject: testProject,
-                tasks: tasksToRun,
-                args: args,
-                jvm: Jvm.current().toString(),
-                operatingSystem: OperatingSystem.current().toString(),
-                versionUnderTest: GradleVersion.current().getVersion(),
-                vcsBranch: Git.current().branchName,
-                vcsCommit: Git.current().commitId,
-                testTime: System.currentTimeMillis())
+            testId: testId,
+            testProject: testProject,
+            tasks: tasksToRun,
+            args: args,
+            jvm: Jvm.current().toString(),
+            operatingSystem: OperatingSystem.current().toString(),
+            versionUnderTest: GradleVersion.current().getVersion(),
+            vcsBranch: Git.current().branchName,
+            vcsCommits: [Git.current().commitId],
+            testTime: System.currentTimeMillis())
 
         def releasedDistributions = new ReleasedVersionDistributions()
         def releasedVersions = releasedDistributions.all*.version.version
@@ -98,12 +98,12 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
         def builder = BuildExperimentSpec.builder()
-                .projectName(testId)
-                .displayName(dist.version.version)
-                .warmUpCount(warmUpRuns)
-                .invocationCount(runs)
-                .listener(buildExperimentListener)
-                .invocation {
+            .projectName(testId)
+            .displayName(dist.version.version)
+            .warmUpCount(warmUpRuns)
+            .invocationCount(runs)
+            .listener(buildExperimentListener)
+            .invocation {
             workingDirectory(projectDir)
             distribution(dist)
             tasksToRun(this.tasksToRun as String[])

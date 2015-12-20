@@ -48,7 +48,7 @@ abstract class ResultSpecification extends Specification {
                 operatingSystem: "windows",
                 testTime: 100,
                 vcsBranch: "master",
-                vcsCommit: "abcdef"
+                vcsCommits: ["abcdef"]
         )
         options.each { key, value -> results."$key" = value }
         return results
