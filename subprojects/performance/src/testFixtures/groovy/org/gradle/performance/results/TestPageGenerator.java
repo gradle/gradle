@@ -208,7 +208,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             links.add(dotComUrl);
             return links;
         } else {
-            throw new IllegalArgumentException("No more than 2 commit shas are supported");
+            throw new IllegalArgumentException("No more than 2 commit SHAs are supported");
         }
     }
 

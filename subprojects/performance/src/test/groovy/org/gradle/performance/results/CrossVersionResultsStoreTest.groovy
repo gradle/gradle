@@ -37,7 +37,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
                 testTime: 10000,
                 versionUnderTest: "1.7-rc-1",
                 vcsBranch: "master",
-                vcsCommits: ["1234"])
+                vcsCommits: ["1234567", "abcdefg"])
         def baseline1 = result1.baseline("1.0")
         def baseline2 = result1.baseline("1.5")
         result1.current << operation(totalTime: minutes(12),
@@ -74,6 +74,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
 
         then:
         tests == ["test1", "test2"]
+        
 
         when:
         def history = readStore.getTestResults("test1")
@@ -98,7 +99,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results[0].testTime == 10000
         results[0].versionUnderTest == '1.7-rc-1'
         results[0].vcsBranch == 'master'
-        results[0].vcsCommits == ['1234']
+        results[0].vcsCommits == ['1234567', 'abcdefg']
         results[0].current.size() == 1
         results[0].current[0].totalTime == minutes(12)
         results[0].current[0].configurationTime == minutes(1)
