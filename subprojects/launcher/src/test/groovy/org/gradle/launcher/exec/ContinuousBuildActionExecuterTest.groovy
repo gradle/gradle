@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec
 
+import org.gradle.StartParameter
 import org.gradle.api.JavaVersion
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
@@ -44,7 +45,9 @@ class ContinuousBuildActionExecuterTest extends Specification {
     RedirectStdIn redirectStdIn = new RedirectStdIn()
 
     def delegate = Mock(BuildActionExecuter)
-    def action = Mock(BuildAction)
+    def action = Mock(BuildAction) {
+        1 * getStartParameter() >> Stub(StartParameter)
+    }
     def cancellationToken = new DefaultBuildCancellationToken()
     def clock = Mock(Clock)
     def requestMetadata = Stub(BuildRequestMetaData)
