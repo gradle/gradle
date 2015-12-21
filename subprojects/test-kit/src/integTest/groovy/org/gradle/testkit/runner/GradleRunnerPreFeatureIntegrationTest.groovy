@@ -18,15 +18,22 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.testkit.runner.fixtures.FeatureCompatibility.CAPTURE_BUILD_OUTPUT_IN_DEBUG
+import static org.gradle.testkit.runner.fixtures.FeatureCompatibility.PLUGIN_CLASSPATH_INJECTION
+import static org.gradle.testkit.runner.fixtures.GradleRunnerCompatibilityIntegTestRunner.TESTKIT_MIN_SUPPORTED_VERSION
 
 class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+
+    private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "build result does not capture tasks when target gradle version is < 2.5"() {
@@ -35,7 +42,7 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
 
         when:
         def result = runner('helloWorld')
-                .withGradleVersion('2.4')
+                .withGradleVersion(getMaxUnsupportedVersion(TESTKIT_MIN_SUPPORTED_VERSION))
                 .build()
 
         then:
@@ -50,7 +57,7 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
 
         when:
         def result = runner('helloWorld')
-                .withGradleVersion('2.8')
+                .withGradleVersion(getMaxUnsupportedVersion(CAPTURE_BUILD_OUTPUT_IN_DEBUG.since))
                 .build()
 
         then:
@@ -60,19 +67,22 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
     }
 
     def "cannot use plugin classpath feature when target gradle version is < 2.8"() {
+        String maxUnsupportedVersion = getMaxUnsupportedVersion(PLUGIN_CLASSPATH_INJECTION.since)
+        String minSupportedVersion = PLUGIN_CLASSPATH_INJECTION.since.version
+
         given:
         buildFile << pluginDeclaration()
 
         when:
         runner('helloWorld1')
-            .withGradleVersion("2.7")
+            .withGradleVersion(maxUnsupportedVersion)
             .withPluginClasspath(getPluginClasspath())
             .build()
 
         then:
         def e = thrown InvalidRunnerConfigurationException
         e.cause instanceof UnsupportedVersionException
-        e.cause.message == "The version of Gradle you are using (2.7) does not support the plugin classpath injection feature used by GradleRunner. Support for this is available in Gradle 2.8 and all later versions."
+        e.cause.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not support the plugin classpath injection feature used by GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
     }
 
     def "can use manual injection with older versions that do not support injection"() {
@@ -89,12 +99,16 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
 
         when:
         def result = runner('helloWorld1')
-                .withGradleVersion("2.7")
+                .withGradleVersion(getMaxUnsupportedVersion(PLUGIN_CLASSPATH_INJECTION.since))
                 .forwardOutput()
                 .build()
 
         then:
         result.task(":helloWorld1").outcome == SUCCESS
+    }
+
+    private String getMaxUnsupportedVersion(GradleVersion minSupportedVersion) {
+        RELEASED_VERSION_DISTRIBUTIONS.getPrevious(minSupportedVersion).version.version
     }
 
     private void compilePluginProjectSources(int counter = 1) {

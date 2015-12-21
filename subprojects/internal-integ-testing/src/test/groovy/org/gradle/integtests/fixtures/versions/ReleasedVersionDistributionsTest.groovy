@@ -67,4 +67,12 @@ class ReleasedVersionDistributionsTest extends Specification {
         versions().all*.version == [version("1.3-rc-1"), version("1.2")]
     }
 
+    def "get previous distribution"() {
+        when:
+        def versions = new ReleasedVersionDistributions()
+
+        then:
+        versions.getPrevious(version('2.5')).version == version('2.4')
+        versions.getPrevious(version('2.2.1')).version == version('2.2')
+    }
 }

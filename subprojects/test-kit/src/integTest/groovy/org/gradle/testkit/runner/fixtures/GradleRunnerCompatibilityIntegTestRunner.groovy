@@ -29,8 +29,6 @@ import org.gradle.util.GradleVersion
 
 import java.lang.annotation.Annotation
 
-import static org.gradle.testkit.runner.fixtures.FeatureCompatibility.*
-
 /**
  * Verifies GradleRunner functionality against "supported" Gradle versions.
  *
@@ -52,6 +50,11 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
      * TestKit features annotations read by tests to determine the minimum compatible Gradle version.
      */
     private static final List<? extends Annotation> TESTKIT_FEATURES = [PluginClasspathInjection]
+
+    /**
+     * The minimum Gradle version usable for TestKit is 2.5 due to the use of {@link org.gradle.tooling.events.ProgressListener}.
+     */
+    public static final GradleVersion TESTKIT_MIN_SUPPORTED_VERSION = GradleVersion.version('2.5')
 
     private static final String COMPATIBILITY_SYSPROP_NAME = 'org.gradle.integtest.testkit.compatibility'
     private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
@@ -95,12 +98,8 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
     }
 
     private GradleVersion getMinCompatibleVersion() {
-        List<GradleVersion> testedFeatures = TESTKIT_FEATURES.findAll { target.getAnnotation(it) }.collect { getMinSupportedVersion(it) }
-        (!testedFeatures.empty && isFeatureVersionValid(testedFeatures.min())) ? testedFeatures.min() : TESTKIT_MIN_SUPPORTED_VERSION
-    }
-
-    private boolean isFeatureVersionValid(GradleVersion featureVersion) {
-        isValidVersion(featureVersion, TESTKIT_MIN_SUPPORTED_VERSION)
+        List<GradleVersion> testedFeatures = TESTKIT_FEATURES.findAll { target.getAnnotation(it) }.collect { FeatureCompatibility.getMinSupportedVersion(it) }
+        !testedFeatures.empty ? testedFeatures.min() : TESTKIT_MIN_SUPPORTED_VERSION
     }
 
     @TupleConstructor
@@ -115,7 +114,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
 
         static TestedGradleDistribution mostRecentFinalRelease() {
             new TestedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version,
-                                    new VersionBasedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version.version))
+                                         new VersionBasedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version.version))
         }
 
         static TestedGradleDistribution underDevelopment() {
@@ -175,7 +174,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
 
         private boolean isDebugModeAndBuildOutputCaptured(AbstractMultiTestRunner.TestDetails testDetails) {
             CaptureBuildOutputInDebug captureBuildOutputInDebug = testDetails.getAnnotation(CaptureBuildOutputInDebug)
-            debug && captureBuildOutputInDebug && !isSupported(CaptureBuildOutputInDebug, testedGradleDistribution.gradleVersion)
+            debug && captureBuildOutputInDebug && !FeatureCompatibility.isSupported(CaptureBuildOutputInDebug, testedGradleDistribution.gradleVersion)
         }
     }
 }

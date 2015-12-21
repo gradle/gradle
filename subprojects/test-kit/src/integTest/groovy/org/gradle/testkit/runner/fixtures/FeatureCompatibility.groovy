@@ -24,17 +24,17 @@ enum FeatureCompatibility {
     PLUGIN_CLASSPATH_INJECTION(PluginClasspathInjection, '2.8'),
     CAPTURE_BUILD_OUTPUT_IN_DEBUG(CaptureBuildOutputInDebug, '2.9')
 
-    /**
-     * The minimum Gradle version usable for TestKit is 2.5 due to the use of {@link org.gradle.tooling.events.ProgressListener}.
-     */
-    public static final GradleVersion TESTKIT_MIN_SUPPORTED_VERSION = GradleVersion.version('2.5')
-
     private final Class<? extends Annotation> feature
     private final GradleVersion since
 
     private FeatureCompatibility(Class<? extends Annotation> feature, String since) {
         this.feature = feature
         this.since = GradleVersion.version(since)
+        assert isValidVersion(this.since, GradleRunnerCompatibilityIntegTestRunner.TESTKIT_MIN_SUPPORTED_VERSION) : "Feature version $since needs to be later than $GradleRunnerCompatibilityIntegTestRunner.TESTKIT_MIN_SUPPORTED_VERSION"
+    }
+
+    private static boolean isValidVersion(GradleVersion comparedVersion, GradleVersion minVersion) {
+        comparedVersion.compareTo(minVersion) >= 0
     }
 
     static GradleVersion getMinSupportedVersion(Class<? extends Annotation> feature) {
@@ -51,7 +51,7 @@ enum FeatureCompatibility {
         isValidVersion(version, getMinSupportedVersion(feature))
     }
 
-    static boolean isValidVersion(GradleVersion comparedVersion, GradleVersion minVersion) {
-        comparedVersion.compareTo(minVersion) >= 0
+    GradleVersion getSince() {
+        since
     }
 }
