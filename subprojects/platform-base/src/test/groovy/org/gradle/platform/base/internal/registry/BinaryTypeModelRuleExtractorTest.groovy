@@ -20,6 +20,7 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.*
+import org.gradle.model.internal.inspect.ExtractedModelAction
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry

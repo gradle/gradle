@@ -19,7 +19,7 @@ package org.gradle.platform.base.internal.registry;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Nullable;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.ExtractedModelRule;
+import org.gradle.model.internal.inspect.ExtractedModelRule;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractionContext;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;

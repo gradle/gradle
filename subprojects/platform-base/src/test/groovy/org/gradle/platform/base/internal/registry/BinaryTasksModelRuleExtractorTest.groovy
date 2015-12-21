@@ -21,6 +21,7 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.*
+import org.gradle.model.internal.inspect.ExtractedModelAction
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryTasks

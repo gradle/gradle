@@ -19,6 +19,7 @@ package org.gradle.language.base.internal
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.*
+import org.gradle.model.internal.inspect.ExtractedModelAction
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.*

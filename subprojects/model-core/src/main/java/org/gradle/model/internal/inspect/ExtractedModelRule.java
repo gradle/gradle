@@ -14,25 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core;
+package org.gradle.model.internal.inspect;
 
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
-public class DependencyOnlyExtractedModelRule implements ExtractedModelRule {
+public interface ExtractedModelRule {
+    void apply(ModelRegistry modelRegistry, ModelPath scope);
 
-    private final List<Class<?>> dependencies;
-
-    public DependencyOnlyExtractedModelRule(List<Class<?>> dependencyList) {
-        this.dependencies = dependencyList;
-    }
-
-    @Override
-    public void apply(ModelRegistry modelRegistry, ModelPath scope) {
-    }
-
-    public List<Class<?>> getRuleDependencies() {
-        return dependencies;
-    }
+    List<? extends Class<?>> getRuleDependencies();
 }

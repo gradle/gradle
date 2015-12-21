@@ -26,6 +26,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ExtractedModelRule;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.report.unbound.UnboundRule;
 import org.gradle.model.internal.type.ModelType;

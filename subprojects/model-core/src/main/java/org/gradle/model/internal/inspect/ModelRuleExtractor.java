@@ -31,7 +31,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.ExtractedModelRule;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.manage.instance.GeneratedViewState;

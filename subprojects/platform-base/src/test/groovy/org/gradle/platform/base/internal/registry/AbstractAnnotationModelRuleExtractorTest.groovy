@@ -19,7 +19,7 @@ package org.gradle.platform.base.internal.registry
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.core.ExtractedModelRule
+import org.gradle.model.internal.inspect.ExtractedModelRule
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.inspect.DefaultMethodModelRuleExtractionContext
 import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition

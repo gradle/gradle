@@ -22,9 +22,7 @@ import org.gradle.internal.TriAction;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.inspect.MethodModelRuleExtractionContext;
-import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.inspect.ValidationProblemCollector;
+import org.gradle.model.internal.inspect.*;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 

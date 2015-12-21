@@ -17,7 +17,6 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.ExtractedModelRule;
 
 public interface MethodModelRuleExtractor {
     boolean isSatisfiedBy(MethodRuleDefinition<?, ?> definition);

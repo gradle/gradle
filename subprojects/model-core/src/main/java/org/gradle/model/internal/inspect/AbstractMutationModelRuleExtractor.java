@@ -17,8 +17,6 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.ExtractedModelAction;
-import org.gradle.model.internal.core.ExtractedModelRule;
 import org.gradle.model.internal.core.ModelActionRole;
 
 import java.lang.annotation.Annotation;

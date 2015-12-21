@@ -25,6 +25,8 @@ import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.inspect.ExtractedModelAction;
+import org.gradle.model.internal.inspect.ExtractedModelRule;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;

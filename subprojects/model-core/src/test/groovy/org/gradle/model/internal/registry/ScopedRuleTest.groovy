@@ -19,8 +19,7 @@ package org.gradle.model.internal.registry
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.model.*
-import org.gradle.model.internal.core.DependencyOnlyExtractedModelRule
-import org.gradle.model.internal.core.ExtractedModelRule
+import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
@@ -43,7 +42,16 @@ class ScopedRuleTest extends ProjectRegistrySpec {
     class DependencyAddingModelRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<HasDependencies> {
         @Override
         def <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
-            new DependencyOnlyExtractedModelRule([ImperativePlugin])
+            new ExtractedModelRule() {
+                @Override
+                void apply(ModelRegistry modelRegistry, ModelPath scope) {
+                }
+
+                @Override
+                List<? extends Class<?>> getRuleDependencies() {
+                    return [ImperativePlugin]
+                }
+            }
         }
     }
 

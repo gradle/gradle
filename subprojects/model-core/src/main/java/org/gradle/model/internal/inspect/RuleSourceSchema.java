@@ -17,7 +17,6 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.Factory;
-import org.gradle.model.internal.core.ExtractedModelRule;
 import org.gradle.model.internal.manage.schema.AbstractStructSchema;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
