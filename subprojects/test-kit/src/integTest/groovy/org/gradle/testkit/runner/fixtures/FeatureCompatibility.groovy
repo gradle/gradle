@@ -16,6 +16,8 @@
 
 package org.gradle.testkit.runner.fixtures
 
+import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
+import org.gradle.testkit.runner.fixtures.annotations.PluginClasspathInjection
 import org.gradle.util.GradleVersion
 
 import java.lang.annotation.Annotation

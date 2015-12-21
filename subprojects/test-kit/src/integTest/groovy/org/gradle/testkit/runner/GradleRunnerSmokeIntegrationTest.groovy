@@ -17,7 +17,7 @@
 package org.gradle.testkit.runner
 
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
-import org.gradle.testkit.runner.fixtures.CaptureBuildOutputInDebug
+import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
 import org.gradle.util.GFileUtils
 
 import static org.gradle.testkit.runner.TaskOutcome.*

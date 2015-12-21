@@ -16,7 +16,7 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.testkit.runner.fixtures.CaptureBuildOutputInDebug
+import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 

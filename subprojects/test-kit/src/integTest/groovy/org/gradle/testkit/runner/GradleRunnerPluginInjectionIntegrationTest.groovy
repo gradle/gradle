@@ -21,8 +21,8 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.testkit.runner.fixtures.CaptureBuildOutputInDebug
-import org.gradle.testkit.runner.fixtures.PluginClasspathInjection
+import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
+import org.gradle.testkit.runner.fixtures.annotations.PluginClasspathInjection
 import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.fixtures.Debug
+import org.gradle.testkit.runner.fixtures.annotations.Debug
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.fixtures;
+package org.gradle.testkit.runner.fixtures.annotations;
 
 import java.lang.annotation.*;
 

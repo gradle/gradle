@@ -17,8 +17,8 @@
 package org.gradle.testkit.runner
 
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
-import org.gradle.testkit.runner.fixtures.CaptureBuildOutputInDebug
-import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
+import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule

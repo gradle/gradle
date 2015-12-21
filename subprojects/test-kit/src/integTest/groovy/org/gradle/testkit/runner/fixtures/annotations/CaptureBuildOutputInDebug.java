@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.fixtures;
+package org.gradle.testkit.runner.fixtures.annotations;
 
 import java.lang.annotation.*;
 
 /**
- * Indicates that the feature under test does not work with debug on, or is testing something that doesn't make sense to test with debug on.
+ * Indicates that the annotated test works with a Gradle version compatible with the feature of capturing build output in debug mode.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Inherited
-public @interface NoDebug {
+public @interface CaptureBuildOutputInDebug {
 }

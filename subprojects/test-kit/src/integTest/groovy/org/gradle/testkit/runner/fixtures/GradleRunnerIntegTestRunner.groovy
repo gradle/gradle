@@ -18,6 +18,8 @@ package org.gradle.testkit.runner.fixtures
 
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.testkit.runner.fixtures.annotations.Debug
+import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.wrapper.GradleUserHomeLookup
 
 class GradleRunnerIntegTestRunner extends AbstractMultiTestRunner {
