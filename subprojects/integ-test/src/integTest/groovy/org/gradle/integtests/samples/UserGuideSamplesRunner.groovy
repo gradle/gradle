@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.integtests.samples
-
 import com.google.common.collect.ArrayListMultimap
 import groovy.io.PlatformLineWriter
 import org.apache.tools.ant.taskdefs.Delete
@@ -26,6 +25,7 @@ import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.util.AntUtil
 import org.gradle.util.TextUtil
 import org.junit.Assert
@@ -136,7 +136,8 @@ class UserGuideSamplesRunner extends Runner {
     private void runSample(GradleRun run) {
         try {
             println("Test Id: $run.id, dir: $run.subDir, execution dir: $run.executionDir args: $run.args")
-
+            def m2 = new M2Installation(temporaryFolder.getTestDirectory())
+            m2.execute(executer)
             executer.noExtraLogging()
                 .inDirectory(run.executionDir)
                 .withArguments(run.args as String[])
