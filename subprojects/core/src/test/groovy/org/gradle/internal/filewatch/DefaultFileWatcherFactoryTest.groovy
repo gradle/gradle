@@ -315,10 +315,8 @@ class DefaultFileWatcherFactoryTest extends Specification {
         when:
         fileWatcher = fileWatcherFactory.watch(onError, listener)
         fileWatcher.watch(FileSystemSubset.builder().add(subdir1).build())
-        sleep(50)
         subdir1.createFile("SomeFile.java").text = "Hello world"
         fileWatcher.watch(FileSystemSubset.builder().add(subdir2).build())
-        sleep(50)
         subdir2.createFile("SomeFile.groovy").text = "Hello world"
         waitOn(fileEventMatchedLatch, false)
         then:
