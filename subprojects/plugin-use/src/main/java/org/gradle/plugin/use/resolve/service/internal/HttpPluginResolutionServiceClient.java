@@ -84,7 +84,7 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
                 final int statusCode = response.getStatusCode();
                 String contentType = response.getContentType();
                 if (contentType == null || !contentType.equalsIgnoreCase(JSON)) {
-                    final String message = String.format("content type is '%s', expected '%s'", contentType == null ? "" : contentType, JSON);
+                    final String message = String.format("content type is '%s', expected '%s' (status code: %s)", contentType == null ? "" : contentType, JSON, statusCode);
                     throw new OutOfProtocolException(requestUrl, message);
                 }
 

@@ -61,7 +61,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         expect:
         fails("verify")
         errorResolvingPlugin()
-        outOfProtocolCause("content type is 'text/html; charset=utf-8', expected 'application/json'")
+        outOfProtocolCause("content type is 'text/html; charset=utf-8', expected 'application/json' (status code: $statusCode)")
 
         where:
         statusCode << [200, 404, 500]
