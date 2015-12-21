@@ -47,7 +47,7 @@ This release adds some important new features for dependency management for Java
 
 #### Component level dependencies for Java libraries
 
-In most cases it is more natural and convenient to define dependencies on a component rather than on each if its source sets and it is now possible to do so when defining a Java library in the software model.
+In most cases it is more natural and convenient to define dependencies on a component rather than on each of its source sets and it is now possible to do so when defining a Java library in the software model.
 
 Example:
 
@@ -75,7 +75,7 @@ It is now possible to declare dependencies on external modules for a Java librar
     repositories {
         jcenter()
     }
-    
+
     model {
         components {
             main(JvmLibrarySpec) {
@@ -91,8 +91,8 @@ It is now possible to declare dependencies on external modules for a Java librar
         }
     }
 
-Module dependencies declared this way will be resolved against the configured repositories as usual. 
-External dependencies can be declared for a Java library, Java source set or Java library API specification. 
+Module dependencies declared this way will be resolved against the configured repositories as usual.
+External dependencies can be declared for a Java library, Java source set or Java library API specification.
 
 ### DSL improvements for the Software Model (i)
 
@@ -100,7 +100,7 @@ This release includes a number of improvements to the model DSL, which is the DS
 
 #### Nested rules in the DSL
 
-The `ModelMap` creation and configuration DSL syntax now defines nested rules, each with its own inputs. 
+The `ModelMap` creation and configuration DSL syntax now defines nested rules, each with its own inputs.
 For example, this means that an element of a `ModelMap` can now be configured using the configuration of a sibling as input:
 
     model {
@@ -108,7 +108,7 @@ For example, this means that an element of a `ModelMap` can now be configured us
             mylib { ... }
             test {
                 // Use `mylib` as input. When this code runs, it has been fully configured and will not change any further
-                // Previously, this would have been treated as an input of the `components` rule, resulting in a dependency cycle 
+                // Previously, this would have been treated as an input of the `components` rule, resulting in a dependency cycle
                 targetPlatform = $.components.mylib.targetPlatform
             }
         }
@@ -121,7 +121,7 @@ And because `tasks` is a `ModelMap`, this means that a task can be configured us
             jar { ... }
             dist(Zip) {
                 // Use the `jar` task as input. It has been fully configured and will not change any further
-                def jar = $.tasks.jar 
+                def jar = $.tasks.jar
                 from jar.output
                 into someDir
             }
@@ -155,14 +155,14 @@ The properties of a `@Managed` type can now be configured using nested configure
                     ...
                 }
                 binaries {
-                    // Adds a rule to configure `mylib.sources`
+                    // Adds a rule to configure `mylib.binaries`
                     ...
                 }
             }
         }
     }
 
-This is automatically added for any property whose type is `@Managed`, or a `ModelMap<T>` or `ModelSet<T>`. 
+This is automatically added for any property whose type is `@Managed`, or a `ModelMap<T>` or `ModelSet<T>`.
 Note that for this release, these nested closures do not define a nested rule, and the closure is executed as soon as it is encountered in the containing closure.
 This will be improved in the next Gradle release.
 
