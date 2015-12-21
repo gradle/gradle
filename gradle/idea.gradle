@@ -2,14 +2,14 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDepend
 
 allprojects {
     apply plugin: "idea"
-    
+
     idea {
         module {
             iml {
                 whenMerged { module ->
-                    module.dependencies.removeAll { 
+                    module.dependencies.removeAll {
                         it instanceof org.gradle.plugins.ide.idea.model.ModuleLibrary &&
-                        it.classes.any { 
+                        it.classes.any {
                             // remove all Gradle build output directories from all scopes
                             it.url.contains('/build/classes/') ||
                             it.url.contains('/build/resources/') ||
@@ -195,7 +195,7 @@ idea {
 
         node.append(new XmlParser().parseText('''
             <component name="CompilerWorkspaceConfiguration">
-              <option name="COMPILER_PROCESS_HEAP_SIZE" value="1536" />
+              <option name="COMPILER_PROCESS_HEAP_SIZE" value="2048" />
             </component>
         '''))
 
