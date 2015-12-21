@@ -32,7 +32,7 @@ public abstract class AbstractIntegrationTest {
     public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution();
     public final GradleExecuter executer = new GradleContextualExecuter(distribution, testDirectoryProvider);
 
-    @Rule
+//    @Rule
     public final M2Installation m2 = new M2Installation(testDirectoryProvider.getTestDirectory());
 
     private MavenFileRepository mavenRepo;

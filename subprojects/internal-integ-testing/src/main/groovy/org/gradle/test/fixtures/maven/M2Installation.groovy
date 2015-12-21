@@ -18,16 +18,9 @@
 package org.gradle.test.fixtures.maven
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GFileUtils
-import org.junit.rules.TestRule
-import org.junit.runner.Description
-import org.junit.runners.model.Statement
 
-import static org.junit.Assert.fail
-
-class M2Installation implements Action<GradleExecuter>, TestRule {
+class M2Installation implements Action<GradleExecuter> {
     final TestFile userHomeDir
     final TestFile userM2Directory
     final TestFile userSettingsFile
@@ -40,6 +33,7 @@ class M2Installation implements Action<GradleExecuter>, TestRule {
         userSettingsFile = userM2Directory.file("settings.xml")
         globalMavenDirectory = userHomeDir.createDir("m2_home")
         globalSettingsFile = globalMavenDirectory.file("conf/settings.xml")
+        println "M2 home: " + userHomeDir
     }
 
     MavenLocalRepository mavenRepo() {
@@ -62,25 +56,25 @@ class M2Installation implements Action<GradleExecuter>, TestRule {
         return this
     }
 
-    @Override
-    Statement apply(Statement base, Description description) {
-        return new Statement() {
-            @Override
-            public void evaluate() throws Throwable {
-                def m2RepositoryFolder = new File("${SystemProperties.instance.userHome}/.m2/repository")
-                boolean existsBefore = m2RepositoryFolder.exists()
-                try {
-                    base.evaluate()
-                } finally {
-                    def existsAfter = m2RepositoryFolder.exists()
-                    if (!existsBefore && existsAfter) {
-                        GFileUtils.deleteDirectory(m2RepositoryFolder)
-                        fail("Test modifies ${m2RepositoryFolder.absolutePath} folder")
-                    }
-                }
-            }
-        }
-    }
+//    @Override
+//    Statement apply(Statement base, Description description) {
+//        return new Statement() {
+//            @Override
+//            public void evaluate() throws Throwable {
+////                def m2RepositoryFolder = new File("${SystemProperties.instance.userHome}/.m2/repository")
+////                boolean existsBefore = m2RepositoryFolder.exists()
+////                try {
+//                    base.evaluate()
+////                } finally {
+////                    def existsAfter = m2RepositoryFolder.exists()
+////                    if (!existsBefore && existsAfter) {
+////                        GFileUtils.deleteDirectory(m2RepositoryFolder)
+////                        fail("Test modifies ${m2RepositoryFolder.absolutePath} folder")
+////                    }
+////                }
+//            }
+//        }
+//    }
 
     void execute(GradleExecuter gradleExecuter) {
         gradleExecuter.withUserHomeDir(userHomeDir)

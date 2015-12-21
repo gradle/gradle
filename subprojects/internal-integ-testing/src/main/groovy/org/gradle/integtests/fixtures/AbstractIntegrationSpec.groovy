@@ -44,7 +44,7 @@ class AbstractIntegrationSpec extends Specification {
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
     GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder)
 
-    @Rule
+//    @Rule
     M2Installation m2 = new M2Installation(temporaryFolder.getTestDirectory())
 
     ExecutionResult result
