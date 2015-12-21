@@ -16,11 +16,14 @@
 
 package org.gradle.play.plugins
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
+import spock.lang.Unroll
+
 import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -36,6 +39,48 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
 
             ${PLAY_REPOSITORES}
         """
+    }
+
+    @NotYetImplemented
+    @Unroll
+    def "uses unique names for dependency jar in distribution when #description"() {
+        given:
+        (1..2).each { subprojectIdx ->
+            def subprojectName = "sub${subprojectIdx}"
+            settingsFile << """
+                include '${subprojectName}:dependency'
+            """
+            def dependencyRoot = file("${subprojectName}/dependency")
+            def srcDir = dependencyRoot.file("src/main/java/${subprojectName}")
+            srcDir.mkdirs()
+            srcDir.file("Dependency.java") << """
+                package ${subprojectName};
+                public class Dependency {}"""
+            dependencyRoot.file("build.gradle") << """
+                apply plugin: 'java'
+                group = 'com.example.${subprojectName}'
+                version = ${versions[subprojectIdx-1]}
+"""
+            buildFile << """
+                dependencies {
+                    playRun project(":${subprojectName}:dependency")
+                }
+"""
+        }
+        when:
+        succeeds "dist"
+
+        then:
+        executedAndNotSkipped(":createPlayBinaryDist")
+        // TODO:
+        zip("build/distributions/playBinary.zip").containsDescendants(
+            "playBinary/lib/sub1-dependency-main.jar",
+            "playBinary/lib/sub2-dependency-main.jar")
+
+        where:
+        versions       | description
+        ['1.0', '2.0'] | "dependencies have the same version"
+        ['1.0', '1.0'] | "dependencies have different versions"
     }
 
     def "builds empty distribution when no sources present" () {
