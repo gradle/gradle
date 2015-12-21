@@ -23,16 +23,16 @@ import org.gradle.util.GradleVersion
 import java.lang.annotation.Annotation
 
 enum FeatureCompatibility {
-    PLUGIN_CLASSPATH_INJECTION(PluginClasspathInjection, '2.8'),
-    CAPTURE_BUILD_OUTPUT_IN_DEBUG(CaptureBuildOutputInDebug, '2.9')
+    PLUGIN_CLASSPATH_INJECTION(PluginClasspathInjection, GradleVersion.version('2.8')),
+    CAPTURE_BUILD_OUTPUT_IN_DEBUG(CaptureBuildOutputInDebug, GradleVersion.version('2.9'))
 
     private final Class<? extends Annotation> feature
     private final GradleVersion since
 
-    private FeatureCompatibility(Class<? extends Annotation> feature, String since) {
+    private FeatureCompatibility(Class<? extends Annotation> feature, GradleVersion since) {
         this.feature = feature
-        this.since = GradleVersion.version(since)
-        assert isValidVersion(this.since, GradleRunnerCompatibilityIntegTestRunner.TESTKIT_MIN_SUPPORTED_VERSION) : "Feature version $since needs to be later than $GradleRunnerCompatibilityIntegTestRunner.TESTKIT_MIN_SUPPORTED_VERSION"
+        this.since = since
+        assert isValidVersion(since, GradleRunnerCompatibilityIntegTestRunner.TESTKIT_MIN_SUPPORTED_VERSION) : "Feature version $since needs to be later than $GradleRunnerCompatibilityIntegTestRunner.TESTKIT_MIN_SUPPORTED_VERSION"
     }
 
     private static boolean isValidVersion(GradleVersion comparedVersion, GradleVersion minVersion) {

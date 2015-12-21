@@ -94,7 +94,7 @@
             It is a common practice to implement any custom build logic (like plugins and task types) that is more complex in nature as external classes in a standalone project. The main
             driver behind this approach is bundle the compiled code into a JAR file, publish it to a binary repository and reuse it across various projects.
         </para>
-        <section>
+        <section id="test-kit-classpath-injection">
             <title>Getting the code under test into the test build</title>
             <para>
                 The runner uses the <link linkend="embedding">Tooling API</link> to execute builds.
@@ -208,6 +208,41 @@
                 The system property approach can be used when it is desirable to enable debugging support without making an adhoc change to the runner configuration.
                 Most IDEs offer the capability to set JVM system properties for test execution, and such a feature can be used to set this system property.
             </para>
+        </section>
+        <section id="test-kit-compatibility">
+            <title>Compatible Gradle versions used to test</title>
+            <para>
+                The Gradle runner allows for <link linkend="sub:gradle-runner-gradle-version">specifying a Gradle distribution used to execute the build</link>.
+                There are limitations to which minimum version of Gradle is compatible with TestKit and the version of Gradle which can used with particular TestKit features.
+                The version limitation mainly exists because of the underlying compatibility of TestKit with the corresponding Tooling API.
+            </para>
+            <para>
+                <emphasis>The minimum Gradle version compatible with TestKit is 2.5.</emphasis> Future versions of Gradle might improve on backward-compatibility of TestKit.
+            </para>
+            <table>
+                <title>Gradle version compatibility</title>
+                <thead>
+                    <tr>
+                        <td>Feature</td>
+                        <td>Minimum Version</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>
+                        <link linkend="sub:test-kit-classpath-injection">Plugin classpath injection</link>
+                    </td>
+                    <td>2.8</td>
+                    <td>Injecting the code under test with the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/></td>
+                </tr>
+                <tr>
+                    <td>
+                        <link linkend="sub:test-kit-debug">Capturing build output in debug mode</link>
+                    </td>
+                    <td>2.9</td>
+                    <td>Executing the build in debug mode and accessing the build output with the method <apilink class="org.gradle.testkit.runner.BuildResult" method="getOutput"/></td>
+                </tr>
+            </table>
         </section>
     </section>
 </chapter>
