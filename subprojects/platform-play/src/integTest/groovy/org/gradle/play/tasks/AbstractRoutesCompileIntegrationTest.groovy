@@ -53,6 +53,14 @@ model {
 }
 
 ${PLAY_REPOSITORES}
+
+def startAt = System.nanoTime()
+gradle.buildFinished {
+    long sinceStart = (System.nanoTime() - startAt) / 1000000L
+    if (sinceStart > 0 && sinceStart < 1000) {
+      sleep(1000 - sinceStart)
+    }
+}
 """
     }
 
