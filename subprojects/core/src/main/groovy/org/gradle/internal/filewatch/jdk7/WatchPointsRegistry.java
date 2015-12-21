@@ -22,11 +22,14 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.FileUtils;
 
 import java.io.File;
 
 class WatchPointsRegistry {
+    private final static Logger LOG = Logging.getLogger(WatchPointsRegistry.class);
     private FileSystemSubset combinedFileSystemSubset;
     private ImmutableSet<? extends File> allRequestedRoots;
     private ImmutableCollection<? extends File> currentWatchPoints;
@@ -140,7 +143,11 @@ class WatchPointsRegistry {
         }
 
         public boolean shouldWatch(File file) {
-            return (inUnfilteredSubsetOrAncestorOfAnyRoot(file) || isAncestorOfAnyRoot(file, allRequestedRoots)) && !isAncestorOfAnyRoot(file, currentWatchPoints);
+            boolean result = (inUnfilteredSubsetOrAncestorOfAnyRoot(file) || isAncestorOfAnyRoot(file, allRequestedRoots)) && !isAncestorOfAnyRoot(file, currentWatchPoints);
+            if (!result) {
+                LOG.debug("not watching file: {} currentWatchPoints: {} allRequestedRoots: {} roots: {} unfiltered: {}", file, currentWatchPoints, allRequestedRoots, roots, unfiltered);
+            }
+            return result;
         }
     }
 }
