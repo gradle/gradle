@@ -70,7 +70,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
                         @Override
                         public FileVisitResult preVisitDirectory(Path path, BasicFileAttributes attrs) throws IOException {
                             if (!path.equals(dirPath)) {
-                                if (delta.inUnfilteredSubsetOrAncestorOfAnyRoot(path.toFile())) {
+                                if (delta.shouldWatch(path.toFile())) {
                                     watchDir(path);
                                     return FileVisitResult.CONTINUE;
                                 } else {

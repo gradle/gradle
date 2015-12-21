@@ -200,6 +200,46 @@ class WatchPointsRegistryTest extends Specification {
         delta.startingWatchPoints.isEmpty()
     }
 
+    def "parents for non-existing watch directories get watched"() {
+        given:
+        rootDir.createDir("a")
+        def dirs = [rootDir.file("a/b/c/d/e"), rootDir.file("a/b/c/d2/e2")]
+
+        when:
+        def delta = appendDir(dirs[0])
+
+        then:
+        checkWatchPoints delta, [rootDir.file("a")]
+
+        when:
+        delta = appendDir(dirs[1])
+
+        then:
+        checkWatchPoints delta, []
+
+        and: 'should add watch to all parent directories of non-existing root'
+        dirs.each { dir ->
+            parentsUpTo(dir, rootDir).every {
+                assert delta.shouldWatch(it)
+                assert !delta.shouldWatch(new File(it.getParentFile(), "sibling_directory"))
+                assert !registry.shouldFire(new File(it.getParentFile(), "sibling_file"))
+            }
+        }
+
+        and: 'should not watch a parent of an existing watchpoint'
+        !delta.shouldWatch(rootDir)
+    }
+
+    def parentsUpTo(File subDir, File parentDir) {
+        def parents = []
+        File current = subDir.parentFile
+        while (current != null && current != parentDir) {
+            parents.add current
+            current = current.parentFile
+        }
+        parents
+    }
+
     private void checkWatchPoints(Delta delta, Collection<File> files) {
         assert delta.startingWatchPoints as Set == files as Set
     }
