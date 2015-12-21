@@ -36,7 +36,7 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
     private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    def "build result does not capture tasks when target gradle version is < 2.5"() {
+    def "build result does not capture tasks when executed with unsupported target gradle version"() {
         given:
         buildFile << helloWorldTask()
 
@@ -51,7 +51,7 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
     }
 
     @Debug
-    def "build result output is not captured when executed in debug mode and targets gradle version is < 2.9"() {
+    def "build result output is not captured when executed with unsupported target gradle version in debug mode "() {
         given:
         buildFile << helloWorldTask()
 
@@ -66,7 +66,7 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
         !result.output.contains('Hello world!')
     }
 
-    def "cannot use plugin classpath feature when target gradle version is < 2.8"() {
+    def "cannot use plugin classpath feature when executed with unsupported target gradle version"() {
         String maxUnsupportedVersion = getMaxUnsupportedVersion(PLUGIN_CLASSPATH_INJECTION.since)
         String minSupportedVersion = PLUGIN_CLASSPATH_INJECTION.since.version
 
@@ -74,7 +74,7 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
         buildFile << pluginDeclaration()
 
         when:
-        runner('helloWorld1')
+        runner('helloWorld')
             .withGradleVersion(maxUnsupportedVersion)
             .withPluginClasspath(getPluginClasspath())
             .build()
@@ -94,72 +94,71 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
                     classpath files(${pluginClasspath.collect { "'${it.absolutePath.replace("\\", "\\\\")}'" }.join(", ")})
                 }
             }
-            apply plugin: 'com.company.helloworld1'
+            apply plugin: 'com.company.helloworld'
         """
 
         when:
-        def result = runner('helloWorld1')
+        def result = runner('helloWorld')
                 .withGradleVersion(getMaxUnsupportedVersion(PLUGIN_CLASSPATH_INJECTION.since))
                 .forwardOutput()
                 .build()
 
         then:
-        result.task(":helloWorld1").outcome == SUCCESS
+        result.task(":helloWorld").outcome == SUCCESS
     }
 
     private String getMaxUnsupportedVersion(GradleVersion minSupportedVersion) {
         RELEASED_VERSION_DISTRIBUTIONS.getPrevious(minSupportedVersion).version.version
     }
 
-    private void compilePluginProjectSources(int counter = 1) {
-        createPluginProjectSourceFiles(counter)
+    private void compilePluginProjectSources() {
+        createPluginProjectSourceFiles()
         new ForkingGradleExecuter(new UnderDevelopmentGradleDistribution(), testProjectDir)
-                .usingProjectDirectory(file(counter.toString()))
                 .withArguments('classes', "--no-daemon")
                 .run()
     }
 
-    static String pluginDeclaration(int counter = 1) {
+    static String pluginDeclaration() {
         """
         plugins {
-            id 'com.company.helloworld$counter'
+            id 'com.company.helloworld'
         }
         """
     }
 
-    private void createPluginProjectSourceFiles(int counter = 1) {
-        pluginProjectFile(counter, "src/main/groovy/org/gradle/test/HelloWorldPlugin${counter}.groovy") << """
+    private void createPluginProjectSourceFiles() {
+        pluginProjectFile("src/main/groovy/org/gradle/test/HelloWorldPlugin.groovy") << """
             package org.gradle.test
 
             import org.gradle.api.Plugin
             import org.gradle.api.Project
 
-            class HelloWorldPlugin${counter} implements Plugin<Project> {
+            class HelloWorldPlugin implements Plugin<Project> {
                 void apply(Project project) {
-                    project.task('helloWorld${counter}', type: HelloWorld${counter})
+                    project.task('helloWorld', type: HelloWorld)
                 }
             }
         """
 
-        pluginProjectFile(counter, "src/main/groovy/org/gradle/test/HelloWorld${counter}.groovy") << """
+        pluginProjectFile("src/main/groovy/org/gradle/test/HelloWorld.groovy") << """
             package org.gradle.test
 
             import org.gradle.api.DefaultTask
             import org.gradle.api.tasks.TaskAction
 
-            class HelloWorld${counter} extends DefaultTask {
+            class HelloWorld extends DefaultTask {
                 @TaskAction
                 void doSomething() {
-                    logger.quiet 'Hello world! (${counter})'
+                    logger.quiet 'Hello world!'
                 }
             }
         """
 
-        pluginProjectFile(counter, "src/main/resources/META-INF/gradle-plugins/com.company.helloworld${counter}.properties") << """
-            implementation-class=org.gradle.test.HelloWorldPlugin${counter}
+        pluginProjectFile("src/main/resources/META-INF/gradle-plugins/com.company.helloworld.properties") << """
+            implementation-class=org.gradle.test.HelloWorldPlugin
         """
 
-        pluginProjectFile(counter, 'build.gradle') << """
+        pluginProjectFile('build.gradle') << """
             apply plugin: 'groovy'
 
             dependencies {
@@ -169,11 +168,11 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
         """
     }
 
-    private TestFile pluginProjectFile(int counter = 1, String path) {
-        testProjectDir.file(counter.toString()).file(path)
+    private TestFile pluginProjectFile(String path) {
+        testProjectDir.file(path)
     }
 
-    private List<File> getPluginClasspath(int counter = 1) {
-        [pluginProjectFile(counter, "build/classes/main"), pluginProjectFile(counter, 'build/resources/main')]
+    private List<File> getPluginClasspath() {
+        [pluginProjectFile("build/classes/main"), pluginProjectFile('build/resources/main')]
     }
 }
