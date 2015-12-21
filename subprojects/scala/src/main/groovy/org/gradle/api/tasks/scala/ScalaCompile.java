@@ -28,7 +28,6 @@ import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
-import org.gradle.cache.CacheRepository;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
 
 import javax.inject.Inject;

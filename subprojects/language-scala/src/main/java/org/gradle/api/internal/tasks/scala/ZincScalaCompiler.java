@@ -89,7 +89,6 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             });
             zincCache.close();
 
-            //com.typesafe.zinc.Compiler compiler = createCompiler(scalaClasspath, zincClasspath, logger, cacheDir);
             List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
             List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
             Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
