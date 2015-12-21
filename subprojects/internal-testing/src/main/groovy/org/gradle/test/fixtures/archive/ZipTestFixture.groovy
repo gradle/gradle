@@ -38,11 +38,9 @@ class ZipTestFixture extends ArchiveTestFixture {
 
     private String getContentForEntry(ZipEntry entry, ZipFile zipFile) {
         def extension = entry.name.tokenize(".").last()
-        def probablyText = !(extension in ["jar", "zip"])
-        def content = ""
-        if (probablyText) {
-            zipFile.getInputStream(entry).text
+        if (!(extension in ["jar", "zip"])) {
+            return zipFile.getInputStream(entry).text
         }
-        content
+        return ""
     }
 }
