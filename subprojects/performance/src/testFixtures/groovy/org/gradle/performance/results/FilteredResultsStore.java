@@ -46,7 +46,7 @@ public class FilteredResultsStore implements ResultsStore, Closeable {
         exclusionPredicate = new Predicate<String>() {
             @Override
             public boolean apply(@Nullable String input) {
-                return pattern.matcher(input).matches();
+                return !pattern.matcher(input).matches();
             }
         };
     }

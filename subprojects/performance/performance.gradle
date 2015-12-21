@@ -573,7 +573,7 @@ task report {
         def cl = new URLClassLoader(sourceSets.testFixtures.runtimeClasspath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
         def store = cl.loadClass("org.gradle.performance.results.AllResultsStore").newInstance()
         //Remove build receipt tests
-        def filteredStore = cl.loadClass("org.gradle.performance.results.FilteredResultsStore").newInstance(store, buildReceiptPattern, true)
+        def filteredStore = cl.loadClass("org.gradle.performance.results.FilteredResultsStore").newInstance(store, buildReceiptPattern, false)
         try {
             def generator = cl.loadClass("org.gradle.performance.results.ReportGenerator").newInstance()
             generator.generate(filteredStore, reportDir)
