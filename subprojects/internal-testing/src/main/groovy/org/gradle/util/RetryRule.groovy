@@ -37,13 +37,21 @@ class RetryRule implements MethodRule { // Implements MethodRule, not TestRule b
         return {
             try {
                 base.evaluate()
-            } catch (Throwable t) {
-                if (shouldRetry(t)) {
-                    base.evaluate()
+            } catch (Throwable t1) {
+                if (shouldRetry(t1)) {
+                    try {
+                        base.evaluate()
+                    } catch (Throwable t2) {
+                        if (shouldRetry(t2)) {
+                            base.evaluate();
+                        } else {
+                            throw t2;
+                        }
+                    }
                 } else {
-                    throw t;
+                    throw t1;
                 }
             }
-        };
+        }
     }
 }

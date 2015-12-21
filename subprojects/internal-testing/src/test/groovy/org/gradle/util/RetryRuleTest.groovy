@@ -24,26 +24,56 @@ import static org.gradle.util.RetryRule.retryIf
 @SuppressWarnings("GroovyUnreachableStatement")
 class RetryRuleTest extends Specification {
 
-    int iteration = 0;
-
     @Rule
     RetryRule retryRule = retryIf({ t -> t instanceof IOException });
 
     @Rule
     ExpectedFailureRule expectedFailureRule = new ExpectedFailureRule();
 
+    int iteration = 0;
+
     def "should pass when expected exception happens once"() {
+        given:
+        iteration++
+
         when:
-        throwOnFirstExecution(new IOException());
+        throwWhen(new IOException(), iteration == 1)
+
+        then:
+        true
+    }
+
+    def "should pass when expected exception happens twice"() {
+        given:
+        iteration++
+
+        when:
+        throwWhen(new IOException(), iteration <= 2)
 
         then:
         true
     }
 
     @ExpectedFailure
-    def "should fail when unexpected exception happens once"() {
+    def "should fail when expected exception happens three times"() {
+        given:
+        iteration++
+
         when:
-        throwOnFirstExecution(new RuntimeException());
+        throwWhen(new IOException(), iteration <= 3)
+
+        then:
+        true
+    }
+
+    @ExpectedFailure
+    def "should fail when expected exception happens once and another exception happens on next execution"() {
+        given:
+        iteration++
+
+        when:
+        throwWhen(new IOException(), iteration == 1)
+        throwWhen(new RuntimeException(), iteration == 2)
 
         then:
         true
@@ -58,9 +88,20 @@ class RetryRuleTest extends Specification {
         true
     }
 
-    private void throwOnFirstExecution(Throwable throwable) {
-        if (iteration % 2 == 0) {
-            iteration++;
+    @ExpectedFailure
+    def "should fail when unexpected exception happens once"() {
+        given:
+        iteration++
+
+        when:
+        throwWhen(new RuntimeException(), iteration == 1)
+
+        then:
+        true
+    }
+
+    private static void throwWhen(Throwable throwable, boolean condition) {
+        if (condition) {
             throw throwable;
         }
     }
