@@ -16,6 +16,7 @@
 
 package org.gradle.language.scala
 
+import org.gradle.api.internal.tasks.scala.ZincScalaCompiler
 import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -44,18 +45,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         def projects = (1..4)
         projects.each {
             def projectName = "project$it"
-            def projectDir = testDirectory.file(projectName)
-            def projectBuildFile = projectDir.file("build.gradle")
-            def srcDir = projectDir.file("src/main/scala/org/${projectName}")
-            def sourceFile = srcDir.file("Main.scala")
-            srcDir.mkdirs()
-            projectBuildFile << """
-                $scalaBuild
-                ${jvmComponent('main')}
-            """
-            sourceFile << """
-                ${scalaSourceFile("org." + projectName)}
-            """
+            populateProject(projectName)
             settingsFile << """
                 include '$projectName'
             """
@@ -73,7 +63,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         blockingServer.expectConcurrentExecution(compileTasks, {})
         executer.withArgument("--parallel")
                 .withArgument("--max-workers=${projects.size()}")
-                .withGradleUserHomeDir(file("gradleUserHome"))
+                .withGradleUserHomeDir(gradleUserHome)
 
         when:
         succeeds("build")
@@ -82,6 +72,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
         gradleUserHomeInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
+        output.contains(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE)
     }
 
     def "multiple tasks in a single build are multi-process safe"() {
@@ -116,7 +107,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("--parallel")
                 .withArgument("--max-workers=${components.size()}")
                 .withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
-                .withGradleUserHomeDir(file("gradleUserHome"))
+                .withGradleUserHomeDir(gradleUserHome)
 
         when:
         succeeds("build")
@@ -125,6 +116,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
         gradleUserHomeInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
+        output.contains(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE)
     }
 
     def "multiple independent builds are multi-process safe" () {
@@ -137,22 +129,16 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         def projects = (1..4)
         projects.each {
             def projectName = "project$it"
+            populateProject(projectName)
+
             def projectDir = testDirectory.file(projectName)
             def projectBuildFile = projectDir.file("build.gradle")
-            def srcDir = projectDir.file("src/main/scala/org/${projectName}")
-            def sourceFile = srcDir.file("Main.scala")
-            srcDir.mkdirs()
             projectBuildFile << """
-                $scalaBuild
-                ${jvmComponent('main')}
                 tasks.withType(PlatformScalaCompile) {
                     doFirst ${blockUntilAllCompilersAreReady(':$project.name:$name')}
 
                     $customZincDirSystemProperty
                 }
-            """
-            sourceFile << """
-                ${scalaSourceFile("org." + projectName)}
             """
 
             buildFile << gradleBuildTask(projectName, projectDir)
@@ -163,7 +149,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("--parallel")
                 .withArgument("--max-workers=${projects.size()}")
                 .withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
-                .withGradleUserHomeDir(file("gradleUserHome"))
+                .withGradleUserHomeDir(gradleUserHome)
 
         when:
         succeeds("buildAll")
@@ -172,6 +158,83 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
         gradleUserHomeInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
+        output.contains(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE)
+    }
+
+    def "no warning shown when zinc dir is not set by user"() {
+        given:
+        def projects = (1..4)
+        projects.each {
+            def projectName = "project$it"
+            populateProject(projectName)
+            settingsFile << """
+                include '$projectName'
+            """
+            compileTasks << ":${projectName}:compileMainJarMainScala".toString()
+        }
+        buildFile.text = """
+            allprojects {
+                tasks.withType(PlatformScalaCompile) {
+                    doFirst ${blockUntilAllCompilersAreReady('$path')}
+                }
+            }
+        """
+        blockingServer.expectConcurrentExecution(compileTasks, {})
+        executer.withArgument("--parallel")
+            .withArgument("--max-workers=${projects.size()}")
+            .withGradleUserHomeDir(gradleUserHome)
+
+        when:
+        succeeds("build")
+
+        then:
+        noExceptionThrown()
+        gradleUserHomeInterfaceJars.size() == 1
+        !output.contains(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE)
+    }
+
+    def "builds successfully when compiler-interface.jar already exists"() {
+        given:
+        def projects = (1..4)
+        projects.each {
+            def projectName = "project$it"
+            populateProject(projectName)
+            settingsFile << """
+                include '$projectName'
+            """
+            compileTasks << ":${projectName}:compileMainJarMainScala".toString()
+        }
+        buildFile.text = """
+            allprojects {
+                tasks.withType(PlatformScalaCompile) {
+                    doFirst ${blockUntilAllCompilersAreReady('$path')}
+
+                    $customZincDirSystemProperty
+                }
+            }
+        """
+        blockingServer.expectConcurrentExecution(compileTasks, {})
+        executer.withArgument("--parallel")
+            .withArgument("--max-workers=${projects.size()}")
+            .withGradleUserHomeDir(gradleUserHome)
+
+        when:
+        succeeds("build")
+
+        then:
+        noExceptionThrown()
+        gradleUserHomeInterfaceJars.size() == 1
+
+        when:
+        blockingServer.expectConcurrentExecution(compileTasks, {})
+        executer.withArgument("--parallel")
+            .withArgument("--max-workers=${projects.size()}")
+            .withGradleUserHomeDir(gradleUserHome)
+        succeeds("clean", "build")
+
+        then:
+        noExceptionThrown()
+        gradleUserHomeInterfaceJars.size() == 1
     }
 
     def getScalaBuild() {
@@ -262,5 +325,18 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
                 }
                 buildAll.dependsOn "${projectName}Build"
             """
+    }
+
+    void populateProject(String projectName) {
+        def projectDir = testDirectory.file(projectName)
+        def projectBuildFile = projectDir.file("build.gradle")
+        def srcDir = projectDir.file("src/main/scala/org/${projectName}")
+        def sourceFile = srcDir.file("Main.scala")
+        srcDir.mkdirs()
+        projectBuildFile << """
+            $scalaBuild
+            ${jvmComponent('main')}
+        """
+        sourceFile << scalaSourceFile("org.${projectName}")
     }
 }
