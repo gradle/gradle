@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORES
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 abstract class AbstractRoutesCompileIntegrationTest extends MultiVersionIntegrationSpec {
     def destinationDirPath = "build/src/play/binary/routesScalaSources"
@@ -52,7 +52,7 @@ model {
     }
 }
 
-${PLAY_REPOSITORES}
+${PLAY_REPOSITORIES}
 
 def startAt = System.nanoTime()
 gradle.buildFinished {

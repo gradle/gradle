@@ -40,7 +40,7 @@ class MixedPlayAndJvmLibraryProjectIntegrationTest extends AbstractIntegrationSp
                 id 'play'
             }
 
-            ${PLAY_REPOSITORES}
+            ${PLAY_REPOSITORIES}
 
             model {
                 components {

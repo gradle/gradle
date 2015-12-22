@@ -32,7 +32,7 @@ class WithFailingTestsApp extends PlayApp {
         def gradleBuild = sourceFile("", "build.gradle", "basicplayapp")
         def gradleBuildWithRepositories = gradleBuild.content.concat """
             allprojects {
-                ${PLAY_REPOSITORES}
+                ${PLAY_REPOSITORIES}
             }
         """
         return new SourceFile(gradleBuild.path, gradleBuild.name, gradleBuildWithRepositories)

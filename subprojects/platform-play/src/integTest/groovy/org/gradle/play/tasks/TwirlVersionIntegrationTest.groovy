@@ -26,7 +26,7 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
             id 'play-application'
         }
 
-        ${PLAY_REPOSITORES}
+        ${PLAY_REPOSITORIES}
     """
 
     def twirlOutputDir = "build/src/play/binary/twirlTemplatesScalaSources"

@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.junit.Rule
 
-import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORES
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -35,7 +35,7 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
                 id 'play-application'
             }
 
-            ${PLAY_REPOSITORES}
+            ${PLAY_REPOSITORIES}
         """
     }
 

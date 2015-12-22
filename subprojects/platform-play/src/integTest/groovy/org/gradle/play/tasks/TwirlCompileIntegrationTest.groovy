@@ -19,7 +19,7 @@ package org.gradle.play.tasks
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 
-import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORES
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
 
@@ -33,7 +33,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
                 id 'play-application'
             }
 
-            ${PLAY_REPOSITORES}
+            ${PLAY_REPOSITORIES}
 
             model {
                 components {

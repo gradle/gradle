@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORES
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -36,7 +36,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 id 'play'
             }
 
-            ${PLAY_REPOSITORES}
+            ${PLAY_REPOSITORIES}
         """
     }
 

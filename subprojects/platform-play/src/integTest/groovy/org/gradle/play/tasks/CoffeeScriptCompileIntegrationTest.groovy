@@ -27,7 +27,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
                 id 'play-coffeescript'
             }
 
-            ${PLAY_REPOSITORES}
+            ${PLAY_REPOSITORIES}
 
             ${GRADLE_JS_REPOSITORY}
         """

@@ -42,7 +42,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
                 id 'play-javascript'
             }
 
-            ${PLAY_REPOSITORES}
+            ${PLAY_REPOSITORIES}
         """
     }
 
