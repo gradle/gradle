@@ -70,16 +70,24 @@ This feature was contributed by [Eike Kohnert](https://github.com/andrena-eike-k
 
 ### IDE integration improvements
 
-#### Tooling API exposes source language level on IdeaProject model
+#### Tooling API exposes source language level on Idea model
 
 The `IdeaProject` and the `IdeaModule` model now exposes the Java source language level via the
 <a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
 IDE providers use this method to automatically determine the source language level of a Idea project and its associated Modules.
 
+#### Tooling API exposes java runtime and target bytecode level on Idea model
+
+The `IdeaProject` and the `IdeaModule` model now exposes the target java runtime and the target bytecode level via the
+<a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
+IDE providers use this method to determine the target runtime and bytecode level information. The target bytecode level
+for `IdeaModule` is derived from the
+<a href="javadoc/org/gradle/api/plugins/JavaPluginConvention.html#getTargetCompatibilityLevel">`targetCompatibilityLevel`</a>
+convention property.
+
 #### TODO
 
 - Target Java version and JVM for Eclipse
-- Target Java version and JVM for IDEA
 - Generated `.classpath` project references correct JVM version
 
 ### Continuous build improvements
