@@ -59,14 +59,14 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.output.contains("Test method foo(FooTest) -> [Test worker] INFO FooTest - slf4j info")
-        result.output.contains("Test method foo(FooTest) -> INFO: jul info")
-        result.output.contains("Test method foo(FooTest) -> WARNING: jul warning")
+        result.output.contains("Test method foo(FooTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: jul info")
+        result.output.contains("Test method foo(FooTest) -> ${java.util.logging.Level.WARNING.getLocalizedName()}: jul warning")
 
         def testResult = new JUnitXmlTestExecutionResult(testDirectory)
         def classResult = testResult.testClass("FooTest")
         classResult.assertTestCaseStderr("foo", containsString("[Test worker] INFO FooTest - slf4j info"))
-        classResult.assertTestCaseStderr("foo", containsString("INFO: jul info"))
-        classResult.assertTestCaseStderr("foo", containsString("WARNING: jul warning"))
+        classResult.assertTestCaseStderr("foo", containsString("${java.util.logging.Level.INFO.getLocalizedName()}: jul info"))
+        classResult.assertTestCaseStderr("foo", containsString("${java.util.logging.Level.WARNING.getLocalizedName()}: jul warning"))
     }
 
     @Issue("GRADLE-2841")
@@ -136,11 +136,11 @@ public class OkTest {
         5.times { n ->
             assert result.output.contains("Test method ok(OkTest) -> stdout from thread $n")
             assert result.output.contains("Test method ok(OkTest) -> stderr from thread $n")
-            assert result.output.contains("Test method ok(OkTest) -> INFO: info from thread $n")
+            assert result.output.contains("Test method ok(OkTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: info from thread $n")
 
             classResult.assertTestCaseStdout("ok", containsString("stdout from thread $n"))
             classResult.assertTestCaseStderr("ok", containsString("stderr from thread $n"))
-            classResult.assertTestCaseStderr("ok", containsString("INFO: info from thread $n"))
+            classResult.assertTestCaseStderr("ok", containsString("${java.util.logging.Level.INFO.getLocalizedName()}: info from thread $n"))
         }
     }
 

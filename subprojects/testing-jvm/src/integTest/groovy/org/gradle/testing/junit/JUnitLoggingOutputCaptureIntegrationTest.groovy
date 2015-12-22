@@ -180,14 +180,14 @@ dependencies { testCompile "org.slf4j:slf4j-simple:1.7.10", "org.slf4j:slf4j-api
 
         then:
         result.output.contains("Test foo(FooTest) -> [Test worker] INFO FooTest - slf4j info")
-        result.output.contains("Test foo(FooTest) -> INFO: jul info")
-        result.output.contains("Test foo(FooTest) -> WARNING: jul warning")
+        result.output.contains("Test foo(FooTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: jul info")
+        result.output.contains("Test foo(FooTest) -> ${java.util.logging.Level.WARNING.getLocalizedName()}: jul warning")
 
         def testResult = new JUnitXmlTestExecutionResult(testDirectory)
         def classResult = testResult.testClass("FooTest")
         classResult.assertTestCaseStderr("foo", containsString("[Test worker] INFO FooTest - slf4j info"))
-        classResult.assertTestCaseStderr("foo", containsString("INFO: jul info"))
-        classResult.assertTestCaseStderr("foo", containsString("WARNING: jul warning"))
+        classResult.assertTestCaseStderr("foo", containsString("${java.util.logging.Level.INFO.getLocalizedName()}: jul info"))
+        classResult.assertTestCaseStderr("foo", containsString("${java.util.logging.Level.WARNING.getLocalizedName()}: jul warning"))
     }
 
     def "test can generate output from multiple threads"() {
@@ -231,11 +231,11 @@ public class OkTest {
         5.times { n ->
             assert result.output.contains("Test ok(OkTest) -> stdout from thread $n")
             assert result.output.contains("Test ok(OkTest) -> stderr from thread $n")
-            assert result.output.contains("Test ok(OkTest) -> INFO: info from thread $n")
+            assert result.output.contains("Test ok(OkTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: info from thread $n")
 
             classResult.assertTestCaseStdout("ok", containsString("stdout from thread $n"))
             classResult.assertTestCaseStderr("ok", containsString("stderr from thread $n"))
-            classResult.assertTestCaseStderr("ok", containsString("INFO: info from thread $n"))
+            classResult.assertTestCaseStderr("ok", containsString("${java.util.logging.Level.INFO.getLocalizedName()}: info from thread $n"))
         }
     }
 
