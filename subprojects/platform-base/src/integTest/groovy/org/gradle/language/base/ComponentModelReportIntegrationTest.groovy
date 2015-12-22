@@ -17,7 +17,6 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
-import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegrationTest {
