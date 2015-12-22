@@ -83,36 +83,32 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
                 LOGGER.warn(ZINC_DIR_IGNORED_MESSAGE);
             }
 
-            // We have to set this system property before we create the compiler because the property is read statically
-            // when the com.typesafe.zinc.Compiler class is loaded
-            SystemProperties.getInstance().withSystemProperty(ZINC_DIR_SYSTEM_PROPERTY, cacheDir.getAbsolutePath(), new Runnable() {
+            com.typesafe.zinc.Compiler compiler = SystemProperties.getInstance().withSystemProperty(ZINC_DIR_SYSTEM_PROPERTY, cacheDir.getAbsolutePath(), new Factory<com.typesafe.zinc.Compiler>() {
                 @Override
-                public void run() {
-                    com.typesafe.zinc.Compiler compiler = zincCache.useCache("initialize", new Factory<com.typesafe.zinc.Compiler>() {
+                public com.typesafe.zinc.Compiler create() {
+                    return zincCache.useCache("initialize", new Factory<com.typesafe.zinc.Compiler>() {
                         @Override
                         public com.typesafe.zinc.Compiler create() {
                             return createCompiler(scalaClasspath, zincClasspath, logger, cacheDir);
                         }
                     });
-
-                    zincCache.close();
-
-                    List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
-                    List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
-                    Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
-                            scalacOptions, javacOptions, spec.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);
-                    if (LOGGER.isDebugEnabled()) {
-                        Inputs.debug(inputs, logger);
-                    }
-
-                    try {
-                        compiler.compile(inputs, logger);
-                    } catch (xsbti.CompileFailed e) {
-                        throw new CompilationFailedException(e);
-                    }
-
                 }
             });
+            zincCache.close();
+
+            List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
+            List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
+            Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
+                    scalacOptions, javacOptions, spec.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);
+            if (LOGGER.isDebugEnabled()) {
+                Inputs.debug(inputs, logger);
+            }
+
+            try {
+                compiler.compile(inputs, logger);
+            } catch (xsbti.CompileFailed e) {
+                throw new CompilationFailedException(e);
+            }
 
             return new SimpleWorkResult(true);
         }

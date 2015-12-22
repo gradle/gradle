@@ -122,33 +122,24 @@ public class SystemProperties {
      * @return Instance created by Factory implementation
      */
     public <T> T withJavaHome(File javaHomeDir, Factory<T> factory) {
-        lock.lock();
-        File originalJavaHomeDir = getJavaHomeDir();
-        setJavaHomeDir(javaHomeDir);
-
-        try {
-            return factory.create();
-        } finally {
-            setJavaHomeDir(originalJavaHomeDir);
-            lock.unlock();
-        }
+        return withSystemProperty("java.home", javaHomeDir.getAbsolutePath(), factory);
     }
 
     /**
-     * Executes a Runnable with a system property set to a given value.  Sets the system property back to the original value (or
-     * clears it if it was never set) after the runnable completes.
+     * Creates an instance for a Factory implementation with a system property set to a given value.  Sets the system property back to the original value (or
+     * clears it if it was never set) after the operation.
      *
      * @param propertyName The name of the property to set
      * @param value The value to temporarily set the property to
-     * @param runnable The Runnable to execute with the system property set to this value
+     * @param factory Instance created by the Factory implementation
      */
-    public void withSystemProperty(String propertyName, String value, Runnable runnable) {
+    public <T> T withSystemProperty(String propertyName, String value, Factory<T> factory) {
         lock.lock();
         String originalValue = System.getProperty(propertyName);
         System.setProperty(propertyName, value);
 
         try {
-            runnable.run();
+            return factory.create();
         } finally {
             if (originalValue != null) {
                 System.setProperty(propertyName, originalValue);

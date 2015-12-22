@@ -49,6 +49,7 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
 
     def "sets a system property for the duration of a Runnable"() {
         final int threadCount = 100
+        String factoryCreationResult = 'test'
         final String propertyWithoutValue = "org.gradle.test.sysprop.without.value"
         final String propertyWithOriginalValue = "org.gradle.test.sysprop.with.original"
         System.setProperty(propertyWithOriginalValue, "original")
@@ -57,18 +58,21 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
         async {
             threadCount.times { i ->
                 start {
-                    SystemProperties.instance.withSystemProperty(propertyWithOriginalValue, i.toString(), new Runnable() {
-                        @Override
-                        void run() {
+                    Factory<String> originalValueFactory = Mock(Factory) {
+                        create() >> {
                             assert System.getProperty(propertyWithOriginalValue) == i.toString()
+                            return factoryCreationResult
                         }
-                    })
-                    SystemProperties.instance.withSystemProperty(propertyWithoutValue, i.toString(), new Runnable() {
-                        @Override
-                        void run() {
+                    }
+                    assert SystemProperties.instance.withSystemProperty(propertyWithOriginalValue, i.toString(), originalValueFactory) == factoryCreationResult
+
+                    Factory<String> withoutValueFactory = Mock(Factory) {
+                        create() >> {
                             assert System.getProperty(propertyWithoutValue) == i.toString()
+                            return factoryCreationResult
                         }
-                    })
+                    }
+                    assert SystemProperties.instance.withSystemProperty(propertyWithoutValue, i.toString(), withoutValueFactory) == factoryCreationResult
                 }
             }
         }
