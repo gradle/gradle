@@ -198,6 +198,9 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
     }
 
     private List<Link> urlify(List<String> commits) {
+        if (null == commits || commits.size() == 0) {
+            return Collections.emptyList();
+        }
         Link gradleUrl = new Link(commits.get(0), String.format("https://github.com/gradle/gradle/commit/%s", commits.get(0).trim()));
         if (commits.size() == 1) {
             return Collections.singletonList(gradleUrl);

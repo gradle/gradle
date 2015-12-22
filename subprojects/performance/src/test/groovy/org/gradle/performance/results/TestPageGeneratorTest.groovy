@@ -36,4 +36,12 @@ class TestPageGeneratorTest extends Specification {
         urls[0].value == 'https://github.com/gradle/gradle/commit/123456'
         urls[1].value == 'https://github.com/gradle/dotcom/commit/abcdefg'
     }
+
+    def "accepts no vcs commit ids"() {
+        expect:
+        new TestPageGenerator().urlify(inputs).isEmpty()
+
+        where:
+        inputs << [[], null]
+    }
 }
