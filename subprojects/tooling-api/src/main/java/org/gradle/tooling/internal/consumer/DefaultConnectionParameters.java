@@ -29,6 +29,7 @@ public class DefaultConnectionParameters implements ConnectionParameters {
     private final TimeUnit daemonMaxIdleTimeUnits;
     private final File daemonBaseDir;
     private final boolean verboseLogging;
+    private final ConnectorConsumer consumer;
 
     public static Builder builder() {
         return new Builder();
@@ -41,7 +42,8 @@ public class DefaultConnectionParameters implements ConnectionParameters {
                 setGradleUserHomeDir(connectionParameters.getGradleUserHomeDir()).
                 setProjectDir(connectionParameters.getProjectDir()).
                 setSearchUpwards(connectionParameters.isSearchUpwards()).
-                setVerboseLogging(connectionParameters.getVerboseLogging());
+                setVerboseLogging(connectionParameters.getVerboseLogging()).
+                setConsumer(connectionParameters.getConsumer());
     }
 
     public static class Builder {
@@ -53,6 +55,7 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         private TimeUnit daemonMaxIdleTimeUnits;
         private boolean verboseLogging;
         private File daemonBaseDir;
+        private ConnectorConsumer consumer;
 
         private Builder() {
         }
@@ -92,9 +95,14 @@ public class DefaultConnectionParameters implements ConnectionParameters {
             return this;
         }
 
+        public Builder setConsumer(ConnectorConsumer consumer) {
+            this.consumer = consumer;
+            return this;
+        }
+
         public DefaultConnectionParameters build() {
             return new DefaultConnectionParameters(gradleUserHomeDir, projectDir, searchUpwards, embedded,
-                    daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging);
+                    daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging, consumer);
         }
 
         public void setDaemonBaseDir(File daemonBaseDir) {
@@ -104,7 +112,7 @@ public class DefaultConnectionParameters implements ConnectionParameters {
 
     private DefaultConnectionParameters(File gradleUserHomeDir, File projectDir, Boolean searchUpwards, Boolean embedded,
                                         Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, File daemonBaseDir,
-                                        boolean verboseLogging) {
+                                        boolean verboseLogging, ConnectorConsumer consumer) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.projectDir = projectDir;
         this.searchUpwards = searchUpwards;
@@ -113,6 +121,7 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
         this.daemonBaseDir = daemonBaseDir;
         this.verboseLogging = verboseLogging;
+        this.consumer = consumer;
     }
 
     public File getDaemonBaseDir() {
@@ -149,5 +158,9 @@ public class DefaultConnectionParameters implements ConnectionParameters {
 
     public boolean getVerboseLogging() {
         return verboseLogging;
+    }
+
+    public ConnectorConsumer getConsumer() {
+        return consumer;
     }
 }

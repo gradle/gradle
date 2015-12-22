@@ -15,6 +15,8 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.api.Nullable;
+
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
@@ -46,4 +48,10 @@ public interface ConnectionParameters extends org.gradle.tooling.internal.protoc
      * Whether to log debug statements eagerly
      */
     boolean getVerboseLogging();
+
+    /**
+     * Indicates the consumer of the connection.
+     */
+    @Nullable
+    ConnectorConsumer getConsumer();
 }

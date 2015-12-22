@@ -126,6 +126,14 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
+    /**
+     * Indicates the consumer of the connector.
+     */
+    public DefaultGradleConnector setConsumer(ConnectorConsumer consumer) {
+        connectionParamsBuilder.setConsumer(consumer);
+        return this;
+    }
+
     public ProjectConnection connect() throws GradleConnectionException {
         LOGGER.debug("Connecting from tooling API consumer version {}", GradleVersion.current().getVersion());
 
