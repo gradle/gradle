@@ -444,7 +444,9 @@ a human-readable error message that explains why this feature cannot be used.
 
 ### Open issues
 
-* Account for increased build time on CI (potentially requires re-sharding of jobs).
+* Account for increased build time on CI. We could either re-shard the jobs or create dedicated jobs that executed the compatibility tests with different versions of Java.
+* When do we consider the target Gradle version incompatible with TestKit? Is this the case if I cannot the ask the `BuildResult` for the executed tasks anymore (2.5) or
+is this the case if I can simply execute the build script (e.g. still possible with version 1.0)? IMHO not being able to use the `BuildResult` makes it useless for testing.
 
 # Milestone 3
 
