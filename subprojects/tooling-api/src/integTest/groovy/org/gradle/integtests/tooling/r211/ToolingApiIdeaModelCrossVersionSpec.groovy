@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.internal.jvm.Jvm
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaProject
 
@@ -146,8 +147,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.isSourceLanguageLevelInherited()
     }
 
-    @TargetGradleVersion(">=2.11")
-    def "can query target bytecode level for idea project and modules"() {
+    def "can query target bytecode level and runtime for idea project and modules"() {
         given:
         settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
         buildFile << """
@@ -164,10 +164,28 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         ideaProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
+        ideaProject.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
+        ideaProject.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
+
         ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
+        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
+        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetRuntimeInherited == true
+
         ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
+        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
+        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetRuntimeInherited == true
+
         ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
+        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
+        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetRuntimeInherited == true
+
         ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
+        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
+        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetRuntimeInherited == true
 
         and: "one global target bytecode level"
         ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetBytecodeLevelInherited == true
