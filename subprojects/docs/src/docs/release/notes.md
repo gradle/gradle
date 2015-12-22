@@ -68,13 +68,13 @@ build script on project or external module dependencies will be included in the 
 
 This feature was contributed by [Eike Kohnert](https://github.com/andrena-eike-kohnert).
 
-### IDE integration improvements 
+### IDE integration improvements
 
 #### Tooling API exposes source language level on IdeaProject model
 
-The `IdeaProject` model now exposes the Java source language level via the
+The `IdeaProject` and the `IdeaModule` model now exposes the Java source language level via the
 <a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-IDE providers use this method to automatically determine the source language level.
+IDE providers use this method to automatically determine the source language level of a Idea project and its associated Modules.
 
 #### TODO
 
