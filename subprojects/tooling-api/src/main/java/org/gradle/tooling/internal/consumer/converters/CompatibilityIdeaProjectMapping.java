@@ -17,8 +17,10 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.tooling.model.idea.IdeaProject;
 
+import java.io.File;
 import java.io.Serializable;
 
 public class CompatibilityIdeaProjectMapping {
@@ -42,6 +44,25 @@ public class CompatibilityIdeaProjectMapping {
 
         public JavaVersion getSourceLanguageLevel() {
             return JavaVersion.valueOf(ideaProject.getLanguageLevel().getLevel().replaceFirst("JDK", "VERSION"));
+        }
+
+        public Object getTargetRuntime() {
+            return new CompatibilityJavaRuntime();
+        }
+
+        public boolean isTargetRuntimeInherited() {
+            return true;
+        }
+    }
+
+    public static class CompatibilityJavaRuntime implements Serializable {
+
+        public JavaVersion getJavaVersion() {
+            return Jvm.current().getJavaVersion();
+        }
+
+        public File getHomeDirectory() {
+            return Jvm.current().getJavaHome();
         }
     }
 }
