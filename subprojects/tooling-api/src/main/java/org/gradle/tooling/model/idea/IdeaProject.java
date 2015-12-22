@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.java.JavaSourceAware;
+import org.gradle.tooling.model.java.JavaSourceSettings;
 
 /**
  * Represents the information about the IDEA project.
@@ -35,7 +36,7 @@ public interface IdeaProject extends HierarchicalElement, JavaSourceAware {
      * @since 2.11
      */
     @Incubating
-    IdeaProjectJavaSourceSettings getJavaSourceSettings();
+    JavaSourceSettings getJavaSourceSettings();
 
     /**
      * Returns the name of the JDK.

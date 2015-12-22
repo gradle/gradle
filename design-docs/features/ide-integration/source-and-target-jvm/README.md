@@ -89,18 +89,14 @@ language levels for each module in a project.
         IdeaModuleJavaSourceSettings getJavaSourceSettings()
     }
 
-    interface IdeaProjectJavaSourceSettings extends JavaSourceSettings {
-    }
-
     interface IdeaProject extends JavaSourceAware {
-        IdeaProjectJavaSourceSettings getJavaSourceSettings()
+        JavaSourceSettings getJavaSourceSettings()
     }
 
 ##### Implementation
 - Introduce `IdeaModuleJavaSourceSettings` extending `JavaSourceSettings`.
-- Introduce `IdeaProjectJavaSourceSettings` extending `JavaSourceSettings`.
 - Let the `IdeaModule` model extend `JavaSourceAware` and expose specialized `IdeaModuleJavaSourceSettings`.
-- Let the `IdeaProject` model extend `JavaSourceAware` to expose specialized `IdeaProjectJavaSourceSettings`
+- Let the `IdeaProject` model extend `JavaSourceAware` to expose specialized `JavaSourceSettings`
 - Update `DefaultIdeaProject` to implement new `getJavaSourceSettings()` method.
 - Update `DefaultIdeaModule` to implement new `getJavaSourceSettings()` method.
 - Update `IdeaModelBuilder` to set values for `getJavaSourceSettings()` for `IdeaProject` and `IdeaModule`
