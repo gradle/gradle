@@ -49,7 +49,8 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
     private Iterable<File> zincClasspath;
     private final File gradleUserHome;
 
-    public static final String ZINC_DIR_IGNORED_MESSAGE = "In order to guarantee parallel safe Scala compilation, Gradle does not support the 'zinc.dir' system property and ignores any value provided.";
+    private static final String ZINC_DIR_SYSTEM_PROPERTY = "zinc.dir";
+    public static final String ZINC_DIR_IGNORED_MESSAGE = "In order to guarantee parallel safe Scala compilation, Gradle does not support the '" + ZINC_DIR_SYSTEM_PROPERTY + "' system property and ignores any value provided.";
 
     public ZincScalaCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, File gradleUserHome) {
         this.scalaClasspath = scalaClasspath;
@@ -78,8 +79,8 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
 
             // We have to set this system property here, before we create the compiler because the property is read statically
             // when the com.typesafe.zinc.Compiler class is loaded
-            String zincDir = System.setProperty("zinc.dir", cacheDir.getAbsolutePath());
-            if (zincDir != null && !zincDir.equals(cacheDir.getAbsolutePath())) {
+            String userSuppliedZincDir = System.setProperty("zinc.dir", cacheDir.getAbsolutePath());
+            if (userSuppliedZincDir != null && !userSuppliedZincDir.equals(cacheDir.getAbsolutePath())) {
                 LOGGER.warn(ZINC_DIR_IGNORED_MESSAGE);
             }
 
@@ -103,6 +104,12 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
                 compiler.compile(inputs, logger);
             } catch (xsbti.CompileFailed e) {
                 throw new CompilationFailedException(e);
+            }
+
+            // Reset any user-supplied zinc dir so that we get the warning message on every
+            // compiler invocation
+            if (userSuppliedZincDir != null) {
+                System.setProperty(ZINC_DIR_SYSTEM_PROPERTY, userSuppliedZincDir);
             }
 
             return new SimpleWorkResult(true);

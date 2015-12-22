@@ -73,7 +73,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
         noExceptionThrown()
         gradleUserHomeInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
-        output.contains(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE)
+        output.count(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE) == 4
 
         // Check that we can successfully use an existing compiler-interface.jar as well
         when:
@@ -86,6 +86,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
         then:
         noExceptionThrown()
         gradleUserHomeInterfaceJars.size() == 1
+        output.count(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE) == 4
     }
 
     def "multiple tasks in a single build are multi-process safe"() {
@@ -112,7 +113,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
         noExceptionThrown()
         gradleUserHomeInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
-        output.contains(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE)
+        output.count(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE) == 4
     }
 
     def "multiple independent builds are multi-process safe" () {
@@ -143,7 +144,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
         noExceptionThrown()
         gradleUserHomeInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
-        output.contains(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE)
+        output.count(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE) == 4
     }
 
     def "no warning shown when zinc dir is not set by user"() {
