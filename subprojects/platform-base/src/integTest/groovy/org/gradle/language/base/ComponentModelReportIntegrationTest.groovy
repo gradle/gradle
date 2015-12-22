@@ -33,7 +33,7 @@ class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegra
         succeeds 'model'
 
         then:
-        output.contains TextUtil.toPlatformLineSeparators("""
+        output.contains """
             + components
                   | Type:   	org.gradle.platform.base.ComponentSpecContainer
                   | Creator: 	ComponentModelBasePlugin.Rules#components
@@ -82,7 +82,7 @@ class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegra
                                  ⤷ DeclarationRules#mutateMyComponentSource
                                  ⤷ ComponentRules#addSourcesSetsToProjectSourceSet > components.myComponent.getSources() > afterEach()
                                  ⤷ ComponentRules#applyDefaultSourceConventions > components.myComponent.getSources() > afterEach()
-        """.stripIndent().trim())
+        """.stripIndent().trim()
     }
 
     def "model report for managed software components show them all with their managed properties"() {
@@ -96,7 +96,7 @@ class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegra
         succeeds 'model'
 
         then:
-        output.contains TextUtil.toPlatformLineSeparators("""
+        output.contains """
             + components
                   | Type:   	org.gradle.platform.base.ComponentSpecContainer
                   | Creator: 	ComponentModelBasePlugin.Rules#components
@@ -159,7 +159,7 @@ class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegra
                                   | Type:   	java.lang.String
                                   | Value:  	my component sources
                                   | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myComponentSource)
-        """.stripIndent().trim())
+        """.stripIndent().trim()
     }
 
     @Unroll
@@ -174,13 +174,13 @@ class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegra
         succeeds 'components'
 
         then:
-        output.contains TextUtil.toPlatformLineSeparators("""
+        output.contains """
             $componentType 'myComponent'
             ${'-'.multiply((componentType+" 'myComponent'").length())}
 
             Source sets
                 $sourceType 'myComponent:myComponentSource'
-                    srcDir: src/myComponent/myComponentSource
+                    srcDir: src${File.separator}myComponent${File.separator}myComponentSource
 
             Binaries
                 $binaryType 'myComponent:myBinary'
@@ -188,7 +188,7 @@ class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegra
                     source sets:
                         $sourceType 'myComponent:myBinarySource'
                             No source directories
-            """.stripIndent())
+            """.stripIndent()
 
         where:
         componentType        | binaryType        | sourceType
