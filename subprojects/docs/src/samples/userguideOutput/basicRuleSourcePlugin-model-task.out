@@ -44,6 +44,7 @@ Root project
           | Creator: 	PersonRules#person
     + userGroups
           | Type:   	java.util.List<java.lang.String>
+          | Value:  	null
           | Creator: 	PersonRules#person
 + tasks
       | Type:   	org.gradle.model.ModelMap<org.gradle.api.Task>
