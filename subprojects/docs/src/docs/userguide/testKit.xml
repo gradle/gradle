@@ -94,7 +94,7 @@
             It is a common practice to implement any custom build logic (like plugins and task types) that is more complex in nature as external classes in a standalone project. The main
             driver behind this approach is bundle the compiled code into a JAR file, publish it to a binary repository and reuse it across various projects.
         </para>
-        <section id="test-kit-classpath-injection">
+        <section id="sub:test-kit-classpath-injection">
             <title>Getting the code under test into the test build</title>
             <para>
                 The runner uses the <link linkend="embedding">Tooling API</link> to execute builds.
@@ -158,7 +158,7 @@
                 The TestKit uses dedicated daemon processes that are automatically shut down after test execution.
             </para>
         </section>
-        <section id="gradle-runner-gradle-version">
+        <section id="sub:gradle-runner-gradle-version">
             <title>The Gradle version used to test</title>
             <para>
                 The Gradle runner requires a Gradle distribution in order to execute the build.
@@ -189,7 +189,7 @@
                 <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock-gradle-version"/>
             </sample>
         </section>
-        <section id="test-kit-debug">
+        <section id="sub:test-kit-debug">
             <title>Debugging build logic</title>
             <para>
                 The runner uses the <link linkend="embedding">Tooling API</link> to execute builds.
