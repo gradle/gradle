@@ -18,6 +18,7 @@ package org.gradle.internal;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -130,6 +131,31 @@ public class SystemProperties {
             return factory.create();
         } finally {
             setJavaHomeDir(originalJavaHomeDir);
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Executes a Runnable with a system property set to a given value.  Sets the system property back to the original value (or
+     * clears it if it was never set) after the runnable completes.
+     *
+     * @param propertyName The name of the property to set
+     * @param value The value to temporarily set the property to
+     * @param runnable The Runnable to execute with the system property set to this value
+     */
+    public void withSystemProperty(String propertyName, String value, Runnable runnable) {
+        lock.lock();
+        String originalValue = System.getProperty(propertyName);
+        System.setProperty(propertyName, value);
+
+        try {
+            runnable.run();
+        } finally {
+            if (originalValue != null) {
+                System.setProperty(propertyName, originalValue);
+            } else {
+                System.clearProperty(propertyName);
+            }
             lock.unlock();
         }
     }

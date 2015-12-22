@@ -46,4 +46,38 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
         }
         assert SystemProperties.instance.javaHomeDir == originalJavaHomeDir
     }
+
+    def "sets a system property for the duration of a Runnable"() {
+        final int threadCount = 100
+        final String propertyWithoutValue = "org.gradle.test.sysprop.without.value"
+        final String propertyWithOriginalValue = "org.gradle.test.sysprop.with.original"
+        System.setProperty(propertyWithOriginalValue, "original")
+
+        when:
+        async {
+            threadCount.times { i ->
+                start {
+                    SystemProperties.instance.withSystemProperty(propertyWithOriginalValue, i.toString(), new Runnable() {
+                        @Override
+                        void run() {
+                            assert System.getProperty(propertyWithOriginalValue) == i.toString()
+                        }
+                    })
+                    SystemProperties.instance.withSystemProperty(propertyWithoutValue, i.toString(), new Runnable() {
+                        @Override
+                        void run() {
+                            assert System.getProperty(propertyWithoutValue) == i.toString()
+                        }
+                    })
+                }
+            }
+        }
+
+        then:
+        assert System.getProperty(propertyWithOriginalValue) == "original"
+        assert System.getProperty(propertyWithoutValue) == null
+
+        cleanup:
+        System.clearProperty(propertyWithOriginalValue)
+    }
 }

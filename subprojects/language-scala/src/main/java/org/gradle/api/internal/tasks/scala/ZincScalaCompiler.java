@@ -25,6 +25,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.*;
 import org.gradle.internal.Factory;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -65,52 +66,53 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
     // need to defer loading of Zinc/sbt/Scala classes until we are
     // running in the compiler daemon and have them on the class path
     private static class Compiler {
-        static WorkResult execute(final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath, File gradleUserHome, ScalaJavaJointCompileSpec spec) {
+        static WorkResult execute(final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath, File gradleUserHome, final ScalaJavaJointCompileSpec spec) {
             LOGGER.info("Compiling with Zinc Scala compiler.");
 
             final xsbti.Logger logger = new SbtLoggerAdapter();
 
             CacheRepository cacheRepository = ZincCompilerServices.getInstance(gradleUserHome).get(CacheRepository.class);
-            PersistentCache zincCache = cacheRepository.cache("zinc")
+            final PersistentCache zincCache = cacheRepository.cache("zinc")
                                             .withDisplayName("Zinc compiler cache")
                                             .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
                                             .open();
             final File cacheDir = zincCache.getBaseDir();
 
-            // We have to set this system property here, before we create the compiler because the property is read statically
-            // when the com.typesafe.zinc.Compiler class is loaded
-            String userSuppliedZincDir = System.setProperty("zinc.dir", cacheDir.getAbsolutePath());
+            final String userSuppliedZincDir = System.getProperty("zinc.dir");
             if (userSuppliedZincDir != null && !userSuppliedZincDir.equals(cacheDir.getAbsolutePath())) {
                 LOGGER.warn(ZINC_DIR_IGNORED_MESSAGE);
             }
 
-            com.typesafe.zinc.Compiler compiler = zincCache.useCache("initialize", new Factory<com.typesafe.zinc.Compiler>() {
+            // We have to set this system property before we create the compiler because the property is read statically
+            // when the com.typesafe.zinc.Compiler class is loaded
+            SystemProperties.getInstance().withSystemProperty(ZINC_DIR_SYSTEM_PROPERTY, cacheDir.getAbsolutePath(), new Runnable() {
                 @Override
-                public com.typesafe.zinc.Compiler create() {
-                    return createCompiler(scalaClasspath, zincClasspath, logger, cacheDir);
+                public void run() {
+                    com.typesafe.zinc.Compiler compiler = zincCache.useCache("initialize", new Factory<com.typesafe.zinc.Compiler>() {
+                        @Override
+                        public com.typesafe.zinc.Compiler create() {
+                            return createCompiler(scalaClasspath, zincClasspath, logger, cacheDir);
+                        }
+                    });
+
+                    zincCache.close();
+
+                    List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
+                    List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
+                    Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
+                            scalacOptions, javacOptions, spec.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);
+                    if (LOGGER.isDebugEnabled()) {
+                        Inputs.debug(inputs, logger);
+                    }
+
+                    try {
+                        compiler.compile(inputs, logger);
+                    } catch (xsbti.CompileFailed e) {
+                        throw new CompilationFailedException(e);
+                    }
+
                 }
             });
-            zincCache.close();
-
-            List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
-            List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
-            Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
-                    scalacOptions, javacOptions, spec.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);
-            if (LOGGER.isDebugEnabled()) {
-                Inputs.debug(inputs, logger);
-            }
-
-            try {
-                compiler.compile(inputs, logger);
-            } catch (xsbti.CompileFailed e) {
-                throw new CompilationFailedException(e);
-            }
-
-            // Reset any user-supplied zinc dir so that we get the warning message on every
-            // compiler invocation
-            if (userSuppliedZincDir != null) {
-                System.setProperty(ZINC_DIR_SYSTEM_PROPERTY, userSuppliedZincDir);
-            }
 
             return new SimpleWorkResult(true);
         }

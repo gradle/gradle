@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.scala.ZincScalaCompiler
 import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.GradleVersion
@@ -39,12 +40,6 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
 
     def setup() {
         blockingServer.start()
-        // Need to set our own GradleUserHomeDir so that we can be sure to cause
-        // compiler-interface.jar to be created as part of the compiler instantiation
-        // as this is the root of parallelism issues with the Zinc compiler
-        executer.withArgument("--parallel")
-                .withArgument("--max-workers=${MAX_PARALLEL_COMPILERS}")
-                .withGradleUserHomeDir(gradleUserHome)
     }
 
     def "multi-project build is multi-process safe"() {
@@ -64,7 +59,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
                 $userProvidedZincDirSystemProperty
             }
         """
-        blockingServer.expectConcurrentExecution(compileTasks, {})
+        expectTasksWithParallelExecuter()
 
         when:
         succeeds("build")
@@ -73,20 +68,17 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
         noExceptionThrown()
         gradleUserHomeInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
-        output.count(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE) == 4
+        output.count(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
 
         // Check that we can successfully use an existing compiler-interface.jar as well
         when:
-        blockingServer.expectConcurrentExecution(compileTasks, {})
-        executer.withArgument("--parallel")
-                .withArgument("--max-workers=${projects.size()}")
-                .withGradleUserHomeDir(gradleUserHome)
+        expectTasksWithParallelExecuter()
         succeeds("clean", "build")
 
         then:
         noExceptionThrown()
         gradleUserHomeInterfaceJars.size() == 1
-        output.count(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE) == 4
+        output.count(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
     }
 
     def "multiple tasks in a single build are multi-process safe"() {
@@ -102,9 +94,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
         }
         buildFile << blockUntilAllCompilersAreReady('$path')
         buildFile << userProvidedZincDirSystemProperty
-
-        blockingServer.expectConcurrentExecution(compileTasks, {})
-        executer.withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
+        expectTasksWithIntraProjectParallelExecuter()
 
         when:
         succeeds("build")
@@ -113,7 +103,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
         noExceptionThrown()
         gradleUserHomeInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
-        output.count(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE) == 4
+        output.count(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
     }
 
     def "multiple independent builds are multi-process safe" () {
@@ -134,8 +124,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
 
             compileTasks << ":${projectName}:compileMainJarMainScala".toString()
         }
-        blockingServer.expectConcurrentExecution(compileTasks, {})
-        executer.withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
+        expectTasksWithIntraProjectParallelExecuter()
 
         when:
         succeeds("buildAll")
@@ -144,7 +133,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
         noExceptionThrown()
         gradleUserHomeInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
-        output.count(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE) == 4
+        output.count(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
     }
 
     def "no warning shown when zinc dir is not set by user"() {
@@ -163,7 +152,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
                 ${blockUntilAllCompilersAreReady('$path')}
             }
         """
-        blockingServer.expectConcurrentExecution(compileTasks, {})
+        expectTasksWithParallelExecuter()
 
         when:
         succeeds("build")
@@ -172,6 +161,20 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
         noExceptionThrown()
         gradleUserHomeInterfaceJars.size() == 1
         !output.contains(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE)
+    }
+
+    GradleExecuter expectTasksWithParallelExecuter() {
+        blockingServer.expectConcurrentExecution(compileTasks, {})
+        // Need to set our own GradleUserHomeDir so that we can be sure to cause
+        // compiler-interface.jar to be created as part of the compiler instantiation
+        // as this is the root of parallelism issues with the Zinc compiler
+        return executer.withArgument("--parallel")
+                       .withArgument("--max-workers=${MAX_PARALLEL_COMPILERS}")
+                       .withGradleUserHomeDir(gradleUserHome)
+    }
+
+    GradleExecuter expectTasksWithIntraProjectParallelExecuter() {
+        return expectTasksWithParallelExecuter().withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
     }
 
     def getScalaBuild() {
