@@ -213,8 +213,8 @@ language levels for each module in a project.
 
 - ~~Multiproject build with same target Java versions~~
 - ~~Multiproject build with mix of target Java versions~~
-- Multiproject build with mix of Java and non-Java projects
-- Multiproject build with no Java projects
+- ~~Multiproject build with mix of Java and non-Java projects~~
+- ~~Multiproject build with no Java projects~~
 - meaningful error for older gradle providers
 
 ### Story - Expose Idea module specific source level in IdeaPlugin
