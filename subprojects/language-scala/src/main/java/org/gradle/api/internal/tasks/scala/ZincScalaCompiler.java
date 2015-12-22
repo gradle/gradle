@@ -49,7 +49,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
     private Iterable<File> zincClasspath;
     private final File gradleUserHome;
 
-    public static final String ZINC_DIR_IGNORED_MESSAGE = "In order to ensure parallel-safe Zinc cache directories, setting a user-supplied cache directory is not supported and will be ignored.";
+    public static final String ZINC_DIR_IGNORED_MESSAGE = "In order to guarantee parallel safe Scala compilation, Gradle does not support the 'zinc.dir' system property and ignores any value provided.";
 
     public ZincScalaCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, File gradleUserHome) {
         this.scalaClasspath = scalaClasspath;
@@ -78,10 +78,10 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
 
             // We have to set this system property here, before we create the compiler because the property is read statically
             // when the com.typesafe.zinc.Compiler class is loaded
-            if (System.getProperty("zinc.dir") != null && !System.getProperty("zinc.dir").equals(cacheDir.getAbsolutePath())) {
+            String zincDir = System.setProperty("zinc.dir", cacheDir.getAbsolutePath());
+            if (zincDir != null && !zincDir.equals(cacheDir.getAbsolutePath())) {
                 LOGGER.warn(ZINC_DIR_IGNORED_MESSAGE);
             }
-            System.setProperty("zinc.dir", cacheDir.getAbsolutePath());
 
             com.typesafe.zinc.Compiler compiler = zincCache.useCache("initialize", new Factory<com.typesafe.zinc.Compiler>() {
                 @Override

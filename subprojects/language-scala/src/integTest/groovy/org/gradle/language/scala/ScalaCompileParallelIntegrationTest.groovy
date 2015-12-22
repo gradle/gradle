@@ -28,21 +28,28 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
+@Issue("GRADLE-3371")
+@Issue("GRADLE-3370")
 @IgnoreIf({GradleContextualExecuter.parallel})
 // these tests are always parallel
-class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
+class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
+    private static final int MAX_PARALLEL_COMPILERS = 4
     def compileTasks = []
     @Rule public final BlockingHttpServer blockingServer = new BlockingHttpServer()
 
     def setup() {
         blockingServer.start()
+        // Need to set our own GradleUserHomeDir so that we can be sure to cause
+        // compiler-interface.jar to be created as part of the compiler instantiation
+        // as this is the root of parallelism issues with the Zinc compiler
+        executer.withArgument("--parallel")
+                .withArgument("--max-workers=${MAX_PARALLEL_COMPILERS}")
+                .withGradleUserHomeDir(gradleUserHome)
     }
 
-    @Issue("GRADLE-3371")
-    @Issue("GRADLE-3370")
     def "multi-project build is multi-process safe"() {
         given:
-        def projects = (1..4)
+        def projects = (1..MAX_PARALLEL_COMPILERS)
         projects.each {
             def projectName = "project$it"
             populateProject(projectName)
@@ -51,19 +58,13 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             """
             compileTasks << ":${projectName}:compileMainJarMainScala".toString()
         }
-        buildFile.text = """
+        buildFile << """
             allprojects {
-                tasks.withType(PlatformScalaCompile) {
-                    doFirst ${blockUntilAllCompilersAreReady('$path')}
-
-                    $customZincDirSystemProperty
-                }
+                ${blockUntilAllCompilersAreReady('$path')}
+                $userProvidedZincDirSystemProperty
             }
         """
         blockingServer.expectConcurrentExecution(compileTasks, {})
-        executer.withArgument("--parallel")
-                .withArgument("--max-workers=${projects.size()}")
-                .withGradleUserHomeDir(gradleUserHome)
 
         when:
         succeeds("build")
@@ -73,41 +74,36 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         gradleUserHomeInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
         output.contains(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE)
+
+        // Check that we can successfully use an existing compiler-interface.jar as well
+        when:
+        blockingServer.expectConcurrentExecution(compileTasks, {})
+        executer.withArgument("--parallel")
+                .withArgument("--max-workers=${projects.size()}")
+                .withGradleUserHomeDir(gradleUserHome)
+        succeeds("clean", "build")
+
+        then:
+        noExceptionThrown()
+        gradleUserHomeInterfaceJars.size() == 1
     }
 
     def "multiple tasks in a single build are multi-process safe"() {
         given:
-        buildFile << """
-            $scalaBuild
-        """
+        buildFile << scalaBuild
 
-        def components = (1..4)
+        def components = (1..MAX_PARALLEL_COMPILERS)
         components.each {
             def componentName = "main$it"
-            def srcDir = file("src/${componentName}/scala/org/${componentName}")
-            def sourceFile = srcDir.file("Main.scala")
-            srcDir.mkdirs()
+            populateComponent(componentName)
 
-            buildFile << """
-                ${jvmComponent(componentName)}
-            """
-            sourceFile << """
-                ${scalaSourceFile("org." + componentName)}
-            """
             compileTasks << ":compile${componentName.capitalize()}Jar${componentName.capitalize()}Scala".toString()
         }
-        buildFile << """
-            tasks.withType(PlatformScalaCompile) {
-                prependParallelSafeAction ${blockUntilAllCompilersAreReady('$path')}
+        buildFile << blockUntilAllCompilersAreReady('$path')
+        buildFile << userProvidedZincDirSystemProperty
 
-                $customZincDirSystemProperty
-            }
-        """
         blockingServer.expectConcurrentExecution(compileTasks, {})
-        executer.withArgument("--parallel")
-                .withArgument("--max-workers=${components.size()}")
-                .withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
-                .withGradleUserHomeDir(gradleUserHome)
+        executer.withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
 
         when:
         succeeds("build")
@@ -126,30 +122,19 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             $parallelizableGradleBuildClass
         """
 
-        def projects = (1..4)
+        def projects = (1..MAX_PARALLEL_COMPILERS)
         projects.each {
             def projectName = "project$it"
             populateProject(projectName)
+            projectBuildFile(projectName) << blockUntilAllCompilersAreReady(':$project.name:$name')
+            projectBuildFile(projectName) << userProvidedZincDirSystemProperty
 
-            def projectDir = testDirectory.file(projectName)
-            def projectBuildFile = projectDir.file("build.gradle")
-            projectBuildFile << """
-                tasks.withType(PlatformScalaCompile) {
-                    doFirst ${blockUntilAllCompilersAreReady(':$project.name:$name')}
-
-                    $customZincDirSystemProperty
-                }
-            """
-
-            buildFile << gradleBuildTask(projectName, projectDir)
+            buildFile << gradleBuildTask(projectName)
 
             compileTasks << ":${projectName}:compileMainJarMainScala".toString()
         }
         blockingServer.expectConcurrentExecution(compileTasks, {})
-        executer.withArgument("--parallel")
-                .withArgument("--max-workers=${projects.size()}")
-                .withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
-                .withGradleUserHomeDir(gradleUserHome)
+        executer.withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
 
         when:
         succeeds("buildAll")
@@ -172,17 +157,12 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             """
             compileTasks << ":${projectName}:compileMainJarMainScala".toString()
         }
-        buildFile.text = """
+        buildFile << """
             allprojects {
-                tasks.withType(PlatformScalaCompile) {
-                    doFirst ${blockUntilAllCompilersAreReady('$path')}
-                }
+                ${blockUntilAllCompilersAreReady('$path')}
             }
         """
         blockingServer.expectConcurrentExecution(compileTasks, {})
-        executer.withArgument("--parallel")
-            .withArgument("--max-workers=${projects.size()}")
-            .withGradleUserHomeDir(gradleUserHome)
 
         when:
         succeeds("build")
@@ -191,50 +171,6 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
         gradleUserHomeInterfaceJars.size() == 1
         !output.contains(ZincScalaCompiler.ZINC_DIR_IGNORED_MESSAGE)
-    }
-
-    def "builds successfully when compiler-interface.jar already exists"() {
-        given:
-        def projects = (1..4)
-        projects.each {
-            def projectName = "project$it"
-            populateProject(projectName)
-            settingsFile << """
-                include '$projectName'
-            """
-            compileTasks << ":${projectName}:compileMainJarMainScala".toString()
-        }
-        buildFile.text = """
-            allprojects {
-                tasks.withType(PlatformScalaCompile) {
-                    doFirst ${blockUntilAllCompilersAreReady('$path')}
-
-                    $customZincDirSystemProperty
-                }
-            }
-        """
-        blockingServer.expectConcurrentExecution(compileTasks, {})
-        executer.withArgument("--parallel")
-            .withArgument("--max-workers=${projects.size()}")
-            .withGradleUserHomeDir(gradleUserHome)
-
-        when:
-        succeeds("build")
-
-        then:
-        noExceptionThrown()
-        gradleUserHomeInterfaceJars.size() == 1
-
-        when:
-        blockingServer.expectConcurrentExecution(compileTasks, {})
-        executer.withArgument("--parallel")
-            .withArgument("--max-workers=${projects.size()}")
-            .withGradleUserHomeDir(gradleUserHome)
-        succeeds("clean", "build")
-
-        then:
-        noExceptionThrown()
-        gradleUserHomeInterfaceJars.size() == 1
     }
 
     def getScalaBuild() {
@@ -289,6 +225,14 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             .findAll { it.name == "compiler-interface.jar" }
     }
 
+    TestFile projectDir(String projectName) {
+        return testDirectory.file(projectName)
+    }
+
+    TestFile projectBuildFile(String projectName) {
+        return projectDir(projectName).file("build.gradle")
+    }
+
     String getParallelizableGradleBuildClass() {
         return """
             @ParallelizableTask
@@ -298,23 +242,29 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    String getCustomZincDirSystemProperty() {
+    String getUserProvidedZincDirSystemProperty() {
         return """
-            options.forkOptions.jvmArgs += '-Dzinc.dir=${TextUtil.normaliseFileSeparators(configuredZincDir.absolutePath)}'
+            tasks.withType(PlatformScalaCompile) {
+                options.forkOptions.jvmArgs += '-Dzinc.dir=${TextUtil.normaliseFileSeparators(configuredZincDir.absolutePath)}'
+            }
         """
     }
 
     String blockUntilAllCompilersAreReady(String id) {
-        return """{
-            logger.lifecycle "$id is waiting for other compile tasks"
-            URL url = new URL("http://localhost:${blockingServer.port}/$id")
-            url.openConnection().getHeaderField('RESPONSE')
-            logger.lifecycle "$id is starting"
-        }
+        return """
+            tasks.withType(PlatformScalaCompile) {
+                prependParallelSafeAction {
+                    logger.lifecycle "$id is waiting for other compile tasks"
+                    URL url = new URL("http://localhost:${blockingServer.port}/$id")
+                    url.openConnection().getHeaderField('RESPONSE')
+                    logger.lifecycle "$id is starting"
+                }
+            }
         """
     }
 
-    String gradleBuildTask(String projectName, File projectDir) {
+    String gradleBuildTask(String projectName) {
+        File projectDir = projectDir(projectName)
         return """
                 task("${projectName}Build", type: ParallelGradleBuild) {
                     startParameter.searchUpwards = false
@@ -328,15 +278,22 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void populateProject(String projectName) {
-        def projectDir = testDirectory.file(projectName)
-        def projectBuildFile = projectDir.file("build.gradle")
-        def srcDir = projectDir.file("src/main/scala/org/${projectName}")
+        def srcDir = projectDir(projectName).file("src/main/scala/org/${projectName}")
         def sourceFile = srcDir.file("Main.scala")
         srcDir.mkdirs()
-        projectBuildFile << """
-            $scalaBuild
-            ${jvmComponent('main')}
-        """
+
+        projectBuildFile(projectName) << scalaBuild
+        projectBuildFile(projectName) << jvmComponent('main')
+
         sourceFile << scalaSourceFile("org.${projectName}")
+    }
+
+    void populateComponent(String componentName) {
+        def srcDir = file("src/${componentName}/scala/org/${componentName}")
+        def sourceFile = srcDir.file("Main.scala")
+        srcDir.mkdirs()
+
+        buildFile << jvmComponent(componentName)
+        sourceFile << scalaSourceFile("org.${componentName}")
     }
 }
