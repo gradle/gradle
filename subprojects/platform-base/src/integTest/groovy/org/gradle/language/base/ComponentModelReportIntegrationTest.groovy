@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
+import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegrationTest {
@@ -32,7 +33,7 @@ class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegra
         succeeds 'model'
 
         then:
-        output.contains """
+        output.contains TextUtil.toPlatformLineSeparators("""
             + components
                   | Type:   	org.gradle.platform.base.ComponentSpecContainer
                   | Creator: 	ComponentModelBasePlugin.Rules#components
@@ -81,7 +82,7 @@ class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegra
                                  ⤷ DeclarationRules#mutateMyComponentSource
                                  ⤷ ComponentRules#addSourcesSetsToProjectSourceSet > components.myComponent.getSources() > afterEach()
                                  ⤷ ComponentRules#applyDefaultSourceConventions > components.myComponent.getSources() > afterEach()
-        """.stripIndent().trim()
+        """.stripIndent().trim())
     }
 
     def "model report for managed software components show them all with their managed properties"() {
@@ -95,7 +96,7 @@ class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegra
         succeeds 'model'
 
         then:
-        output.contains """
+        output.contains TextUtil.toPlatformLineSeparators("""
             + components
                   | Type:   	org.gradle.platform.base.ComponentSpecContainer
                   | Creator: 	ComponentModelBasePlugin.Rules#components
@@ -158,7 +159,7 @@ class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegra
                                   | Type:   	java.lang.String
                                   | Value:  	my component sources
                                   | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myComponentSource)
-        """.stripIndent().trim()
+        """.stripIndent().trim())
     }
 
     @Unroll
@@ -173,7 +174,7 @@ class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegra
         succeeds 'components'
 
         then:
-        output.contains("""
+        output.contains TextUtil.toPlatformLineSeparators("""
             $componentType 'myComponent'
             ${'-'.multiply((componentType+" 'myComponent'").length())}
 
