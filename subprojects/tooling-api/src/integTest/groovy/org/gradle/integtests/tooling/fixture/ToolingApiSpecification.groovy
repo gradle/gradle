@@ -27,14 +27,14 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.util.GradleVersion
-import org.gradle.util.RetryRule
+import org.gradle.testing.internal.util.RetryRule
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import spock.lang.Specification
 
-import static org.gradle.util.RetryRule.retryIf
+import static org.gradle.testing.internal.util.RetryRule.retryIf
 
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.

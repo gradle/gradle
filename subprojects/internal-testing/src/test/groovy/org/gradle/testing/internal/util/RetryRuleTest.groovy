@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.testing.internal.util
 
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.util.RetryRule.retryIf
+import static org.gradle.testing.internal.util.RetryRule.retryIf
 
 @SuppressWarnings("GroovyUnreachableStatement")
 class RetryRuleTest extends Specification {

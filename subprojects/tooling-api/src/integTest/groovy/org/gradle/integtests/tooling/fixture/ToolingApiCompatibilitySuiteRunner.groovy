@@ -27,6 +27,7 @@ import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
+import org.gradle.testing.internal.util.RetryRule
 import org.gradle.util.*
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
