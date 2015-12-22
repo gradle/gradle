@@ -83,7 +83,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
             Collection<?> values = ScalarCollectionSchema.get(modelNodeInternal);
             if (values == null) {
-                return Optional.absent();
+                return Optional.of("null");
             }
             return Optional.of(values.toString());
         }
