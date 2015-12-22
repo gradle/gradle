@@ -35,7 +35,7 @@ public class TestKitSupportedCheckModelProducer implements ModelProducer {
 
     @Override
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
-        if (ConnectorConsumer.TEST_KIT.equals(operationParameters.getConsumer()) && !isVersionSupported()) {
+        if (ConnectorConsumer.TEST_KIT == operationParameters.getConsumer() && !isVersionSupported()) {
             throw new UnsupportedVersionException(String.format("The version of Gradle you are using (%s) does not support executing builds with TestKit. Support for this is available in Gradle %s and all later versions.",
                 providerVersion, SUPPORTED_VERSION.getVersion()));
         }
