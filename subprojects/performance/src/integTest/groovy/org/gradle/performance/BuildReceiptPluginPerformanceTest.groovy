@@ -81,7 +81,7 @@ class BuildReceiptPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         def (with, without) = [results.buildResult(WITH_PLUGIN_LABEL), results.buildResult(WITHOUT_PLUGIN_LABEL)]
 
         // cannot be more than one second slower
-        with.totalTime.average - without.totalTime.average < millis(1000)
+        with.totalTime.average - without.totalTime.average < millis(1500)
 
         // cannot use 20MB more “memory”
         with.totalMemoryUsed.average - without.totalMemoryUsed.average < mbytes(20)
