@@ -20,7 +20,13 @@ import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
 
-class RetryRule implements MethodRule { // Implements MethodRule, not TestRule because of a known limitation of Spock
+/*
+  Implements MethodRule, not TestRule because of a limitation of Spock.
+  Note that setup or cleanup methods won't be called between retrying and the same test instance is used for retrying.
+  If the test method depends on state held in the test instance, then retrying might not behave as expected.
+  See this thread for more details: https://groups.google.com/forum/#!msg/spockframework/95ACCVg-aCQ/0SIvxoLhX7UJ:
+ */
+class RetryRule implements MethodRule {
 
     private Closure<Boolean> shouldRetry;
 
