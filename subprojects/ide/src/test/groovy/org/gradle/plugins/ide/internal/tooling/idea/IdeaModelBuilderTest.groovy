@@ -82,13 +82,12 @@ class IdeaModelBuilderTest extends Specification {
         sourceLanguageLevel << ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9']
     }
 
-    def "module source language level matches idea plugin language level for non-jvm projects"() {
+    def "module java source settings are null for non-jvm projects"() {
         when:
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == defaultIdeaPluginLanguageLevelForNonJavaProjects
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings == null
     }
 
     def "module source language level matches source compatibility level from java plugin for jvm projects"() {
@@ -136,36 +135,15 @@ class IdeaModelBuilderTest extends Specification {
         !ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.isSourceLanguageLevelInherited()
     }
 
-    def "can handle multi project builds where no projects are Java projects with default configuration"() {
+    def "can handle multi project builds where no projects are Java projects"() {
         when:
         def ideaProject = buildIdeaProjectModel()
 
         then:
         ideaProject.javaSourceSettings.sourceLanguageLevel == defaultIdeaPluginLanguageLevelForNonJavaProjects
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == defaultIdeaPluginLanguageLevelForNonJavaProjects
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.isSourceLanguageLevelInherited()
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.isSourceLanguageLevelInherited()
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.isSourceLanguageLevelInherited()
-    }
-
-    def "can handle multi project builds where no projects are Java projects with explicit configuration"() {
-        given:
-        root.idea.project.languageLevel = '1.2'
-
-        when:
-        def ideaProject = buildIdeaProjectModel()
-
-        then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.isSourceLanguageLevelInherited()
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.isSourceLanguageLevelInherited()
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.isSourceLanguageLevelInherited()
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings == null
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings == null
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings == null
     }
 
     def "can handle multi project builds with different source language levels"() {
@@ -204,35 +182,17 @@ class IdeaModelBuilderTest extends Specification {
         ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
         ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_4
         ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
         !ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.isSourceLanguageLevelInherited()
         !ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.isSourceLanguageLevelInherited()
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.isSourceLanguageLevelInherited()
-    }
-
-    def "can handle multi project builds where root project is not a java project but some children are"() {
-        given:
-        root.idea.project.languageLevel = '1.2'
-        child1.plugins.apply(JavaPlugin)
-        child1.sourceCompatibility = '1.3'
-
-        when:
-        def ideaProject = buildIdeaProjectModel()
-
-        then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.isSourceLanguageLevelInherited()
-        !ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.isSourceLanguageLevelInherited()
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.isSourceLanguageLevelInherited()
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings == null
     }
 
     def "project target runtime matches current jvm in use"() {
         when:
+        [root, child1, child2].each {
+            it.plugins.apply(JavaPlugin)
+        }
         def ideaProject = buildIdeaProjectModel()
-
         then:
         ideaProject.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
         ideaProject.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
