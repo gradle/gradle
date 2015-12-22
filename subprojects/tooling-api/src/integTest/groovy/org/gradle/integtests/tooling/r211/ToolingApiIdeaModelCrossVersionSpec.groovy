@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.tooling.r211
-
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -278,6 +277,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private JavaVersion getDefaultIdeaPluginLanguageLevelForJavaProjects() {
-        JavaVersion.current() // see IdeaPlugin#configureIdeaProjectForJava(Project)
+        // see IdeaPlugin#configureIdeaProjectForJava(Project)
+        getTargetDist().getVersion().toString().startsWith("1.0-milestone-8") ? JavaVersion.VERSION_1_5 : JavaVersion.current()
     }
 }
