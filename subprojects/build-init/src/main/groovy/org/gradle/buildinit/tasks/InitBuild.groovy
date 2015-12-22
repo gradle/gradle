@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.options.OptionValues
 import org.gradle.api.tasks.TaskAction
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
+import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor;
 
 /**
  * Generates a Gradle project structure.
@@ -31,6 +32,7 @@ import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 @Incubating
 class InitBuild extends DefaultTask {
     private String type
+    private String with
 
     ProjectLayoutSetupRegistry projectLayoutRegistry
 
@@ -44,6 +46,15 @@ class InitBuild extends DefaultTask {
         type ?: project.file("pom.xml").exists() ? BuildInitTypeIds.POM : BuildInitTypeIds.BASIC
     }
 
+    /**
+     * Modifier options that influence how a type of build is created
+     *
+     * This property can be set via command-line option '--with'
+     */
+    String getWith() {
+        with ?: null
+    }
+
     ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
         if (projectLayoutRegistry == null) {
             projectLayoutRegistry = services.get(ProjectLayoutSetupRegistry)
@@ -54,11 +65,18 @@ class InitBuild extends DefaultTask {
     @TaskAction
     void setupProjectLayout() {
         def type = getType()
+        def modifier = getWith()
         def projectLayoutRegistry = getProjectLayoutRegistry()
         if (!projectLayoutRegistry.supports(type)) {
             throw new GradleException("The requested build setup type '${type}' is not supported. Supported types: ${projectLayoutRegistry.supportedTypes.collect{"'$it'"}.sort().join(", ")}.")
         }
-        projectLayoutRegistry.get(type).generate()
+
+        ProjectInitDescriptor initDescriptor = (ProjectInitDescriptor) projectLayoutRegistry.get(type)
+        if (modifier != null) {
+            initDescriptor.withModifier(modifier)
+        }
+
+        initDescriptor.generate()
     }
 
     @Option(option = "type", description = "Set type of build to create.")
@@ -69,5 +87,10 @@ class InitBuild extends DefaultTask {
     @OptionValues("type")
     List<String> getAvailableBuildTypes(){
         return getProjectLayoutRegistry().getSupportedTypes();
+    }
+
+    @Option(option = "with", description = "Set modifiers for how a type of build is created.")
+    public void setWith(String with) {
+        this.with = with
     }
 }

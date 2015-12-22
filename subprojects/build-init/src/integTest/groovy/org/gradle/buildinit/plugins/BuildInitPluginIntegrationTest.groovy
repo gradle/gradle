@@ -160,6 +160,14 @@ include 'child'
         failure.assertHasCause("The requested build setup type 'some-unknown-library' is not supported.")
     }
 
+    def "gives decent error message when using unknown init-modifier"() {
+        when:
+        fails('init', '--type', 'basic', '--with', 'fakemodifier')
+
+        then:
+        failure.assertHasCause("The requested init modifier 'fakemodifier' is not supported.")
+    }
+
     private TestFile pom() {
         file("pom.xml") << """
       <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

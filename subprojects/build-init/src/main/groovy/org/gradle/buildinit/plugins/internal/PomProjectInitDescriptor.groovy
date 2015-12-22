@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal
 
+import org.gradle.api.GradleException
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.buildinit.plugins.internal.maven.Maven2Gradle
@@ -31,6 +32,13 @@ class PomProjectInitDescriptor implements ProjectInitDescriptor {
     PomProjectInitDescriptor(FileResolver fileResolver, MavenSettingsProvider mavenSettingsProvider) {
         this.fileResolver = fileResolver
         this.settingsProvider = mavenSettingsProvider
+    }
+
+    public ProjectInitDescriptor withModifier(String modifier) {
+        throw new GradleException(
+            "The requested init modifier '"+modifier+"' is not supported."
+            + " This build setup type does not currently support init modifiers."
+        );
     }
 
     void generate() {

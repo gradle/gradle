@@ -16,11 +16,20 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.GradleException;
+
 import java.util.ArrayList;
 import java.util.List;
 
 abstract class TemplateBasedProjectInitDescriptor implements ProjectInitDescriptor {
     private List<TemplateOperation> templateOperations = new ArrayList<TemplateOperation>();
+
+    public ProjectInitDescriptor withModifier(String modifier) {
+        throw new GradleException(
+            "The requested init modifier '"+modifier+"' is not supported."
+            + " This build setup type does not currently support init modifiers."
+        );
+    }
 
     public void generate() {
         for (TemplateOperation templateOperation : templateOperations) {

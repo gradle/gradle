@@ -103,6 +103,18 @@
         <para>All build setup types include the setup of the Gradle Wrapper.</para>
     </section>
     <section>
+        <title>How to set it up</title>
+        <para>
+            Different build setup types may support different setup <firstterm>modifiers</firstterm>.  The modifier is specified by supplying a
+            <literal>--with</literal>
+            argument value.  For example, to create a Java library project that uses Spock instead of JUnit for unit testing, simple execute:
+            <literal>gradle init --type java-library --with spock</literal>
+        </para>
+        <para>
+            Note that how many and which modifiers are supported will vary depending on the build setup type.
+        </para>
+    </section>
+    <section>
         <title>Build init types</title>
         <note>
             As this plugin is currently <link linkend="feature_lifecycle">incubating</link>, only a few build init types are currently supported.
@@ -141,6 +153,13 @@
                 <listitem>Supports TestNG runner</listitem>
                 <listitem>Generates global exclusions from Maven enforcer plugin settings</listitem>
             </itemizedlist>
+            <para>
+                Supported setup modifiers:
+            </para>
+            <itemizedlist>
+                <listitem>None
+                </listitem>
+            </itemizedlist>
         </section>
         <section>
             <title>“<literal>java-library</literal>”
@@ -160,6 +179,13 @@
                  for testing</listitem>
                 <listitem>Has directories in the conventional locations for source code</listitem>
                 <listitem>Contains a sample class and unit test, if there are no existing source or test files</listitem>
+            </itemizedlist>
+            <para>
+                Supported setup modifiers:
+            </para>
+            <itemizedlist>
+                <listitem><literal>--with spock</literal>: Uses <ulink url="http://code.google.com/p/spock/">Spock</ulink> for testing instead of JUnit
+                </listitem>
             </itemizedlist>
         </section>
         <section>
@@ -181,6 +207,13 @@
                 <listitem>Has directories in the conventional locations for source code</listitem>
                 <listitem>Contains a sample scala class and an associated ScalaTest test suite, if there are no existing source or test files</listitem>
             </itemizedlist>
+            <para>
+                Supported setup modifiers:
+            </para>
+            <itemizedlist>
+                <listitem>None
+                </listitem>
+            </itemizedlist>
         </section>
         <section>
             <title>“<literal>groovy-library</literal>”
@@ -201,6 +234,13 @@
                 <listitem>Has directories in the conventional locations for source code</listitem>
                 <listitem>Contains a sample Groovy class and an associated Spock specification, if there are no existing source or test files</listitem>
             </itemizedlist>
+            <para>
+                Supported setup modifiers:
+            </para>
+            <itemizedlist>
+                <listitem>None
+                </listitem>
+            </itemizedlist>
         </section>
         <section>
             <title>“basic”</title>
@@ -211,6 +251,13 @@
                 file, with comments and links to help get started.
             </para>
             <para>This type is used when no type was explicitly specified, and no type could be inferred.</para>
+            <para>
+                Supported setup modifiers:
+            </para>
+            <itemizedlist>
+                <listitem>None
+                </listitem>
+            </itemizedlist>
         </section>
     </section>
 </chapter>
