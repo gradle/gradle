@@ -16,7 +16,6 @@
 
 package org.gradle.play.plugins;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -28,7 +27,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
-import org.gradle.api.tasks.Copy;
+import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.reflect.Instantiator;
@@ -137,6 +136,7 @@ public class PlayDistributionPlugin extends RuleSource {
             libSpec.from(distributionJar);
             libSpec.from(binary.getAssetsJarFile());
             libSpec.from(configurations.getPlayRun().getAllArtifacts());
+            libSpec.eachFile(new PlayPluginConfigurations.Renamer(configurations.getPlayRun()));
 
             CopySpec binSpec = distSpec.addChild().into("bin");
             binSpec.from(createStartScripts);
@@ -154,13 +154,13 @@ public class PlayDistributionPlugin extends RuleSource {
             final String stageTaskName = String.format("stage%sDist", StringUtils.capitalize(distribution.getName()));
             final File stageDir = new File(buildDir, "stage");
             final String baseName = StringUtils.isNotEmpty(distribution.getBaseName()) ? distribution.getBaseName() : distribution.getName();
-            tasks.create(stageTaskName, Copy.class, new Action<Copy>() {
+            tasks.create(stageTaskName, Sync.class, new Action<Sync>() {
                 @Override
-                public void execute(Copy copy) {
-                    copy.setDescription("Copies the '" + distribution.getName() + "' distribution to a staging directory.");
-                    copy.setDestinationDir(stageDir);
+                public void execute(Sync sync) {
+                    sync.setDescription("Copies the '" + distribution.getName() + "' distribution to a staging directory.");
+                    sync.setDestinationDir(stageDir);
 
-                    CopySpecInternal baseSpec = copy.getRootSpec().addChild();
+                    CopySpecInternal baseSpec = sync.getRootSpec().addChild();
                     baseSpec.into(baseName);
                     baseSpec.with(distribution.getContents());
                 }
@@ -213,12 +213,7 @@ public class PlayDistributionPlugin extends RuleSource {
                         playConfiguration.getAllArtifacts(),
                         Collections.singleton(assetsJarFile)
                     ),
-                    new Function<File, String>() {
-                        @Override
-                        public String apply(File input) {
-                            return input.getName();
-                        }
-                    }
+                    new PlayPluginConfigurations.Renamer(playConfiguration)
                 )
             );
         }

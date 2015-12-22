@@ -15,7 +15,6 @@
  */
 
 package org.gradle.play.plugins
-
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.NamedDomainObjectSet
@@ -30,7 +29,7 @@ import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec
 import org.gradle.api.java.archives.Manifest
-import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.reflect.Instantiator
@@ -164,7 +163,7 @@ class PlayDistributionPluginTest extends Specification {
         DomainObjectSet jarTasks = Stub(DomainObjectSet)
         PlayApplicationBinarySpec binary = binary("playBinary", jarTasks)
         ModelMap tasks = Mock(ModelMap) {
-            get("stagePlayBinaryDist") >> Stub(Copy)
+            get("stagePlayBinaryDist") >> Stub(Sync)
         }
         PlayDistribution distribution = Mock(PlayDistribution) {
             getName() >> "playBinary"
@@ -182,11 +181,11 @@ class PlayDistributionPluginTest extends Specification {
                 1 * setDescription(_)
                 1 * setDestinationDir(_)
                 1 * setArchiveName("playBinary.zip")
-                1 * from(_ as Copy)
+                1 * from(_ as Sync)
             })
         }
-        1 * tasks.create("stagePlayBinaryDist", Copy, _) >> { String name, Class type, Action action ->
-            action.execute(Mock(Copy) {
+        1 * tasks.create("stagePlayBinaryDist", Sync, _) >> { String name, Class type, Action action ->
+            action.execute(Mock(Sync) {
                 1 * setDescription(_)
                 1 * setDestinationDir(_)
                 1 * getRootSpec() >> Mock(DestinationRootCopySpec) {

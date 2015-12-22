@@ -16,7 +16,6 @@
 
 package org.gradle.play.plugins
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
@@ -24,7 +23,7 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.play.integtest.fixtures.Repositories.*
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORES
 
 class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -41,7 +40,6 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @NotYetImplemented
     @Unroll
     def "uses unique names for dependency jar in distribution when #description"() {
         given:
@@ -59,7 +57,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
             dependencyRoot.file("build.gradle") << """
                 apply plugin: 'java'
                 group = 'com.example.${subprojectName}'
-                version = ${versions[subprojectIdx-1]}
+                version = "1.${subprojectIdx}"
 """
             buildFile << """
                 dependencies {
@@ -72,15 +70,21 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":createPlayBinaryDist")
-        // TODO:
-        zip("build/distributions/playBinary.zip").containsDescendants(
-            "playBinary/lib/sub1-dependency-main.jar",
-            "playBinary/lib/sub2-dependency-main.jar")
 
-        where:
-        versions       | description
-        ['1.0', '2.0'] | "dependencies have the same version"
-        ['1.0', '1.0'] | "dependencies have different versions"
+        zip("build/distributions/playBinary.zip").containsDescendants(
+            "playBinary/lib/sub1.dependency-dependency-1.1.jar",
+            "playBinary/lib/sub2.dependency-dependency-1.2.jar")
+
+        when:
+        file("sub1/dependency/build.gradle") << "version = '2.0'"
+        and:
+        succeeds "dist"
+        then:
+        executedAndNotSkipped(":createPlayBinaryDist")
+
+        zip("build/distributions/playBinary.zip").doesNotContainDescendants("playBinary/lib/sub1.dependency-dependency-1.1.jar").containsDescendants(
+            "playBinary/lib/sub1.dependency-dependency-2.0.jar",
+            "playBinary/lib/sub2.dependency-dependency-1.2.jar")
     }
 
     def "builds empty distribution when no sources present" () {

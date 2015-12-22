@@ -52,22 +52,25 @@ model {
 
 Given a multi-project build with multiple 'leaf' projects that have the same name, when using those projects as runtime dependencies (`playRun` dependencies), the generated jar names can collide when building the distribution archive.
 
-When building the classpath for running the Play application from Gradle, the classpath uses the path to the project instead of the path to the jar under the staging area. 
+When building the classpath for running the Play application from Gradle, the classpath uses the path to the project instead of the path to the jar under the staging area.
 
 #### Implementation
 
-- When copying dependencies into the staging area, 
+- When copying dependencies into the staging area,
     - Copy all non-project dependencies without any name mangling.
-    - Copy all project dependencies with the name ${path-to-project}-main.jar where path-to-project is the Project's path with : changed to . (e.g., sub1:dependency turns into sub1.dependency).
+    - Copy all project dependencies with the name ${path-to-project}-${oldFileName} where path-to-project is the Project's path with : changed to . (e.g., sub1:dependency turns into sub1.dependency).
+        - Only mangle jar files
+        - Replace a single ':' root project path with "root".
+        - This scheme was chosen because this is how we distinguish components in the new software model (vs using GAV).
 
 #### Test coverage
-- Recreate bug with multi-project build with sub1:dependency and sub2:dependency and a root Play application.  Dependent projects can be simple "old" Java projects.  Test should look for uniquely named project dependencies in `playBinary/lib`. Each subproject can publish to a unique group:name. 
+- Recreate bug with multi-project build with sub1:dependency and sub2:dependency and a root Play application.  Dependent projects can be simple "old" Java projects.  Test should look for uniquely named project dependencies in `playBinary/lib`. Each subproject can publish to a unique group:name.
 
 ### Story: Developer packages Play distributions in different formats
 
-Initial version of the Play distribution plugin only added staging and Zip distribution tasks. 
+Initial version of the Play distribution plugin only added staging and Zip distribution tasks.
 
-Add support for Tar distributions. Detailed configuration will have to be performed at the task-level for now. Later stories will make the concept of a distribution more like the relationship between Component/Variant. 
+Add support for Tar distributions. Detailed configuration will have to be performed at the task-level for now. Later stories will make the concept of a distribution more like the relationship between Component/Variant.
 
 #### Test coverage
 - Tar distribution follows layout/details as above (Zip/staging)
@@ -89,7 +92,7 @@ Distributions put all of their contents inside a root directory (usually based o
 - A `DistributionBinary` can be a directory, Zip archive, Tar archive, etc.
 - Instead of configuring a `Tar` task for distribution `foo` to use GZIP, a build author would instead configure a `TarDistributionBinarySpec`.
 
-Other details TBD. 
+Other details TBD.
 
 #### Open Issues
 - A Play distribution zip, by default, contains a shared/docs directory with the scaladocs for the application.  We'll need

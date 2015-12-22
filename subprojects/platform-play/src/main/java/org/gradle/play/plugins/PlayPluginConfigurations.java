@@ -16,17 +16,22 @@
 
 package org.gradle.play.plugins;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * Conventional locations and names for play plugins.
@@ -136,6 +141,78 @@ public class PlayPluginConfigurations {
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             context.add(configuration);
+        }
+    }
+
+    static class Renamer implements Action<FileCopyDetails>, Function<File, String> {
+        private final PlayConfiguration configuration;
+        ImmutableMap<File, String> renames;
+
+        Renamer(PlayConfiguration configuration) {
+            this.configuration = configuration;
+        }
+
+        @Override
+        public void execute(FileCopyDetails fileCopyDetails) {
+            fileCopyDetails.setName(apply(fileCopyDetails.getFile()));
+        }
+
+        @Override
+        public String apply(File input) {
+            calculateRenames();
+            String rename = renames.get(input);
+            if (rename!=null) {
+                return rename;
+            }
+            return input.getName();
+        }
+
+        private void calculateRenames() {
+            if (renames == null) {
+                renames = calculate();
+            }
+        }
+
+        private ImmutableMap<File, String> calculate() {
+            ImmutableMap.Builder<File, String> files = ImmutableMap.builder();
+            for (ResolvedArtifact artifact : getResolvedArtifacts()) {
+                boolean isProject = artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier;
+                if (isProject) {
+                    // rename project dependencies
+                    ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
+                    files.put(artifact.getFile(), rename(projectComponentIdentifier, artifact.getFile()));
+                } else {
+                    // don't rename non-project dependencies
+                    files.put(artifact.getFile(), artifact.getFile().getName());
+                }
+            }
+            return files.build();
+        }
+
+        Set<ResolvedArtifact> getResolvedArtifacts() {
+            return configuration.getConfiguration().getResolvedConfiguration().getResolvedArtifacts();
+        }
+
+        static String rename(ProjectComponentIdentifier id, File file) {
+            if (shouldBeRenamed(file)) {
+                String projectPath = id.getProjectPath();
+                projectPath = projectPathToSafeFileName(projectPath);
+                return String.format("%s-%s", projectPath, file.getName());
+            }
+            return file.getName();
+        }
+
+        static String projectPathToSafeFileName(String projectPath) {
+            if (projectPath.equals(":")) {
+                projectPath = "root";
+            } else {
+                projectPath = projectPath.replaceAll(":", ".").substring(1);
+            }
+            return projectPath;
+        }
+
+        static boolean shouldBeRenamed(File file) {
+            return file.getName().endsWith(".jar");
         }
     }
 }
