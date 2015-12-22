@@ -31,7 +31,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
     }
 
-    @TargetGradleVersion("=2.9")
+    @TargetGradleVersion("<2.11")
     def "older Gradle versions infer project source settings from default idea plugin language level"() {
         given:
         if (projectAppliesJavaPlugin) { buildFile << "apply plugin: 'java'"}
@@ -49,7 +49,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         true                     | defaultIdeaPluginLanguageLevelForJavaProjects
     }
 
-    @TargetGradleVersion("=2.9")
+    @TargetGradleVersion("<2.11")
     def "older Gradle versions infer project source settings from configured idea plugin language level"() {
         given:
         buildFile << """
@@ -73,7 +73,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         applyJavaPlugin << [false, true]
     }
 
-    @TargetGradleVersion("=2.9")
+    @TargetGradleVersion("<2.11")
     def "older Gradle version throw exception when querying idea module source settings"() {
         when:
         def ideaProject = loadIdeaProjectModel()
@@ -83,12 +83,10 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         thrown(UnsupportedMethodException)
     }
 
-
     def "can retrieve project and module source language level for multi project build"() {
         given:
         settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
         buildFile << """
-            ${rootProjectAppliesJavaPlugin ? "apply plugin: 'java'\nsourceCompatibility = '1.1'" : ""}
             apply plugin: 'idea'
             idea {
                 project {
@@ -116,19 +114,12 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         ideaProject.javaSourceSettings.sourceLanguageLevel.isJava5()
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.sourceLanguageLevel == expectedRootModuleLanguageLevel
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.sourceLanguageLevelInherited != rootProjectAppliesJavaPlugin
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.isSourceLanguageLevelInherited()
+        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings == null
+        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings == null
         ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
         !ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.isSourceLanguageLevelInherited()
         ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_5
         ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.isSourceLanguageLevelInherited()
-
-        where:
-        rootProjectAppliesJavaPlugin | expectedRootModuleLanguageLevel
-        false                        | JavaVersion.VERSION_1_5
-        true                         | JavaVersion.VERSION_1_1
     }
 
     def "can have different target bytecode level among modules"() {
@@ -190,7 +181,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
         ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
 
-        and: "one global target bytecode level global"
+        and: "one global target bytecode level"
         ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetBytecodeLevelInherited == true
         ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetBytecodeLevelInherited == true
         ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetBytecodeLevelInherited == true

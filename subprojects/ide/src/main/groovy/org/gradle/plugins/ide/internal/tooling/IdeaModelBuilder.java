@@ -88,10 +88,18 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         }
         final Collection<DefaultIdeaModule> ideaModules = modules.values();
 
+        configureTargetBytecodeLevelInherited(out, ideaModules);
+
+        out.setChildren(new LinkedList<DefaultIdeaModule>(ideaModules));
+        return out;
+    }
+
+    private void configureTargetBytecodeLevelInherited(DefaultIdeaProject out, Collection<DefaultIdeaModule> ideaModules) {
         final Set<JavaVersion> moduleBytecodeVersions = toSet(compact(collect(ideaModules, new Transformer<JavaVersion, DefaultIdeaModule>() {
             @Override
             public JavaVersion transform(DefaultIdeaModule defaultIdeaModule) {
-                return defaultIdeaModule.getJavaSourceSettings().getTargetBytecodeLevel();
+                final DefaultIdeaModuleJavaSourceSettings javaSourceSettings = defaultIdeaModule.getJavaSourceSettings();
+                return javaSourceSettings == null ? null : javaSourceSettings.getTargetBytecodeLevel();
             }
         })));
 
@@ -99,14 +107,20 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             final JavaVersion maxBytecodeLevel = Collections.max(moduleBytecodeVersions);
             out.getJavaSourceSettings().setTargetBytecodeLevel(maxBytecodeLevel);
             for (DefaultIdeaModule ideaModule : ideaModules) {
-                if (ideaModule.getJavaSourceSettings().getTargetBytecodeLevel() != null && ideaModule.getJavaSourceSettings().getTargetBytecodeLevel().equals(maxBytecodeLevel)) {
+                if (moduleTargetByteIsMaxBytecodeLevel(maxBytecodeLevel, ideaModule)) {
                     ideaModule.getJavaSourceSettings().setTargetBytecodeLevelInherited(true);
                 }
             }
+            out.getJavaSourceSettings().setTargetBytecodeLevel(maxBytecodeLevel);
         }
+    }
 
-        out.setChildren(new LinkedList<DefaultIdeaModule>(ideaModules));
-        return out;
+    private boolean moduleTargetByteIsMaxBytecodeLevel(JavaVersion maxBytecodeLevel, DefaultIdeaModule ideaModule) {
+        final DefaultIdeaModuleJavaSourceSettings moduleJavaSourceSettings = ideaModule.getJavaSourceSettings();
+        if(moduleJavaSourceSettings == null) {
+            return false;
+        }
+        return moduleJavaSourceSettings.getTargetBytecodeLevel() != null && moduleJavaSourceSettings.getTargetBytecodeLevel().equals(maxBytecodeLevel);
     }
 
     private void buildDependencies(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule) {
@@ -149,10 +163,6 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         Project project = ideaModule.getProject();
         JavaPluginConvention javaPluginConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
         JavaVersion projectSourceLanguageLevel = ideaProject.getJavaSourceSettings().getSourceLanguageLevel();
-        JavaVersion moduleSourceLanguageLevel = javaPluginConvention != null ? javaPluginConvention.getSourceCompatibility() : projectSourceLanguageLevel;
-        JavaVersion moduleTargetLanguageLevel = javaPluginConvention != null ? javaPluginConvention.getTargetCompatibility() : null;
-
-        boolean sourceLanguageLevelInherited = projectSourceLanguageLevel.equals(moduleSourceLanguageLevel);
 
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
             .setName(ideaModule.getName())
@@ -162,13 +172,19 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setCompilerOutput(new DefaultIdeaCompilerOutput()
                 .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
                 .setOutputDir(ideaModule.getOutputDir())
-                .setTestOutputDir(ideaModule.getTestOutputDir()))
-            .setJavaSourceSettings(new DefaultIdeaModuleJavaSourceSettings()
+                .setTestOutputDir(ideaModule.getTestOutputDir()));
+        if (javaPluginConvention != null) {
+            JavaVersion moduleSourceLanguageLevel = javaPluginConvention.getSourceCompatibility();
+            JavaVersion moduleTargetLanguageLevel = javaPluginConvention.getTargetCompatibility();
+            boolean sourceLanguageLevelInherited = projectSourceLanguageLevel.equals(moduleSourceLanguageLevel);
+            defaultIdeaModule.setJavaSourceSettings(new DefaultIdeaModuleJavaSourceSettings()
                 .setSourceLanguageLevelInherited(sourceLanguageLevelInherited)
                 .setSourceLanguageLevel(moduleSourceLanguageLevel)
                 .setTargetBytecodeLevel(moduleTargetLanguageLevel)
                 .setTargetRuntime(javaRuntime)
                 .setTargetRuntimeInherited(true));
+        }
+
         modules.put(ideaModule.getName(), defaultIdeaModule);
     }
 

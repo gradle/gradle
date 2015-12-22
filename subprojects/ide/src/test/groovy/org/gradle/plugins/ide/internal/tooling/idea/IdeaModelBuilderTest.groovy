@@ -271,7 +271,6 @@ class IdeaModelBuilderTest extends Specification {
     }
 
     def "can have mixed bytecode level"() {
-
         when:
         [root, child1, child2].each {
             it.plugins.apply(JavaPlugin)
@@ -292,6 +291,28 @@ class IdeaModelBuilderTest extends Specification {
 
         ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_7
         ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetBytecodeLevelInherited == true
+    }
+
+    def "non jvm modules have no java sourceSettings applied"() {
+        when:
+        [root, child1].each {
+            it.plugins.apply(JavaPlugin)
+        }
+        root.targetCompatibility = "1.6"
+        child1.targetCompatibility = "1.7"
+
+        def ideaProject = buildIdeaProjectModel()
+
+        then:
+        ideaProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_7
+
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_6
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeLevelInherited == false
+
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_7
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeLevelInherited == true
+
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings == null
     }
 
 
