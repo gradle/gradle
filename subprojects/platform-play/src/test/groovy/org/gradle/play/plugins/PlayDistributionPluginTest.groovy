@@ -182,12 +182,7 @@ class PlayDistributionPluginTest extends Specification {
                 1 * setDescription(_)
                 1 * setDestinationDir(_)
                 1 * setArchiveName("playBinary.zip")
-                1 * getRootSpec() >> Mock(DestinationRootCopySpec) {
-                    1 * addChild() >> Mock(CopySpecInternal) {
-                        1 * into("playBinary")
-                        1 * with(_ as CopySpecInternal)
-                    }
-                }
+                1 * from(_ as Sync)
             })
         }
         1 * tasks.create("createPlayBinaryTarDist", Tar, _) >> { String name, Class type, Action action ->
@@ -195,12 +190,7 @@ class PlayDistributionPluginTest extends Specification {
                 1 * setDescription(_)
                 1 * setDestinationDir(_)
                 1 * setArchiveName("playBinary.tar")
-                1 * getRootSpec() >> Mock(DestinationRootCopySpec) {
-                    1 * addChild() >> Mock(CopySpecInternal) {
-                        1 * into("playBinary")
-                        1 * with(_ as CopySpecInternal)
-                    }
-                }
+                1 * from(_ as Sync)
             })
         }
         1 * tasks.create("stagePlayBinaryDist", Sync, _) >> { String name, Class type, Action action ->

@@ -189,10 +189,7 @@ public class PlayDistributionPlugin extends RuleSource {
                     zip.setDescription("Packages the '" + distribution.getName() + "' distribution as a zip file.");
                     zip.setArchiveName(String.format("%s.zip", baseName));
                     zip.setDestinationDir(new File(buildDir, "distributions"));
-
-                    CopySpec baseSpec = zip.getRootSpec().addChild();
-                    baseSpec.into(baseName);
-                    baseSpec.with(distribution.getContents());
+                    zip.from(stageTask);
                 }
             });
 
@@ -203,10 +200,7 @@ public class PlayDistributionPlugin extends RuleSource {
                     tar.setDescription("Packages the '" + distribution.getName() + "' distribution as a tar file.");
                     tar.setArchiveName(String.format("%s.tar", baseName));
                     tar.setDestinationDir(new File(buildDir, "distributions"));
-
-                    CopySpec baseSpec = tar.getRootSpec().addChild();
-                    baseSpec.into(baseName);
-                    baseSpec.with(distribution.getContents());
+                    tar.from(stageTask);
                 }
             });
 

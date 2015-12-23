@@ -168,7 +168,7 @@ publishing dependencies from HTTP repositories. Specifically, the 'http.keepAliv
 
 Adding the 'scala' plugin to your build will no longer create 'scalaConsole' tasks which launch a Scala REPL from the Gradle build. This capability has been
 removed due to lack of documentation and support for running with the Gradle Daemon. If you wish to continue to have such a task as part of your build, you
-can explicitly configure a [`JavaExec`](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.JavaExec.html) task to do so.
+can explicitly configure a [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html) task to do so.
 
 ### Eclipse Plugin adds explicit java target runtime to Classpath
 
@@ -186,6 +186,20 @@ To tweak the name of the Java runtime to use, the name can be configured via
 
 An injected getPatternSetFactory method has been added to the `org.gradle.api.tasks.SourceTask` class. This is a possible breaking change for unit tests of tasks that extend the SourceTask class.
 
+### Changes to Play standalone distributions
+
+#### Names of dependency jars
+
+When copying dependencies into the Play distribution's `lib` directory, we now rename all jar files to include `group` or `project path` information.
+
+#### Tar distribution task
+
+The Gradle Play plugin now adds a `Tar` task to build standalone Play distributions (`createPlayBinaryTarDist`). A tar and zip distribution will be created when executing `dist`.
+
+#### Zip distribution task
+
+The name of the `Zip` task to create standalone Play distributions is now `createPlayBinaryZipDist`.
+
 ### Software model changes
 
 - Deprecated `CollectionBuilder` interface removed.
@@ -195,7 +209,7 @@ An injected getPatternSetFactory method has been added to the `org.gradle.api.ta
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Dylan Cali](https://github.com/calid) - Add support for Spock framework for Java projects in [Build Init Plugin](https://docs.gradle.org/current/userguide/build_init_plugin.html)
+* [Dylan Cali](https://github.com/calid) - Add support for Spock framework for Java projects in [Build Init Plugin](userguide/build_init_plugin.html)
 * [Tobias Riemenschneider](https://github.com/riemenschneider) - Add support for TestNG's preserveOrder and groupByInstances options
 * [Johnny Lim](https://github.com/izeye) - Documentation improvements
 * [Christopher O'Connell](https://github.com/lordoku) - Remove 'scalaConsole' task

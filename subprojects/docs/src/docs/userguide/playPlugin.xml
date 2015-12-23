@@ -454,7 +454,7 @@
             See the <filename>play/multiproject</filename> sample provided in the Gradle distribution for a working example.
         </para>
     </section>
-    <section>
+    <section id="packaging_play_distribution">
         <title>Packaging a Play application for distribution</title>
         <para>
             Gradle provides the capability to package your Play application so that it can easily be distributed and run in a target environment.
@@ -528,7 +528,7 @@
                 <td>Lifecycle task for creating a Play distribution.</td>
             </tr>
         </table>
-        <section>
+        <section id="adding_files_to_play_distribution">
             <title>Adding additional files to your Play application distribution</title>
             <para>
                 You can add additional files to the distribution package using the <apilink class="org.gradle.api.distribution.Distribution"/> API.
