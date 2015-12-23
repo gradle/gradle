@@ -61,6 +61,36 @@ New options can be enabled in the useTestNG block:
 
 This feature was contributed by [Richard Bergoin](https://github.com/kenji21).
 
+### Better support for developing plugins with the Software Model
+
+#### Managed source set types
+
+The `LanguageSourceSet` type can now be extended via `@Managed` subtypes, allowing for declaration of `@Managed` source sets without having to provide a default implementation.
+
+Example:
+
+    @Managed
+    interface MarkdownSourceSet extends LanguageSourceSet {
+        boolean isGenerateIndex()
+        void setGenerateIndex(boolean generateIndex)
+        boolean isSmartQuotes()
+        void setSmartQuotes(boolean smartQuotes)
+    }
+    class RegisterMarkdown extends RuleSource {
+        @LanguageType
+        void registerMarkdown(LanguageTypeBuilder<MarkdownSourceSet> builder) {
+            builder.setLanguageName("Markdown")
+        }
+    }
+    apply plugin: 'language-base'
+    apply plugin: RegisterMarkdown
+
+    model {
+        md(MarkdownSourceSet) {
+            generateIndex = true
+        }
+    }
+
 ### Support for Spock framework for Java projects in Build Init Plugin
 
 It is now possible to use [Spock framework](https://code.google.com/p/spock/) instead of JUnit for Java projects in the [Build Init Plugin](userguide/build_init_plugin.html) by using the following command:
