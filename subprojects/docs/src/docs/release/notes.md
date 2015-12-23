@@ -157,6 +157,7 @@ An injected getPatternSetFactory method has been added to the `org.gradle.api.ta
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Dylan Cali](https://github.com/calid) - Add support for Spock framework for Java projects in [Build Init Plugin](https://docs.gradle.org/current/userguide/build_init_plugin.html)
 * [Tobias Riemenschneider](https://github.com/riemenschneider) - Add support for TestNG's preserveOrder and groupByInstances options
 * [Johnny Lim](https://github.com/izeye) - Documentation improvements
 * [Christopher O'Connell](https://github.com/lordoku) - Remove 'scalaConsole' task
