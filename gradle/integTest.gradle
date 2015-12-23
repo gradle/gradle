@@ -47,6 +47,19 @@ def removeDodgyCacheFiles(File dir) {
     }
 }
 
+
+/**
+ * Clean up daemon log files produced in integration tests.
+ */
+def removeDaemonLogFiles(File dir) {
+    if (dir.directory) {
+        def daemonLogFiles = fileTree(dir) {
+            include '**/*.log'
+        }
+        delete daemonLogFiles
+    }
+}
+
 /**
  * Removes state for versions that we're unlikely to ever need again, such as old snapshot versions.
  */
@@ -113,6 +126,9 @@ project(":") {
 
             // Remove caches that weren't multi-process safe and may be corrupt
             removeDodgyCacheFiles(file("intTestHomeDir/worker-1/caches"))
+
+            // Remove old daemon log files
+            removeDaemonLogFiles(file("intTestHomeDir/worker-1/daemon"))
         }
     }
 }
