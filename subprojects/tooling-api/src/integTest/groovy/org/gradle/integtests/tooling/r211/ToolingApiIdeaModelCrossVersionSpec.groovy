@@ -278,6 +278,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     private JavaVersion getDefaultIdeaPluginLanguageLevelForJavaProjects() {
         // see IdeaPlugin#configureIdeaProjectForJava(Project)
-        getTargetDist().getVersion().toString().startsWith("1.0-milestone-8") ? JavaVersion.VERSION_1_5 : JavaVersion.current()
+        println "GRADLE_VERSION " + getTargetDist().getVersion().toString()
+        getTargetDist().getVersion().version.startsWith("1.0-milestone-8") ? JavaVersion.VERSION_1_5 : JavaVersion.current()
     }
 }
