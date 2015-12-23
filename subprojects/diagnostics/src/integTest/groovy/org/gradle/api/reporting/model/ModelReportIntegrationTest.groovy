@@ -96,6 +96,97 @@ model {
         })
     }
 
+    def "display unset primitive and null scalar values"() {
+        given:
+        buildFile << '''
+            @Managed
+            interface Container {
+
+                boolean getPrimitiveBoolean()
+                void setPrimitiveBoolean(boolean value)
+                char getPrimitiveChar()
+                void setPrimitiveChar(char value)
+                byte getPrimitiveByte()
+                void setPrimitiveByte(byte value)
+                short getPrimitiveShort()
+                void setPrimitiveShort(short value)
+                int getPrimitiveInt()
+                void setPrimitiveInt(int value)
+                float getPrimitiveFloat()
+                void setPrimitiveFloat(float value)
+                long getPrimitiveLong()
+                void setPrimitiveLong(long value)
+                double getPrimitiveDouble()
+                void setPrimitiveDouble(double value)
+
+                Boolean getScalarBoolean()
+                void setScalarBoolean(Boolean value)
+                Character getScalarChar()
+                void setScalarChar(Character value)
+                Byte getScalarByte()
+                void setScalarByte(Byte value)
+                Short getScalarShort()
+                void setScalarShort(Short value)
+                Integer getScalarInt()
+                void setScalarInt(Integer value)
+                Float getScalarFloat()
+                void setScalarFloat(Float value)
+                Long getScalarLong()
+                void setScalarLong(Long value)
+                Double getScalarDouble()
+                void setScalarDouble(Double value)
+
+            }
+
+            model {
+                container(Container)
+            }
+            '''.stripIndent()
+
+        when:
+        run 'model'
+
+        then:
+        ModelReportOutput.from(output).hasNodeStructure({
+            model {
+                container {
+
+                    primitiveBoolean(nodeValue: 'false')
+                    primitiveByte(nodeValue: '0')
+                    primitiveChar(nodeValue: '\u0000' as char)
+                    primitiveDouble(nodeValue: '0.0')
+                    primitiveFloat(nodeValue: '0.0')
+                    primitiveInt(nodeValue: '0')
+                    primitiveLong(nodeValue: '0')
+                    primitiveShort(nodeValue: '0')
+
+                    scalarBoolean(nodeValue: 'null')
+                    scalarByte(nodeValue: 'null')
+                    scalarChar(nodeValue: 'null')
+                    scalarDouble(nodeValue: 'null')
+                    scalarFloat(nodeValue: 'null')
+                    scalarInt(nodeValue: 'null')
+                    scalarLong(nodeValue: 'null')
+                    scalarShort(nodeValue: 'null')
+
+                }
+                tasks {
+                    buildEnvironment(nodeValue: "task ':buildEnvironment'")
+                    components(nodeValue: "task ':components'")
+                    dependencies(nodeValue: "task ':dependencies'")
+                    dependencyInsight(nodeValue: "task ':dependencyInsight'")
+                    help(nodeValue: "task ':help'")
+                    init(nodeValue: "task ':init'")
+                    model(nodeValue: "task ':model'")
+                    projects(nodeValue: "task ':projects'")
+                    properties(nodeValue: "task ':properties'")
+                    tasks(nodeValue: "task ':tasks'")
+                    wrapper()
+                }
+            }
+        })
+    }
+
     def "displays basic values of a simple model graph with values"() {
         given:
         buildFile << """
@@ -122,6 +213,7 @@ model {
         value = 5
         threshold = 0.8
     }
+    unsetNumbers(Numbers) { }
 }
 
 """
@@ -158,6 +250,10 @@ model {
                     tasks(nodeValue: "task ':tasks'")
                     wrapper()
                 }
+                unsetNumbers {
+                    threshold(nodeValue: '0.0')
+                    value(nodeValue: 'null')
+                }
             }
         })
     }
@@ -190,6 +286,7 @@ model {
         value = 5
         threshold = 0.8
     }
+    unsetNumbers(Numbers) { }
 }
 
 """
@@ -208,9 +305,11 @@ model {
       | Creator: \tnullCredentials(PasswordCredentials) @ build.gradle line 27, column 5
     + password
           | Type:   \tjava.lang.String
+          | Value:  \tnull
           | Creator: \tnullCredentials(PasswordCredentials) @ build.gradle line 27, column 5
     + username
           | Type:   \tjava.lang.String
+          | Value:  \tnull
           | Creator: \tnullCredentials(PasswordCredentials) @ build.gradle line 27, column 5
 + numbers
       | Type:   \tNumbers
@@ -304,6 +403,17 @@ model {
           | Creator: \ttasks.addPlaceholderAction(wrapper)
           | Rules:
              ⤷ copyToTaskContainer
++ unsetNumbers
+      | Type:   \tNumbers
+      | Creator: \tunsetNumbers(Numbers) { ... } @ build.gradle line 32, column 5
+    + threshold
+          | Type:   \tdouble
+          | Value:  \t0.0
+          | Creator: \tunsetNumbers(Numbers) { ... } @ build.gradle line 32, column 5
+    + value
+          | Type:   \tjava.lang.Integer
+          | Value:  \tnull
+          | Creator: \tunsetNumbers(Numbers) { ... } @ build.gradle line 32, column 5
 ''')
     }
 

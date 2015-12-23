@@ -12,12 +12,14 @@ Root project
          ⤷ PersonRules#setFirstName
     + age
           | Type:   	int
+          | Value:  	0
           | Creator: 	PersonRules#person
     + children
           | Type:   	org.gradle.model.ModelSet<Person>
           | Creator: 	PersonRules#person
     + employed
           | Type:   	boolean
+          | Value:  	false
           | Creator: 	PersonRules#person
     + father
           | Type:   	Person
@@ -28,9 +30,11 @@ Root project
           | Creator: 	PersonRules#person
     + homeDirectory
           | Type:   	java.io.File
+          | Value:  	null
           | Creator: 	PersonRules#person
     + id
           | Type:   	java.lang.Long
+          | Value:  	null
           | Creator: 	PersonRules#person
     + lastName
           | Type:   	java.lang.String

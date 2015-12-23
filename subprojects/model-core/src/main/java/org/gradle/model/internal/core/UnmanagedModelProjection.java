@@ -21,6 +21,8 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.extract.PrimitiveTypes;
+import org.gradle.model.internal.manage.schema.extract.ScalarTypes;
 import org.gradle.model.internal.type.ModelType;
 
 @ThreadSafe
@@ -52,7 +54,14 @@ public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectio
     public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
         ModelView<?> modelView = this.asImmutable(ModelType.untyped(), modelNodeInternal, null);
         Object instance = modelView.getInstance();
-        if (null != instance && !JavaReflectionUtil.hasDefaultToString(instance)) {
+        if (instance == null) {
+            if (PrimitiveTypes.isPrimitiveType(getType())) {
+                return Optional.of(String.valueOf(PrimitiveTypes.defaultValueOf(getType())));
+            }
+            if (ScalarTypes.isScalarType(getType())) {
+                return Optional.of("null");
+            }
+        } else if (!JavaReflectionUtil.hasDefaultToString(instance)) {
             return Optional.fromNullable(instance.toString());
         }
         return Optional.absent();

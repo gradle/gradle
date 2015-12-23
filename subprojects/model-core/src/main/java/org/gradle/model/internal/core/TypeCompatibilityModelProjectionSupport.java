@@ -19,6 +19,7 @@ package org.gradle.model.internal.core;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.extract.PrimitiveTypes;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
@@ -45,7 +46,7 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
     }
 
     private <T> boolean canBeAssignedTo(ModelType<T> targetType) {
-        return targetType.isAssignableFrom(type) || (targetType== ModelType.UNTYPED && type.getRawClass().isPrimitive());
+        return targetType.isAssignableFrom(type) || (targetType == ModelType.UNTYPED && PrimitiveTypes.isPrimitiveType(type));
     }
 
     public <T> boolean canBeViewedAsImmutable(ModelType<T> targetType) {
