@@ -26,10 +26,9 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class FeatureCheckBuildResultTest extends Specification {
 
-    public static final GradleVersion SUPPORTED_GRADLE_VERSION = GradleVersion.version('2.5')
     public static final GradleVersion UNSUPPORTED_GRADLE_VERSION = GradleVersion.version('2.4')
-    public static final String BUILD_RESULT_OUTPUT_UNSUPPORTED_FEATURE_MSG = "The version of Gradle you are using ($UNSUPPORTED_GRADLE_VERSION.version) does not capture build output with the GradleRunner. Support for this is available in Gradle $SUPPORTED_GRADLE_VERSION.version and all later versions."
-    public static final String BUILD_RESULT_TASKS_UNSUPPORTED_FEATURE_MSG = "The version of Gradle you are using ($UNSUPPORTED_GRADLE_VERSION.version) does not capture executed tasks with the GradleRunner. Support for this is available in Gradle $SUPPORTED_GRADLE_VERSION.version and all later versions."
+    public static final String BUILD_RESULT_OUTPUT_UNSUPPORTED_FEATURE_MSG = "The version of Gradle you are using ($UNSUPPORTED_GRADLE_VERSION.version) does not capture build output in debug mode with the GradleRunner. Support for this is available in Gradle $TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since.version and all later versions."
+    public static final String BUILD_RESULT_TASKS_UNSUPPORTED_FEATURE_MSG = "The version of Gradle you are using ($UNSUPPORTED_GRADLE_VERSION.version) does not capture executed tasks with the GradleRunner. Support for this is available in Gradle $TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.since.version and all later versions."
 
     String output = 'output'
     BuildTask successBuildResult = new DefaultBuildTask(':a', SUCCESS)
@@ -37,7 +36,7 @@ class FeatureCheckBuildResultTest extends Specification {
     def buildTasks = [successBuildResult, failedBuildResult]
 
     def "provides expected field values for supported Gradle version"() {
-        FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(SUPPORTED_GRADLE_VERSION, output, buildTasks)
+        FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(new BuildOperationParameters(GradleVersion.version('2.5'), false), output, buildTasks)
 
         expect:
         buildResult.output == 'output'
@@ -48,9 +47,9 @@ class FeatureCheckBuildResultTest extends Specification {
         buildResult.taskPaths(FAILED) == [failedBuildResult.path]
     }
 
-    def "throws exception when getting output for unsupported Gradle Version"() {
+    def "throws exception when getting output for unsupported Gradle Version in debug mode"() {
         given:
-        FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(UNSUPPORTED_GRADLE_VERSION, output, buildTasks)
+        FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(new BuildOperationParameters(UNSUPPORTED_GRADLE_VERSION, true), output, buildTasks)
 
         when:
         buildResult.output
@@ -62,7 +61,7 @@ class FeatureCheckBuildResultTest extends Specification {
 
     def "throws exception when getting tasks for unsupported Gradle Version"() {
         given:
-        FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(UNSUPPORTED_GRADLE_VERSION, output, buildTasks)
+        FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(new BuildOperationParameters(UNSUPPORTED_GRADLE_VERSION, false), output, buildTasks)
 
         when:
         buildResult.tasks
@@ -74,7 +73,7 @@ class FeatureCheckBuildResultTest extends Specification {
 
     def "throws exception when getting tasks for outcome for unsupported Gradle Version"() {
         given:
-        FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(UNSUPPORTED_GRADLE_VERSION, output, buildTasks)
+        FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(new BuildOperationParameters(UNSUPPORTED_GRADLE_VERSION, false), output, buildTasks)
 
         when:
         buildResult.tasks(SUCCESS)
@@ -86,7 +85,7 @@ class FeatureCheckBuildResultTest extends Specification {
 
     def "throws exception when getting task paths for outcome for unsupported Gradle Version"() {
         given:
-        FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(UNSUPPORTED_GRADLE_VERSION, output, buildTasks)
+        FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(new BuildOperationParameters(UNSUPPORTED_GRADLE_VERSION, false), output, buildTasks)
 
         when:
         buildResult.taskPaths(SUCCESS)

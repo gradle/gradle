@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
+import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
@@ -105,6 +106,7 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerInteg
         }
     }
 
+    @NoDebug
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "fails a build that uses unsupported APIs for a Gradle version"() {
         given:

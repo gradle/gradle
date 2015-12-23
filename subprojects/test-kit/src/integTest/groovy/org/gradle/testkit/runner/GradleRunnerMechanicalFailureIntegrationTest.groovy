@@ -26,6 +26,7 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
+    @CaptureBuildOutputInDebug
     def "build execution for script with invalid Groovy syntax"() {
         given:
         buildFile << """

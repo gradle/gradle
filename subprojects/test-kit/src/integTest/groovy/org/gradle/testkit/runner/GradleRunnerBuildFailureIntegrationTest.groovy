@@ -23,6 +23,7 @@ import static org.gradle.testkit.runner.TaskOutcome.*
 
 class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
+    @CaptureBuildOutputInDebug
     def "execute build for expected failure"() {
         given:
         buildFile << """
@@ -81,6 +82,7 @@ Total time: .+ secs
         result.taskPaths(FAILED).empty
     }
 
+    @CaptureBuildOutputInDebug
     def "execute build for expected success but fails"() {
         given:
         buildFile << """
@@ -151,6 +153,7 @@ Total time: .+ secs
         t.message == expectedErrorMessage
     }
 
+    @CaptureBuildOutputInDebug
     def "build execution for non-existent task"() {
         given:
         buildFile << helloWorldTask()

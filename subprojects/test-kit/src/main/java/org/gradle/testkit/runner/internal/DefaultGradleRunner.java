@@ -276,7 +276,7 @@ public class DefaultGradleRunner extends GradleRunner {
 
     private BuildResult createBuildResult(GradleExecutionResult execResult) {
         return new FeatureCheckBuildResult(
-            execResult.getTargetGradleVersion(),
+            execResult.getBuildOperationParameters(),
             execResult.getOutput(),
             execResult.getTasks()
         );

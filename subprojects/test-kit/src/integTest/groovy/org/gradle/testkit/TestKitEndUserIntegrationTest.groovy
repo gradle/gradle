@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
+import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.TempTestKitDirProvider
 import org.gradle.util.GFileUtils
@@ -617,6 +618,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         killDaemons()
     }
 
+    @NoDebug
     @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
     def "can provide a series of version-based Gradle distributions to execute test"() {
         buildFile << gradleTestKitDependency()
@@ -679,6 +681,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         gradleVersion << ['2.6', '2.7']
     }
 
+    @NoDebug
     @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
     def "successfully execute functional tests with parallel forks for multiple Gradle distributions"() {
         buildFile << gradleTestKitDependency()

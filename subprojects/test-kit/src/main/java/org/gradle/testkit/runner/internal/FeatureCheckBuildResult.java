@@ -22,7 +22,6 @@ import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.testkit.runner.internal.feature.BuildResultOutputFeatureCheck;
 import org.gradle.testkit.runner.internal.feature.BuildResultTasksFeatureCheck;
 import org.gradle.testkit.runner.internal.feature.FeatureCheck;
-import org.gradle.util.GradleVersion;
 
 import java.util.List;
 
@@ -31,10 +30,10 @@ public class FeatureCheckBuildResult extends DefaultBuildResult {
     private final FeatureCheck outputFeatureCheck;
     private final FeatureCheck tasksFeatureCheck;
 
-    public FeatureCheckBuildResult(GradleVersion targetGradleVersion, String output, List<BuildTask> tasks) {
+    public FeatureCheckBuildResult(BuildOperationParameters buildOperationParameters, String output, List<BuildTask> tasks) {
         super(output, tasks);
-        outputFeatureCheck = new BuildResultOutputFeatureCheck(targetGradleVersion);
-        tasksFeatureCheck = new BuildResultTasksFeatureCheck(targetGradleVersion);
+        outputFeatureCheck = new BuildResultOutputFeatureCheck(buildOperationParameters.getTargetGradleVersion(), buildOperationParameters.isEmbedded());
+        tasksFeatureCheck = new BuildResultTasksFeatureCheck(buildOperationParameters.getTargetGradleVersion());
     }
 
     @Override

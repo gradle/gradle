@@ -16,35 +16,44 @@
 
 package org.gradle.testkit.runner.internal.feature
 
+import org.gradle.testkit.runner.internal.TestKitFeature
 import org.gradle.testkit.runner.UnsupportedFeatureException
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class BuildResultOutputFeatureCheckTest extends Specification {
 
-    public static final GradleVersion SUPPORTED_GRADLE_VERSION = BuildResultOutputFeatureCheck.SUPPORTED_VERSION
-    public static final GradleVersion UNSUPPORTED_GRADLE_VERSION = GradleVersion.version('2.4')
+    public static final GradleVersion UNSUPPORTED_GRADLE_VERSION = GradleVersion.version('2.8')
 
-    def "supported Gradle version passed check"() {
+    @Unroll
+    def "supported Gradle version passes check [version = #gradleVersion, embedded = #embedded]"() {
         given:
-        BuildResultOutputFeatureCheck featureCheck = new BuildResultOutputFeatureCheck(SUPPORTED_GRADLE_VERSION)
+        BuildResultOutputFeatureCheck featureCheck = new BuildResultOutputFeatureCheck(TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since, embedded)
 
         when:
         featureCheck.verify()
 
         then:
         noExceptionThrown()
+
+        where:
+        gradleVersion                                             | embedded
+        TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since | true
+        TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since | false
+        UNSUPPORTED_GRADLE_VERSION                                | false
+
     }
 
     def "unsupported Gradle version throws exception"() {
         given:
-        BuildResultOutputFeatureCheck featureCheck = new BuildResultOutputFeatureCheck(UNSUPPORTED_GRADLE_VERSION)
+        BuildResultOutputFeatureCheck featureCheck = new BuildResultOutputFeatureCheck(UNSUPPORTED_GRADLE_VERSION, true)
 
         when:
         featureCheck.verify()
 
         then:
         Throwable t = thrown(UnsupportedFeatureException)
-        t.message == "The version of Gradle you are using ($UNSUPPORTED_GRADLE_VERSION.version) does not capture build output with the GradleRunner. Support for this is available in Gradle $SUPPORTED_GRADLE_VERSION.version and all later versions."
+        t.message == "The version of Gradle you are using ($UNSUPPORTED_GRADLE_VERSION.version) does not capture build output in debug mode with the GradleRunner. Support for this is available in Gradle $TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since.version and all later versions."
     }
 }

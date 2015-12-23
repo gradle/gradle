@@ -14,30 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.internal.feature;
+package org.gradle.testkit.runner.internal;
 
-import org.gradle.testkit.runner.internal.TestKitFeature;
-import org.gradle.testkit.runner.UnsupportedFeatureException;
 import org.gradle.util.GradleVersion;
 
-public class BuildResultOutputFeatureCheck implements FeatureCheck {
-
+public class BuildOperationParameters {
     private final GradleVersion targetGradleVersion;
     private final boolean embedded;
 
-    public BuildResultOutputFeatureCheck(GradleVersion targetGradleVersion, boolean embedded) {
+    public BuildOperationParameters(GradleVersion targetGradleVersion, boolean embedded) {
         this.targetGradleVersion = targetGradleVersion;
         this.embedded = embedded;
     }
 
-    @Override
-    public void verify() {
-        if (!supportsVersion() && embedded) {
-            throw new UnsupportedFeatureException("capture build output in debug mode with the GradleRunner", targetGradleVersion, TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.getSince());
-        }
+    public GradleVersion getTargetGradleVersion() {
+        return targetGradleVersion;
     }
 
-    private boolean supportsVersion() {
-        return targetGradleVersion.compareTo(TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.getSince()) >= 0;
+    public boolean isEmbedded() {
+        return embedded;
     }
 }

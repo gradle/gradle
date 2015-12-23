@@ -16,12 +16,12 @@
 
 package org.gradle.testkit.runner.internal.feature;
 
+import org.gradle.testkit.runner.internal.TestKitFeature;
 import org.gradle.testkit.runner.UnsupportedFeatureException;
 import org.gradle.util.GradleVersion;
 
 public class BuildResultTasksFeatureCheck implements FeatureCheck {
 
-    private static final GradleVersion SUPPORTED_VERSION = GradleVersion.version("2.5");
     private final GradleVersion targetGradleVersion;
 
     public BuildResultTasksFeatureCheck(GradleVersion targetGradleVersion) {
@@ -31,11 +31,11 @@ public class BuildResultTasksFeatureCheck implements FeatureCheck {
     @Override
     public void verify() {
         if (!supportsVersion()) {
-            throw new UnsupportedFeatureException("capture executed tasks with the GradleRunner", targetGradleVersion, SUPPORTED_VERSION);
+            throw new UnsupportedFeatureException("capture executed tasks with the GradleRunner", targetGradleVersion, TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.getSince());
         }
     }
 
     private boolean supportsVersion() {
-        return targetGradleVersion.compareTo(SUPPORTED_VERSION) >= 0;
+        return targetGradleVersion.compareTo(TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.getSince()) >= 0;
     }
 }

@@ -105,7 +105,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         } catch (UnsupportedVersionException e) {
             throw new InvalidRunnerConfigurationException("The build could not be executed due to a feature not being supported by the target Gradle version", e);
         } catch (BuildException t) {
-            return new GradleExecutionResult(targetGradleVersion, output.toString(), tasks, t);
+            return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), output.toString(), tasks, t);
         } catch (GradleConnectionException t) {
             StringBuilder message = new StringBuilder("An error occurred executing build with ");
             if (parameters.getBuildArgs().isEmpty()) {
@@ -132,7 +132,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             }
         }
 
-        return new GradleExecutionResult(targetGradleVersion, output.toString(), tasks);
+        return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), output.toString(), tasks);
     }
 
     private GradleVersion determineTargetGradleVersion(ProjectConnection connection) {

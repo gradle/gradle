@@ -16,18 +16,18 @@
 
 package org.gradle.testkit.runner.internal.feature
 
+import org.gradle.testkit.runner.internal.TestKitFeature
 import org.gradle.testkit.runner.UnsupportedFeatureException
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 class BuildResultTasksFeatureCheckTest extends Specification {
 
-    public static final GradleVersion SUPPORTED_GRADLE_VERSION = BuildResultTasksFeatureCheck.SUPPORTED_VERSION
     public static final GradleVersion UNSUPPORTED_GRADLE_VERSION = GradleVersion.version('2.4')
 
-    def "supported Gradle version passed check"() {
+    def "supported Gradle version passes check"() {
         given:
-        BuildResultTasksFeatureCheck featureCheck = new BuildResultTasksFeatureCheck(SUPPORTED_GRADLE_VERSION)
+        BuildResultTasksFeatureCheck featureCheck = new BuildResultTasksFeatureCheck(TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.since)
 
         when:
         featureCheck.verify()
@@ -45,6 +45,6 @@ class BuildResultTasksFeatureCheckTest extends Specification {
 
         then:
         Throwable t = thrown(UnsupportedFeatureException)
-        t.message == "The version of Gradle you are using ($UNSUPPORTED_GRADLE_VERSION.version) does not capture executed tasks with the GradleRunner. Support for this is available in Gradle $SUPPORTED_GRADLE_VERSION.version and all later versions."
+        t.message == "The version of Gradle you are using ($UNSUPPORTED_GRADLE_VERSION.version) does not capture executed tasks with the GradleRunner. Support for this is available in Gradle $TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.since.version and all later versions."
     }
 }

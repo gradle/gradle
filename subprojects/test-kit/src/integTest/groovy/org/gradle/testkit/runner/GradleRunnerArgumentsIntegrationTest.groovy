@@ -17,7 +17,6 @@
 package org.gradle.testkit.runner
 
 import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
-import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -52,8 +51,8 @@ class GradleRunnerArgumentsIntegrationTest extends AbstractGradleRunnerCompatibi
         result.taskPaths(SUCCESS) == [':helloWorld', ':byeWorld']
     }
 
-    @Unroll
-    def "can provide arguments #arguments for build execution"() {
+    @CaptureBuildOutputInDebug
+    def "can provide arguments for build execution"() {
         given:
         final String debugMessage = 'Some debug message'
         final String infoMessage = 'My property: ${project.hasProperty("myProp") ? project.getProperty("myProp") : null}'
