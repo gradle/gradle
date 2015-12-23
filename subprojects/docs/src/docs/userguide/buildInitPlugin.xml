@@ -106,7 +106,7 @@
             <literal>--with</literal> argument value.
             Currently the only supported modifier is  “<literal>spock</literal>” that can be used to
             create a Java library project that uses Spock testing framework instead of JUnit.
-            Tu use it execute: <literal>gradle init --type java-library --with spock</literal>
+            To use it execute: <literal>gradle init --type java-library --with spock</literal>
         </para>
     </section>
     <section>
