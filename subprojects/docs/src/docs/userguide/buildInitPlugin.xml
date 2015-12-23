@@ -101,17 +101,12 @@
             If the type could not be inferred, the type “<literal>basic</literal>” will be used.
         </para>
         <para>All build setup types include the setup of the Gradle Wrapper.</para>
-    </section>
-    <section>
-        <title>How to set it up</title>
         <para>
             Different build setup types may support different setup <firstterm>modifiers</firstterm>.  The modifier is specified by supplying a
-            <literal>--with</literal>
-            argument value.  For example, to create a Java library project that uses Spock instead of JUnit for unit testing, simple execute:
-            <literal>gradle init --type java-library --with spock</literal>
-        </para>
-        <para>
-            Note that how many and which modifiers are supported will vary depending on the build setup type.
+            <literal>--with</literal> argument value.
+            Currently the only supported modifier is  “<literal>spock</literal>” that can be used to
+            create a Java library project that uses Spock testing framework instead of JUnit.
+            Tu use it execute: <literal>gradle init --type java-library --with spock</literal>
         </para>
     </section>
     <section>
@@ -152,13 +147,6 @@
                 <listitem>Supports packaging of sources and tests</listitem>
                 <listitem>Supports TestNG runner</listitem>
                 <listitem>Generates global exclusions from Maven enforcer plugin settings</listitem>
-            </itemizedlist>
-            <para>
-                Supported setup modifiers:
-            </para>
-            <itemizedlist>
-                <listitem>None
-                </listitem>
             </itemizedlist>
         </section>
         <section>
@@ -207,13 +195,6 @@
                 <listitem>Has directories in the conventional locations for source code</listitem>
                 <listitem>Contains a sample scala class and an associated ScalaTest test suite, if there are no existing source or test files</listitem>
             </itemizedlist>
-            <para>
-                Supported setup modifiers:
-            </para>
-            <itemizedlist>
-                <listitem>None
-                </listitem>
-            </itemizedlist>
         </section>
         <section>
             <title>“<literal>groovy-library</literal>”
@@ -234,13 +215,6 @@
                 <listitem>Has directories in the conventional locations for source code</listitem>
                 <listitem>Contains a sample Groovy class and an associated Spock specification, if there are no existing source or test files</listitem>
             </itemizedlist>
-            <para>
-                Supported setup modifiers:
-            </para>
-            <itemizedlist>
-                <listitem>None
-                </listitem>
-            </itemizedlist>
         </section>
         <section>
             <title>“basic”</title>
@@ -251,13 +225,6 @@
                 file, with comments and links to help get started.
             </para>
             <para>This type is used when no type was explicitly specified, and no type could be inferred.</para>
-            <para>
-                Supported setup modifiers:
-            </para>
-            <itemizedlist>
-                <listitem>None
-                </listitem>
-            </itemizedlist>
         </section>
     </section>
 </chapter>
