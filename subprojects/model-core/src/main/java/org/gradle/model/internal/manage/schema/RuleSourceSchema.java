@@ -14,35 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.inspect;
+package org.gradle.model.internal.manage.schema;
 
-import org.gradle.internal.Factory;
-import org.gradle.model.internal.manage.schema.AbstractStructSchema;
-import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import org.gradle.model.internal.type.ModelType;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * The schema for a {@link org.gradle.model.RuleSource}.
  */
 public class RuleSourceSchema<T> extends AbstractStructSchema<T> {
-    private final List<ExtractedModelRule> rules;
-    private final Factory<T> factory;
-
-    public RuleSourceSchema(ModelType<T> type, List<ExtractedModelRule> rules, Factory<T> factory) {
-        super(type, Collections.<ModelProperty<?>>emptyList(), Collections.<ModelSchemaAspect>emptyList());
-        this.rules = rules;
-        this.factory = factory;
-    }
-
-    public Factory<T> getFactory() {
-        return factory;
-    }
-
-    public List<ExtractedModelRule> getRules() {
-        return rules;
+    public RuleSourceSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
+        super(type, properties, aspects);
     }
 }

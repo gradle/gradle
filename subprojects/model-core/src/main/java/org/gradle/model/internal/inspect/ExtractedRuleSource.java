@@ -16,16 +16,18 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
-public interface ExtractedModelRule {
-    ModelRuleDescriptor getDescriptor();
-
+public interface ExtractedRuleSource<T> {
     void apply(ModelRegistry modelRegistry, ModelPath scope);
 
-    List<? extends Class<?>> getRuleDependencies();
+    List<? extends Class<?>> getRequiredPlugins();
+
+    void assertNoPlugins();
+
+    Factory<? extends T> getFactory();
 }

@@ -26,7 +26,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
-import org.gradle.model.internal.inspect.ExtractedModelRule;
+import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.report.unbound.UnboundRule;
 import org.gradle.model.internal.type.ModelType;
@@ -134,13 +134,9 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
     @Override
     public ModelRegistry configure(Class<? extends RuleSource> rules, ModelPath scope) {
-        Iterable<ExtractedModelRule> extractedRules = ruleExtractor.extract(rules).getRules();
-        for (ExtractedModelRule extractedRule : extractedRules) {
-            if (!extractedRule.getRuleDependencies().isEmpty()) {
-                throw new IllegalStateException(String.format("Rule source %s cannot have plugin dependencies (introduced by rule %s)", rules, extractedRule));
-            }
-            extractedRule.apply(this, scope);
-        }
+        ExtractedRuleSource<?> extractedRules = ruleExtractor.extract(rules);
+        extractedRules.assertNoPlugins();
+        extractedRules.apply(this, scope);
         return this;
     }
 

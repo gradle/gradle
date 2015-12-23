@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
@@ -38,6 +39,11 @@ public class ExtractedModelAction implements ExtractedModelRule {
         this.role = role;
         this.action = action;
         this.dependencies = dependencies;
+    }
+
+    @Override
+    public ModelRuleDescriptor getDescriptor() {
+        return action.getDescriptor();
     }
 
     @Override

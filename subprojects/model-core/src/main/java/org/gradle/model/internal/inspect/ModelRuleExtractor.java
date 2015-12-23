@@ -41,6 +41,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
@@ -50,10 +51,10 @@ import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
 public class ModelRuleExtractor {
-    private final LoadingCache<Class<?>, RuleSourceSchema<?>> cache = CacheBuilder.newBuilder()
+    private final LoadingCache<Class<?>, ExtractedRuleSource<?>> cache = CacheBuilder.newBuilder()
             .weakKeys()
-            .build(new CacheLoader<Class<?>, RuleSourceSchema<?>>() {
-                public RuleSourceSchema<?> load(Class<?> source) {
+            .build(new CacheLoader<Class<?>, ExtractedRuleSource<?>>() {
+                public ExtractedRuleSource<?> load(Class<?> source) {
                     return doExtract(source);
                 }
             });
@@ -78,7 +79,7 @@ public class ModelRuleExtractor {
         return "[" + desc + "]";
     }
 
-    public <T> RuleSourceSchema<T> extract(Class<T> source) throws InvalidModelRuleDeclarationException {
+    public <T> ExtractedRuleSource<T> extract(Class<T> source) throws InvalidModelRuleDeclarationException {
         try {
             return Cast.uncheckedCast(cache.get(source));
         } catch (ExecutionException e) {
@@ -88,7 +89,7 @@ public class ModelRuleExtractor {
         }
     }
 
-    private <T> RuleSourceSchema<T> doExtract(final Class<T> source) {
+    private <T> ExtractedRuleSource<T> doExtract(final Class<T> source) {
         final ModelType<T> type = ModelType.of(source);
         DefaultMethodModelRuleExtractionContext context = new DefaultMethodModelRuleExtractionContext(type, this);
 
@@ -98,7 +99,7 @@ public class ModelRuleExtractor {
         if (schema == null) {
             throw new InvalidModelRuleDeclarationException(context.problems.format());
         }
-        Factory<T> factory = Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema, proxyFactory) : new ConcreteRuleSourceFactory<T>(type);
+        final Factory<T> factory = Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema, proxyFactory) : new ConcreteRuleSourceFactory<T>(type);
 
         // sort for determinism
         Set<Method> methods = new TreeSet<Method>(Ordering.usingToString());
@@ -126,7 +127,7 @@ public class ModelRuleExtractor {
             throw new InvalidModelRuleDeclarationException(context.problems.format());
         }
 
-        return new RuleSourceSchema<T>(type, registrations.build(), factory);
+        return new DefaultExtractedRuleSource<T>(registrations.build(), factory);
     }
 
     private <T> StructSchema<T> getSchema(Class<T> source, DefaultMethodModelRuleExtractionContext context) {
@@ -291,6 +292,55 @@ public class ModelRuleExtractor {
                     values.put(name, value);
                 }
             }, schema);
+        }
+    }
+
+    private static class DefaultExtractedRuleSource<T> implements ExtractedRuleSource<T> {
+        private final List<ExtractedModelRule> rules;
+        private final Factory<T> factory;
+
+        public DefaultExtractedRuleSource(List<ExtractedModelRule> rules, Factory<T> factory) {
+            this.rules = rules;
+            this.factory = factory;
+        }
+
+        public List<ExtractedModelRule> getRules() {
+            return rules;
+        }
+
+        @Override
+        public void apply(ModelRegistry modelRegistry, ModelPath scope) {
+            for (ExtractedModelRule rule : rules) {
+                rule.apply(modelRegistry, scope);
+            }
+        }
+
+        @Override
+        public List<? extends Class<?>> getRequiredPlugins() {
+            List<Class<?>> plugins = new ArrayList<Class<?>>();
+            for (ExtractedModelRule rule : rules) {
+                plugins.addAll(rule.getRuleDependencies());
+            }
+            return plugins;
+        }
+
+        @Override
+        public void assertNoPlugins() {
+            for (ExtractedModelRule rule : rules) {
+                if (!rule.getRuleDependencies().isEmpty()) {
+                    StringBuilder message = new StringBuilder();
+                    rule.getDescriptor().describeTo(message);
+                    message.append(" has dependencies on plugins: ");
+                    message.append(rule.getRuleDependencies());
+                    message.append(". Plugin dependencies are not supported in this context.");
+                    throw new UnsupportedOperationException(message.toString());
+                }
+            }
+        }
+
+        @Override
+        public Factory<? extends T> getFactory() {
+            return factory;
         }
     }
 }

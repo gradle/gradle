@@ -17,11 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract
 
 import org.gradle.model.RuleSource
-import org.gradle.model.internal.manage.schema.CompositeSchema
-import org.gradle.model.internal.manage.schema.ManagedImplSchema
-import org.gradle.model.internal.manage.schema.ModelProperty
-import org.gradle.model.internal.manage.schema.StructSchema
-import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema
+import org.gradle.model.internal.manage.schema.*
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import spock.lang.Specification
@@ -32,11 +28,10 @@ class RuleSourceSchemaExtractionStrategyTest extends Specification {
     def "assembles schema for RuleSource type"() {
         expect:
         def schema = store.getSchema(ModelType.of(RuleSource))
-        schema instanceof UnmanagedImplStructSchema
+        schema instanceof RuleSourceSchema
         !(schema instanceof ManagedImplSchema)
         !(schema instanceof CompositeSchema)
         schema instanceof StructSchema
-        !schema.annotated
         schema.propertyNames.empty
         schema.properties.isEmpty()
     }
@@ -50,11 +45,10 @@ class RuleSourceSchemaExtractionStrategyTest extends Specification {
     def "assembles schema for RuleSource subtype"() {
         expect:
         def schema = store.getSchema(ModelType.of(SomeRules))
-        schema instanceof UnmanagedImplStructSchema
+        schema instanceof RuleSourceSchema
         !(schema instanceof ManagedImplSchema)
         !(schema instanceof CompositeSchema)
         schema instanceof StructSchema
-        !schema.annotated
         schema.propertyNames == ['readOnlyString', 'strings'] as SortedSet
         schema.properties*.name == ['readOnlyString', 'strings']
         schema.properties.every { it.stateManagementType == ModelProperty.StateManagementType.MANAGED }

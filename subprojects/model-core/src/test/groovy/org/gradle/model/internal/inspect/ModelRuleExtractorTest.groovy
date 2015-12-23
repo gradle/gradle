@@ -17,8 +17,10 @@
 package org.gradle.model.internal.inspect
 
 import org.gradle.model.*
-import org.gradle.model.internal.core.*
-import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
+import org.gradle.model.internal.core.ModelAction
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelRegistration
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.manage.schema.extract.ModelStoreTestUtils
@@ -178,28 +180,16 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         extractor.extract(source).rules
     }
 
-    void registerRules(Class<?> clazz) {
-        def rules = extract(clazz)
-        rules.each {
-            it.apply(registry, ModelPath.ROOT)
-        }
-    }
-
     def "can inspect class with simple model creation rule"() {
-        def mockRegistry = Mock(ModelRegistry)
+        def registry = Mock(ModelRegistry)
 
         when:
-        def rule = extract(SimpleModelCreationRuleInferredName).first()
+        extractor.extract(SimpleModelCreationRuleInferredName).apply(registry, ModelPath.ROOT)
 
         then:
-        rule instanceof ExtractedModelRegistration
-
-        when:
-        rule.apply(mockRegistry, ModelPath.ROOT)
-
-        then:
-        1 * mockRegistry.register(_) >> { ModelRegistration registration ->
+        1 * registry.register(_) >> { ModelRegistration registration ->
             assert registration.path.toString() == "modelPath"
+            assert registration.descriptor.toString() == "ModelRuleExtractorTest.SimpleModelCreationRuleInferredName#modelPath"
         }
         0 * _
     }
@@ -232,9 +222,9 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         }
     }
 
-    def "can inspect class with model creation rule for paramaterized type"() {
+    def "can inspect class with model creation rule for parameterized type"() {
         when:
-        registerRules(ParameterizedModel)
+        extractor.extract(ParameterizedModel).apply(registry, ModelPath.ROOT)
 
         then:
         registry.realizeNode(ModelPath.path("strings")).promise.canBeViewedAsImmutable(new ModelType<List<String>>() {})
@@ -252,7 +242,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "model creation rule cannot be generic"() {
         when:
-        registerRules(HasGenericModelRule)
+        extract(HasGenericModelRule)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -270,7 +260,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "model rule method cannot be annotated with multiple rule annotations"() {
         when:
-        registerRules(HasMultipleRuleAnnotations)
+        extract(HasMultipleRuleAnnotations)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -287,7 +277,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "type variables of model type are captured"() {
         when:
-        registerRules(ConcreteGenericModelType)
+        extractor.extract(ConcreteGenericModelType).apply(registry, ModelPath.ROOT)
         def node = registry.realizeNode(new ModelPath("strings"))
         def type = node.adapter.asImmutable(new ModelType<List<String>>() {}, node, null).type
 
@@ -305,7 +295,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "type variables of model type are captured when method is generic in interface"() {
         when:
-        registerRules(ConcreteGenericModelTypeImplementingGenericInterface)
+        extractor.extract(ConcreteGenericModelTypeImplementingGenericInterface).apply(registry, ModelPath.ROOT)
         def node = registry.realizeNode(new ModelPath("strings"))
         def type = node.adapter.asImmutable(new ModelType<List<String>>() {}, node, null).type
 
@@ -321,7 +311,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "mutation rule cannot be generic"() {
         when:
-        registerRules(GenericMutationRule)
+        extract(GenericMutationRule)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -336,7 +326,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "only void is allowed as return type of a mutation rule"() {
         when:
-        registerRules(NonVoidMutationRule)
+        extract(NonVoidMutationRule)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -351,7 +341,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "mutation rule must have a subject"() {
         when:
-        registerRules(NoSubjectMutationRule)
+        extract(NoSubjectMutationRule)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -366,7 +356,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "path of rule input cannot be empty"() {
         when:
-        registerRules(RuleWithEmptyInputPath)
+        extract(RuleWithEmptyInputPath)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -381,7 +371,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "path of rule input has to be valid"() {
         when:
-        registerRules(RuleWithInvalidInputPath)
+        extract(RuleWithInvalidInputPath)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -392,36 +382,21 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
     static class MutationRules extends RuleSource {
         @Mutate
         static void mutate1(List<String> strings) {
-            strings << "1"
-        }
-
-        @Mutate
-        static void mutate2(List<String> strings) {
-            strings << "2"
-        }
-
-        @Mutate
-        static void mutate3(List<Integer> strings) {
-            strings << 3
         }
     }
 
-    // Not an exhaustive test of the mechanics of mutation rules, just testing the extraction and registration
     def "mutation rules are registered"() {
         given:
-        def path = new ModelPath("strings")
-        def type = new ModelType<List<String>>() {}
-
-        // Have to make the inputs exist so the binding can be inferred by type
-        // or, the inputs could be annotated with @Path
-        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(path, type), []).descriptor("strings").build())
+        def registry = Mock(ModelRegistry)
 
         when:
-        registerRules(MutationRules)
+        extractor.extract(MutationRules).apply(registry, ModelPath.ROOT)
 
         then:
-        def node = registry.realizeNode(path)
-        node.adapter.asImmutable(type, node, null).instance.sort() == ["1", "2"]
+        1 * registry.configure(ModelActionRole.Mutate, _, _) >> { ModelActionRole role, ModelAction action, def scope ->
+            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationRules#mutate1'
+        }
+        0 * registry._
     }
 
     static class MutationAndFinalizeRules extends RuleSource {
@@ -441,39 +416,41 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         }
     }
 
-    // Not an exhaustive test of the mechanics of finalize rules, just testing the extraction and registration
     def "finalize rules are registered"() {
         given:
-        def path = new ModelPath("strings")
-        def type = new ModelType<List<String>>() {}
-
-        // Have to make the inputs exist so the binding can be inferred by type
-        // or, the inputs could be annotated with @Path
-        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(path, type), []).descriptor("strings").build())
+        def registry = Mock(ModelRegistry)
 
         when:
-        registerRules(MutationAndFinalizeRules)
+        extractor.extract(MutationAndFinalizeRules).apply(registry, ModelPath.ROOT)
 
         then:
-        def node = registry.realizeNode(path)
-        node.adapter.asImmutable(type, node, null).instance == ["1", "2"]
+        1 * registry.configure(ModelActionRole.Finalize, _, _) >> { ModelActionRole role, ModelAction action, def scope ->
+            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#finalize1'
+        }
     }
 
     def "methods are processed ordered by their to string representation"() {
-        when:
-        def stringListType = new ModelType<List<String>>() {}
-        def integerListType = new ModelType<List<Integer>>() {}
+        given:
+        def registry = Mock(ModelRegistry)
 
-        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(ModelPath.path("strings"), stringListType), []).descriptor("strings").build())
-        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).descriptor("integers").build())
+        when:
+        extractor.extract(MutationAndFinalizeRules).apply(registry, ModelPath.ROOT)
 
         then:
-        extract(MutationAndFinalizeRules)*.action*.descriptor == [
-                MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1"),
-                MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate1"),
-                MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3")
-        ]
+        1 * registry.configure(ModelActionRole.Finalize, _, _) >> { ModelActionRole role, ModelAction action, def scope ->
+            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#finalize1'
+        }
 
+        then:
+        1 * registry.configure(ModelActionRole.Mutate, _, _) >> { ModelActionRole role, ModelAction action, def scope ->
+            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#mutate1'
+        }
+
+        then:
+        1 * registry.configure(ModelActionRole.Mutate, _, _) >> { ModelActionRole role, ModelAction action, def scope ->
+            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#mutate3'
+        }
+        0 * registry._
     }
 
     static class InvalidModelNameViaAnnotation extends RuleSource {
@@ -485,7 +462,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "invalid model name is not allowed"() {
         when:
-        registerRules(InvalidModelNameViaAnnotation)
+        extract(InvalidModelNameViaAnnotation)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -501,7 +478,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "type of the first argument of void returning model definition has to be a valid managed type"() {
         when:
-        registerRules(RuleSourceCreatingAClassAnnotatedWithManaged)
+        extract(RuleSourceCreatingAClassAnnotatedWithManaged)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
@@ -519,7 +496,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "void returning model definition has to take at least one argument"() {
         when:
-        registerRules(RuleSourceWithAVoidReturningNoArgumentMethod)
+        extract(RuleSourceWithAVoidReturningNoArgumentMethod)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
@@ -542,7 +519,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
     @Unroll
     def "void returning model definition with for a type with a nested property of invalid managed type - #inspected.simpleName"() {
         when:
-        registerRules(inspected)
+        extract(inspected)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
@@ -572,7 +549,7 @@ ${managedType.name}
 
     def "error message produced when super type is not a manageable type indicates the original (sub) type"() {
         when:
-        registerRules(RuleSourceCreatingManagedWithNonManageableParent)
+        extract(RuleSourceCreatingManagedWithNonManageableParent)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
@@ -598,7 +575,7 @@ ${ManagedWithNonManageableParents.name}
 
     def "error when trying to use model map without specifying type param"() {
         when:
-        registerRules(HasRuleWithUncheckedModelMap)
+        extract(HasRuleWithUncheckedModelMap)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
@@ -614,7 +591,7 @@ ${ManagedWithNonManageableParents.name}
 
     def "all non-private methods must be annotated"() {
         when:
-        registerRules(NotEverythingAnnotated)
+        extract(NotEverythingAnnotated)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -629,7 +606,7 @@ ${ManagedWithNonManageableParents.name}
 
     def "no private methods may be annotated"() {
         when:
-        registerRules(PrivateAnnotated)
+        extract(PrivateAnnotated)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -659,7 +636,7 @@ ${ManagedWithNonManageableParents.name}
 
     def "collects all validation problems"() {
         when:
-        registerRules(SeveralProblems)
+        extract(SeveralProblems)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -679,6 +656,50 @@ ${ManagedWithNonManageableParents.name}
 - Method notARule() is not a valid rule method: A method that is not annotated as a rule must be private
 - Method thing() is not a valid rule method: The declared model element path ':)' is not a valid path: Model element name ':)' has illegal first character ':' (names must start with an ASCII letter or underscore).
 - Method thing() is not a valid rule method: A method annotated with @Model must either take at least one parameter or have a non-void return type'''
+    }
+
+    static class RuleSourceWithDependencies extends RuleSource {
+        @Mutate
+        void method1(Long l) { }
+        @Mutate
+        void method2(String s) { }
+    }
+
+    def "rule method can imply plugin dependency"() {
+        def ruleExtractor = Stub(MethodModelRuleExtractor)
+        def extractor = new ModelRuleExtractor([ruleExtractor], proxyFactory, schemaStore)
+
+        given:
+        ruleExtractor.isSatisfiedBy(_) >> { MethodRuleDefinition method -> method.isAnnotationPresent(Mutate) }
+        ruleExtractor.registration(_, _) >> { MethodRuleDefinition method, MethodModelRuleExtractionContext context ->
+            return Stub(ExtractedModelRule) {
+                getRuleDependencies() >> [method.getSubjectReference().getType().getConcreteClass()]
+            }
+        }
+
+        expect:
+        extractor.extract(RuleSourceWithDependencies).getRequiredPlugins() == [Long.class, String.class]
+    }
+
+    def "can assert no plugin dependencies"() {
+        def ruleExtractor = Stub(MethodModelRuleExtractor)
+        def extractor = new ModelRuleExtractor([ruleExtractor], proxyFactory, schemaStore)
+
+        given:
+        ruleExtractor.isSatisfiedBy(_) >> { MethodRuleDefinition method -> method.isAnnotationPresent(Mutate) }
+        ruleExtractor.registration(_, _) >> { MethodRuleDefinition method, MethodModelRuleExtractionContext context ->
+            return Stub(ExtractedModelRule) {
+                getDescriptor() >> method.getDescriptor()
+                getRuleDependencies() >> [method.getSubjectReference().getType().getConcreteClass()]
+            }
+        }
+
+        when:
+        extractor.extract(RuleSourceWithDependencies).assertNoPlugins()
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "ModelRuleExtractorTest.RuleSourceWithDependencies#method1 has dependencies on plugins: [class java.lang.Long]. Plugin dependencies are not supported in this context."
     }
 
     def "extracted rules are cached"() {

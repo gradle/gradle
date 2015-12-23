@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelRegistration;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
@@ -38,6 +39,11 @@ public class ExtractedModelRegistration implements ExtractedModelRule {
             throw new InvalidModelRuleDeclarationException(String.format("Rule %s cannot be applied at the scope of model element %s as creation rules cannot be used when applying rule sources to particular elements", registration.getDescriptor(), scope));
         }
         modelRegistry.register(registration);
+    }
+
+    @Override
+    public ModelRuleDescriptor getDescriptor() {
+        return registration.getDescriptor();
     }
 
     @Override

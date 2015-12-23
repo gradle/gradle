@@ -23,7 +23,7 @@ import org.gradle.internal.Actions;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.RuleSourceSchema;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
@@ -82,6 +82,6 @@ public class RuleSourceSchemaExtractionStrategy extends StructSchemaExtractionSt
                 return propertyResult.getProperty();
             }
         });
-        return new UnmanagedImplStructSchema<R>(extractionContext.getType(), properties, aspects, false);
+        return new RuleSourceSchema<R>(extractionContext.getType(), properties, aspects);
     }
 }

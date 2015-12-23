@@ -21,6 +21,7 @@ import org.gradle.internal.BiAction;
 import org.gradle.model.RuleSource;
 import org.gradle.model.Rules;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
@@ -63,6 +64,11 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         }
 
         @Override
+        public ModelRuleDescriptor getDescriptor() {
+            return ruleDefinition.getDescriptor();
+        }
+
+        @Override
         public void apply(ModelRegistry modelRegistry, ModelPath scope) {
             final ModelReference<?> targetReference = ruleDefinition.getReferences().get(1);
             List<ModelReference<?>> inputs = ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size());
@@ -71,7 +77,7 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
                     DirectNodeInputUsingModelAction.of(targetReference, ruleDefinition.getDescriptor(), inputs, new BiAction<MutableModelNode, List<ModelView<?>>>() {
                         @Override
                         public void execute(MutableModelNode subjectNode, List<ModelView<?>> modelViews) {
-                            RuleSourceSchema<? extends RuleSource> ruleSourceSchema = ruleExtractor.extract(ruleSourceType.getConcreteClass());
+                            ExtractedRuleSource<?> ruleSourceSchema = ruleExtractor.extract(ruleSourceType.getConcreteClass());
                             Object[] parameters = new Object[2 + modelViews.size()];
                             parameters[0] = ruleSourceSchema.getFactory().create();
                             parameters[1] = subjectNode.asImmutable(targetReference.getType(), ruleDefinition.getDescriptor()).getInstance();
