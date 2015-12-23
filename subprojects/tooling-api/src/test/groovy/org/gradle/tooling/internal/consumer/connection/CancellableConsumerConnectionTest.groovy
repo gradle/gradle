@@ -124,9 +124,7 @@ class CancellableConsumerConnectionTest extends Specification {
     }
 
     def "runs build using connection's getModel() method"() {
-        def parameters = Stub(ConsumerOperationParameters) {
-            getConsumer() >> null
-        }
+        def parameters = Stub(ConsumerOperationParameters)
         def modelIdentifier = Stub(ModelIdentifier)
 
         when:
@@ -148,9 +146,7 @@ class CancellableConsumerConnectionTest extends Specification {
     }
 
     def "adapts implementation-specific cancellation failure when fetching model"() {
-        def parameters = Stub(ConsumerOperationParameters) {
-            getConsumer() >> null
-        }
+        def parameters = Stub(ConsumerOperationParameters)
         def failure = new GradleException("broken", new BuildCancelledException("cancelled."))
 
         when:

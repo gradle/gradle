@@ -31,7 +31,6 @@ import org.gradle.tooling.*;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.task.*;
-import org.gradle.tooling.internal.consumer.ConnectorConsumer;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.util.CollectionUtils;
@@ -149,7 +148,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         gradleConnector.searchUpwards(false);
         gradleConnector.daemonMaxIdleTime(120, TimeUnit.SECONDS);
         gradleConnector.embedded(embedded);
-        gradleConnector.setConsumer(ConnectorConsumer.TEST_KIT);
         return gradleConnector;
     }
 

@@ -37,21 +37,17 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "build result does not capture tasks when executed with unsupported target gradle version"() {
-        String maxUnsupportedVersion = getMaxUnsupportedVersion(TESTKIT_MIN_SUPPORTED_VERSION)
-        String minSupportedVersion = TESTKIT_MIN_SUPPORTED_VERSION.version
-
         given:
         buildFile << helloWorldTask()
 
         when:
-        runner('helloWorld')
-            .withGradleVersion(maxUnsupportedVersion)
+        def result = runner('helloWorld')
+            .withGradleVersion(getMaxUnsupportedVersion(TESTKIT_MIN_SUPPORTED_VERSION))
             .build()
 
         then:
-        def e = thrown InvalidRunnerConfigurationException
-        e.cause instanceof UnsupportedVersionException
-        e.cause.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not support executing builds with TestKit. Support for this is available in Gradle $minSupportedVersion and all later versions."
+        result.tasks.empty
+        result.output.contains(':helloWorld')
     }
 
     @Debug
@@ -61,8 +57,8 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
 
         when:
         def result = runner('helloWorld')
-                .withGradleVersion(getMaxUnsupportedVersion(CAPTURE_BUILD_OUTPUT_IN_DEBUG.since))
-                .build()
+            .withGradleVersion(getMaxUnsupportedVersion(CAPTURE_BUILD_OUTPUT_IN_DEBUG.since))
+            .build()
 
         then:
         result.task(":helloWorld").outcome == SUCCESS

@@ -24,7 +24,6 @@ import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
-import org.gradle.tooling.internal.consumer.ConnectorConsumer;
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.model.Launchable;
@@ -293,13 +292,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
      */
     public File getDaemonBaseDir() {
         return parameters.getDaemonBaseDir();
-    }
-
-    /**
-     * @since 2.11-rc-1
-     */
-    public ConnectorConsumer getConsumer() {
-        return parameters.getConsumer();
     }
 
     /**
