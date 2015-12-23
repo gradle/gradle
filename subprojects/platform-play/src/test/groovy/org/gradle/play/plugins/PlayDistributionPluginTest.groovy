@@ -31,6 +31,7 @@ import org.gradle.api.internal.file.copy.DestinationRootCopySpec
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
+import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
@@ -176,12 +177,30 @@ class PlayDistributionPluginTest extends Specification {
 
         then:
         1 * distributions.withType(PlayDistribution) >> WrapUtil.toNamedDomainObjectSet(PlayDistribution, distribution)
-        1 * tasks.create("createPlayBinaryDist", Zip, _) >> { String name, Class type, Action action ->
+        1 * tasks.create("createPlayBinaryZipDist", Zip, _) >> { String name, Class type, Action action ->
             action.execute(Mock(Zip) {
                 1 * setDescription(_)
                 1 * setDestinationDir(_)
                 1 * setArchiveName("playBinary.zip")
-                1 * from(_ as Sync)
+                1 * getRootSpec() >> Mock(DestinationRootCopySpec) {
+                    1 * addChild() >> Mock(CopySpecInternal) {
+                        1 * into("playBinary")
+                        1 * with(_ as CopySpecInternal)
+                    }
+                }
+            })
+        }
+        1 * tasks.create("createPlayBinaryTarDist", Tar, _) >> { String name, Class type, Action action ->
+            action.execute(Mock(Tar) {
+                1 * setDescription(_)
+                1 * setDestinationDir(_)
+                1 * setArchiveName("playBinary.tar")
+                1 * getRootSpec() >> Mock(DestinationRootCopySpec) {
+                    1 * addChild() >> Mock(CopySpecInternal) {
+                        1 * into("playBinary")
+                        1 * with(_ as CopySpecInternal)
+                    }
+                }
             })
         }
         1 * tasks.create("stagePlayBinaryDist", Sync, _) >> { String name, Class type, Action action ->

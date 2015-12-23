@@ -18,6 +18,7 @@ package org.gradle.play.integtest.fixtures
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 
 abstract class PlayMultiVersionApplicationIntegrationTest extends PlayMultiVersionIntegrationTest {
@@ -46,5 +47,9 @@ abstract class PlayMultiVersionApplicationIntegrationTest extends PlayMultiVersi
 
     ZipTestFixture zip(String fileName) {
         new ZipTestFixture(file(fileName))
+    }
+
+    TarTestFixture tar(String fileName) {
+        new TarTestFixture(file(fileName))
     }
 }

@@ -211,7 +211,7 @@
                     <literal>dist</literal>
                 </td>
                 <td>
-                    <literal>createPlayBinaryDist</literal>
+                    <literal>createPlayBinaryZipDist</literal>, <literal>createPlayBinaryTarDist</literal>
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
                 <td>Assembles the Play distribution.</td>
@@ -495,11 +495,19 @@
             </tr>
             <tr>
                 <td>
-                    <literal>createPlayBinaryDist</literal>
+                    <literal>createPlayBinaryZipDist</literal>
                 </td>
-                <td><literal>stagePlayBinaryDist</literal></td>
+                <td></td>
                 <td><apilink class="org.gradle.api.tasks.bundling.Zip"/></td>
-                <td>Bundles the Play application as a distribution.</td>
+                <td>Bundles the Play application as a standalone distribution packaged as a zip.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>createPlayBinaryTarDist</literal>
+                </td>
+                <td></td>
+                <td><apilink class="org.gradle.api.tasks.bundling.Tar"/></td>
+                <td>Bundles the Play application as a standalone distribution packaged as a tar.</td>
             </tr>
             <tr>
                 <td>
@@ -513,7 +521,9 @@
                 <td>
                     <literal>dist</literal>
                 </td>
-                <td><literal>createPlayBinaryDist</literal></td>
+                <td>
+                    <literal>createPlayBinaryZipDist</literal>, <literal>createPlayBinaryTarDist</literal>
+                </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
                 <td>Lifecycle task for creating a Play distribution.</td>
             </tr>

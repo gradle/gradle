@@ -32,13 +32,12 @@ class PlayDistributionAdvancedAppIntegrationTest extends PlayDistributionApplica
     }
 
     @Override
-    void verifyZips() {
-        super.verifyZips()
+    void verifyArchives() {
+        super.verifyArchives()
 
-        zip("build/distributions/playBinary.zip").containsDescendants(
-                "playBinary/conf/jva.routes",
-                "playBinary/conf/scala.routes"
-        )
+        archives()*.containsDescendants(
+            "playBinary/conf/jva.routes",
+            "playBinary/conf/scala.routes")
     }
 
     @Override

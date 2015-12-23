@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.application.CreateStartScripts;
+import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -173,21 +174,38 @@ public class PlayDistributionPlugin extends RuleSource {
             });
 
             final Task stageTask = tasks.get(stageTaskName);
-            final String distributionTaskName = String.format("create%sDist", StringUtils.capitalize(distribution.getName()));
-            tasks.create(distributionTaskName, Zip.class, new Action<Zip>() {
+            final String distributionZipTaskName = String.format("create%sZipDist", StringUtils.capitalize(distribution.getName()));
+            tasks.create(distributionZipTaskName, Zip.class, new Action<Zip>() {
                 @Override
                 public void execute(final Zip zip) {
                     zip.setDescription("Packages the '" + distribution.getName() + "' distribution as a zip file.");
                     zip.setArchiveName(String.format("%s.zip", baseName));
                     zip.setDestinationDir(new File(buildDir, "distributions"));
-                    zip.from(stageTask);
+
+                    CopySpec baseSpec = zip.getRootSpec().addChild();
+                    baseSpec.into(baseName);
+                    baseSpec.with(distribution.getContents());
+                }
+            });
+
+            final String distributionTarTaskName = String.format("create%sTarDist", StringUtils.capitalize(distribution.getName()));
+            tasks.create(distributionTarTaskName, Tar.class, new Action<Tar>() {
+                @Override
+                public void execute(final Tar tar) {
+                    tar.setDescription("Packages the '" + distribution.getName() + "' distribution as a tar file.");
+                    tar.setArchiveName(String.format("%s.tar", baseName));
+                    tar.setDestinationDir(new File(buildDir, "distributions"));
+
+                    CopySpec baseSpec = tar.getRootSpec().addChild();
+                    baseSpec.into(baseName);
+                    baseSpec.with(distribution.getContents());
                 }
             });
 
             tasks.named("dist", new Action<Task>() {
                 @Override
                 public void execute(Task task) {
-                    task.dependsOn(distributionTaskName);
+                    task.dependsOn(distributionZipTaskName, distributionTarTaskName);
                 }
             });
         }

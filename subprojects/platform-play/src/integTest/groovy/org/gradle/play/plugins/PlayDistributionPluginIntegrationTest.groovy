@@ -19,6 +19,8 @@ package org.gradle.play.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.archive.ArchiveTestFixture
+import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
 import spock.lang.Unroll
@@ -69,9 +71,9 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "dist"
 
         then:
-        executedAndNotSkipped(":createPlayBinaryDist")
+        executedAndNotSkipped(":createPlayBinaryZipDist", ":createPlayBinaryTarDist")
 
-        zip("build/distributions/playBinary.zip").containsDescendants(
+        archives()*.containsDescendants(
             "playBinary/lib/sub1.dependency-dependency-1.1.jar",
             "playBinary/lib/sub2.dependency-dependency-1.2.jar")
 
@@ -80,11 +82,16 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         and:
         succeeds "dist"
         then:
-        executedAndNotSkipped(":createPlayBinaryDist")
+        executedAndNotSkipped(":createPlayBinaryZipDist", ":createPlayBinaryTarDist")
 
-        zip("build/distributions/playBinary.zip").doesNotContainDescendants("playBinary/lib/sub1.dependency-dependency-1.1.jar").containsDescendants(
-            "playBinary/lib/sub1.dependency-dependency-2.0.jar",
-            "playBinary/lib/sub2.dependency-dependency-1.2.jar")
+        archives().each { archive ->
+            archive.doesNotContainDescendants(
+                "playBinary/lib/sub1.dependency-dependency-1.1.jar"
+            ).containsDescendants(
+                "playBinary/lib/sub1.dependency-dependency-2.0.jar",
+                "playBinary/lib/sub2.dependency-dependency-1.2.jar"
+            )
+        }
     }
 
     def "builds empty distribution when no sources present" () {
@@ -95,7 +102,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                         assert classpath.contains(file(createPlayBinaryDistributionJar.archivePath))
                     }
                 }
-                tasks.createPlayBinaryDist {
+                tasks.createPlayBinaryZipDist {
                     doLast {
                         def zipFileNames = zipTree(archivePath).collect { it.name }
                         configurations.playRun.collect { it.name }.each { assert zipFileNames.contains(it) }
@@ -134,7 +141,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "dist"
 
         then:
-        executedAndNotSkipped(":createPlayBinaryDist")
+        executedAndNotSkipped(":createPlayBinaryZipDist", ":createPlayBinaryTarDist")
         skipped(
                 ":compilePlayBinaryScala",
                 ":createPlayBinaryJar",
@@ -146,7 +153,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 ":compilePlayBinaryPlayTwirlTemplates")
 
         and:
-        zip("build/distributions/playBinary.zip").containsDescendants(
+        archives()*.containsDescendants(
                 "playBinary/lib/dist-play-app.jar",
                 "playBinary/lib/dist-play-app-assets.jar",
                 "playBinary/bin/playBinary",
@@ -154,7 +161,15 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
+    TarTestFixture tar(String path) {
+        return new TarTestFixture(file(path))
+    }
+
     ZipTestFixture zip(String path) {
         return new ZipTestFixture(file(path))
+    }
+
+    List<ArchiveTestFixture> archives() {
+        return [ zip("build/distributions/playBinary.zip"), tar("build/distributions/playBinary.tar") ]
     }
 }

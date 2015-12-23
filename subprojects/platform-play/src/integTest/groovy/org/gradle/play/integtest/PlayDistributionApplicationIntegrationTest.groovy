@@ -20,6 +20,7 @@ import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder
 import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
+import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -46,18 +47,17 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         succeeds("dist")
 
         then:
-        executedAndNotSkipped(":createPlayBinaryDist")
+        executedAndNotSkipped(":createPlayBinaryZipDist", ":createPlayBinaryTarDist")
         skipped(
                 ":compilePlayBinaryPlayRoutes",
                 ":compilePlayBinaryPlayTwirlTemplates",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryDistributionJar",
                 ":createPlayBinaryAssetsJar",
-                ":createPlayBinaryStartScripts",
-                ":stagePlayBinaryDist")
+                ":createPlayBinaryStartScripts")
 
         and:
-        verifyZips()
+        verifyArchives()
     }
 
     @Requires(TestPrecondition.NOT_UNKNOWN_OS)
@@ -86,15 +86,17 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         runningApp.verifyStopped()
     }
 
-    void verifyZips() {
-        zip("build/distributions/playBinary.zip").containsDescendants(
+    List<ArchiveTestFixture> archives() {
+        [ zip("build/distributions/playBinary.zip"), tar("build/distributions/playBinary.tar") ]
+    }
+    void verifyArchives() {
+        archives()*.containsDescendants(
                 "playBinary/lib/${playApp.name}.jar",
                 "playBinary/lib/${playApp.name}-assets.jar",
                 "playBinary/bin/playBinary",
                 "playBinary/bin/playBinary.bat",
                 "playBinary/conf/application.conf",
-                "playBinary/README"
-        )
+                "playBinary/README")
     }
 
     void verifyStagedFiles() {
