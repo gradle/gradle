@@ -109,10 +109,6 @@ public class SystemProperties {
         return javaHomeDir;
     }
 
-    private void setJavaHomeDir(File javaHomeDir) {
-        System.setProperty("java.home", javaHomeDir.getAbsolutePath());
-    }
-
     /**
      * Creates instance for Factory implementation with the provided Java home directory. Setting the "java.home" system property is thread-safe
      * and is set back to the original value of "java.home" after the operation.

@@ -17,9 +17,11 @@ package org.gradle.internal
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 class SystemPropertiesIntegrationTest extends ConcurrentSpec {
+    @Rule SetSystemProperties properties = new SetSystemProperties()
     @Rule TestNameTestDirectoryProvider temporaryFolder
 
     def "creates Java compiler for mismatching Java home directory for multiple threads concurrently"() {
@@ -47,41 +49,42 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
         assert SystemProperties.instance.javaHomeDir == originalJavaHomeDir
     }
 
-    def "sets a system property for the duration of a Runnable"() {
+    def "sets a system property for the duration of a Factory operation"() {
         final int threadCount = 100
-        String factoryCreationResult = 'test'
-        final String propertyWithoutValue = "org.gradle.test.sysprop.without.value"
-        final String propertyWithOriginalValue = "org.gradle.test.sysprop.with.original"
-        System.setProperty(propertyWithOriginalValue, "original")
+        String presetFactoryCreationResult = 'presetTest'
+        String notsetFactoryCreationResult = "notsetTest"
+        final String notsetPropertyName = "org.gradle.test.sysprop.without.value"
+        final String presetPropertyName = "org.gradle.test.sysprop.with.original"
+        System.setProperty(presetPropertyName, "original")
 
         when:
         async {
             threadCount.times { i ->
+                def nextValue = i.toString()
                 start {
-                    Factory<String> originalValueFactory = Mock(Factory) {
-                        create() >> {
-                            assert System.getProperty(propertyWithOriginalValue) == i.toString()
-                            return factoryCreationResult
+                    Factory<String> factory = new Factory<String>() {
+                        @Override
+                        String create() {
+                            assert System.getProperty(presetPropertyName) == nextValue
+                            return presetFactoryCreationResult
                         }
                     }
-                    assert SystemProperties.instance.withSystemProperty(propertyWithOriginalValue, i.toString(), originalValueFactory) == factoryCreationResult
+                    assert SystemProperties.instance.withSystemProperty(presetPropertyName, nextValue, factory) == presetFactoryCreationResult
 
-                    Factory<String> withoutValueFactory = Mock(Factory) {
-                        create() >> {
-                            assert System.getProperty(propertyWithoutValue) == i.toString()
-                            return factoryCreationResult
+                    factory = new Factory<String>() {
+                        @Override
+                        String create() {
+                            assert System.getProperty(notsetPropertyName) == nextValue
+                            return notsetFactoryCreationResult
                         }
                     }
-                    assert SystemProperties.instance.withSystemProperty(propertyWithoutValue, i.toString(), withoutValueFactory) == factoryCreationResult
+                    assert SystemProperties.instance.withSystemProperty(notsetPropertyName, nextValue, factory) == notsetFactoryCreationResult
                 }
             }
         }
 
         then:
-        assert System.getProperty(propertyWithOriginalValue) == "original"
-        assert System.getProperty(propertyWithoutValue) == null
-
-        cleanup:
-        System.clearProperty(propertyWithOriginalValue)
+        assert System.getProperty(presetPropertyName) == "original"
+        assert System.getProperty(notsetPropertyName) == null
     }
 }
