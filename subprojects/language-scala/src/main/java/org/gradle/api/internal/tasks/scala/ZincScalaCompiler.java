@@ -71,30 +71,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
 
             final xsbti.Logger logger = new SbtLoggerAdapter();
 
-            CacheRepository cacheRepository = ZincCompilerServices.getInstance(gradleUserHome).get(CacheRepository.class);
-            final PersistentCache zincCache = cacheRepository.cache("zinc")
-                                            .withDisplayName("Zinc compiler cache")
-                                            .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
-                                            .open();
-            final File cacheDir = zincCache.getBaseDir();
-
-            final String userSuppliedZincDir = System.getProperty("zinc.dir");
-            if (userSuppliedZincDir != null && !userSuppliedZincDir.equals(cacheDir.getAbsolutePath())) {
-                LOGGER.warn(ZINC_DIR_IGNORED_MESSAGE);
-            }
-
-            com.typesafe.zinc.Compiler compiler = SystemProperties.getInstance().withSystemProperty(ZINC_DIR_SYSTEM_PROPERTY, cacheDir.getAbsolutePath(), new Factory<com.typesafe.zinc.Compiler>() {
-                @Override
-                public com.typesafe.zinc.Compiler create() {
-                    return zincCache.useCache("initialize", new Factory<com.typesafe.zinc.Compiler>() {
-                        @Override
-                        public com.typesafe.zinc.Compiler create() {
-                            return createCompiler(scalaClasspath, zincClasspath, logger, cacheDir);
-                        }
-                    });
-                }
-            });
-            zincCache.close();
+            com.typesafe.zinc.Compiler compiler = createParallelSafeCompiler(scalaClasspath, zincClasspath, logger, gradleUserHome);
 
             List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
             List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
@@ -131,7 +108,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             return options;
         }
 
-        static com.typesafe.zinc.Compiler createCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, xsbti.Logger logger, File cacheDir) {
+        static com.typesafe.zinc.Compiler createCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, xsbti.Logger logger) {
             ScalaLocation scalaLocation = ScalaLocation.fromPath(Lists.newArrayList(scalaClasspath));
             SbtJars sbtJars = SbtJars.fromPath(Lists.newArrayList(zincClasspath));
             Setup setup = Setup.create(scalaLocation, sbtJars, Jvm.current().getJavaHome(), true);
@@ -139,6 +116,35 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
                 Setup.debug(setup, logger);
             }
             com.typesafe.zinc.Compiler compiler = com.typesafe.zinc.Compiler.getOrCreate(setup, logger);
+            return compiler;
+        }
+
+        static com.typesafe.zinc.Compiler createParallelSafeCompiler(final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath, final xsbti.Logger logger, File gradleUserHome) {
+            CacheRepository cacheRepository = ZincCompilerServices.getInstance(gradleUserHome).get(CacheRepository.class);
+            final PersistentCache zincCache = cacheRepository.cache("zinc")
+                                                            .withDisplayName("Zinc compiler cache")
+                                                            .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
+                                                            .open();
+            final File cacheDir = zincCache.getBaseDir();
+
+            final String userSuppliedZincDir = System.getProperty("zinc.dir");
+            if (userSuppliedZincDir != null && !userSuppliedZincDir.equals(cacheDir.getAbsolutePath())) {
+                LOGGER.warn(ZINC_DIR_IGNORED_MESSAGE);
+            }
+
+            com.typesafe.zinc.Compiler compiler = SystemProperties.getInstance().withSystemProperty(ZINC_DIR_SYSTEM_PROPERTY, cacheDir.getAbsolutePath(), new Factory<com.typesafe.zinc.Compiler>() {
+                @Override
+                public com.typesafe.zinc.Compiler create() {
+                    return zincCache.useCache("initialize", new Factory<com.typesafe.zinc.Compiler>() {
+                        @Override
+                        public com.typesafe.zinc.Compiler create() {
+                            return createCompiler(scalaClasspath, zincClasspath, logger);
+                        }
+                    });
+                }
+            });
+            zincCache.close();
+
             return compiler;
         }
     }
