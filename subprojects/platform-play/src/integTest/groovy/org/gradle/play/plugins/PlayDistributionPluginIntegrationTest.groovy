@@ -103,7 +103,6 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
     def "builds a tgz when requested"() {
         given:
         buildFile << """
-            apply plugin: 'base'
             model {
                 tasks.createPlayBinaryTarDist {
                     compression = Compression.GZIP
