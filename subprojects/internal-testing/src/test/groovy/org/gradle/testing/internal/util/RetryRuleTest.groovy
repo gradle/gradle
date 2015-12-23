@@ -54,7 +54,7 @@ class RetryRuleTest extends Specification {
         true
     }
 
-    @ExpectedFailure(expected = RetryFailure.class)
+    @ExpectedFailure
     def "should fail when expected exception happens three times"() {
         given:
         iteration++
@@ -66,7 +66,7 @@ class RetryRuleTest extends Specification {
         true
     }
 
-    @ExpectedFailure(expected = RuntimeException.class)
+    @ExpectedFailure
     def "should fail when expected exception happens once and another exception happens on next execution"() {
         given:
         iteration++
@@ -79,7 +79,7 @@ class RetryRuleTest extends Specification {
         true
     }
 
-    @ExpectedFailure(expected = RetryFailure.class)
+    @ExpectedFailure
     def "should fail when expected exception happens consistently"() {
         when:
         throw new IOException();
@@ -88,7 +88,7 @@ class RetryRuleTest extends Specification {
         true
     }
 
-    @ExpectedFailure(expected = RuntimeException.class)
+    @ExpectedFailure
     def "should fail when unexpected exception happens once"() {
         given:
         iteration++
