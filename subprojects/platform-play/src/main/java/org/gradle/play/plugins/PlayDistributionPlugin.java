@@ -199,7 +199,7 @@ public class PlayDistributionPlugin extends RuleSource {
                 public void execute(final Tar tar) {
                     tar.setDescription("Packages the '" + distribution.getName() + "' distribution as a tar file.");
                     tar.setBaseName(baseName);
-                    tar.setArchiveName(String.format("%s.tar", tar.getBaseName()));
+                    tar.setArchiveName(String.format("%s.tar", baseName));
                     tar.setDestinationDir(new File(buildDir, "distributions"));
                     tar.from(stageTask);
                 }

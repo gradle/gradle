@@ -189,6 +189,7 @@ class PlayDistributionPluginTest extends Specification {
             action.execute(Mock(Tar) {
                 1 * setDescription(_)
                 1 * setDestinationDir(_)
+                1 * setBaseName("playBinary")
                 1 * setArchiveName("playBinary.tar")
                 1 * from(_ as Sync)
             })
