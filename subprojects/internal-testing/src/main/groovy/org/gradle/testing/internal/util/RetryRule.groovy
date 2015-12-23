@@ -21,6 +21,9 @@ import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
 
 /*
+  Use this rule judiciously. This is not intended as a generic solution for flaky tests.
+  There are few valid use cases for it like known issues in old versions of Gradle impacting cross-version tests.
+
   Implements MethodRule, not TestRule because of a limitation of Spock.
   Note that setup or cleanup methods won't be called between retrying and the same test instance is used for retrying.
   If the test method depends on state held in the test instance, then retrying might not behave as expected.
