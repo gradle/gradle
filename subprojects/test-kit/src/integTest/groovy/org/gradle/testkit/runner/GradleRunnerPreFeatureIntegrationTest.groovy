@@ -36,18 +36,89 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
     private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    def "build result does not capture tasks when executed with unsupported target gradle version"() {
+    def "can execute build with target version 1.0 without accessing build result methods"() {
         given:
         buildFile << helloWorldTask()
 
         when:
-        def result = runner('helloWorld')
-            .withGradleVersion(getMaxUnsupportedVersion(TESTKIT_MIN_SUPPORTED_VERSION))
+        runner('helloWorld')
+            .withGradleVersion('1.0')
             .build()
 
         then:
-        result.tasks.empty
-        result.output.contains(':helloWorld')
+        noExceptionThrown()
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    def "build result does not capture output when executed with unsupported target gradle version"() {
+        String maxUnsupportedVersion = getMaxUnsupportedVersion(TESTKIT_MIN_SUPPORTED_VERSION)
+        String minSupportedVersion = TESTKIT_MIN_SUPPORTED_VERSION.version
+
+        given:
+        buildFile << helloWorldTask()
+
+        when:
+        runner('helloWorld')
+            .withGradleVersion(maxUnsupportedVersion)
+            .build().output
+
+        then:
+        def e = thrown UnsupportedFeatureException
+        e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not capture build output with the GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    def "build result does not capture tasks when executed with unsupported target gradle version"() {
+        String maxUnsupportedVersion = getMaxUnsupportedVersion(TESTKIT_MIN_SUPPORTED_VERSION)
+        String minSupportedVersion = TESTKIT_MIN_SUPPORTED_VERSION.version
+
+        given:
+        buildFile << helloWorldTask()
+
+        when:
+        runner('helloWorld')
+            .withGradleVersion(maxUnsupportedVersion)
+            .build().tasks
+
+        then:
+        def e = thrown UnsupportedFeatureException
+        e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not capture executed tasks with the GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    def "build result does not capture tasks for outcome when executed with unsupported target gradle version"() {
+        String maxUnsupportedVersion = getMaxUnsupportedVersion(TESTKIT_MIN_SUPPORTED_VERSION)
+        String minSupportedVersion = TESTKIT_MIN_SUPPORTED_VERSION.version
+
+        given:
+        buildFile << helloWorldTask()
+
+        when:
+        runner('helloWorld')
+            .withGradleVersion(maxUnsupportedVersion)
+            .build().tasks(SUCCESS)
+
+        then:
+        def e = thrown UnsupportedFeatureException
+        e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not capture executed tasks with the GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    def "build result does not capture task paths for outcome when executed with unsupported target gradle version"() {
+        String maxUnsupportedVersion = getMaxUnsupportedVersion(TESTKIT_MIN_SUPPORTED_VERSION)
+        String minSupportedVersion = TESTKIT_MIN_SUPPORTED_VERSION.version
+
+        given:
+        buildFile << helloWorldTask()
+
+        when:
+        runner('helloWorld')
+            .withGradleVersion(maxUnsupportedVersion)
+            .build().taskPaths(SUCCESS)
+
+        then:
+        def e = thrown UnsupportedFeatureException
+        e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not capture executed tasks with the GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
     }
 
     @Debug

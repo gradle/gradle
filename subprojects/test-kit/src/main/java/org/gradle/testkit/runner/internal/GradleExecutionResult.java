@@ -17,23 +17,30 @@
 package org.gradle.testkit.runner.internal;
 
 import org.gradle.testkit.runner.BuildTask;
+import org.gradle.util.GradleVersion;
 
 import java.util.List;
 
 public class GradleExecutionResult {
 
+    private final GradleVersion targetGradleVersion;
     private final String output;
     private final List<BuildTask> tasks;
     private final Throwable throwable;
 
-    public GradleExecutionResult(String standardOutput, List<BuildTask> tasks) {
-        this(standardOutput, tasks, null);
+    public GradleExecutionResult(GradleVersion targetGradleVersion, String standardOutput, List<BuildTask> tasks) {
+        this(targetGradleVersion, standardOutput, tasks, null);
     }
 
-    public GradleExecutionResult(String output, List<BuildTask> tasks, Throwable throwable) {
+    public GradleExecutionResult(GradleVersion targetGradleVersion, String output, List<BuildTask> tasks, Throwable throwable) {
+        this.targetGradleVersion = targetGradleVersion;
         this.output = output;
         this.tasks = tasks;
         this.throwable = throwable;
+    }
+
+    public GradleVersion getTargetGradleVersion() {
+        return targetGradleVersion;
     }
 
     public String getOutput() {
