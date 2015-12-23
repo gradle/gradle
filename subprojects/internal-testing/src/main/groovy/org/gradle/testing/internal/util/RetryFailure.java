@@ -16,14 +16,11 @@
 
 package org.gradle.testing.internal.util;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public class RetryFailure extends AssertionError {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(value = ElementType.METHOD)
-public @interface ExpectedFailure {
+    private static final String MESSAGE = "Test failed despite retries";
 
-    Class<? extends Throwable> expected();
+    public RetryFailure(Throwable cause) {
+        super(MESSAGE, cause);
+    }
 }

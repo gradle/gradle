@@ -27,18 +27,24 @@ public class ExpectedFailureRule implements MethodRule {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                boolean expectedToFail = method.getAnnotation(ExpectedFailure.class) != null;
-                boolean failed = false;
+                ExpectedFailure expectedFailureAnnotation = method.getAnnotation(ExpectedFailure.class);
+                boolean expectedToFail = expectedFailureAnnotation != null;
+                Throwable failed = null;
                 try {
                     base.evaluate();
                 } catch (Throwable t) {
-                    failed = true;
+                    failed = t;
                     if (!expectedToFail) {
                         throw t;
                     }
                 }
-                if (expectedToFail && !failed) {
-                    throw new AssertionError("test was expected to fail but didn't");
+                if (expectedToFail) {
+                    if (failed == null) {
+                        throw new AssertionError("test was expected to fail but didn't");
+                    }
+                    if (!failed.getClass().equals(expectedFailureAnnotation.expected())) {
+                        throw new AssertionError("test was expected but with " + expectedFailureAnnotation.expected() + " but failed with " + failed.getClass());
+                    }
                 }
             }
         };
