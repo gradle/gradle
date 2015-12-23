@@ -16,14 +16,13 @@
 
 package org.gradle.testing.internal.util;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+// TODO extend AssertionError instead of Error once we upgrade to Java 7,
+// in Java 6 there is no constructor in AssertionError that takes cause parameter
+public class RetryFailure extends Error {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(value = ElementType.METHOD)
-public @interface ExpectedFailure {
+    private static final String MESSAGE = "Test failed despite retries";
 
-    Class<? extends Throwable> expected();
+    public RetryFailure(Throwable cause) {
+        super(MESSAGE, cause);
+    }
 }

@@ -52,7 +52,11 @@ class RetryRule implements MethodRule {
                         base.evaluate()
                     } catch (Throwable t2) {
                         if (shouldRetry(t2)) {
-                            base.evaluate();
+                            try {
+                                base.evaluate();
+                            } catch (Throwable t3) {
+                                throw new RetryFailure(t3);
+                            }
                         } else {
                             throw t2;
                         }
