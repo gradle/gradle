@@ -28,6 +28,7 @@ import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.beans.Introspector
 import java.util.regex.Pattern
 
 import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.MANAGED
@@ -315,7 +316,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
         schema instanceof ManagedImplSchema
         def cCompiler = schema.properties[0]
         assert cCompiler instanceof ModelProperty
-        cCompiler.name == "cCompiler"
+        cCompiler.name == Introspector.decapitalize('cCompiler')
     }
 
     @Managed
@@ -333,7 +334,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
         schema instanceof ManagedImplSchema
         def cflags = schema.properties[0]
         assert cflags instanceof ModelProperty
-        cflags.name == "CFlags"
+        cflags.name == Introspector.decapitalize('CFlags')
     }
 
     @Managed
@@ -351,7 +352,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
         schema instanceof ManagedImplSchema
         def url = schema.properties[0]
         assert url instanceof ModelProperty
-        url.name == "URL"
+        url.name == Introspector.decapitalize('URL')
     }
 
     @Managed
