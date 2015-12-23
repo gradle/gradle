@@ -22,9 +22,12 @@ import org.gradle.api.Incubating
 import org.gradle.api.internal.tasks.options.Option
 import org.gradle.api.internal.tasks.options.OptionValues
 import org.gradle.api.tasks.TaskAction
+import org.gradle.buildinit.plugins.internal.BuildInitModifier
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds
+import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
-import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor;
+
+import static org.gradle.buildinit.plugins.internal.BuildInitModifier.NONE
 
 /**
  * Generates a Gradle project structure.
@@ -65,18 +68,16 @@ class InitBuild extends DefaultTask {
     @TaskAction
     void setupProjectLayout() {
         def type = getType()
-        def modifier = getWith()
+        def modifier = BuildInitModifier.fromName(getWith())
         def projectLayoutRegistry = getProjectLayoutRegistry()
         if (!projectLayoutRegistry.supports(type)) {
             throw new GradleException("The requested build setup type '${type}' is not supported. Supported types: ${projectLayoutRegistry.supportedTypes.collect{"'$it'"}.sort().join(", ")}.")
         }
-
         ProjectInitDescriptor initDescriptor = (ProjectInitDescriptor) projectLayoutRegistry.get(type)
-        if (modifier != null) {
-            initDescriptor.withModifier(modifier)
+        if (modifier != NONE && !initDescriptor.supports(modifier)) {
+            throw new GradleException("The requested init modifier '" + modifier.getId() + "' is not supported in '" + type + "' setup type");
         }
-
-        initDescriptor.generate()
+        initDescriptor.generate(modifier)
     }
 
     @Option(option = "type", description = "Set type of build to create.")

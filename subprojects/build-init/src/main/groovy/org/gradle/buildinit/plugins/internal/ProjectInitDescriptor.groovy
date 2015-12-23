@@ -16,6 +16,9 @@
 
 package org.gradle.buildinit.plugins.internal
 
-interface ProjectInitDescriptor extends TemplateOperation{
-    ProjectInitDescriptor withModifier(String modifier)
+interface ProjectInitDescriptor {
+
+    void generate(BuildInitModifier modifier)
+
+    boolean supports(BuildInitModifier modifier)
 }

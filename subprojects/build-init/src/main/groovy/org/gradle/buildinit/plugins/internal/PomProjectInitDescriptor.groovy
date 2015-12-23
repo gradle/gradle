@@ -16,7 +16,6 @@
 
 package org.gradle.buildinit.plugins.internal
 
-import org.gradle.api.GradleException
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.buildinit.plugins.internal.maven.Maven2Gradle
@@ -25,23 +24,17 @@ import org.gradle.buildinit.plugins.internal.maven.MavenProjectsCreator
 import org.gradle.util.SingleMessageLogger
 
 class PomProjectInitDescriptor implements ProjectInitDescriptor {
+
     private final MavenSettingsProvider settingsProvider
     private final FileResolver fileResolver
-
 
     PomProjectInitDescriptor(FileResolver fileResolver, MavenSettingsProvider mavenSettingsProvider) {
         this.fileResolver = fileResolver
         this.settingsProvider = mavenSettingsProvider
     }
 
-    public ProjectInitDescriptor withModifier(String modifier) {
-        throw new GradleException(
-            "The requested init modifier '"+modifier+"' is not supported."
-            + " This build setup type does not currently support init modifiers."
-        );
-    }
-
-    void generate() {
+    @Override
+    void generate(BuildInitModifier modifier) {
         SingleMessageLogger.incubatingFeatureUsed("Maven to Gradle conversion")
         def pom = fileResolver.resolve("pom.xml")
         try {
@@ -51,5 +44,10 @@ class PomProjectInitDescriptor implements ProjectInitDescriptor {
         } catch (Exception exception) {
             throw new MavenConversionException("Could not convert Maven POM $pom to a Gradle build.", exception)
         }
+    }
+
+    @Override
+    boolean supports(BuildInitModifier modifier) {
+        return false
     }
 }

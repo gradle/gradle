@@ -24,7 +24,8 @@ import org.gradle.integtests.fixtures.TestExecutionResult
 class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "src/main/java/Library.java"
-    public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/java/LibraryTest.java"
+    public static final String SAMPLE_JUNIT_LIBRARY_TEST_CLASS = "src/test/java/LibraryTest.java"
+    public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "src/test/groovy/LibraryTest.groovy"
 
     final wrapper = new WrapperTestFixture(testDirectory)
 
@@ -34,7 +35,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
-        file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        file(SAMPLE_JUNIT_LIBRARY_TEST_CLASS).exists()
         buildFile.exists()
         settingsFile.exists()
         wrapper.generated()
@@ -54,7 +55,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
-        file("src/test/groovy/LibraryTest.groovy").exists()
+        file(SAMPLE_SPOCK_LIBRARY_TEST_CLASS).exists()
         buildFile.exists()
         settingsFile.exists()
         wrapper.generated()
@@ -87,7 +88,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()
-        !file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        !file(SAMPLE_JUNIT_LIBRARY_TEST_CLASS).exists()
         buildFile.exists()
         settingsFile.exists()
         wrapper.generated()

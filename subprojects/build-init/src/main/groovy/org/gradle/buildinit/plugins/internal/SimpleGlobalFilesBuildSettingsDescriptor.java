@@ -19,14 +19,28 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.GUtil;
 
-public class SimpleGlobalFilesBuildSettingsDescriptor extends TemplateBasedProjectInitDescriptor {
+public class SimpleGlobalFilesBuildSettingsDescriptor implements ProjectInitDescriptor {
+
+    private final TemplateOperationFactory templateOperationBuilder;
+    private final FileResolver fileResolver;
+
     public SimpleGlobalFilesBuildSettingsDescriptor(TemplateOperationFactory templateOperationBuilder, FileResolver fileResolver) {
-        register(templateOperationBuilder.newTemplateOperation()
-                    .withTemplate("settings.gradle.template")
-                    .withTarget("settings.gradle")
-                    .withDocumentationBindings(GUtil.map("ref_userguide_multiproject", "multi_project_builds"))
-                    .withBindings(GUtil.map("rootProjectName", fileResolver.resolve(".").getName()))
-                    .create()
-        );
+        this.templateOperationBuilder = templateOperationBuilder;
+        this.fileResolver = fileResolver;
+    }
+
+    @Override
+    public void generate(BuildInitModifier modifier) {
+        templateOperationBuilder.newTemplateOperation()
+            .withTemplate("settings.gradle.template")
+            .withTarget("settings.gradle")
+            .withDocumentationBindings(GUtil.map("ref_userguide_multiproject", "multi_project_builds"))
+            .withBindings(GUtil.map("rootProjectName", fileResolver.resolve(".").getName()))
+            .create().generate();
+    }
+
+    @Override
+    public boolean supports(BuildInitModifier modifier) {
+        return false;
     }
 }

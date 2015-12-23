@@ -19,16 +19,21 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Factory;
 
-public class LanguageLibraryProjectInitDescriptor extends TemplateBasedProjectInitDescriptor {
+public abstract class LanguageLibraryProjectInitDescriptor implements ProjectInitDescriptor {
 
-    private final String language;
-    private final FileResolver fileResolver;
-    private final TemplateOperationFactory templateOperationFactory;
+    protected final String language;
+    protected final FileResolver fileResolver;
+    protected final TemplateOperationFactory templateOperationFactory;
+    protected final TemplateLibraryVersionProvider libraryVersionProvider;
+    protected final ProjectInitDescriptor globalSettingsDescriptor;
 
-    public LanguageLibraryProjectInitDescriptor(String language, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver){
+    public LanguageLibraryProjectInitDescriptor(String language, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
+                                                TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor globalSettingsDescriptor){
         this.language = language;
         this.fileResolver = fileResolver;
         this.templateOperationFactory = templateOperationFactory;
+        this.libraryVersionProvider = libraryVersionProvider;
+        this.globalSettingsDescriptor = globalSettingsDescriptor;
     }
 
     protected TemplateOperation whenNoSourcesAvailable(TemplateOperation... operations) {

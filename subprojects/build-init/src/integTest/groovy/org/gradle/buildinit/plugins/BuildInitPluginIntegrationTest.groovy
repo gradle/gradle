@@ -168,6 +168,14 @@ include 'child'
         failure.assertHasCause("The requested init modifier 'fakemodifier' is not supported.")
     }
 
+    def "gives decent error message when init-modifier is not supported by specific type"() {
+        when:
+        fails('init', '--type', 'basic', '--with', 'spock')
+
+        then:
+        failure.assertHasCause("The requested init modifier 'spock' is not supported in 'basic' setup type")
+    }
+
     private TestFile pom() {
         file("pom.xml") << """
       <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

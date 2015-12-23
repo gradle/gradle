@@ -36,8 +36,7 @@ class ProjectLayoutSetupRegistryFactory {
         ProjectInitDescriptor simpleGlobalFilesBuildSettingsDescriptor = new SimpleGlobalFilesBuildSettingsDescriptor(templateOperationBuilder, fileResolver);
 
         registry.add(BuildInitTypeIds.JAVA_LIBRARY,
-                new JavaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor))
-
+                new JavaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
 
         registry.add(BuildInitTypeIds.SCALA_LIBRARY,
                 new ScalaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));

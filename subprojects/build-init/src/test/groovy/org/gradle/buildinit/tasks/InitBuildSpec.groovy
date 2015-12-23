@@ -23,22 +23,21 @@ import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import static org.gradle.buildinit.plugins.internal.BuildInitModifier.NONE
+import static org.gradle.buildinit.plugins.internal.BuildInitModifier.SPOCK
+
 class InitBuildSpec extends Specification {
 
     InitBuild init;
 
     ProjectLayoutSetupRegistry projectLayoutRegistry;
 
-    ProjectInitDescriptor projectSetupDescriptor1
-    ProjectInitDescriptor projectSetupDescriptor2
-    ProjectInitDescriptor projectSetupDescriptor3
+    ProjectInitDescriptor projectSetupDescriptor
 
     def setup() {
         init = TestUtil.createTask(InitBuild)
         projectLayoutRegistry = Mock()
-        projectSetupDescriptor1 = Mock()
-        projectSetupDescriptor2 = Mock()
-        projectSetupDescriptor3 = Mock()
+        projectSetupDescriptor = Mock()
         init.projectLayoutRegistry = projectLayoutRegistry
     }
 
@@ -46,22 +45,68 @@ class InitBuildSpec extends Specification {
         setup:
         _ * projectLayoutRegistry.get("aType") >> null
         _ * projectLayoutRegistry.getSupportedTypes() >> ['supported-type', 'another-supported-type']
-        when:
         init.type = "aType"
+        when:
         init.setupProjectLayout()
         then:
         def e = thrown(GradleException)
         e.message == "The requested build setup type 'aType' is not supported. Supported types: 'another-supported-type', 'supported-type'."
-
     }
 
     def "delegates task action to referenced setupDescriptor"() {
-        setup:
-        1 * projectLayoutRegistry.supports(BuildInitTypeIds.BASIC) >> true
-        1 * projectLayoutRegistry.get(BuildInitTypeIds.BASIC) >> projectSetupDescriptor1
+        given:
+        supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
+
         when:
         init.setupProjectLayout()
+
         then:
-        1 * projectSetupDescriptor1.generate()
+        1 * projectSetupDescriptor.generate(NONE)
+    }
+
+    def "should delegate to setup descriptor with specified type and modifier"() {
+        given:
+        supportedType(BuildInitTypeIds.JAVA_LIBRARY, projectSetupDescriptor)
+        projectSetupDescriptor.supports(SPOCK) >> true
+        init.type = "java-library"
+        init.with = "spock"
+
+        when:
+        init.setupProjectLayout()
+
+        then:
+        1 * projectSetupDescriptor.generate(SPOCK)
+    }
+
+    def "should throw exception if requested modifier is not supported"() {
+        given:
+        supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
+        init.with = "unknown"
+
+        when:
+        init.setupProjectLayout()
+
+        then:
+        GradleException e = thrown()
+        e.message == "The requested init modifier 'unknown' is not supported."
+    }
+
+    def "should throw exception if requested modifier is not supported for the specified type"() {
+        given:
+        supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
+        projectSetupDescriptor.supports(SPOCK) >> false
+        init.with = "spock"
+
+        when:
+        init.setupProjectLayout()
+
+        then:
+        GradleException e = thrown()
+        e.message == "The requested init modifier 'spock' is not supported in 'basic' setup type"
+    }
+
+    private void supportedType(String type, ProjectInitDescriptor projectSetupDescriptor) {
+        projectLayoutRegistry.supports(type) >> true
+        projectLayoutRegistry.get(type) >> projectSetupDescriptor
     }
 }
