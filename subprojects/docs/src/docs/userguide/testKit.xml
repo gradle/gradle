@@ -217,7 +217,10 @@
                 The version limitation mainly exists because of the underlying compatibility of TestKit with the corresponding Tooling API.
             </para>
             <para>
-                <emphasis>The minimum Gradle version compatible with TestKit is 2.5.</emphasis> Future versions of Gradle might improve on backward-compatibility of TestKit.
+                <emphasis>TestKit can execute builds with a minimum target Gradle version of 1.0 though with functional limitations.</emphasis>
+                The following table lists these limitation and their corresponding version compatibility. If a build is executed with a target Gradle version that is not
+                compatible with at least one incompatible feature, TestKit will throw an exception including the reason for failure.
+                Future versions of Gradle might improve on backward-compatibility of TestKit.
             </para>
             <table>
                 <title>Gradle version compatibility</title>

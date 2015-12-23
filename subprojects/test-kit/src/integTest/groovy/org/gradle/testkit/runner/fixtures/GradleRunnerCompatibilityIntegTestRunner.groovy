@@ -54,9 +54,9 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
     private static final List<? extends Annotation> TESTKIT_FEATURES = [PluginClasspathInjection]
 
     /**
-     * The minimum Gradle version usable for TestKit is 2.5 due to the use of {@link org.gradle.tooling.events.ProgressListener}.
+     * The Gradle version that introduced TestKit.
      */
-    public static final GradleVersion TESTKIT_MIN_SUPPORTED_VERSION = GradleVersion.version('2.5')
+    public static final GradleVersion TESTKIT_INCEPTION_VERSION = GradleVersion.version('2.5')
 
     private static final String COMPATIBILITY_SYSPROP_NAME = 'org.gradle.integtest.testkit.compatibility'
     private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
@@ -101,7 +101,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
 
     private GradleVersion getMinCompatibleVersion() {
         List<GradleVersion> testedFeatures = TESTKIT_FEATURES.findAll { target.getAnnotation(it) }.collect { FeatureCompatibility.getMinSupportedVersion(it) }
-        !testedFeatures.empty ? testedFeatures.min() : TESTKIT_MIN_SUPPORTED_VERSION
+        !testedFeatures.empty ? testedFeatures.min() : TESTKIT_INCEPTION_VERSION
     }
 
     @TupleConstructor
@@ -167,16 +167,16 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
 
         @Override
         protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
-            if (isDebugModeAndBuildOutputCaptured(testDetails)) {
+            if (!isDebugModeAndBuildOutputCapturedSupported(testDetails)) {
                 return false
             }
 
             super.isTestEnabled(testDetails)
         }
 
-        private boolean isDebugModeAndBuildOutputCaptured(AbstractMultiTestRunner.TestDetails testDetails) {
+        private boolean isDebugModeAndBuildOutputCapturedSupported(AbstractMultiTestRunner.TestDetails testDetails) {
             CaptureBuildOutputInDebug captureBuildOutputInDebug = testDetails.getAnnotation(CaptureBuildOutputInDebug)
-            debug && captureBuildOutputInDebug && !FeatureCompatibility.isSupported(CaptureBuildOutputInDebug, testedGradleDistribution.gradleVersion)
+            debug && captureBuildOutputInDebug && FeatureCompatibility.isSupported(CaptureBuildOutputInDebug, testedGradleDistribution.gradleVersion)
         }
     }
 }

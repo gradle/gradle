@@ -33,7 +33,7 @@ enum FeatureCompatibility {
     private FeatureCompatibility(Class<? extends Annotation> feature, GradleVersion since) {
         this.feature = feature
         this.since = since
-        assert isValidVersion(since, GradleRunnerCompatibilityIntegTestRunner.TESTKIT_MIN_SUPPORTED_VERSION) : "Feature version $since needs to be later than $GradleRunnerCompatibilityIntegTestRunner.TESTKIT_MIN_SUPPORTED_VERSION"
+        assert isValidVersion(since, GradleRunnerCompatibilityIntegTestRunner.TESTKIT_INCEPTION_VERSION) : "Feature version $since needs to be later than $GradleRunnerCompatibilityIntegTestRunner.TESTKIT_INCEPTION_VERSION"
     }
 
     private static boolean isValidVersion(GradleVersion comparedVersion, GradleVersion minVersion) {
