@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.versions
 
 import org.gradle.internal.Factory
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.util.GradleVersion.version
 
@@ -67,12 +68,19 @@ class ReleasedVersionDistributionsTest extends Specification {
         versions().all*.version == [version("1.3-rc-1"), version("1.2")]
     }
 
-    def "get previous distribution"() {
+    @Unroll
+    def "get previous distribution for #description"() {
         when:
         def versions = new ReleasedVersionDistributions()
 
         then:
-        versions.getPrevious(version('2.5')).version == version('2.4')
-        versions.getPrevious(version('2.2.1')).version == version('2.2')
+        versions.getPrevious(givenVersion)?.version == previousVersion
+
+        where:
+        givenVersion     | previousVersion | description
+        version('2.5')   | version('2.4')  | 'existing version with major and minor attribute'
+        version('2.2.1') | version('2.2')  | 'existing version with major, minor and patch attribute'
+        version('0.8')   | null            | 'first released version'
+        version('0.1')   | null            | 'version that does not exist'
     }
 }
