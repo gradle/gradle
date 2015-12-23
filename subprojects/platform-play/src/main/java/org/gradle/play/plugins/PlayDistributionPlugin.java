@@ -16,7 +16,9 @@
 
 package org.gradle.play.plugins;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
@@ -24,7 +26,11 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.tasks.Sync;
@@ -41,10 +47,12 @@ import org.gradle.play.distribution.PlayDistributionContainer;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.distribution.DefaultPlayDistribution;
 import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A plugin that adds a distribution zip to a Play application build.
@@ -137,7 +145,7 @@ public class PlayDistributionPlugin extends RuleSource {
             libSpec.from(distributionJar);
             libSpec.from(binary.getAssetsJarFile());
             libSpec.from(configurations.getPlayRun().getAllArtifacts());
-            libSpec.eachFile(new PlayPluginConfigurations.Renamer(configurations.getPlayRun()));
+            libSpec.eachFile(new RenameArtifactFiles(configurations.getPlayRun()));
 
             CopySpec binSpec = distSpec.addChild().into("bin");
             binSpec.from(createStartScripts);
@@ -231,9 +239,97 @@ public class PlayDistributionPlugin extends RuleSource {
                         playConfiguration.getAllArtifacts(),
                         Collections.singleton(assetsJarFile)
                     ),
-                    new PlayPluginConfigurations.Renamer(playConfiguration)
+                    new RenameArtifactFiles(playConfiguration)
                 )
             );
+        }
+    }
+
+    static class RenameArtifactFiles implements Action<FileCopyDetails>, Function<File, String> {
+        private final PlayPluginConfigurations.PlayConfiguration configuration;
+        ImmutableMap<File, String> renames;
+
+        RenameArtifactFiles(PlayPluginConfigurations.PlayConfiguration configuration) {
+            this.configuration = configuration;
+        }
+
+        @Override
+        public void execute(FileCopyDetails fileCopyDetails) {
+            fileCopyDetails.setName(apply(fileCopyDetails.getFile()));
+        }
+
+        @Override
+        public String apply(File input) {
+            calculateRenames();
+            String rename = renames.get(input);
+            if (rename!=null) {
+                return rename;
+            }
+            return input.getName();
+        }
+
+        private void calculateRenames() {
+            if (renames == null) {
+                renames = calculate();
+            }
+        }
+
+        private ImmutableMap<File, String> calculate() {
+            ImmutableMap.Builder<File, String> files = ImmutableMap.builder();
+            for (ResolvedArtifact artifact : getResolvedArtifacts()) {
+                boolean isProject = artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier;
+                if (isProject) {
+                    // rename project dependencies
+                    ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
+                    files.put(artifact.getFile(), renameForProject(projectComponentIdentifier, artifact.getFile()));
+                } else {
+                    boolean isExternalModule = artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier;
+                    if (isExternalModule) {
+                        ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
+                        files.put(artifact.getFile(), renameForModule(moduleComponentIdentifier, artifact.getFile()));
+                    } else {
+                        // don't rename other types of dependencies
+                        files.put(artifact.getFile(), artifact.getFile().getName());
+                    }
+                }
+            }
+            return files.build();
+        }
+
+        Set<ResolvedArtifact> getResolvedArtifacts() {
+            return configuration.getConfiguration().getResolvedConfiguration().getResolvedArtifacts();
+        }
+
+        static String renameForProject(ProjectComponentIdentifier id, File file) {
+            if (shouldBeRenamed(file)) {
+                String projectPath = id.getProjectPath();
+                projectPath = projectPathToSafeFileName(projectPath);
+                return String.format("%s-%s", projectPath, file.getName());
+            }
+            return file.getName();
+        }
+
+        static String renameForModule(ModuleComponentIdentifier id, File file) {
+            if (shouldBeRenamed(file)) {
+                String group = id.getGroup();
+                if (GUtil.isTrue(group)) {
+                    return String.format("%s-%s", group, file.getName());
+                }
+            }
+            return file.getName();
+        }
+
+        static String projectPathToSafeFileName(String projectPath) {
+            if (projectPath.equals(":")) {
+                projectPath = "root";
+            } else {
+                projectPath = projectPath.replaceAll(":", ".").substring(1);
+            }
+            return projectPath;
+        }
+
+        static boolean shouldBeRenamed(File file) {
+            return file.getName().endsWith(".jar");
         }
     }
 }

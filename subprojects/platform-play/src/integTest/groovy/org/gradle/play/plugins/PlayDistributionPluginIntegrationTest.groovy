@@ -15,7 +15,6 @@
  */
 
 package org.gradle.play.plugins
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
@@ -23,7 +22,6 @@ import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
-import spock.lang.Unroll
 
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
@@ -42,9 +40,9 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Unroll
-    def "uses unique names for dependency jar in distribution when #description"() {
+    def "uses unique names for jars in distribution"() {
         given:
+        file("extralib.jar").text = "This is not a jar"
         (1..2).each { subprojectIdx ->
             def subprojectName = "sub${subprojectIdx}"
             settingsFile << """
@@ -59,7 +57,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
             dependencyRoot.file("build.gradle") << """
                 apply plugin: 'java'
                 group = 'com.example.${subprojectName}'
-                version = "1.${subprojectIdx}"
+                version = "1.0"
 """
             buildFile << """
                 dependencies {
@@ -67,6 +65,12 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 }
 """
         }
+        buildFile << """
+            dependencies {
+                playRun 'com.google.code.gson:gson:2.2.4'
+                playRun files('extralib.jar')
+            }
+"""
         when:
         succeeds "dist"
 
@@ -74,8 +78,10 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":createPlayBinaryZipDist", ":createPlayBinaryTarDist")
 
         archives()*.containsDescendants(
-            "playBinary/lib/sub1.dependency-dependency-1.1.jar",
-            "playBinary/lib/sub2.dependency-dependency-1.2.jar")
+            "playBinary/lib/extralib.jar",
+            "playBinary/lib/com.google.code.gson-gson-2.2.4.jar",
+            "playBinary/lib/sub1.dependency-dependency-1.0.jar",
+            "playBinary/lib/sub2.dependency-dependency-1.0.jar")
 
         when:
         file("sub1/dependency/build.gradle") << "version = '2.0'"
@@ -86,10 +92,10 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
 
         archives().each { archive ->
             archive.doesNotContainDescendants(
-                "playBinary/lib/sub1.dependency-dependency-1.1.jar"
+                "playBinary/lib/sub1.dependency-dependency-1.0.jar"
             ).containsDescendants(
                 "playBinary/lib/sub1.dependency-dependency-2.0.jar",
-                "playBinary/lib/sub2.dependency-dependency-1.2.jar"
+                "playBinary/lib/sub2.dependency-dependency-1.0.jar"
             )
         }
     }
@@ -100,12 +106,6 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 tasks.createPlayBinaryStartScripts {
                     doLast {
                         assert classpath.contains(file(createPlayBinaryDistributionJar.archivePath))
-                    }
-                }
-                tasks.createPlayBinaryZipDist {
-                    doLast {
-                        def zipFileNames = zipTree(archivePath).collect { it.name }
-                        configurations.playRun.collect { it.name }.each { assert zipFileNames.contains(it) }
                     }
                 }
             }
