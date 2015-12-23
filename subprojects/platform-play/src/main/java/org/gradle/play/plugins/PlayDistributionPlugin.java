@@ -198,11 +198,14 @@ public class PlayDistributionPlugin extends RuleSource {
                 @Override
                 public void execute(final Tar tar) {
                     tar.setDescription("Packages the '" + distribution.getName() + "' distribution as a tar file.");
-                    tar.setArchiveName(String.format("%s.tar", baseName));
+                    tar.setBaseName(baseName);
+                    tar.setArchiveName(String.format("%s.tar", tar.getBaseName()));
                     tar.setDestinationDir(new File(buildDir, "distributions"));
                     tar.from(stageTask);
                 }
             });
+
+            tasks.named(distributionTarTaskName, TarRules.class);
 
             tasks.named("dist", new Action<Task>() {
                 @Override
@@ -210,6 +213,13 @@ public class PlayDistributionPlugin extends RuleSource {
                     task.dependsOn(distributionZipTaskName, distributionTarTaskName);
                 }
             });
+        }
+    }
+
+    static class TarRules extends RuleSource {
+        @Finalize
+        void fixupDistributionArchiveNames(Tar tar) {
+            tar.setArchiveName(String.format("%s.%s", tar.getBaseName(), tar.getCompression().getDefaultExtension()));
         }
     }
 

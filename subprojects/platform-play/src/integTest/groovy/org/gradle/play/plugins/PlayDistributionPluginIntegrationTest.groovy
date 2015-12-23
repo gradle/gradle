@@ -100,6 +100,27 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "builds a tgz when requested"() {
+        given:
+        buildFile << """
+            apply plugin: 'base'
+            model {
+                tasks.createPlayBinaryTarDist {
+                    compression = Compression.GZIP
+                }
+            }
+        """
+        when:
+        succeeds ":createPlayBinaryTarDist"
+        then:
+        tar("build/distributions/playBinary.tgz").containsDescendants(
+            "playBinary/lib/dist-play-app.jar",
+            "playBinary/lib/dist-play-app-assets.jar",
+            "playBinary/bin/playBinary",
+            "playBinary/bin/playBinary.bat"
+        )
+
+    }
     def "builds empty distribution when no sources present" () {
         buildFile << """
             model {

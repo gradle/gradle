@@ -20,14 +20,17 @@ import org.apache.tools.tar.TarEntry
 import org.apache.tools.tar.TarInputStream
 import org.gradle.test.fixtures.file.TestFile
 
+import java.util.zip.GZIPInputStream
+
 class TarTestFixture extends ArchiveTestFixture {
     private final TestFile tarFile
 
     public TarTestFixture(TestFile tarFile) {
         this.tarFile = tarFile
 
+        boolean gzip = !tarFile.name.endsWith("tar")
         tarFile.withInputStream { inputStream ->
-            TarInputStream tarInputStream = new TarInputStream(inputStream)
+            TarInputStream tarInputStream = new TarInputStream(gzip ? new GZIPInputStream(inputStream) : inputStream)
             for (TarEntry tarEntry = tarInputStream.nextEntry; tarEntry != null; tarEntry = tarInputStream.nextEntry) {
                 if (tarEntry.directory) {
                     continue
