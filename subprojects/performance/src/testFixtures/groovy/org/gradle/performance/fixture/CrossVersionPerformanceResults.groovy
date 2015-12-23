@@ -16,8 +16,7 @@
 
 package org.gradle.performance.fixture
 
-import groovy.transform.stc.ClosureParams
-import groovy.transform.stc.SimpleType
+import org.gradle.api.Transformer
 import org.gradle.api.logging.Logging
 
 public class CrossVersionPerformanceResults extends PerformanceTestResult {
@@ -101,15 +100,12 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
         }
     }
 
-    private String checkBaselineVersion(
-        @ClosureParams(value = SimpleType, options = ["org.gradle.performance.fixture.BaselineVersion"]) Closure<?> fails,
-        @ClosureParams(value = SimpleType, options = ["org.gradle.performance.fixture.BaselineVersion"]) Closure<String> provideMessage
-    ) {
+    private String checkBaselineVersion(Transformer<Boolean, BaselineVersion> fails, Transformer<String, BaselineVersion> provideMessage) {
         def failed = false
         def failure = new StringBuilder()
-        baselineVersions.values().each {
-            String message = provideMessage(it)
-            if (fails(it)) {
+        baselineVersions.values().each { it ->
+            String message = provideMessage.transform(it)
+            if (fails.transform(it)) {
                 failed = true
                 failure.append message
             }
