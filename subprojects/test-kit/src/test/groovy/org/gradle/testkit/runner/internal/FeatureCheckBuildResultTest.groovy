@@ -71,7 +71,7 @@ class FeatureCheckBuildResultTest extends Specification {
         t.message == BUILD_RESULT_TASKS_UNSUPPORTED_FEATURE_MSG
     }
 
-    def "throws exception when getting tasks for outcome for unsupported Gradle Version"() {
+    def "throws exception when getting tasks by outcome for unsupported Gradle Version"() {
         given:
         FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(new BuildOperationParameters(UNSUPPORTED_GRADLE_VERSION, false), output, buildTasks)
 
@@ -83,12 +83,24 @@ class FeatureCheckBuildResultTest extends Specification {
         t.message == BUILD_RESULT_TASKS_UNSUPPORTED_FEATURE_MSG
     }
 
-    def "throws exception when getting task paths for outcome for unsupported Gradle Version"() {
+    def "throws exception when getting task paths by outcome for unsupported Gradle Version"() {
         given:
         FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(new BuildOperationParameters(UNSUPPORTED_GRADLE_VERSION, false), output, buildTasks)
 
         when:
         buildResult.taskPaths(SUCCESS)
+
+        then:
+        Throwable t = thrown(UnsupportedFeatureException)
+        t.message == BUILD_RESULT_TASKS_UNSUPPORTED_FEATURE_MSG
+    }
+
+    def "throws exception when getting task by path for unsupported Gradle Version"() {
+        given:
+        FeatureCheckBuildResult buildResult = new FeatureCheckBuildResult(new BuildOperationParameters(UNSUPPORTED_GRADLE_VERSION, false), output, buildTasks)
+
+        when:
+        buildResult.task(':a')
 
         then:
         Throwable t = thrown(UnsupportedFeatureException)

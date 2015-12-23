@@ -93,7 +93,7 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    def "cannot capture build result task paths for outcome when executed with unsupported target gradle version"() {
+    def "cannot capture build result task paths by outcome when executed with unsupported target gradle version"() {
         String maxUnsupportedVersion = getMaxUnsupportedVersion(TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.since)
         String minSupportedVersion = TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.since.version
 
@@ -107,6 +107,27 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
 
         and:
         result.taskPaths(SUCCESS)
+
+        then:
+        def e = thrown UnsupportedFeatureException
+        e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not capture executed tasks with the GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    def "cannot capture build result task by path when executed with unsupported target gradle version"() {
+        String maxUnsupportedVersion = getMaxUnsupportedVersion(TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.since)
+        String minSupportedVersion = TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.since.version
+
+        given:
+        buildFile << helloWorldTask()
+
+        when:
+        def result = runner('helloWorld')
+            .withGradleVersion(maxUnsupportedVersion)
+            .build()
+
+        and:
+        result.task(':helloWorld')
 
         then:
         def e = thrown UnsupportedFeatureException

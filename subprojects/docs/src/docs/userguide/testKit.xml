@@ -230,6 +230,18 @@
                 </thead>
                 <tr>
                     <td>
+                        <link>Capturing executed tasks</link>
+                    </td>
+                    <td>2.5</td>
+                    <td>Accessing the executed tasks with the methods
+                        <apilink class="org.gradle.testkit.runner.BuildResult" method="getTasks"/>,
+                        <apilink class="org.gradle.testkit.runner.BuildResult" method="tasks(org.gradle.testkit.runner.TaskOutcome)"/>,
+                        <apilink class="org.gradle.testkit.runner.BuildResult" method="taskPaths(org.gradle.testkit.runner.TaskOutcome)"/>,
+                        <apilink class="org.gradle.testkit.runner.BuildResult" method="task(java.lang.String)"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
                         <link linkend="sub:test-kit-classpath-injection">Plugin classpath injection</link>
                     </td>
                     <td>2.8</td>
@@ -240,7 +252,9 @@
                         <link linkend="sub:test-kit-debug">Capturing build output in debug mode</link>
                     </td>
                     <td>2.9</td>
-                    <td>Executing the build in debug mode and accessing the build output with the method <apilink class="org.gradle.testkit.runner.BuildResult" method="getOutput"/></td>
+                    <td>Executing the build in debug mode and accessing the build output with the method
+                        <apilink class="org.gradle.testkit.runner.BuildResult" method="getOutput"/>
+                    </td>
                 </tr>
             </table>
         </section>
