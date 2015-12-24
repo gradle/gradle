@@ -167,16 +167,16 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
 
         @Override
         protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
-            if (!isDebugModeAndBuildOutputCapturedSupported(testDetails)) {
+            if (isDebugModeAndBuildOutputCapturedButVersionUnsupported(testDetails)) {
                 return false
             }
 
             super.isTestEnabled(testDetails)
         }
 
-        private boolean isDebugModeAndBuildOutputCapturedSupported(AbstractMultiTestRunner.TestDetails testDetails) {
+        private boolean isDebugModeAndBuildOutputCapturedButVersionUnsupported(AbstractMultiTestRunner.TestDetails testDetails) {
             CaptureBuildOutputInDebug captureBuildOutputInDebug = testDetails.getAnnotation(CaptureBuildOutputInDebug)
-            debug && captureBuildOutputInDebug && FeatureCompatibility.isSupported(CaptureBuildOutputInDebug, testedGradleDistribution.gradleVersion)
+            debug && captureBuildOutputInDebug && !FeatureCompatibility.isSupported(CaptureBuildOutputInDebug, testedGradleDistribution.gradleVersion)
         }
     }
 }
