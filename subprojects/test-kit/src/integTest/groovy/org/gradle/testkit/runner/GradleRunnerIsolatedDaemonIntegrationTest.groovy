@@ -29,7 +29,7 @@ import org.junit.Rule
 import static org.gradle.testkit.runner.TaskOutcome.*
 
 @NoDebug
-class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
     def setup() {
         requireIsolatedTestKitDir = true
@@ -171,7 +171,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
     }
 
     protected DaemonFixture onlyDaemon(DaemonsFixture daemons = this.daemons()) {
-        List<DaemonFixture> userDaemons = daemons.visible
+        List<DaemonFixture> userDaemons = daemons.daemons
         assert userDaemons.size() == 1
         userDaemons[0]
     }
