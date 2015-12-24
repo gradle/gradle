@@ -209,7 +209,7 @@
                 Most IDEs offer the capability to set JVM system properties for test execution, and such a feature can be used to set this system property.
             </para>
         </section>
-        <section id="test-kit-compatibility">
+        <section id="sub:test-kit-compatibility">
             <title>Compatible Gradle versions used to test</title>
             <para>
                 The Gradle runner allows for <link linkend="sub:gradle-runner-gradle-version">specifying a Gradle distribution used to execute the build</link>.
