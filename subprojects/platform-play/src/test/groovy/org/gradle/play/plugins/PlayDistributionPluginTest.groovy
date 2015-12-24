@@ -181,7 +181,7 @@ class PlayDistributionPluginTest extends Specification {
             action.execute(Mock(Zip) {
                 1 * setDescription(_)
                 1 * setDestinationDir(_)
-                1 * setArchiveName("playBinary.zip")
+                1 * setBaseName("playBinary")
                 1 * from(_ as Sync)
             })
         }
@@ -190,7 +190,6 @@ class PlayDistributionPluginTest extends Specification {
                 1 * setDescription(_)
                 1 * setDestinationDir(_)
                 1 * setBaseName("playBinary")
-                1 * setArchiveName("playBinary.tar")
                 1 * from(_ as Sync)
             })
         }

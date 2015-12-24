@@ -35,6 +35,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.application.CreateStartScripts;
+import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.reflect.Instantiator;
@@ -61,6 +62,8 @@ import java.util.Set;
 @Incubating
 public class PlayDistributionPlugin extends RuleSource {
     public static final String DISTRIBUTION_GROUP = "distribution";
+    public static final String DIST_LIFECYCLE_TASK_NAME = "dist";
+    public static final String STAGE_LIFECYCLE_TASK_NAME = "stage";
 
     @Model
     PlayDistributionContainer distributions(ServiceRegistry serviceRegistry) {
@@ -70,7 +73,7 @@ public class PlayDistributionPlugin extends RuleSource {
 
     @Mutate
     void createLifecycleTasks(ModelMap<Task> tasks) {
-        tasks.create("dist", new Action<Task>() {
+        tasks.create(DIST_LIFECYCLE_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.setDescription("Assembles all Play distributions.");
@@ -78,7 +81,7 @@ public class PlayDistributionPlugin extends RuleSource {
             }
         });
 
-        tasks.create("stage", new Action<Task>() {
+        tasks.create(STAGE_LIFECYCLE_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.setDescription("Stages all Play distributions.");
@@ -174,7 +177,7 @@ public class PlayDistributionPlugin extends RuleSource {
                     baseSpec.with(distribution.getContents());
                 }
             });
-            tasks.named("stage", new Action<Task>() {
+            tasks.named(STAGE_LIFECYCLE_TASK_NAME, new Action<Task>() {
                 @Override
                 public void execute(Task task) {
                     task.dependsOn(stageTaskName);
@@ -187,7 +190,7 @@ public class PlayDistributionPlugin extends RuleSource {
                 @Override
                 public void execute(final Zip zip) {
                     zip.setDescription("Packages the '" + distribution.getName() + "' distribution as a zip file.");
-                    zip.setArchiveName(String.format("%s.zip", baseName));
+                    zip.setBaseName(baseName);
                     zip.setDestinationDir(new File(buildDir, "distributions"));
                     zip.from(stageTask);
                 }
@@ -199,15 +202,15 @@ public class PlayDistributionPlugin extends RuleSource {
                 public void execute(final Tar tar) {
                     tar.setDescription("Packages the '" + distribution.getName() + "' distribution as a tar file.");
                     tar.setBaseName(baseName);
-                    tar.setArchiveName(String.format("%s.tar", baseName));
                     tar.setDestinationDir(new File(buildDir, "distributions"));
                     tar.from(stageTask);
                 }
             });
 
-            tasks.named(distributionTarTaskName, TarRules.class);
+            tasks.named(distributionTarTaskName, DistributionArchiveRules.class);
+            tasks.named(distributionZipTaskName, DistributionArchiveRules.class);
 
-            tasks.named("dist", new Action<Task>() {
+            tasks.named(DIST_LIFECYCLE_TASK_NAME, new Action<Task>() {
                 @Override
                 public void execute(Task task) {
                     task.dependsOn(distributionZipTaskName, distributionTarTaskName);
@@ -216,10 +219,10 @@ public class PlayDistributionPlugin extends RuleSource {
         }
     }
 
-    static class TarRules extends RuleSource {
+    static class DistributionArchiveRules extends RuleSource {
         @Finalize
-        void fixupDistributionArchiveNames(Tar tar) {
-            tar.setArchiveName(String.format("%s.%s", tar.getBaseName(), tar.getCompression().getDefaultExtension()));
+        void fixupDistributionArchiveNames(AbstractArchiveTask archiveTask) {
+            archiveTask.setArchiveName(String.format("%s.%s", archiveTask.getBaseName(), archiveTask.getExtension()));
         }
     }
 

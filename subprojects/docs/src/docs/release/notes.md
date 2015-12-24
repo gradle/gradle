@@ -200,6 +200,14 @@ The Gradle Play plugin now adds a `Tar` task to build standalone Play distributi
 
 The name of the `Zip` task to create standalone Play distributions is now `createPlayBinaryZipDist`.
 
+#### Name of distribution archives
+
+If you would like to have a different archive name (by default, `playBinary.zip` or `playBinary.tar`), you must configure the `baseName` property for the `Zip` or `Tar` tasks. When determining the final archive name, Gradle will concatenate the `baseName` and `extension`.
+
+For tar files, Gradle will automatically switch to using `.tgz` or `.tbz2` when the `compression` property is changed.
+
+Previously, you could directly set the `archiveName`.  `version`, `appendix` and `classifier` are still ignored when determining the archive name.
+
 ### Software model changes
 
 - Deprecated `CollectionBuilder` interface removed.
