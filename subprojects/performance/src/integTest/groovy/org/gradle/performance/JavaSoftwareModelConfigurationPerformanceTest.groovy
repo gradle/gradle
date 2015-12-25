@@ -16,7 +16,6 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.gradle.performance.measure.DataAmount
 import org.junit.experimental.categories.Category
@@ -24,7 +23,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([Experiment, JavaPerformanceTest])
+@Category([JavaPerformanceTest])
 class JavaSoftwareModelConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("Project '#testProject' measuring configuration time")
