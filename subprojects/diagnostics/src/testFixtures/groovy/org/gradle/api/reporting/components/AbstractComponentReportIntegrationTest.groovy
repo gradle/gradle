@@ -15,6 +15,7 @@
  */
 package org.gradle.api.reporting.components
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Transformer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.SystemProperties
@@ -22,6 +23,10 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
 abstract class AbstractComponentReportIntegrationTest extends AbstractIntegrationSpec {
     Transformer<String, String> formatter = new ComponentReportOutputFormatter()
+    JavaVersion currentJvm = JavaVersion.current()
+    String currentJavaName = "java" + currentJvm.majorVersion
+    String currentJava = "Java SE " + currentJvm.majorVersion
+    String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"

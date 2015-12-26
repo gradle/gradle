@@ -15,13 +15,9 @@
  */
 package org.gradle.java
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
 
 class PluginsComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
-    private JavaVersion currentJvm = JavaVersion.current()
-    private String currentJava = "Java SE " + currentJvm.majorVersion
-    private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
 
     def "shows details of legacy Java project"() {
         given:

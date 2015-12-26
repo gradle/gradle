@@ -16,12 +16,9 @@
 package org.gradle.nativeplatform
 
 import org.gradle.api.reporting.components.AbstractNativeComponentReportIntegrationTest
-import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
 class PlatformNativeComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
-    private String currentNative = NativePlatformsTestFixture.defaultPlatformName
-
     //TODO:HH Test rendering of a NativeExecutableSpec
     // Should display installation directory
 
