@@ -20,6 +20,7 @@ import com.google.common.base.Predicate;
 import org.gradle.api.Nullable;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Set;
@@ -87,9 +88,14 @@ public interface MutableModelNode extends ModelNode {
     void applyToLink(ModelActionRole type, ModelAction<?> action);
 
     /**
-     * Applies the given rules to this node.
+     * Applies the rules defined in the given rule source to this node.
      */
     void applyToSelf(Class<? extends RuleSource> rules);
+
+    /**
+     * Applies the rules defined in the given rule source to this node.
+     */
+    void applyToSelf(ExtractedRuleSource<?> rules);
 
     /**
      * Applies an action that defines further rules in the given role to the child of this node that is addressed by the subject of the action.

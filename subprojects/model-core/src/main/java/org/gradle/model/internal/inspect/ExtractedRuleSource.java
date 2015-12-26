@@ -27,7 +27,10 @@ public interface ExtractedRuleSource<T> {
 
     List<? extends Class<?>> getRequiredPlugins();
 
-    void assertNoPlugins();
+    void assertNoPlugins() throws UnsupportedOperationException;
 
+    /**
+     * Creates a factory for creating views of this rule source, for invoking rules or binding references.
+     */
     Factory<? extends T> getFactory();
 }

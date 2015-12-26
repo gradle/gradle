@@ -25,6 +25,7 @@ import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Map;
@@ -166,6 +167,11 @@ class ModelElementNode extends ModelNodeInternal {
     @Override
     public void applyToSelf(Class<? extends RuleSource> rules) {
         modelRegistry.configure(rules, getPath());
+    }
+
+    @Override
+    public void applyToSelf(ExtractedRuleSource<?> rules) {
+        rules.apply(modelRegistry, getPath());
     }
 
     @Override

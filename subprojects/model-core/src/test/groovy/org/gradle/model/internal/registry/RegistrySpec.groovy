@@ -22,6 +22,7 @@ import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
+import org.gradle.model.internal.inspect.ExtractedRuleSource
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
@@ -74,6 +75,10 @@ abstract class RegistrySpec extends Specification {
 
         }
 
+        @Override
+        void applyToSelf(ExtractedRuleSource<?> rules) {
+
+        }
 
         @Override
         def void applyToLink(ModelActionRole type, ModelAction<?> action) {

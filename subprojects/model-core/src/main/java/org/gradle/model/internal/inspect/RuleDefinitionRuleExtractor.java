@@ -77,15 +77,15 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
                     DirectNodeInputUsingModelAction.of(targetReference, ruleDefinition.getDescriptor(), inputs, new BiAction<MutableModelNode, List<ModelView<?>>>() {
                         @Override
                         public void execute(MutableModelNode subjectNode, List<ModelView<?>> modelViews) {
-                            ExtractedRuleSource<?> ruleSourceSchema = ruleExtractor.extract(ruleSourceType.getConcreteClass());
+                            ExtractedRuleSource<?> ruleSource = ruleExtractor.extract(ruleSourceType.getConcreteClass());
                             Object[] parameters = new Object[2 + modelViews.size()];
-                            parameters[0] = ruleSourceSchema.getFactory().create();
+                            parameters[0] = ruleSource.getFactory().create();
                             parameters[1] = subjectNode.asImmutable(targetReference.getType(), ruleDefinition.getDescriptor()).getInstance();
                             for (int i = 2; i < parameters.length; i++) {
                                 parameters[i] = modelViews.get(i).getInstance();
                             }
                             ruleDefinition.getRuleInvoker().invoke(parameters);
-                            subjectNode.applyToSelf(ruleSourceType.getConcreteClass());
+                            subjectNode.applyToSelf(ruleSource);
                         }
                     }));
         }

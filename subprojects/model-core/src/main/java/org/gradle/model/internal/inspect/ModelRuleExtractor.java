@@ -79,6 +79,11 @@ public class ModelRuleExtractor {
         return "[" + desc + "]";
     }
 
+    /**
+     * Creates a new rule source instance to be applied to a model element.
+     *
+     * @throws InvalidModelRuleDeclarationException On badly formed rule source class.
+     */
     public <T> ExtractedRuleSource<T> extract(Class<T> source) throws InvalidModelRuleDeclarationException {
         try {
             return Cast.uncheckedCast(cache.get(source));
@@ -222,13 +227,13 @@ public class ModelRuleExtractor {
         for (int i = 0; i < ruleDefinition.getReferences().size(); i++) {
             ModelReference<?> reference = ruleDefinition.getReferences().get(i);
             if (reference.getType().isRawClassOfParameterizedType()) {
-                problems.add(ruleMethod, "Raw type " + reference.getType() + " used for parameter " + (i+1) + " (all type parameters must be specified of parameterized type)");
+                problems.add(ruleMethod, "Raw type " + reference.getType() + " used for parameter " + (i + 1) + " (all type parameters must be specified of parameterized type)");
             }
             if (reference.getPath() != null) {
                 try {
                     ModelPath.validatePath(reference.getPath().toString());
                 } catch (Exception e) {
-                    problems.add(ruleDefinition, "The declared model element path '" + reference.getPath() + "' used for parameter " + (i+1) + " is not a valid path", e);
+                    problems.add(ruleDefinition, "The declared model element path '" + reference.getPath() + "' used for parameter " + (i + 1) + " is not a valid path", e);
                 }
             }
         }

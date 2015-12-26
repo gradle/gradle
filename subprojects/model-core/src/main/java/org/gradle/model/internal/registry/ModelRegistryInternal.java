@@ -21,6 +21,8 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 
 interface ModelRegistryInternal extends ModelRegistry {
+    ModelRegistry configure(Class<? extends RuleSource> rules, ModelPath scope);
+
     void registerNode(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction<?>> actions);
 
     <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator, ModelPath scope);
