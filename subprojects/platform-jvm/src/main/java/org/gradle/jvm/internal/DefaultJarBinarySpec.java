@@ -17,12 +17,9 @@
 package org.gradle.jvm.internal;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.jvm.JvmBinaryTasks;
+import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.DependencySpec;
-import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
@@ -30,45 +27,21 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
-import static org.gradle.util.CollectionUtils.findSingle;
-
-public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpecInternal {
-    private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(super.getTasks());
+public class DefaultJarBinarySpec extends DefaultJvmBinarySpec implements JarBinarySpecInternal {
     private final JarFile apiJar = new DefaultJarFile();
     private File jarFile;
     private Set<String> exportedPackages = ImmutableSet.of();
     private Set<DependencySpec> apiDependencies = ImmutableSet.of();
     private Set<DependencySpec> componentLevelDependencies = ImmutableSet.of();
-    private final DefaultJvmAssembly assembly = new DefaultJvmAssembly();
+
+    @Override
+    public JvmLibrarySpec getLibrary() {
+        return getComponentAs(JvmLibrarySpec.class);
+    }
 
     @Override
     protected String getTypeName() {
         return "Jar";
-    }
-
-    @Override
-    public JvmBinaryTasks getTasks() {
-        return tasks;
-    }
-
-    @Override
-    public JavaToolChain getToolChain() {
-        return assembly.getToolChain();
-    }
-
-    @Override
-    public void setToolChain(JavaToolChain toolChain) {
-        assembly.setToolChain(toolChain);
-    }
-
-    @Override
-    public JavaPlatform getTargetPlatform() {
-        return assembly.getTargetPlatform();
-    }
-
-    @Override
-    public void setTargetPlatform(JavaPlatform platform) {
-        assembly.setTargetPlatform(platform);
     }
 
     @Override
@@ -94,26 +67,6 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     @Override
     public void setApiJarFile(File apiJarFile) {
         apiJar.setFile(apiJarFile);
-    }
-
-    @Override
-    public File getClassesDir() {
-        return findSingle(assembly.getClassDirectories());
-    }
-
-    @Override
-    public void setClassesDir(File classesDir) {
-        replaceSingleDirectory(assembly.getClassDirectories(), classesDir);
-    }
-
-    @Override
-    public File getResourcesDir() {
-        return findSingle(assembly.getResourceDirectories());
-    }
-
-    @Override
-    public void setResourcesDir(File resourcesDir) {
-        replaceSingleDirectory(assembly.getResourceDirectories(), resourcesDir);
     }
 
     @Override
@@ -150,10 +103,4 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     protected BinaryBuildAbility getBinaryBuildAbility() {
         return new ToolSearchBuildAbility(((JavaToolChainInternal) getToolChain()).select(getTargetPlatform()));
     }
-
-    @Override
-    public JvmAssembly getAssembly() {
-        return assembly;
-    }
-
 }

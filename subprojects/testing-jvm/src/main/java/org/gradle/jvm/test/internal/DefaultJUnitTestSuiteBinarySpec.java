@@ -17,25 +17,18 @@
 package org.gradle.jvm.test.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.jvm.JvmBinaryTasks;
-import org.gradle.jvm.internal.*;
-import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.internal.DefaultJvmBinarySpec;
+import org.gradle.jvm.internal.WithDependencies;
+import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
-import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.Variant;
-import org.gradle.platform.base.binary.BaseBinarySpec;
 
-import java.io.File;
 import java.util.Collection;
 
-import static org.gradle.util.CollectionUtils.findSingle;
-
-public class DefaultJUnitTestSuiteBinarySpec extends BaseBinarySpec implements JUnitTestSuiteBinarySpecInternal, WithJvmAssembly, WithDependencies {
-    private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(super.getTasks());
+public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implements JUnitTestSuiteBinarySpecInternal, WithJvmAssembly, WithDependencies {
     private String junitVersion;
     private Collection<DependencySpec> componentLevelDependencies = Lists.newLinkedList();
-    private final DefaultJvmAssembly assembly = new DefaultJvmAssembly();
 
     @Override
     public JUnitTestSuiteSpec getTestSuite() {
@@ -45,11 +38,6 @@ public class DefaultJUnitTestSuiteBinarySpec extends BaseBinarySpec implements J
     @Override
     protected String getTypeName() {
         return "Test";
-    }
-
-    @Override
-    public JvmBinaryTasks getTasks() {
-        return tasks;
     }
 
     @Override
@@ -71,50 +59,5 @@ public class DefaultJUnitTestSuiteBinarySpec extends BaseBinarySpec implements J
     @Override
     public Collection<DependencySpec> getDependencies() {
         return componentLevelDependencies;
-    }
-
-    @Override
-    public JavaPlatform getTargetPlatform() {
-        return assembly.getTargetPlatform();
-    }
-
-    @Override
-    public void setTargetPlatform(JavaPlatform platform) {
-        assembly.setTargetPlatform(platform);
-    }
-
-    @Override
-    public JavaToolChain getToolChain() {
-        return assembly.getToolChain();
-    }
-
-    @Override
-    public void setToolChain(JavaToolChain toolChain) {
-        assembly.setToolChain(toolChain);
-    }
-
-    @Override
-    public File getClassesDir() {
-        return findSingle(assembly.getClassDirectories());
-    }
-
-    @Override
-    public void setClassesDir(File classesDir) {
-        replaceSingleDirectory(assembly.getClassDirectories(), classesDir);
-    }
-
-    @Override
-    public File getResourcesDir() {
-        return findSingle(assembly.getResourceDirectories());
-    }
-
-    @Override
-    public void setResourcesDir(File resourcesDir) {
-        replaceSingleDirectory(assembly.getResourceDirectories(), resourcesDir);
-    }
-
-    @Override
-    public JvmAssembly getAssembly() {
-        return assembly;
     }
 }

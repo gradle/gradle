@@ -20,6 +20,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
+import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.*;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
@@ -77,7 +78,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @BinaryType
-        public void registerJar(BinaryTypeBuilder<JarBinarySpec> builder) {
+        public void registerJvmBinarySpec(BinaryTypeBuilder<JvmBinarySpec> builder) {
+            builder.defaultImplementation(DefaultJvmBinarySpec.class);
+            builder.internalView(JvmBinarySpecInternal.class);
+        }
+
+        @BinaryType
+        public void registerJarBinarySpec(BinaryTypeBuilder<JarBinarySpec> builder) {
             builder.defaultImplementation(DefaultJarBinarySpec.class);
             builder.internalView(JarBinarySpecInternal.class);
         }
