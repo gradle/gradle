@@ -16,20 +16,20 @@
 
 package org.gradle.api.internal.jvm;
 
-import org.gradle.jvm.ClassDirectoryBinarySpec;
+import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.internal.AbstractJvmBinaryRenderer;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 import javax.inject.Inject;
 
-public class ClassDirectoryBinaryRenderer extends AbstractJvmBinaryRenderer<ClassDirectoryBinarySpec> {
+public class JvmBinaryRenderer extends AbstractJvmBinaryRenderer<JvmBinarySpec> {
     @Inject
-    public ClassDirectoryBinaryRenderer(ModelSchemaStore schemaStore) {
+    public JvmBinaryRenderer(ModelSchemaStore schemaStore) {
         super(schemaStore);
     }
 
     @Override
-    public Class<ClassDirectoryBinarySpec> getTargetType() {
-        return ClassDirectoryBinarySpec.class;
+    public Class<JvmBinarySpec> getTargetType() {
+        return JvmBinarySpec.class;
     }
 }

@@ -60,6 +60,9 @@ Binaries
     Test 'test:binary'
         build using task: :testBinary
         target platform: $currentJava
+        tool chain: $currentJdk
+        classes dir: build/classes/test/binary
+        resources dir: build/resources/test/binary
 """
     }
 
@@ -107,6 +110,9 @@ Binaries
     Test 'functionalTest:binary'
         build using task: :functionalTestBinary
         target platform: $currentJava
+        tool chain: $currentJdk
+        classes dir: build/classes/functionalTest/binary
+        resources dir: build/resources/functionalTest/binary
 
 JUnitTestSuiteSpec 'unitTest'
 -----------------------------
@@ -122,6 +128,9 @@ Binaries
     Test 'unitTest:binary'
         build using task: :unitTestBinary
         target platform: $currentJava
+        tool chain: $currentJdk
+        classes dir: build/classes/unitTest/binary
+        resources dir: build/resources/unitTest/binary
 """
     }
 }
