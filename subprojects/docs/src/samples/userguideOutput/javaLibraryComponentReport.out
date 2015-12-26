@@ -18,7 +18,7 @@ Source sets
 Binaries
     Jar 'main:jar'
         build using task: :mainJar
-        targetPlatform: java7
+        target platform: java7
         tool chain: JDK 7 (1.7)
         classes dir: build/classes/main/jar
         resources dir: build/resources/main/jar
