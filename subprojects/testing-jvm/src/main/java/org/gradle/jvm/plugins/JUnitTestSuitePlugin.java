@@ -31,6 +31,7 @@ import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteSpec;
+import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
@@ -58,6 +59,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(TestingModelBasePlugin.class);
+        project.getPluginManager().apply(JvmComponentPlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -128,11 +130,11 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
          * These are not built as part of {@code assemble}.
          */
         @Mutate // TODO:RBO this is only necessary until we relax @ComponentBinaries to allow components anywhere (particularly under testSuites)
-        void createJUnitTestSuiteBinaries(TestSuiteContainer testSuites, final PlatformResolvers platformResolvers) {
+        void createJUnitTestSuiteBinaries(TestSuiteContainer testSuites, final PlatformResolvers platformResolvers, final JavaToolChainRegistry toolChains) {
             testSuites.afterEach(JUnitTestSuiteSpec.class, new Action<JUnitTestSuiteSpec>() {
                 @Override
                 public void execute(JUnitTestSuiteSpec jUnitTestSuiteSpec) {
-                    createJUnitBinariesFor(jUnitTestSuiteSpec, false, platformResolvers, jUnitTestSuiteSpec.getBinaries());
+                    createJUnitBinariesFor(jUnitTestSuiteSpec, false, platformResolvers, jUnitTestSuiteSpec.getBinaries(), toolChains);
                 }
             });
         }
@@ -143,11 +145,11 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
          * These are built as part of {@code assemble}.
          */
         @ComponentBinaries
-        void createJUnitComponentBinaries(final ModelMap<BinarySpec> testBinaries, final PlatformResolvers platformResolver, final JUnitTestSuiteSpec testSuite) {
-            createJUnitBinariesFor(testSuite, true, platformResolver, testBinaries);
+        void createJUnitComponentBinaries(ModelMap<BinarySpec> testBinaries, PlatformResolvers platformResolver, JUnitTestSuiteSpec testSuite, JavaToolChainRegistry toolChains) {
+            createJUnitBinariesFor(testSuite, true, platformResolver, testBinaries, toolChains);
         }
 
-        private void createJUnitBinariesFor(final JUnitTestSuiteSpec testSuite, final boolean buildable, PlatformResolvers platformResolver, ModelMap<BinarySpec> testBinaries) {
+        private void createJUnitBinariesFor(final JUnitTestSuiteSpec testSuite, final boolean buildable, PlatformResolvers platformResolver, ModelMap<BinarySpec> testBinaries, final JavaToolChainRegistry toolChains) {
             final List<JavaPlatform> javaPlatforms = resolvePlatforms(platformResolver);
             final JavaPlatform platform = javaPlatforms.get(0);
             final BinaryNamingScheme namingScheme = namingSchemeFor(testSuite, javaPlatforms, platform);
@@ -162,6 +164,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                     ((BinarySpecInternal) jUnitTestSuiteBinarySpec).setNamingScheme(namingScheme);
                     jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);
                     jUnitTestSuiteBinarySpec.setTargetPlatform(platform);
+                    jUnitTestSuiteBinarySpec.setToolChain(toolChains.getForPlatform(platform));
                     ((WithDependencies) jUnitTestSuiteBinarySpec).setDependencies(testSuite.getDependencies().getDependencies());
                     testSuite.getSources().all(new Action<LanguageSourceSet>() {
                         @Override
