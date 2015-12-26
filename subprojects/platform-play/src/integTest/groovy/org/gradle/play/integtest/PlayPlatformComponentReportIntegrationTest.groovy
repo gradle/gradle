@@ -70,7 +70,7 @@ Source sets
 Binaries
     Play Application Jar 'play:binary'
         build using task: :playBinary
-        targetPlatform: $defaultPlayPlatform
+        target platform: $defaultPlayPlatform
 """
     }
 }

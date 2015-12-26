@@ -59,7 +59,7 @@ Source sets
 Binaries
     Test 'test:binary'
         build using task: :testBinary
-        targetPlatform: $currentJava
+        target platform: $currentJava
 """
     }
 
@@ -106,7 +106,7 @@ Source sets
 Binaries
     Test 'functionalTest:binary'
         build using task: :functionalTestBinary
-        targetPlatform: $currentJava
+        target platform: $currentJava
 
 JUnitTestSuiteSpec 'unitTest'
 -----------------------------
@@ -121,7 +121,7 @@ Source sets
 Binaries
     Test 'unitTest:binary'
         build using task: :unitTestBinary
-        targetPlatform: $currentJava
+        target platform: $currentJava
 """
     }
 }

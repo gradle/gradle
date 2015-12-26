@@ -50,13 +50,13 @@ Additional binaries
 -------------------
 Classes 'main'
     build using task: :classes
-    targetPlatform: $currentJava
+    target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/main
     resources dir: build/resources/main
 Classes 'test'
     build using task: :testClasses
-    targetPlatform: $currentJava
+    target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/test
     resources dir: build/resources/test
@@ -90,7 +90,7 @@ Source sets
 Binaries
     Jar 'lib:jar'
         build using task: :libJar
-        targetPlatform: $currentJava
+        target platform: $currentJava
         tool chain: $currentJdk
         classes dir: build/classes/lib/jar
         resources dir: build/resources/lib/jar
@@ -114,13 +114,13 @@ Additional binaries
 -------------------
 Classes 'main'
     build using task: :classes
-    targetPlatform: $currentJava
+    target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/main
     resources dir: build/resources/main
 Classes 'test'
     build using task: :testClasses
-    targetPlatform: $currentJava
+    target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/test
     resources dir: build/resources/test
@@ -169,19 +169,19 @@ Additional binaries
 -------------------
 Classes 'custom'
     build using task: :customClasses
-    targetPlatform: $currentJava
+    target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/custom
     resources dir: build/resources/custom
 Classes 'main'
     build using task: :classes
-    targetPlatform: $currentJava
+    target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/main
     resources dir: build/resources/main
 Classes 'test'
     build using task: :testClasses
-    targetPlatform: $currentJava
+    target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/test
     resources dir: build/resources/test

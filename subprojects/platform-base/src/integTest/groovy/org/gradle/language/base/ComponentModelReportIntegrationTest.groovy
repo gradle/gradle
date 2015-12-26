@@ -16,10 +16,10 @@
 
 package org.gradle.language.base
 
-import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-class ComponentModelReportIntegrationTest extends AbstractComponentReportIntegrationTest {
+class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     def "model report for unmanaged software components show them all"() {
         given:

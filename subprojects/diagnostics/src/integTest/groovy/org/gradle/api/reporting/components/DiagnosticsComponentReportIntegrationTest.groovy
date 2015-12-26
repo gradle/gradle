@@ -71,7 +71,7 @@ Source sets
 Binaries
     Jar 'jvmLib:jar'
         build using task: :jvmLibJar
-        targetPlatform: $currentJava
+        target platform: $currentJava
         tool chain: $currentJdk
         classes dir: build/classes/jvmLib/jar
         resources dir: build/resources/jvmLib/jar
@@ -90,16 +90,16 @@ Source sets
 Binaries
     Shared library 'nativeLib:sharedLibrary'
         build using task: :nativeLibSharedLibrary
-        buildType: build type 'debug'
+        build type: build type 'debug'
         flavor: flavor 'default'
-        targetPlatform: platform '$currentNative'
+        target platform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/libs/nativeLib/shared/libnativeLib.dylib
     Static library 'nativeLib:staticLibrary'
         build using task: :nativeLibStaticLibrary
-        buildType: build type 'debug'
+        build type: build type 'debug'
         flavor: flavor 'default'
-        targetPlatform: platform '$currentNative'
+        target platform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/libs/nativeLib/static/libnativeLib.a
 """

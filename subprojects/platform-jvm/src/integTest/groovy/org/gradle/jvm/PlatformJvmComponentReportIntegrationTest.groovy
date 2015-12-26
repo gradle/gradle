@@ -67,7 +67,7 @@ Source sets
 Binaries
     Jar 'someLib:jar'
         build using task: :someLibJar
-        targetPlatform: $currentJava
+        target platform: $currentJava
         tool chain: $currentJdk
         classes dir: build/classes/someLib/jar
         resources dir: build/resources/someLib/jar
@@ -110,7 +110,7 @@ Source sets
 Binaries
     Jar 'myLib:java5Jar'
         build using task: :myLibJava5Jar
-        targetPlatform: Java SE 5
+        target platform: Java SE 5
         tool chain: $currentJdk
         classes dir: build/classes/myLib/java5Jar
         resources dir: build/resources/myLib/java5Jar
@@ -118,7 +118,7 @@ Binaries
         Jar file: build/jars/myLib/java5Jar/myLib.jar
     Jar 'myLib:java6Jar'
         build using task: :myLibJava6Jar
-        targetPlatform: Java SE 6
+        target platform: Java SE 6
         tool chain: $currentJdk
         classes dir: build/classes/myLib/java6Jar
         resources dir: build/resources/myLib/java6Jar
@@ -126,7 +126,7 @@ Binaries
         Jar file: build/jars/myLib/java6Jar/myLib.jar
     Jar 'myLib:java7Jar'
         build using task: :myLibJava7Jar
-        targetPlatform: Java SE 7
+        target platform: Java SE 7
         tool chain: $currentJdk
         classes dir: build/classes/myLib/java7Jar
         resources dir: build/resources/myLib/java7Jar
@@ -173,7 +173,7 @@ Source sets
 Binaries
     Jar 'myLib:java5Jar'
         build using task: :myLibJava5Jar
-        targetPlatform: Java SE 5
+        target platform: Java SE 5
         tool chain: $currentJdk
         classes dir: build/classes/myLib/java5Jar
         resources dir: build/resources/myLib/java5Jar
@@ -181,7 +181,7 @@ Binaries
         Jar file: build/jars/myLib/java5Jar/myLib.jar
     Jar 'myLib:java6Jar'
         build using task: :myLibJava6Jar
-        targetPlatform: Java SE 6
+        target platform: Java SE 6
         tool chain: $currentJdk
         classes dir: build/classes/myLib/java6Jar
         resources dir: build/resources/myLib/java6Jar
@@ -189,7 +189,7 @@ Binaries
         Jar file: build/jars/myLib/java6Jar/myLib.jar
     Jar 'myLib:java9Jar' (not buildable)
         build using task: :myLibJava9Jar
-        targetPlatform: Java SE 9
+        target platform: Java SE 9
         tool chain: $currentJdk
         classes dir: build/classes/myLib/java9Jar
         resources dir: build/resources/myLib/java9Jar
@@ -209,7 +209,7 @@ Source sets
 Binaries
     Jar 'myLib2:jar' (not buildable)
         build using task: :myLib2Jar
-        targetPlatform: Java SE 6
+        target platform: Java SE 6
         tool chain: $currentJdk
         classes dir: build/classes/myLib2/jar
         resources dir: build/resources/myLib2/jar
@@ -267,7 +267,7 @@ Source sets
 Binaries
     Jar 'someLib:java5Jar'
         build using task: :someLibJava5Jar
-        targetPlatform: Java SE 5
+        target platform: Java SE 5
         tool chain: $currentJdk
         classes dir: build/classes/someLib/java5Jar
         resources dir: build/resources/someLib/java5Jar
@@ -280,7 +280,7 @@ Binaries
                     library 'some-library'
     Jar 'someLib:java6Jar'
         build using task: :someLibJava6Jar
-        targetPlatform: Java SE 6
+        target platform: Java SE 6
         tool chain: $currentJdk
         classes dir: build/classes/someLib/java6Jar
         resources dir: build/resources/someLib/java6Jar
@@ -360,9 +360,9 @@ Source sets
 Binaries
     Jar 'someLib:customJar'
         build using task: :someLibCustomJar
-        buildType: debug
+        build type: debug
         flavor: free
-        targetPlatform: $currentJava
+        target platform: $currentJava
         tool chain: $currentJdk
         classes dir: build/classes/someLib/customJar
         resources dir: build/resources/someLib/customJar
@@ -370,7 +370,7 @@ Binaries
         Jar file: build/jars/someLib/customJar/someLib.jar
     Jar 'someLib:jar'
         build using task: :someLibJar
-        targetPlatform: $currentJava
+        target platform: $currentJava
         tool chain: $currentJdk
         classes dir: build/classes/someLib/jar
         resources dir: build/resources/someLib/jar
