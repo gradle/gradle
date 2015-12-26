@@ -21,7 +21,7 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ApplicationBinarySpec;
 import org.gradle.platform.base.Variant;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
@@ -34,7 +34,10 @@ import java.util.Map;
  */
 @Incubating
 @HasInternalProtocol
-public interface PlayApplicationBinarySpec extends BinarySpec {
+public interface PlayApplicationBinarySpec extends ApplicationBinarySpec {
+    /**
+     * {@inheritDoc}
+     */
     PlayApplicationSpec getApplication();
 
     /**
