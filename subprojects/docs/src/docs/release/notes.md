@@ -215,21 +215,22 @@ Previously, you could directly set the `archiveName`.  `version`, `appendix` and
 
 ### TestKit indicates compatibility for target Gradle version
 
-Gradle 2.9 exposes methods through the `GradleRunner` API for providing a target Gradle distribution used to executed the build. There are known, functional limitations of TestKit 
+Gradle 2.9 exposes methods through the `GradleRunner` API for providing a target Gradle distribution used to executed the build. There are known, functional limitations of TestKit
 for particular Gradle versions. If a certain feature is not supported, TestKit thrown an exception. Please check the [user guide](userguide/test_kit.html#sub:test-kit-compatibility)
-for an overview of known TestKit limitations. 
+for an overview of known TestKit limitations.
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Niklas Baudy](https://github.com/vanniktech) - PMD plugin code cleanup
+* [Richard Bergoin](https://github.com/kenji21) - Test coverage for NTLM support
 * [Dylan Cali](https://github.com/calid) - Add support for Spock framework for Java projects in [Build Init Plugin](userguide/build_init_plugin.html)
-* [Tobias Riemenschneider](https://github.com/riemenschneider) - Add support for TestNG's preserveOrder and groupByInstances options
+* [Illya Gerasymchuk](https://github.com/iluxonchik) - Fix typos in Windows batch scripts
+* [Eike Kohnert](https://github.com/andrena-eike-kohnert) - Support for publishing dependency exclusions in Ivy descriptors
 * [Johnny Lim](https://github.com/izeye) - Documentation improvements
 * [Christopher O'Connell](https://github.com/lordoku) - Remove 'scalaConsole' task
-* [Illya Gerasymchuk](https://github.com/iluxonchik) - Fix typos in Windows batch scripts
-* [Richard Bergoin](https://github.com/kenji21) - Test coverage for NTLM support
-* [Eike Kohnert](https://github.com/andrena-eike-kohnert) - Support for publishing dependency exclusions in Ivy descriptors
+* [Tobias Riemenschneider](https://github.com/riemenschneider) - Add support for TestNG's preserveOrder and groupByInstances options
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
