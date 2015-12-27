@@ -16,15 +16,8 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.registry.ModelRegistry;
 
-import java.util.List;
-
-public interface ExtractedModelRule {
-    ModelRuleDescriptor getDescriptor();
-
-    void apply(MethodModelRuleApplicationContext context, MutableModelNode target);
-
-    List<? extends Class<?>> getRuleDependencies();
+public interface MethodModelRuleApplicationContext {
+    ModelRegistry getRegistry();
 }

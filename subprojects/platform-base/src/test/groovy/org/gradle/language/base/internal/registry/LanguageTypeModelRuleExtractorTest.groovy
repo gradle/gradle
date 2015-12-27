@@ -24,7 +24,10 @@ import org.gradle.language.base.internal.LanguageSourceSetFactory
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.ModelAction
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.inspect.ExtractedModelAction
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.InvalidModelException
@@ -103,7 +106,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         registration.ruleDependencies == [ComponentModelBasePlugin]
 
         when:
-        registration.apply(mockRegistry, ModelPath.ROOT)
+        apply(registration, mockRegistry)
 
         then:
         1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->

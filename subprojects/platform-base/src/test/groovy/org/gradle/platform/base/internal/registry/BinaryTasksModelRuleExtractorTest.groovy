@@ -20,7 +20,10 @@ import org.gradle.api.Task
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.ModelAction
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.inspect.ExtractedModelAction
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.BinarySpec
@@ -78,7 +81,6 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
 - Method ${ruleDescription} is not a valid rule method: A method annotated with @BinaryTasks must have one parameter extending BinarySpec. Found no parameter extending BinarySpec."""
     }
 
-    @Unroll
     def "applies ComponentModelBasePlugin and adds binary task creation rule for plain sample binary"() {
         def mockRegistry = Mock(ModelRegistry)
 
@@ -90,7 +92,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         registration.ruleDependencies == [ComponentModelBasePlugin]
 
         when:
-        registration.apply(mockRegistry, ModelPath.ROOT)
+        apply(registration, mockRegistry)
 
         then:
         1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->

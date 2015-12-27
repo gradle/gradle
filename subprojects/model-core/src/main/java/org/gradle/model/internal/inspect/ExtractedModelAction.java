@@ -19,9 +19,8 @@ package org.gradle.model.internal.inspect;
 import com.google.common.collect.ImmutableList;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
-import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
@@ -47,8 +46,8 @@ public class ExtractedModelAction implements ExtractedModelRule {
     }
 
     @Override
-    public void apply(ModelRegistry modelRegistry, ModelPath scope) {
-        modelRegistry.configure(role, action, scope);
+    public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
+        context.getRegistry().configure(role, action, target.getPath());
     }
 
     @Override

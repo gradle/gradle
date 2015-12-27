@@ -19,8 +19,8 @@ package org.gradle.model.internal.registry
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.model.*
-import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
@@ -43,7 +43,7 @@ class ScopedRuleTest extends ProjectRegistrySpec {
 
     class DependencyAddingModelRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<HasDependencies> {
         @Override
-        def <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
+        def <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext extractionContext) {
             new ExtractedModelRule() {
                 @Override
                 ModelRuleDescriptor getDescriptor() {
@@ -51,7 +51,7 @@ class ScopedRuleTest extends ProjectRegistrySpec {
                 }
 
                 @Override
-                void apply(ModelRegistry modelRegistry, ModelPath scope) {
+                void apply(MethodModelRuleApplicationContext applicationContext, MutableModelNode target) {
                 }
 
                 @Override

@@ -22,7 +22,6 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.Rules;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
@@ -69,11 +68,11 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         }
 
         @Override
-        public void apply(ModelRegistry modelRegistry, ModelPath scope) {
+        public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             final ModelReference<?> targetReference = ruleDefinition.getReferences().get(1);
             List<ModelReference<?>> inputs = ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size());
 
-            modelRegistry.configure(ModelActionRole.Defaults,
+            context.getRegistry().configure(ModelActionRole.Defaults,
                     DirectNodeInputUsingModelAction.of(targetReference, ruleDefinition.getDescriptor(), inputs, new BiAction<MutableModelNode, List<ModelView<?>>>() {
                         @Override
                         public void execute(MutableModelNode subjectNode, List<ModelView<?>> modelViews) {

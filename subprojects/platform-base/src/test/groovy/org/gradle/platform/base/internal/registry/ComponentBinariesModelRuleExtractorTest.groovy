@@ -19,7 +19,10 @@ package org.gradle.platform.base.internal.registry
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.ModelAction
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.inspect.ExtractedModelAction
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.BinarySpec
@@ -54,7 +57,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
 
 
         when:
-        registration.apply(mockRegistry, ModelPath.ROOT)
+        apply(registration, mockRegistry)
 
         then:
         1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->
