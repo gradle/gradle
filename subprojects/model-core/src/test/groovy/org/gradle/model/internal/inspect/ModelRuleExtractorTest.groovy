@@ -17,10 +17,7 @@
 package org.gradle.model.internal.inspect
 
 import org.gradle.model.*
-import org.gradle.model.internal.core.ModelAction
-import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelRegistration
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.manage.schema.extract.ModelStoreTestUtils
@@ -184,7 +181,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         def registry = Mock(ModelRegistry)
 
         when:
-        extractor.extract(SimpleModelCreationRuleInferredName).apply(registry, ModelPath.ROOT)
+        extractor.extract(SimpleModelCreationRuleInferredName).apply(registry, node())
 
         then:
         1 * registry.register(_) >> { ModelRegistration registration ->
@@ -224,7 +221,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "can inspect class with model creation rule for parameterized type"() {
         when:
-        extractor.extract(ParameterizedModel).apply(registry, ModelPath.ROOT)
+        extractor.extract(ParameterizedModel).apply(registry, node())
 
         then:
         registry.realizeNode(ModelPath.path("strings")).promise.canBeViewedAsImmutable(new ModelType<List<String>>() {})
@@ -277,7 +274,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "type variables of model type are captured"() {
         when:
-        extractor.extract(ConcreteGenericModelType).apply(registry, ModelPath.ROOT)
+        extractor.extract(ConcreteGenericModelType).apply(registry, node())
         def node = registry.realizeNode(new ModelPath("strings"))
         def type = node.adapter.asImmutable(new ModelType<List<String>>() {}, node, null).type
 
@@ -295,7 +292,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
     def "type variables of model type are captured when method is generic in interface"() {
         when:
-        extractor.extract(ConcreteGenericModelTypeImplementingGenericInterface).apply(registry, ModelPath.ROOT)
+        extractor.extract(ConcreteGenericModelTypeImplementingGenericInterface).apply(registry, node())
         def node = registry.realizeNode(new ModelPath("strings"))
         def type = node.adapter.asImmutable(new ModelType<List<String>>() {}, node, null).type
 
@@ -390,7 +387,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         def registry = Mock(ModelRegistry)
 
         when:
-        extractor.extract(MutationRules).apply(registry, ModelPath.ROOT)
+        extractor.extract(MutationRules).apply(registry, node())
 
         then:
         1 * registry.configure(ModelActionRole.Mutate, _, _) >> { ModelActionRole role, ModelAction action, def scope ->
@@ -421,7 +418,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         def registry = Mock(ModelRegistry)
 
         when:
-        extractor.extract(MutationAndFinalizeRules).apply(registry, ModelPath.ROOT)
+        extractor.extract(MutationAndFinalizeRules).apply(registry, node())
 
         then:
         1 * registry.configure(ModelActionRole.Finalize, _, _) >> { ModelActionRole role, ModelAction action, def scope ->
@@ -432,9 +429,10 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
     def "methods are processed ordered by their to string representation"() {
         given:
         def registry = Mock(ModelRegistry)
+        def node = node()
 
         when:
-        extractor.extract(MutationAndFinalizeRules).apply(registry, ModelPath.ROOT)
+        extractor.extract(MutationAndFinalizeRules).apply(registry, node)
 
         then:
         1 * registry.configure(ModelActionRole.Finalize, _, _) >> { ModelActionRole role, ModelAction action, def scope ->
@@ -748,6 +746,12 @@ ${ManagedWithNonManageableParents.name}
 
         // Remove soft references
         Introspector.flushFromCaches(clazz)
+    }
+
+    MutableModelNode node() {
+        return Stub(MutableModelNode) {
+            getPath() >> ModelPath.ROOT
+        }
     }
 }
 

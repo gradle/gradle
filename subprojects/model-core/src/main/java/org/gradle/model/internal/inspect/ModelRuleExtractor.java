@@ -33,6 +33,7 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.GeneratedViewState;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelProperty;
@@ -314,7 +315,8 @@ public class ModelRuleExtractor {
         }
 
         @Override
-        public void apply(ModelRegistry modelRegistry, ModelPath scope) {
+        public void apply(ModelRegistry modelRegistry, MutableModelNode target) {
+            ModelPath scope = target.getPath();
             for (ExtractedModelRule rule : rules) {
                 rule.apply(modelRegistry, scope);
             }

@@ -17,13 +17,13 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.Factory;
-import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
 public interface ExtractedRuleSource<T> {
-    void apply(ModelRegistry modelRegistry, ModelPath scope);
+    void apply(ModelRegistry modelRegistry, MutableModelNode target);
 
     List<? extends Class<?>> getRequiredPlugins();
 

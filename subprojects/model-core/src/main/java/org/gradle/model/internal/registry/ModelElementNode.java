@@ -165,13 +165,15 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyToSelf(Class<? extends RuleSource> rules) {
-        modelRegistry.configure(rules, getPath());
+    public void applyToSelf(Class<? extends RuleSource> rulesClass) {
+        ExtractedRuleSource<?> rules = modelRegistry.newRuleSource(rulesClass);
+        rules.assertNoPlugins();
+        rules.apply(modelRegistry, this);
     }
 
     @Override
     public void applyToSelf(ExtractedRuleSource<?> rules) {
-        rules.apply(modelRegistry, getPath());
+        rules.apply(modelRegistry, this);
     }
 
     @Override

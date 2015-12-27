@@ -133,11 +133,8 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
-    public ModelRegistry configure(Class<? extends RuleSource> rules, ModelPath scope) {
-        ExtractedRuleSource<?> extractedRules = ruleExtractor.extract(rules);
-        extractedRules.assertNoPlugins();
-        extractedRules.apply(this, scope);
-        return this;
+    public ExtractedRuleSource<?> newRuleSource(Class<? extends RuleSource> rules) {
+        return ruleExtractor.extract(rules);
     }
 
     static void checkNodePath(ModelNodeInternal node, ModelAction<?> action) {

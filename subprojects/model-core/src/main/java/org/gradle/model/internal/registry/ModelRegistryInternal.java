@@ -19,9 +19,10 @@ package org.gradle.model.internal.registry;
 import com.google.common.collect.Multimap;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.inspect.ExtractedRuleSource;
 
 interface ModelRegistryInternal extends ModelRegistry {
-    ModelRegistry configure(Class<? extends RuleSource> rules, ModelPath scope);
+    ExtractedRuleSource<?> newRuleSource(Class<? extends RuleSource> rules);
 
     void registerNode(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction<?>> actions);
 
