@@ -316,12 +316,16 @@ public class ModelRuleExtractor {
 
         @Override
         public void apply(final ModelRegistry modelRegistry, MutableModelNode target) {
-            ModelPath scope = target.getPath();
             for (ExtractedModelRule rule : rules) {
                 rule.apply(new MethodModelRuleApplicationContext() {
                     @Override
                     public ModelRegistry getRegistry() {
                         return modelRegistry;
+                    }
+
+                    @Override
+                    public <R> ModelRuleInvoker<R> invokerFor(MethodRuleDefinition<R, ?> definition) {
+                        return definition.getRuleInvoker();
                     }
                 }, target);
             }

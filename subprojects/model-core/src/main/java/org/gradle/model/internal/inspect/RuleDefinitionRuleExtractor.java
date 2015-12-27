@@ -48,15 +48,15 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         }
 
         ModelType<? extends RuleSource> ruleSourceType = ruleType.asSubtype(RULE_SOURCE_MODEL_TYPE);
-        return new RuleSourceDefinitionAction(ruleDefinition, ruleSourceType, context.getRuleExtractor());
+        return new RuleSourceDefinitionRule(ruleDefinition, ruleSourceType, context.getRuleExtractor());
     }
 
-    private static class RuleSourceDefinitionAction implements ExtractedModelRule {
+    private static class RuleSourceDefinitionRule implements ExtractedModelRule {
         private final MethodRuleDefinition<?, ?> ruleDefinition;
         private final ModelType<? extends RuleSource> ruleSourceType;
         private final ModelRuleExtractor ruleExtractor;
 
-        public RuleSourceDefinitionAction(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor) {
+        public RuleSourceDefinitionRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor) {
             this.ruleDefinition = ruleDefinition;
             this.ruleSourceType = ruleSourceType;
             this.ruleExtractor = ruleExtractor;
@@ -68,9 +68,10 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         }
 
         @Override
-        public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
+        public void apply(final MethodModelRuleApplicationContext context, MutableModelNode target) {
             final ModelReference<?> targetReference = ruleDefinition.getReferences().get(1);
             List<ModelReference<?>> inputs = ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size());
+            final ModelRuleInvoker<?> ruleInvoker = context.invokerFor(ruleDefinition);
 
             context.getRegistry().configure(ModelActionRole.Defaults,
                     DirectNodeInputUsingModelAction.of(targetReference, ruleDefinition.getDescriptor(), inputs, new BiAction<MutableModelNode, List<ModelView<?>>>() {
@@ -83,7 +84,7 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
                             for (int i = 2; i < parameters.length; i++) {
                                 parameters[i] = modelViews.get(i).getInstance();
                             }
-                            ruleDefinition.getRuleInvoker().invoke(parameters);
+                            ruleInvoker.invoke(parameters);
                             subjectNode.applyToSelf(ruleSource);
                         }
                     }));

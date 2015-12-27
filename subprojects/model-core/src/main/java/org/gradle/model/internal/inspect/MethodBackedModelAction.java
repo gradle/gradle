@@ -16,7 +16,10 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.AbstractModelActionWithView;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
@@ -24,19 +27,15 @@ import java.util.List;
 class MethodBackedModelAction<T> extends AbstractModelActionWithView<T> {
     private final ModelRuleInvoker<?> ruleInvoker;
 
-    public MethodBackedModelAction(MethodRuleDefinition<?, T> ruleDefinition) {
-        this(ruleDefinition.getRuleInvoker(), ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences());
-    }
-
     public MethodBackedModelAction(ModelRuleInvoker<?> ruleInvoker, ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
         super(subject, descriptor, inputs);
         this.ruleInvoker = ruleInvoker;
     }
 
     @Override
-    protected void execute(MutableModelNode modelNode, T view, List<ModelView<?>> inputs) {
+    protected void execute(MutableModelNode modelNode, T subject, List<ModelView<?>> inputs) {
         Object[] args = new Object[1 + this.inputs.size()];
-        args[0] = view;
+        args[0] = subject;
         for (int i = 0; i < this.inputs.size(); ++i) {
             args[i + 1] = inputs.get(i).getInstance();
         }
@@ -45,6 +44,6 @@ class MethodBackedModelAction<T> extends AbstractModelActionWithView<T> {
 
     @Override
     public String toString() {
-        return "MethodBackedModelAction{descriptor=" + descriptor + ", subject=" + subject + ", inputs=" + inputs + '}';
+        return getClass().getSimpleName() + "{descriptor=" + descriptor + ", subject=" + subject + ", inputs=" + inputs + '}';
     }
 }

@@ -17,8 +17,16 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Nullable;
+import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.Hidden;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+
+import java.util.Collections;
+import java.util.List;
 
 public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Model> {
 
@@ -39,17 +47,50 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
         ModelPath modelPath = determineModelName(ruleDefinition, context);
 
-        ModelRegistrations.Builder registration = ModelRegistrations.of(modelPath).descriptor(ruleDefinition.getDescriptor());
-
-        buildRegistration(ruleDefinition, modelPath, registration, context);
+        validateMethod(ruleDefinition, context);
         if (context.hasProblems()) {
             return null;
         }
 
-        registration.hidden(ruleDefinition.isAnnotationPresent(Hidden.class));
-
-        return new ExtractedModelRegistration(registration.build());
+        return buildRule(modelPath, ruleDefinition);
     }
 
-    protected abstract <R, S> void buildRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelPath modelPath, ModelRegistrations.Builder registration, ValidationProblemCollector problems);
+    protected <R, S> void validateMethod(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
+    }
+
+    protected abstract <R, S> ExtractedModelRule buildRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition);
+
+    protected static abstract class RegistrationRule<R, S> implements ExtractedModelRule {
+        protected final ModelPath modelPath;
+        protected final MethodRuleDefinition<R, S> ruleDefinition;
+
+        public RegistrationRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition) {
+            this.modelPath = modelPath;
+            this.ruleDefinition = ruleDefinition;
+        }
+
+        protected abstract void buildRegistration(ModelRegistrations.Builder registration);
+
+        @Override
+        public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
+            if (!target.getPath().equals(ModelPath.ROOT)) {
+                throw new InvalidModelRuleDeclarationException(String.format("Rule %s cannot be applied at the scope of model element %s as creation rules cannot be used when applying rule sources to particular elements", getDescriptor(), target.getPath()));
+            }
+            ModelRegistrations.Builder registration = ModelRegistrations.of(modelPath).descriptor(ruleDefinition.getDescriptor());
+            buildRegistration(registration);
+            registration.hidden(ruleDefinition.isAnnotationPresent(Hidden.class));
+
+            context.getRegistry().register(registration.build());
+        }
+
+        @Override
+        public ModelRuleDescriptor getDescriptor() {
+            return ruleDefinition.getDescriptor();
+        }
+
+        @Override
+        public List<Class<?>> getRuleDependencies() {
+            return Collections.emptyList();
+        }
+    }
 }

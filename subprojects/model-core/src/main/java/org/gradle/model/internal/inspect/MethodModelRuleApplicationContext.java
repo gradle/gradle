@@ -20,4 +20,6 @@ import org.gradle.model.internal.registry.ModelRegistry;
 
 public interface MethodModelRuleApplicationContext {
     ModelRegistry getRegistry();
+
+    <T> ModelRuleInvoker<T> invokerFor(MethodRuleDefinition<T, ?> definition);
 }
