@@ -60,16 +60,16 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
 
     protected abstract <R, S> ExtractedModelRule buildRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition);
 
-    protected static abstract class RegistrationRule<R, S> implements ExtractedModelRule {
+    protected static abstract class ExtractedCreationRule<R, S> implements ExtractedModelRule {
         protected final ModelPath modelPath;
         protected final MethodRuleDefinition<R, S> ruleDefinition;
 
-        public RegistrationRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition) {
+        public ExtractedCreationRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition) {
             this.modelPath = modelPath;
             this.ruleDefinition = ruleDefinition;
         }
 
-        protected abstract void buildRegistration(ModelRegistrations.Builder registration);
+        protected abstract void buildRegistration(MethodModelRuleApplicationContext context, ModelRegistrations.Builder registration);
 
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
@@ -77,7 +77,7 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
                 throw new InvalidModelRuleDeclarationException(String.format("Rule %s cannot be applied at the scope of model element %s as creation rules cannot be used when applying rule sources to particular elements", getDescriptor(), target.getPath()));
             }
             ModelRegistrations.Builder registration = ModelRegistrations.of(modelPath).descriptor(ruleDefinition.getDescriptor());
-            buildRegistration(registration);
+            buildRegistration(context, registration);
             registration.hidden(ruleDefinition.isAnnotationPresent(Hidden.class));
 
             context.getRegistry().register(registration.build());

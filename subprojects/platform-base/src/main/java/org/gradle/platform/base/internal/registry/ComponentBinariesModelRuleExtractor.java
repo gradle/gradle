@@ -68,7 +68,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         private final Class<S> binaryType;
 
         public ComponentBinariesRule(ModelReference<ComponentSpecContainer> subject, final Class<C> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
-            super(subject, componentType, ruleDefinition);
+            super(subject, componentType, ruleDefinition, ruleDefinition.getRuleInvoker());
             this.componentType = componentType;
             this.binaryType = binaryType;
         }

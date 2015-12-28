@@ -24,8 +24,8 @@ import org.gradle.model.internal.core.ModelAction
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.inspect.ExtractedModelAction
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryTasks
 import spock.lang.Unroll
@@ -88,7 +88,6 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         def registration = extract(ruleDefinitionForMethod("validTypeRule"))
 
         then:
-        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
 
         when:
@@ -97,7 +96,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         then:
         1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->
             assert role == ModelActionRole.Defaults
-            assert action.subject == ModelReference.of("binaries")
+            assert action.subject == ModelReference.of("binaries", BinaryContainer.class)
         }
         0 * _
     }

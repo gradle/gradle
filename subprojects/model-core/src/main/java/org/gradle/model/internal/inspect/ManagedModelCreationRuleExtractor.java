@@ -61,7 +61,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     protected <R, S> ExtractedModelRule buildRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition) {
         ModelType<S> modelType = Cast.uncheckedCast(ruleDefinition.getSubjectReference().getType());
         final ModelSchema<S> modelSchema = getModelSchema(modelType, ruleDefinition);
-        return new ManagedRegistrationRule<R, S>(modelPath, ruleDefinition, modelSchema);
+        return new ExtractedManagedCreationRule<R, S>(modelPath, ruleDefinition, modelSchema);
     }
 
     private static NodeInitializer getNodeInitializer(ModelRuleDescriptor descriptor, ModelSchema<?> modelSchema, NodeInitializerRegistry nodeInitializerRegistry) {
@@ -80,16 +80,16 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         }
     }
 
-    private static class ManagedRegistrationRule<R, S> extends RegistrationRule<R, S> {
+    private static class ExtractedManagedCreationRule<R, S> extends ExtractedCreationRule<R, S> {
         private final ModelSchema<S> modelSchema;
 
-        public ManagedRegistrationRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition, ModelSchema<S> modelSchema) {
+        public ExtractedManagedCreationRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition, ModelSchema<S> modelSchema) {
             super(modelPath, ruleDefinition);
             this.modelSchema = modelSchema;
         }
 
         @Override
-        protected void buildRegistration(ModelRegistrations.Builder registration) {
+        protected void buildRegistration(MethodModelRuleApplicationContext context, ModelRegistrations.Builder registration) {
             List<ModelReference<?>> bindings = ruleDefinition.getReferences();
             List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
             final ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
@@ -112,7 +112,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
             }
 
             registration.action(ModelActionRole.Initialize,
-                    new MethodBackedModelAction<S>(ruleDefinition.getRuleInvoker(), descriptor, ModelReference.of(modelPath, modelSchema.getType()), inputs));
+                    new MethodBackedModelAction<S>(context.invokerFor(ruleDefinition), descriptor, ModelReference.of(modelPath, modelSchema.getType()), inputs));
         }
 
     }

@@ -31,7 +31,7 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
 
     @Override
     protected <R, S> ExtractedModelRule buildRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition) {
-        return new UnmanagedRegistrationRule<R, S>(modelPath, ruleDefinition);
+        return new ExtractedUnmanagedCreationRule<R, S>(modelPath, ruleDefinition);
     }
 
     public String getDescription() {
@@ -69,18 +69,18 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
         }
     }
 
-    private static class UnmanagedRegistrationRule<R, S> extends RegistrationRule<R, S> {
-        public UnmanagedRegistrationRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition) {
+    private static class ExtractedUnmanagedCreationRule<R, S> extends ExtractedCreationRule<R, S> {
+        public ExtractedUnmanagedCreationRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition) {
             super(modelPath, ruleDefinition);
         }
 
         @Override
-        protected void buildRegistration(ModelRegistrations.Builder registration) {
+        protected void buildRegistration(MethodModelRuleApplicationContext context, ModelRegistrations.Builder registration) {
             ModelType<R> modelType = ruleDefinition.getReturnType();
             List<ModelReference<?>> references = ruleDefinition.getReferences();
             ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-            BiAction<MutableModelNode, List<ModelView<?>>> transformer = new ModelRuleInvokerBackedTransformer<R>(modelType, ruleDefinition.getRuleInvoker(), descriptor);
+            BiAction<MutableModelNode, List<ModelView<?>>> transformer = new ModelRuleInvokerBackedTransformer<R>(modelType, context.invokerFor(ruleDefinition), descriptor);
             registration.action(ModelActionRole.Create, references, transformer);
             registration.withProjection(new UnmanagedModelProjection<R>(modelType, true, true));
         }

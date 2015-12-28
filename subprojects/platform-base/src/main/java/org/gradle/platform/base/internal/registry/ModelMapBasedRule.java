@@ -24,22 +24,23 @@ import org.gradle.model.internal.core.AbstractModelActionWithView;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.inspect.ModelRuleInvoker;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Arrays;
 import java.util.List;
 
 public abstract class ModelMapBasedRule<R, S, T, C> extends AbstractModelActionWithView<C> {
-    private final MethodRuleDefinition<R, ?> ruleDefinition;
+    private final ModelRuleInvoker<R> ruleInvoker;
     protected int baseTypeParameterIndex;
 
-    public ModelMapBasedRule(ModelReference<C> subject, final Class<? extends T> baseType, MethodRuleDefinition<R, ?> ruleDefinition, ModelReference<?>... additionalInputs) {
+    public ModelMapBasedRule(ModelReference<C> subject, final Class<? extends T> baseType, MethodRuleDefinition<R, ?> ruleDefinition, ModelRuleInvoker<R> ruleInvoker, ModelReference<?>... additionalInputs) {
         super(subject, ruleDefinition.getDescriptor(), calculateInputs(
             baseType,
             ruleDefinition.getReferences().subList(1, ruleDefinition.getReferences().size()),
             Arrays.asList(additionalInputs)
         ));
-        this.ruleDefinition = ruleDefinition;
+        this.ruleInvoker = ruleInvoker;
         this.baseTypeParameterIndex = 1 + Iterables.indexOf(ruleDefinition.getReferences().subList(1, ruleDefinition.getReferences().size()), new Predicate<ModelReference<?>>() {
             @Override
             public boolean apply(ModelReference<?> element) {
@@ -80,6 +81,6 @@ public abstract class ModelMapBasedRule<R, S, T, C> extends AbstractModelActionW
                 }
             }
         }
-        ruleDefinition.getRuleInvoker().invoke(args);
+        ruleInvoker.invoke(args);
     }
 }
