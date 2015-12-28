@@ -120,10 +120,13 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     @Nullable
     protected <T extends ComponentSpec> T getComponentAs(Class<T> componentType) {
-        if (componentNode != null && componentNode.canBeViewedAs(ModelType.of(componentType))) {
-            return componentNode.asImmutable(ModelType.of(componentType), componentNode.getDescriptor()).getInstance();
+        if (componentNode == null) {
+            return null;
         }
-        return null;
+        ModelType<T> modelType = ModelType.of(componentType);
+        return componentNode.canBeViewedAs(modelType)
+            ? componentNode.asImmutable(modelType, componentNode.getDescriptor()).getInstance()
+            : null;
     }
 
     protected String getTypeName() {
