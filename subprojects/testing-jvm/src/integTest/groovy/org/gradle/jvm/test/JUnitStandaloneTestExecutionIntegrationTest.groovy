@@ -223,7 +223,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         executedAndNotSkipped(suites.collect { ":${it}BinaryTest" } as String[])
     }
 
-   def "assemble does not compile nor run test suite"() {
+    def "assemble does not compile nor run test suite"() {
         given:
         applyJUnitPlugin()
 
