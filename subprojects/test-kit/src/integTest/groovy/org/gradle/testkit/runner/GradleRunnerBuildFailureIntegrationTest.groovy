@@ -17,10 +17,12 @@
 package org.gradle.testkit.runner
 
 import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
+import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
 import org.gradle.util.TextUtil
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
+@CaptureExecutedTasks
 class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
     @CaptureBuildOutputInDebug

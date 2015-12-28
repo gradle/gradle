@@ -17,9 +17,11 @@
 package org.gradle.testkit.runner
 
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
+import org.gradle.testkit.runner.fixtures.GradleRunnerCompatibilityIntegTestRunner
 import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
 import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 
@@ -50,6 +52,12 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerCompa
         result.output.findAll(ERR).size() == 1
         standardOutput.toString().findAll(OUT).size() == 1
         standardError.toString().findAll(ERR).size() == 1
+
+        // isn't empty if version < 2.8
+        if (isCompatibleVersion('2.8')) {
+            stdStreams.stdOut.empty
+            stdStreams.stdErr.empty
+        }
     }
 
     def "can forward test execution output to System.out and System.err"() {
@@ -65,8 +73,12 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerCompa
         noExceptionThrown()
         result.output.findAll(OUT).size() == 1
         result.output.findAll(ERR).size() == 1
-        stdStreams.stdOut.findAll(OUT).size() == 1
-        stdStreams.stdOut.findAll(ERR).size() == 1
+
+        // prints out System.out twice for version < 2.3
+        if (isCompatibleVersion('2.3')) {
+            stdStreams.stdOut.findAll(OUT).size() == 1
+            stdStreams.stdOut.findAll(ERR).size() == 1
+        }
     }
 
     def "output is captured if unexpected build exception is thrown"() {
@@ -123,5 +135,9 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerCompa
                 }
             }
         """
+    }
+
+    private boolean isCompatibleVersion(String minCompatibleVersion) {
+        GradleRunnerCompatibilityIntegTestRunner.gradleVersion.compareTo(GradleVersion.version(minCompatibleVersion)) >= 0
     }
 }

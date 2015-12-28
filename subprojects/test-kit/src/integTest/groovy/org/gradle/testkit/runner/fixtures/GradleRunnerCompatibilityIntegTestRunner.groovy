@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
+import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
 import org.gradle.testkit.runner.fixtures.annotations.PluginClasspathInjection
 import org.gradle.testkit.runner.internal.dist.GradleDistribution
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
@@ -44,6 +45,11 @@ import java.lang.annotation.Annotation
  */
 class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunner {
     /**
+     * Read by tests to configure themselves to determine the Gradle version used for test execution.
+     */
+    public static GradleVersion gradleVersion
+
+    /**
      * Read by tests to configure themselves to determine the Gradle distribution used for test execution.
      */
     public static GradleDistribution distribution
@@ -51,12 +57,12 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
     /**
      * TestKit features annotations read by tests to determine the minimum compatible Gradle version.
      */
-    private static final List<? extends Annotation> TESTKIT_FEATURES = [PluginClasspathInjection]
+    private static final List<? extends Annotation> TESTKIT_FEATURES = [CaptureExecutedTasks, PluginClasspathInjection]
 
     /**
-     * The Gradle version that introduced TestKit.
+     * The minimum Gradle version used for testing TestKit if no other features require an earlier version.
      */
-    public static final GradleVersion TESTKIT_INCEPTION_VERSION = GradleVersion.version('2.5')
+    public static final GradleVersion MIN_TESTED_VERSION = GradleVersion.version('1.0')
 
     private static final String COMPATIBILITY_SYSPROP_NAME = 'org.gradle.integtest.testkit.compatibility'
     private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
@@ -101,7 +107,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
 
     private GradleVersion getMinCompatibleVersion() {
         List<GradleVersion> testedFeatures = TESTKIT_FEATURES.findAll { target.getAnnotation(it) }.collect { FeatureCompatibility.getMinSupportedVersion(it) }
-        !testedFeatures.empty ? testedFeatures.min() : TESTKIT_INCEPTION_VERSION
+        !testedFeatures.empty ? testedFeatures.min() : MIN_TESTED_VERSION
     }
 
     @TupleConstructor
@@ -162,6 +168,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
         @Override
         protected void before() {
             super.before()
+            GradleRunnerCompatibilityIntegTestRunner.gradleVersion = testedGradleDistribution.gradleVersion
             GradleRunnerCompatibilityIntegTestRunner.distribution = testedGradleDistribution.gradleDistribution
         }
 

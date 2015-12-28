@@ -17,12 +17,14 @@
 package org.gradle.testkit.runner
 
 import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
+import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
 /**
  * Tests more intricate aspects of the BuildResult object
  */
+@CaptureExecutedTasks
 class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
     def "execute task actions marked as up-to-date or skipped"() {

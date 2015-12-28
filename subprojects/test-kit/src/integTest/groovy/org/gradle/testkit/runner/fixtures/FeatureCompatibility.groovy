@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner.fixtures
 
 import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
+import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
 import org.gradle.testkit.runner.fixtures.annotations.PluginClasspathInjection
 import org.gradle.testkit.runner.internal.TestKitFeature
 import org.gradle.util.GradleVersion
@@ -24,6 +25,7 @@ import org.gradle.util.GradleVersion
 import java.lang.annotation.Annotation
 
 enum FeatureCompatibility {
+    CAPTURE_EXECUTED_TASKS(CaptureExecutedTasks, TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.since),
     PLUGIN_CLASSPATH_INJECTION(PluginClasspathInjection, TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since),
     CAPTURE_BUILD_OUTPUT_IN_DEBUG(CaptureBuildOutputInDebug, TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since)
 
@@ -33,7 +35,7 @@ enum FeatureCompatibility {
     private FeatureCompatibility(Class<? extends Annotation> feature, GradleVersion since) {
         this.feature = feature
         this.since = since
-        assert isValidVersion(since, GradleRunnerCompatibilityIntegTestRunner.TESTKIT_INCEPTION_VERSION) : "Feature version $since needs to be later than $GradleRunnerCompatibilityIntegTestRunner.TESTKIT_INCEPTION_VERSION"
+        assert isValidVersion(since, GradleRunnerCompatibilityIntegTestRunner.MIN_TESTED_VERSION) : "Feature version $since needs to be later than $GradleRunnerCompatibilityIntegTestRunner.MIN_TESTED_VERSION"
     }
 
     private static boolean isValidVersion(GradleVersion comparedVersion, GradleVersion minVersion) {

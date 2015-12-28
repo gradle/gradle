@@ -17,9 +17,11 @@
 package org.gradle.testkit.runner
 
 import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
+import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@CaptureExecutedTasks
 class GradleRunnerArgumentsIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
     def "can execute build without specifying any arguments"() {
