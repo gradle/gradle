@@ -200,6 +200,7 @@ Candidates:
 - Change `ModelMap.put()` to add a reference to an element.
 - Change rule application to ignore references.
 - Change model report to format references as a link to the target element.
+- Fix `BinaryTasksModelRuleExtractor` to target each `BinarySpec` elements, rather than the `binaries` container. Should _actually_ target the `tasks` container of each `BinarySpec` element.
 
 ### Rule should not be applied to a given task more than once
 

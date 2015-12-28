@@ -56,6 +56,8 @@ Unordered and not all appropriately story sized.
 - Values for properties with primitive and other scalar types do not show up in model report unless they have been set
 - Value for property with type collection of scalars is not shown in model report unless value has been set.
 - `null` value for mutable property with type collection of scalars is not shown in model report (but empty list is).
+- Creator for tasks defined by a `@BinaryTask` rule are wrong
+- Creator for binaries defined by a `@ComponentBinaries` rule contain a bunch of confusing and irrelevant detail
 
 ## RuleSource
 
