@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.fixtures.annotations.Debug
 import org.gradle.testkit.runner.fixtures.annotations.NoDebug
-import org.gradle.testkit.runner.internal.TestKitFeature
+import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.internal;
+package org.gradle.testkit.runner.internal.feature;
 
 import org.gradle.util.GradleVersion;
 

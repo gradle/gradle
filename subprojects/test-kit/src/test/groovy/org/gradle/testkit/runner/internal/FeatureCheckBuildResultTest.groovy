@@ -18,6 +18,7 @@ package org.gradle.testkit.runner.internal
 
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.UnsupportedFeatureException
+import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
