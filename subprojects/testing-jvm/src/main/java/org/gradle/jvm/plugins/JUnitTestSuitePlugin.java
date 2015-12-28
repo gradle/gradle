@@ -123,11 +123,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
          * Create binaries for test suites.
          */
         @ComponentBinaries
-        void createJUnitComponentBinaries(ModelMap<BinarySpec> testBinaries, PlatformResolvers platformResolver, JUnitTestSuiteSpec testSuite, JavaToolChainRegistry toolChains) {
-            createJUnitBinariesFor(testSuite, true, platformResolver, testBinaries, toolChains);
-        }
-
-        private void createJUnitBinariesFor(final JUnitTestSuiteSpec testSuite, final boolean buildable, PlatformResolvers platformResolver, ModelMap<BinarySpec> testBinaries, final JavaToolChainRegistry toolChains) {
+        void createJUnitComponentBinaries(ModelMap<BinarySpec> testBinaries, PlatformResolvers platformResolver, final JUnitTestSuiteSpec testSuite, final JavaToolChainRegistry toolChains) {
             final List<JavaPlatform> javaPlatforms = resolvePlatforms(platformResolver);
             final JavaPlatform platform = javaPlatforms.get(0);
             final BinaryNamingScheme namingScheme = namingSchemeFor(testSuite, javaPlatforms, platform);
@@ -135,9 +131,6 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
                 @Override
                 public void execute(JUnitTestSuiteBinarySpec jUnitTestSuiteBinarySpec) {
-                    //TODO:RBO this is just temporary to avoid merge hell later, a better solution is in the works
-                    ((BinarySpecInternal) jUnitTestSuiteBinarySpec).setBuildable(buildable);
-
                     final String jUnitVersion = testSuite.getJUnitVersion();
                     ((BinarySpecInternal) jUnitTestSuiteBinarySpec).setNamingScheme(namingScheme);
                     jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);
