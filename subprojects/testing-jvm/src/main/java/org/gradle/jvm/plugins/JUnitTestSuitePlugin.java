@@ -93,7 +93,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                     configureReports(test);
                 }
 
-                private File configureReports(Test test) {
+                private void configureReports(Test test) {
                     // todo: improve configuration of reports
                     TestTaskReports reports = test.getReports();
                     File reportsDirectory = new File(buildDir, "reports");
@@ -103,7 +103,6 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                     reports.getHtml().setDestination(htmlDir);
                     reports.getJunitXml().setDestination(xmlDir);
                     test.setBinResultsDir(binDir);
-                    return reportsDirectory;
                 }
             });
         }
