@@ -128,6 +128,19 @@ model {
         testResults.checkAssertions(3, 3, 0)
     }
 
+    def "assemble does not build or run tests"() {
+        given:
+        useConventionalSourceLocations()
+        useStandardConfig()
+
+        when:
+        run "assemble"
+
+        then:
+        notExecuted ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
+            ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
+    }
+
     @Issue("GRADLE-3225")
     def "can build and run cunit test suite with C and C++"() {
         given:

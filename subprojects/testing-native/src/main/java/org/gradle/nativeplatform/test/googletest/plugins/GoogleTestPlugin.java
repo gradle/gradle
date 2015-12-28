@@ -32,10 +32,7 @@ import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteBinary;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
-import org.gradle.platform.base.BinaryType;
-import org.gradle.platform.base.BinaryTypeBuilder;
-import org.gradle.platform.base.ComponentType;
-import org.gradle.platform.base.ComponentTypeBuilder;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.test.TestSuiteContainer;
 
 import java.io.File;
@@ -87,10 +84,10 @@ public class GoogleTestPlugin implements Plugin<Project> {
             builder.defaultImplementation(DefaultGoogleTestTestSuiteBinary.class);
         }
 
-        @Mutate
-        public void createGoogleTestTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir,
+        @ComponentBinaries
+        public void createGoogleTestTestBinaries(ModelMap<GoogleTestTestSuiteBinarySpec> binaries, GoogleTestTestSuiteSpec testSuite, @Path("buildDir") final File buildDir,
                                                  LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
-            createNativeTestSuiteBinaries(testSuites, GoogleTestTestSuiteSpec.class, GoogleTestTestSuiteBinarySpec.class, "GoogleTestExe", buildDir, serviceRegistry);
+            createNativeTestSuiteBinaries(testSuite, GoogleTestTestSuiteBinarySpec.class, "GoogleTestExe", buildDir, serviceRegistry);
        }
    }
 

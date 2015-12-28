@@ -39,7 +39,6 @@ import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.model.*;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
-import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
 
 import java.io.File;
@@ -121,24 +120,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
         }
 
         /**
-         * Create binaries for test suites declared under {@code testSuites}.
-         *
-         * These are not built as part of {@code assemble}.
-         */
-        @Mutate // TODO:RBO this is only necessary until we relax @ComponentBinaries to allow components anywhere (particularly under testSuites)
-        void createJUnitTestSuiteBinaries(TestSuiteContainer testSuites, final PlatformResolvers platformResolvers, final JavaToolChainRegistry toolChains) {
-            testSuites.afterEach(JUnitTestSuiteSpec.class, new Action<JUnitTestSuiteSpec>() {
-                @Override
-                public void execute(JUnitTestSuiteSpec jUnitTestSuiteSpec) {
-                    createJUnitBinariesFor(jUnitTestSuiteSpec, false, platformResolvers, jUnitTestSuiteSpec.getBinaries(), toolChains);
-                }
-            });
-        }
-
-        /**
-         * Create binaries for test suites declared under {@code components}.
-         *
-         * These are built as part of {@code assemble}.
+         * Create binaries for test suites.
          */
         @ComponentBinaries
         void createJUnitComponentBinaries(ModelMap<BinarySpec> testBinaries, PlatformResolvers platformResolver, JUnitTestSuiteSpec testSuite, JavaToolChainRegistry toolChains) {

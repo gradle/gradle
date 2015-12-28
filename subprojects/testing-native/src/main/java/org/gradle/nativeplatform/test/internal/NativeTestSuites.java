@@ -25,7 +25,6 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.test.TestSuiteContainer;
 
 import java.io.File;
 import java.util.Collection;
@@ -38,22 +37,16 @@ import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.ins
  */
 public class NativeTestSuites {
 
-    public static void createNativeTestSuiteBinaries(TestSuiteContainer testSuites,
-                                                     Class<? extends NativeTestSuiteSpec> testSuiteClass,
+    public static void createNativeTestSuiteBinaries(NativeTestSuiteSpec testSuite,
                                                      final Class<? extends NativeTestSuiteBinarySpec> testSuiteBinaryClass,
                                                      final String typeString, final File buildDir, final ServiceRegistry serviceRegistry) {
-        testSuites.withType(testSuiteClass).afterEach(new Action<NativeTestSuiteSpec>() {
-            @Override
-            public void execute(final NativeTestSuiteSpec testSuite) {
-                for (final NativeBinarySpec testedBinary : testedBinariesOf(testSuite)) {
-                    if (testedBinary instanceof SharedLibraryBinary) {
-                        // TODO:DAZ For now, we only create test suites for static library variants
-                        continue;
-                    }
-                    createNativeTestSuiteBinary(testSuite, testSuiteBinaryClass, typeString, testedBinary, buildDir, serviceRegistry);
-                }
+        for (final NativeBinarySpec testedBinary : testedBinariesOf(testSuite)) {
+            if (testedBinary instanceof SharedLibraryBinary) {
+                // TODO:DAZ For now, we only create test suites for static library variants
+                continue;
             }
-        });
+            createNativeTestSuiteBinary(testSuite, testSuiteBinaryClass, typeString, testedBinary, buildDir, serviceRegistry);
+        }
     }
 
     private static void createNativeTestSuiteBinary(NativeTestSuiteSpec testSuite,

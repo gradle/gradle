@@ -19,15 +19,11 @@ package org.gradle.platform.base.internal.registry
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.ModelAction
 import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentBinaries
 import org.gradle.platform.base.ComponentSpec
-import org.gradle.platform.base.ComponentSpecContainer
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -45,7 +41,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
 
     @Unroll
     def "applies ComponentModelBasePlugin and creates componentBinary rule #descr"() {
-        def mockRegistry = Mock(ModelRegistry)
+        def node = Mock(MutableModelNode)
 
         when:
         def registration = extract(ruleDefinitionForMethod(ruleName))
@@ -54,12 +50,11 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         registration.ruleDependencies == [ComponentModelBasePlugin]
 
         when:
-        apply(registration, mockRegistry)
+        apply(registration, node)
 
         then:
-        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->
-            assert role == ModelActionRole.Finalize
-            assert action.subject == ModelReference.of("components", ComponentSpecContainer)
+        1 * node.applyTo(_, ModelActionRole.Finalize, _) >> {
+
         }
         0 * _
 

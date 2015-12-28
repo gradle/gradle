@@ -142,6 +142,19 @@ model {
         testResults.checkTestCases(1, 1, 0)
     }
 
+    def "assemble does not build or run tests"() {
+        given:
+        useConventionalSourceLocations()
+        useStandardConfig()
+
+        when:
+        run "assemble"
+
+        then:
+        notExecuted ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
+                ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
+    }
+
     @Issue("GRADLE-3225")
     def "can build and run googleTest test suite with C and C++ plugins"() {
         given:

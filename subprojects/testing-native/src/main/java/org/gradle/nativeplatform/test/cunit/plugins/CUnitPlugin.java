@@ -34,10 +34,7 @@ import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
-import org.gradle.platform.base.BinaryType;
-import org.gradle.platform.base.BinaryTypeBuilder;
-import org.gradle.platform.base.ComponentType;
-import org.gradle.platform.base.ComponentTypeBuilder;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.test.TestSuiteContainer;
 
 import java.io.File;
@@ -125,12 +122,11 @@ public class CUnitPlugin implements Plugin<Project> {
             builder.defaultImplementation(DefaultCUnitTestSuiteBinary.class);
         }
 
-        @Mutate
-        public void createCUnitTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir,
+        @ComponentBinaries
+        public void createCUnitTestBinaries(ModelMap<CUnitTestSuiteBinarySpec> binaries, CUnitTestSuiteSpec testSuite, @Path("buildDir") final File buildDir,
                                             LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
-            createNativeTestSuiteBinaries(testSuites, CUnitTestSuiteSpec.class, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
+            createNativeTestSuiteBinaries(testSuite, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
         }
-
     }
 
 }

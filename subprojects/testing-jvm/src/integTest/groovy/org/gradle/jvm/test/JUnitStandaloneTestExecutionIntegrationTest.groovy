@@ -234,11 +234,10 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         failingTestCase()
 
         when:
-        executer.withArgument('--dry-run')
         succeeds 'assemble'
 
         then:
-        notExecuted ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest'
+        result.assertTasksExecuted ':assemble' // only
     }
 
     def "should fail if a library attempts to depend on a test suite"() {

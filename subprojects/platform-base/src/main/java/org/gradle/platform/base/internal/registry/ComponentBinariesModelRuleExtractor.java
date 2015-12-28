@@ -18,20 +18,21 @@ package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Nullable;
-import org.gradle.internal.TriAction;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.*;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentBinaries;
 import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecContainer;
 
 import java.util.List;
 
-import static org.gradle.model.internal.core.NodePredicate.allLinks;
+import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive;
 
 public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentBinaries> {
     @Nullable
@@ -58,28 +59,16 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         visitDependency(dataCollector, ruleDefinition, ModelType.of(ComponentSpec.class), problems);
     }
 
-    private static class ComponentBinariesRule<R, S extends BinarySpec, C extends ComponentSpec> extends ModelMapBasedRule<R, S, ComponentSpec, ComponentSpecContainer> {
-        private final Class<C> componentType;
+    private static class ComponentBinariesRule<R, S extends BinarySpec, C extends ComponentSpec> extends ModelMapBasedRule<R, S, ComponentSpec, C> {
         private final Class<S> binaryType;
 
-        public ComponentBinariesRule(ModelReference<ComponentSpecContainer> subject, final Class<C> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition, ModelRuleInvoker<R> ruleInvoker) {
+        public ComponentBinariesRule(ModelReference<C> subject, final Class<C> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition, ModelRuleInvoker<R> ruleInvoker) {
             super(subject, componentType, ruleDefinition, ruleInvoker);
-            this.componentType = componentType;
             this.binaryType = binaryType;
         }
 
-        protected void execute(final MutableModelNode modelNode, final ComponentSpecContainer componentSpecs, final List<ModelView<?>> modelMapRuleInputs) {
-            modelNode.applyTo(allLinks(), ModelActionRole.Finalize, DirectNodeInputUsingModelAction.of(
-                    ModelReference.of(ModelType.of(componentType)),
-                    getDescriptor(),
-                    getInputs(),
-                    new TriAction<MutableModelNode, C, List<ModelView<?>>>() {
-                        @Override
-                        public void execute(MutableModelNode componentModelNode, C component, final List<ModelView<?>> componentRuleInputs) {
-                            invoke(componentRuleInputs, component.getBinaries().withType(binaryType), component);
-                        }
-                    }
-            ));
+        protected void execute(final MutableModelNode modelNode, final C component, final List<ModelView<?>> inputs) {
+            invoke(inputs, component.getBinaries().withType(binaryType), component);
         }
     }
 
@@ -101,9 +90,9 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
 
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
-            ModelReference<ComponentSpecContainer> subject = ModelReference.of(ModelPath.path("components"), ModelType.of(ComponentSpecContainer.class));
+            ModelReference<C> subject = ModelReference.of(componentType);
             ComponentBinariesRule<R, S, C> componentBinariesRule = new ComponentBinariesRule<R, S, C>(subject, componentType, binaryType, ruleDefinition, context.invokerFor(ruleDefinition));
-            context.getRegistry().configure(ModelActionRole.Finalize, componentBinariesRule, target.getPath());
+            target.applyTo(allLinksTransitive(), ModelActionRole.Finalize, componentBinariesRule);
         }
 
         @Override
