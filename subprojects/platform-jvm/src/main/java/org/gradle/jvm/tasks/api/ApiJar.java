@@ -40,7 +40,7 @@ import java.util.jar.JarOutputStream;
  *
  * <p>This task and the Jar it produces are designed primarily for internal use in support
  * of Gradle's "compile avoidance" performance feature. The task is automatically included
- * in the task graph for any JVM libary that declares an {@code api { ... }}
+ * in the task graph for any JVM library that declares an {@code api { ... }}
  * specification, and the resulting Jar will automatically be placed on the compile time
  * classpath of projects that depend on the library in lieu of the library's complete
  * so-called "Runtime Jar".</p>
