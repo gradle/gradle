@@ -23,7 +23,6 @@ import org.gradle.model.internal.core.ModelAction
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.inspect.ExtractedModelAction
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
@@ -54,7 +53,6 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         def registration = extract(ruleDefinitionForMethod("validTypeRule"))
 
         then:
-        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
 
         when:
@@ -98,7 +96,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        extract(ruleMethod)
+        apply(ruleMethod)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)

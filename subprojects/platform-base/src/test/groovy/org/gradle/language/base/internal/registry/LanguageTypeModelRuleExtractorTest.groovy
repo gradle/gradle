@@ -28,7 +28,6 @@ import org.gradle.model.internal.core.ModelAction
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.inspect.ExtractedModelAction
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
@@ -79,7 +78,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        extract(ruleMethod)
+        apply(ruleMethod)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
@@ -102,7 +101,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         def registration = extract(ruleDefinitionForMethod("validTypeRule"))
 
         then:
-        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
 
         when:
@@ -121,7 +119,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         def registration = extract(ruleDefinitionForMethod("noImplementationTypeRule"))
 
         then:
-        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
     }
 

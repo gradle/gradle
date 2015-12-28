@@ -19,13 +19,13 @@ package org.gradle.platform.base.internal.registry;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
-import org.gradle.internal.Cast;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.inspect.ExtractedModelAction;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.NoInputsModelAction;
 import org.gradle.model.internal.inspect.ExtractedModelRule;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -34,41 +34,20 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
-import org.gradle.platform.base.internal.builder.LanguageTypeBuilderInternal;
-import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
-import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
+
+import java.util.List;
 
 public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<LanguageType, LanguageSourceSet, BaseLanguageSourceSet> {
     public LanguageTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
-        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, schemaStore, new TypeBuilderFactory<LanguageSourceSet>() {
-            @Override
-            public TypeBuilderInternal<LanguageSourceSet> create(ModelSchema<? extends LanguageSourceSet> schema) {
-                return new DefaultLanguageTypeBuilder(schema);
-            }
-        });
+        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, schemaStore);
     }
 
     @Override
-    protected <P extends LanguageSourceSet, I extends BaseLanguageSourceSet> ExtractedModelRule createRegistration(
-        final MethodRuleDefinition<?, ?> ruleDefinition,
-        final ModelType<P> publicModelType, final ModelType<I> implModelType,
-        final TypeBuilderInternal<LanguageSourceSet> builder
-    ) {
-        final String languageName = ((LanguageTypeBuilderInternal) builder).getLanguageName();
-        if (!ModelType.of(LanguageSourceSet.class).equals(publicModelType) && StringUtils.isEmpty(languageName)) {
-            throw new InvalidModelException(String.format("Language type '%s' cannot be registered without a language name.", publicModelType));
-        }
-        ModelAction<LanguageSourceSetFactory> regAction = NoInputsModelAction.of(ModelReference.of(LanguageSourceSetFactory.class), ruleDefinition.getDescriptor(), new Action<LanguageSourceSetFactory>() {
-            @Override
-            public void execute(LanguageSourceSetFactory sourceSetFactory) {
-                ModelType<? extends P> castedImplModelType = Cast.uncheckedCast(implModelType);
-                sourceSetFactory.register(languageName, publicModelType, builder.getInternalViews(), castedImplModelType, ruleDefinition.getDescriptor());
-            }
-        });
-        return new ExtractedModelAction(ModelActionRole.Defaults, ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class), regAction);
+    protected <P extends LanguageSourceSet> ExtractedModelRule createExtractedRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<P> type) {
+        return new ExtractedLanguageTypeRule(ruleDefinition, type);
     }
 
-    private static class DefaultLanguageTypeBuilder extends AbstractTypeBuilder<LanguageSourceSet> implements LanguageTypeBuilderInternal<LanguageSourceSet> {
+    private static class DefaultLanguageTypeBuilder extends AbstractTypeBuilder<LanguageSourceSet> implements LanguageTypeBuilder<LanguageSourceSet> {
         private String languageName;
 
         private DefaultLanguageTypeBuilder(ModelSchema<? extends LanguageSourceSet> schema) {
@@ -80,9 +59,38 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
             this.languageName = languageName;
         }
 
-        @Override
         public String getLanguageName() {
             return languageName;
+        }
+    }
+
+    private class ExtractedLanguageTypeRule extends ExtractedTypeRule<DefaultLanguageTypeBuilder> {
+        public ExtractedLanguageTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends LanguageSourceSet> publicType) {
+            super(ruleDefinition, publicType);
+        }
+
+        @Override
+        protected DefaultLanguageTypeBuilder createBuilder(ModelSchema<? extends LanguageSourceSet> schema) {
+            return new DefaultLanguageTypeBuilder(schema);
+        }
+
+        @Override
+        protected ModelAction<?> createRegistrationAction(ModelSchema<? extends LanguageSourceSet> schema, final DefaultLanguageTypeBuilder builder, final ModelType<? extends BaseLanguageSourceSet> implModelType) {
+            final String languageName = builder.getLanguageName();
+            if (!ModelType.of(LanguageSourceSet.class).equals(publicType) && StringUtils.isEmpty(languageName)) {
+                throw new InvalidModelException(String.format("Language type '%s' cannot be registered without a language name.", publicType));
+            }
+            return NoInputsModelAction.of(ModelReference.of(LanguageSourceSetFactory.class), ruleDefinition.getDescriptor(), new Action<LanguageSourceSetFactory>() {
+                @Override
+                public void execute(LanguageSourceSetFactory sourceSetFactory) {
+                    sourceSetFactory.register(languageName, publicType, builder.getInternalViews(), implModelType, ruleDefinition.getDescriptor());
+                }
+            });
+        }
+
+        @Override
+        public List<? extends Class<?>> getRuleDependencies() {
+            return ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
         }
     }
 }

@@ -19,8 +19,9 @@ package org.gradle.platform.base.internal.registry;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.inspect.ExtractedModelAction;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.NoInputsModelAction;
 import org.gradle.model.internal.inspect.ExtractedModelRule;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -31,37 +32,48 @@ import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
-import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
-import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
+
+import java.util.List;
 
 public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<ComponentType, ComponentSpec, BaseComponentSpec> {
     public ComponentTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
-        super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, schemaStore, new TypeBuilderFactory<ComponentSpec>() {
-            @Override
-            public TypeBuilderInternal<ComponentSpec> create(ModelSchema<? extends ComponentSpec> schema) {
-                return new DefaultComponentTypeBuilder(schema);
-            }
-        });
+        super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, schemaStore);
     }
 
     @Override
-    protected <P extends ComponentSpec, I extends BaseComponentSpec> ExtractedModelRule createRegistration(
-        final MethodRuleDefinition<?, ?> ruleDefinition,
-        final ModelType<P> publicModelType, final ModelType<I> implModelType,
-        final TypeBuilderInternal<ComponentSpec> builder
-    ) {
-        ModelAction<ComponentSpecFactory> regAction = NoInputsModelAction.of(ModelReference.of(ComponentSpecFactory.class), ruleDefinition.getDescriptor(), new Action<ComponentSpecFactory>() {
-            @Override
-            public void execute(ComponentSpecFactory components) {
-                components.register(publicModelType, implModelType, builder.getInternalViews(), ruleDefinition.getDescriptor());
-            }
-        });
-        return new ExtractedModelAction(ModelActionRole.Defaults, ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class), regAction);
+    protected <P extends ComponentSpec> ExtractedModelRule createExtractedRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<P> type) {
+        return new ExtractedComponentTypeRule(ruleDefinition, type);
     }
 
     private static class DefaultComponentTypeBuilder extends AbstractTypeBuilder<ComponentSpec> implements ComponentTypeBuilder<ComponentSpec> {
         private DefaultComponentTypeBuilder(ModelSchema<? extends ComponentSpec> schema) {
             super(ComponentType.class, schema);
+        }
+    }
+
+    private class ExtractedComponentTypeRule extends ExtractedTypeRule<DefaultComponentTypeBuilder> {
+        public ExtractedComponentTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends ComponentSpec> publicType) {
+            super(ruleDefinition, publicType);
+        }
+
+        @Override
+        protected DefaultComponentTypeBuilder createBuilder(ModelSchema<? extends ComponentSpec> schema) {
+            return new DefaultComponentTypeBuilder(schema);
+        }
+
+        @Override
+        protected ModelAction<?> createRegistrationAction(ModelSchema<? extends ComponentSpec> schema, final DefaultComponentTypeBuilder builder, final ModelType<? extends BaseComponentSpec> implModelType) {
+            return NoInputsModelAction.of(ModelReference.of(ComponentSpecFactory.class), ruleDefinition.getDescriptor(), new Action<ComponentSpecFactory>() {
+                @Override
+                public void execute(ComponentSpecFactory components) {
+                    components.register(publicType, implModelType, builder.getInternalViews(), ruleDefinition.getDescriptor());
+                }
+            });
+        }
+
+        @Override
+        public List<? extends Class<?>> getRuleDependencies() {
+            return ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
         }
     }
 }

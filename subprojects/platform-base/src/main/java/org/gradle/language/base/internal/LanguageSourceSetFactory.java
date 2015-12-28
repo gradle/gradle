@@ -18,6 +18,7 @@ package org.gradle.language.base.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.Cast;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
@@ -43,14 +44,14 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
         this.fileResolver = fileResolver;
     }
 
-    public <T extends LanguageSourceSet, V extends T> void register(String languageName, ModelType<T> type, Set<Class<?>> internalViews, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
+    public <T extends LanguageSourceSet, V extends LanguageSourceSet> void register(String languageName, ModelType<T> type, Set<Class<?>> internalViews, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
         InstanceFactory.TypeRegistrationBuilder<T> registration = register(type, ruleDescriptor);
 
         if (implementationType != null) {
-            registration.withImplementation(implementationType, new InstanceFactory.ImplementationFactory<T>() {
+            registration.withImplementation(Cast.<ModelType<? extends T>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<T>() {
                 @Override
                 public T create(ModelType<? extends T> publicType, String sourceSetName, MutableModelNode modelNode) {
-                    return BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), fileResolver);
+                    return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), fileResolver));
                 }
             });
         }
