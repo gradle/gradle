@@ -83,12 +83,8 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                 @Override
                 public void execute(final Test test) {
                     test.dependsOn(jvmAssembly);
-
                     test.setTestClassesDir(binary.getClassesDir());
-
-                    // TODO:RBO is this even necessary? what about the `configureClasspath` rule below?
                     test.setClasspath(classpathFor(jvmAssembly, fileOperations));
-
                     configureReports(test);
                 }
 
