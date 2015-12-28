@@ -40,6 +40,8 @@ Then the suite can be executed running the `:mySuiteTest` task.
 
 ### Model rule improvements
 
+#### `@ComponentBinaries` works for elements of `testSuites`
+
 #### Fine grained application of rules
 
 TBD - A new kind of rule method is now available, which can be used to apply additional rules to some target.
@@ -212,6 +214,7 @@ Previously, you could directly set the `archiveName`.  `version`, `appendix` and
 
 - Deprecated `CollectionBuilder` interface removed.
 - Deprecated `ManagedSet` interface removed.
+- The `assemble` task now builds only those binaries for components defined in `components`. It does not build binaries for test suites defined in `testSuites`.
 
 ### TestKit indicates compatibility for target Gradle version
 

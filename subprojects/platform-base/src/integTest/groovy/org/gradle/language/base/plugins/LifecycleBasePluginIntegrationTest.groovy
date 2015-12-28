@@ -58,28 +58,4 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
         where:
         taskName << ["check", "build"]
     }
-
-    def "binaries are built when build task execution is requested"() {
-        buildFile << """
-            @Managed interface SampleBinary extends BinarySpec {}
-
-            class SampleBinaryPlugin extends RuleSource {
-                @BinaryType
-                void register(BinaryTypeBuilder<SampleBinary> builder) {}
-
-                @Mutate
-                void createSampleBinary(ModelMap<SampleBinary> binarySpecs) {
-                    binarySpecs.create("sampleBinary")
-                }
-            }
-
-            apply plugin: SampleBinaryPlugin
-        """
-
-        when:
-        succeeds "build"
-
-        then:
-        ":sampleBinary" in executedTasks
-    }
 }

@@ -15,10 +15,8 @@
  */
 package org.gradle.language.base.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Task;
+import com.google.common.collect.Lists;
+import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -26,6 +24,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.model.BinarySourceTransformations;
 import org.gradle.language.base.internal.model.ComponentBinaryRules;
 import org.gradle.language.base.internal.model.ComponentRules;
@@ -45,6 +44,8 @@ import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.*;
 
 import javax.inject.Inject;
+import java.util.List;
+import java.util.Set;
 
 import static org.gradle.model.internal.core.ModelNodes.withType;
 import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive;
@@ -171,6 +172,51 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 }
             });
         }
-    }
 
+        @Mutate
+        void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, ComponentSpecContainer components) {
+            List<BinarySpecInternal> notBuildable = Lists.newArrayList();
+            boolean hasBuildableBinaries = false;
+            for (ComponentSpec component : components) {
+                for (BinarySpecInternal binary : component.getBinaries().withType(BinarySpecInternal.class)) {
+                    if (binary.isBuildable()) {
+                        assemble.dependsOn(binary);
+                        hasBuildableBinaries = true;
+                    } else {
+                        notBuildable.add(binary);
+                    }
+                }
+            }
+            if (!hasBuildableBinaries && !notBuildable.isEmpty()) {
+                assemble.doFirst(new CheckForNotBuildableBinariesAction(notBuildable));
+            }
+        }
+
+        private static class CheckForNotBuildableBinariesAction implements Action<Task> {
+            private final List<BinarySpecInternal> notBuildable;
+
+            public CheckForNotBuildableBinariesAction(List<BinarySpecInternal> notBuildable) {
+                this.notBuildable = notBuildable;
+            }
+
+            @Override
+            public void execute(Task task) {
+                Set<? extends Task> taskDependencies = task.getTaskDependencies().getDependencies(task);
+
+                if (taskDependencies.isEmpty()) {
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("No buildable binaries found");
+                    formatter.startChildren();
+                    for (BinarySpecInternal binary : notBuildable) {
+                        formatter.node(binary.getDisplayName());
+                        formatter.startChildren();
+                        binary.getBuildAbility().explain(formatter);
+                        formatter.endChildren();
+                    }
+                    formatter.endChildren();
+                    throw new GradleException(formatter.toString());
+                }
+            }
+        }
+    }
 }

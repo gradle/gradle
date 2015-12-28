@@ -15,7 +15,6 @@
  */
 package org.gradle.language.base.plugins;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -24,7 +23,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
@@ -42,8 +40,6 @@ import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import javax.inject.Inject;
-import java.util.List;
-import java.util.Set;
 
 import static org.gradle.model.internal.core.NodePredicate.allLinks;
 import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive;
@@ -101,13 +97,15 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @Hidden @Model
+        @Hidden
+        @Model
         LanguageSourceSetFactory languageSourceSetFactory(ServiceRegistry serviceRegistry) {
             return new LanguageSourceSetFactory("sourceSets", serviceRegistry.get(FileResolver.class));
         }
 
         @Model
-        void binaries(BinaryContainer binaries) {}
+        void binaries(BinaryContainer binaries) {
+        }
 
         @BinaryType
         void registerBaseBinarySpec(BinaryTypeBuilder<BinarySpec> builder) {
@@ -143,52 +141,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 Task buildTask = binary.getBuildTask();
                 if (buildTask != null) {
                     tasks.add(buildTask);
-                }
-            }
-        }
-
-        @Mutate
-        void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, ModelMap<BinarySpecInternal> binaries) {
-            List<BinarySpecInternal> notBuildable = Lists.newArrayList();
-            boolean hasBuildableBinaries = false;
-            for (BinarySpecInternal binary : binaries) {
-                if (!binary.isLegacyBinary()) {
-                    if (binary.isBuildable()) {
-                        assemble.dependsOn(binary);
-                        hasBuildableBinaries = true;
-                    } else {
-                        notBuildable.add(binary);
-                    }
-                }
-            }
-            if (!hasBuildableBinaries && !notBuildable.isEmpty()) {
-                assemble.doFirst(new CheckForNotBuildableBinariesAction(notBuildable));
-            }
-        }
-
-        private static class CheckForNotBuildableBinariesAction implements Action<Task> {
-            private final List<BinarySpecInternal> notBuildable;
-
-            public CheckForNotBuildableBinariesAction(List<BinarySpecInternal> notBuildable) {
-                this.notBuildable = notBuildable;
-            }
-
-            @Override
-            public void execute(Task task) {
-                Set<? extends Task> taskDependencies = task.getTaskDependencies().getDependencies(task);
-
-                if (taskDependencies.isEmpty()) {
-                    TreeFormatter formatter = new TreeFormatter();
-                    formatter.node("No buildable binaries found");
-                    formatter.startChildren();
-                    for (BinarySpecInternal binary : notBuildable) {
-                        formatter.node(binary.getDisplayName());
-                        formatter.startChildren();
-                        binary.getBuildAbility().explain(formatter);
-                        formatter.endChildren();
-                    }
-                    formatter.endChildren();
-                    throw new GradleException(formatter.toString());
                 }
             }
         }
