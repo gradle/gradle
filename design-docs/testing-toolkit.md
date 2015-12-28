@@ -445,6 +445,8 @@ a human-readable error message that explains why this feature cannot be used.
 ### Open issues
 
 * Account for increased build time on CI. We could either re-shard the jobs or create dedicated jobs that executed the compatibility tests with different versions of Java.
+* To determine the target Gradle version under test based on the provided distribution, the Tooling API model is queries which probably has a small overhead in terms of
+execution performance. Are we OK with this overhead or is there a better way to determine the target Gradle version?
 
 # Milestone 3
 
