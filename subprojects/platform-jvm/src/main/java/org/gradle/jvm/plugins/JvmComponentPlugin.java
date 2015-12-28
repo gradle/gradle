@@ -179,21 +179,21 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 }
             });
 
-            final JarFile apiJar = binary.getApiJar();
+            final JarFile apiJarFile = binary.getApiJar();
             final Set<String> exportedPackages = binary.getExportedPackages();
             String apiJarTaskName = apiJarTaskName(binary);
             tasks.create(apiJarTaskName, ApiJar.class, new Action<ApiJar>() {
                 @Override
-                public void execute(ApiJar jar) {
+                public void execute(ApiJar apiJarTask) {
                     final File apiClassesDir = binary.getNamingScheme().getOutputDirectory(buildDir, "apiClasses");
-                    jar.setDescription(String.format("Creates the API binary file for %s.", binary));
-                    jar.setRuntimeClassesDir(single(assembly.getClassDirectories()));
-                    jar.setExportedPackages(exportedPackages);
-                    jar.setApiClassesDir(apiClassesDir);
-                    jar.setDestinationDir(apiJar.getFile().getParentFile());
-                    jar.setArchiveName(apiJar.getFile().getName());
-                    jar.dependsOn(assembly);
-                    apiJar.setBuildTask(jar);
+                    apiJarTask.setDescription(String.format("Creates the API binary file for %s.", binary));
+                    apiJarTask.setRuntimeClassesDir(single(assembly.getClassDirectories()));
+                    apiJarTask.setExportedPackages(exportedPackages);
+                    apiJarTask.setApiClassesDir(apiClassesDir);
+                    apiJarTask.setDestinationDir(apiJarFile.getFile().getParentFile());
+                    apiJarTask.setArchiveName(apiJarFile.getFile().getName());
+                    apiJarTask.dependsOn(assembly);
+                    apiJarFile.setBuildTask(apiJarTask);
                 }
             });
         }
