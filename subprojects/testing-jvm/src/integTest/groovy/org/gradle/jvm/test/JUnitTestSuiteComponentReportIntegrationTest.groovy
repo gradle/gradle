@@ -52,7 +52,6 @@ JUnitTestSuiteSpec 'test'
 Source sets
     Java source 'test:java'
         srcDir: src/test/java
-        dependencies:
     JVM resources 'test:resources'
         srcDir: src/test/resources
 
@@ -102,7 +101,6 @@ JUnitTestSuiteSpec 'functionalTest'
 Source sets
     Java source 'functionalTest:java'
         srcDir: src/functionalTest/java
-        dependencies:
     JVM resources 'functionalTest:resources'
         srcDir: src/functionalTest/resources
 
@@ -120,7 +118,6 @@ JUnitTestSuiteSpec 'unitTest'
 Source sets
     Java source 'unitTest:java'
         srcDir: src/unitTest/java
-        dependencies:
     JVM resources 'unitTest:resources'
         srcDir: src/unitTest/resources
 

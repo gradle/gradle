@@ -31,7 +31,6 @@ import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteSpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
-import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
@@ -134,20 +133,20 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                     jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);
                     jUnitTestSuiteBinarySpec.setTargetPlatform(platform);
                     jUnitTestSuiteBinarySpec.setToolChain(toolChains.getForPlatform(platform));
-                    ((WithDependencies) jUnitTestSuiteBinarySpec).setDependencies(testSuite.getDependencies().getDependencies());
-                    testSuite.getSources().all(new Action<LanguageSourceSet>() {
-                        @Override
-                        public void execute(LanguageSourceSet languageSourceSet) {
-                            // For now, dependencies have to be defined at the source set level
-                            // in order for the dependency resolution engine to kick in
-                            if (languageSourceSet instanceof DependentSourceSet) {
-                                // TODO:RBO consider adding this to the testSuite dependencies container
-                                ((DependentSourceSet) languageSourceSet).getDependencies().group("junit").module("junit").version(jUnitVersion);
-                            }
-                        }
-                    });
+
+                    DependencySpecContainer dependencies = testSuite.getDependencies();
+                    addJUnitDependencyTo(dependencies, jUnitVersion);
+                    setDependenciesOf(jUnitTestSuiteBinarySpec, dependencies);
                 }
             });
+        }
+
+        private void setDependenciesOf(JUnitTestSuiteBinarySpec binary, DependencySpecContainer dependencies) {
+            ((WithDependencies) binary).setDependencies(dependencies.getDependencies());
+        }
+
+        private void addJUnitDependencyTo(DependencySpecContainer dependencies, String jUnitVersion) {
+            dependencies.group("junit").module("junit").version(jUnitVersion);
         }
 
         /**
