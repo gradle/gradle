@@ -103,19 +103,19 @@ public abstract class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE
         return new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-    protected ModelType<? extends BASEIMPL> determineImplementationType(ModelType<? extends TYPE> type, TypeBuilderInternal<? extends TYPE> builder) {
+    protected ModelType<? extends BASEIMPL> determineImplementationType(ModelType<?> type, TypeBuilderInternal<?> builder) {
         for (Class<?> internalView : builder.getInternalViews()) {
             if (!internalView.isInterface()) {
                 throw new InvalidModelException(String.format("Internal view %s must be an interface.", internalView.getName()));
             }
         }
 
-        Class<? extends TYPE> implementation = builder.getDefaultImplementation();
+        Class<?> implementation = builder.getDefaultImplementation();
         if (implementation == null) {
             return null;
         }
 
-        ModelType<? extends TYPE> implementationType = ModelType.of(implementation);
+        ModelType<?> implementationType = ModelType.of(implementation);
 
         if (!baseImplementation.isAssignableFrom(implementationType)) {
             throw new InvalidModelException(String.format("%s implementation %s must extend %s.", StringUtils.capitalize(modelName), implementationType, baseImplementation));
@@ -141,7 +141,7 @@ public abstract class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE
         return asSubclass;
     }
 
-    protected abstract class ExtractedTypeRule<PUBLICTYPE extends TYPE, BUILDER extends TypeBuilderInternal<PUBLICTYPE>> implements ExtractedModelRule {
+    protected abstract class ExtractedTypeRule<PUBLICTYPE, BUILDER extends TypeBuilderInternal<PUBLICTYPE>> implements ExtractedModelRule {
         protected final MethodRuleDefinition<?, ?> ruleDefinition;
         protected final ModelType<PUBLICTYPE> publicType;
 
