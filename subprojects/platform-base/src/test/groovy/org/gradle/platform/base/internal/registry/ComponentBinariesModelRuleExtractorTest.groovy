@@ -23,7 +23,6 @@ import org.gradle.model.internal.core.ModelAction
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.inspect.ExtractedModelAction
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentBinaries
@@ -52,9 +51,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         def registration = extract(ruleDefinitionForMethod(ruleName))
 
         then:
-        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
-
 
         when:
         apply(registration, mockRegistry)
