@@ -44,13 +44,13 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
 
     @Override
     protected <P extends LanguageSourceSet> ExtractedModelRule createExtractedRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<P> type) {
-        return new ExtractedLanguageTypeRule(ruleDefinition, type);
+        return new ExtractedLanguageTypeRule<P>(ruleDefinition, type);
     }
 
-    private static class DefaultLanguageTypeBuilder extends AbstractTypeBuilder<LanguageSourceSet> implements LanguageTypeBuilder<LanguageSourceSet> {
+    private static class DefaultLanguageTypeBuilder<PUBLICTYPE extends LanguageSourceSet> extends AbstractTypeBuilder<PUBLICTYPE> implements LanguageTypeBuilder<PUBLICTYPE> {
         private String languageName;
 
-        private DefaultLanguageTypeBuilder(ModelSchema<? extends LanguageSourceSet> schema) {
+        private DefaultLanguageTypeBuilder(ModelSchema<PUBLICTYPE> schema) {
             super(LanguageType.class, schema);
         }
 
@@ -64,18 +64,18 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         }
     }
 
-    private class ExtractedLanguageTypeRule extends ExtractedTypeRule<DefaultLanguageTypeBuilder> {
-        public ExtractedLanguageTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends LanguageSourceSet> publicType) {
+    private class ExtractedLanguageTypeRule<PUBLICTYPE extends LanguageSourceSet> extends ExtractedTypeRule<PUBLICTYPE, DefaultLanguageTypeBuilder<PUBLICTYPE>> {
+        public ExtractedLanguageTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType) {
             super(ruleDefinition, publicType);
         }
 
         @Override
-        protected DefaultLanguageTypeBuilder createBuilder(ModelSchema<? extends LanguageSourceSet> schema) {
-            return new DefaultLanguageTypeBuilder(schema);
+        protected DefaultLanguageTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
+            return new DefaultLanguageTypeBuilder<PUBLICTYPE>(schema);
         }
 
         @Override
-        protected ModelAction<?> createRegistrationAction(ModelSchema<? extends LanguageSourceSet> schema, final DefaultLanguageTypeBuilder builder, final ModelType<? extends BaseLanguageSourceSet> implModelType) {
+        protected ModelAction<?> createRegistrationAction(ModelSchema<PUBLICTYPE> schema, final DefaultLanguageTypeBuilder<PUBLICTYPE> builder, final ModelType<? extends BaseLanguageSourceSet> implModelType) {
             final String languageName = builder.getLanguageName();
             if (!ModelType.of(LanguageSourceSet.class).equals(publicType) && StringUtils.isEmpty(languageName)) {
                 throw new InvalidModelException(String.format("Language type '%s' cannot be registered without a language name.", publicType));
@@ -90,7 +90,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
 
         @Override
         public List<? extends Class<?>> getRuleDependencies() {
-            return ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
+            return ImmutableList.of(ComponentModelBasePlugin.class);
         }
     }
 }

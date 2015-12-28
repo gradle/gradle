@@ -42,27 +42,27 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
 
     @Override
     protected <P extends ComponentSpec> ExtractedModelRule createExtractedRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<P> type) {
-        return new ExtractedComponentTypeRule(ruleDefinition, type);
+        return new ExtractedComponentTypeRule<P>(ruleDefinition, type);
     }
 
-    private static class DefaultComponentTypeBuilder extends AbstractTypeBuilder<ComponentSpec> implements ComponentTypeBuilder<ComponentSpec> {
-        private DefaultComponentTypeBuilder(ModelSchema<? extends ComponentSpec> schema) {
+    private static class DefaultComponentTypeBuilder<PUBLICTYPE extends ComponentSpec> extends AbstractTypeBuilder<PUBLICTYPE> implements ComponentTypeBuilder<PUBLICTYPE> {
+        private DefaultComponentTypeBuilder(ModelSchema<PUBLICTYPE> schema) {
             super(ComponentType.class, schema);
         }
     }
 
-    private class ExtractedComponentTypeRule extends ExtractedTypeRule<DefaultComponentTypeBuilder> {
-        public ExtractedComponentTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends ComponentSpec> publicType) {
+    private class ExtractedComponentTypeRule<PUBLICTYPE extends ComponentSpec> extends ExtractedTypeRule<PUBLICTYPE, DefaultComponentTypeBuilder<PUBLICTYPE>> {
+        public ExtractedComponentTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType) {
             super(ruleDefinition, publicType);
         }
 
         @Override
-        protected DefaultComponentTypeBuilder createBuilder(ModelSchema<? extends ComponentSpec> schema) {
-            return new DefaultComponentTypeBuilder(schema);
+        protected DefaultComponentTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
+            return new DefaultComponentTypeBuilder<PUBLICTYPE>(schema);
         }
 
         @Override
-        protected ModelAction<?> createRegistrationAction(ModelSchema<? extends ComponentSpec> schema, final DefaultComponentTypeBuilder builder, final ModelType<? extends BaseComponentSpec> implModelType) {
+        protected ModelAction<?> createRegistrationAction(ModelSchema<PUBLICTYPE> schema, final DefaultComponentTypeBuilder<PUBLICTYPE> builder, final ModelType<? extends BaseComponentSpec> implModelType) {
             return NoInputsModelAction.of(ModelReference.of(ComponentSpecFactory.class), ruleDefinition.getDescriptor(), new Action<ComponentSpecFactory>() {
                 @Override
                 public void execute(ComponentSpecFactory components) {
@@ -73,7 +73,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
 
         @Override
         public List<? extends Class<?>> getRuleDependencies() {
-            return ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
+            return ImmutableList.of(ComponentModelBasePlugin.class);
         }
     }
 }

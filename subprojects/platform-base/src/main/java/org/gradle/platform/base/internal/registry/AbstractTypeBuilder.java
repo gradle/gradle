@@ -31,7 +31,7 @@ public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
     private Class<? extends T> implementation;
     private final Set<Class<?>> internalViews = Sets.newLinkedHashSet();
 
-    public AbstractTypeBuilder(Class<?> markerAnnotation, ModelSchema<? extends T> schema) {
+    public AbstractTypeBuilder(Class<?> markerAnnotation, ModelSchema<T> schema) {
         this.markerAnnotation = markerAnnotation;
         this.schema = schema;
     }

@@ -42,27 +42,27 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
 
     @Override
     protected <P extends BinarySpec> ExtractedModelRule createExtractedRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<P> type) {
-        return new ExtractedBinaryTypeRule(ruleDefinition, type);
+        return new ExtractedBinaryTypeRule<P>(ruleDefinition, type);
     }
 
-    private static class DefaultBinaryTypeBuilder extends AbstractTypeBuilder<BinarySpec> implements BinaryTypeBuilder<BinarySpec> {
-        private DefaultBinaryTypeBuilder(ModelSchema<? extends BinarySpec> schema) {
+    private static class DefaultBinaryTypeBuilder<PUBLICTYPE extends BinarySpec> extends AbstractTypeBuilder<PUBLICTYPE> implements BinaryTypeBuilder<PUBLICTYPE> {
+        private DefaultBinaryTypeBuilder(ModelSchema<PUBLICTYPE> schema) {
             super(BinaryType.class, schema);
         }
     }
 
-    private class ExtractedBinaryTypeRule extends ExtractedTypeRule<DefaultBinaryTypeBuilder> {
-        public ExtractedBinaryTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends BinarySpec> publicType) {
+    private class ExtractedBinaryTypeRule<PUBLICTYPE extends BinarySpec> extends ExtractedTypeRule<PUBLICTYPE, DefaultBinaryTypeBuilder<PUBLICTYPE>> {
+        public ExtractedBinaryTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType) {
             super(ruleDefinition, publicType);
         }
 
         @Override
-        protected DefaultBinaryTypeBuilder createBuilder(ModelSchema<? extends BinarySpec> schema) {
-            return new DefaultBinaryTypeBuilder(schema);
+        protected DefaultBinaryTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
+            return new DefaultBinaryTypeBuilder<PUBLICTYPE>(schema);
         }
 
         @Override
-        protected ModelAction<?> createRegistrationAction(ModelSchema<? extends BinarySpec> schema, final DefaultBinaryTypeBuilder builder, final ModelType<? extends BaseBinarySpec> implModelType) {
+        protected ModelAction<?> createRegistrationAction(ModelSchema<PUBLICTYPE> schema, final DefaultBinaryTypeBuilder<PUBLICTYPE> builder, final ModelType<? extends BaseBinarySpec> implModelType) {
             return NoInputsModelAction.of(ModelReference.of(BinarySpecFactory.class), ruleDefinition.getDescriptor(), new Action<BinarySpecFactory>() {
                 @Override
                 public void execute(BinarySpecFactory binaries) {
@@ -73,7 +73,7 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
 
         @Override
         public List<? extends Class<?>> getRuleDependencies() {
-            return ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
+            return ImmutableList.of(ComponentModelBasePlugin.class);
         }
     }
 }
