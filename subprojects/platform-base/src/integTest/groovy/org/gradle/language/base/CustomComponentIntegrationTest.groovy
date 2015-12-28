@@ -534,5 +534,64 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    def "reports failure in @ComponentType rule"() {
+        buildFile << """
+            @Managed
+            interface BrokenComponentSpec extends ComponentSpec {
+            }
 
+            class Broken extends RuleSource {
+                @ComponentType
+                void broken(ComponentTypeBuilder<BrokenComponentSpec> builder) {
+                    throw new RuntimeException('broken')
+                }
+            }
+            apply plugin: Broken
+        """
+
+        expect:
+        fails "help"
+        failure.assertHasCause("Failed to apply plugin [class 'Broken']")
+        failure.assertHasCause("broken")
+    }
+
+    def "fails when @ComponentType registration is badly formed"() {
+        buildFile << """
+            @Managed
+            interface BrokenComponentSpec extends ComponentSpec {
+            }
+
+            class Broken extends RuleSource {
+                @ComponentType
+                void broken(ComponentTypeBuilder<BrokenComponentSpec> builder) {
+                    builder.internalView(String)
+                }
+            }
+            apply plugin: Broken
+        """
+
+        expect:
+        fails "help"
+        failure.assertHasCause("Failed to apply plugin [class 'Broken']")
+        failure.assertHasCause("Broken#broken is not a valid component model rule method.")
+        failure.assertHasCause("Internal view java.lang.String must be an interface.")
+    }
+
+    def "reports badly formed @ComponentType rule"() {
+        buildFile << """
+            class Broken extends RuleSource {
+                @ComponentType
+                private void broken(ComponentTypeBuilder<?> builder) {
+                }
+            }
+            apply plugin: Broken
+        """
+
+        expect:
+        fails "help"
+        failure.assertHasCause("Failed to apply plugin [class 'Broken']")
+        failure.assertHasCause("""Type Broken is not a valid rule source:
+- Method broken(org.gradle.platform.base.ComponentTypeBuilder<?>) is not a valid rule method: A rule method cannot be private
+- Method broken(org.gradle.platform.base.ComponentTypeBuilder<?>) is not a valid rule method: Component type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).""")
+    }
 }
