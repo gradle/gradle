@@ -78,10 +78,9 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                                  final JUnitTestSuiteBinarySpec binary,
                                  final FileOperations fileOperations,
                                  final @Path("buildDir") File buildDir) {
-            String taskName = ((BinarySpecInternal) binary).getProjectScopedName() + "Test";
-            final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
 
-            tasks.create(taskName, Test.class, new Action<Test>() {
+            final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
+            tasks.create(testTaskNameFor(binary), Test.class, new Action<Test>() {
                 @Override
                 public void execute(final Test test) {
                     test.dependsOn(jvmAssembly);
@@ -244,5 +243,9 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
             }
             return testClasspath;
         }
+    }
+
+    private static String testTaskNameFor(JUnitTestSuiteBinarySpec binary) {
+        return ((BinarySpecInternal) binary).getProjectScopedName() + "Test";
     }
 }
