@@ -62,8 +62,22 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 """
     }
 
-    @Unroll
-    def "can register binaries using @ComponentBinaries when viewing binaries container as #binariesContainerType.simpleName"() {
+    def "binaries registered using @ComponentBinaries rule are visible in model report"() {
+        when:
+        buildFile << withSimpleComponentBinaries()
+
+        then:
+        succeeds "model"
+
+        and:
+        def components = ModelReportOutput.from(output).modelNode.components
+        assert components.sampleLib.binaries.binary.@type[0] == 'SampleBinary'
+        assert components.sampleLib.binaries.binary.@creator[0] == 'MyComponentBinariesPlugin.Rules#createBinariesForSampleLibrary > components.sampleLib.getBinaries() > create(binary)'
+        assert components.sampleLib.binaries.otherBinary.@type[0] == 'OtherSampleBinary'
+        assert components.sampleLib.binaries.otherBinary.@creator[0] == 'MyComponentBinariesPlugin.Rules#createBinariesForSampleLibrary > components.sampleLib.getBinaries() > create(otherBinary)'
+    }
+
+    def "can register binaries using @ComponentBinaries rule"() {
         when:
         buildFile << withSimpleComponentBinaries()
         buildFile << '''
@@ -170,7 +184,7 @@ Binaries
         succeeds "tellTaskName"
     }
 
-    def "ComponentBinaries rule supports additional parameters as rule inputs"() {
+    def "@ComponentBinaries rule supports additional parameters as rule inputs"() {
         given:
         buildFile << """
         class CustomModel {
@@ -225,7 +239,7 @@ Binaries
         ruleInputs << ["SampleLibrary library, CustomModel myModel",  "CustomModel myModel, SampleLibrary library"]
     }
 
-    def "ComponentBinaries rule operates with fully configured component"() {
+    def "@ComponentBinaries rule operates with fully configured component"() {
         given:
         buildFile << """
 @Managed
@@ -366,5 +380,23 @@ Binaries
 
         then:
         failure.assertHasCause("Cannot create 'components.sampleLib.binaries.illegal' using creation rule 'IllegallyMutatingComponentBinariesRules#createBinariesForSampleLibrary > components.sampleLib.getBinaries() > create(illegal)' as model element 'components.sampleLib.binaries' is no longer mutable.")
+    }
+
+    def "reports failure in @ComponentBinaries rule"() {
+        when:
+        buildFile << """
+            class MyComponentBinariesPlugin extends RuleSource {
+                @ComponentBinaries
+                void createBinariesForSampleLibrary(ModelMap<SampleBinary> binaries, SampleLibrary library) {
+                    throw new RuntimeException('broken')
+                }
+            }
+            apply plugin: MyComponentBinariesPlugin
+        """
+
+        then:
+        fails "model"
+        failure.assertHasCause('Exception thrown while executing model rule: MyComponentBinariesPlugin#createBinariesForSampleLibrary')
+        failure.assertHasCause('broken')
     }
 }
