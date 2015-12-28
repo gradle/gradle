@@ -97,8 +97,13 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
 
         sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
+        namingScheme = DefaultBinaryNamingScheme.component(componentName()).withBinaryName(name).withBinaryType(getTypeName());
+    }
+
+    @Nullable
+    private String componentName() {
         ComponentSpec component = getComponent();
-        namingScheme = DefaultBinaryNamingScheme.component(component == null ? null :component.getName()).withBinaryName(name).withBinaryType(getTypeName());
+        return component != null ? component.getName() : null;
     }
 
     @Override
