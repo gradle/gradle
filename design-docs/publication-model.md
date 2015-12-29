@@ -507,7 +507,7 @@ These would be mixed in to various steps above (TBD), rather than as one change 
 3. Deprecate and later remove the `maven` plugin. This means the only mechanism for publishing a Maven module is via the `maven-publish` plugin.
 4. Deprecate and later remove support for signing a configuration and Maven deployer.
 5. Deprecate and later remove `Configuration.artifacts` and related types.
-6. Change `DependendencyHandler` to become a container of `ResolvableDependencies` instances. Use `dependencies.compile` instead of
+6. Change `DependencyHandler` to become a container of `ResolvableDependencies` instances. Use `dependencies.compile` instead of
    `configurations.compile`
 7. Deprecate and later remove `ResolvedConfiguration` and related types.
 8. Deprecate and later remove `Configuration` and related types.
