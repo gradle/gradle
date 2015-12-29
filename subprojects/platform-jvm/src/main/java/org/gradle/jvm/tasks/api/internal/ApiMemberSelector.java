@@ -16,8 +16,6 @@
 
 package org.gradle.jvm.tasks.api.internal;
 
-import com.google.common.collect.Sets;
-
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -26,6 +24,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.SortedSet;
 
+import static com.google.common.collect.Sets.newTreeSet;
 import static org.objectweb.asm.Opcodes.*;
 
 /**
@@ -36,9 +35,9 @@ import static org.objectweb.asm.Opcodes.*;
  */
 public class ApiMemberSelector extends ClassVisitor {
 
-    private final SortedSet<MethodMember> methods = Sets.newTreeSet();
-    private final SortedSet<FieldMember> fields = Sets.newTreeSet();
-    private final SortedSet<InnerClassMember> innerClasses = Sets.newTreeSet();
+    private final SortedSet<MethodMember> methods = newTreeSet();
+    private final SortedSet<FieldMember> fields = newTreeSet();
+    private final SortedSet<InnerClassMember> innerClasses = newTreeSet();
 
     private final ClassVisitor apiMemberAdapter;
     private final boolean apiIncludesPackagePrivateMembers;
@@ -209,7 +208,7 @@ public class ApiMemberSelector extends ClassVisitor {
     }
 
     public static boolean isCandidateApiMember(int access, boolean apiIncludesPackagePrivateMembers) {
-        return  isPublicMember(access)
+        return isPublicMember(access)
             || isProtectedMember(access)
             || (isPackagePrivateMember(access) && apiIncludesPackagePrivateMembers);
     }

@@ -229,7 +229,6 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def subAnnotation = annotation.value()
         subAnnotation.annotationType().name == 'SubAnn'
         subAnnotation.value() == 'foo'
-
     }
 
     void "annotation arrays on class are retained"() {

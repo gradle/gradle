@@ -16,15 +16,12 @@
 
 package org.gradle.jvm.tasks.api;
 
-import com.google.common.collect.Maps;
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.ErroringAction;
-import org.gradle.internal.IoActions;
 import org.gradle.jvm.tasks.api.internal.ApiClassExtractor;
 
 import java.io.*;
@@ -34,6 +31,11 @@ import java.util.SortedMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+
+import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Maps.newTreeMap;
+import static org.apache.commons.io.FileUtils.*;
+import static org.gradle.internal.IoActions.withResource;
 
 /**
  * Assembles an "API Jar" containing only the members of a library's public API.
@@ -122,14 +124,15 @@ public class ApiJar extends DefaultTask {
     public void createApiJar(final IncrementalTaskInputs inputs) throws Exception {
         final File archivePath = new File(destinationDir, archiveName);
         if (!inputs.isIncremental()) {
-            FileUtils.deleteQuietly(archivePath);
-            FileUtils.deleteDirectory(apiClassesDir);
+            deleteQuietly(archivePath);
+            deleteDirectory(apiClassesDir);
         }
         destinationDir.mkdirs();
         apiClassesDir.mkdirs();
+
         final ApiClassExtractor apiClassExtractor = new ApiClassExtractor(exportedPackages);
         final AtomicBoolean updated = new AtomicBoolean();
-        final Map<File, byte[]> apiClasses = Maps.newHashMap();
+        final Map<File, byte[]> apiClasses = newHashMap();
         inputs.outOfDate(new ErroringAction<InputFileDetails>() {
             @Override
             protected void doExecute(InputFileDetails inputFileDetails) throws Exception {
@@ -142,7 +145,7 @@ public class ApiJar extends DefaultTask {
                 apiClasses.put(originalClassFile, apiClassBytes);
                 File apiClassFile = apiClassFileFor(originalClassFile);
                 apiClassFile.getParentFile().mkdirs();
-                IoActions.withResource(new FileOutputStream(apiClassFile), new ErroringAction<OutputStream>() {
+                withResource(new FileOutputStream(apiClassFile), new ErroringAction<OutputStream>() {
                     @Override
                     protected void doExecute(OutputStream outputStream) throws Exception {
                         outputStream.write(apiClassBytes);
@@ -157,62 +160,67 @@ public class ApiJar extends DefaultTask {
                 deleteApiClassFileFor(removedOriginalClassFile.getFile());
             }
         });
+
         if (updated.get()) {
-            IoActions.withResource(
-                new JarOutputStream(new BufferedOutputStream(new FileOutputStream(archivePath), 65536)),
-                new ErroringAction<JarOutputStream>() {
-                    private final SortedMap<String, File> sortedFiles = Maps.newTreeMap();
+            updateApiJarFile(archivePath, apiClasses);
+        }
+    }
 
-                    private void writeEntries(JarOutputStream jos) throws Exception {
-                        for (Map.Entry<String, File> entry : sortedFiles.entrySet()) {
-                            JarEntry je = new JarEntry(entry.getKey());
-                            // Setting time to 0 because we need API jars to be identical independently of
-                            // the timestamps of class files
-                            je.setTime(0);
-                            File originalClassFile = entry.getValue();
-                            // get it from cache if it has just been converted
-                            byte[] apiClassBytes = apiClasses.get(originalClassFile);
-                            if (apiClassBytes == null) {
-                                // or get it from disk otherwise
-                                apiClassBytes = FileUtils.readFileToByteArray(originalClassFile);
-                            }
-                            je.setSize(apiClassBytes.length);
-                            jos.putNextEntry(je);
-                            jos.write(apiClassBytes);
-                            jos.closeEntry();
-                        }
-                    }
+    private void updateApiJarFile(File file, Map<File, byte[]> apiClasses) throws IOException {
+        // Make sure all entries are always written in the same order
+        final SortedMap<String, File> sortedJarEntries = newTreeMap();
+        collectFiles(null, apiClassesDir, sortedJarEntries);
+        writeJarFile(file, sortedJarEntries, apiClasses);
+    }
 
-                    private void collectFiles(String relativePath, File f) throws Exception {
-                        String path = "".equals(relativePath) ? f.getName() : relativePath + "/" + f.getName();
-                        if (f.isFile()) {
-                            sortedFiles.put(path, f);
-                        } else if (f.isDirectory()) {
-                            for (File file : f.listFiles()) {
-                                String root = relativePath == null ? "" : path;
-                                collectFiles(root, file);
-                            }
-                        }
-                    }
+    private static void writeJarFile(File file, final Map<String, File> entries, final Map<File, byte[]> cache) throws IOException {
+        withResource(
+            new JarOutputStream(new BufferedOutputStream(new FileOutputStream(file), 65536)),
+            new ErroringAction<JarOutputStream>() {
+                @Override
+                protected void doExecute(final JarOutputStream jos) throws Exception {
+                    writeManifest(jos);
+                    writeEntries(jos);
+                }
 
-                    @Override
-                    protected void doExecute(final JarOutputStream jos) throws Exception {
-                        writeManifest(jos);
-                        // Make sure all entries are always written in the same order
-                        collectFiles(null, apiClassesDir);
-                        writeEntries(jos);
-                        jos.close();
-                    }
+                private void writeManifest(JarOutputStream jos) throws IOException {
+                    writeEntry(jos, "META-INF/MANIFEST.MF", "Manifest-Version: 1.0\n".getBytes());
+                }
 
-                    private void writeManifest(JarOutputStream jos) throws IOException {
-                        JarEntry je = new JarEntry("META-INF/MANIFEST.MF");
-                        je.setTime(0);
-                        jos.putNextEntry(je);
-                        jos.write("Manifest-Version: 1.0\n".getBytes());
-                        jos.closeEntry();
+                private void writeEntries(JarOutputStream jos) throws Exception {
+                    for (Map.Entry<String, File> entry : entries.entrySet()) {
+                        File originalFile = entry.getValue();
+                        byte[] cachedBytes = cache.get(originalFile);
+                        byte[] bytes = cachedBytes != null
+                            ? cachedBytes
+                            : readFileToByteArray(originalFile);
+                        writeEntry(jos, entry.getKey(), bytes);
                     }
                 }
-            );
+
+                private void writeEntry(JarOutputStream jos, String name, byte[] bytes) throws IOException {
+                    JarEntry je = new JarEntry(name);
+                    // Setting time to 0 because we need API jars to be identical independently of
+                    // the timestamps of class files
+                    je.setTime(0);
+                    je.setSize(bytes.length);
+                    jos.putNextEntry(je);
+                    jos.write(bytes);
+                    jos.closeEntry();
+                }
+            }
+        );
+    }
+
+    private void collectFiles(String relativePath, File f, Map<String, File> collectedFiles) throws IOException {
+        String path = "".equals(relativePath) ? f.getName() : relativePath + "/" + f.getName();
+        if (f.isFile()) {
+            collectedFiles.put(path, f);
+        } else if (f.isDirectory()) {
+            String root = relativePath == null ? "" : path;
+            for (File file : f.listFiles()) {
+                collectFiles(root, file, collectedFiles);
+            }
         }
     }
 
@@ -229,7 +237,7 @@ public class ApiJar extends DefaultTask {
     private void deleteApiClassFileFor(File originalClassFile) {
         File apiClassFile = apiClassFileFor(originalClassFile);
         if (apiClassFile.exists()) {
-            FileUtils.deleteQuietly(apiClassFile);
+            deleteQuietly(apiClassFile);
         }
     }
 }

@@ -97,8 +97,7 @@ public class ApiClassExtractor {
     public byte[] extractApiClassFrom(File originalClassFile) throws IOException {
         InputStream inputStream = new FileInputStream(originalClassFile);
         try {
-            ClassReader classReader = new ClassReader(inputStream);
-            return extractApiClassFrom(classReader);
+            return extractApiClassFrom(new ClassReader(inputStream));
         } finally {
             inputStream.close();
         }
