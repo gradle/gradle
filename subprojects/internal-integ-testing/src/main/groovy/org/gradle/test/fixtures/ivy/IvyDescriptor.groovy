@@ -113,9 +113,7 @@ class IvyDescriptor {
 
     IvyDescriptorDependency expectDependency(String key) {
         final dependency = dependencies.get(key)
-        if (dependency == null) {
-            throw new AssertionError("Could not find expected dependency $key. Actual: ${dependencies.values()}")
-        }
+        assert dependency != null : "Could not find expected dependency $key. Actual: ${dependencies.values()}"
         return dependency
     }
 }
