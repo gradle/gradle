@@ -160,6 +160,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Excludes in published Ivy metadata
+
+Dependency exclusions are now added to the published ivy.xml when using the 'ivy-publish' plugin. This may result in dependencies being resolved by consuming projects of newly
+published modules to change. If consuming projects depend on the excluded dependencies you may have to explicitly add these dependencies to the consuming project.
+
 ### Update to HttpClient 4.4.1
 
 Gradle uses the Apache HttpComponents HttpClient library internally for features like dependency resolution and publication. This library has been updated
