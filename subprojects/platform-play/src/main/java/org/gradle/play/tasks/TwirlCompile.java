@@ -56,6 +56,12 @@ public class TwirlCompile extends SourceTask {
      */
     private File outputDirectory;
 
+    /**
+     * Whether the twirl compiler should use the Java ({@code true})
+     * or the Scala ({@code false}) default imports.
+     */
+    private boolean javaProject;
+
     private BaseForkOptions forkOptions;
     private TwirlStaleOutputCleaner cleaner;
     private PlayPlatform platform;
@@ -86,6 +92,16 @@ public class TwirlCompile extends SourceTask {
     }
 
     /**
+     * Returns whether the twirl compiler should use the Java ({@code true})
+     * or the Scala ({@code false}) default imports.
+     *
+     * @return Whether to use the Java ({@code true}) or the Scala ({@code false}) default imports.
+     */
+    public boolean isJavaProject() {
+        return javaProject;
+    }
+
+    /**
      * Specifies the directory to generate the parser source files into.
      *
      * @param outputDirectory The output directory. Must not be null.
@@ -94,11 +110,22 @@ public class TwirlCompile extends SourceTask {
         this.outputDirectory = outputDirectory;
     }
 
+    /**
+     * Specifies whether the twirl compiler should use the Java ({@code true})
+     * or the Scala ({@code false}) default imports.
+     *
+     * @param javaProject {@code true} if the Java default imports should be used,
+     *                    {@code false} otherwise.
+     */
+    public void setJavaProject(boolean javaProject) {
+        this.javaProject = javaProject;
+    }
+
     @TaskAction
     void compile(IncrementalTaskInputs inputs) {
         RelativeFileCollector relativeFileCollector = new RelativeFileCollector();
         getSource().visit(relativeFileCollector);
-        TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), useJavaDefaults());
+        TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), isJavaProject());
         if (!inputs.isIncremental()) {
             new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(), getOutputs()).execute(spec);
         } else {
@@ -126,10 +153,6 @@ public class TwirlCompile extends SourceTask {
     private Compiler<TwirlCompileSpec> getCompiler() {
         ToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(platform);
         return toolProvider.newCompiler(TwirlCompileSpec.class);
-    }
-
-    private boolean useJavaDefaults() {
-        return false; //TODO: add this as a configurable parameter
     }
 
     void setCleaner(TwirlStaleOutputCleaner cleaner) {
