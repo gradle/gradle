@@ -48,15 +48,15 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         }
 
         ModelType<? extends RuleSource> ruleSourceType = ruleType.asSubtype(RULE_SOURCE_MODEL_TYPE);
-        return new RuleSourceDefinitionRule(ruleDefinition, ruleSourceType, context.getRuleExtractor());
+        return new ExtractedRuleSourceDefinitionRule(ruleDefinition, ruleSourceType, context.getRuleExtractor());
     }
 
-    private static class RuleSourceDefinitionRule implements ExtractedModelRule {
+    private static class ExtractedRuleSourceDefinitionRule implements ExtractedModelRule {
         private final MethodRuleDefinition<?, ?> ruleDefinition;
         private final ModelType<? extends RuleSource> ruleSourceType;
         private final ModelRuleExtractor ruleExtractor;
 
-        public RuleSourceDefinitionRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor) {
+        public ExtractedRuleSourceDefinitionRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor) {
             this.ruleDefinition = ruleDefinition;
             this.ruleSourceType = ruleSourceType;
             this.ruleExtractor = ruleExtractor;

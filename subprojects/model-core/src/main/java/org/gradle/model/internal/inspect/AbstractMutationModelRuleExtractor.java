@@ -36,16 +36,16 @@ public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> e
         if (context.hasProblems()) {
             return null;
         }
-        return new MutationRule<S>(getMutationType(), ruleDefinition);
+        return new ExtractedMutationRule<S>(getMutationType(), ruleDefinition);
     }
 
     protected abstract ModelActionRole getMutationType();
 
-    private static class MutationRule<S> implements ExtractedModelRule {
+    private static class ExtractedMutationRule<S> implements ExtractedModelRule {
         private final ModelActionRole mutationType;
         private final MethodRuleDefinition<?, S> ruleDefinition;
 
-        public MutationRule(ModelActionRole mutationType, MethodRuleDefinition<?, S> ruleDefinition) {
+        public ExtractedMutationRule(ModelActionRole mutationType, MethodRuleDefinition<?, S> ruleDefinition) {
             this.mutationType = mutationType;
             this.ruleDefinition = ruleDefinition;
         }
