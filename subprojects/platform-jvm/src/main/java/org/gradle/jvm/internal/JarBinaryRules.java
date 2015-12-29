@@ -30,19 +30,20 @@ import java.io.File;
 public class JarBinaryRules extends RuleSource {
     @Defaults
     void configureJarBinaries(final ComponentSpec jvmLibrary, final ProjectLayout projectLayout, final JavaToolChainRegistry toolChains) {
+        final File buildDir = projectLayout.getBuildDir();
         jvmLibrary.getBinaries().withType(JvmBinarySpecInternal.class).beforeEach(new Action<JvmBinarySpecInternal>() {
             @Override
             public void execute(JvmBinarySpecInternal jvmBinary) {
                 BinaryNamingScheme namingScheme = jvmBinary.getNamingScheme();
-                jvmBinary.setClassesDir(namingScheme.getOutputDirectory(projectLayout.getBuildDir(), "classes"));
-                jvmBinary.setResourcesDir(namingScheme.getOutputDirectory(projectLayout.getBuildDir(), "resources"));
+                jvmBinary.setClassesDir(namingScheme.getOutputDirectory(buildDir, "classes"));
+                jvmBinary.setResourcesDir(namingScheme.getOutputDirectory(buildDir, "resources"));
             }
         });
         jvmLibrary.getBinaries().withType(JarBinarySpecInternal.class).beforeEach(new Action<JarBinarySpecInternal>() {
             @Override
             public void execute(JarBinarySpecInternal jarBinary) {
                 String libraryName = jarBinary.getId().getLibraryName();
-                File jarsDir = jarBinary.getNamingScheme().getOutputDirectory(projectLayout.getBuildDir(), "jars");
+                File jarsDir = jarBinary.getNamingScheme().getOutputDirectory(buildDir, "jars");
                 jarBinary.setJarFile(new File(jarsDir, String.format("%s.jar", libraryName)));
                 jarBinary.setApiJarFile(new File(jarsDir, String.format("api/%s.jar", libraryName)));
                 jarBinary.setToolChain(toolChains.getForPlatform(jarBinary.getTargetPlatform()));
