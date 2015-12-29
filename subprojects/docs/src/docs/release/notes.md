@@ -134,6 +134,21 @@ convention property.
 
 Continuous build will now trigger a rebuild when an input file is changed during build execution.
 
+### Support for Twirl source sets to use Java default imports
+
+Previously, when compiling Twirl source sets, Gradle would assume that Scala default imports should be used.  A developer can now
+specify that Java default imports should be used when compiling a Twirl source set.
+
+    model {
+        components {
+            play {
+                twirlTemplates {
+                    defaultImports = TwirlImports.JAVA
+                }
+            }
+        }
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -239,6 +254,7 @@ We would like to thank the following community members for making contributions 
 * [Johnny Lim](https://github.com/izeye) - Documentation improvements
 * [Christopher O'Connell](https://github.com/lordoku) - Remove 'scalaConsole' task
 * [Tobias Riemenschneider](https://github.com/riemenschneider) - Add support for TestNG's preserveOrder and groupByInstances options
+* [Jochen Schalanda](https://github.com/joschi) - Support for configuring Twirl source sets to use Java default imports
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
