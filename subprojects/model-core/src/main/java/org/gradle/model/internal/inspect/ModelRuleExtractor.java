@@ -52,10 +52,10 @@ import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
 public class ModelRuleExtractor {
-    private final LoadingCache<Class<?>, ExtractedRuleSource<?>> cache = CacheBuilder.newBuilder()
+    private final LoadingCache<Class<?>, CachedRuleSource> cache = CacheBuilder.newBuilder()
             .weakKeys()
-            .build(new CacheLoader<Class<?>, ExtractedRuleSource<?>>() {
-                public ExtractedRuleSource<?> load(Class<?> source) {
+            .build(new CacheLoader<Class<?>, CachedRuleSource>() {
+                public CachedRuleSource load(Class<?> source) {
                     return doExtract(source);
                 }
             });
@@ -87,7 +87,7 @@ public class ModelRuleExtractor {
      */
     public <T> ExtractedRuleSource<T> extract(Class<T> source) throws InvalidModelRuleDeclarationException {
         try {
-            return Cast.uncheckedCast(cache.get(source));
+            return cache.get(source).newInstance(source);
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (UncheckedExecutionException e) {
@@ -95,7 +95,7 @@ public class ModelRuleExtractor {
         }
     }
 
-    private <T> ExtractedRuleSource<T> doExtract(final Class<T> source) {
+    private <T> CachedRuleSource doExtract(final Class<T> source) {
         final ModelType<T> type = ModelType.of(source);
         DefaultMethodModelRuleExtractionContext context = new DefaultMethodModelRuleExtractionContext(type, this);
 
@@ -105,7 +105,6 @@ public class ModelRuleExtractor {
         if (schema == null) {
             throw new InvalidModelRuleDeclarationException(context.problems.format());
         }
-        final Factory<T> factory = Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema, proxyFactory) : new ConcreteRuleSourceFactory<T>(type);
 
         // sort for determinism
         Set<Method> methods = new TreeSet<Method>(Ordering.usingToString());
@@ -133,7 +132,11 @@ public class ModelRuleExtractor {
             throw new InvalidModelRuleDeclarationException(context.problems.format());
         }
 
-        return new DefaultExtractedRuleSource<T>(registrations.build(), factory);
+        if (schema.getProperties().isEmpty()) {
+            return new StatelessRuleSource(registrations.build(), Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema, proxyFactory) : new ConcreteRuleSourceFactory<T>(type));
+        } else {
+            return new ParameterizedRuleSource(registrations.build(), schema, proxyFactory);
+        }
     }
 
     private <T> StructSchema<T> getSchema(Class<T> source, DefaultMethodModelRuleExtractionContext context) {
@@ -269,9 +272,10 @@ public class ModelRuleExtractor {
         }
     }
 
-    private static class AbstractRuleSourceFactory<T> implements Factory<T> {
+    private static class AbstractRuleSourceFactory<T> implements Factory<T>, GeneratedViewState {
         private final StructSchema<T> schema;
         private final ManagedProxyFactory proxyFactory;
+        private final Map<String, Object> values = new HashMap<String, Object>();
 
         public AbstractRuleSourceFactory(StructSchema<T> schema, ManagedProxyFactory proxyFactory) {
             this.schema = schema;
@@ -279,25 +283,58 @@ public class ModelRuleExtractor {
         }
 
         @Override
+        public String getDisplayName() {
+            return "rule source " + schema.getType().getDisplayName();
+        }
+
+        @Override
+        public Object get(String name) {
+            return values.get(name);
+        }
+
+        @Override
+        public void set(String name, Object value) {
+            values.put(name, value);
+        }
+
+        @Override
         public T create() {
-            return proxyFactory.createProxy(new GeneratedViewState() {
-                Map<String, Object> values = new HashMap<String, Object>();
+            return proxyFactory.createProxy(this, schema);
+        }
+    }
 
-                @Override
-                public String getDisplayName() {
-                    return "rule source " + schema.getType().getDisplayName();
-                }
+    interface CachedRuleSource {
+        <T> ExtractedRuleSource<T> newInstance(Class<T> source);
+    }
 
-                @Override
-                public Object get(String name) {
-                    return values.get(name);
-                }
+    private static class StatelessRuleSource implements CachedRuleSource {
+        private final DefaultExtractedRuleSource<?> ruleSource;
 
-                @Override
-                public void set(String name, Object value) {
-                    values.put(name, value);
-                }
-            }, schema);
+        public <T> StatelessRuleSource(List<ExtractedModelRule> rules, Factory<T> factory) {
+            this.ruleSource = new DefaultExtractedRuleSource<T>(rules, factory);
+        }
+
+        @Override
+        public <T> ExtractedRuleSource<T> newInstance(Class<T> source) {
+            return Cast.uncheckedCast(ruleSource);
+        }
+    }
+
+    private static class ParameterizedRuleSource implements CachedRuleSource {
+        private final List<ExtractedModelRule> rules;
+        private final StructSchema<?> schema;
+        private final ManagedProxyFactory proxyFactory;
+
+        public <T> ParameterizedRuleSource(List<ExtractedModelRule> rules, StructSchema<T> schema, ManagedProxyFactory proxyFactory) {
+            this.rules = rules;
+            this.schema = schema;
+            this.proxyFactory = proxyFactory;
+        }
+
+        @Override
+        public <T> ExtractedRuleSource<T> newInstance(Class<T> source) {
+            StructSchema<T> schema = Cast.uncheckedCast(this.schema);
+            return new DefaultExtractedRuleSource<T>(rules, new AbstractRuleSourceFactory<T>(schema, proxyFactory));
         }
     }
 

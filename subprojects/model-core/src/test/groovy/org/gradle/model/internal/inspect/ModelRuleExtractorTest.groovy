@@ -113,10 +113,22 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         instance.number == 12
     }
 
-    def "can create instance of rule class with abstract property"() {
-        expect:
+    def "state is reused for all instances creates from a given extracted rule source"() {
+        given:
         def schema = extractor.extract(AbstractPropertyRules)
-        schema.factory.create() instanceof AbstractPropertyRules
+        def instance = schema.factory.create()
+        instance.value = "12"
+        instance.number = 12
+
+        expect:
+        def sameSchema = schema.factory.create()
+        sameSchema.value == "12"
+        sameSchema.number == 12
+
+        def schema2 = extractor.extract(AbstractPropertyRules)
+        def differentSchema = schema2.factory.create()
+        differentSchema.value == null
+        differentSchema.number == 0
     }
 
     static abstract class AbstractMethodsRules extends RuleSource {
@@ -700,13 +712,31 @@ ${ManagedWithNonManageableParents.name}
         e.message == "ModelRuleExtractorTest.RuleSourceWithDependencies#method1 has dependencies on plugins: [class java.lang.Long]. Plugin dependencies are not supported in this context."
     }
 
-    def "extracted rules are cached"() {
+    def "extracted stateless rules are cached"() {
         when:
         def fromFirstExtraction = extractor.extract(MutationRules)
         def fromSecondExtraction = extractor.extract(MutationRules)
 
         then:
         fromFirstExtraction.is(fromSecondExtraction)
+    }
+
+    def "extracted stateless abstract rules are cached"() {
+        when:
+        def fromFirstExtraction = extractor.extract(AbstractRules)
+        def fromSecondExtraction = extractor.extract(AbstractRules)
+
+        then:
+        fromFirstExtraction.is(fromSecondExtraction)
+    }
+
+    def "new instance is created for extracted stateful abstract rules"() {
+        when:
+        def fromFirstExtraction = extractor.extract(AbstractPropertyRules)
+        def fromSecondExtraction = extractor.extract(AbstractPropertyRules)
+
+        then:
+        !fromFirstExtraction.is(fromSecondExtraction)
     }
 
     def "cache does not hold strong references"() {

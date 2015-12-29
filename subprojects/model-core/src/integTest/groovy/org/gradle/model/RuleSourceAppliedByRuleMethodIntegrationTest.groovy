@@ -193,7 +193,7 @@ model {
         output.contains("p1 = default")
     }
 
-    def "@Rule method can apply abstract RuleSource with input properties"() {
+    def "@Rule method can apply abstract RuleSource with scalar input properties"() {
         buildFile << '''
 @Managed
 interface Thing {
@@ -221,9 +221,6 @@ abstract class CalculateName extends RuleSource {
 
     @Defaults
     void defaultName(Thing t) {
-//        assert defaultName == 'default'
-        assert defaultName == null
-        defaultName = 'default'
         assert defaultName == 'default'
         t.name = defaultName
     }
