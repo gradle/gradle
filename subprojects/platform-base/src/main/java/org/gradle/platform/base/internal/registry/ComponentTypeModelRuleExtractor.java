@@ -17,11 +17,7 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.internal.core.ModelAction;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.NoInputsModelAction;
 import org.gradle.model.internal.inspect.ExtractedModelRule;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -51,7 +47,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         }
     }
 
-    private class ExtractedComponentTypeRule<PUBLICTYPE extends ComponentSpec> extends ExtractedTypeRule<PUBLICTYPE, DefaultComponentTypeBuilder<PUBLICTYPE>> {
+    private class ExtractedComponentTypeRule<PUBLICTYPE extends ComponentSpec> extends ExtractedTypeRule<PUBLICTYPE, DefaultComponentTypeBuilder<PUBLICTYPE>, ComponentSpecFactory> {
         public ExtractedComponentTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType) {
             super(ruleDefinition, publicType);
         }
@@ -62,13 +58,13 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         }
 
         @Override
-        protected ModelAction<?> createRegistrationAction(ModelSchema<PUBLICTYPE> schema, final DefaultComponentTypeBuilder<PUBLICTYPE> builder, final ModelType<? extends BaseComponentSpec> implModelType) {
-            return NoInputsModelAction.of(ModelReference.of(ComponentSpecFactory.class), ruleDefinition.getDescriptor(), new Action<ComponentSpecFactory>() {
-                @Override
-                public void execute(ComponentSpecFactory components) {
-                    components.register(publicType, implModelType, builder.getInternalViews(), ruleDefinition.getDescriptor());
-                }
-            });
+        protected Class<ComponentSpecFactory> getRegistryType() {
+            return ComponentSpecFactory.class;
+        }
+
+        @Override
+        protected void register(ComponentSpecFactory components, ModelSchema<PUBLICTYPE> schema, DefaultComponentTypeBuilder<PUBLICTYPE> builder, ModelType<? extends BaseComponentSpec> implModelType) {
+            components.register(publicType, implModelType, builder.getInternalViews(), ruleDefinition.getDescriptor());
         }
 
         @Override

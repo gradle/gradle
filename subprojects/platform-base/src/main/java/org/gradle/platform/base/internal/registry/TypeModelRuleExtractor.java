@@ -17,12 +17,13 @@
 package org.gradle.platform.base.internal.registry;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NoInputsModelAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.*;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -141,7 +142,7 @@ public abstract class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE
         return asSubclass;
     }
 
-    protected abstract class ExtractedTypeRule<PUBLICTYPE, BUILDER extends TypeBuilderInternal<PUBLICTYPE>> implements ExtractedModelRule {
+    protected abstract class ExtractedTypeRule<PUBLICTYPE, BUILDER extends TypeBuilderInternal<PUBLICTYPE>, REGISTRY> implements ExtractedModelRule {
         protected final MethodRuleDefinition<?, ?> ruleDefinition;
         protected final ModelType<PUBLICTYPE> publicType;
 
@@ -156,22 +157,28 @@ public abstract class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE
         }
 
         @Override
-        public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
-            ModelAction<?> action;
-            try {
-                ModelSchema<PUBLICTYPE> schema = schemaStore.getSchema(publicType);
-                BUILDER builder = createBuilder(schema);
-                ruleDefinition.getRuleInvoker().invoke(builder);
-                ModelType<? extends BASEIMPL> implModelType = determineImplementationType(publicType, builder);
-                action = createRegistrationAction(schema, builder, implModelType);
-            } catch (InvalidModelException e) {
-                throw invalidModelRule(ruleDefinition, e);
-            }
-            context.getRegistry().configure(ModelActionRole.Defaults, action, target.getPath());
+        public void apply(final MethodModelRuleApplicationContext context, MutableModelNode target) {
+            final ModelRuleInvoker<?> ruleInvoker = context.invokerFor(ruleDefinition);
+            context.getRegistry().configure(ModelActionRole.Mutate, NoInputsModelAction.of(ModelReference.of(getRegistryType()), ruleDefinition.getDescriptor(), new Action<REGISTRY>() {
+                @Override
+                public void execute(REGISTRY registry) {
+                    try {
+                        ModelSchema<PUBLICTYPE> schema = schemaStore.getSchema(publicType);
+                        BUILDER builder = createBuilder(schema);
+                        ruleInvoker.invoke(builder);
+                        ModelType<? extends BASEIMPL> implModelType = determineImplementationType(publicType, builder);
+                        register(registry, schema, builder, implModelType);
+                    } catch (InvalidModelException e) {
+                        throw invalidModelRule(ruleDefinition, e);
+                    }
+                }
+            }), target.getPath());
         }
 
-        protected abstract BUILDER createBuilder(ModelSchema<PUBLICTYPE> schema);
+        protected abstract Class<REGISTRY> getRegistryType();
 
-        protected abstract ModelAction<?> createRegistrationAction(ModelSchema<PUBLICTYPE> schema, BUILDER builder, ModelType<? extends BASEIMPL> implModelType);
+        protected abstract void register(REGISTRY registry, ModelSchema<PUBLICTYPE> schema, BUILDER builder, ModelType<? extends BASEIMPL> implModelType);
+
+        protected abstract BUILDER createBuilder(ModelSchema<PUBLICTYPE> schema);
     }
 }

@@ -18,14 +18,10 @@ package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
-import org.gradle.model.internal.core.ModelAction;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.NoInputsModelAction;
 import org.gradle.model.internal.inspect.ExtractedModelRule;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -64,7 +60,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         }
     }
 
-    private class ExtractedLanguageTypeRule<PUBLICTYPE extends LanguageSourceSet> extends ExtractedTypeRule<PUBLICTYPE, DefaultLanguageTypeBuilder<PUBLICTYPE>> {
+    private class ExtractedLanguageTypeRule<PUBLICTYPE extends LanguageSourceSet> extends ExtractedTypeRule<PUBLICTYPE, DefaultLanguageTypeBuilder<PUBLICTYPE>, LanguageSourceSetFactory> {
         public ExtractedLanguageTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType) {
             super(ruleDefinition, publicType);
         }
@@ -75,17 +71,17 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         }
 
         @Override
-        protected ModelAction<?> createRegistrationAction(ModelSchema<PUBLICTYPE> schema, final DefaultLanguageTypeBuilder<PUBLICTYPE> builder, final ModelType<? extends BaseLanguageSourceSet> implModelType) {
+        protected Class<LanguageSourceSetFactory> getRegistryType() {
+            return LanguageSourceSetFactory.class;
+        }
+
+        @Override
+        protected void register(LanguageSourceSetFactory factory, ModelSchema<PUBLICTYPE> schema, DefaultLanguageTypeBuilder<PUBLICTYPE> builder, ModelType<? extends BaseLanguageSourceSet> implModelType) {
             final String languageName = builder.getLanguageName();
             if (!ModelType.of(LanguageSourceSet.class).equals(publicType) && StringUtils.isEmpty(languageName)) {
                 throw new InvalidModelException(String.format("Language type '%s' cannot be registered without a language name.", publicType));
             }
-            return NoInputsModelAction.of(ModelReference.of(LanguageSourceSetFactory.class), ruleDefinition.getDescriptor(), new Action<LanguageSourceSetFactory>() {
-                @Override
-                public void execute(LanguageSourceSetFactory sourceSetFactory) {
-                    sourceSetFactory.register(languageName, publicType, builder.getInternalViews(), implModelType, ruleDefinition.getDescriptor());
-                }
-            });
+            factory.register(languageName, publicType, builder.getInternalViews(), implModelType, ruleDefinition.getDescriptor());
         }
 
         @Override

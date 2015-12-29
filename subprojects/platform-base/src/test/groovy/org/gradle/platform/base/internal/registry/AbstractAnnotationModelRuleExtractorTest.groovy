@@ -19,13 +19,10 @@ package org.gradle.platform.base.internal.registry
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.core.MutableModelNode
-import org.gradle.model.internal.inspect.ExtractedModelRule
+import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
-import org.gradle.model.internal.inspect.DefaultMethodModelRuleExtractionContext
-import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
-import org.gradle.model.internal.inspect.MethodModelRuleApplicationContext
-import org.gradle.model.internal.inspect.MethodRuleDefinition
+import org.gradle.model.internal.inspect.*
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Unroll
@@ -75,9 +72,25 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
 
     void apply(MethodRuleDefinition<?, ?> definition) {
         def rule = extract(definition)
-        def context = Stub(MethodModelRuleApplicationContext)
-        def node = Stub(MutableModelNode)
-        rule.apply(context, node)
+        def rootNode = Stub(MutableModelNode)
+        def registryNode = Stub(MutableModelNode) {
+            isAtLeast(_) >> true
+            asMutable(_, _) >> { ModelType type, ModelRuleDescriptor ruleDescriptor ->
+                return Stub(ModelView) {
+                    getInstance() >> { Stub(type.concreteClass) }
+                }
+            }
+        }
+        def registry = Stub(ModelRegistry) {
+            configure(_, _, _) >> { ModelActionRole role, ModelAction action, ModelPath scope ->
+                action.execute(registryNode, [])
+            }
+        }
+        def context = Stub(MethodModelRuleApplicationContext) {
+            getRegistry() >> registry
+            invokerFor(_) >> definition.ruleInvoker
+        }
+        rule.apply(context, rootNode)
     }
 
     ExtractedModelRule extract(MethodRuleDefinition<?, ?> definition) {

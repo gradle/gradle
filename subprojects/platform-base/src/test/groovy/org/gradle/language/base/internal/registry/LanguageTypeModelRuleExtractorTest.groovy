@@ -108,7 +108,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
         then:
         1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->
-            assert role == ModelActionRole.Defaults
+            assert role == ModelActionRole.Mutate
             assert action.subject == ModelReference.of(LanguageSourceSetFactory)
         }
         0 * _

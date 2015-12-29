@@ -551,7 +551,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "help"
-        failure.assertHasCause("Failed to apply plugin [class 'Broken']")
+        failure.assertHasCause("Exception thrown while executing model rule: Broken#broken")
         failure.assertHasCause("broken")
     }
 
@@ -572,7 +572,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "help"
-        failure.assertHasCause("Failed to apply plugin [class 'Broken']")
+        failure.assertHasCause("Exception thrown while executing model rule: Broken#broken")
         failure.assertHasCause("Broken#broken is not a valid component model rule method.")
         failure.assertHasCause("Internal view java.lang.String must be an interface.")
     }
