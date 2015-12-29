@@ -132,6 +132,53 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
             .containsDescendants("views/html/index.class", "templates/html/other.class", "html/extra.class")
     }
 
+    def "can build twirl source set with default Java imports" () {
+        withTwirlJavaSourceSets()
+        withTemplateSourceExpectingJavaImports(file("twirlJava", "javaTemplate.scala.html"))
+        validateThatPlayJavaDependencyIsAdded()
+
+        when:
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped ":compilePlayBinaryPlayTwirlJava"
+
+        and:
+        jar("build/playBinary/lib/twirl-play-app.jar")
+            .containsDescendants("html/javaTemplate.class")
+    }
+
+    def "can build twirl source sets both with and without default Java imports" () {
+        withTwirlJavaSourceSets()
+        withTemplateSource(file("app", "views", "index.scala.html"))
+        withTemplateSourceExpectingJavaImports(file("twirlJava", "javaTemplate.scala.html"))
+
+        when:
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped(
+            ":compilePlayBinaryPlayTwirlTemplates",
+            ":compilePlayBinaryPlayTwirlJava"
+        )
+
+        and:
+        jar("build/playBinary/lib/twirl-play-app.jar")
+            .containsDescendants("html/javaTemplate.class", "views/html/index.class")
+    }
+
+    def "twirl source sets default to Scala imports" () {
+        withTemplateSource(file("app", "views", "index.scala.html"))
+        validateThatPlayJavaDependencyIsNotAdded()
+        validateThatSourceSetsDefaultToScalaImports()
+
+        when:
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped ":compilePlayBinaryPlayTwirlTemplates"
+    }
+
     def "extra sources appear in the component report"() {
         withExtraSourceSets()
 
@@ -172,15 +219,26 @@ Binaries
     def withTemplateSource(File templateFile) {
         templateFile << """@(message: String)
 
-    @play20.welcome(message)
+            @play20.welcome(message)
 
-"""
+        """
     }
 
     def withTwirlTemplate(String fileName = "index.scala.html") {
         def templateFile = file("app", "views", fileName)
         templateFile.createFile()
         withTemplateSource(templateFile)
+    }
+
+    def withTemplateSourceExpectingJavaImports(File templateFile) {
+        templateFile << """
+            <!DOCTYPE html>
+            <html>
+                <body>
+                  <p>@UUID.randomUUID().toString()</p>
+                </body>
+            </html>
+        """
     }
 
     def withExtraSourceSets() {
@@ -194,6 +252,74 @@ Binaries
                             }
                             otherTwirl(TwirlSourceSet) {
                                 source.srcDir "otherSources"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    def withTwirlJavaSourceSets() {
+        buildFile << """
+            model {
+                components {
+                    play {
+                        sources {
+                            twirlJava(TwirlSourceSet) {
+                                defaultImports = TwirlImports.JAVA
+                                source.srcDir "twirlJava"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    def validateThatPlayJavaDependencyIsAdded() {
+        validateThatPlayJavaDependency(true)
+    }
+
+    def validateThatPlayJavaDependencyIsNotAdded() {
+        validateThatPlayJavaDependency(false)
+    }
+
+    def validateThatPlayJavaDependency(boolean shouldBePresent) {
+        buildFile << """
+            model {
+                components {
+                    play {
+                        binaries.all { binary ->
+                            tasks.withType(TwirlCompile) {
+                                doFirst {
+                                    assert ${shouldBePresent ? "" : "!"} configurations.play.dependencies.any {
+                                        it.group == "com.typesafe.play" &&
+                                        it.name == "play-java_\${binary.targetPlatform.scalaPlatform.scalaCompatibilityVersion}" &&
+                                        it.version == binary.targetPlatform.playVersion
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    def validateThatSourceSetsDefaultToScalaImports() {
+        buildFile << """
+            model {
+                components {
+                    play {
+                        binaries.all { binary ->
+                            tasks.withType(TwirlCompile) {
+                                doFirst {
+                                    assert !javaProject
+                                    assert binary.inputs.withType(TwirlSourceSet).every {
+                                        it.defaultImports == TwirlImports.SCALA
+                                    }
+                                }
                             }
                         }
                     }

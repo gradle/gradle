@@ -10,6 +10,8 @@
 - [x] Developer includes compiled coffeescript assets in Play application
 - [x] Developer uses minified javascript assets in Play application
 - [x] Developer configures dependencies for Play application
+- [x] Scala compiler daemons synchronize the creation of Zinc compiler
+- [] Developer configures template sources using java imports
 
 #### Later features and stories
 
@@ -320,6 +322,31 @@ Test cases:
     - Single project build with intra-project parallelization enabled
 - User setting the "zinc.dir" system property on the compile task does not have an effect (we still use the GRADLE_USER_HOME
 directory) and a warning is shown.
+
+### Developer configures template sources using Java imports
+By default, the Twirl compiler generates source files assuming the template files expect Scala imports.  The developer may,
+however, write their template files expecting Java imports instead.  This is exposed as a switch on the Twirl compiler.  This
+story models this switch on the Twirl source set to signify that a given source set expects Java imports instead.
+
+```gradle
+model {
+    components {
+        play(PlayApplicationSpec) {
+            sources {
+                extraTwirl(TwirlSourceSet) {
+                    defaultImports = TwirlImports.JAVA
+                }
+            }
+        }
+    }
+}
+```
+
+Test cases:
+- defaults to scala imports
+- developer can configure the defaultImports to use Java imports
+- configuring a source set to use Java imports causes play-java to be added to the classpath
+- can configure source sets both with and without Java imports
 
 ## Later features and stories
 

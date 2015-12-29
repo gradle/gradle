@@ -21,12 +21,14 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
+import org.gradle.language.twirl.TwirlImports;
 import org.gradle.language.twirl.TwirlSourceSet;
 import org.gradle.language.twirl.internal.DefaultTwirlSourceSet;
 import org.gradle.model.ModelMap;
@@ -35,9 +37,13 @@ import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
-import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
-import org.gradle.play.internal.ScalaSourceCode;
+import org.gradle.platform.base.internal.PlatformResolvers;
+import org.gradle.play.PlayApplicationSpec;
+import org.gradle.play.internal.*;
+import org.gradle.play.internal.platform.PlayPlatformInternal;
+import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.TwirlCompile;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collections;
@@ -70,8 +76,30 @@ public class PlayTwirlPlugin extends RuleSource {
     }
 
     @Mutate
+    void addPlayJavaDependencyIfNeeded(ModelMap<PlayApplicationBinarySpecInternal> binaries, final PlayPluginConfigurations configurations, final PlatformResolvers platforms) {
+        binaries.beforeEach(new Action<PlayApplicationBinarySpecInternal>() {
+            @Override
+            public void execute(PlayApplicationBinarySpecInternal binary) {
+                if (hasTwirlSourceSetsWithJavaImports(binary.getApplication())) {
+                    PlayPlatform targetPlatform = binary.getTargetPlatform();
+                    configurations.getPlay().addDependency(((PlayPlatformInternal) targetPlatform).getDependencyNotation("play-java"));
+                }
+            }
+        });
+    }
+
+    @Mutate
     void registerLanguageTransform(LanguageTransformContainer languages) {
         languages.add(new Twirl());
+    }
+
+    private static boolean hasTwirlSourceSetsWithJavaImports(PlayApplicationSpec playApplicationSpec) {
+        return CollectionUtils.any(playApplicationSpec.getSources().withType(TwirlSourceSet.class).values(), new Spec<TwirlSourceSet>() {
+            @Override
+            public boolean isSatisfiedBy(TwirlSourceSet twirlSourceSet) {
+                return twirlSourceSet.getDefaultImports() == TwirlImports.JAVA;
+            }
+        });
     }
 
     private static class Twirl implements LanguageTransform<TwirlSourceSet, ScalaSourceCode> {
@@ -110,6 +138,7 @@ public class PlayTwirlPlugin extends RuleSource {
                     twirlCompile.setPlatform(binary.getTargetPlatform());
                     twirlCompile.setSource(twirlSourceSet.getSource());
                     twirlCompile.setOutputDirectory(twirlCompileOutputDirectory);
+                    twirlCompile.setJavaProject(twirlSourceSet.getDefaultImports() == TwirlImports.JAVA);
 
                     twirlScalaSources.getSource().srcDir(twirlCompileOutputDirectory);
                     twirlScalaSources.builtBy(twirlCompile);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-package controllers
+package org.gradle.language.twirl;
 
-import play.api._
-import play.api.mvc._
-
-object Application extends Controller {
-
-  def index = Action {
-    Ok(views.html.index("Your new application is ready."))
-  }
-
-  def shutdown = Action {
-    System.exit(0)
-    Ok("shutdown")
-  }
+/**
+ * Represents whether Java or Scala default imports should be used when compiling Twirl templates.
+ */
+public enum TwirlImports {
+    SCALA, JAVA
 }
