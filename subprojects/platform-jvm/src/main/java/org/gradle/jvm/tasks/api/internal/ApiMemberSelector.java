@@ -200,7 +200,7 @@ public class ApiMemberSelector extends ClassVisitor {
         if (innerName == null) {
             return;
         }
-        if (isPackagePrivateMember(access) && !apiIncludesPackagePrivateMembers) {
+        if (!apiIncludesPackagePrivateMembers && isPackagePrivateMember(access)) {
             return;
         }
         innerClasses.add(new InnerClassMember(access, name, outerName, innerName));
@@ -210,7 +210,7 @@ public class ApiMemberSelector extends ClassVisitor {
     public static boolean isCandidateApiMember(int access, boolean apiIncludesPackagePrivateMembers) {
         return isPublicMember(access)
             || isProtectedMember(access)
-            || (isPackagePrivateMember(access) && apiIncludesPackagePrivateMembers);
+            || (apiIncludesPackagePrivateMembers && isPackagePrivateMember(access));
     }
 
     private static boolean isPublicMember(int access) {
