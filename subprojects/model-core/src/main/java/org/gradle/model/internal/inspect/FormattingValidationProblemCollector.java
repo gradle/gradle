@@ -47,12 +47,12 @@ public class FormattingValidationProblemCollector implements ValidationProblemCo
 
     @Override
     public void add(MethodRuleDefinition<?, ?> method, String problem) {
-        add(method.getMethod(), problem);
+        add(method.getMethod().getMethod(), problem);
     }
 
     @Override
     public void add(MethodRuleDefinition<?, ?> method, String problem, Throwable cause) {
-        add(method.getMethod(), problem + ": " + cause.getMessage());
+        add(method.getMethod().getMethod(), problem + ": " + cause.getMessage());
     }
 
     @Override

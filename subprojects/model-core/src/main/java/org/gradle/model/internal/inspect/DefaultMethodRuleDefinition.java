@@ -21,7 +21,6 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
@@ -40,11 +39,9 @@ import static org.gradle.util.CollectionUtils.findFirst;
 @ThreadSafe
 public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinition<R, S> {
     private ImmutableList<ModelReference<?>> references;
-    private final Factory<? extends T> factory;
     private final WeaklyTypeReferencingMethod<T, R> method;
 
-    private DefaultMethodRuleDefinition(Method method, ModelType<T> instanceType, ModelType<R> returnType, Factory<? extends T> factory) {
-        this.factory = factory;
+    private DefaultMethodRuleDefinition(Method method, ModelType<T> instanceType, ModelType<R> returnType) {
         this.method = WeaklyTypeReferencingMethod.of(instanceType, returnType, method);
 
         ImmutableList.Builder<ModelReference<?>> referencesBuilder = ImmutableList.builder();
@@ -55,17 +52,18 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
         this.references = referencesBuilder.build();
     }
 
-    public static <T> MethodRuleDefinition<?, ?> create(Class<T> source, Method method, Factory<? extends T> factory) {
-        return innerCreate(source, method, factory);
+    public static <T> MethodRuleDefinition<?, ?> create(Class<T> source, Method method) {
+        return innerCreate(source, method);
     }
 
-    private static <T, R, S> MethodRuleDefinition<R, S> innerCreate(Class<T> source, Method method, Factory<? extends T> factory) {
+    private static <T, R, S> MethodRuleDefinition<R, S> innerCreate(Class<T> source, Method method) {
         ModelType<R> returnType = ModelType.returnType(method);
-        return new DefaultMethodRuleDefinition<T, R, S>(method, ModelType.of(source), returnType, factory);
+        return new DefaultMethodRuleDefinition<T, R, S>(method, ModelType.of(source), returnType);
     }
 
-    public Method getMethod() {
-        return method.getMethod();
+    @Override
+    public WeaklyTypeReferencingMethod<?, R> getMethod() {
+        return method;
     }
 
     public String getMethodName() {
@@ -104,10 +102,6 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
 
     public ModelRuleDescriptor getDescriptor() {
         return new MethodModelRuleDescriptor(method);
-    }
-
-    public ModelRuleInvoker<R> getRuleInvoker() {
-        return new DefaultModelRuleInvoker<T, R>(method, factory);
     }
 
     public List<ModelReference<?>> getReferences() {

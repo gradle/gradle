@@ -16,13 +16,11 @@
 
 package org.gradle.model.internal.inspect;
 
-import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Factory;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 
 import java.lang.reflect.Modifier;
 
-@ThreadSafe
 class DefaultModelRuleInvoker<I, R> implements ModelRuleInvoker<R> {
     private final WeaklyTypeReferencingMethod<I, R> method;
     private final Factory<? extends I> factory;

@@ -122,7 +122,7 @@ public class ModelRuleExtractor {
 
         ImmutableList.Builder<ExtractedModelRule> registrations = ImmutableList.builder();
         for (Method method : methods) {
-            MethodRuleDefinition<?, ?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method, factory);
+            MethodRuleDefinition<?, ?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
             ExtractedModelRule registration = getMethodHandler(ruleDefinition, method, context);
             if (registration != null) {
                 registrations.add(registration);
@@ -325,7 +325,8 @@ public class ModelRuleExtractor {
 
                     @Override
                     public <R> ModelRuleInvoker<R> invokerFor(MethodRuleDefinition<R, ?> definition) {
-                        return definition.getRuleInvoker();
+                        WeaklyTypeReferencingMethod<T, R> method = Cast.uncheckedCast(definition.getMethod());
+                        return new DefaultModelRuleInvoker<T, R>(method, factory);
                     }
                 }, target);
             }

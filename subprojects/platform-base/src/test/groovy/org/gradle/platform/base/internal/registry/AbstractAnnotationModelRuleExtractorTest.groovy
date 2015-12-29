@@ -23,6 +23,7 @@ import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.inspect.*
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Unroll
@@ -88,7 +89,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
         }
         def context = Stub(MethodModelRuleApplicationContext) {
             getRegistry() >> registry
-            invokerFor(_) >> definition.ruleInvoker
+            invokerFor(_) >> new DefaultModelRuleInvoker(definition.method, { definition.method.method.declaringClass.newInstance() } as Factory)
         }
         rule.apply(context, rootNode)
     }
@@ -105,7 +106,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
     MethodRuleDefinition<?, ?> ruleDefinitionForMethod(String methodName) {
         for (Method candidate : ruleClass.getDeclaredMethods()) {
             if (candidate.getName().equals(methodName)) {
-                return DefaultMethodRuleDefinition.create(ruleClass, candidate, { ruleClass.newInstance() } as Factory)
+                return DefaultMethodRuleDefinition.create(ruleClass, candidate)
             }
         }
         throw new IllegalArgumentException("Not a test method name")
@@ -117,7 +118,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
         builder.toString()
     }
 
-    String getStringDescription(Method method) {
+    String getStringDescription(WeaklyTypeReferencingMethod<?, ?> method) {
         return MethodDescription.name(method.getName())
                 .takes(method.getGenericParameterTypes())
                 .toString();
