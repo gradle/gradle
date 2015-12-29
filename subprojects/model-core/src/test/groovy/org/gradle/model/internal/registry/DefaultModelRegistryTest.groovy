@@ -717,7 +717,7 @@ class DefaultModelRegistryTest extends Specification {
 
     @Unroll
     def "cannot execute action with role #targetRole where view is not available"() {
-        registry.configure(targetRole, new AbstractModelActionWithView<Bean>(ModelReference.of("thing"), new SimpleModelRuleDescriptor(targetRole.name())) {
+        registry.configure(targetRole, new AbstractModelActionWithView<Bean>(ModelReference.of("thing"), new SimpleModelRuleDescriptor(targetRole.name()), []) {
             @Override
             protected void execute(MutableModelNode modelNode, Bean view, List<ModelView<?>> inputs) {
             }
