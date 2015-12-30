@@ -28,7 +28,7 @@ class Incoming {
     }
 
     String commitSha() {
-        Git.shorten(versionJson.commitId)
+        versionJson.commitId
     }
 
     String pluginVersion() {
