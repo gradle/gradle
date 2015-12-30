@@ -30,6 +30,7 @@ import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.twirl.TwirlImports;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.play.internal.CleaningPlayToolCompiler;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
@@ -57,10 +58,9 @@ public class TwirlCompile extends SourceTask {
     private File outputDirectory;
 
     /**
-     * Whether the twirl compiler should use the Java ({@code true})
-     * or the Scala ({@code false}) default imports.
+     * The default imports to use when compiling templates
      */
-    private boolean javaProject;
+    private TwirlImports defaultImports;
 
     private BaseForkOptions forkOptions;
     private TwirlStaleOutputCleaner cleaner;
@@ -92,16 +92,6 @@ public class TwirlCompile extends SourceTask {
     }
 
     /**
-     * Returns whether the twirl compiler should use the Java ({@code true})
-     * or the Scala ({@code false}) default imports.
-     *
-     * @return Whether to use the Java ({@code true}) or the Scala ({@code false}) default imports.
-     */
-    public boolean isJavaProject() {
-        return javaProject;
-    }
-
-    /**
      * Specifies the directory to generate the parser source files into.
      *
      * @param outputDirectory The output directory. Must not be null.
@@ -111,21 +101,26 @@ public class TwirlCompile extends SourceTask {
     }
 
     /**
-     * Specifies whether the twirl compiler should use the Java ({@code true})
-     * or the Scala ({@code false}) default imports.
-     *
-     * @param javaProject {@code true} if the Java default imports should be used,
-     *                    {@code false} otherwise.
+     * Returns the default imports that will be used when compiling templates.
+     * @return The imports that will be used.
      */
-    public void setJavaProject(boolean javaProject) {
-        this.javaProject = javaProject;
+    public TwirlImports getDefaultImports() {
+        return defaultImports;
+    }
+
+    /**
+     * Sets the default imports to be used when compiling templates.
+     * @param defaultImports The imports to be used.
+     */
+    public void setDefaultImports(TwirlImports defaultImports) {
+        this.defaultImports = defaultImports;
     }
 
     @TaskAction
     void compile(IncrementalTaskInputs inputs) {
         RelativeFileCollector relativeFileCollector = new RelativeFileCollector();
         getSource().visit(relativeFileCollector);
-        TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), isJavaProject());
+        TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), getDefaultImports());
         if (!inputs.isIncremental()) {
             new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(), getOutputs()).execute(spec);
         } else {

@@ -17,7 +17,7 @@
 package org.gradle.language.twirl;
 
 /**
- * Represents whether Java or Scala default imports should be used when compiling Twirl templates.
+ * Represents the available sets of default imports that can be used when compiling Twirl templates.
  */
 public enum TwirlImports {
     SCALA, JAVA

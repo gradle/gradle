@@ -16,6 +16,7 @@
 
 package org.gradle.play.internal.twirl;
 
+import org.gradle.language.twirl.TwirlImports;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
@@ -76,13 +77,13 @@ class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
     }
 
     @Override
-    public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, boolean javaProject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         return new Object[] {
                 file,
                 sourceDirectory,
                 destinationDirectory,
                 "play.api.templates.HtmlFormat",
-                javaProject ? DEFAULT_JAVA_IMPORTS : DEFAULT_SCALA_IMPORTS
+                defaultImports == TwirlImports.JAVA ? DEFAULT_JAVA_IMPORTS : DEFAULT_SCALA_IMPORTS
         };
     }
 

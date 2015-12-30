@@ -138,7 +138,7 @@ public class PlayTwirlPlugin extends RuleSource {
                     twirlCompile.setPlatform(binary.getTargetPlatform());
                     twirlCompile.setSource(twirlSourceSet.getSource());
                     twirlCompile.setOutputDirectory(twirlCompileOutputDirectory);
-                    twirlCompile.setJavaProject(twirlSourceSet.getDefaultImports() == TwirlImports.JAVA);
+                    twirlCompile.setDefaultImports(twirlSourceSet.getDefaultImports());
 
                     twirlScalaSources.getSource().srcDir(twirlCompileOutputDirectory);
                     twirlScalaSources.builtBy(twirlCompile);

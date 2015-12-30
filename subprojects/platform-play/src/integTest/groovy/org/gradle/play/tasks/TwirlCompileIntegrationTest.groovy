@@ -315,7 +315,7 @@ Binaries
                         binaries.all { binary ->
                             tasks.withType(TwirlCompile) {
                                 doFirst {
-                                    assert !javaProject
+                                    assert defaultImports == TwirlImports.SCALA
                                     assert binary.inputs.withType(TwirlSourceSet).every {
                                         it.defaultImports == TwirlImports.SCALA
                                     }
