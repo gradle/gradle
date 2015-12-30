@@ -16,10 +16,11 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 public interface MethodModelRuleApplicationContext {
     ModelRegistry getRegistry();
 
-    <T> ModelRuleInvoker<T> invokerFor(MethodRuleDefinition<T, ?> definition);
+    ModelAction<?> contextualize(MethodRuleDefinition<?, ?> ruleDefinition, MethodRuleAction action);
 }

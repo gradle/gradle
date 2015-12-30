@@ -19,11 +19,7 @@ package org.gradle.platform.base.internal.registry;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Nullable;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.internal.core.ModelActionRole;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelView;
-import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.*;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
@@ -50,7 +46,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
 
         final Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
         final Class<C> componentType = dataCollector.getParameterType(ComponentSpec.class);
-        return new ExtractedComponentBinariesRule<R, S, C>(componentType, binaryType, ruleDefinition);
+        return new ExtractedComponentBinariesRule<S, C>(componentType, binaryType, ruleDefinition);
     }
 
     private void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
@@ -59,40 +55,37 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         visitDependency(dataCollector, ruleDefinition, ModelType.of(ComponentSpec.class), problems);
     }
 
-    private static class ComponentBinariesRule<R, S extends BinarySpec, C extends ComponentSpec> extends ModelMapBasedRule<R, S, ComponentSpec, C> {
+    private static class ComponentBinariesRule<S extends BinarySpec, C extends ComponentSpec> extends ModelMapBasedRule<ComponentSpec, C> {
         private final Class<S> binaryType;
 
-        public ComponentBinariesRule(ModelReference<C> subject, final Class<C> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition, ModelRuleInvoker<R> ruleInvoker) {
-            super(subject, componentType, ruleDefinition, ruleInvoker);
+        public ComponentBinariesRule(ModelReference<C> subject, final Class<C> componentType, final Class<S> binaryType, MethodRuleDefinition<?, ?> ruleDefinition) {
+            super(subject, componentType, ruleDefinition);
             this.binaryType = binaryType;
         }
 
-        protected void execute(final MutableModelNode modelNode, final C component, final List<ModelView<?>> inputs) {
-            invoke(inputs, component.getBinaries().withType(binaryType), component);
+        @Override
+        protected void execute(ModelRuleInvoker<?> invoker, C component, List<ModelView<?>> inputs) {
+            invoke(invoker, inputs, component.getBinaries().withType(binaryType), component);
         }
     }
 
-    private static class ExtractedComponentBinariesRule<R, S extends BinarySpec, C extends ComponentSpec> implements ExtractedModelRule {
+    private static class ExtractedComponentBinariesRule<S extends BinarySpec, C extends ComponentSpec> implements ExtractedModelRule {
         private final Class<C> componentType;
         private final Class<S> binaryType;
-        private final MethodRuleDefinition<R, ?> ruleDefinition;
+        private final MethodRuleDefinition<?, ?> ruleDefinition;
 
-        public ExtractedComponentBinariesRule(Class<C> componentType, Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
+        public ExtractedComponentBinariesRule(Class<C> componentType, Class<S> binaryType, MethodRuleDefinition<?, ?> ruleDefinition) {
             this.componentType = componentType;
             this.binaryType = binaryType;
             this.ruleDefinition = ruleDefinition;
         }
 
         @Override
-        public ModelRuleDescriptor getDescriptor() {
-            return null;
-        }
-
-        @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             ModelReference<C> subject = ModelReference.of(componentType);
-            ComponentBinariesRule<R, S, C> componentBinariesRule = new ComponentBinariesRule<R, S, C>(subject, componentType, binaryType, ruleDefinition, context.invokerFor(ruleDefinition));
-            target.applyTo(allDescendants(), ModelActionRole.Finalize, componentBinariesRule);
+            ComponentBinariesRule<S, C> componentBinariesRule = new ComponentBinariesRule<S, C>(subject, componentType, binaryType, ruleDefinition);
+            ModelAction<?> componentBinariesAction = context.contextualize(ruleDefinition, componentBinariesRule);
+            target.applyTo(allDescendants(), ModelActionRole.Finalize, componentBinariesAction);
         }
 
         @Override

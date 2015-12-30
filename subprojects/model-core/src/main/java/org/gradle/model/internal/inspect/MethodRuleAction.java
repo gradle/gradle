@@ -16,12 +16,16 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
 
 import java.util.List;
 
-public interface ExtractedModelRule {
-    void apply(MethodModelRuleApplicationContext context, MutableModelNode target);
+public interface MethodRuleAction {
+    ModelReference<?> getSubject();
 
-    List<? extends Class<?>> getRuleDependencies();
+    List<? extends ModelReference<?>> getInputs();
+
+    void execute(ModelRuleInvoker<?> invoker, MutableModelNode modelNode, List<ModelView<?>> inputs);
 }

@@ -17,7 +17,6 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.BiAction;
-import org.gradle.internal.Cast;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -59,7 +58,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
 
     @Override
     protected <R, S> ExtractedModelRule buildRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition) {
-        ModelType<S> modelType = Cast.uncheckedCast(ruleDefinition.getSubjectReference().getType());
+        ModelType<S> modelType = ruleDefinition.getSubjectReference().getType();
         final ModelSchema<S> modelSchema = getModelSchema(modelType, ruleDefinition);
         return new ExtractedManagedCreationRule<R, S>(modelPath, ruleDefinition, modelSchema);
     }
@@ -112,7 +111,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
             }
 
             registration.action(ModelActionRole.Initialize,
-                    new MethodBackedModelAction<S>(context.invokerFor(ruleDefinition), descriptor, ModelReference.of(modelPath, modelSchema.getType()), inputs));
+                    context.contextualize(ruleDefinition, new MethodBackedModelAction<S>(descriptor, ModelReference.of(modelPath, modelSchema.getType()), inputs)));
         }
 
     }

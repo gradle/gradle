@@ -48,7 +48,6 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
         then:
         !ruleHandler.isSatisfiedBy(ruleDefinition)
 
-
         when:
         1 * ruleDefinition.getAnnotation(annotation) >> Mock(annotation)
 
@@ -61,6 +60,14 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
     void apply(ExtractedModelRule rule, ModelRegistry registry) {
         def context = Stub(MethodModelRuleApplicationContext) {
             getRegistry() >> registry
+            contextualize(_, _) >> { MethodRuleDefinition definition, MethodRuleAction action ->
+                Stub(ModelAction) {
+                    getSubject() >> action.subject
+                    getInputs() >> action.inputs
+                    execute(_, _) >> { MutableModelNode node, List<ModelView<?>> inputs ->
+                        action.execute(new DefaultModelRuleInvoker(definition.method, { definition.method.method.declaringClass.newInstance() } as Factory), node, inputs) }
+                }
+            }
         }
         def node = Stub(MutableModelNode)
         rule.apply(context, node)
@@ -73,7 +80,6 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
 
     void apply(MethodRuleDefinition<?, ?> definition) {
         def rule = extract(definition)
-        def rootNode = Stub(MutableModelNode)
         def registryNode = Stub(MutableModelNode) {
             isAtLeast(_) >> true
             asMutable(_, _) >> { ModelType type, ModelRuleDescriptor ruleDescriptor ->
@@ -87,11 +93,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
                 action.execute(registryNode, [])
             }
         }
-        def context = Stub(MethodModelRuleApplicationContext) {
-            getRegistry() >> registry
-            invokerFor(_) >> new DefaultModelRuleInvoker(definition.method, { definition.method.method.declaringClass.newInstance() } as Factory)
-        }
-        rule.apply(context, rootNode)
+        apply(rule, registry)
     }
 
     ExtractedModelRule extract(MethodRuleDefinition<?, ?> definition) {

@@ -21,8 +21,6 @@ import org.gradle.api.Project
 import org.gradle.model.*
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.MutableModelNode
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.inspect.*
@@ -46,11 +44,6 @@ class ScopedRuleTest extends ProjectRegistrySpec {
         def <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext extractionContext) {
             new ExtractedModelRule() {
                 @Override
-                ModelRuleDescriptor getDescriptor() {
-                    return new SimpleModelRuleDescriptor("<rule>")
-                }
-
-                @Override
                 void apply(MethodModelRuleApplicationContext applicationContext, MutableModelNode target) {
                 }
 
@@ -72,7 +65,7 @@ class ScopedRuleTest extends ProjectRegistrySpec {
         then:
         ModelRuleExecutionException e = thrown()
         e.cause.class == UnsupportedOperationException
-        e.cause.message == "<rule> has dependencies on plugins: [$ImperativePlugin]. Plugin dependencies are not supported in this context."
+        e.cause.message == "ScopedRuleTest.RuleSourceUsingRuleWithDependencies#rule has dependencies on plugins: [$ImperativePlugin]. Plugin dependencies are not supported in this context."
     }
 
     static class CreatorRule extends RuleSource {

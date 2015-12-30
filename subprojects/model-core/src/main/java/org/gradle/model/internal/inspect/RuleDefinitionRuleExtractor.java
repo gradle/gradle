@@ -17,10 +17,12 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.BiAction;
 import org.gradle.model.RuleSource;
 import org.gradle.model.Rules;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
@@ -63,36 +65,55 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         }
 
         @Override
-        public ModelRuleDescriptor getDescriptor() {
-            return ruleDefinition.getDescriptor();
-        }
-
-        @Override
         public void apply(final MethodModelRuleApplicationContext context, MutableModelNode target) {
-            final ModelReference<?> targetReference = ruleDefinition.getReferences().get(1);
+            ModelReference<?> targetReference = ruleDefinition.getReferences().get(1);
             List<ModelReference<?>> inputs = ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size());
-            final ModelRuleInvoker<?> ruleInvoker = context.invokerFor(ruleDefinition);
-
             context.getRegistry().configure(ModelActionRole.Defaults,
-                    DirectNodeInputUsingModelAction.of(targetReference, ruleDefinition.getDescriptor(), inputs, new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                        @Override
-                        public void execute(MutableModelNode subjectNode, List<ModelView<?>> modelViews) {
-                            ExtractedRuleSource<?> ruleSource = ruleExtractor.extract(ruleSourceType.getConcreteClass());
-                            Object[] parameters = new Object[2 + modelViews.size()];
-                            parameters[0] = ruleSource.getFactory().create();
-                            parameters[1] = subjectNode.asImmutable(targetReference.getType(), ruleDefinition.getDescriptor()).getInstance();
-                            for (int i = 2; i < parameters.length; i++) {
-                                parameters[i] = modelViews.get(i).getInstance();
-                            }
-                            ruleInvoker.invoke(parameters);
-                            subjectNode.applyToSelf(ruleSource);
-                        }
-                    }));
+                    context.contextualize(ruleDefinition, new RuleSourceApplicationAction(targetReference, ruleDefinition.getDescriptor(), inputs, ruleSourceType, ruleExtractor)));
         }
 
         @Override
         public List<? extends Class<?>> getRuleDependencies() {
             return Collections.emptyList();
+        }
+    }
+
+    private static class RuleSourceApplicationAction implements MethodRuleAction {
+        private final ModelReference<?> targetReference;
+        private final ModelRuleDescriptor descriptor;
+        private final List<ModelReference<?>> inputs;
+        private final ModelType<? extends RuleSource> ruleSourceType;
+        private final ModelRuleExtractor ruleExtractor;
+
+        public RuleSourceApplicationAction(ModelReference<?> targetReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor) {
+            this.targetReference = targetReference;
+            this.descriptor = descriptor;
+            this.inputs = inputs;
+            this.ruleSourceType = ruleSourceType;
+            this.ruleExtractor = ruleExtractor;
+        }
+
+        @Override
+        public ModelReference<?> getSubject() {
+            return targetReference;
+        }
+
+        @Override
+        public List<? extends ModelReference<?>> getInputs() {
+            return inputs;
+        }
+
+        @Override
+        public void execute(ModelRuleInvoker<?> invoker, MutableModelNode subjectNode, List<ModelView<?>> inputs) {
+            ExtractedRuleSource<?> ruleSource = ruleExtractor.extract(ruleSourceType.getConcreteClass());
+            Object[] parameters = new Object[2 + inputs.size()];
+            parameters[0] = ruleSource.getFactory().create();
+            parameters[1] = subjectNode.asImmutable(targetReference.getType(), descriptor).getInstance();
+            for (int i = 2; i < parameters.length; i++) {
+                parameters[i] = inputs.get(i).getInstance();
+            }
+            invoker.invoke(parameters);
+            subjectNode.applyToSelf(ruleSource);
         }
     }
 }

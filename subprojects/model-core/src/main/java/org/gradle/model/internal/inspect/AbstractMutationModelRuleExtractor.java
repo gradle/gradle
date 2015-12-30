@@ -19,7 +19,6 @@ package org.gradle.model.internal.inspect;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.lang.annotation.Annotation;
 import java.util.Collections;
@@ -51,15 +50,9 @@ public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> e
         }
 
         @Override
-        public ModelRuleDescriptor getDescriptor() {
-            return ruleDefinition.getDescriptor();
-        }
-
-        @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             context.getRegistry().configure(mutationType,
-                    new MethodBackedModelAction<S>(context.invokerFor(ruleDefinition),
-                            ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences()),
+                    context.contextualize(ruleDefinition, new MethodBackedModelAction<S>(ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences())),
                     target.getPath());
         }
 

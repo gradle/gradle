@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.internal.BiAction;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -38,20 +38,32 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
         return String.format("%s and returning a model element", super.getDescription());
     }
 
-    private static class ModelRuleInvokerBackedTransformer<T> implements BiAction<MutableModelNode, List<ModelView<?>>> {
-
-        private final ModelType<T> type;
+    private static class UnmanagedElementCreationAction<T> implements MethodRuleAction {
         private final ModelRuleDescriptor descriptor;
-        private final ModelRuleInvoker<T> ruleInvoker;
+        private final ModelReference<?> subject;
+        private final ModelType<T> type;
+        private final List<ModelReference<?>> inputs;
 
-        private ModelRuleInvokerBackedTransformer(ModelType<T> type, ModelRuleInvoker<T> ruleInvoker, ModelRuleDescriptor descriptor) {
-            this.type = type;
+        private UnmanagedElementCreationAction(ModelRuleDescriptor descriptor, ModelReference<?> subject, List<ModelReference<?>> inputs, ModelType<T> type) {
+            this.subject = subject;
+            this.inputs = inputs;
             this.descriptor = descriptor;
-            this.ruleInvoker = ruleInvoker;
+            this.type = type;
         }
 
-        public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-            T instance;
+        @Override
+        public ModelReference<?> getSubject() {
+            return subject;
+        }
+
+        @Override
+        public List<? extends ModelReference<?>> getInputs() {
+            return inputs;
+        }
+
+        @Override
+        public void execute(ModelRuleInvoker<?> ruleInvoker, MutableModelNode modelNode, List<ModelView<?>> inputs) {
+            Object instance;
             if (inputs.size() == 0) {
                 instance = ruleInvoker.invoke();
             } else {
@@ -65,7 +77,8 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
             if (instance == null) {
                 throw new ModelRuleExecutionException(descriptor, "rule returned null");
             }
-            modelNode.setPrivateData(type, instance);
+            T value = Cast.uncheckedCast(instance);
+            modelNode.setPrivateData(type, value);
         }
     }
 
@@ -77,11 +90,11 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
         @Override
         protected void buildRegistration(MethodModelRuleApplicationContext context, ModelRegistrations.Builder registration) {
             ModelType<R> modelType = ruleDefinition.getReturnType();
-            List<ModelReference<?>> references = ruleDefinition.getReferences();
+            List<ModelReference<?>> inputs = ruleDefinition.getReferences();
             ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
-
-            BiAction<MutableModelNode, List<ModelView<?>>> transformer = new ModelRuleInvokerBackedTransformer<R>(modelType, context.invokerFor(ruleDefinition), descriptor);
-            registration.action(ModelActionRole.Create, references, transformer);
+            ModelReference<Object> subjectReference = ModelReference.of(modelPath);
+            registration.action(ModelActionRole.Create,
+                    context.contextualize(ruleDefinition, new UnmanagedElementCreationAction<R>(descriptor, subjectReference, inputs, modelType)));
             registration.withProjection(new UnmanagedModelProjection<R>(modelType, true, true));
         }
     }

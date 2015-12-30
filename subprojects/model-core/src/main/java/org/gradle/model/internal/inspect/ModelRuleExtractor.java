@@ -31,15 +31,11 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.GeneratedViewState;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.StructSchema;
+import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -110,7 +106,11 @@ public class ModelRuleExtractor {
         Set<Method> methods = new TreeSet<Method>(Ordering.usingToString());
         methods.addAll(Arrays.asList(source.getDeclaredMethods()));
 
+        ImmutableList.Builder<ModelProperty<?>> implicitInputs = ImmutableList.builder();
         for (ModelProperty<?> property : schema.getProperties()) {
+            if (!(property.getSchema() instanceof ScalarValueSchema)) {
+                implicitInputs.add(property);
+            }
             for (WeaklyTypeReferencingMethod<?, ?> method : property.getGetters()) {
                 methods.remove(method.getMethod());
             }
@@ -119,12 +119,12 @@ public class ModelRuleExtractor {
             }
         }
 
-        ImmutableList.Builder<ExtractedModelRule> registrations = ImmutableList.builder();
+        ImmutableList.Builder<ExtractedRuleDetails> rules = ImmutableList.builder();
         for (Method method : methods) {
             MethodRuleDefinition<?, ?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
-            ExtractedModelRule registration = getMethodHandler(ruleDefinition, method, context);
-            if (registration != null) {
-                registrations.add(registration);
+            ExtractedModelRule rule = getMethodHandler(ruleDefinition, method, context);
+            if (rule != null) {
+                rules.add(new ExtractedRuleDetails(ruleDefinition, rule));
             }
         }
 
@@ -133,9 +133,9 @@ public class ModelRuleExtractor {
         }
 
         if (schema.getProperties().isEmpty()) {
-            return new StatelessRuleSource(registrations.build(), Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema, proxyFactory) : new ConcreteRuleSourceFactory<T>(type));
+            return new StatelessRuleSource(rules.build(), Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema, proxyFactory) : new ConcreteRuleSourceFactory<T>(type));
         } else {
-            return new ParameterizedRuleSource(registrations.build(), schema, proxyFactory);
+            return new ParameterizedRuleSource(rules.build(), implicitInputs.build(), schema, proxyFactory);
         }
     }
 
@@ -310,7 +310,7 @@ public class ModelRuleExtractor {
     private static class StatelessRuleSource implements CachedRuleSource {
         private final DefaultExtractedRuleSource<?> ruleSource;
 
-        public <T> StatelessRuleSource(List<ExtractedModelRule> rules, Factory<T> factory) {
+        public <T> StatelessRuleSource(List<ExtractedRuleDetails> rules, Factory<T> factory) {
             this.ruleSource = new DefaultExtractedRuleSource<T>(rules, factory);
         }
 
@@ -321,12 +321,14 @@ public class ModelRuleExtractor {
     }
 
     private static class ParameterizedRuleSource implements CachedRuleSource {
-        private final List<ExtractedModelRule> rules;
+        private final List<ExtractedRuleDetails> rules;
+        private final List<ModelProperty<?>> implicitInputs;
         private final StructSchema<?> schema;
         private final ManagedProxyFactory proxyFactory;
 
-        public <T> ParameterizedRuleSource(List<ExtractedModelRule> rules, StructSchema<T> schema, ManagedProxyFactory proxyFactory) {
+        public <T> ParameterizedRuleSource(List<ExtractedRuleDetails> rules, List<ModelProperty<?>> implicitInputs, StructSchema<T> schema, ManagedProxyFactory proxyFactory) {
             this.rules = rules;
+            this.implicitInputs = implicitInputs;
             this.schema = schema;
             this.proxyFactory = proxyFactory;
         }
@@ -338,32 +340,68 @@ public class ModelRuleExtractor {
         }
     }
 
+    private static class ExtractedRuleDetails {
+        final MethodRuleDefinition<?, ?> method;
+        final ExtractedModelRule rule;
+
+        public ExtractedRuleDetails(MethodRuleDefinition<?, ?> method, ExtractedModelRule rule) {
+            this.method = method;
+            this.rule = rule;
+        }
+    }
+
     private static class DefaultExtractedRuleSource<T> implements ExtractedRuleSource<T> {
-        private final List<ExtractedModelRule> rules;
+        private final List<ExtractedRuleDetails> rules;
         private final Factory<T> factory;
 
-        public DefaultExtractedRuleSource(List<ExtractedModelRule> rules, Factory<T> factory) {
+        public DefaultExtractedRuleSource(List<ExtractedRuleDetails> rules, Factory<T> factory) {
             this.rules = rules;
             this.factory = factory;
         }
 
         public List<ExtractedModelRule> getRules() {
-            return rules;
+            return CollectionUtils.collect(rules, new Transformer<ExtractedModelRule, ExtractedRuleDetails>() {
+                @Override
+                public ExtractedModelRule transform(ExtractedRuleDetails extractedRuleDetails) {
+                    return extractedRuleDetails.rule;
+                }
+            });
         }
 
         @Override
         public void apply(final ModelRegistry modelRegistry, MutableModelNode target) {
-            for (ExtractedModelRule rule : rules) {
-                rule.apply(new MethodModelRuleApplicationContext() {
+            for (final ExtractedRuleDetails details : rules) {
+                details.rule.apply(new MethodModelRuleApplicationContext() {
                     @Override
                     public ModelRegistry getRegistry() {
                         return modelRegistry;
                     }
 
                     @Override
-                    public <R> ModelRuleInvoker<R> invokerFor(MethodRuleDefinition<R, ?> definition) {
-                        WeaklyTypeReferencingMethod<T, R> method = Cast.uncheckedCast(definition.getMethod());
-                        return new DefaultModelRuleInvoker<T, R>(method, factory);
+                    public ModelAction<?> contextualize(MethodRuleDefinition<?, ?> ruleDefinition, final MethodRuleAction action) {
+                        return new ModelAction<Object>() {
+                            @Override
+                            public ModelRuleDescriptor getDescriptor() {
+                                return details.method.getDescriptor();
+                            }
+
+                            @Override
+                            public ModelReference<Object> getSubject() {
+                                return Cast.uncheckedCast(action.getSubject());
+                            }
+
+                            @Override
+                            public List<? extends ModelReference<?>> getInputs() {
+                                return action.getInputs();
+                            }
+
+                            @Override
+                            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                                WeaklyTypeReferencingMethod<Object, Object> method = Cast.uncheckedCast(details.method.getMethod());
+                                ModelRuleInvoker<Object> invoker = new DefaultModelRuleInvoker<Object, Object>(method, factory);
+                                action.execute(invoker, modelNode, inputs);
+                            }
+                        };
                     }
                 }, target);
             }
@@ -372,20 +410,20 @@ public class ModelRuleExtractor {
         @Override
         public List<? extends Class<?>> getRequiredPlugins() {
             List<Class<?>> plugins = new ArrayList<Class<?>>();
-            for (ExtractedModelRule rule : rules) {
-                plugins.addAll(rule.getRuleDependencies());
+            for (ExtractedRuleDetails details : rules) {
+                plugins.addAll(details.rule.getRuleDependencies());
             }
             return plugins;
         }
 
         @Override
         public void assertNoPlugins() {
-            for (ExtractedModelRule rule : rules) {
-                if (!rule.getRuleDependencies().isEmpty()) {
+            for (ExtractedRuleDetails details : rules) {
+                if (!details.rule.getRuleDependencies().isEmpty()) {
                     StringBuilder message = new StringBuilder();
-                    rule.getDescriptor().describeTo(message);
+                    details.method.getDescriptor().describeTo(message);
                     message.append(" has dependencies on plugins: ");
-                    message.append(rule.getRuleDependencies());
+                    message.append(details.rule.getRuleDependencies());
                     message.append(". Plugin dependencies are not supported in this context.");
                     throw new UnsupportedOperationException(message.toString());
                 }

@@ -23,7 +23,6 @@ import org.gradle.model.internal.core.Hidden;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Collections;
 import java.util.List;
@@ -74,18 +73,13 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             if (!target.getPath().equals(ModelPath.ROOT)) {
-                throw new InvalidModelRuleDeclarationException(String.format("Rule %s cannot be applied at the scope of model element %s as creation rules cannot be used when applying rule sources to particular elements", getDescriptor(), target.getPath()));
+                throw new InvalidModelRuleDeclarationException(String.format("Rule %s cannot be applied at the scope of model element %s as creation rules cannot be used when applying rule sources to particular elements", ruleDefinition.getDescriptor(), target.getPath()));
             }
             ModelRegistrations.Builder registration = ModelRegistrations.of(modelPath).descriptor(ruleDefinition.getDescriptor());
             buildRegistration(context, registration);
             registration.hidden(ruleDefinition.isAnnotationPresent(Hidden.class));
 
             context.getRegistry().register(registration.build());
-        }
-
-        @Override
-        public ModelRuleDescriptor getDescriptor() {
-            return ruleDefinition.getDescriptor();
         }
 
         @Override
