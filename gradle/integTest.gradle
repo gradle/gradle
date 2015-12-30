@@ -151,12 +151,16 @@ def forEachJavaProcess(Closure action) {
         pidPattern = /([0-9]+)/
     }
     output.toString().readLines().each { String line ->
+        if(line.contains('java')) {
+            logger.quiet "Java Process: $line"
+        }
         def processMatcher = line =~ queryString
         if (processMatcher.find()) {
             def pidMatcher = line =~ pidPattern
             if (pidMatcher.find()) {
                 def pid = pidMatcher.group(1)
                 def process = processMatcher.group(1)
+                logger.quiet "-> Parsed PID: $pid, Parsed process: $process"
                 action.call(pid, process)
             }
         }
