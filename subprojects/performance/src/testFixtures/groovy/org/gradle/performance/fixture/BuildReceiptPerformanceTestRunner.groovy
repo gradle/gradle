@@ -21,16 +21,18 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 
 class BuildReceiptPerformanceTestRunner extends CrossBuildPerformanceTestRunner {
-    String incomingDir
+    private final String pluginCommitSha
 
-    public BuildReceiptPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter) {
+    public BuildReceiptPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter, String pluginCommitSha) {
         super(experimentRunner, dataReporter)
+        this.pluginCommitSha = pluginCommitSha
     }
 
     @Override
     public CrossBuildPerformanceResults run() {
         assert !specs.empty
         assert testId
+
         def results = new CrossBuildPerformanceResults(
             testId: testId,
             testGroup: testGroup,
@@ -38,7 +40,7 @@ class BuildReceiptPerformanceTestRunner extends CrossBuildPerformanceTestRunner 
             operatingSystem: OperatingSystem.current().toString(),
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
-            vcsCommits: [Git.current().commitId, Incoming.get(incomingDir).commitSha()],
+            vcsCommits: [Git.current().commitId, pluginCommitSha],
             testTime: System.currentTimeMillis()
         )
         runAllSpecifications(results)

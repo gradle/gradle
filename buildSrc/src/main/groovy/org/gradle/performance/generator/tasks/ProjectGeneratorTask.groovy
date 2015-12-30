@@ -16,13 +16,13 @@
 
 package org.gradle.performance.generator.tasks
 
-import groovy.json.JsonSlurper
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import java.util.concurrent.Callable
 import org.gradle.performance.generator.*
 
 abstract class ProjectGeneratorTask extends DefaultTask {
@@ -44,8 +44,8 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     int numberOfExternalDependencies = 0
     MavenJarCreator mavenJarCreator = new MavenJarCreator()
     Random random = new Random(1L)
-    boolean buildReceipts = false
-    File buildReceiptPluginInfo
+
+    Callable<String> buildReceiptPluginVersionProvider
 
     def ProjectGeneratorTask() {
         setProjects(1)
@@ -167,20 +167,12 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)),
             repository: testProject.repository,
             dependencies: testProject.dependencies,
-            testProject: testProject
+            testProject: testProject,
+            buildReceiptsPluginVersion: buildReceiptPluginVersionProvider?.call()
         ]
 
         args += templateArgs
         args += taskArgs
-        args.buildReceipts = buildReceipts
-
-        if (buildReceipts) {
-            assert buildReceiptPluginInfo.exists()
-            def jsonSlurper = new JsonSlurper()
-            def json = jsonSlurper.parseText(buildReceiptPluginInfo.text)
-            assert json.versionNumber
-            args.buildReceiptsPluginVersion = json.versionNumber
-        }
 
         files.each { String name ->
             generateWithTemplate(projectDir, name, name, args)

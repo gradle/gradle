@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import groovy.json.JsonSlurper
 import org.gradle.performance.categories.BRPPerformanceTest
 import org.gradle.performance.fixture.*
 import org.gradle.performance.results.BuildReceiptsResultsStore
@@ -45,7 +46,16 @@ class BuildReceiptPluginPerformanceTest extends Specification {
     CrossBuildPerformanceTestRunner runner
 
     void setup() {
-        runner = new BuildReceiptPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
+        def incomingDir = System.getProperty('incomingArtifactDir')
+        assert incomingDir: "'incomingArtifactDir' system property is not set"
+        def versionJsonFile = new File(incomingDir, "version.json")
+        assert versionJsonFile.exists()
+
+        def versionJsonData = new JsonSlurper().parse(versionJsonFile)
+        assert versionJson.commitId
+        def pluginCommitId = versionJson.commitId as String
+
+        runner = new BuildReceiptPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, pluginCommitId) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 builder.invocationCount(5).warmUpCount(1)
@@ -58,8 +68,6 @@ class BuildReceiptPluginPerformanceTest extends Specification {
             }
         }
 
-        runner.incomingDir = System.getProperty('incomingArtifactDir')
-        assert runner.incomingDir
     }
 
     def "build receipt plugin comparison"() {

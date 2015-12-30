@@ -1,3 +1,4 @@
+import groovy.json.JsonSlurper
 import org.gradle.performance.generator.DependencyGenerator
 import org.gradle.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
@@ -616,17 +617,23 @@ task performanceExperiments(type: Test) {
     }
 }
 
-Map buildReceiptParams = [projects: 100, sourceFiles: 50, template: 'project-with-source', buildReceiptPluginInfo: file("${rootDir}/incoming/plugin.json")]
+def buildReceiptParams = [projects: 100, sourceFiles: 50, template: 'project-with-source']
+
 task largeJavaSwModelProjectWithBuildReceipts(type: JvmProjectGeneratorTask) {
-    buildReceipts = true
-    buildReceiptPluginInfo = buildReceiptParams.buildReceiptPluginInfo
+    buildReceiptPluginVersionProvider = {
+        def pluginInfo = file("$rootDir/incoming/plugin.json")
+        assert pluginInfo.exists()
+        def json = new JsonSlurper().parse(pluginInfo)
+        assert json.versionNumber
+        json.versionNumber
+    }
+
     projects = buildReceiptParams.projects
     sourceFiles = buildReceiptParams.sourceFiles
     subProjectTemplates = [buildReceiptParams.template]
 }
 
 task largeJavaSwModelProjectWithoutBuildReceipts(type: JvmProjectGeneratorTask) {
-    buildReceipts = false
     projects = buildReceiptParams.projects
     sourceFiles = buildReceiptParams.sourceFiles
     subProjectTemplates = [buildReceiptParams.template]
