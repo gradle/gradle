@@ -35,12 +35,6 @@ class BuildReceiptPluginPerformanceTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    static {
-        System.addShutdownHook {
-            resultStore.close()
-        }
-    }
-
     @AutoCleanup
     @Shared
     def resultStore = new BuildReceiptsResultsStore()
