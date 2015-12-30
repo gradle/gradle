@@ -52,8 +52,8 @@ class BuildReceiptPluginPerformanceTest extends Specification {
         assert versionJsonFile.exists()
 
         def versionJsonData = new JsonSlurper().parse(versionJsonFile)
-        assert versionJson.commitId
-        def pluginCommitId = versionJson.commitId as String
+        assert versionJsonData.commitId
+        def pluginCommitId = versionJsonData.commitId as String
 
         runner = new BuildReceiptPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, pluginCommitId) {
             @Override
