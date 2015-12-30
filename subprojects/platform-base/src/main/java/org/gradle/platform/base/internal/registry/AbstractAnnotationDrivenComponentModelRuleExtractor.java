@@ -24,12 +24,11 @@ import org.gradle.model.internal.inspect.ValidationProblemCollector;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
-import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.List;
 
 public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
-    protected <V> void visitSubject(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, Class<V> typeParameter, ValidationProblemCollector problems) {
+    protected <V> void visitSubject(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, ModelType<V> typeParameter, ValidationProblemCollector problems) {
         if (ruleDefinition.getReferences().size() == 0) {
             problems.add(ruleDefinition, "A method " + getDescription() + " must have at least two parameters.");
             return;
@@ -42,30 +41,27 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
             return;
         }
         if (builder.getTypeVariables().size() != 1) {
-            problems.add(ruleDefinition, String.format("Parameter of type %s must declare a type parameter extending %s.", ModelMap.class.getSimpleName(), typeParameter.getSimpleName()));
+            problems.add(ruleDefinition, String.format("Parameter of type %s must declare a type parameter extending %s.", ModelMap.class.getSimpleName(), typeParameter.getDisplayName()));
             return;
         }
         ModelType<?> subType = builder.getTypeVariables().get(0);
 
         if (subType.isWildcard()) {
-            problems.add(ruleDefinition, String.format("%s type %s cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", typeParameter.getName(), subType.toString()));
+            problems.add(ruleDefinition, String.format("%s type %s cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", typeParameter.getDisplayName(), subType.getDisplayName()));
             return;
         }
-        dataCollector.parameterTypes.put(typeParameter, subType.getConcreteClass());
+        dataCollector.parameterTypes.put(typeParameter, subType);
     }
 
     protected class RuleMethodDataCollector {
-        private HashMap<Class<?>, Class<?>> parameterTypes = new HashMap<Class<?>, Class<?>>();
+        private HashMap<ModelType<?>, ModelType<?>> parameterTypes = new HashMap<ModelType<?>, ModelType<?>>();
 
         @SuppressWarnings("unchecked")
-        public <S, R extends S> Class<R> getParameterType(Class<S> baseClass) {
-            return (Class<R>) parameterTypes.get(baseClass);
+        public <S, R extends S> ModelType<R> getParameterType(ModelType<S> baseClass) {
+            return (ModelType<R>) parameterTypes.get(baseClass);
         }
 
-        public <S> void put(Class<S> baseClass, Class<? extends S> concreteClass) {
-            if (!baseClass.isAssignableFrom(concreteClass)) {
-                throw new InvalidParameterException(String.format("Class %s must be assignable from Class %s", baseClass.getName(), concreteClass.getName()));
-            }
+        public <S> void put(ModelType<S> baseClass, ModelType<? extends S> concreteClass) {
             parameterTypes.put(baseClass, concreteClass);
         }
     }
@@ -95,6 +91,6 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
                     expectedDependency.getDisplayName()));
             return;
         }
-        dataCollector.put(expectedDependency.getConcreteClass(), dependency.getConcreteClass());
+        dataCollector.put(expectedDependency, dependency);
     }
 }

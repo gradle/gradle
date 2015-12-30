@@ -34,7 +34,7 @@ public abstract class ModelMapBasedRule<T, C> extends AbstractMethodRuleAction<C
     private final List<ModelReference<?>> inputs;
     protected final int baseTypeParameterIndex;
 
-    public ModelMapBasedRule(ModelReference<C> subject, final Class<? extends T> baseType, MethodRuleDefinition<?, ?> ruleDefinition, ModelReference<?>... additionalInputs) {
+    public ModelMapBasedRule(ModelReference<C> subject, final ModelType<? extends T> baseType, MethodRuleDefinition<?, ?> ruleDefinition, ModelReference<?>... additionalInputs) {
         super(subject, ruleDefinition.getDescriptor());
         this.inputs = calculateInputs(
                 baseType,
@@ -44,16 +44,16 @@ public abstract class ModelMapBasedRule<T, C> extends AbstractMethodRuleAction<C
         this.baseTypeParameterIndex = 1 + Iterables.indexOf(ruleDefinition.getReferences().subList(1, ruleDefinition.getReferences().size()), new Predicate<ModelReference<?>>() {
             @Override
             public boolean apply(ModelReference<?> element) {
-                return element.getType().equals(ModelType.of(baseType));
+                return element.getType().equals(baseType);
             }
         });
     }
 
-    private static ImmutableList<ModelReference<?>> calculateInputs(final Class<?> baseType, final List<ModelReference<?>> references, List<ModelReference<?>> modelReferences) {
+    private static ImmutableList<ModelReference<?>> calculateInputs(final ModelType<?> baseType, final List<ModelReference<?>> references, List<ModelReference<?>> modelReferences) {
         Iterable<ModelReference<?>> filteredReferences = Iterables.filter(references, new Predicate<ModelReference<?>>() {
             @Override
             public boolean apply(ModelReference<?> element) {
-                return !element.getType().equals(ModelType.of(baseType));
+                return !element.getType().equals(baseType);
             }
         });
 

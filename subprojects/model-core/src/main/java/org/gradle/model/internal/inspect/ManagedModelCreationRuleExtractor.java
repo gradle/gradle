@@ -34,6 +34,8 @@ import java.util.Map;
 import static org.gradle.model.internal.core.NodeInitializerContext.forType;
 
 public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
+    private static final ModelType<NodeInitializerRegistry> NODE_INITIALIZER_REGISTRY = ModelType.of(NodeInitializerRegistry.class);
+
     private final ModelSchemaStore schemaStore;
 
     public ManagedModelCreationRuleExtractor(ModelSchemaStore schemaStore) {
@@ -96,7 +98,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
             if (modelSchema instanceof SpecializedMapSchema) {
                 registration.actions(SpecializedMapNodeInitializer.getActions(ModelReference.of(modelPath), descriptor, (SpecializedMapSchema<S, ?>) modelSchema));
             } else {
-                registration.action(ModelActionRole.Discover, Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class)), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                registration.action(ModelActionRole.Discover, Collections.singletonList(ModelReference.of(NODE_INITIALIZER_REGISTRY)), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                     @Override
                     public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                         NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
