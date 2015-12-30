@@ -58,7 +58,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         results2.buildResult(new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"]))
 
         when:
-        def writeStore = new CrossBuildResultsStore(dbFile)
+        def writeStore = new BaseCrossBuildResultsStore(dbFile)
         writeStore.report(results1)
         writeStore.report(results2)
         writeStore.close()
@@ -67,7 +67,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         tmpDir.file("results.h2.db").exists()
 
         when:
-        def readStore = new CrossBuildResultsStore(dbFile)
+        def readStore = new BaseCrossBuildResultsStore(dbFile)
         def tests = readStore.testNames
 
         then:
@@ -129,14 +129,14 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         results3.buildResult(new BuildDisplayInfo("simple3", "simple 3", ["build"], ["-i"]))
 
         and:
-        def writeStore = new CrossBuildResultsStore(dbFile)
+        def writeStore = new BaseCrossBuildResultsStore(dbFile)
         writeStore.report(results2)
         writeStore.report(results3)
         writeStore.report(results1)
         writeStore.close()
 
         when:
-        def readStore = new CrossBuildResultsStore(dbFile)
+        def readStore = new BaseCrossBuildResultsStore(dbFile)
         def history = readStore.getTestResults("test1")
 
         then:

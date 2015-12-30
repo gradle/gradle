@@ -18,7 +18,7 @@ package org.gradle.performance.results;
 
 import java.io.File;
 
-public class BuildReceiptsResultsStore extends CrossBuildResultsStore {
+public class BuildReceiptsResultsStore extends BaseCrossBuildResultsStore {
 
     public BuildReceiptsResultsStore() {
         super(new File(System.getProperty("user.home"), ".gradle-performance-test-data/build-receipt-results"));
