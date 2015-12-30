@@ -162,12 +162,12 @@ abstract class ProjectGeneratorTask extends DefaultTask {
         files.addAll(additionalProjectFiles)
 
         args += [
-            projectName     : testProject.name,
+            projectName: testProject.name,
             subprojectNumber: testProject.subprojectNumber,
-            propertyCount   : (testProject.linesOfCodePerSourceFile.intdiv(7)),
-            repository      : testProject.repository,
-            dependencies    : testProject.dependencies,
-            testProject     : testProject
+            propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)),
+            repository: testProject.repository,
+            dependencies: testProject.dependencies,
+            testProject: testProject
         ]
 
         args += templateArgs
