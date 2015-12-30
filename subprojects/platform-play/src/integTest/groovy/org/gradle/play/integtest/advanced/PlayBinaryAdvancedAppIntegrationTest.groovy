@@ -37,10 +37,11 @@ class PlayBinaryAdvancedAppIntegrationTest extends PlayBinaryApplicationIntegrat
 
         jar("build/playBinary/lib/${playApp.name}.jar").containsDescendants(
                 "views/html/awesome/index.class",
+                "jva/html/index.class",
                 "special/strangename/Application.class",
                 "models/DataType.class",
                 "models/ScalaClass.class",
-                "controllers/scala/MixedJava.class",
+                "controllers/scla/MixedJava.class",
                 "controllers/jva/PureJava.class",
                 "evolutions/default/1.sql"
         )
@@ -51,5 +52,10 @@ class PlayBinaryAdvancedAppIntegrationTest extends PlayBinaryApplicationIntegrat
                 "public/javascripts/test.js",
                 "public/javascripts/test.min.js"
         )
+    }
+
+    @Override
+    String[] getBuildTasks() {
+        return super.getBuildTasks() + ":compilePlayBinaryPlayJavaTwirlTemplates"
     }
 }

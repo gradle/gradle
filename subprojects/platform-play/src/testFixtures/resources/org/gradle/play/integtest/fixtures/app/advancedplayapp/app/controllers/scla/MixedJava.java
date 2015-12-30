@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.scala;
+package controllers.scla;
 
 import play.*;
 import play.mvc.*;

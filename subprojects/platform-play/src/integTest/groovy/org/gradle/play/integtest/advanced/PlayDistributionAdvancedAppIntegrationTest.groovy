@@ -56,11 +56,17 @@ class PlayDistributionAdvancedAppIntegrationTest extends PlayDistributionApplica
 
         jar("build/distributionJars/playBinary/${playApp.name}.jar").containsDescendants(
                 "views/html/awesome/index.class",
+                "jva/html/index.class",
                 "special/strangename/Application.class",
                 "models/DataType.class",
                 "models/ScalaClass.class",
-                "controllers/scala/MixedJava.class",
+                "controllers/scla/MixedJava.class",
                 "controllers/jva/PureJava.class"
         )
+    }
+
+    @Override
+    String[] getBuildTasks() {
+        return super.getBuildTasks() + ":compilePlayBinaryPlayJavaTwirlTemplates"
     }
 }

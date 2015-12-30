@@ -30,14 +30,7 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         succeeds("stage")
 
         then:
-        executedAndNotSkipped(
-                ":compilePlayBinaryPlayRoutes",
-                ":compilePlayBinaryPlayTwirlTemplates",
-                ":createPlayBinaryJar",
-                ":createPlayBinaryDistributionJar",
-                ":createPlayBinaryAssetsJar",
-                ":createPlayBinaryStartScripts",
-                ":stagePlayBinaryDist")
+        executedAndNotSkipped buildTasks
 
         and:
         verifyJars()
@@ -48,13 +41,7 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
 
         then:
         executedAndNotSkipped(":createPlayBinaryZipDist", ":createPlayBinaryTarDist")
-        skipped(
-                ":compilePlayBinaryPlayRoutes",
-                ":compilePlayBinaryPlayTwirlTemplates",
-                ":createPlayBinaryJar",
-                ":createPlayBinaryDistributionJar",
-                ":createPlayBinaryAssetsJar",
-                ":createPlayBinaryStartScripts")
+        skipped buildTasks
 
         and:
         verifyArchives()
@@ -119,5 +106,17 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
                 "application.conf")
 
         jar("build/distributionJars/playBinary/${playApp.name}.jar").isManifestPresentAndFirstEntry()
+    }
+
+    String[] getBuildTasks() {
+        return [
+            ":compilePlayBinaryPlayRoutes",
+            ":compilePlayBinaryPlayTwirlTemplates",
+            ":createPlayBinaryJar",
+            ":createPlayBinaryDistributionJar",
+            ":createPlayBinaryAssetsJar",
+            ":createPlayBinaryStartScripts",
+            ":stagePlayBinaryDist"
+        ]
     }
 }

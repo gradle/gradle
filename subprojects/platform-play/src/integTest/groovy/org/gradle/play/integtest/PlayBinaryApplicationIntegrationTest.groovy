@@ -25,14 +25,7 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
         succeeds("assemble")
 
         then:
-        executedAndNotSkipped(
-                ":compilePlayBinaryPlayRoutes",
-                ":compilePlayBinaryPlayTwirlTemplates",
-                ":compilePlayBinaryScala",
-                ":createPlayBinaryJar",
-                ":createPlayBinaryAssetsJar",
-                ":playBinary",
-                ":assemble")
+        executedAndNotSkipped buildTasks
 
         and:
         verifyJars()
@@ -83,5 +76,17 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
                 "public/images/favicon.svg",
                 "public/stylesheets/main.css",
                 "public/javascripts/hello.js")
+    }
+
+    String[] getBuildTasks() {
+        return [
+            ":compilePlayBinaryPlayRoutes",
+            ":compilePlayBinaryPlayTwirlTemplates",
+            ":compilePlayBinaryScala",
+            ":createPlayBinaryJar",
+            ":createPlayBinaryAssetsJar",
+            ":playBinary",
+            ":assemble"
+        ]
     }
 }
