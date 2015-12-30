@@ -31,10 +31,7 @@ import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteSpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
-import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.model.*;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
@@ -143,41 +140,6 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
         private void addJUnitDependencyTo(DependencySpecContainer dependencies, String jUnitVersion) {
             dependencies.group("junit").module("junit").version(jUnitVersion);
-        }
-
-        /**
-         * Add default source sets to test suites declared under {@code components}.
-         */
-        @Defaults
-        void addDefaultSourceSetsToTestSuiteComponents(@Path("components") ModelMap<JUnitTestSuiteSpec> components) {
-            addDefaultSourceSetsTo(components);
-        }
-
-        /**
-         * Add default source sets to test suites declared under {@code testSuites}.
-         */
-        @Defaults
-        void addDefaultSourceSetsToTestSuites(@Path("testSuites") ModelMap<JUnitTestSuiteSpec> testSuites) {
-            addDefaultSourceSetsTo(testSuites);
-        }
-
-        private void addDefaultSourceSetsTo(ModelMap<JUnitTestSuiteSpec> suites) {
-            suites.all(new Action<JUnitTestSuiteSpec>() {
-                @Override
-                public void execute(final JUnitTestSuiteSpec jUnitTestSuiteSpec) {
-                    addSourceSetTo(jUnitTestSuiteSpec, "java", JavaSourceSet.class);
-                    addSourceSetTo(jUnitTestSuiteSpec, "resources", JvmResourceSet.class);
-                }
-            });
-        }
-
-        private void addSourceSetTo(final JUnitTestSuiteSpec spec, final String sourceSetName, Class<? extends LanguageSourceSet> type) {
-            spec.getSources().create(sourceSetName, type, new Action<LanguageSourceSet>() {
-                @Override
-                public void execute(LanguageSourceSet languageSourceSet) {
-                    languageSourceSet.getSource().srcDir(String.format("src/%s/%s", spec.getName(), sourceSetName));
-                }
-            });
         }
 
         /**

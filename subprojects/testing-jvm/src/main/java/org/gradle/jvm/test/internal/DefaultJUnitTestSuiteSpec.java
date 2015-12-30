@@ -18,12 +18,18 @@ package org.gradle.jvm.test.internal;
 import org.gradle.jvm.JvmComponentSpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.platform.base.DependencySpecContainer;
+import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
+
+import java.util.Set;
+
+import static org.gradle.jvm.internal.DefaultJvmLibrarySpec.defaultJvmComponentInputTypes;
 
 public class DefaultJUnitTestSuiteSpec extends BaseComponentSpec implements JUnitTestSuiteSpec {
     private String junitVersion;
     private final DependencySpecContainer dependencies = new DefaultDependencySpecContainer();
+    private final Set<Class<? extends TransformationFileType>> inputTypes = defaultJvmComponentInputTypes();
 
     @Override
     public String getJUnitVersion() {
@@ -43,5 +49,10 @@ public class DefaultJUnitTestSuiteSpec extends BaseComponentSpec implements JUni
     @Override
     public JvmComponentSpec getTestedComponent() {
         throw new UnsupportedOperationException("JUnit test suite does not support components under test yet");
+    }
+
+    @Override
+    public Set<? extends Class<? extends TransformationFileType>> getInputTypes() {
+        return inputTypes;
     }
 }
