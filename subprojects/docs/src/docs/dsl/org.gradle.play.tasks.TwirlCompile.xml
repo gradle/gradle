@@ -29,6 +29,9 @@
             <tr>
                 <td>forkOptions</td>
             </tr>
+            <tr>
+                <td>defaultImports</td>
+            </tr>
         </table>
     </section>
     <section>
