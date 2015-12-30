@@ -167,6 +167,9 @@ idea {
                   <option name="WHILE_BRACE_FORCE" value="3" />
                   <option name="FOR_BRACE_FORCE" value="3" />
                 </codeStyleSettings>
+                <GroovyCodeStyleSettings>
+                  <option name="ALIGN_NAMED_ARGS_IN_MAP" value="false" />
+                </GroovyCodeStyleSettings>
               </value>
             </option>
             <option name="USE_PER_PROJECT_SETTINGS" value="true" />
