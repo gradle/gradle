@@ -277,24 +277,30 @@ def reportsFolder = new File(buildDir, "reports")
 ext.preferencesTraceFile = new File(reportsFolder, "preferences.trace.log")
 def userPrefsDirectory = new File("${System.getProperty("user.home")}/.java/.userPrefs")
 
-gradle.addListener(new TaskExecutionListener(){
+gradle.addListener(new TaskExecutionListener() {
     public void beforeExecute(Task task) {
-        doLog("before executing ", task)
-        if(userPrefsDirectory.exists()){
-            GFileUtils.forceDelete(userPrefsDirectory)
+        if (task.name != "clean") {
+            doLog("before executing ", task)
+            if (userPrefsDirectory.exists()) {
+                GFileUtils.forceDelete(userPrefsDirectory)
+            }
         }
     }
 
     public void afterExecute(Task task, TaskState state) {
-        doLog("after executing", task)
-        if(userPrefsDirectory.exists()){
-            GFileUtils.forceDelete(userPrefsDirectory)
+        if (task.name != "clean") {
+            doLog("after executing", task)
+            if (userPrefsDirectory.exists()) {
+                GFileUtils.forceDelete(userPrefsDirectory)
+            }
         }
     }
-    void doLog(String descr, Task task){
-        if(!reportsFolder.exists()){
+
+    void doLog(String descr, Task task) {
+        if (!reportsFolder.exists()) {
             reportsFolder.mkdirs()
         }
+        preferencesTraceFile.createNewFile()
         preferencesTraceFile << "$descr , '${task.path}', ${userPrefsDirectory.absolutePath}, ${userPrefsDirectory.exists()}\n"
     }
 })
