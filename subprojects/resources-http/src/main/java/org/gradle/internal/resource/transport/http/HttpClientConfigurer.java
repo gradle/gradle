@@ -40,7 +40,6 @@ import org.gradle.authentication.Authentication;
 import org.gradle.authentication.http.BasicAuthentication;
 import org.gradle.authentication.http.DigestAuthentication;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.resource.UriResource;
@@ -50,7 +49,6 @@ import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -75,8 +73,8 @@ public class HttpClientConfigurer {
         builder.setDefaultCredentialsProvider(credentialsProvider);
     }
 
-    private void configureSslSocketConnectionFactory(HttpClientBuilder builder, Factory<SSLContext> sslContextFactory) {
-        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.create(), new DefaultHostnameVerifier(null)));
+    private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory) {
+        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), new DefaultHostnameVerifier(null)));
     }
 
     private void configureAuthSchemeRegistry(HttpClientBuilder builder) {

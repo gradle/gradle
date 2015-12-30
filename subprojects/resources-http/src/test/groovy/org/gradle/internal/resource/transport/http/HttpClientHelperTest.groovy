@@ -20,7 +20,6 @@ import org.apache.http.HttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpRequestBase
 import org.apache.http.ssl.SSLContexts
-import org.gradle.internal.Factory
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -48,8 +47,8 @@ class HttpClientHelperTest extends Specification {
         return Stub(HttpSettings) {
             getProxySettings() >> Mock(HttpProxySettings)
             getSecureProxySettings() >> Mock(HttpProxySettings)
-            getSslContextFactory() >> Mock(Factory) {
-                create() >> SSLContexts.createDefault()
+            getSslContextFactory() >> Mock(SslContextFactory) {
+                createSslContext() >> SSLContexts.createDefault()
             }
         }
     }

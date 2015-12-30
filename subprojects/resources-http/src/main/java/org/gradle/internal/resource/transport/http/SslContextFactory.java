@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.resource.transport.http;
 
+import javax.net.ssl.SSLContext;
 
-import org.gradle.authentication.Authentication;
-
-import java.util.Collection;
-
-public interface HttpSettings {
-    HttpProxySettings getProxySettings();
-
-    HttpProxySettings getSecureProxySettings();
-
-    Collection<Authentication> getAuthenticationSettings();
-
-    SslContextFactory getSslContextFactory();
+public interface SslContextFactory {
+    SSLContext createSslContext();
 }
