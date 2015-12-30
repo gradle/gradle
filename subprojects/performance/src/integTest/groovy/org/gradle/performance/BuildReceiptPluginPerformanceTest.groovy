@@ -17,20 +17,38 @@
 package org.gradle.performance
 
 import org.gradle.performance.categories.BRPPerformanceTest
-import org.gradle.performance.fixture.BuildExperimentRunner
-import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.fixture.BuildReceiptPerformanceTestRunner
-import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.fixture.*
+import org.gradle.performance.results.BuildReceiptsResultsStore
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import org.junit.experimental.categories.Category
+import spock.lang.AutoCleanup
+import spock.lang.Shared
+import spock.lang.Specification
 
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
 @Category(BRPPerformanceTest)
-class BuildReceiptPluginPerformanceTest extends AbstractCrossBuildPerformanceTest {
+class BuildReceiptPluginPerformanceTest extends Specification {
+
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
+    static {
+        System.addShutdownHook {
+            resultStore.close()
+        }
+    }
+
+    @AutoCleanup
+    @Shared
+    def resultStore = new BuildReceiptsResultsStore()
 
     private static final String WITH_PLUGIN_LABEL = "with plugin"
     private static final String WITHOUT_PLUGIN_LABEL = "without plugin"
+
+    CrossBuildPerformanceTestRunner runner
 
     void setup() {
         runner = new BuildReceiptPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
@@ -53,7 +71,6 @@ class BuildReceiptPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
     def "build receipt plugin comparison"() {
         given:
         runner.testGroup = "build receipt plugin"
-
         runner.testId = "large java project with and without build receipt"
         def opts = ["-Dreceipt", "-Dreceipt.dump"]
         def tasks = ['clean', 'build']
