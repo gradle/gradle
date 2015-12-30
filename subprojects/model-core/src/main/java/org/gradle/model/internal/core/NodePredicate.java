@@ -47,11 +47,11 @@ public abstract class NodePredicate {
         };
     }
 
-    public static NodePredicate allLinksTransitive() {
-        return allLinksTransitive(Predicates.<MutableModelNode>alwaysTrue());
+    public static NodePredicate allDescendants() {
+        return allDescendants(Predicates.<MutableModelNode>alwaysTrue());
     }
 
-    public static NodePredicate allLinksTransitive(Predicate<? super MutableModelNode> predicate) {
+    public static NodePredicate allDescendants(Predicate<? super MutableModelNode> predicate) {
         return new NodePredicate(predicate) {
             @Override
             protected ModelPredicate scope(ModelPath scope, Predicate<? super MutableModelNode> matcher) {

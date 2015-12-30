@@ -32,7 +32,7 @@ import org.gradle.platform.base.ComponentSpec;
 
 import java.util.List;
 
-import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive;
+import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 
 public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentBinaries> {
     @Nullable
@@ -92,7 +92,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             ModelReference<C> subject = ModelReference.of(componentType);
             ComponentBinariesRule<R, S, C> componentBinariesRule = new ComponentBinariesRule<R, S, C>(subject, componentType, binaryType, ruleDefinition, context.invokerFor(ruleDefinition));
-            target.applyTo(allLinksTransitive(), ModelActionRole.Finalize, componentBinariesRule);
+            target.applyTo(allDescendants(), ModelActionRole.Finalize, componentBinariesRule);
         }
 
         @Override

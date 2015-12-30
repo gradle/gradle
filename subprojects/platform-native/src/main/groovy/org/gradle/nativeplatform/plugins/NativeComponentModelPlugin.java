@@ -63,7 +63,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import static org.gradle.model.internal.core.ModelNodes.withType;
-import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive;
+import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 
 /**
  * A plugin that sets up the infrastructure for defining native binaries.
@@ -86,7 +86,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().create("flavors", DefaultFlavorContainer.class, instantiator);
         project.getExtensions().create("toolChains", DefaultNativeToolChainRegistry.class, instantiator);
 
-        modelRegistry.getRoot().applyTo(allLinksTransitive(withType(NativeComponentSpec.class)), NativeComponentRules.class);
+        modelRegistry.getRoot().applyTo(allDescendants(withType(NativeComponentSpec.class)), NativeComponentRules.class);
     }
 
     static class Rules extends RuleSource {

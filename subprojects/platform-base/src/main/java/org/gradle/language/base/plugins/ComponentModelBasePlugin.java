@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.gradle.model.internal.core.ModelNodes.withType;
-import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive;
+import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 
 /**
  * Base plugin for language support.
@@ -69,8 +69,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
 
-        modelRegistry.getRoot().applyTo(allLinksTransitive(withType(ComponentSpec.class)), ComponentRules.class);
-        modelRegistry.getRoot().applyTo(allLinksTransitive(withType(ComponentSpec.class)), ComponentBinaryRules.class);
+        modelRegistry.getRoot().applyTo(allDescendants(withType(ComponentSpec.class)), ComponentRules.class);
+        modelRegistry.getRoot().applyTo(allDescendants(withType(ComponentSpec.class)), ComponentBinaryRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")

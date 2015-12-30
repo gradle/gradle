@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.internal.registry
+
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.internal.Actions
@@ -32,8 +33,8 @@ import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.model.internal.core.NodePredicate.allDescendants
 import static org.gradle.model.internal.core.NodePredicate.allLinks
-import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class DefaultModelRegistryTest extends Specification {
@@ -549,7 +550,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { it.unmanagedNode Integer, creatorAction }
         creatorAction.execute(_) >> { MutableModelNode node ->
-            node.applyTo(allLinksTransitive(), ModelActionRole.Mutate) { it.type(Bean).action(mutatorAction) }
+            node.applyTo(allDescendants(), ModelActionRole.Mutate) { it.type(Bean).action(mutatorAction) }
             node.addLinkInstance("parent.foo", "ignore me")
             node.addLinkInstance("parent.bar", new Bean(value: "bar"))
             node.applyToLink(ModelActionRole.Mutate) { it.path("parent.bar").node { MutableModelNode bar ->

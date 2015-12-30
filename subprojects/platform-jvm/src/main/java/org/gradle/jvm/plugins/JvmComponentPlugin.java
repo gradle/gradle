@@ -46,7 +46,7 @@ import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.gradle.model.internal.core.ModelNodes.withType;
-import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive;
+import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 import static org.gradle.util.CollectionUtils.single;
 
 /**
@@ -66,7 +66,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        modelRegistry.getRoot().applyTo(allLinksTransitive(withType(ComponentSpec.class)), JarBinaryRules.class);
+        modelRegistry.getRoot().applyTo(allDescendants(withType(ComponentSpec.class)), JarBinaryRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")

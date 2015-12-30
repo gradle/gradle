@@ -54,7 +54,7 @@ import java.io.File;
 import java.util.Date;
 
 import static org.gradle.model.internal.core.ModelNodes.withType;
-import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive;
+import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
@@ -79,7 +79,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         project.getExtensions().create("playConfigurations", PlayPluginConfigurations.class, project.getConfigurations(), project.getDependencies());
 
-        modelRegistry.getRoot().applyTo(allLinksTransitive(withType(PlayApplicationSpec.class)), PlaySourceSetRules.class);
+        modelRegistry.getRoot().applyTo(allDescendants(withType(PlayApplicationSpec.class)), PlaySourceSetRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")

@@ -41,8 +41,8 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import javax.inject.Inject;
 
+import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 import static org.gradle.model.internal.core.NodePredicate.allLinks;
-import static org.gradle.model.internal.core.NodePredicate.allLinksTransitive;
 
 /**
  * Base plugin for language support.
@@ -88,7 +88,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
             }
         }));
 
-        modelRegistry.getRoot().applyTo(allLinksTransitive(), ModelActionRole.Defaults,
+        modelRegistry.getRoot().applyTo(allDescendants(), ModelActionRole.Defaults,
             DirectNodeNoInputsModelAction.of(
                 ModelReference.of(BinarySpec.class),
                 new SimpleModelRuleDescriptor(baseDescriptor + ComponentSpecInitializer.class.getSimpleName() + ".binaryAction()"),
