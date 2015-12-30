@@ -201,11 +201,11 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
         if (null == commits || commits.size() == 0) {
             return Collections.emptyList();
         }
-        Link gradleUrl = new Link(commits.get(0), String.format("https://github.com/gradle/gradle/commit/%s", commits.get(0).trim()));
+        Link gradleUrl = new Link(shorten(commits.get(0), 7), String.format("https://github.com/gradle/gradle/commit/%s", commits.get(0).trim()));
         if (commits.size() == 1) {
             return Collections.singletonList(gradleUrl);
         } else if (commits.size() == 2) {
-            Link dotComUrl = new Link(commits.get(1), String.format("https://github.com/gradle/dotcom/commit/%s", commits.get(1).trim()));
+            Link dotComUrl = new Link(shorten(commits.get(1), 7), String.format("https://github.com/gradle/dotcom/commit/%s", commits.get(1).trim()));
             List<Link> links = Lists.newArrayList();
             links.add(gradleUrl);
             links.add(dotComUrl);
@@ -213,6 +213,10 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
         } else {
             throw new IllegalArgumentException("No more than 2 commit SHAs are supported");
         }
+    }
+
+    private static String shorten(String string, int maxLength) {
+        return string.substring(0, Math.min(maxLength, string.length()));
     }
 
 }
