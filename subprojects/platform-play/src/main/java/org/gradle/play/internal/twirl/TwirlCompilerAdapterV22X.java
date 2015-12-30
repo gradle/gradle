@@ -26,15 +26,22 @@ import java.util.Arrays;
 class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
     private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.templates");
 
+    // Based on https://github.com/playframework/playframework/blob/2.2.6/framework/src/sbt-plugin/src/main/scala/PlayKeys.scala
     private static final String DEFAULT_JAVA_IMPORTS =
               "import play.api.templates._;"
             + "import play.api.templates.PlayMagic._;"
             + "import models._;"
             + "import controllers._;"
+            + "import java.lang._;"
+            + "import java.util._;"
+            + "import scala.collection.JavaConversions._;"
+            + "import scala.collection.JavaConverters._;"
             + "import play.api.i18n._;"
-            + "import play.api.mvc._;"
-            + "import play.api.mvc._;"
-            + "import play.api.data._;"
+            + "import play.core.j.PlayMagicForJava._;"
+            + "import play.mvc._;"
+            + "import play.data._;"
+            + "import play.api.data.Field;"
+            + "import play.mvc.Http.Context.Implicit._;"
             + "import views.html._;";
 
     private static final String DEFAULT_SCALA_IMPORTS =
@@ -43,7 +50,6 @@ class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
             + "import models._;"
             + "import controllers._;"
             + "import play.api.i18n._;"
-            + "import play.api.mvc._;"
             + "import play.api.mvc._;"
             + "import play.api.data._;"
             + "import views.html._;";
