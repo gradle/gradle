@@ -17,7 +17,6 @@
 package org.gradle.performance
 
 import groovy.json.JsonSlurper
-import org.gradle.performance.categories.BRPPerformanceTest
 import org.gradle.performance.fixture.*
 import org.gradle.performance.results.BuildReceiptsResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -30,7 +29,7 @@ import spock.lang.Specification
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(BRPPerformanceTest)
+@Category(org.gradle.performance.categories.BuildReceiptPluginPerformanceTest)
 class BuildReceiptPluginPerformanceTest extends Specification {
 
     @Rule

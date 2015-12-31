@@ -19,5 +19,5 @@ package org.gradle.performance.categories;
 /**
  * Tests designed to demonstrate specific performance characteristics when the build receipts plugin has been applied
  */
-public interface BRPPerformanceTest extends PerformanceTest {
+public interface BuildReceiptPluginPerformanceTest extends PerformanceTest {
 }

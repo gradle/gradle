@@ -604,7 +604,7 @@ task performanceTest(type: Test) {
     finalizedBy report
     maxParallelForks = 1
     options {
-        includeCategories 'org.gradle.performance.categories.PerformanceTest'
+        includeCategories 'org.gradle.performance.categories.GradleCorePerformanceTest'
     }
 }
 
@@ -645,7 +645,7 @@ task buildReceiptPluginPerformanceTest(type: Test) {
     systemProperties += ['incomingArtifactDir': "${rootDir}/incoming/"]
 
     options {
-        includeCategories 'org.gradle.performance.categories.BRPPerformanceTest'
+        includeCategories 'org.gradle.performance.categories.BuildReceiptPluginPerformanceTest'
     }
 }
 

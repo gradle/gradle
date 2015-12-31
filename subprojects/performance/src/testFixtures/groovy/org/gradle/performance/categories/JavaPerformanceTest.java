@@ -19,5 +19,5 @@ package org.gradle.performance.categories;
 /**
  * Tests designed to demonstrate Java plugin specific performance characteristics
  */
-public interface JavaPerformanceTest extends PerformanceTest {
+public interface JavaPerformanceTest extends GradleCorePerformanceTest {
 }

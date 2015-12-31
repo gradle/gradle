@@ -16,7 +16,7 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.PerformanceTest
+import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
@@ -27,7 +27,7 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
-@Category(PerformanceTest)
+@Category(GradleCorePerformanceTest)
 class AbstractCrossBuildPerformanceTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
