@@ -16,15 +16,13 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.BaseBinaryRules;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
@@ -67,32 +65,23 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     private void applyRules(ModelRegistry modelRegistry) {
-        final String baseDescriptor = LanguageBasePlugin.class.getSimpleName() + "#";
+        SimpleModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(LanguageBasePlugin.class.getSimpleName() + ".apply()");
+        modelRegistry.configure(ModelActionRole.Defaults,
+                DirectNodeNoInputsModelAction.of(ModelReference.of("binaries"),
+                        ruleDescriptor,
+                        new Action<MutableModelNode>() {
+                            @Override
+                            public void execute(MutableModelNode binariesNode) {
+                                binariesNode.applyTo(allLinks(), BaseBinaryRules.class);
+                            }
+                        }));
 
-        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(ModelReference.of("binaries"),
-                new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTasks"), new Action<MutableModelNode>() {
-            @Override
-            public void execute(MutableModelNode binariesNode) {
-                binariesNode.applyTo(allLinks(), ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpecInternal.class),
-                                new SimpleModelRuleDescriptor(baseDescriptor + "attachBuildTask"), ModelReference.of(ITaskFactory.class), new BiAction<BinarySpecInternal, ITaskFactory>() {
-                    @Override
-                    public void execute(BinarySpecInternal binary, ITaskFactory taskFactory) {
-                        if (!binary.isLegacyBinary()) {
-                            TaskInternal binaryLifecycleTask = taskFactory.create(binary.getProjectScopedName(), DefaultTask.class);
-                            binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-                            binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
-                            binary.setBuildTask(binaryLifecycleTask);
-                        }
-                    }
-                }));
-            }
-        }));
-
-        modelRegistry.getRoot().applyTo(allDescendants(), ModelActionRole.Defaults,
-            DirectNodeNoInputsModelAction.of(
-                ModelReference.of(BinarySpec.class),
-                new SimpleModelRuleDescriptor(baseDescriptor + ComponentSpecInitializer.class.getSimpleName() + ".binaryAction()"),
-                ComponentSpecInitializer.binaryAction()));
+        modelRegistry.getRoot().applyTo(allDescendants(),
+                ModelActionRole.Defaults,
+                DirectNodeNoInputsModelAction.of(
+                        ModelReference.of(BinarySpec.class),
+                        ruleDescriptor,
+                        ComponentSpecInitializer.binaryAction()));
     }
 
     @SuppressWarnings("UnusedDeclaration")
