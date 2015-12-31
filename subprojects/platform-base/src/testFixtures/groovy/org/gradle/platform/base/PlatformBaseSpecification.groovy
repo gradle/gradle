@@ -20,12 +20,17 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.ModelMap
+import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 abstract class PlatformBaseSpecification extends Specification {
     final def project = TestUtil.createRootProject()
+
+    def realize(String name) {
+        project.modelRegistry.find(name, ModelType.UNTYPED)
+    }
 
     ModelMap<Task> realizeTasks() {
         project.modelRegistry.find("tasks", ModelTypes.modelMap(Task))
@@ -46,7 +51,6 @@ abstract class PlatformBaseSpecification extends Specification {
     def dsl(@DelegatesTo(Project) Closure closure) {
         closure.delegate = project
         closure()
-        project.tasks.realize()
         project.bindAllModelRules()
     }
 }

@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -33,12 +32,9 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.binary.internal.BinarySpecFactory;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.*;
@@ -88,18 +84,13 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             builder.internalView(ComponentSpecInternal.class);
         }
 
-        @Hidden @Model
-        BinarySpecFactory binarySpecFactory(ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
-            return new BinarySpecFactory("binaries", serviceRegistry.get(Instantiator.class), taskFactory);
+        @Model
+        void components(ComponentSpecContainer componentSpecs) {
         }
 
-        @Model
-        void components(ComponentSpecContainer componentSpecs) {}
-
         @Mutate
-        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, BinarySpecFactory binarySpecFactory, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory) {
             nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory));
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory));
         }
 
         @Hidden @Model
@@ -153,11 +144,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         @Validate
         void validateComponentSpecRegistrations(ComponentSpecFactory instanceFactory) {
-            instanceFactory.validateRegistrations();
-        }
-
-        @Validate
-        void validateBinarySpecRegistrations(BinarySpecFactory instanceFactory) {
             instanceFactory.validateRegistrations();
         }
 

@@ -16,19 +16,32 @@
 
 package org.gradle.language.base.plugins
 
-import org.gradle.api.DefaultTask
-import org.gradle.platform.base.BinarySpec
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.platform.base.PlatformBaseSpecification
 
 class LanguageBasePluginTest extends PlatformBaseSpecification {
-    def "adds a 'binaries' container to the project model"() {
+    def "applies lifecycle base plugin only"() {
         when:
         dsl {
             apply plugin: LanguageBasePlugin
         }
 
         then:
-        realizeBinaries() != null
+        project.pluginManager.pluginContainer.size() == 2
+    }
+
+    def "registers LanguageSourceSet"() {
+        when:
+        dsl {
+            apply plugin: LanguageBasePlugin
+            model {
+                baseSourceSet(LanguageSourceSet) {
+                }
+            }
+        }
+
+        then:
+        realize("baseSourceSet") instanceof LanguageSourceSet
     }
 
     def "adds a 'sources' container to the project model"() {
@@ -39,45 +52,5 @@ class LanguageBasePluginTest extends PlatformBaseSpecification {
 
         then:
         realizeSourceSets() != null
-    }
-
-    def "defines a build lifecycle task for each binary"() {
-        when:
-        dsl {
-            apply plugin: LanguageBasePlugin
-            model {
-                binaries {
-                    bin1(BinarySpec)
-                    bin2(BinarySpec)
-                }
-            }
-        }
-
-        then:
-        def binaries = realizeBinaries()
-        binaries.size() == 2
-        binaries.bin1.buildTask instanceof DefaultTask
-        binaries.bin1.buildTask.name == 'bin1'
-        binaries.bin2.buildTask instanceof DefaultTask
-        binaries.bin2.buildTask.name == 'bin2'
-    }
-
-    def "copies binary tasks into task container"() {
-        when:
-        dsl {
-            apply plugin: LanguageBasePlugin
-            model {
-                binaries {
-                    bin1(BinarySpec)
-                    bin2(BinarySpec)
-                }
-            }
-        }
-
-        then:
-        def tasks = realizeTasks()
-        def binaries = realizeBinaries()
-        tasks.bin1 == binaries.bin1.buildTask
-        tasks.bin2 == binaries.bin2.buildTask
     }
 }

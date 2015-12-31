@@ -16,25 +16,24 @@
 package org.gradle.platform.base.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.BaseBinaryRules;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.Model;
-import org.gradle.model.ModelMap;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.DirectNodeNoInputsModelAction;
-import org.gradle.model.internal.core.ModelActionRole;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.*;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.binary.internal.BinarySpecFactory;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import javax.inject.Inject;
@@ -88,6 +87,22 @@ public class BinaryBasePlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @Model
         void binaries(BinaryContainer binaries) {
+        }
+
+        @Hidden
+        @Model
+        BinarySpecFactory binarySpecFactory(ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
+            return new BinarySpecFactory("binaries", serviceRegistry.get(Instantiator.class), taskFactory);
+        }
+
+        @Mutate
+        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, BinarySpecFactory binarySpecFactory) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory));
+        }
+
+        @Validate
+        void validateBinarySpecRegistrations(BinarySpecFactory instanceFactory) {
+            instanceFactory.validateRegistrations();
         }
 
         @BinaryType
