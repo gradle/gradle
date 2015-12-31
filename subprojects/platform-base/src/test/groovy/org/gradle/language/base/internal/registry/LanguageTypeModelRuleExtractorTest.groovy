@@ -21,7 +21,7 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.AbstractBuildableModelElement
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.LanguageSourceSetFactory
-import org.gradle.language.base.plugins.ComponentModelBasePlugin
+import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.ModelAction
@@ -93,14 +93,14 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         "noLanguageName"                    | "Language type '${CustomLanguageSourceSet.name}' cannot be registered without a language name."                          | "no language name set"
     }
 
-    def "applies ComponentModelBasePlugin and creates language type rule"() {
+    def "applies LanguageBasePlugin and creates language type rule"() {
         def mockRegistry = Mock(ModelRegistry)
 
         when:
         def registration = extract(ruleDefinitionForMethod("validTypeRule"))
 
         then:
-        registration.ruleDependencies == [ComponentModelBasePlugin]
+        registration.ruleDependencies == [LanguageBasePlugin]
 
         when:
         apply(registration, mockRegistry)
@@ -111,14 +111,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
             assert action.subject == ModelReference.of(LanguageSourceSetFactory)
         }
         0 * _
-    }
-
-    def "only applies ComponentModelBasePlugin when implementation not set"() {
-        when:
-        def registration = extract(ruleDefinitionForMethod("noImplementationTypeRule"))
-
-        then:
-        registration.ruleDependencies == [ComponentModelBasePlugin]
     }
 
     static interface CustomLanguageSourceSet extends LanguageSourceSet {}

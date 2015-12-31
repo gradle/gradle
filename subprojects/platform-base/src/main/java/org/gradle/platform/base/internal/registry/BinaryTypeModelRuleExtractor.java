@@ -17,7 +17,6 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.inspect.ExtractedModelRule;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -28,6 +27,7 @@ import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.binary.internal.BinarySpecFactory;
+import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
 import java.util.List;
 
@@ -69,7 +69,7 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
 
         @Override
         public List<? extends Class<?>> getRuleDependencies() {
-            return ImmutableList.of(ComponentModelBasePlugin.class);
+            return ImmutableList.of(BinaryBasePlugin.class);
         }
     }
 }

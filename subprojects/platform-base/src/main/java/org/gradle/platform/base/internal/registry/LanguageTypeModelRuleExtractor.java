@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetFactory;
-import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.inspect.ExtractedModelRule;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
@@ -86,7 +86,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
 
         @Override
         public List<? extends Class<?>> getRuleDependencies() {
-            return ImmutableList.of(ComponentModelBasePlugin.class);
+            return ImmutableList.of(LanguageBasePlugin.class);
         }
     }
 }
