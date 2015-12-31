@@ -25,6 +25,7 @@ import org.gradle.internal.Cast;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 
@@ -93,6 +94,11 @@ public class ModelProperty<T> {
 
     private WeaklyTypeReferencingMethod<?, T> firstGetter() {
         return getters.get(0);
+    }
+
+    @Nullable
+    public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
+        return firstGetter().getMethod().getAnnotation(annotationType);
     }
 
     public List<WeaklyTypeReferencingMethod<?, T>> getGetters() {

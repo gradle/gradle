@@ -92,12 +92,7 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
 
     @Override
     public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-        for (Annotation annotation : method.getAnnotations()) {
-            if (annotationType.isAssignableFrom(annotation.getClass())) {
-                return Cast.uncheckedCast(annotation);
-            }
-        }
-        return null;
+        return method.getMethod().getAnnotation(annotationType);
     }
 
     public ModelRuleDescriptor getDescriptor() {

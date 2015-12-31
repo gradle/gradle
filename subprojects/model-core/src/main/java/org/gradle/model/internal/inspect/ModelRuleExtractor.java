@@ -30,7 +30,9 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
+import org.gradle.model.RuleInput;
 import org.gradle.model.RuleSource;
+import org.gradle.model.RuleTarget;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.GeneratedViewState;
@@ -73,7 +75,6 @@ public class ModelRuleExtractor {
                 return original.getDescription();
             }
         }));
-
         return "[" + desc + "]";
     }
 
@@ -108,8 +109,11 @@ public class ModelRuleExtractor {
         methods.addAll(Arrays.asList(source.getDeclaredMethods()));
 
         ImmutableList.Builder<ModelProperty<?>> implicitInputs = ImmutableList.builder();
+        ModelProperty<?> target = null;
         for (ModelProperty<?> property : schema.getProperties()) {
-            if (!(property.getSchema() instanceof ScalarValueSchema)) {
+            if (property.getAnnotation(RuleTarget.class) != null) {
+                target = property;
+            } else if (property.getAnnotation(RuleInput.class) != null && !(property.getSchema() instanceof ScalarValueSchema)) {
                 implicitInputs.add(property);
             }
             for (WeaklyTypeReferencingMethod<?, ?> method : property.getGetters()) {
@@ -136,7 +140,7 @@ public class ModelRuleExtractor {
         if (schema.getProperties().isEmpty()) {
             return new StatelessRuleSource(rules.build(), Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema, proxyFactory) : new ConcreteRuleSourceFactory<T>(type));
         } else {
-            return new ParameterizedRuleSource(rules.build(), implicitInputs.build(), schema, proxyFactory);
+            return new ParameterizedRuleSource(rules.build(), target, implicitInputs.build(), schema, proxyFactory);
         }
     }
 
@@ -322,12 +326,15 @@ public class ModelRuleExtractor {
 
     private static class ParameterizedRuleSource implements CachedRuleSource {
         private final List<ExtractedRuleDetails> rules;
+        @Nullable
+        private final ModelProperty<?> target;
         private final List<ModelProperty<?>> implicitInputs;
         private final StructSchema<?> schema;
         private final ManagedProxyFactory proxyFactory;
 
-        public <T> ParameterizedRuleSource(List<ExtractedRuleDetails> rules, List<ModelProperty<?>> implicitInputs, StructSchema<T> schema, ManagedProxyFactory proxyFactory) {
+        public <T> ParameterizedRuleSource(List<ExtractedRuleDetails> rules, @Nullable ModelProperty<?> target, List<ModelProperty<?>> implicitInputs, StructSchema<T> schema, ManagedProxyFactory proxyFactory) {
             this.rules = rules;
+            this.target = target;
             this.implicitInputs = implicitInputs;
             this.schema = schema;
             this.proxyFactory = proxyFactory;
@@ -336,7 +343,7 @@ public class ModelRuleExtractor {
         @Override
         public <T> ExtractedRuleSource<T> newInstance(Class<T> source) {
             StructSchema<T> schema = Cast.uncheckedCast(this.schema);
-            return new ParameterizedExtractedRuleSource<T>(rules, implicitInputs, schema, proxyFactory);
+            return new ParameterizedExtractedRuleSource<T>(rules, target, implicitInputs, schema, proxyFactory);
         }
     }
 
@@ -368,7 +375,7 @@ public class ModelRuleExtractor {
 
         @Override
         public void apply(final ModelRegistry modelRegistry, MutableModelNode target) {
-            final ModelPath targetPath = target.getPath();
+            final ModelPath targetPath = calculateTarget(target);
             for (final ExtractedRuleDetails details : rules) {
                 details.rule.apply(new MethodModelRuleApplicationContext() {
                     @Override
@@ -407,6 +414,10 @@ public class ModelRuleExtractor {
                     }
                 }, target);
             }
+        }
+
+        protected ModelPath calculateTarget(MutableModelNode target) {
+            return target.getPath();
         }
 
         private void mapInputs(List<ModelReference<?>> inputs, ModelPath targetPath) {
@@ -471,13 +482,16 @@ public class ModelRuleExtractor {
     }
 
     private static class ParameterizedExtractedRuleSource<T> extends DefaultExtractedRuleSource<T> implements GeneratedViewState, Factory<T> {
+        @Nullable
+        private final ModelProperty<?> targetProperty;
         private final List<ModelProperty<?>> implicitInputs;
         private final StructSchema<T> schema;
         private final ManagedProxyFactory proxyFactory;
         private final Map<String, Object> values = new HashMap<String, Object>();
 
-        public ParameterizedExtractedRuleSource(List<ExtractedRuleDetails> rules, List<ModelProperty<?>> implicitInputs, StructSchema<T> schema, ManagedProxyFactory proxyFactory) {
+        public ParameterizedExtractedRuleSource(List<ExtractedRuleDetails> rules, @Nullable ModelProperty<?> targetProperty, List<ModelProperty<?>> implicitInputs, StructSchema<T> schema, ManagedProxyFactory proxyFactory) {
             super(rules);
+            this.targetProperty = targetProperty;
             this.implicitInputs = implicitInputs;
             this.schema = schema;
             this.proxyFactory = proxyFactory;
@@ -506,6 +520,14 @@ public class ModelRuleExtractor {
         @Override
         public void set(String name, Object value) {
             values.put(name, value);
+        }
+
+        @Override
+        protected ModelPath calculateTarget(MutableModelNode target) {
+            if (targetProperty != null) {
+                return ((ManagedInstance) values.get(targetProperty.getName())).getBackingNode().getPath();
+            }
+            return target.getPath();
         }
 
         @Override

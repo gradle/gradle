@@ -32,6 +32,7 @@ public interface MethodRuleDefinition<R, S> {
 
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 
+    @Nullable
     <A extends Annotation> A getAnnotation(Class<A> annotationType);
 
     ModelType<R> getReturnType();

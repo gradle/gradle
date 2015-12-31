@@ -252,6 +252,7 @@ model {
 interface SomeThings {
     Thing getThingA()
     Thing getThingB()
+    Thing getThingC()
 }
 
 @Managed
@@ -279,9 +280,15 @@ abstract class CalculateName extends RuleSource {
     abstract void setThing(Thing t)
 
     @Defaults
-    void defaultName(@Path('thingB') Thing thingB) {
+    void defaultB(@Path('thingB') Thing thingB) {
         assert thing.name == 'thing a from dsl'
         thingB.name = thing.name
+    }
+
+    @Finalize
+    void defaultC(@Path('thingC') Thing thingC) {
+        assert thing.name == 'thing a from dsl'
+        thingC.name = 'thing c from rule'
     }
 }
 
@@ -301,6 +308,7 @@ model {
                 def things = $.things
                 println "thingA = " + things.thingA.name
                 println "thingB = " + things.thingB.name
+                println "thingC = " + things.thingC.name
             }
         }
     }
@@ -313,6 +321,84 @@ model {
         then:
         output.contains("thingA = thing a from dsl")
         output.contains("thingB = thing b from dsl")
+        output.contains("thingC = thing c from rule")
+    }
+
+    def "element referenced by @RuleTarget property is treated target of RuleSource"() {
+        buildFile << '''
+@Managed
+interface SomeThings {
+    Thing getThingA()
+    Thing getThingB()
+}
+
+@Managed
+interface Thing {
+    String getName()
+    void setName(String name)
+    Address getAddress()
+}
+
+@Managed
+interface Address {
+    String getName()
+    void setName(String name)
+}
+
+class MyPlugin extends RuleSource {
+    @Model
+    void things(SomeThings t) {
+    }
+
+    @Rules
+    void rules(CalculateName rules, SomeThings t) {
+        assert rules.thing == null
+        rules.thing = t.thingA
+        assert rules.thing == t.thingA
+    }
+}
+
+abstract class CalculateName extends RuleSource {
+    @RuleTarget
+    abstract Thing getThing()
+    abstract void setThing(Thing t)
+
+    @Mutate
+    void name(Thing subject) {
+        assert subject == thing
+        subject.name = 'thing a from rule'
+        subject.address.name = 'address a from rule'
+    }
+
+    @Mutate
+    void name(Address address) {
+        assert address == thing.address
+        assert address.name == 'address a from rule'
+        address.name = 'modified address'
+    }
+}
+
+apply plugin: MyPlugin
+
+model {
+    tasks {
+        show(Task) {
+            doLast {
+                def things = $.things
+                println "thingA = " + things.thingA.name
+                println "thingA.address = " + things.thingA.address.name
+            }
+        }
+    }
+}
+'''
+
+        when:
+        run 'show'
+
+        then:
+        output.contains("thingA = thing a from rule")
+        output.contains("thingA.address = modified address")
     }
 
     def "reports exception thrown by @Rules method"() {
