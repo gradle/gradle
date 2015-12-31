@@ -151,13 +151,13 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyToSelf(ModelActionRole role, ModelAction<?> action) {
+    public void applyToSelf(ModelActionRole role, ModelAction action) {
         DefaultModelRegistry.checkNodePath(this, action);
         modelRegistry.bind(action.getSubject(), role, action);
     }
 
     @Override
-    public void applyToLink(ModelActionRole type, ModelAction<?> action) {
+    public void applyToLink(ModelActionRole type, ModelAction action) {
         if (!getPath().isDirectChild(action.getSubject().getPath())) {
             throw new IllegalArgumentException(String.format("Linked element action reference has a path (%s) which is not a child of this node (%s).", action.getSubject().getPath(), getPath()));
         }
@@ -177,7 +177,7 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction<?> action) {
+    public void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction action) {
         modelRegistry.configureMatching(predicate.scope(getPath()), role, action);
     }
 

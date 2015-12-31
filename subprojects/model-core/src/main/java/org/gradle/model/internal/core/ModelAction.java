@@ -20,9 +20,9 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
-public interface ModelAction<T> {
+public interface ModelAction {
 
-    ModelReference<T> getSubject();
+    ModelReference<?> getSubject();
 
     void execute(MutableModelNode modelNode, List<ModelView<?>> inputs);
 

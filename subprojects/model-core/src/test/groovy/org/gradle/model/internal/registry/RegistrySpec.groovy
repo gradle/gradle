@@ -71,7 +71,7 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        def void applyToSelf(ModelActionRole type, ModelAction<?> action) {
+        def void applyToSelf(ModelActionRole type, ModelAction action) {
 
         }
 
@@ -81,12 +81,12 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        def void applyToLink(ModelActionRole type, ModelAction<?> action) {
+        def void applyToLink(ModelActionRole type, ModelAction action) {
 
         }
 
         @Override
-        void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction<?> action) {
+        void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction action) {
 
         }
 

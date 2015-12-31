@@ -36,8 +36,8 @@ public class ManagedModelInitializer<T> extends AbstractManagedModelInitializer<
     }
 
     @Override
-    public Multimap<ModelActionRole, ModelAction<?>> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
-        return ImmutableSetMultimap.<ModelActionRole, ModelAction<?>>builder()
+    public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+        return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
             .put(ModelActionRole.Discover, DirectNodeInputUsingModelAction.of(subject, descriptor,
                 Arrays.<ModelReference<?>>asList(
                     ModelReference.of(ManagedProxyFactory.class),

@@ -69,7 +69,7 @@ public interface MutableModelNode extends ModelNode {
     /**
      * Applies an action to this node.
      */
-    void applyToSelf(ModelActionRole type, ModelAction<?> action);
+    void applyToSelf(ModelActionRole type, ModelAction action);
 
     /**
      * Applies an action to all linked nodes of this node that satisfy the given predicate.
@@ -78,14 +78,14 @@ public interface MutableModelNode extends ModelNode {
      * such that the action is applied only to those linked nodes with a view of the requested type available that
      * also satisfy the predicate.
      */
-    void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction<?> action);
+    void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction action);
 
     /**
      * Applies an action to a linked node.
      *
      * The path returned by {@link ModelAction#getSubject()} is used to select the link to apply the action to.
      */
-    void applyToLink(ModelActionRole type, ModelAction<?> action);
+    void applyToLink(ModelActionRole type, ModelAction action);
 
     /**
      * Applies the rules defined in the given rule source to this node.
@@ -100,7 +100,7 @@ public interface MutableModelNode extends ModelNode {
     /**
      * Applies an action that defines further rules in the given role to the child of this node that is addressed by the subject of the action.
      */
-    void defineRulesForLink(ModelActionRole role, ModelAction<?> action);
+    void defineRulesForLink(ModelActionRole role, ModelAction action);
 
     /**
      * Applies a rule source to all linked nodes of this node that satisfy the given predicate.
@@ -117,7 +117,7 @@ public interface MutableModelNode extends ModelNode {
      * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
      * requested type available.
      */
-    void defineRulesFor(NodePredicate predicate, ModelActionRole role, ModelAction<?> action);
+    void defineRulesFor(NodePredicate predicate, ModelActionRole role, ModelAction action);
 
     boolean hasLink(String name, Predicate<? super MutableModelNode> predicate);
 

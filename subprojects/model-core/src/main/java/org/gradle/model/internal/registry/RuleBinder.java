@@ -30,14 +30,14 @@ import java.util.List;
 public class RuleBinder {
 
     private final ModelBinding subjectBinding;
-    private final ModelAction<?> action;
+    private final ModelAction action;
     private final List<BindingPredicate> inputReferences;
     private final Collection<RuleBinder> binders;
 
     private int inputsBound;
     private final List<ModelBinding> inputBindings;
 
-    public RuleBinder(BindingPredicate subjectReference, List<BindingPredicate> inputReferences, ModelAction<?> action, Collection<RuleBinder> binders) {
+    public RuleBinder(BindingPredicate subjectReference, List<BindingPredicate> inputReferences, ModelAction action, Collection<RuleBinder> binders) {
         this.action = action;
         this.inputReferences = inputReferences;
         this.binders = binders;
@@ -100,7 +100,7 @@ public class RuleBinder {
     /**
      * Returns the rule being bound.
      */
-    public ModelAction<?> getAction() {
+    public ModelAction getAction() {
         return action;
     }
 

@@ -102,7 +102,7 @@ public interface ModelRegistry {
 
     ModelRegistry register(ModelRegistration registration);
 
-    ModelRegistry configure(ModelActionRole role, ModelAction<?> action);
+    ModelRegistry configure(ModelActionRole role, ModelAction action);
 
     MutableModelNode getRoot();
 }

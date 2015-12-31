@@ -54,7 +54,7 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         apply(registration, mockRegistry)
 
         then:
-        1 * mockRegistry.configure(_, _) >> { ModelActionRole role, ModelAction<?> action ->
+        1 * mockRegistry.configure(_, _) >> { ModelActionRole role, ModelAction action ->
             assert role == ModelActionRole.Mutate
             assert action.subject == ModelReference.of(FACTORY_REGISTRY_TYPE)
         }

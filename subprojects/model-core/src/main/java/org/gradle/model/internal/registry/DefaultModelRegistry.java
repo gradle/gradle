@@ -67,7 +67,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
-    public void registerNode(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction<?>> actions) {
+    public void registerNode(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction> actions) {
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
         // ModelPath.validateName(name);
 
@@ -76,10 +76,10 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         ruleBindings.nodeCreated(node);
     }
 
-    private void addRuleBindings(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction<?>> actions) {
-        for (Map.Entry<ModelActionRole, ? extends ModelAction<?>> entry : actions.entries()) {
+    private void addRuleBindings(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction> actions) {
+        for (Map.Entry<ModelActionRole, ? extends ModelAction> entry : actions.entries()) {
             ModelActionRole role = entry.getKey();
-            ModelAction<?> action = entry.getValue();
+            ModelAction action = entry.getValue();
             checkNodePath(node, action);
             RuleBinder binder = bindInternal(action.getSubject(), role, action);
             node.addRegistrationActionBinder(binder);
@@ -87,13 +87,13 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
-    public DefaultModelRegistry configure(ModelActionRole role, ModelAction<?> action) {
+    public DefaultModelRegistry configure(ModelActionRole role, ModelAction action) {
         bindInternal(action.getSubject(), role, action);
         return this;
     }
 
     @Override
-    public ModelRegistry configureMatching(ModelPredicate predicate, final ModelActionRole role, final ModelAction<?> action) {
+    public ModelRegistry configureMatching(ModelPredicate predicate, final ModelActionRole role, final ModelAction action) {
         if (action.getSubject().getPath() != null) {
             throw new IllegalArgumentException("Linked element action reference must have null path.");
         }
@@ -132,18 +132,18 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         return ruleExtractor.extract(rules);
     }
 
-    static void checkNodePath(ModelNodeInternal node, ModelAction<?> action) {
+    static void checkNodePath(ModelNodeInternal node, ModelAction action) {
         if (!node.getPath().equals(action.getSubject().getPath())) {
             throw new IllegalArgumentException(String.format("Element action reference has path (%s) which does not reference this node (%s).", action.getSubject().getPath(), node.getPath()));
         }
     }
 
     @Override
-    public <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator) {
+    public <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction mutator) {
         bindInternal(subject, role, mutator);
     }
 
-    private <T> RuleBinder bindInternal(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator) {
+    private <T> RuleBinder bindInternal(ModelReference<T> subject, ModelActionRole role, ModelAction mutator) {
         BindingPredicate mappedSubject = mapSubject(subject, role);
         List<BindingPredicate> mappedInputs = mapInputs(mutator.getInputs());
         RuleBinder binder = new RuleBinder(mappedSubject, mappedInputs, mutator, unboundRules);
@@ -427,7 +427,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         final List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction().getDescriptor());
         ModelBinding subjectBinding = boundMutator.getSubjectBinding();
         final ModelNodeInternal node = subjectBinding.getNode();
-        final ModelAction<?> mutator = boundMutator.getAction();
+        final ModelAction mutator = boundMutator.getAction();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
 
         LOGGER.debug("Mutating {} using {}", node.getPath(), descriptor);
@@ -935,7 +935,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
                 .build();
             ModelReferenceNode childNode = new ModelReferenceNode(registration, parent);
             childNode.setTarget(childTarget);
-            registerNode(childNode, ImmutableMultimap.<ModelActionRole, ModelAction<?>>of());
+            registerNode(childNode, ImmutableMultimap.<ModelActionRole, ModelAction>of());
             ruleBindings.nodeDiscovered(childNode);
         }
 

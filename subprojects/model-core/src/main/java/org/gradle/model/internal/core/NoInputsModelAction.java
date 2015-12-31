@@ -30,7 +30,7 @@ public class NoInputsModelAction<T> extends AbstractModelActionWithView<T> {
         this.configAction = configAction;
     }
 
-    public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
+    public static <T> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
         return new NoInputsModelAction<T>(reference, descriptor, configAction);
     }
 

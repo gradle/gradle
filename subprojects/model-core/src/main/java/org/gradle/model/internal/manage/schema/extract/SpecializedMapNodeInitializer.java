@@ -36,12 +36,12 @@ public class SpecializedMapNodeInitializer<T, E> implements NodeInitializer {
     }
 
     @Override
-    public Multimap<ModelActionRole, ModelAction<?>> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+    public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
         return getActions(subject, descriptor, schema);
     }
 
-    public static <T, E> Multimap<ModelActionRole, ModelAction<?>> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor, final SpecializedMapSchema<T, E> schema) {
-        return ImmutableSetMultimap.<ModelActionRole, ModelAction<?>>builder()
+    public static <T, E> Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor, final SpecializedMapSchema<T, E> schema) {
+        return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
             .put(ModelActionRole.Discover, DirectNodeNoInputsModelAction.of(subject, descriptor,
                 new Action<MutableModelNode>() {
                     @Override

@@ -31,5 +31,5 @@ public interface MethodModelRuleApplicationContext {
      *
      * The returned action invokes the provided action with a {@link ModelRuleInvoker} contextualized with implicit inputs.
      */
-    ModelAction<?> contextualize(MethodRuleDefinition<?, ?> ruleDefinition, MethodRuleAction action);
+    ModelAction contextualize(MethodRuleDefinition<?, ?> ruleDefinition, MethodRuleAction action);
 }

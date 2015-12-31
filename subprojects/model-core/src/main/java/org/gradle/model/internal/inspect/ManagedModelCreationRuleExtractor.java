@@ -103,9 +103,9 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
                     public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                         NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
                         NodeInitializer initializer = getNodeInitializer(descriptor, modelSchema, nodeInitializerRegistry);
-                        for (Map.Entry<ModelActionRole, ModelAction<?>> actionInRole : initializer.getActions(ModelReference.of(modelPath), descriptor).entries()) {
+                        for (Map.Entry<ModelActionRole, ModelAction> actionInRole : initializer.getActions(ModelReference.of(modelPath), descriptor).entries()) {
                             ModelActionRole role = actionInRole.getKey();
-                            ModelAction<?> action = actionInRole.getValue();
+                            ModelAction action = actionInRole.getValue();
                             node.applyToSelf(role, action);
                         }
                     }

@@ -87,7 +87,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             ModelReference<C> subject = ModelReference.of(componentType);
             ComponentBinariesRule<S, C> componentBinariesRule = new ComponentBinariesRule<S, C>(subject, componentType, binaryType, ruleDefinition);
-            ModelAction<?> componentBinariesAction = context.contextualize(ruleDefinition, componentBinariesRule);
+            ModelAction componentBinariesAction = context.contextualize(ruleDefinition, componentBinariesRule);
             target.applyTo(allDescendants(), ModelActionRole.Finalize, componentBinariesAction);
         }
 

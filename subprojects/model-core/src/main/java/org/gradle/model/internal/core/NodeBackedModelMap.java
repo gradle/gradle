@@ -49,7 +49,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         }
 
         @Override
-        public <S> void validateCanBindAction(MutableModelNode node, ModelAction<S> action) {}
+        public void validateCanBindAction(MutableModelNode node, ModelAction action) {}
 
         @Override
         public void validateCanCreateElement(ModelPath path, ModelType<?> type) {}
@@ -118,8 +118,8 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
             public <S extends T> NodeInitializer initializer(final ModelType<S> type) {
                 return new NodeInitializer() {
                     @Override
-                    public Multimap<ModelActionRole, ModelAction<?>> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
-                        return ImmutableSetMultimap.<ModelActionRole, ModelAction<?>>builder()
+                    public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
+                        return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
                             .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor,
                                 UnmanagedModelProjection.of(type)
                             ))
@@ -294,7 +294,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         }
     }
 
-    private <S extends T> void doCreate(ModelPath childPath, ModelType<S> type, ModelRuleDescriptor descriptor, @Nullable ModelAction<?> initAction) {
+    private <S extends T> void doCreate(ModelPath childPath, ModelType<S> type, ModelRuleDescriptor descriptor, @Nullable ModelAction initAction) {
         viewState.assertCanMutate();
         elementFilter.validateCanCreateElement(childPath, type);
 
@@ -358,7 +358,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append("named(%s)", name);
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.applyToLink(ModelActionRole.Mutate, new FilteringActionWrapper<T>(elementFilter, NoInputsModelAction.of(subject, descriptor, configAction)));
+        modelNode.applyToLink(ModelActionRole.Mutate, new FilteringActionWrapper<T>(elementFilter, subject, NoInputsModelAction.of(subject, descriptor, configAction)));
     }
 
     @Override
@@ -366,14 +366,14 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append("named(%s, %s)", name, ruleSource.getName());
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.defineRulesForLink(ModelActionRole.Defaults, new FilteringActionWrapper<T>(elementFilter, DirectNodeNoInputsModelAction.of(subject, descriptor, new ApplyRuleSource(ruleSource))));
+        modelNode.defineRulesForLink(ModelActionRole.Defaults, new FilteringActionWrapper<T>(elementFilter, subject, DirectNodeNoInputsModelAction.of(subject, descriptor, new ApplyRuleSource(ruleSource))));
     }
 
     // Called from transformed DSL rules
     public void named(String name, final DeferredModelAction action) {
         viewState.assertCanMutate();
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.applyToLink(ModelActionRole.Initialize, new FilteringActionWrapper<T>(elementFilter, new DeferredActionWrapper<T>(subject, ModelActionRole.Mutate, action)));
+        modelNode.applyToLink(ModelActionRole.Initialize, new FilteringActionWrapper<T>(elementFilter, subject, new DeferredActionWrapper<T>(subject, ModelActionRole.Mutate, action)));
     }
 
     @Override
@@ -471,7 +471,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
             }
         }
 
-        public abstract <S> void validateCanBindAction(MutableModelNode node, ModelAction<S> action);
+        public abstract void validateCanBindAction(MutableModelNode node, ModelAction action);
 
         public abstract void validateCanCreateElement(ModelPath path, ModelType<?> type);
     }
@@ -491,7 +491,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         }
 
         @Override
-        public <S> void validateCanBindAction(MutableModelNode node, ModelAction<S> action) {
+        public void validateCanBindAction(MutableModelNode node, ModelAction action) {
             node.ensureAtLeast(ModelNode.State.Discovered);
             if (!node.canBeViewedAs(elementType)) {
                 throw new InvalidModelRuleException(action.getDescriptor(), new ModelRuleBindingException(
@@ -529,10 +529,10 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     private static class FilteringActionWrapper<T> extends AbstractModelAction<T> {
 
         private final ElementFilter elementFilter;
-        private final ModelAction<T> delegate;
+        private final ModelAction delegate;
 
-        public FilteringActionWrapper(ElementFilter elementFilter, ModelAction<T> delegate) {
-            super(delegate.getSubject(), delegate.getDescriptor(), delegate.getInputs());
+        public FilteringActionWrapper(ElementFilter elementFilter, ModelReference<T> subject, ModelAction delegate) {
+            super(subject, delegate.getDescriptor(), delegate.getInputs());
             this.elementFilter = elementFilter;
             this.delegate = delegate;
         }

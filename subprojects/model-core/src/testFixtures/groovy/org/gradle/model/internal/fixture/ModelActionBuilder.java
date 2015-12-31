@@ -75,7 +75,7 @@ public class ModelActionBuilder<T> {
         return copy(type);
     }
 
-    public ModelAction<T> action(final Action<? super T> action) {
+    public ModelAction action(final Action<? super T> action) {
         return build(NO_REFS, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
             @Override
             public void execute(MutableModelNode mutableModelNode, T t, List<ModelView<?>> inputs) {
@@ -84,31 +84,31 @@ public class ModelActionBuilder<T> {
         });
     }
 
-    public ModelAction<T> node(final Action<? super MutableModelNode> action) {
+    public ModelAction node(final Action<? super MutableModelNode> action) {
         return toAction(action, path, type, descriptor);
     }
 
-    public <I> ModelAction<T> action(ModelPath modelPath, Class<I> inputType, BiAction<? super T, ? super I> action) {
+    public <I> ModelAction action(ModelPath modelPath, Class<I> inputType, BiAction<? super T, ? super I> action) {
         return action(modelPath, ModelType.of(inputType), action);
     }
 
-    public <I> ModelAction<T> action(String modelPath, Class<I> inputType, BiAction<? super T, ? super I> action) {
+    public <I> ModelAction action(String modelPath, Class<I> inputType, BiAction<? super T, ? super I> action) {
         return action(ModelPath.path(modelPath), ModelType.of(inputType), action);
     }
 
-    public <I> ModelAction<T> action(ModelPath modelPath, ModelType<I> inputType, BiAction<? super T, ? super I> action) {
+    public <I> ModelAction action(ModelPath modelPath, ModelType<I> inputType, BiAction<? super T, ? super I> action) {
         return action(modelPath, inputType, inputType.toString(), action);
     }
 
-    public <I> ModelAction<T> action(String modelPath, ModelType<I> inputType, BiAction<? super T, ? super I> action) {
+    public <I> ModelAction action(String modelPath, ModelType<I> inputType, BiAction<? super T, ? super I> action) {
         return action(modelPath, inputType, modelPath, action);
     }
 
-    public <I> ModelAction<T> action(final ModelPath modelPath, final ModelType<I> inputType, String referenceDescription, final BiAction<? super T, ? super I> action) {
+    public <I> ModelAction action(final ModelPath modelPath, final ModelType<I> inputType, String referenceDescription, final BiAction<? super T, ? super I> action) {
         return action(ModelReference.of(modelPath, inputType, referenceDescription), action);
     }
 
-    public <I> ModelAction<T> action(final ModelReference<I> inputReference, final BiAction<? super T, ? super I> action) {
+    public <I> ModelAction action(final ModelReference<I> inputReference, final BiAction<? super T, ? super I> action) {
         return build(Collections.<ModelReference<?>>singletonList(inputReference), new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
             @Override
             public void execute(MutableModelNode mutableModelNode, T t, List<ModelView<?>> inputs) {
@@ -117,23 +117,23 @@ public class ModelActionBuilder<T> {
         });
     }
 
-    public <I> ModelAction<T> action(final String modelPath, final ModelType<I> inputType, String referenceDescription, final BiAction<? super T, ? super I> action) {
+    public <I> ModelAction action(final String modelPath, final ModelType<I> inputType, String referenceDescription, final BiAction<? super T, ? super I> action) {
         return action(ModelPath.path(modelPath), inputType, referenceDescription, action);
     }
 
-    public <I> ModelAction<T> action(final ModelType<I> inputType, final BiAction<? super T, ? super I> action) {
+    public <I> ModelAction action(final ModelType<I> inputType, final BiAction<? super T, ? super I> action) {
         return action((ModelPath) null, inputType, action);
     }
 
-    public <I> ModelAction<T> action(final Class<I> inputType, final BiAction<? super T, ? super I> action) {
+    public <I> ModelAction action(final Class<I> inputType, final BiAction<? super T, ? super I> action) {
         return action(ModelType.of(inputType), action);
     }
 
-    private ModelAction<T> build(List<ModelReference<?>> references, TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
+    private ModelAction build(List<ModelReference<?>> references, TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
         return toAction(references, action, path, type, descriptor);
     }
 
-    private static <T> ModelAction<T> toAction(final List<ModelReference<?>> references, final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
+    private static <T> ModelAction toAction(final List<ModelReference<?>> references, final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
         return DirectNodeInputUsingModelAction.of(subject(path, type), descriptor, references, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
             @Override
             public void execute(MutableModelNode modelNode, T t, List<ModelView<?>> inputs) {
@@ -142,7 +142,7 @@ public class ModelActionBuilder<T> {
         });
     }
 
-    private static <T> ModelAction<T> toAction(Action<? super MutableModelNode> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
+    private static <T> ModelAction toAction(Action<? super MutableModelNode> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
         return DirectNodeNoInputsModelAction.of(subject(path, type), descriptor, action);
     }
 

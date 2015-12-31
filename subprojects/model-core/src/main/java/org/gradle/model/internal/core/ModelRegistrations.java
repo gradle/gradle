@@ -87,7 +87,7 @@ abstract public class ModelRegistrations {
     public static class Builder {
         private final ModelReference<Object> reference;
         private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
-        private final ListMultimap<ModelActionRole, ModelAction<?>> actions = ArrayListMultimap.create();
+        private final ListMultimap<ModelActionRole, ModelAction> actions = ArrayListMultimap.create();
         private final NodeInitializer nodeInitializer;
         private final DescriptorReference descriptorReference = new DescriptorReference();
         private boolean hidden;
@@ -110,7 +110,7 @@ abstract public class ModelRegistrations {
             return this;
         }
 
-        public Builder action(ModelActionRole role, ModelAction<?> action) {
+        public Builder action(ModelActionRole role, ModelAction action) {
             this.actions.put(role, action);
             return this;
         }
@@ -127,7 +127,7 @@ abstract public class ModelRegistrations {
             return action(role, new InputsUsingBuilderAction(reference, descriptorReference, inputs, action));
         }
 
-        public Builder actions(Multimap<ModelActionRole, ? extends ModelAction<?>> actions) {
+        public Builder actions(Multimap<ModelActionRole, ? extends ModelAction> actions) {
             this.actions.putAll(actions);
             return this;
         }
@@ -157,7 +157,7 @@ abstract public class ModelRegistrations {
             private ModelRuleDescriptor descriptor;
         }
 
-        private static abstract class AbstractBuilderAction implements ModelAction<Object> {
+        private static abstract class AbstractBuilderAction implements ModelAction {
             private final ModelReference<Object> subject;
             private final DescriptorReference descriptorReference;
 

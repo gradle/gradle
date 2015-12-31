@@ -37,7 +37,7 @@ public class DirectNodeInputUsingModelAction<T> extends AbstractModelActionWithV
         return new DirectNodeInputUsingModelAction<T>(modelReference, descriptor, inputs, action);
     }
 
-    public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> input, final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> action) {
+    public static <T> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> input, final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> action) {
         return new AbstractModelAction<T>(reference, descriptor, input) {
             @Override
             public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
@@ -46,7 +46,7 @@ public class DirectNodeInputUsingModelAction<T> extends AbstractModelActionWithV
         };
     }
 
-    public static <T, I> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, ModelReference<I> input, final BiAction<? super MutableModelNode, ? super I> action) {
+    public static <T, I> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, ModelReference<I> input, final BiAction<? super MutableModelNode, ? super I> action) {
         return new AbstractModelAction<T>(reference, descriptor, input) {
             @Override
             public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
@@ -55,7 +55,7 @@ public class DirectNodeInputUsingModelAction<T> extends AbstractModelActionWithV
         };
     }
 
-    public static <T, I, J> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, ModelReference<I> input1, ModelReference<J> input2, final TriAction<? super MutableModelNode, ? super I, ? super J> action) {
+    public static <T, I, J> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, ModelReference<I> input1, ModelReference<J> input2, final TriAction<? super MutableModelNode, ? super I, ? super J> action) {
         return new AbstractModelAction<T>(reference, descriptor, input1, input2) {
             @Override
             public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {

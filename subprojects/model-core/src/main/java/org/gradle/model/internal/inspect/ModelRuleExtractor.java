@@ -377,19 +377,19 @@ public class ModelRuleExtractor {
                     }
 
                     @Override
-                    public ModelAction<?> contextualize(MethodRuleDefinition<?, ?> ruleDefinition, final MethodRuleAction action) {
+                    public ModelAction contextualize(MethodRuleDefinition<?, ?> ruleDefinition, final MethodRuleAction action) {
                         final List<ModelReference<?>> inputs = withImplicitInputs(action.getInputs());
                         final ModelReference<?> mappedSubject = mapSubject(action.getSubject(), targetPath);
                         mapInputs(inputs.subList(0, action.getInputs().size()), targetPath);
-                        return new ModelAction<Object>() {
+                        return new ModelAction() {
                             @Override
                             public ModelRuleDescriptor getDescriptor() {
                                 return details.method.getDescriptor();
                             }
 
                             @Override
-                            public ModelReference<Object> getSubject() {
-                                return Cast.uncheckedCast(mappedSubject);
+                            public ModelReference<?> getSubject() {
+                                return mappedSubject;
                             }
 
                             @Override
