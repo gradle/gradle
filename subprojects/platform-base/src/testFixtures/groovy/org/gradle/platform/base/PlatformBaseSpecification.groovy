@@ -24,7 +24,7 @@ import org.gradle.model.internal.type.ModelTypes
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class PlatformBaseSpecification extends Specification {
+abstract class PlatformBaseSpecification extends Specification {
     final def project = TestUtil.createRootProject()
 
     ModelMap<Task> realizeTasks() {

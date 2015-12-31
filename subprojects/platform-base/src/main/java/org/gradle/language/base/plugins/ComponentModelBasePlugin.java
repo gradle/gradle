@@ -42,6 +42,7 @@ import org.gradle.platform.base.binary.internal.BinarySpecFactory;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.*;
+import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -68,6 +69,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
+        project.getPluginManager().apply(BinaryBasePlugin.class);
 
         modelRegistry.getRoot().applyTo(allDescendants(withType(ComponentSpec.class)), ComponentRules.class);
         modelRegistry.getRoot().applyTo(allDescendants(withType(ComponentSpec.class)), ComponentBinaryRules.class);

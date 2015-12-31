@@ -55,7 +55,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                               | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
                               | Rules:
                                  ⤷ ComponentBinaryRules#initializeBinarySourceSets > components.myComponent.getBinaries() > beforeEach()
-                                 ⤷ LanguageBasePlugin.apply()
+                                 ⤷ BinaryBasePlugin.apply()
                                  ⤷ DeclarationRules#mutateMyBinary
                             + sources
                                   | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
@@ -118,7 +118,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                               | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
                               | Rules:
                                  ⤷ ComponentBinaryRules#initializeBinarySourceSets > components.myComponent.getBinaries() > beforeEach()
-                                 ⤷ LanguageBasePlugin.apply()
+                                 ⤷ BinaryBasePlugin.apply()
                                  ⤷ DeclarationRules#mutateMyBinary
                             + data
                                   | Type:   	java.lang.String

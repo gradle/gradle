@@ -15,73 +15,38 @@
  */
 package org.gradle.language.base.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.BaseBinaryRules;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
-import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
-import org.gradle.model.*;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.Model;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
+import org.gradle.model.Validate;
+import org.gradle.model.internal.core.Hidden;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
-import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.platform.base.*;
-import org.gradle.platform.base.binary.BaseBinarySpec;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-
-import javax.inject.Inject;
-
-import static org.gradle.model.internal.core.NodePredicate.allDescendants;
-import static org.gradle.model.internal.core.NodePredicate.allLinks;
+import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.LanguageTypeBuilder;
 
 /**
  * Base plugin for language support.
  *
- * Adds a {@link BinarySpec} container named {@code binaries} to the project. Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
- *
- * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
+ * - Adds a {@link ProjectSourceSet} named {@code sources} to the project.
+ * - Registers the base {@link LanguageSourceSet} type.
  */
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
-
-    private final ModelRegistry modelRegistry;
-
-    @Inject
-    public LanguageBasePlugin(ModelRegistry modelRegistry) {
-        this.modelRegistry = modelRegistry;
-    }
-
-    public void apply(final Project target) {
+    public void apply(Project target) {
         target.getPluginManager().apply(LifecycleBasePlugin.class);
-        applyRules(modelRegistry);
-    }
-
-    private void applyRules(ModelRegistry modelRegistry) {
-        SimpleModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(LanguageBasePlugin.class.getSimpleName() + ".apply()");
-        modelRegistry.configure(ModelActionRole.Defaults,
-                DirectNodeNoInputsModelAction.of(ModelReference.of("binaries"),
-                        ruleDescriptor,
-                        new Action<MutableModelNode>() {
-                            @Override
-                            public void execute(MutableModelNode binariesNode) {
-                                binariesNode.applyTo(allLinks(), BaseBinaryRules.class);
-                            }
-                        }));
-
-        modelRegistry.getRoot().applyTo(allDescendants(),
-                ModelActionRole.Defaults,
-                DirectNodeNoInputsModelAction.of(
-                        ModelReference.of(BinarySpec.class),
-                        ruleDescriptor,
-                        ComponentSpecInitializer.binaryAction()));
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -90,16 +55,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
         @Model
         LanguageSourceSetFactory languageSourceSetFactory(ServiceRegistry serviceRegistry) {
             return new LanguageSourceSetFactory("sourceSets", serviceRegistry.get(FileResolver.class));
-        }
-
-        @Model
-        void binaries(BinaryContainer binaries) {
-        }
-
-        @BinaryType
-        void registerBaseBinarySpec(BinaryTypeBuilder<BinarySpec> builder) {
-            builder.defaultImplementation(BaseBinarySpec.class);
-            builder.internalView(BinarySpecInternal.class);
         }
 
         @LanguageType
@@ -121,17 +76,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
         @Validate
         void validateLanguageSourceSetRegistrations(LanguageSourceSetFactory instanceFactory) {
             instanceFactory.validateRegistrations();
-        }
-
-        @Mutate
-        void copyBinaryTasksToTaskContainer(TaskContainer tasks, ModelMap<BinarySpec> binaries) {
-            for (BinarySpec binary : binaries) {
-                tasks.addAll(binary.getTasks());
-                Task buildTask = binary.getBuildTask();
-                if (buildTask != null) {
-                    tasks.add(buildTask);
-                }
-            }
         }
     }
 }
