@@ -31,8 +31,8 @@ class TestProxyServer extends ExternalResource {
     private HttpProxyServer proxyServer
     private HttpServer httpServer
     private portFinder = FixedAvailablePortAllocator.getInstance()
-    private File trustStore
-    private String trustStorePassword
+    private File keyStore
+    private String keyStorePassword
 
     int port
     int requestCount
@@ -41,10 +41,10 @@ class TestProxyServer extends ExternalResource {
         this.httpServer = httpServer
     }
 
-    TestProxyServer(HttpServer httpServer, File trustStore, String trustStorePassword) {
+    TestProxyServer(HttpServer httpServer, File keyStore, String keyStorePassword) {
         this(httpServer)
-        this.trustStore = trustStore
-        this.trustStorePassword = trustStorePassword
+        this.keyStore = keyStore
+        this.keyStorePassword = keyStorePassword
     }
 
     @Override
@@ -56,8 +56,8 @@ class TestProxyServer extends ExternalResource {
         port = portFinder.assignPort()
         String remote = "localhost:${httpServer.port}"
         KeyStoreManager keyStoreManager = null
-        if (trustStore != null) {
-            keyStoreManager = new TestKeyStoreManager(trustStore, trustStorePassword)
+        if (keyStore != null) {
+            keyStoreManager = new TestKeyStoreManager(keyStore, keyStorePassword)
         }
         proxyServer = new DefaultHttpProxyServer(port, [:], remote, keyStoreManager, new HttpRequestFilter() {
             void filter(HttpRequest httpRequest) {
@@ -81,12 +81,12 @@ class TestProxyServer extends ExternalResource {
     }
 
     private static class TestKeyStoreManager implements KeyStoreManager {
-        private File trustStore
-        private String trustStorePassword
+        private File keyStore
+        private String keyStorePassword
 
-        TestKeyStoreManager(File trustStore, String trustStorePassword) {
-            this.trustStore = trustStore
-            this.trustStorePassword = trustStorePassword
+        TestKeyStoreManager(File keyStore, String keyStorePassword) {
+            this.keyStore = keyStore
+            this.keyStorePassword = keyStorePassword
         }
 
         @Override
@@ -99,17 +99,17 @@ class TestProxyServer extends ExternalResource {
 
         @Override
         InputStream keyStoreAsInputStream() {
-            return new FileInputStream(trustStore)
+            return new FileInputStream(keyStore)
         }
 
         @Override
         char[] getCertificatePassword() {
-            return trustStorePassword.toCharArray()
+            return keyStorePassword.toCharArray()
         }
 
         @Override
         char[] getKeyStorePassword() {
-            return trustStorePassword.toCharArray()
+            return keyStorePassword.toCharArray()
         }
 
         @Override
