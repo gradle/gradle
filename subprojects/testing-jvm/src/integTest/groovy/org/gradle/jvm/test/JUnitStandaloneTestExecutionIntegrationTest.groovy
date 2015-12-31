@@ -58,34 +58,39 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         failure.assertHasCause "Cannot resolve external dependency junit:junit:4.12 because no repositories are defined."
     }
 
+    @Unroll("Fails if no JUnit version is specified for a test suite declared under #container")
     def "fails if no JUnit version is specified"() {
         given:
         applyJUnitPlugin()
 
         and:
-        buildFile << '''
+        buildFile << """
             model {
-                components {
+                $container {
                     myTest(JUnitTestSuiteSpec)
                 }
             }
-        '''
+        """
 
         when:
         fails 'components'
 
         then:
         failure.assertHasCause "Test suite 'myTest' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example."
+
+        where:
+        container << ['testSuites', 'components']
     }
 
+    @Unroll("Fails if no JUnit version is specified even if found in dependencies for a test suite declared under #container")
     def "fails if no JUnit version is specified even if found in dependencies"() {
         given:
         applyJUnitPlugin()
 
         and:
-        buildFile << '''
+        buildFile << """
             model {
-                components {
+                $container {
                     myTest(JUnitTestSuiteSpec) {
                         sources {
                             java {
@@ -95,13 +100,16 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
                     }
                 }
             }
-        '''
+        """
 
         when:
         fails 'components'
 
         then:
         failure.assertHasCause "Test suite 'myTest' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example."
+
+        where:
+        container << ['testSuites', 'components']
     }
 
     @Unroll("Executes a passing test suite with a JUnit component and #sourceconfig.description")
@@ -195,6 +203,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         sourceconfig << SourceSetConfiguration.values()
     }
 
+    @Unroll("Can have multiple JUnit test suites in a single project under #container")
     def "can have multiple JUnit test suites in a single project"() {
         given:
         applyJUnitPlugin()
@@ -203,7 +212,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         suites.each {
             buildFile << """
             model {
-                components {
+                $container {
                     ${it}(JUnitTestSuiteSpec) ${SourceSetConfiguration.NONE.configuration}
                 }
             }"""
@@ -221,6 +230,9 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         noExceptionThrown()
         executedAndNotSkipped(suites.collect { ":compile${it.capitalize()}Binary${it.capitalize()}Java" } as String[])
         executedAndNotSkipped(suites.collect { ":${it}BinaryTest" } as String[])
+
+        where:
+        container << ['testSuites', 'components']
     }
 
     def "assemble does not compile nor run test suite"() {
@@ -373,7 +385,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         and:
         buildFile << """
             model {
-                components {
+                testSuites {
                     myTest(JUnitTestSuiteSpec) {
                         jUnitVersion '4.12'
                         sources {
