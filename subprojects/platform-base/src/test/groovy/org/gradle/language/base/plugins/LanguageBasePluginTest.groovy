@@ -16,59 +16,68 @@
 
 package org.gradle.language.base.plugins
 
-import org.gradle.api.Task
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.api.tasks.TaskContainer
-import org.gradle.language.base.ProjectSourceSet
-import org.gradle.model.ModelMap
+import org.gradle.api.DefaultTask
 import org.gradle.platform.base.BinarySpec
-import org.gradle.platform.base.internal.BinarySpecInternal
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.platform.base.PlatformBaseSpecification
 
-import static org.gradle.model.internal.type.ModelTypes.modelMap
-
-class LanguageBasePluginTest extends Specification {
-    DefaultProject project = TestUtil.createRootProject()
-
-    def setup() {
-        project.pluginManager.apply(LanguageBasePlugin)
-    }
-
+class LanguageBasePluginTest extends PlatformBaseSpecification {
     def "adds a 'binaries' container to the project model"() {
-        expect:
-        project.modelRegistry.find("binaries", modelMap(BinarySpec)) != null
+        when:
+        dsl {
+            apply plugin: LanguageBasePlugin
+        }
+
+        then:
+        realizeBinaries() != null
     }
 
     def "adds a 'sources' container to the project model"() {
-        expect:
-        project.modelRegistry.find("sources", ProjectSourceSet) != null
+        when:
+        dsl {
+            apply plugin: LanguageBasePlugin
+        }
+
+        then:
+        realizeSourceSets() != null
+    }
+
+    def "defines a build lifecycle task for each binary"() {
+        when:
+        dsl {
+            apply plugin: LanguageBasePlugin
+            model {
+                binaries {
+                    bin1(BinarySpec)
+                    bin2(BinarySpec)
+                }
+            }
+        }
+
+        then:
+        def binaries = realizeBinaries()
+        binaries.size() == 2
+        binaries.bin1.buildTask instanceof DefaultTask
+        binaries.bin1.buildTask.name == 'bin1'
+        binaries.bin2.buildTask instanceof DefaultTask
+        binaries.bin2.buildTask.name == 'bin2'
     }
 
     def "copies binary tasks into task container"() {
-        def tasks = Mock(TaskContainer)
-        def binaries = Mock(ModelMap)
-        def binary = Mock(BinarySpecInternal)
-        def binaryTasks = new DefaultBinaryTasksCollection(binary, Mock(ITaskFactory))
-        def someTask = Mock(Task) { getName() >> "someTask" }
-        def buildTask = Mock(Task) { getName() >> "lifecycleTask" }
-        binaryTasks.add(someTask)
-
         when:
-        def rules = new LanguageBasePlugin.Rules()
-        rules.copyBinaryTasksToTaskContainer(tasks, binaries)
+        dsl {
+            apply plugin: LanguageBasePlugin
+            model {
+                binaries {
+                    bin1(BinarySpec)
+                    bin2(BinarySpec)
+                }
+            }
+        }
 
         then:
-        binaries.iterator() >> [binary].iterator()
-        binary.name >> "binaryName"
-        binary.toString() >> "binary foo"
-        binary.getTasks() >> binaryTasks
-        binary.getBuildTask() >> buildTask
-
-        and:
-        1 * tasks.addAll(binaryTasks)
-        1 * tasks.add(buildTask)
+        def tasks = realizeTasks()
+        def binaries = realizeBinaries()
+        tasks.bin1 == binaries.bin1.buildTask
+        tasks.bin2 == binaries.bin2.buildTask
     }
 }
