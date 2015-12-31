@@ -54,6 +54,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         ruleBindings = new RuleBindings(modelGraph);
     }
 
+    @Override
     public DefaultModelRegistry register(ModelRegistration registration) {
         ModelPath path = registration.getPath();
         if (!ModelPath.ROOT.isDirectChild(path)) {
