@@ -241,6 +241,10 @@ Previously, you could directly set the `archiveName`.  `version`, `appendix` and
 - Deprecated `CollectionBuilder` interface removed.
 - Deprecated `ManagedSet` interface removed.
 - The `assemble` task now builds only those binaries for components defined in `components`. It does not build binaries for test suites defined in `testSuites`.
+- The `LanguageBasePlugin` has been split into two separate plugins: `LanguageBasePlugin` and `BinaryBasePlugin`.
+- The `LanguageBasePlugin` no longer applies the full component model.
+- The `@LanguageType` annotation implicitly applies only the `LanguageBasePlugin`. 
+- The `@BinaryType` annotation implicitly applies only the `BinaryBasePlugin`. 
 
 ### TestKit indicates compatibility for target Gradle version
 
