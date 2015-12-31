@@ -18,27 +18,18 @@ package org.gradle.language
 
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Plugin
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.ModelMap
 import org.gradle.nativeplatform.NativeBinary
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
-import org.gradle.platform.base.BinarySpec
-import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.util.GFileUtils
-import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-import static org.gradle.model.internal.type.ModelTypes.modelMap
-
-abstract class AbstractNativeComponentPluginTest extends Specification {
-    final def project = TestUtil.createRootProject()
-
+abstract class AbstractNativeComponentPluginTest extends PlatformBaseSpecification {
     abstract Class<? extends Plugin> getPluginClass();
 
     abstract Class<? extends LanguageSourceSet> getSourceSetClass();
@@ -46,18 +37,6 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
     abstract Class<? extends Task> getCompileTaskClass();
 
     abstract String getPluginName();
-
-    ModelMap<ComponentSpec> realizeComponents() {
-        project.modelRegistry.realize("components", modelMap(ComponentSpec))
-    }
-
-    ProjectSourceSet realizeSourceSets() {
-        project.modelRegistry.find("sources", ProjectSourceSet)
-    }
-
-    ModelMap<BinarySpec> realizeBinaries() {
-        project.modelRegistry.find("binaries", modelMap(BinarySpec))
-    }
 
     def "creates source set with conventional locations for components"() {
         when:
@@ -189,12 +168,5 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
 
     def touch(String filePath) {
         GFileUtils.touch(project.file(filePath))
-    }
-
-    def dsl(@DelegatesTo(Project) Closure closure) {
-        closure.delegate = project
-        closure()
-        project.tasks.realize()
-        project.bindAllModelRules()
     }
 }

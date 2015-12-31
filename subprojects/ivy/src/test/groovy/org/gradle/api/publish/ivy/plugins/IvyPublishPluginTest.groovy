@@ -15,19 +15,15 @@
  */
 
 package org.gradle.api.publish.ivy.plugins
-import org.gradle.api.internal.project.ProjectInternal
+
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
-import org.gradle.api.tasks.TaskContainer
 import org.gradle.internal.xml.XmlTransformer
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.platform.base.PlatformBaseSpecification
 
-class IvyPublishPluginTest extends Specification {
-
-    ProjectInternal project = TestUtil.createRootProject()
+class IvyPublishPluginTest extends PlatformBaseSpecification {
     PublishingExtension publishing
 
     def setup() {
@@ -49,15 +45,11 @@ class IvyPublishPluginTest extends Specification {
         publishing.publications.test instanceof DefaultIvyPublication
     }
 
-    void closeTaskContainer() {
-        project.modelRegistry.get("tasks", TaskContainer)
-    }
-
     def "creates publish task for publication and repository"() {
         when:
         publishing.publications.create("test", IvyPublication)
         publishing.repositories { ivy { url = "http://foo.com" } }
-        closeTaskContainer()
+        realizeTasks()
         def publishTask = project.tasks["publishTestPublicationToIvyRepository"]
 
         then:
