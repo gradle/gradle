@@ -40,6 +40,7 @@ public class ReportGenerator {
 
             copyResource("jquery.min-1.11.0.js", outputDirectory);
             copyResource("flot-0.8.1-min.js", outputDirectory);
+            copyResource("flot.selection.min.js", outputDirectory);
             copyResource("style.css", outputDirectory);
             copyResource("report.js", outputDirectory);
         } catch (Exception e) {

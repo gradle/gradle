@@ -52,6 +52,9 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                 .src(rootDir + "js/flot-0.8.1-min.js")
                 .end();
         html.script()
+                .src(rootDir + "js/flot.selection.min.js")
+                .end();
+        html.script()
                 .src(rootDir + "js/report.js")
                 .end();
     }
