@@ -89,7 +89,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
             }
         }
         def registry = Stub(ModelRegistry) {
-            configure(_, _, _) >> { ModelActionRole role, ModelAction action, ModelPath scope ->
+            configure(_, _) >> { ModelActionRole role, ModelAction action ->
                 action.execute(registryNode, [])
             }
         }

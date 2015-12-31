@@ -34,6 +34,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.GeneratedViewState;
+import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
@@ -275,7 +276,6 @@ public class ModelRuleExtractor {
     private static class AbstractRuleSourceFactory<T> implements Factory<T>, GeneratedViewState {
         private final StructSchema<T> schema;
         private final ManagedProxyFactory proxyFactory;
-        private final Map<String, Object> values = new HashMap<String, Object>();
 
         public AbstractRuleSourceFactory(StructSchema<T> schema, ManagedProxyFactory proxyFactory) {
             this.schema = schema;
@@ -289,12 +289,12 @@ public class ModelRuleExtractor {
 
         @Override
         public Object get(String name) {
-            return values.get(name);
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public void set(String name, Object value) {
-            values.put(name, value);
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -311,7 +311,7 @@ public class ModelRuleExtractor {
         private final DefaultExtractedRuleSource<?> ruleSource;
 
         public <T> StatelessRuleSource(List<ExtractedRuleDetails> rules, Factory<T> factory) {
-            this.ruleSource = new DefaultExtractedRuleSource<T>(rules, factory);
+            this.ruleSource = new StatelessExtractedRuleSource<T>(rules, factory);
         }
 
         @Override
@@ -336,7 +336,7 @@ public class ModelRuleExtractor {
         @Override
         public <T> ExtractedRuleSource<T> newInstance(Class<T> source) {
             StructSchema<T> schema = Cast.uncheckedCast(this.schema);
-            return new DefaultExtractedRuleSource<T>(rules, new AbstractRuleSourceFactory<T>(schema, proxyFactory));
+            return new ParameterizedExtractedRuleSource<T>(rules, implicitInputs, schema, proxyFactory);
         }
     }
 
@@ -350,13 +350,11 @@ public class ModelRuleExtractor {
         }
     }
 
-    private static class DefaultExtractedRuleSource<T> implements ExtractedRuleSource<T> {
+    private static abstract class DefaultExtractedRuleSource<T> implements ExtractedRuleSource<T> {
         private final List<ExtractedRuleDetails> rules;
-        private final Factory<T> factory;
 
-        public DefaultExtractedRuleSource(List<ExtractedRuleDetails> rules, Factory<T> factory) {
+        public DefaultExtractedRuleSource(List<ExtractedRuleDetails> rules) {
             this.rules = rules;
-            this.factory = factory;
         }
 
         public List<ExtractedModelRule> getRules() {
@@ -370,6 +368,7 @@ public class ModelRuleExtractor {
 
         @Override
         public void apply(final ModelRegistry modelRegistry, MutableModelNode target) {
+            final ModelPath targetPath = target.getPath();
             for (final ExtractedRuleDetails details : rules) {
                 details.rule.apply(new MethodModelRuleApplicationContext() {
                     @Override
@@ -379,6 +378,9 @@ public class ModelRuleExtractor {
 
                     @Override
                     public ModelAction<?> contextualize(MethodRuleDefinition<?, ?> ruleDefinition, final MethodRuleAction action) {
+                        final List<ModelReference<?>> inputs = withImplicitInputs(action.getInputs());
+                        final ModelReference<?> mappedSubject = mapSubject(action.getSubject(), targetPath);
+                        mapInputs(inputs.subList(0, action.getInputs().size()), targetPath);
                         return new ModelAction<Object>() {
                             @Override
                             public ModelRuleDescriptor getDescriptor() {
@@ -387,24 +389,47 @@ public class ModelRuleExtractor {
 
                             @Override
                             public ModelReference<Object> getSubject() {
-                                return Cast.uncheckedCast(action.getSubject());
+                                return Cast.uncheckedCast(mappedSubject);
                             }
 
                             @Override
                             public List<? extends ModelReference<?>> getInputs() {
-                                return action.getInputs();
+                                return inputs;
                             }
 
                             @Override
                             public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
                                 WeaklyTypeReferencingMethod<Object, Object> method = Cast.uncheckedCast(details.method.getMethod());
-                                ModelRuleInvoker<Object> invoker = new DefaultModelRuleInvoker<Object, Object>(method, factory);
-                                action.execute(invoker, modelNode, inputs);
+                                ModelRuleInvoker<Object> invoker = new DefaultModelRuleInvoker<Object, Object>(method, getFactory());
+                                action.execute(invoker, modelNode, inputs.subList(0, action.getInputs().size()));
                             }
                         };
                     }
                 }, target);
             }
+        }
+
+        private void mapInputs(List<ModelReference<?>> inputs, ModelPath targetPath) {
+            for (int i = 0; i < inputs.size(); i++) {
+                ModelReference<?> input = inputs.get(i);
+                if (input.getPath() != null) {
+                    inputs.set(i, input.withPath(targetPath.descendant(input.getPath())));
+                } else {
+                    inputs.set(i, input.inScope(ModelPath.ROOT));
+                }
+            }
+        }
+
+        private ModelReference<?> mapSubject(ModelReference<?> subject, ModelPath targetPath) {
+            if (subject.getPath() == null) {
+                return subject.inScope(targetPath);
+            } else {
+                return subject.withPath(targetPath.descendant(subject.getPath()));
+            }
+        }
+
+        protected List<ModelReference<?>> withImplicitInputs(List<? extends ModelReference<?>> inputs) {
+            return new ArrayList<ModelReference<?>>(inputs);
         }
 
         @Override
@@ -429,10 +454,69 @@ public class ModelRuleExtractor {
                 }
             }
         }
+    }
+
+    private static class StatelessExtractedRuleSource<T> extends DefaultExtractedRuleSource<T> {
+        private final Factory<T> factory;
+
+        public StatelessExtractedRuleSource(List<ExtractedRuleDetails> rules, Factory<T> factory) {
+            super(rules);
+            this.factory = factory;
+        }
 
         @Override
         public Factory<? extends T> getFactory() {
             return factory;
+        }
+    }
+
+    private static class ParameterizedExtractedRuleSource<T> extends DefaultExtractedRuleSource<T> implements GeneratedViewState, Factory<T> {
+        private final List<ModelProperty<?>> implicitInputs;
+        private final StructSchema<T> schema;
+        private final ManagedProxyFactory proxyFactory;
+        private final Map<String, Object> values = new HashMap<String, Object>();
+
+        public ParameterizedExtractedRuleSource(List<ExtractedRuleDetails> rules, List<ModelProperty<?>> implicitInputs, StructSchema<T> schema, ManagedProxyFactory proxyFactory) {
+            super(rules);
+            this.implicitInputs = implicitInputs;
+            this.schema = schema;
+            this.proxyFactory = proxyFactory;
+        }
+
+        @Override
+        public Factory<? extends T> getFactory() {
+            return this;
+        }
+
+        @Override
+        public T create() {
+            return proxyFactory.createProxy(this, schema);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "rule source " + schema.getType().getDisplayName();
+        }
+
+        @Override
+        public Object get(String name) {
+            return values.get(name);
+        }
+
+        @Override
+        public void set(String name, Object value) {
+            values.put(name, value);
+        }
+
+        @Override
+        protected List<ModelReference<?>> withImplicitInputs(List<? extends ModelReference<?>> inputs) {
+            List<ModelReference<?>> allInputs = new ArrayList<ModelReference<?>>(inputs.size() + implicitInputs.size());
+            allInputs.addAll(inputs);
+            for (ModelProperty<?> property : implicitInputs) {
+                ManagedInstance value = (ManagedInstance) values.get(property.getName());
+                allInputs.add(ModelReference.of(value.getBackingNode().getPath()));
+            }
+            return allInputs;
         }
     }
 }

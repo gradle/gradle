@@ -246,6 +246,75 @@ model {
         output.contains("p1 = default")
     }
 
+    def "elements referenced by @RuleInput property is treated as implicit input of rules on RuleSource"() {
+        buildFile << '''
+@Managed
+interface SomeThings {
+    Thing getThingA()
+    Thing getThingB()
+}
+
+@Managed
+interface Thing {
+    String getName()
+    void setName(String name)
+}
+
+class MyPlugin extends RuleSource {
+    @Model
+    void things(SomeThings t) {
+    }
+
+    @Rules
+    void rules(CalculateName rules, SomeThings t) {
+        assert rules.thing == null
+        rules.thing = t.thingA
+        assert rules.thing == t.thingA
+    }
+}
+
+abstract class CalculateName extends RuleSource {
+    @RuleInput
+    abstract Thing getThing()
+    abstract void setThing(Thing t)
+
+    @Defaults
+    void defaultName(@Path('thingB') Thing thingB) {
+        assert thing.name == 'thing a from dsl'
+        thingB.name = thing.name
+    }
+}
+
+apply plugin: MyPlugin
+
+model {
+    things.thingA {
+        name = 'thing a from dsl'
+    }
+    things.thingB {
+        assert name == 'thing a from dsl'
+        name = 'thing b from dsl'
+    }
+    tasks {
+        show(Task) {
+            doLast {
+                def things = $.things
+                println "thingA = " + things.thingA.name
+                println "thingB = " + things.thingB.name
+            }
+        }
+    }
+}
+'''
+
+        when:
+        run 'show'
+
+        then:
+        output.contains("thingA = thing a from dsl")
+        output.contains("thingB = thing b from dsl")
+    }
+
     def "reports exception thrown by @Rules method"() {
         buildFile << '''
 class MyPlugin extends RuleSource {

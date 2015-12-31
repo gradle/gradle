@@ -20,7 +20,6 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.ModelAction
 import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
@@ -55,7 +54,7 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         apply(registration, mockRegistry)
 
         then:
-        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->
+        1 * mockRegistry.configure(_, _) >> { ModelActionRole role, ModelAction<?> action ->
             assert role == ModelActionRole.Mutate
             assert action.subject == ModelReference.of(FACTORY_REGISTRY_TYPE)
         }

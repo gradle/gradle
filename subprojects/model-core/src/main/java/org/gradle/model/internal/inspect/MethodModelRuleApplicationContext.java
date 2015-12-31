@@ -22,5 +22,14 @@ import org.gradle.model.internal.registry.ModelRegistry;
 public interface MethodModelRuleApplicationContext {
     ModelRegistry getRegistry();
 
+    /**
+     * Contextualizes the given action.
+     *
+     * - Resolved subject and input paths relative to the target element.
+     * - Resolves subject type references relative to the target element.
+     * - Adds implicit inputs.
+     *
+     * The returned action invokes the provided action with a {@link ModelRuleInvoker} contextualized with implicit inputs.
+     */
     ModelAction<?> contextualize(MethodRuleDefinition<?, ?> ruleDefinition, MethodRuleAction action);
 }

@@ -26,7 +26,7 @@ interface ModelRegistryInternal extends ModelRegistry {
 
     void registerNode(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction<?>> actions);
 
-    <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator, ModelPath scope);
+    <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator);
 
     ModelRegistry configureMatching(ModelPredicate predicate, ModelActionRole role, ModelAction<?> action);
 

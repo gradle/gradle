@@ -402,7 +402,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         extractor.extract(MutationRules).apply(registry, node())
 
         then:
-        1 * registry.configure(ModelActionRole.Mutate, _, _) >> { ModelActionRole role, ModelAction action, def scope ->
+        1 * registry.configure(ModelActionRole.Mutate, _) >> { ModelActionRole role, ModelAction action ->
             assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationRules#mutate1'
         }
         0 * registry._
@@ -433,7 +433,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         extractor.extract(MutationAndFinalizeRules).apply(registry, node())
 
         then:
-        1 * registry.configure(ModelActionRole.Finalize, _, _) >> { ModelActionRole role, ModelAction action, def scope ->
+        1 * registry.configure(ModelActionRole.Finalize, _) >> { ModelActionRole role, ModelAction action ->
             assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#finalize1'
         }
     }
@@ -447,17 +447,17 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         extractor.extract(MutationAndFinalizeRules).apply(registry, node)
 
         then:
-        1 * registry.configure(ModelActionRole.Finalize, _, _) >> { ModelActionRole role, ModelAction action, def scope ->
+        1 * registry.configure(ModelActionRole.Finalize, _) >> { ModelActionRole role, ModelAction action ->
             assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#finalize1'
         }
 
         then:
-        1 * registry.configure(ModelActionRole.Mutate, _, _) >> { ModelActionRole role, ModelAction action, def scope ->
+        1 * registry.configure(ModelActionRole.Mutate, _) >> { ModelActionRole role, ModelAction action ->
             assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#mutate1'
         }
 
         then:
-        1 * registry.configure(ModelActionRole.Mutate, _, _) >> { ModelActionRole role, ModelAction action, def scope ->
+        1 * registry.configure(ModelActionRole.Mutate, _) >> { ModelActionRole role, ModelAction action ->
             assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#mutate3'
         }
         0 * registry._

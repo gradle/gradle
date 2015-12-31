@@ -22,7 +22,6 @@ import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.ModelAction
 import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.BinaryContainer
@@ -94,7 +93,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         apply(registration, mockRegistry)
 
         then:
-        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->
+        1 * mockRegistry.configure(_, _) >> { ModelActionRole role, ModelAction<?> action ->
             assert role == ModelActionRole.Defaults
             assert action.subject == ModelReference.of("binaries", BinaryContainer.class)
         }

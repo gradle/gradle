@@ -80,20 +80,14 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             ModelActionRole role = entry.getKey();
             ModelAction<?> action = entry.getValue();
             checkNodePath(node, action);
-            RuleBinder binder = bindInternal(action.getSubject(), role, action, ModelPath.ROOT);
+            RuleBinder binder = bindInternal(action.getSubject(), role, action);
             node.addRegistrationActionBinder(binder);
         }
     }
 
     @Override
     public DefaultModelRegistry configure(ModelActionRole role, ModelAction<?> action) {
-        bind(action.getSubject(), role, action, ModelPath.ROOT);
-        return this;
-    }
-
-    @Override
-    public ModelRegistry configure(ModelActionRole role, ModelAction<?> action, ModelPath scope) {
-        bind(action.getSubject(), role, action, scope);
+        bindInternal(action.getSubject(), role, action);
         return this;
     }
 
@@ -113,7 +107,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
             @Override
             public boolean onDiscovered(ModelNodeInternal node) {
-                bind(ModelReference.of(node.getPath(), subjectType), role, action, ModelPath.ROOT);
+                bind(ModelReference.of(node.getPath(), subjectType), role, action);
                 return false;
             }
         });
@@ -144,13 +138,13 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
-    public <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator, ModelPath scope) {
-        bindInternal(subject, role, mutator, scope);
+    public <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator) {
+        bindInternal(subject, role, mutator);
     }
 
-    private <T> RuleBinder bindInternal(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator, ModelPath scope) {
-        BindingPredicate mappedSubject = mapSubject(subject, role, scope);
-        List<BindingPredicate> mappedInputs = mapInputs(mutator.getInputs(), scope);
+    private <T> RuleBinder bindInternal(ModelReference<T> subject, ModelActionRole role, ModelAction<?> mutator) {
+        BindingPredicate mappedSubject = mapSubject(subject, role);
+        List<BindingPredicate> mappedInputs = mapInputs(mutator.getInputs());
         RuleBinder binder = new RuleBinder(mappedSubject, mappedInputs, mutator, unboundRules);
         ruleBindings.add(binder);
         return binder;
@@ -473,29 +467,23 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         return modelGraph.find(path);
     }
 
-    private BindingPredicate mapSubject(ModelReference<?> subjectReference, ModelActionRole role, ModelPath scope) {
+    private BindingPredicate mapSubject(ModelReference<?> subjectReference, ModelActionRole role) {
         if (!role.isSubjectViewAvailable() && !subjectReference.isUntyped()) {
             throw new IllegalStateException(String.format("Cannot bind subject '%s' to role '%s' because it is targeting a type and subject types are not yet available in that role", subjectReference, role));
         }
-        ModelReference<?> mappedReference;
-        if (subjectReference.getPath() == null) {
-            mappedReference = subjectReference.inScope(scope);
-        } else {
-            mappedReference = subjectReference.withPath(scope.descendant(subjectReference.getPath()));
-        }
-        return new BindingPredicate(mappedReference.atState(role.getTargetState()));
+        return new BindingPredicate(subjectReference.atState(role.getTargetState()));
     }
 
-    private List<BindingPredicate> mapInputs(List<? extends ModelReference<?>> inputs, ModelPath scope) {
+    private List<BindingPredicate> mapInputs(List<? extends ModelReference<?>> inputs) {
         if (inputs.isEmpty()) {
             return Collections.emptyList();
         }
         ArrayList<BindingPredicate> result = new ArrayList<BindingPredicate>(inputs.size());
         for (ModelReference<?> input : inputs) {
-            if (input.getPath() != null) {
-                result.add(new BindingPredicate(input.withPath(scope.descendant(input.getPath()))));
-            } else {
+            if (input.getPath() == null && input.getScope() == null) {
                 result.add(new BindingPredicate(input.inScope(ModelPath.ROOT)));
+            } else {
+                result.add(new BindingPredicate(input));
             }
         }
         return result;

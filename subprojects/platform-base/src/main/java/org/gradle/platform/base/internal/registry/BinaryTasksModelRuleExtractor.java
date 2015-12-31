@@ -118,7 +118,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
                             modelNode.applyTo(allLinks(), ModelActionRole.Finalize, binaryTaskAction);
                         }
                     }
-            ), target.getPath());
+            ));
         }
 
         @Override

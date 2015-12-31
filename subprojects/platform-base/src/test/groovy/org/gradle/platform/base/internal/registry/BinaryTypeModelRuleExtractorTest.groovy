@@ -21,7 +21,6 @@ import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.ModelAction
 import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
@@ -59,7 +58,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         apply(registration, mockRegistry)
 
         then:
-        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->
+        1 * mockRegistry.configure(_, _) >> { ModelActionRole role, ModelAction<?> action ->
             assert role == ModelActionRole.Mutate
             assert action.subject == ModelReference.of(BinarySpecFactory)
         }
