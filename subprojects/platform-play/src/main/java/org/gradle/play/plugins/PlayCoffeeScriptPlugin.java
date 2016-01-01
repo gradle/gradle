@@ -16,16 +16,14 @@
 
 package org.gradle.play.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
+import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet;
 import org.gradle.language.coffeescript.internal.DefaultCoffeeScriptSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
@@ -52,7 +50,7 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Incubating
-public class PlayCoffeeScriptPlugin extends RuleSource {
+public class PlayCoffeeScriptPlugin implements Plugin<Project> {
     private static final String DEFAULT_COFFEESCRIPT_VERSION = "1.8.0";
     private static final String DEFAULT_RHINO_VERSION = "1.7R4";
 
@@ -64,56 +62,63 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
         return String.format("org.mozilla:rhino:%s", DEFAULT_RHINO_VERSION);
     }
 
-    @LanguageType
-    void registerCoffeeScript(LanguageTypeBuilder<CoffeeScriptSourceSet> builder) {
-        builder.setLanguageName("coffeeScript");
-        builder.defaultImplementation(DefaultCoffeeScriptSourceSet.class);
+    @Override
+    public void apply(Project target) {
+        target.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
-    @Mutate
-    void createCoffeeScriptSourceSets(ModelMap<PlayApplicationSpec> components) {
-        components.afterEach(new Action<PlayApplicationSpec>() {
-            @Override
-            public void execute(PlayApplicationSpec playComponent) {
-                playComponent.getSources().create("coffeeScript", CoffeeScriptSourceSet.class, new Action<CoffeeScriptSourceSet>() {
-                    @Override
-                    public void execute(CoffeeScriptSourceSet coffeeScriptSourceSet) {
-                        coffeeScriptSourceSet.getSource().srcDir("app/assets");
-                        coffeeScriptSourceSet.getSource().include("**/*.coffee");
-                    }
-                });
-            }
-        });
-    }
+    static class Rules extends RuleSource {
+        @LanguageType
+        void registerCoffeeScript(LanguageTypeBuilder<CoffeeScriptSourceSet> builder) {
+            builder.setLanguageName("coffeeScript");
+            builder.defaultImplementation(DefaultCoffeeScriptSourceSet.class);
+        }
 
-    @Mutate
-    void createGeneratedJavaScriptSourceSets(ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
-        final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-        binaries.all(new Action<PlayApplicationBinarySpecInternal>() {
-            @Override
-            public void execute(PlayApplicationBinarySpecInternal playApplicationBinarySpec) {
-                for (CoffeeScriptSourceSet coffeeScriptSourceSet : playApplicationBinarySpec.getInputs().withType(CoffeeScriptSourceSet.class)) {
-                    playApplicationBinarySpec.addGeneratedJavaScript(coffeeScriptSourceSet, fileResolver);
+        @Mutate
+        void createCoffeeScriptSourceSets(ModelMap<PlayApplicationSpec> components) {
+            components.afterEach(new Action<PlayApplicationSpec>() {
+                @Override
+                public void execute(PlayApplicationSpec playComponent) {
+                    playComponent.getSources().create("coffeeScript", CoffeeScriptSourceSet.class, new Action<CoffeeScriptSourceSet>() {
+                        @Override
+                        public void execute(CoffeeScriptSourceSet coffeeScriptSourceSet) {
+                            coffeeScriptSourceSet.getSource().srcDir("app/assets");
+                            coffeeScriptSourceSet.getSource().include("**/*.coffee");
+                        }
+                    });
                 }
-            }
-        });
-    }
+            });
+        }
 
-    // TODO:DAZ This should not need to be `@BinaryTasks`
-    @BinaryTasks
-    void configureCoffeeScriptCompileDefaults(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary) {
-        tasks.beforeEach(PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
-            @Override
-            public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
-                coffeeScriptCompile.setRhinoClasspathNotation(getDefaultRhinoDependencyNotation());
-                coffeeScriptCompile.setCoffeeScriptJsNotation(getDefaultCoffeeScriptDependencyNotation());
-            }
-        });
-    }
+        @Mutate
+        void createGeneratedJavaScriptSourceSets(ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
+            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+            binaries.all(new Action<PlayApplicationBinarySpecInternal>() {
+                @Override
+                public void execute(PlayApplicationBinarySpecInternal playApplicationBinarySpec) {
+                    for (CoffeeScriptSourceSet coffeeScriptSourceSet : playApplicationBinarySpec.getInputs().withType(CoffeeScriptSourceSet.class)) {
+                        playApplicationBinarySpec.addGeneratedJavaScript(coffeeScriptSourceSet, fileResolver);
+                    }
+                }
+            });
+        }
 
-    @Mutate
-    void registerLanguageTransform(LanguageTransformContainer languages) {
-        languages.add(new CoffeeScript());
+        // TODO:DAZ This should not need to be `@BinaryTasks`
+        @BinaryTasks
+        void configureCoffeeScriptCompileDefaults(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary) {
+            tasks.beforeEach(PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
+                @Override
+                public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
+                    coffeeScriptCompile.setRhinoClasspathNotation(getDefaultRhinoDependencyNotation());
+                    coffeeScriptCompile.setCoffeeScriptJsNotation(getDefaultCoffeeScriptDependencyNotation());
+                }
+            });
+        }
+
+        @Mutate
+        void registerLanguageTransform(LanguageTransformContainer languages) {
+            languages.add(new CoffeeScript());
+        }
     }
 
     private static class CoffeeScript implements LanguageTransform<CoffeeScriptSourceSet, JavaScriptSourceCode> {
