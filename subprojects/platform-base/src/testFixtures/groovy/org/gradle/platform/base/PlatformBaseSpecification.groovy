@@ -45,7 +45,10 @@ abstract class PlatformBaseSpecification extends Specification {
     }
 
     BinaryContainer realizeBinaries() {
-        project.modelRegistry.find("binaries", BinaryContainer)
+        def binaries = project.modelRegistry.find("binaries", BinaryContainer)
+        // Currently some rules take the task container as subject but actually mutate the binaries
+        realizeTasks()
+        return binaries
     }
 
     def dsl(@DelegatesTo(Project) Closure closure) {
