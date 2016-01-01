@@ -103,9 +103,7 @@ model {
         }
         reportOutput.hasNodeStructure {
             binaries {
-                unitTestTests {
-                    tasks()
-                }
+                unitTestTests()
             }
         }
 
@@ -163,12 +161,8 @@ model {
         }
         reportOutput.hasNodeStructure {
             binaries {
-                functionalTests {
-                    tasks()
-                }
-                unitTests {
-                    tasks()
-                }
+                functionalTests()
+                unitTests()
             }
         }
 
