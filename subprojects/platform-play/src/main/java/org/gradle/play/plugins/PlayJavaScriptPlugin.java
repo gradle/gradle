@@ -16,15 +16,13 @@
 
 package org.gradle.play.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
+import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
 import org.gradle.model.ModelMap;
@@ -47,32 +45,39 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Incubating
-public class PlayJavaScriptPlugin extends RuleSource {
-    @LanguageType
-    void registerJavascript(LanguageTypeBuilder<JavaScriptSourceSet> builder) {
-        builder.setLanguageName("javaScript");
-        builder.defaultImplementation(DefaultJavaScriptSourceSet.class);
+public class PlayJavaScriptPlugin implements Plugin<Project> {
+    @Override
+    public void apply(Project project) {
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
-    @Mutate
-    void createJavascriptSourceSets(ModelMap<PlayApplicationSpec> components) {
-        components.afterEach(new Action<PlayApplicationSpec>() {
-            @Override
-            public void execute(PlayApplicationSpec playComponent) {
-                playComponent.getSources().create("javaScript", JavaScriptSourceSet.class, new Action<JavaScriptSourceSet>() {
-                    @Override
-                    public void execute(JavaScriptSourceSet javaScriptSourceSet) {
-                        javaScriptSourceSet.getSource().srcDir("app/assets");
-                        javaScriptSourceSet.getSource().include("**/*.js");
-                    }
-                });
-            }
-        });
-    }
+    static class Rules extends RuleSource {
+        @LanguageType
+        void registerJavascript(LanguageTypeBuilder<JavaScriptSourceSet> builder) {
+            builder.setLanguageName("javaScript");
+            builder.defaultImplementation(DefaultJavaScriptSourceSet.class);
+        }
 
-    @Mutate
-    void registerLanguageTransform(LanguageTransformContainer languages) {
-        languages.add(new JavaScript());
+        @Mutate
+        void createJavascriptSourceSets(ModelMap<PlayApplicationSpec> components) {
+            components.afterEach(new Action<PlayApplicationSpec>() {
+                @Override
+                public void execute(PlayApplicationSpec playComponent) {
+                    playComponent.getSources().create("javaScript", JavaScriptSourceSet.class, new Action<JavaScriptSourceSet>() {
+                        @Override
+                        public void execute(JavaScriptSourceSet javaScriptSourceSet) {
+                            javaScriptSourceSet.getSource().srcDir("app/assets");
+                            javaScriptSourceSet.getSource().include("**/*.js");
+                        }
+                    });
+                }
+            });
+        }
+
+        @Mutate
+        void registerLanguageTransform(LanguageTransformContainer languages) {
+            languages.add(new JavaScript());
+        }
     }
 
     private static class JavaScript implements LanguageTransform<JavaScriptSourceSet, JavaScriptSourceCode> {
