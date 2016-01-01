@@ -25,9 +25,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
-@SuppressWarnings("rawtypes")
 public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
-
     private final BinaryTasksCollection delegate;
 
     public BinaryTasksCollectionWrapper(BinaryTasksCollection delegate) {

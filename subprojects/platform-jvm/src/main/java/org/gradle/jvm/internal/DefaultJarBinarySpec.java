@@ -19,8 +19,11 @@ package org.gradle.jvm.internal;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
+import org.gradle.jvm.tasks.Jar;
+import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
+import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
@@ -33,6 +36,12 @@ public class DefaultJarBinarySpec extends DefaultJvmBinarySpec implements JarBin
     private Set<String> exportedPackages = ImmutableSet.of();
     private Set<DependencySpec> apiDependencies = ImmutableSet.of();
     private Set<DependencySpec> componentLevelDependencies = ImmutableSet.of();
+    private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
+
+    @Override
+    public TasksCollection getTasks() {
+        return tasks;
+    }
 
     @Override
     public JvmLibrarySpec getLibrary() {
@@ -102,5 +111,16 @@ public class DefaultJarBinarySpec extends DefaultJvmBinarySpec implements JarBin
     @Override
     protected BinaryBuildAbility getBinaryBuildAbility() {
         return new ToolSearchBuildAbility(((JavaToolChainInternal) getToolChain()).select(getTargetPlatform()));
+    }
+
+    static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements TasksCollection {
+        public DefaultTasksCollection(BinaryTasksCollection delegate) {
+            super(delegate);
+        }
+
+        @Override
+        public Jar getJar() {
+            return findSingleTaskWithType(Jar.class);
+        }
     }
 }

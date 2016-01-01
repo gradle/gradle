@@ -30,12 +30,6 @@ import java.io.File;
 @Incubating
 public interface JvmBinarySpec extends BinarySpec {
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    JvmBinaryTasks getTasks();
-
-    /**
      * The target platform for this binary.
      */
     @Variant

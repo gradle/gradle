@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.binary.BaseBinarySpec;
@@ -26,13 +25,7 @@ import java.io.File;
 import static org.gradle.util.CollectionUtils.findSingle;
 
 public class DefaultJvmBinarySpec extends BaseBinarySpec implements JvmBinarySpecInternal {
-    private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(super.getTasks());
     private final DefaultJvmAssembly assembly = new DefaultJvmAssembly();
-
-    @Override
-    public JvmBinaryTasks getTasks() {
-        return tasks;
-    }
 
     @Override
     public JavaToolChain getToolChain() {

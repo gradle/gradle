@@ -37,7 +37,7 @@ public interface BinaryTasksCollection extends DomainObjectSet<Task> {
     String taskName(String verb, String object);
 
     /**
-     * The 'lifecycle' task, that can be used to construct this binary.
+     * The task that can be used to assemble this binary.
      */
     Task getBuild();
 

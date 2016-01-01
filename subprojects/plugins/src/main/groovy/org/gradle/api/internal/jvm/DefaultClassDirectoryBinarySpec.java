@@ -23,14 +23,13 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
-import org.gradle.jvm.JvmBinaryTasks;
-import org.gradle.jvm.internal.DefaultJvmBinaryTasks;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.*;
 
 import java.io.File;
@@ -42,7 +41,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     private final SourceSet sourceSet;
     private final JavaToolChain toolChain;
     private final JavaPlatform platform;
-    private final DefaultJvmBinaryTasks tasks;
+    private final BinaryTasksCollection tasks;
     private boolean buildable = true;
 
     public DefaultClassDirectoryBinarySpec(String name, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, ITaskFactory taskFactory) {
@@ -50,7 +49,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         this.sourceSet = sourceSet;
         this.toolChain = toolChain;
         this.platform = platform;
-        this.tasks = instantiator.newInstance(DefaultJvmBinaryTasks.class, new DefaultBinaryTasksCollection(this, taskFactory));
+        this.tasks = instantiator.newInstance(DefaultBinaryTasksCollection.class, this, taskFactory);
     }
 
     private String removeClassesSuffix(String name) {
@@ -75,7 +74,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         return ClassDirectoryBinarySpec.class;
     }
 
-    public JvmBinaryTasks getTasks() {
+    public BinaryTasksCollection getTasks() {
         return tasks;
     }
 
