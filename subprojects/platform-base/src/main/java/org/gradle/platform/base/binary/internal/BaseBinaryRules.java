@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal;
+package org.gradle.platform.base.binary.internal;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.TaskInternal;

@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.internal.BaseBinaryRules;
+import org.gradle.platform.base.binary.internal.BaseBinaryRules;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.*;
