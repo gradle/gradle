@@ -70,11 +70,32 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "model"
 
         and:
-        def components = ModelReportOutput.from(output).modelNode.components
-        assert components.sampleLib.binaries.binary.@type[0] == 'SampleBinary'
-        assert components.sampleLib.binaries.binary.@creator[0] == 'MyComponentBinariesPlugin.Rules#createBinariesForSampleLibrary > components.sampleLib.getBinaries() > create(binary)'
-        assert components.sampleLib.binaries.otherBinary.@type[0] == 'OtherSampleBinary'
-        assert components.sampleLib.binaries.otherBinary.@creator[0] == 'MyComponentBinariesPlugin.Rules#createBinariesForSampleLibrary > components.sampleLib.getBinaries() > create(otherBinary)'
+        def reportOutput = ModelReportOutput.from(output)
+        reportOutput.hasNodeStructure {
+            components {
+                sampleLib {
+                    binaries {
+                        binary(type: 'SampleBinary', creator: 'MyComponentBinariesPlugin.Rules#createBinariesForSampleLibrary > create(binary)') {
+                            tasks()
+                            sources()
+                        }
+                        otherBinary(type: 'OtherSampleBinary', creator: 'MyComponentBinariesPlugin.Rules#createBinariesForSampleLibrary > create(otherBinary)') {
+                            tasks()
+                            sources()
+                        }
+                    }
+                    sources() {
+                        librarySource()
+                    }
+                }
+            }
+        }
+        reportOutput.hasNodeStructure {
+            binaries {
+                sampleLibBinary()
+                sampleLibOtherBinary()
+            }
+        }
     }
 
     def "can register binaries using @ComponentBinaries rule"() {
@@ -379,7 +400,7 @@ Binaries
         fails "tasks"
 
         then:
-        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.illegal' using creation rule 'IllegallyMutatingComponentBinariesRules#createBinariesForSampleLibrary > components.sampleLib.getBinaries() > create(illegal)' as model element 'components.sampleLib.binaries' is no longer mutable.")
+        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.illegal' using creation rule 'IllegallyMutatingComponentBinariesRules#createBinariesForSampleLibrary > create(illegal)' as model element 'components.sampleLib.binaries' is no longer mutable.")
     }
 
     def "reports failure in @ComponentBinaries rule"() {

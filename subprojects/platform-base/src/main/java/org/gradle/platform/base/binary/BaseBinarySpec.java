@@ -17,6 +17,7 @@
 package org.gradle.platform.base.binary;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
@@ -30,8 +31,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.ModelMaps;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
@@ -55,12 +55,12 @@ import java.util.Set;
 // Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
 @SuppressWarnings("deprecation")
 public class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
-    private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
+    private static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION = ModelType.of(BinaryTasksCollection.class);
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
+    private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final BinaryTasksCollection tasks;
     private final String name;
-    private final MutableModelNode modelNode;
     private final MutableModelNode componentNode;
     private final MutableModelNode sources;
     private final Class<? extends BinarySpec> publicType;
@@ -92,11 +92,23 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         }
         this.name = info.name;
         this.publicType = info.publicType;
-        this.modelNode = info.modelNode;
+        MutableModelNode modelNode = info.modelNode;
         this.componentNode = info.componentNode;
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
 
         sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
+        ModelRegistration itemRegistration = ModelRegistrations.of(modelNode.getPath().child("tasks"))
+            .action(ModelActionRole.Create, new Action<MutableModelNode>() {
+                @Override
+                public void execute(MutableModelNode modelNode) {
+                    modelNode.setPrivateData(BINARY_TASKS_COLLECTION, tasks);
+                }
+            })
+            .withProjection(new UnmanagedModelProjection<BinaryTasksCollection>(BINARY_TASKS_COLLECTION))
+            .descriptor(modelNode.getDescriptor())
+            .build();
+        modelNode.addLink(itemRegistration);
+
         namingScheme = DefaultBinaryNamingScheme.component(componentName()).withBinaryName(name).withBinaryType(getTypeName());
     }
 
@@ -179,7 +191,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
-        return ModelMaps.asMutableView(sources, LanguageSourceSet.class, modelNode.toString() + ".getSources()");
+        return ModelMaps.asMutableView(sources, LanguageSourceSet.class);
     }
 
     public BinaryTasksCollection getTasks() {

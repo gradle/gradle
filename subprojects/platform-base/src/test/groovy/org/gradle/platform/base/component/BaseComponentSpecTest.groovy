@@ -20,10 +20,10 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ModelInstantiationException
+import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
-import spock.lang.Specification
 
-class BaseComponentSpecTest extends Specification {
+class BaseComponentSpecTest extends PlatformBaseSpecification {
     def componentId = new DefaultComponentSpecIdentifier("p", "c")
 
     def "cannot instantiate directly"() {

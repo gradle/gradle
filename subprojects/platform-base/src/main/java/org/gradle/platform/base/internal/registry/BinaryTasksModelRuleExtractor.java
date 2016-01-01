@@ -22,7 +22,6 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.Cast;
-import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.*;
@@ -30,6 +29,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasks;
+import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -123,7 +123,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
 
         @Override
         public List<? extends Class<?>> getRuleDependencies() {
-            return ImmutableList.of(ComponentModelBasePlugin.class);
+            return ImmutableList.of(BinaryBasePlugin.class);
         }
     }
 }

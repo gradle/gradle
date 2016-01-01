@@ -49,17 +49,16 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                          ⤷ DeclarationRules#mutateMyComponent
                     + binaries
                           | Type:   	org.gradle.model.ModelMap<org.gradle.platform.base.BinarySpec>
-                          | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > binaries
+                          | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9
                         + myBinary
                               | Type:   	UnmanagedBinary
                               | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
                               | Rules:
-                                 ⤷ ComponentBinaryRules#initializeBinarySourceSets > components.myComponent.getBinaries() > beforeEach()
-                                 ⤷ BinaryBasePlugin.apply()
+                                 ⤷ ComponentBinaryRules#initializeBinarySourceSets > beforeEach()
                                  ⤷ DeclarationRules#mutateMyBinary
                             + sources
                                   | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
-                                  | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary) > sources
+                                  | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
                                 + myBinarySource
                                       | Type:   	UnmanagedLanguageSourceSet
                                       | Value:  	UnmanagedLanguageSourceSet 'myComponent:myBinarySource'
@@ -69,18 +68,18 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                             + tasks
                                   | Type:   	org.gradle.platform.base.BinaryTasksCollection
                                   | Value:  	[]
-                                  | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary).tasks()
+                                  | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
                     + sources
                           | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
-                          | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > sources
+                          | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9
                         + myComponentSource
                               | Type:   	UnmanagedLanguageSourceSet
                               | Value:  	UnmanagedLanguageSourceSet 'myComponent:myComponentSource'
                               | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > create(myComponentSource)
                               | Rules:
                                  ⤷ DeclarationRules#mutateMyComponentSource
-                                 ⤷ ComponentRules#addSourcesSetsToProjectSourceSet > components.myComponent.getSources() > afterEach()
-                                 ⤷ ComponentRules#applyDefaultSourceConventions > components.myComponent.getSources() > afterEach()
+                                 ⤷ ComponentRules#addSourcesSetsToProjectSourceSet > afterEach()
+                                 ⤷ ComponentRules#applyDefaultSourceConventions > afterEach()
         """.stripIndent().trim()
     }
 
@@ -112,13 +111,12 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                          ⤷ DeclarationRules#mutateMyComponent
                     + binaries
                           | Type:   	org.gradle.model.ModelMap<org.gradle.platform.base.BinarySpec>
-                          | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > binaries
+                          | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9
                         + myBinary
                               | Type:   	ManagedBinary
                               | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
                               | Rules:
-                                 ⤷ ComponentBinaryRules#initializeBinarySourceSets > components.myComponent.getBinaries() > beforeEach()
-                                 ⤷ BinaryBasePlugin.apply()
+                                 ⤷ ComponentBinaryRules#initializeBinarySourceSets > beforeEach()
                                  ⤷ DeclarationRules#mutateMyBinary
                             + data
                                   | Type:   	java.lang.String
@@ -126,7 +124,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                                   | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
                             + sources
                                   | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
-                                  | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary) > sources
+                                  | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
                                 + myBinarySource
                                       | Type:   	ManagedLanguageSourceSet
                                       | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary) > create(myBinarySource)
@@ -139,21 +137,21 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                             + tasks
                                   | Type:   	org.gradle.platform.base.BinaryTasksCollection
                                   | Value:  	[]
-                                  | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary).tasks()
+                                  | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
                     + data
                           | Type:   	java.lang.String
                           | Value:  	my component
                           | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9
                     + sources
                           | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
-                          | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > sources
+                          | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9
                         + myComponentSource
                               | Type:   	ManagedLanguageSourceSet
                               | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myComponentSource)
                               | Rules:
                                  ⤷ DeclarationRules#mutateMyComponentSource
-                                 ⤷ ComponentRules#addSourcesSetsToProjectSourceSet > components.myComponent.getSources() > afterEach()
-                                 ⤷ ComponentRules#applyDefaultSourceConventions > components.myComponent.getSources() > afterEach()
+                                 ⤷ ComponentRules#addSourcesSetsToProjectSourceSet > afterEach()
+                                 ⤷ ComponentRules#applyDefaultSourceConventions > afterEach()
                             + data
                                   | Type:   	java.lang.String
                                   | Value:  	my component sources

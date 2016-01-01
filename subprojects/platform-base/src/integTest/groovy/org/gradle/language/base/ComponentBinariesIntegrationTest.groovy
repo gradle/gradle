@@ -42,14 +42,28 @@ model {
         succeeds "model"
 
         then:
-        ModelReportOutput.from(output).hasNodeStructure {
+        def reportOutput = ModelReportOutput.from(output)
+        reportOutput.hasNodeStructure {
+            components {
+                myLib {
+                    binaries {
+                        main {
+                            tasks()
+                            sources()
+                        }
+                        test {
+                            tasks()
+                            sources()
+                        }
+                    }
+                    sources()
+                }
+            }
+        }
+        reportOutput.hasNodeStructure {
             binaries {
-                myLibMain {
-                    tasks()
-                }
-                myLibTest {
-                    tasks()
-                }
+                myLibMain()
+                myLibTest()
             }
         }
     }
@@ -101,15 +115,9 @@ model {
         }
         reportOutput.hasNodeStructure {
             binaries {
-                myLibMain {
-                    tasks()
-                }
-                myLibTest {
-                    tasks()
-                }
-                otherLibMain {
-                    tasks()
-                }
+                myLibMain()
+                myLibTest()
+                otherLibMain()
             }
         }
     }

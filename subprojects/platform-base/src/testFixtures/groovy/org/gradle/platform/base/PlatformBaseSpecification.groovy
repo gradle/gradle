@@ -20,13 +20,20 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.ModelMap
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
+import org.gradle.model.internal.registry.RuleContext
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import org.gradle.util.TestUtil
+import org.junit.Rule
+import org.junit.rules.TestRule
+import org.junit.runner.Description
+import org.junit.runners.model.Statement
 import spock.lang.Specification
 
 abstract class PlatformBaseSpecification extends Specification {
     final def project = TestUtil.createRootProject()
+    @Rule SetRuleContext setContext = new SetRuleContext()
 
     def realize(String name) {
         project.modelRegistry.find(name, ModelType.UNTYPED)
@@ -55,5 +62,19 @@ abstract class PlatformBaseSpecification extends Specification {
         closure.delegate = project
         closure()
         project.bindAllModelRules()
+    }
+
+    static class SetRuleContext implements TestRule {
+        @Override
+        Statement apply(Statement base, Description description) {
+            return new Statement() {
+                @Override
+                void evaluate() throws Throwable {
+                    RuleContext.run(new SimpleModelRuleDescriptor(description.displayName)) {
+                        base.evaluate()
+                    }
+                }
+            }
+        }
     }
 }

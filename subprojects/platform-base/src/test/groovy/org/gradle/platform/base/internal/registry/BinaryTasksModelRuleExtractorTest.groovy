@@ -17,7 +17,6 @@
 package org.gradle.platform.base.internal.registry
 
 import org.gradle.api.Task
-import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.ModelAction
@@ -27,6 +26,7 @@ import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryTasks
+import org.gradle.platform.base.plugins.BinaryBasePlugin
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -87,7 +87,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         def registration = extract(ruleDefinitionForMethod("validTypeRule"))
 
         then:
-        registration.ruleDependencies == [ComponentModelBasePlugin]
+        registration.ruleDependencies == [BinaryBasePlugin]
 
         when:
         apply(registration, mockRegistry)

@@ -24,12 +24,12 @@ import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ModelInstantiationException
+import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
-import spock.lang.Specification
 
-class BaseBinarySpecTest extends Specification {
+class BaseBinarySpecTest extends PlatformBaseSpecification {
     def "cannot instantiate directly"() {
         when:
         new BaseBinarySpec() {}

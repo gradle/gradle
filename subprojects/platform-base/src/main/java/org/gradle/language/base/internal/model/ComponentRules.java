@@ -48,12 +48,12 @@ public class ComponentRules extends RuleSource {
     }
 
     @Defaults
-    void applyDefaultSourceConventions(final ComponentSpec component, final ProjectIdentifier projectIdentifier) {
+    void applyDefaultSourceConventions(ComponentSpec component, ProjectIdentifier projectIdentifier) {
         component.getSources().afterEach(new AddDefaultSourceLocation(projectIdentifier.getProjectDir()));
     }
 
     @Defaults
-    void addSourcesSetsToProjectSourceSet(final ComponentSpec component, final ProjectSourceSet projectSourceSet) {
+    void addSourcesSetsToProjectSourceSet(ComponentSpec component, final ProjectSourceSet projectSourceSet) {
         component.getSources().afterEach(new Action<LanguageSourceSet>() {
             @Override
             public void execute(LanguageSourceSet languageSourceSet) {

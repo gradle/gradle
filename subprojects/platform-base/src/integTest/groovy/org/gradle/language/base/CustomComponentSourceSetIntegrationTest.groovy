@@ -160,7 +160,7 @@ model {
 
         then:
         failure.assertHasCause("Exception thrown while executing model rule: sampleLib { ... } @ build.gradle line 38, column 9")
-        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule 'sampleLib { ... } @ build.gradle line 38, column 9 > components.sampleLib.getBinaries() > create(main)' as the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 27, column 9 > create(bin) > create(main)' is already registered to create this model element.")
+        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule 'sampleLib { ... } @ build.gradle line 38, column 9 > create(main)' as the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 27, column 9 > create(bin) > create(main)' is already registered to create this model element.")
     }
 
     def "user can attach unmanaged internal views to custom unmanaged `LanguageSourceSet`"() {

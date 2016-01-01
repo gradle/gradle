@@ -20,8 +20,6 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.platform.base.binary.internal.BaseBinaryRules;
-import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.*;
@@ -33,12 +31,12 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.binary.internal.BaseBinaryRules;
 import org.gradle.platform.base.binary.internal.BinarySpecFactory;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import javax.inject.Inject;
 
-import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
 /**
@@ -74,13 +72,6 @@ public class BinaryBasePlugin implements Plugin<Project> {
                                 binariesNode.applyTo(allLinks(), BaseBinaryRules.class);
                             }
                         }));
-
-        modelRegistry.getRoot().applyTo(allDescendants(),
-                ModelActionRole.Defaults,
-                DirectNodeNoInputsModelAction.of(
-                        ModelReference.of(BinarySpec.class),
-                        ruleDescriptor,
-                        ComponentSpecInitializer.binaryAction()));
     }
 
     @SuppressWarnings("UnusedDeclaration")

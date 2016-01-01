@@ -37,7 +37,7 @@ public class ModelMaps {
                         node.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
                     }
                 })
-                .descriptor(modelNode.getDescriptor().append(name))
+                .descriptor(modelNode.getDescriptor())
                 .withProjection(
                     ModelMapModelProjection.unmanaged(elementModelType, ChildNodeInitializerStrategyAccessors.fromPrivateData())
                 )
@@ -48,12 +48,12 @@ public class ModelMaps {
         return mapNode;
     }
 
-    public static <T> ModelMap<T> asMutableView(MutableModelNode mapNode, Class<T> elementType, String ruleContext) {
+    public static <T> ModelMap<T> asMutableView(MutableModelNode mapNode, Class<T> elementType) {
         final ModelType<T> elementModelType = ModelType.of(elementType);
         mapNode.ensureUsable();
         return mapNode.asMutable(
                 ModelTypes.modelMap(elementModelType),
-                RuleContext.nest(ruleContext)
+                RuleContext.get()
         ).getInstance();
 
     }
