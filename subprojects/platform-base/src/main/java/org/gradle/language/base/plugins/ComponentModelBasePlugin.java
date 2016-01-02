@@ -98,11 +98,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             return new DefaultLanguageTransformContainer();
         }
 
-        // Required because creation of Binaries from Components is not yet wired into the infrastructure
-        @Mutate
-        void closeComponentsForBinaries(ModelMap<Task> tasks, ComponentSpecContainer components) {
-        }
-
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
         // TODO:DAZ Convert this to `@BinaryTasks` when we model a `NativeAssembly` instead of wiring compile tasks directly to LinkTask
         @Finalize
