@@ -101,10 +101,10 @@ public class ComponentRules extends RuleSource {
         }
     }
 
-    private static class AddDefaultSourceLocation implements Action<LanguageSourceSet> {
+    static class AddDefaultSourceLocation implements Action<LanguageSourceSet> {
         private File baseDir;
 
-        public AddDefaultSourceLocation(File baseDir) {
+        AddDefaultSourceLocation(File baseDir) {
             this.baseDir = baseDir;
         }
 

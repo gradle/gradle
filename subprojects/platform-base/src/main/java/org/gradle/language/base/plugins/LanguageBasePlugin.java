@@ -45,8 +45,8 @@ import org.gradle.platform.base.LanguageTypeBuilder;
  */
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
-    public void apply(Project target) {
-        target.getPluginManager().apply(LifecycleBasePlugin.class);
+    public void apply(Project project) {
+        project.getPluginManager().apply(LifecycleBasePlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")

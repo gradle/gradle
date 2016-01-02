@@ -18,7 +18,6 @@ package org.gradle.language.base.plugins;
 import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -54,7 +53,7 @@ import static org.gradle.model.internal.core.NodePredicate.allDescendants;
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
 @Incubating
-public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
+public class ComponentModelBasePlugin implements Plugin<Project> {
     private final ModelRegistry modelRegistry;
 
     @Inject
@@ -62,7 +61,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         this.modelRegistry = modelRegistry;
     }
 
-    public void apply(final ProjectInternal project) {
+    public void apply(Project project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
         project.getPluginManager().apply(BinaryBasePlugin.class);
 
