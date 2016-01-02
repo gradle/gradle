@@ -17,8 +17,8 @@
 package org.gradle.language.base.internal.model;
 
 import org.gradle.api.Action;
-import org.gradle.model.Defaults;
-import org.gradle.model.RuleSource;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.model.*;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -31,17 +31,29 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
  */
 @SuppressWarnings("unused")
 public class ComponentBinaryRules extends RuleSource {
-    @Defaults
-    void initializeBinarySourceSets(final ComponentSpec component) {
-        component.getBinaries().withType(BinarySpecInternal.class).beforeEach(new Action<BinarySpecInternal>() {
-            @Override
-            public void execute(BinarySpecInternal binary) {
-                addComponentSourceSetsToBinaryInputs(binary, component);
-            }
+    @Rules
+    void inputRules(AttachInputs attachInputs, ComponentSpec component) {
+        attachInputs.setBinaries(component.getBinaries());
+        attachInputs.setSources(component.getSources());
+    }
 
-            private void addComponentSourceSetsToBinaryInputs(BinarySpec binary, ComponentSpec component) {
-                binary.getInputs().addAll(component.getSources().values());
-            }
-        });
+    static abstract class AttachInputs extends RuleSource {
+        @RuleTarget
+        abstract ModelMap<BinarySpec> getBinaries();
+        abstract void setBinaries(ModelMap<BinarySpec> binaries);
+
+        @RuleInput
+        abstract ModelMap<LanguageSourceSet> getSources();
+        abstract void setSources(ModelMap<LanguageSourceSet> sources);
+
+        @Mutate
+        void initializeBinarySourceSets(ModelMap<BinarySpec> binaries) {
+            binaries.withType(BinarySpecInternal.class).beforeEach(new Action<BinarySpecInternal>() {
+                @Override
+                public void execute(BinarySpecInternal binary) {
+                    binary.getInputs().addAll(getSources().values());
+                }
+            });
+        }
     }
 }
