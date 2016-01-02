@@ -43,7 +43,7 @@ public class ComponentRules extends RuleSource {
     @Defaults
     void initializeSourceSets(ComponentSpecInternal component, LanguageSourceSetFactory languageSourceSetFactory, LanguageTransformContainer languageTransforms) {
         for (LanguageRegistration<?> languageRegistration : languageSourceSetFactory.getRegistrations()) {
-            ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms).execute(component);
+            registerLanguageTypes(component, languageRegistration, languageTransforms);
         }
     }
 
@@ -62,32 +62,13 @@ public class ComponentRules extends RuleSource {
         });
     }
 
-    // Currently needs to be a separate action since can't have parameterized utility methods in a RuleSource
-    private static class ComponentSourcesRegistrationAction<U extends LanguageSourceSet> implements Action<ComponentSpecInternal> {
-        private final LanguageRegistration<U> languageRegistration;
-        private final LanguageTransformContainer languageTransforms;
-
-        private ComponentSourcesRegistrationAction(LanguageRegistration<U> registration, LanguageTransformContainer languageTransforms) {
-            this.languageRegistration = registration;
-            this.languageTransforms = languageTransforms;
-        }
-
-        public static <U extends LanguageSourceSet> ComponentSourcesRegistrationAction<U> create(LanguageRegistration<U> registration, LanguageTransformContainer languageTransforms) {
-            return new ComponentSourcesRegistrationAction<U>(registration, languageTransforms);
-        }
-
-        public void execute(ComponentSpecInternal componentSpecInternal) {
-            registerLanguageTypes(componentSpecInternal);
-        }
-
-        // If there is a transform for the language into one of the component inputs, add a default source set
-        void registerLanguageTypes(final ComponentSpecInternal component) {
-            for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
-                if (ModelType.of(languageTransform.getSourceSetType()).equals(languageRegistration.getSourceSetType())
-                    && component.getInputTypes().contains(languageTransform.getOutputType())) {
-                    component.getSources().create(languageRegistration.getName(), languageRegistration.getSourceSetType().getConcreteClass());
-                    return;
-                }
+    // If there is a transform for the language into one of the component inputs, add a default source set
+    private <U extends LanguageSourceSet> void registerLanguageTypes(ComponentSpecInternal component, LanguageRegistration<U> languageRegistration, LanguageTransformContainer languageTransforms) {
+        for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
+            if (ModelType.of(languageTransform.getSourceSetType()).equals(languageRegistration.getSourceSetType())
+                && component.getInputTypes().contains(languageTransform.getOutputType())) {
+                component.getSources().create(languageRegistration.getName(), languageRegistration.getSourceSetType().getConcreteClass());
+                return;
             }
         }
     }
