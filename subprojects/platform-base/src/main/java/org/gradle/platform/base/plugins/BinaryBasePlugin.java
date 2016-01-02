@@ -48,6 +48,7 @@ import static org.gradle.model.internal.core.NodePredicate.allLinks;
  * - Adds a {@link BinarySpec} container named {@code binaries} to the project.
  * - Registers the base {@link BinarySpec} type.
  * - For each {@link BinarySpec}, registers a lifecycle task to assemble that binary.
+ * - For each {@link BinarySpec}, adds the binary's source sets as its default inputs.
  * - Links the tasks for each {@link BinarySpec} across to the tasks container.
  */
 @Incubating
