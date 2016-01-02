@@ -17,34 +17,49 @@
 package org.gradle.testing.base.plugins;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.Defaults;
 import org.gradle.model.Model;
-import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
+import org.gradle.testing.base.internal.BaseTestSuiteSpec;
 
 /**
  * Base plugin for testing.
  *
- * Adds a {@link org.gradle.platform.base.test.TestSuiteContainer} named {@code testSuites} to the model.
- *
- * Copies test binaries from {@code testSuites} into {@code binaries}.
+ * - Adds a {@link org.gradle.platform.base.test.TestSuiteContainer} named {@code testSuites} to the model.
+ * - Copies test binaries from {@code testSuites} into {@code binaries}.
  */
 @Incubating
-public class TestingModelBasePlugin extends RuleSource {
-
-    @Model
-    void testSuites(TestSuiteContainer testSuites) {
+public class TestingModelBasePlugin implements Plugin<Project> {
+    @Override
+    public void apply(Project project) {
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
-    @Defaults
-    void copyTestBinariesToGlobalContainer(ModelMap<BinarySpec> binaries, TestSuiteContainer testSuites) {
-        for (TestSuiteSpec testSuite : testSuites.withType(TestSuiteSpec.class).values()) {
-            for (BinarySpecInternal binary : testSuite.getBinaries().withType(BinarySpecInternal.class).values()) {
-                binaries.put(binary.getProjectScopedName(), binary);
+    static class Rules extends RuleSource {
+        @ComponentType
+        void registerTestSuiteSpec(ComponentTypeBuilder<TestSuiteSpec> builder) {
+            builder.defaultImplementation(BaseTestSuiteSpec.class);
+        }
+
+        @Model
+        void testSuites(TestSuiteContainer testSuites) {
+        }
+
+        @Defaults
+        void copyTestBinariesToGlobalContainer(BinaryContainer binaries, TestSuiteContainer testSuites) {
+            for (TestSuiteSpec testSuite : testSuites.values()) {
+                for (BinarySpecInternal binary : testSuite.getBinaries().withType(BinarySpecInternal.class).values()) {
+                    binaries.put(binary.getProjectScopedName(), binary);
+                }
             }
         }
     }

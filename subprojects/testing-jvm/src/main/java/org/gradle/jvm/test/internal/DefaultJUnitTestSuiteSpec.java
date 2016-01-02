@@ -19,14 +19,14 @@ import org.gradle.jvm.JvmComponentSpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.TransformationFileType;
-import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
+import org.gradle.testing.base.internal.BaseTestSuiteSpec;
 
 import java.util.Set;
 
 import static org.gradle.jvm.internal.DefaultJvmLibrarySpec.defaultJvmComponentInputTypes;
 
-public class DefaultJUnitTestSuiteSpec extends BaseComponentSpec implements JUnitTestSuiteSpec {
+public class DefaultJUnitTestSuiteSpec extends BaseTestSuiteSpec implements JUnitTestSuiteSpec {
     private String junitVersion;
     private final DependencySpecContainer dependencies = new DefaultDependencySpecContainer();
     private final Set<Class<? extends TransformationFileType>> inputTypes = defaultJvmComponentInputTypes();
