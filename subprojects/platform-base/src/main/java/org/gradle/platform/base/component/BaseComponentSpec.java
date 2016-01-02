@@ -105,12 +105,12 @@ public class BaseComponentSpec implements ComponentSpecInternal {
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
-        return ModelMaps.asMutableView(sources, LanguageSourceSet.class);
+        return ModelMaps.toView(sources, LanguageSourceSet.class);
     }
 
     @Override
     public ModelMap<BinarySpec> getBinaries() {
-        return ModelMaps.asMutableView(binaries, BinarySpec.class);
+        return ModelMaps.toView(binaries, BinarySpec.class);
     }
 
     public Set<? extends Class<? extends TransformationFileType>> getInputTypes() {

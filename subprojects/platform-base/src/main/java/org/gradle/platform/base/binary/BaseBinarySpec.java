@@ -191,7 +191,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
-        return ModelMaps.asMutableView(sources, LanguageSourceSet.class);
+        return ModelMaps.toView(sources, LanguageSourceSet.class);
     }
 
     public BinaryTasksCollection getTasks() {
