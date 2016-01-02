@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema;
 
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 
 import java.util.Collection;
@@ -29,6 +30,7 @@ public interface StructSchema<T> extends ModelSchema<T> {
 
     SortedSet<String> getPropertyNames();
 
+    @Nullable
     ModelProperty<?> getProperty(String name);
 
     Collection<ModelProperty<?>> getProperties();
