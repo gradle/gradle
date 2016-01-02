@@ -16,6 +16,7 @@
 
 package org.gradle.language.base.plugins
 
+import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.PlatformBaseSpecification
 
@@ -42,5 +43,54 @@ class ComponentModelBasePluginTest extends PlatformBaseSpecification {
 
         then:
         realizeComponents() != null
+    }
+
+    def "links the binaries of each component in 'components' container into the 'binaries' container"() {
+        when:
+        dsl {
+            apply plugin: ComponentModelBasePlugin
+            model {
+                components {
+                    comp1(ComponentSpec) {
+                        binaries {
+                            bin1(BinarySpec)
+                            bin2(BinarySpec)
+                        }
+                    }
+                    comp2(ComponentSpec)
+                }
+            }
+        }
+
+        then:
+        def binaries = realizeBinaries()
+        def components = realizeComponents()
+        binaries.size() == 2
+        binaries.comp1Bin1 == components.comp1.binaries.bin1
+        binaries.comp1Bin2 == components.comp1.binaries.bin2
+    }
+
+    def "links the tasks of each component in 'components' container into the 'tasks' container"() {
+        when:
+        dsl {
+            apply plugin: ComponentModelBasePlugin
+            model {
+                components {
+                    comp1(ComponentSpec) {
+                        binaries {
+                            bin1(BinarySpec)
+                            bin2(BinarySpec)
+                        }
+                    }
+                    comp2(ComponentSpec)
+                }
+            }
+        }
+
+        then:
+        def tasks = realizeTasks()
+        def components = realizeComponents()
+        tasks.comp1Bin1 == components.comp1.binaries.bin1.tasks.build
+        tasks.comp1Bin2 == components.comp1.binaries.bin2.tasks.build
     }
 }
