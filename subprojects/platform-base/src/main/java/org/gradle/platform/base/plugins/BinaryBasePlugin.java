@@ -21,7 +21,10 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.*;
+import org.gradle.model.Model;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
+import org.gradle.model.Validate;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
@@ -103,7 +106,7 @@ public class BinaryBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void copyBinaryTasksToTaskContainer(TaskContainer tasks, ModelMap<BinarySpec> binaries) {
+        void copyBinaryTasksToTaskContainer(TaskContainer tasks, BinaryContainer binaries) {
             for (BinarySpec binary : binaries) {
                 tasks.addAll(binary.getTasks());
                 Task buildTask = binary.getBuildTask();
