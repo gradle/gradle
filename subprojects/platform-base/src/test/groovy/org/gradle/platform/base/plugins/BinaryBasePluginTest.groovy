@@ -17,6 +17,7 @@
 package org.gradle.platform.base.plugins
 
 import org.gradle.api.DefaultTask
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.PlatformBaseSpecification
 
@@ -74,6 +75,34 @@ class BinaryBasePluginTest extends PlatformBaseSpecification {
         binaries.bin1.buildTask.name == 'bin1'
         binaries.bin2.buildTask instanceof DefaultTask
         binaries.bin2.buildTask.name == 'bin2'
+    }
+
+    def "adds each source set as binary's inputs"() {
+        when:
+        dsl {
+            apply plugin: BinaryBasePlugin
+            model {
+                binaries {
+                    bin1(BinarySpec) {
+                        sources {
+                            put("src1", Stub(LanguageSourceSet))
+                            put("src2", Stub(LanguageSourceSet))
+                        }
+                    }
+                    bin2(BinarySpec) {
+                        sources {
+                            put("src1", Stub(LanguageSourceSet))
+                        }
+                    }
+                }
+            }
+        }
+
+        then:
+        def binaries = realizeBinaries()
+        binaries.size() == 2
+        binaries.bin1.inputs == [binaries.bin1.sources.src1, binaries.bin1.sources.src2] as Set
+        binaries.bin2.inputs == [binaries.bin2.sources.src1] as Set
     }
 
     def "copies binary tasks into task container"() {

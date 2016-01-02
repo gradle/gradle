@@ -45,18 +45,18 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                          ⤷ ComponentRules#addSourcesSetsToProjectSourceSet
                          ⤷ ComponentRules#applyDefaultSourceConventions
                          ⤷ ComponentRules#initializeSourceSets
-                         ⤷ ComponentBinaryRules#inputRules
+                         ⤷ ComponentRules#inputRules
                          ⤷ DeclarationRules#mutateMyComponent
                     + binaries
                           | Type:   	org.gradle.model.ModelMap<org.gradle.platform.base.BinarySpec>
                           | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9
                           | Rules:
-                             ⤷ ComponentBinaryRules.AttachInputs#initializeBinarySourceSets
+                             ⤷ ComponentRules.AttachInputs#initializeBinarySourceSets
                         + myBinary
                               | Type:   	UnmanagedBinary
                               | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
                               | Rules:
-                                 ⤷ ComponentBinaryRules.AttachInputs#initializeBinarySourceSets > beforeEach()
+                                 ⤷ ComponentRules.AttachInputs#initializeBinarySourceSets > beforeEach()
                                  ⤷ DeclarationRules#mutateMyBinary
                             + sources
                                   | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
@@ -109,18 +109,18 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                          ⤷ ComponentRules#addSourcesSetsToProjectSourceSet
                          ⤷ ComponentRules#applyDefaultSourceConventions
                          ⤷ ComponentRules#initializeSourceSets
-                         ⤷ ComponentBinaryRules#inputRules
+                         ⤷ ComponentRules#inputRules
                          ⤷ DeclarationRules#mutateMyComponent
                     + binaries
                           | Type:   	org.gradle.model.ModelMap<org.gradle.platform.base.BinarySpec>
                           | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9
                           | Rules:
-                             ⤷ ComponentBinaryRules.AttachInputs#initializeBinarySourceSets
+                             ⤷ ComponentRules.AttachInputs#initializeBinarySourceSets
                         + myBinary
                               | Type:   	ManagedBinary
                               | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
                               | Rules:
-                                 ⤷ ComponentBinaryRules.AttachInputs#initializeBinarySourceSets > beforeEach()
+                                 ⤷ ComponentRules.AttachInputs#initializeBinarySourceSets > beforeEach()
                                  ⤷ DeclarationRules#mutateMyBinary
                             + data
                                   | Type:   	java.lang.String

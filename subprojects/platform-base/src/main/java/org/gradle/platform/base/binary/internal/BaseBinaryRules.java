@@ -37,4 +37,12 @@ public class BaseBinaryRules extends RuleSource {
             binary.setBuildTask(binaryLifecycleTask);
         }
     }
+
+    @Finalize
+    void addSourceSetsOwnedByBinariesToTheirInputs(BinarySpecInternal binary) {
+        if (binary.isLegacyBinary()) {
+            return;
+        }
+        binary.getInputs().addAll(binary.getSources().values());
+    }
 }

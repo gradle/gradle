@@ -25,7 +25,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.model.BinarySourceTransformations;
-import org.gradle.language.base.internal.model.ComponentBinaryRules;
 import org.gradle.language.base.internal.model.ComponentRules;
 import org.gradle.language.base.internal.registry.DefaultLanguageTransformContainer;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
@@ -68,7 +67,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(BinaryBasePlugin.class);
 
         modelRegistry.getRoot().applyTo(allDescendants(withType(ComponentSpec.class)), ComponentRules.class);
-        modelRegistry.getRoot().applyTo(allDescendants(withType(ComponentSpec.class)), ComponentBinaryRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -140,20 +138,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Validate
         void validateComponentSpecRegistrations(ComponentSpecFactory instanceFactory) {
             instanceFactory.validateRegistrations();
-        }
-
-        // TODO:LPTR This should be done on the binary itself when transitive rules don't fire multiple times anymore
-        @Defaults
-        void addSourceSetsOwnedByBinariesToTheirInputs(ModelMap<BinarySpec> binarySpecs) {
-            binarySpecs.withType(BinarySpecInternal.class).afterEach(new Action<BinarySpecInternal>() {
-                @Override
-                public void execute(BinarySpecInternal binary) {
-                    if (binary.isLegacyBinary()) {
-                        return;
-                    }
-                    binary.getInputs().addAll(binary.getSources().values());
-                }
-            });
         }
 
         @Mutate
