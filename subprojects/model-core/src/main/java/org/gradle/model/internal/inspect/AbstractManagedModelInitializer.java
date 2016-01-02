@@ -17,10 +17,8 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Named;
-import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
@@ -36,11 +34,9 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
 
     protected void addPropertyLinks(MutableModelNode modelNode,
                                     NodeInitializerRegistry nodeInitializerRegistry,
-                                    ManagedProxyFactory proxyFactory,
-                                    Collection<ModelProperty<?>> properties,
-                                    TypeConverter typeConverter) {
+                                    Collection<ModelProperty<?>> properties) {
         for (ModelProperty<?> property : properties) {
-            addPropertyLink(modelNode, property, nodeInitializerRegistry, proxyFactory, typeConverter);
+            addPropertyLink(modelNode, property, nodeInitializerRegistry);
         }
         if (isANamedType()) {
             // Only initialize "name" child node if the schema has such a managed property.
@@ -59,9 +55,7 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
 
     private <P> void addPropertyLink(MutableModelNode modelNode,
                                      ModelProperty<P> property,
-                                     NodeInitializerRegistry nodeInitializerRegistry,
-                                     ManagedProxyFactory proxyFactory,
-                                     TypeConverter typeConverter) {
+                                     NodeInitializerRegistry nodeInitializerRegistry) {
         // No need to create nodes for unmanaged properties
         if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
             return;

@@ -54,18 +54,13 @@ public class ManagedModelInitializer<T> extends AbstractManagedModelInitializer<
             ))
             .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
                 Arrays.<ModelReference<?>>asList(
-                    ModelReference.of(NodeInitializerRegistry.class),
-                    ModelReference.of(ManagedProxyFactory.class),
-                    ModelReference.of(TypeConverter.class)
+                    ModelReference.of(NodeInitializerRegistry.class)
                 ),
                 new BiAction<MutableModelNode, List<ModelView<?>>>() {
                     @Override
                     public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
                         NodeInitializerRegistry nodeInitializerRegistry = ModelViews.getInstance(modelViews, 0, NodeInitializerRegistry.class);
-                        ManagedProxyFactory proxyFactory = ModelViews.getInstance(modelViews, 1, ManagedProxyFactory.class);
-                        TypeConverter typeConverter = ModelViews.getInstance(modelViews, 2, TypeConverter.class);
-
-                        addPropertyLinks(modelNode, nodeInitializerRegistry, proxyFactory, schema.getProperties(), typeConverter);
+                        addPropertyLinks(modelNode, nodeInitializerRegistry, schema.getProperties());
                     }
                 }
             ))

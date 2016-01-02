@@ -75,17 +75,13 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
             .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
                 Arrays.<ModelReference<?>>asList(
                     ModelReference.of(NodeInitializerRegistry.class),
-                    ModelReference.of(ModelSchemaStore.class),
-                    ModelReference.of(ManagedProxyFactory.class),
-                    ModelReference.of(TypeConverter.class)
+                    ModelReference.of(ModelSchemaStore.class)
                 ),
                 new BiAction<MutableModelNode, List<ModelView<?>>>() {
                     @Override
                     public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
                         NodeInitializerRegistry nodeInitializerRegistry = ModelViews.getInstance(modelViews, 0, NodeInitializerRegistry.class);
                         ModelSchemaStore schemaStore = ModelViews.getInstance(modelViews, 1, ModelSchemaStore.class);
-                        ManagedProxyFactory proxyFactory = ModelViews.getInstance(modelViews, 2, ManagedProxyFactory.class);
-                        TypeConverter typeConverter = ModelViews.getInstance(modelViews, 3, TypeConverter.class);
 
                         ModelType<S> type = schema.getType();
                         ModelType<T> delegateType;
@@ -100,7 +96,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> extends AbstractManaged
                         modelNode.setPrivateData(delegateType, instance);
 
                         StructSchema<T> delegateSchema = Cast.uncheckedCast(schemaStore.getSchema(delegateType));
-                        addPropertyLinks(modelNode, nodeInitializerRegistry, proxyFactory, getProperties(delegateSchema, schemaStore), typeConverter);
+                        addPropertyLinks(modelNode, nodeInitializerRegistry, getProperties(delegateSchema, schemaStore));
                         hideNodesOfHiddenProperties(modelNode, getHiddenProperties(delegateSchema, schemaStore));
                     }
                 }
