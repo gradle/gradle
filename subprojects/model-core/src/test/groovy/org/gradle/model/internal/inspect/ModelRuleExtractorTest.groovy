@@ -131,6 +131,13 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         differentSchema.number == 0
     }
 
+    def "Java rule class can have non-public getters, setters and rule methods"() {
+        expect:
+        def schema = extractor.extract(AbstractJavaPropertyRules)
+        schema.rules.size() == 2
+        schema.factory.create() != null
+    }
+
     static abstract class AbstractMethodsRules extends RuleSource {
         @Mutate
         abstract void thing(String s)

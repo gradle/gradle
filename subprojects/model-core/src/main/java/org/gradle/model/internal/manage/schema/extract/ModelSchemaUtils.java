@@ -95,7 +95,7 @@ public class ModelSchemaUtils {
 
     public static boolean isIgnoredMethod(Method method) {
         int modifiers = method.getModifiers();
-        if (method.isSynthetic() || Modifier.isStatic(modifiers) || !Modifier.isPublic(modifiers)) {
+        if (method.isSynthetic() || Modifier.isStatic(modifiers)) {
             return true;
         }
 
