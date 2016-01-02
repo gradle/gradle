@@ -17,9 +17,9 @@
 package org.gradle.jvm;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.jvm.tasks.Jar;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.LibraryBinarySpec;
 
@@ -79,6 +79,6 @@ public interface JarBinarySpec extends LibraryBinarySpec, JvmBinarySpec {
         /**
          * The jar task used to create an archive for this binary.
          */
-        Jar getJar();
+        Task getJar();
     }
 }
