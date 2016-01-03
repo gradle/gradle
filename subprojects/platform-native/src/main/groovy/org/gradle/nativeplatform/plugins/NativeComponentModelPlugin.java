@@ -147,16 +147,19 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @BinaryType
         void registerSharedLibraryBinaryType(BinaryTypeBuilder<SharedLibraryBinarySpec> builder) {
             builder.defaultImplementation(DefaultSharedLibraryBinarySpec.class);
+            builder.internalView(SharedLibraryBinarySpecInternal.class);
         }
 
         @BinaryType
         void registerStaticLibraryBinaryType(BinaryTypeBuilder<StaticLibraryBinarySpec> builder) {
             builder.defaultImplementation(DefaultStaticLibraryBinarySpec.class);
+            builder.internalView(StaticLibraryBinarySpecInternal.class);
         }
 
         @BinaryType
         void registerNativeExecutableBinaryType(BinaryTypeBuilder<NativeExecutableBinarySpec> builder) {
             builder.defaultImplementation(DefaultNativeExecutableBinarySpec.class);
+            builder.internalView(NativeExecutableBinarySpecInternal.class);
         }
 
         @Finalize
@@ -277,7 +280,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @BinaryTasks
-        public void createTasks(ModelMap<Task> tasks, final SharedLibraryBinarySpecInternal binary) {
+        public void sharedLibraryTasks(ModelMap<Task> tasks, final SharedLibraryBinarySpecInternal binary) {
             String taskName = binary.getNamingScheme().getTaskName("link");
             tasks.create(taskName, LinkSharedLibrary.class, new Action<LinkSharedLibrary>() {
                 @Override
@@ -300,7 +303,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @BinaryTasks
-        public void createTasks(ModelMap<Task> tasks, final StaticLibraryBinarySpecInternal binary) {
+        public void staticLibraryTasks(ModelMap<Task> tasks, final StaticLibraryBinarySpecInternal binary) {
             String taskName = binary.getNamingScheme().getTaskName("create");
             tasks.create(taskName, CreateStaticLibrary.class, new Action<CreateStaticLibrary>() {
                 @Override
@@ -315,12 +318,12 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @BinaryTasks
-        public void createTasks(ModelMap<Task> tasks, final NativeExecutableBinarySpecInternal executableBinary) {
+        public void executableTasks(ModelMap<Task> tasks, final NativeExecutableBinarySpecInternal executableBinary) {
             createExecutableTask(tasks, executableBinary, executableBinary.getExecutable().getFile());
         }
 
         @BinaryTasks
-        public void createTasks(ModelMap<Task> tasks, final NativeTestSuiteBinarySpecInternal testSuiteBinary) {
+        public void testSuiteTasks(ModelMap<Task> tasks, final NativeTestSuiteBinarySpecInternal testSuiteBinary) {
             createExecutableTask(tasks, testSuiteBinary, testSuiteBinary.getExecutableFile());
         }
 
