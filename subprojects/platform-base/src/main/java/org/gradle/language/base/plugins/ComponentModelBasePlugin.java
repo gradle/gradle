@@ -125,11 +125,11 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
             extensions.add("platforms", platforms);
         }
 
-        @Defaults
-        void collectBinaries(ModelMap<BinarySpec> binaries, ComponentSpecContainer componentSpecs) {
+        @Mutate
+        void collectBinaries(BinaryContainer binaries, ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs.values()) {
-                for (BinarySpec binary : componentSpec.getBinaries().values()) {
-                    binaries.put(((BinarySpecInternal) binary).getProjectScopedName(), binary);
+                for (BinarySpecInternal binary : componentSpec.getBinaries().withType(BinarySpecInternal.class).values()) {
+                    binaries.put(binary.getProjectScopedName(), binary);
                 }
             }
         }
