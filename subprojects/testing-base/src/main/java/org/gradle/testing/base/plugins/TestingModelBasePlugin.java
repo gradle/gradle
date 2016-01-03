@@ -20,8 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.Defaults;
 import org.gradle.model.Model;
+import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentType;
@@ -54,7 +54,7 @@ public class TestingModelBasePlugin implements Plugin<Project> {
         void testSuites(TestSuiteContainer testSuites) {
         }
 
-        @Defaults
+        @Mutate
         void copyTestBinariesToGlobalContainer(BinaryContainer binaries, TestSuiteContainer testSuites) {
             for (TestSuiteSpec testSuite : testSuites.values()) {
                 for (BinarySpecInternal binary : testSuite.getBinaries().withType(BinarySpecInternal.class).values()) {
