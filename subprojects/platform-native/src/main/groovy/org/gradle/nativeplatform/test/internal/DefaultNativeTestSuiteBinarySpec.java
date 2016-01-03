@@ -31,7 +31,7 @@ import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
 import java.io.File;
 
-public abstract class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec implements NativeTestSuiteBinarySpecInternal {
+public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec implements NativeTestSuiteBinarySpecInternal {
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
     private NativeBinarySpecInternal testedBinary;
     private NativeInstallationSpec installation = new NativeInstallationSpec();
@@ -41,7 +41,12 @@ public abstract class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBin
     public NativeTestSuiteSpec getComponent() {
         return getComponentAs(NativeTestSuiteSpec.class);
     }
-    
+
+    @Override
+    public NativeTestSuiteSpec getTestSuite() {
+        return getComponent();
+    }
+
     public NativeBinarySpec getTestedBinary() {
         return testedBinary;
     }
