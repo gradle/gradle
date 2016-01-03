@@ -1439,14 +1439,6 @@ foo
   - dep2 (created by: dep2 creator)""")
     }
 
-    static class BeanRules extends RuleSource {
-        @Mutate
-        void values(Bean b) {
-            b.name = 'bean'
-            b.value = '12'
-        }
-    }
-
     def "can apply RuleSource to node"() {
         when:
         registry.registerInstance("bean", new Bean())
@@ -1487,3 +1479,4 @@ foo
         String internal
     }
 }
+
