@@ -116,18 +116,12 @@ trait BuildTypeAsAnotherBuildTypeJarBinarySpec implements JarBinarySpec {
 }
 
 class StringBinary extends DefaultJarBinarySpec implements BuildTypeAsStringJarBinarySpec {
-    // workaround for Groovy bug
-    JvmBinaryTasks getTasks() { super.tasks }
 }
 
 class BuildTypeBinary extends DefaultJarBinarySpec implements BuildTypeAsBuildTypeJarBinarySpec {
-    // workaround for Groovy bug
-    JvmBinaryTasks getTasks() { super.tasks }
 }
 
 class AnotherBuildTypeBinary extends DefaultJarBinarySpec implements BuildTypeAsAnotherBuildTypeJarBinarySpec {
-    // workaround for Groovy bug
-    JvmBinaryTasks getTasks() { super.tasks }
 }
 
 // define the 3 concrete library types
