@@ -264,14 +264,20 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     public void put(String name, T instance) {
         Class<T> type = Cast.uncheckedCast(instance.getClass());
         ModelRuleDescriptor descriptor = sourceDescriptor.append("put()");
-        modelNode.addLink(
-            ModelRegistrations.unmanagedInstance(
-                ModelReference.of(modelNode.getPath().child(name), type),
-                Factories.constant(instance)
-            )
-            .descriptor(descriptor)
-            .build()
-        );
+        if (instance instanceof ManagedInstance) {
+            ManagedInstance target = (ManagedInstance) instance;
+            modelNode.addReference(name, target.getManagedType(), descriptor);
+            modelNode.getLink(name).setTarget(target.getBackingNode());
+        } else {
+            modelNode.addLink(
+                ModelRegistrations.unmanagedInstance(
+                    ModelReference.of(modelNode.getPath().child(name), type),
+                    Factories.constant(instance)
+                )
+                .descriptor(descriptor)
+                .build()
+            );
+        }
     }
 
     private <S extends T> void doCreate(String name, ModelType<S> type, final DeferredModelAction action) {

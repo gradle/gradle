@@ -93,13 +93,18 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
-    public ModelRegistry configureMatching(ModelPredicate predicate, final ModelActionRole role, final ModelAction action) {
+    public ModelRegistry configureMatching(final ModelPredicate predicate, final ModelActionRole role, final ModelAction action) {
         if (action.getSubject().getPath() != null) {
             throw new IllegalArgumentException("Linked element action reference must have null path.");
         }
 
         final ModelType<?> subjectType = action.getSubject().getType();
         registerListener(new DelegatingListener(predicate) {
+            @Override
+            public String toString() {
+                return "configure matching " + predicate + " using " + action.getDescriptor();
+            }
+
             @Override
             public boolean matches(MutableModelNode node) {
                 node.ensureAtLeast(Discovered);
@@ -116,8 +121,13 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
-    public ModelRegistry configureMatching(ModelPredicate predicate, final Class<? extends RuleSource> rules) {
+    public ModelRegistry configureMatching(final ModelPredicate predicate, final Class<? extends RuleSource> rules) {
         registerListener(new DelegatingListener(predicate) {
+            @Override
+            public String toString() {
+                return "configure matching " + predicate + " apply " + rules.getSimpleName();
+            }
+
             @Override
             public boolean onDiscovered(ModelNodeInternal node) {
                 node.applyToSelf(rules);

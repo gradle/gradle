@@ -28,6 +28,7 @@ import org.gradle.model.Validate;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
+import org.gradle.model.internal.registry.ModelReferenceNode;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
@@ -40,7 +41,7 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import javax.inject.Inject;
 
-import static org.gradle.model.internal.core.NodePredicate.allLinks;
+import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 
 /**
  * Base plugin for binaries support.
@@ -67,13 +68,16 @@ public class BinaryBasePlugin implements Plugin<Project> {
 
     private void applyRules(ModelRegistry modelRegistry) {
         SimpleModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(BinaryBasePlugin.class.getSimpleName() + ".apply()");
-        modelRegistry.configure(ModelActionRole.Defaults,
-                DirectNodeNoInputsModelAction.of(ModelReference.of("binaries"),
+        modelRegistry.getRoot().applyTo(allDescendants(ModelNodes.withType(BinarySpec.class)), ModelActionRole.Defaults,
+                DirectNodeNoInputsModelAction.of(ModelReference.of(BinarySpec.class),
                         ruleDescriptor,
                         new Action<MutableModelNode>() {
                             @Override
-                            public void execute(MutableModelNode binariesNode) {
-                                binariesNode.applyTo(allLinks(), BaseBinaryRules.class);
+                            public void execute(MutableModelNode binaryNode) {
+                                if (binaryNode instanceof ModelReferenceNode) {
+                                    return;
+                                }
+                                binaryNode.applyToSelf(BaseBinaryRules.class);
                             }
                         }));
     }
