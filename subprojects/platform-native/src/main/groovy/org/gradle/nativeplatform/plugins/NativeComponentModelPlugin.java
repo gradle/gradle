@@ -188,11 +188,10 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
                 public void execute(NativeComponentSpec componentSpec) {
-                    componentSpec.getSources().withType(LanguageSourceSet.class).afterEach(new Action<LanguageSourceSet>() {
+                    componentSpec.getSources().withType(LanguageSourceSetInternal.class).afterEach(new Action<LanguageSourceSetInternal>() {
                         @Override
-                        public void execute(LanguageSourceSet languageSourceSet) {
-                            LanguageSourceSetInternal internalSourceSet = (LanguageSourceSetInternal) languageSourceSet;
-                            Task generatorTask = internalSourceSet.getGeneratorTask();
+                        public void execute(LanguageSourceSetInternal languageSourceSet) {
+                            Task generatorTask = languageSourceSet.getGeneratorTask();
                             if (generatorTask != null) {
                                 languageSourceSet.builtBy(generatorTask);
                                 maybeSetSourceDir(languageSourceSet.getSource(), generatorTask, "sourceDir");
@@ -211,15 +210,14 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
                 public void execute(final NativeComponentSpec componentSpec) {
-                    componentSpec.getSources().withType(DependentSourceSet.class).afterEach(new Action<DependentSourceSet>() {
+                    componentSpec.getSources().withType(DependentSourceSetInternal.class).afterEach(new Action<DependentSourceSetInternal>() {
                         @Override
-                        public void execute(DependentSourceSet dependentSourceSet) {
+                        public void execute(DependentSourceSetInternal dependentSourceSet) {
                             if (dependentSourceSet.getPreCompiledHeader() != null) {
-                                DependentSourceSetInternal internalSourceSet = (DependentSourceSetInternal) dependentSourceSet;
                                 String prefixHeaderDirName = String.format("tmp/%s/%s/prefixHeaders", componentSpec.getName(), dependentSourceSet.getName());
                                 File prefixHeaderDir = new File(buildDir, prefixHeaderDirName);
                                 File prefixHeaderFile = new File(prefixHeaderDir, "prefix-headers.h");
-                                internalSourceSet.setPrefixHeaderFile(prefixHeaderFile);
+                                dependentSourceSet.setPrefixHeaderFile(prefixHeaderFile);
                             }
                         }
                     });
@@ -230,14 +228,13 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Mutate
         void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, ModelMap<NativeComponentSpec> nativeComponents) {
             for (final NativeComponentSpec nativeComponentSpec : nativeComponents.values()) {
-                for (final DependentSourceSet dependentSourceSet : nativeComponentSpec.getSources().withType(DependentSourceSet.class).values()) {
-                    final DependentSourceSetInternal internalSourceSet = (DependentSourceSetInternal) dependentSourceSet;
-                    if (internalSourceSet.getPrefixHeaderFile() != null) {
+                for (final DependentSourceSetInternal dependentSourceSet : nativeComponentSpec.getSources().withType(DependentSourceSetInternal.class).values()) {
+                    if (dependentSourceSet.getPrefixHeaderFile() != null) {
                         String taskName = String.format("generate%s%sPrefixHeaderFile", StringUtils.capitalize(nativeComponentSpec.getName()), StringUtils.capitalize(dependentSourceSet.getName()));
                         tasks.create(taskName, PrefixHeaderFileGenerateTask.class, new Action<PrefixHeaderFileGenerateTask>() {
                             @Override
                             public void execute(PrefixHeaderFileGenerateTask prefixHeaderFileGenerateTask) {
-                                prefixHeaderFileGenerateTask.setPrefixHeaderFile(internalSourceSet.getPrefixHeaderFile());
+                                prefixHeaderFileGenerateTask.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
                                 prefixHeaderFileGenerateTask.setHeader(dependentSourceSet.getPreCompiledHeader());
                             }
                         });
