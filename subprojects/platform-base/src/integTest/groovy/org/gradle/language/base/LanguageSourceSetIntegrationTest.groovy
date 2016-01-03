@@ -125,7 +125,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         def buildType = ModelReportOutput.from(output).modelNode.buildType
 
         buildType.inputs.@type[0] == 'CustomSourceSet'
-        buildType.inputs.@nodeValue[0] == null
+        buildType.inputs.@nodeValue[0] == 'null'
         buildType.inputs.@creator[0] == 'Rules#buildType'
 
         buildType.sources.@type[0] == 'CustomSourceSet'

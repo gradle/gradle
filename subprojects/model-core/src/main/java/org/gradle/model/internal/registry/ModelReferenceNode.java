@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
@@ -49,6 +50,15 @@ public class ModelReferenceNode extends ModelNodeInternal {
 
     public ModelNodeInternal getTarget() {
         return target;
+    }
+
+    @Override
+    public Optional<String> getValueDescription() {
+        if (target == null) {
+            return Optional.of("null");
+        } else {
+            return Optional.of("reference to element '" + target.getPath() + "'");
+        }
     }
 
     @Override

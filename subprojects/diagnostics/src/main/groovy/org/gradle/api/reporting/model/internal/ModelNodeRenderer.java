@@ -26,6 +26,7 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.registry.ModelReferenceNode;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.reporting.ReportRenderer;
 
@@ -60,6 +61,10 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
             maybePrintRules(model, styledTextoutput);
         }
 
+        if (model instanceof ModelReferenceNode) {
+            return;
+        }
+
         Map<String, ModelNode> links = new TreeMap<String, ModelNode>();
         for (ModelNode node : model.getLinks(ModelType.untyped())) {
             links.put(node.getPath().getName(), node);
@@ -87,7 +92,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
     }
 
     public void maybePrintValue(ModelNode model, StyledTextOutput styledTextoutput) {
-        if (model.getLinkCount() == 0) {
+        if (model.getLinkCount() == 0 || model instanceof ModelReferenceNode) {
             Optional<String> value = model.getValueDescription();
             if (value.isPresent()) {
                 printNodeAttribute(styledTextoutput, "Value:", value.get());

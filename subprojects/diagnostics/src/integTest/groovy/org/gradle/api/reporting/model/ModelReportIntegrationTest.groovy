@@ -590,8 +590,7 @@ apply plugin: ClassHolder.InnerRules
         ModelReportOutput.from(output).modelNode.binaries.sample.internalData
     }
 
-
-    def "managed properties with null values are displayed with correct type"() {
+    def "managed reference properties are displayed with correct type"() {
         given:
         buildFile << """
             @Managed
@@ -619,8 +618,38 @@ apply plugin: ClassHolder.InnerRules
         def modelNode = ModelReportOutput.from(output).modelNode
         modelNode.person.father.size() == 1
         modelNode.person.father[0].type == "Person"
+        modelNode.person.father[0].nodeValue == "reference to element 'father'"
         modelNode.father.father.size() == 1
         modelNode.father.father[0].type == "Person"
+        modelNode.father.father[0].nodeValue == "null"
+    }
+
+    def "renders cycle in model graph"() {
+        given:
+        buildFile << """
+            @Managed
+            interface Person {
+                Person getFather()
+                void setFather(Person person)
+            }
+
+            class Rules extends RuleSource {
+                @Model
+                void father(Person father) {
+                    father.father = father
+                }
+            }
+            apply plugin: Rules
+        """
+
+        when:
+        succeeds "model"
+
+        then:
+        def modelNode = ModelReportOutput.from(output).modelNode
+        modelNode.father.father.size() == 1
+        modelNode.father.father[0].type == "Person"
+        modelNode.father.father[0].nodeValue == "reference to element 'father'"
     }
 
     private String managedNumbers() {
