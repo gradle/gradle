@@ -92,7 +92,7 @@ public class ComponentRules extends RuleSource {
         @Mutate
         void initializeBinarySourceSets(ModelMap<BinarySpec> binaries) {
             // TODO - sources is not actual an input to binaries, it's an input to each binary
-            binaries.withType(BinarySpecInternal.class).beforeEach(new Action<BinarySpecInternal>() {
+            binaries.withType(BinarySpecInternal.class, new Action<BinarySpecInternal>() {
                 @Override
                 public void execute(BinarySpecInternal binary) {
                     binary.getInputs().addAll(getSources().values());
