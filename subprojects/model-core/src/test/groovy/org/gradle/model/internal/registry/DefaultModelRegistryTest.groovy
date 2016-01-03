@@ -21,9 +21,7 @@ import org.gradle.api.Transformer
 import org.gradle.internal.Actions
 import org.gradle.internal.BiAction
 import org.gradle.internal.BiActions
-import org.gradle.model.ConfigurationCycleException
-import org.gradle.model.InvalidModelRuleException
-import org.gradle.model.ModelRuleBindingException
+import org.gradle.model.*
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
@@ -242,8 +240,7 @@ class DefaultModelRegistryTest extends Specification {
         def target = registry.node("target")
         registry.register("ref") { parentBuilder ->
             parentBuilder.unmanagedNode(Object) { node ->
-                node.addReference("ref.direct") { it.asUnmanaged(String) }
-                node.getLink("direct").setTarget(target)
+                node.addReference("direct", String, target)
             }
         }
         registry.register("foo") { it.unmanaged(String, "ref.direct") { it } }
@@ -263,8 +260,7 @@ class DefaultModelRegistryTest extends Specification {
         def parent = registry.node("parent")
         registry.register("ref") { parentBuilder ->
             parentBuilder.unmanagedNode(Object) { node ->
-                node.addReference("ref.indirect") { it.asUnmanaged(String) }
-                node.getLink("indirect").setTarget(parent)
+                node.addReference("indirect", String, parent)
             }
         }
         registry.register("foo") { it.unmanaged(String, "ref.indirect.child") { it } }
@@ -277,7 +273,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { parentBuilder ->
             parentBuilder.unmanagedNode(String) { node ->
-                node.addReference("parent.child") { it.asUnmanaged(String) }
+                node.addReference("child", String, null)
             }
         }
 
@@ -292,9 +288,8 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { parentBuilder ->
             parentBuilder.unmanagedNode(String) { node ->
-                node.addReference("parent.child") { it.asUnmanaged(String) }
+                node.addReference("child", String, node)
                 node.applyToSelf(ModelActionRole.Mutate) { it.path("parent").node { it.setPrivateData(String, "value") }}
-                node.getLink("child").setTarget(node)
             }
         }
 
@@ -321,9 +316,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.registerInstance("target", "value")
         def target = registry.node("target")
-        registry.root.addReference("ref") { it.unmanagedNode(String) { node ->
-            node.setTarget(target)
-        }}
+        registry.root.addReference("ref", String, target)
         def ref = registry.atState("ref", ModelNode.State.SelfClosed)
 
         when:
@@ -533,7 +526,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.registerInstance("other", new Bean(value: "ignore me"))
         mutatorAction.execute(_) >> { Bean bean -> bean.value = "prefix: $bean.value" }
 
-        registry.realize("parent") // TODO - should not need this
+        registry.realize("parent") // TODO - should not need this: parent mutations should be applied before mutating element
 
         expect:
         registry.realize("parent.bar", Bean).value == "prefix: bar"
@@ -561,7 +554,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.registerInstance("other", new Bean(value: "ignore me"))
         mutatorAction.execute(_) >> { Bean bean -> bean.value = "prefix: $bean.value" }
 
-        registry.realize("parent") // TODO - should not need this
+        registry.realize("parent") // TODO - should not need this: parent mutations should be applied before mutating element
 
         expect:
         registry.realize("parent.bar", Bean).value == "prefix: bar"
@@ -589,7 +582,7 @@ class DefaultModelRegistryTest extends Specification {
         }
         registry.registerInstance("prefix", "prefix")
 
-        registry.realize("parent") // TODO - should not need this
+        registry.realize("parent") // TODO - should not need this: parent mutations should be applied before mutating element
 
         expect:
         registry.realize("parent.foo", Bean).value == "prefix: foo"
@@ -1444,6 +1437,40 @@ foo
         ex.cause.message == TextUtil.toPlatformLineSeparators("""Type-only model reference of type $Bean.name ($Bean.name) is ambiguous as multiple model elements are available for this type:
   - dep (created by: dep creator)
   - dep2 (created by: dep2 creator)""")
+    }
+
+    static class BeanRules extends RuleSource {
+        @Mutate
+        void values(Bean b) {
+            b.name = 'bean'
+            b.value = '12'
+        }
+    }
+
+    def "can apply RuleSource to node"() {
+        when:
+        registry.registerInstance("bean", new Bean())
+        registry.configure(ModelActionRole.Create) { it.path("bean").node { node -> node.applyToSelf(BeanRules) } }
+
+        then:
+        def bean = registry.realize("bean", Bean)
+        bean.name == 'bean'
+        bean.value == '12'
+    }
+
+    def "can apply RuleSource to node via reference"() {
+        when:
+        registry.registerInstance("target", new Bean())
+        registry.root.addReference("bean", Bean, registry.root.getLink("target"))
+        registry.configure(ModelActionRole.Defaults) { it.path("bean").node { node -> node.applyToSelf(BeanRules) } }
+
+        // TODO - should not need this: target of the reference should be transitioned
+        registry.realize("target", Bean)
+
+        then:
+        def bean = registry.realize("bean", Bean)
+        bean.name == 'bean'
+        bean.value == '12'
     }
 
     static class Bean {

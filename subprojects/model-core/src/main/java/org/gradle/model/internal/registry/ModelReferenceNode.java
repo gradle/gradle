@@ -22,7 +22,6 @@ import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
@@ -31,12 +30,12 @@ import java.util.Set;
 /**
  * A model node that is a reference to some other node.
  */
-class ModelReferenceNode extends ModelNodeInternal {
-    private ModelNodeInternal target;
+public class ModelReferenceNode extends ModelNodeInternal {
     private final MutableModelNode parent;
+    private ModelNodeInternal target;
 
-    public ModelReferenceNode(ModelRegistration registration, MutableModelNode parent) {
-        super(registration);
+    public ModelReferenceNode(ModelRegistryInternal modelRegistry, ModelRegistration registration, MutableModelNode parent) {
+        super(modelRegistry, registration);
         this.parent = parent;
     }
 
@@ -91,7 +90,7 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public void addReference(ModelRegistration registration) {
+    public <T> void addReference(String name, ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
         throw new UnsupportedOperationException();
     }
 
@@ -101,22 +100,7 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyToSelf(ModelActionRole type, ModelAction action) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void applyToLink(ModelActionRole type, ModelAction action) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void applyToSelf(Class<? extends RuleSource> rules) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void applyToSelf(ExtractedRuleSource<?> rules) {
         throw new UnsupportedOperationException();
     }
 

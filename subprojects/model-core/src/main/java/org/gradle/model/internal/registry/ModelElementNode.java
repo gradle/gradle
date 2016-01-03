@@ -25,7 +25,6 @@ import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Map;
@@ -35,15 +34,13 @@ import static org.gradle.model.internal.core.ModelNode.State.Created;
 import static org.gradle.model.internal.core.ModelNode.State.Initialized;
 
 class ModelElementNode extends ModelNodeInternal {
-    private final ModelRegistryInternal modelRegistry;
     private final Map<String, ModelNodeInternal> links = Maps.newTreeMap();
     private final MutableModelNode parent;
     private Object privateData;
     private ModelType<?> privateDataType;
 
     public ModelElementNode(ModelRegistryInternal modelRegistry, ModelRegistration registration, MutableModelNode parent) {
-        super(registration);
-        this.modelRegistry = modelRegistry;
+        super(modelRegistry, registration);
         this.parent = parent;
     }
 
@@ -151,29 +148,11 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyToSelf(ModelActionRole role, ModelAction action) {
-        DefaultModelRegistry.checkNodePath(this, action);
-        modelRegistry.bind(action.getSubject(), role, action);
-    }
-
-    @Override
     public void applyToLink(ModelActionRole type, ModelAction action) {
         if (!getPath().isDirectChild(action.getSubject().getPath())) {
             throw new IllegalArgumentException(String.format("Linked element action reference has a path (%s) which is not a child of this node (%s).", action.getSubject().getPath(), getPath()));
         }
         modelRegistry.bind(action.getSubject(), type, action);
-    }
-
-    @Override
-    public void applyToSelf(Class<? extends RuleSource> rulesClass) {
-        ExtractedRuleSource<?> rules = modelRegistry.newRuleSource(rulesClass);
-        rules.assertNoPlugins();
-        rules.apply(modelRegistry, this);
-    }
-
-    @Override
-    public void applyToSelf(ExtractedRuleSource<?> rules) {
-        rules.apply(modelRegistry, this);
     }
 
     @Override
@@ -187,8 +166,16 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public void addReference(ModelRegistration registration) {
-        addNode(new ModelReferenceNode(registration, this), registration);
+    public <T> void addReference(String name, ModelType<T> type, ModelRuleDescriptor descriptor) {
+        // TODO:LPTR Remove projection for reference node
+        // This shouldn't be needed, but if there's no actual value referenced, model report can only
+        // show the type of the node if we do this for now. It should use the schema instead to find
+        // the type of the property node instead.
+        ModelProjection projection = new EmptyReferenceProjection<T>(type);
+        ModelRegistration registration = ModelRegistrations.of(getPath().child(name))
+            .withProjection(projection)
+            .descriptor(descriptor).build();
+        addNode(new ModelReferenceNode(modelRegistry, registration, this), registration);
     }
 
     @Override

@@ -22,7 +22,6 @@ import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
-import org.gradle.model.internal.inspect.ExtractedRuleSource
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
@@ -31,12 +30,12 @@ abstract class RegistrySpec extends Specification {
         def links = []
 
         TestNode(String creationPath, Class<?> type) {
-            super(ModelRegistrations.of(ModelPath.path(creationPath)).descriptor("test").build())
+            super(null, ModelRegistrations.of(ModelPath.path(creationPath)).descriptor("test").build())
             addProjection(new UnmanagedModelProjection(ModelType.of(type)))
         }
 
         TestNode(ModelRegistration registration) {
-            super(registration)
+            super(null, registration)
         }
 
         @Override
@@ -55,10 +54,9 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        void addReference(ModelRegistration registration) {
+        def <T> void addReference(String name, ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
 
         }
-
 
         @Override
         void addLink(ModelRegistration registration) {
@@ -67,16 +65,6 @@ abstract class RegistrySpec extends Specification {
 
         @Override
         void removeLink(String name) {
-
-        }
-
-        @Override
-        def void applyToSelf(ModelActionRole type, ModelAction action) {
-
-        }
-
-        @Override
-        void applyToSelf(ExtractedRuleSource<?> rules) {
 
         }
 
@@ -92,12 +80,6 @@ abstract class RegistrySpec extends Specification {
 
         @Override
         void applyTo(NodePredicate predicate, Class<? extends RuleSource> rules) {
-
-        }
-
-
-        @Override
-        void applyToSelf(Class<? extends RuleSource> rules) {
 
         }
 

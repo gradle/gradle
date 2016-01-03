@@ -349,12 +349,11 @@ public class ModelRegistryHelperExtension {
         node.addLink(definition.transform(registration(path)));
     }
 
-    public static void addReference(MutableModelNode node, String path, Transformer<ModelRegistration, ModelRegistrations.Builder> definition) {
-        addReference(node, ModelPath.path(path), definition);
-    }
-
-    public static void addReference(MutableModelNode node, ModelPath path, Transformer<ModelRegistration, ModelRegistrations.Builder> definition) {
-        node.addReference(definition.transform(registration(path)));
+    public static void addReference(MutableModelNode node, String name, Class<?> type, MutableModelNode target) {
+        node.addReference(name, ModelType.of(type), new SimpleModelRuleDescriptor("<test>"));
+        if (target != null) {
+            node.getLink(name).setTarget(target);
+        }
     }
 
     public static void addLinkInstance(MutableModelNode node, String path, Object instance) {

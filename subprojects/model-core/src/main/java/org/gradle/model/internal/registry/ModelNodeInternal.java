@@ -20,8 +20,10 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
@@ -31,7 +33,7 @@ import static org.gradle.model.internal.core.ModelNode.State.Discovered;
 import static org.gradle.model.internal.core.ModelNodes.withType;
 
 abstract class ModelNodeInternal implements MutableModelNode {
-
+    protected final ModelRegistryInternal modelRegistry;
     private final ModelPath path;
     private final ModelRuleDescriptor descriptor;
     private final Set<ModelNodeInternal> dependencies = Sets.newHashSet();
@@ -43,7 +45,8 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private final List<ModelProjection> projections = Lists.newArrayList();
     private final ModelProjection projection;
 
-    public ModelNodeInternal(ModelRegistration registration) {
+    public ModelNodeInternal(ModelRegistryInternal modelRegistry, ModelRegistration registration) {
+        this.modelRegistry = modelRegistry;
         this.path = registration.getPath();
         this.descriptor = registration.getDescriptor();
         this.hidden = registration.isHidden();
@@ -131,14 +134,14 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     public ModelPromise getPromise() {
         if (!state.isAtLeast(State.Discovered)) {
-            throw new IllegalStateException(String.format("Cannot get promise for %s in state %s when not yet discovered", getPath(), state));
+            throw new IllegalStateException(String.format("Cannot get promise for '%s' in state %s.", getPath(), state));
         }
         return projection;
     }
 
     public ModelAdapter getAdapter() {
         if (!state.isAtLeast(State.Created)) {
-            throw new IllegalStateException(String.format("Cannot get adapter for %s in state %s when node is not created", getPath(), state));
+            throw new IllegalStateException(String.format("Cannot get adapter for '%s' in state %s.", getPath(), state));
         }
         return projection;
     }
@@ -150,7 +153,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
     @Override
     public void addProjection(ModelProjection projection) {
         if (isAtLeast(Discovered)) {
-            throw new IllegalStateException(String.format("Cannot add projections to node '%s' as it is already %s", getPath(), getState()));
+            throw new IllegalStateException(String.format("Cannot add projections to '%s' as it is already in state %s.", getPath(), state));
         }
         projections.add(projection);
     }
@@ -215,6 +218,24 @@ abstract class ModelNodeInternal implements MutableModelNode {
     @Override
     public void defineRulesFor(NodePredicate predicate, ModelActionRole role, ModelAction action) {
         applyTo(predicate, role, action);
+    }
+
+    @Override
+    public void applyToSelf(ModelActionRole role, ModelAction action) {
+        DefaultModelRegistry.checkNodePath(this, action);
+        modelRegistry.bind(action.getSubject(), role, action);
+    }
+
+    @Override
+    public void applyToSelf(ExtractedRuleSource<?> rules) {
+        rules.apply(modelRegistry, this);
+    }
+
+    @Override
+    public void applyToSelf(Class<? extends RuleSource> rulesClass) {
+        ExtractedRuleSource<?> rules = modelRegistry.newRuleSource(rulesClass);
+        rules.assertNoPlugins();
+        rules.apply(modelRegistry, this);
     }
 
     @Override

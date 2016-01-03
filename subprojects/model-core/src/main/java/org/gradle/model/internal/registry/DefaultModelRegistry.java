@@ -933,7 +933,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
                 .descriptor(parent.getDescriptor())
                 .withProjection(childTarget.getProjection())
                 .build();
-            ModelReferenceNode childNode = new ModelReferenceNode(registration, parent);
+            ModelReferenceNode childNode = new ModelReferenceNode(DefaultModelRegistry.this, registration, parent);
             childNode.setTarget(childTarget);
             registerNode(childNode, ImmutableMultimap.<ModelActionRole, ModelAction>of());
             ruleBindings.nodeDiscovered(childNode);
