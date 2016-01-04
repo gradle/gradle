@@ -24,7 +24,6 @@ import org.gradle.model.internal.core.ModelPath;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 
 class RuleBindings {
     private final ModelGraph modelGraph;
@@ -76,23 +75,6 @@ class RuleBindings {
         rulesByInput.nodeRemoved(node);
     }
 
-    public void remove(ModelNodeInternal node, RuleBinder ruleBinder) {
-        rulesBySubject.remove(node, ruleBinder);
-        rulesByInput.remove(node, ruleBinder);
-        removeReferences(node, ruleBinder, pathReferences);
-        removeReferences(node, ruleBinder, scopeReferences);
-    }
-
-    private void removeReferences(ModelNodeInternal node, RuleBinder ruleBinder, Multimap<ModelPath, Reference> references) {
-        Iterator<Reference> iterator = references.get(node.getPath()).iterator();
-        while (iterator.hasNext()) {
-            Reference reference = iterator.next();
-            if (reference.owner.equals(ruleBinder)) {
-                iterator.remove();
-            }
-        }
-    }
-
     public void add(RuleBinder ruleBinder) {
         addRule(ruleBinder, rulesBySubject, ruleBinder.getSubjectBinding());
         for (ModelBinding binding : ruleBinder.getInputBindings()) {
@@ -115,11 +97,7 @@ class RuleBindings {
             pathReferences.put(predicate.getPath(), reference);
         } else if (predicate.getScope() != null) {
             for (ModelNodeInternal node : modelGraph.findAllInScope(predicate.getScope())) {
-                // Do not try to attach to nodes that are not Discovered yet
-                if (!node.isAtLeast(ModelNode.State.Discovered)) {
-                    continue;
-                }
-                if (binding.getPredicate().matches(node)) {
+                if (binding.canBindInState(node.getState()) && binding.getPredicate().matches(node)) {
                     bound(reference, node);
                 }
             }
