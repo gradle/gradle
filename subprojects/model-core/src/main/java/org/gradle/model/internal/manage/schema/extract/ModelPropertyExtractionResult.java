@@ -35,4 +35,9 @@ public class ModelPropertyExtractionResult<T> {
     public Iterable<PropertyAccessorExtractionContext> getAccessors() {
         return accessors;
     }
+
+    @Override
+    public String toString() {
+        return String.valueOf(property);
+    }
 }

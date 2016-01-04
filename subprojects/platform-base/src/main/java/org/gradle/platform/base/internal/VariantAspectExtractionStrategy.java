@@ -33,15 +33,13 @@ public class VariantAspectExtractionStrategy implements ModelSchemaAspectExtract
         for (ModelPropertyExtractionResult<?> propertyResult : propertyResults) {
             ModelProperty<?> property = propertyResult.getProperty();
             for (PropertyAccessorExtractionContext accessor : propertyResult.getAccessors()) {
-                // Annotations on setters are silently ignored
-                if (accessor.getAccessorType() == PropertyAccessorType.SETTER) {
-                    continue;
-                }
                 if (accessor.isAnnotationPresent(Variant.class)) {
+                    if (accessor.getAccessorType() == PropertyAccessorType.SETTER) {
+                        throw invalidProperty(extractionContext, property, "@Variant annotation is only allowed on getter methods");
+                    }
                     Class<?> propertyType = property.getType().getRawClass();
                     if (!String.class.equals(propertyType) && !Named.class.isAssignableFrom(propertyType)) {
-                        // Annotations on non-String and non-Named properties are ignored
-                        continue;
+                        throw invalidProperty(extractionContext, property, String.format("@Variant annotation only allowed for properties of type String and %s, but property has type %s", Named.class.getName(), propertyType.getName()));
                     }
                     dimensionsBuilder.add(property);
                 }
