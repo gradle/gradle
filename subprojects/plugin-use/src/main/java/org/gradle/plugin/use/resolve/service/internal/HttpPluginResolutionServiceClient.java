@@ -50,7 +50,12 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
     private HttpResourceAccessor resourceAccessor;
 
     public HttpPluginResolutionServiceClient(SslContextFactory sslContextFactory) {
+        this(sslContextFactory, null);
+    }
+
+    public HttpPluginResolutionServiceClient(SslContextFactory sslContextFactory, HttpResourceAccessor resourceAccessor) {
         this.sslContextFactory = sslContextFactory;
+        this.resourceAccessor = resourceAccessor;
     }
 
     @Nullable
