@@ -270,7 +270,13 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
                 boolean isAllowedPropertyTypeOfManagedType = propertySchema instanceof ManagedImplSchema
                     || propertySchema instanceof ScalarValueSchema;
 
-                boolean isDeclaredAsHavingUnmanagedType = propertyResult.getGetter().isAnnotationPresent(Unmanaged.class);
+                boolean isDeclaredAsHavingUnmanagedType = false;
+                for (PropertyAccessorExtractionContext accessorContext : propertyResult.getAccessors()) {
+                    if (accessorContext.getAccessorType() != SETTER && accessorContext.isAnnotationPresent(Unmanaged.class)) {
+                        isDeclaredAsHavingUnmanagedType = true;
+                        break;
+                    }
+                }
 
                 if (isAllowedPropertyTypeOfManagedType && isDeclaredAsHavingUnmanagedType) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(

@@ -19,14 +19,15 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.base.*;
 import com.google.common.collect.*;
 import org.gradle.api.Action;
-import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public abstract class StructSchemaExtractionStrategySupport implements ModelSchemaExtractionStrategy {
 
@@ -139,36 +140,25 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         PropertyAccessorExtractionContext gettersContext = property.mergeGetters();
         final ModelType<R> returnType = ModelType.returnType(gettersContext.getMostSpecificDeclaration());
 
-        WeaklyTypeReferencingMethod<?, Void> setterRef;
-        PropertyAccessorExtractionContext setterContext = property.getAccessor(PropertyAccessorType.SETTER);
-        if (setterContext != null) {
-            Method mostSpecificDeclaration = setterContext.getMostSpecificDeclaration();
-            setterRef = WeaklyTypeReferencingMethod.of(ModelType.of(mostSpecificDeclaration.getDeclaringClass()), ModelType.of(void.class), mostSpecificDeclaration);
-        } else {
-            setterRef = null;
-        }
-
-        ImmutableSet<ModelType<?>> declaringClasses = ImmutableSet.copyOf(Iterables.transform(gettersContext.getDeclaringMethods(), new Function<Method, ModelType<?>>() {
-            public ModelType<?> apply(Method input) {
-                return ModelType.of(input.getDeclaringClass());
-            }
-        }));
-
-        List<WeaklyTypeReferencingMethod<?, R>> getterRefs = Lists.newArrayList(Iterables.transform(gettersContext.getGetters(), new Function<Method, WeaklyTypeReferencingMethod<?, R>>() {
-            @Override
-            public WeaklyTypeReferencingMethod<?, R> apply(Method getter) {
-                return WeaklyTypeReferencingMethod.of(ModelType.of(getter.getDeclaringClass()), returnType, getter);
-            }
-        }));
-
         ModelProperty.StateManagementType stateManagementType = determineStateManagementType(context, gettersContext);
-        boolean declaredAsHavingUnmanagedType = gettersContext.getAnnotation(Unmanaged.class) != null;
+        return createProperty(returnType, stateManagementType, property);
+    }
 
-        return new ModelPropertyExtractionResult<R>(
-            new ModelProperty<R>(returnType, property.getPropertyName(), stateManagementType, declaringClasses, getterRefs, setterRef, declaredAsHavingUnmanagedType),
-            gettersContext,
-            setterContext
+    private static <P> ModelPropertyExtractionResult<P> createProperty(ModelType<P> propertyType, ModelProperty.StateManagementType stateManagementType, ModelPropertyExtractionContext propertyContext) {
+        ImmutableMap.Builder<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors = ImmutableMap.builder();
+        for (PropertyAccessorExtractionContext accessor : propertyContext.getAccessors()) {
+            WeaklyTypeReferencingMethod<?, ?> accessorMethod = WeaklyTypeReferencingMethod.of(accessor.getMostSpecificDeclaration());
+            accessors.put(accessor.getAccessorType(), accessorMethod);
+        }
+        ModelProperty<P> property = new ModelProperty<P>(
+            propertyType,
+            propertyContext.getPropertyName(),
+            stateManagementType,
+            propertyContext.getDeclaredBy(),
+            accessors.build(),
+            propertyContext.isDeclaredAsUnmanaged()
         );
+        return new ModelPropertyExtractionResult<P>(property, propertyContext.getAccessors());
     }
 
     protected abstract ModelProperty.StateManagementType determineStateManagementType(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getterContext);

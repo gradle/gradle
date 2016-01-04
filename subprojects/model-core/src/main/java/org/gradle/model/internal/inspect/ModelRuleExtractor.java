@@ -111,16 +111,13 @@ public class ModelRuleExtractor {
         ImmutableList.Builder<ModelProperty<?>> implicitInputs = ImmutableList.builder();
         ModelProperty<?> target = null;
         for (ModelProperty<?> property : schema.getProperties()) {
-            if (property.getAnnotation(RuleTarget.class) != null) {
+            if (property.isAnnotationPresent(RuleTarget.class)) {
                 target = property;
-            } else if (property.getAnnotation(RuleInput.class) != null && !(property.getSchema() instanceof ScalarValueSchema)) {
+            } else if (property.isAnnotationPresent(RuleInput.class) && !(property.getSchema() instanceof ScalarValueSchema)) {
                 implicitInputs.add(property);
             }
-            for (WeaklyTypeReferencingMethod<?, ?> method : property.getGetters()) {
+            for (WeaklyTypeReferencingMethod<?, ?> method : property.getAccessors()) {
                 methods.remove(method.getMethod());
-            }
-            if (property.getSetter() != null) {
-                methods.remove(property.getSetter().getMethod());
             }
         }
 

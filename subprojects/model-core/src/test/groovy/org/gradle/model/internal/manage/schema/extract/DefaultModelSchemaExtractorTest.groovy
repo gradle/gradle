@@ -1318,7 +1318,8 @@ interface Managed${typeName} {
         schema instanceof ManagedImplSchema
         def redundant = schema.properties[0]
         assert redundant instanceof ModelProperty
-        redundant.getters.size() == 2
+        redundant.getAccessor(PropertyAccessorType.IS_GETTER) != null
+        redundant.getAccessor(PropertyAccessorType.GET_GETTER) != null
     }
 
     @Managed

@@ -44,6 +44,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.GET_GETTER;
+import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.IS_GETTER;
+import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.SETTER;
 import static org.objectweb.asm.Opcodes.*;
 
 public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
@@ -444,7 +447,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                     break;
 
                 case UNMANAGED:
-                    for (WeaklyTypeReferencingMethod<?, ?> getter : property.getGetters()) {
+                    for (WeaklyTypeReferencingMethod<?, ?> getter : property.getAccessors()) {
                         Method getterMethod = getter.getMethod();
                         if (!Modifier.isFinal(getterMethod.getModifiers()) && !propertyName.equals("metaClass")) {
                             writeNonAbstractMethodWrapper(visitor, generatedType, viewClass, getterMethod);
@@ -472,14 +475,14 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeSetMethod(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
-        if (property.isWritable() && property.getSchema() instanceof ScalarValueSchema) {
-
+        WeaklyTypeReferencingMethod<?, ?> setter = property.getAccessor(SETTER);
+        if (setter != null && property.getSchema() instanceof ScalarValueSchema) {
             // TODO - should we support this?
             // Adds a void $propName(Object value) method that simply delegates to the converting setter method
             MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE), null);
             putThisOnStack(methodVisitor);
             putFirstMethodArgumentOnStack(methodVisitor);
-            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), property.getSetter().getName(), Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE), false);
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), setter.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE), false);
             finishVisitingMethod(methodVisitor);
         }
     }
@@ -505,7 +508,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             // Adds a void $propName(Closure<?> cl) method that executes the closure
             MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE), null);
             putThisOnStack(methodVisitor);
-            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), property.getGetters().get(0).getName(), Type.getMethodDescriptor(Type.getType(property.getType().getConcreteClass())), false);
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), property.getGetter().getName(), Type.getMethodDescriptor(Type.getType(property.getType().getConcreteClass())), false);
             putFirstMethodArgumentOnStack(methodVisitor);
             methodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(ClosureBackedAction.class), "execute", Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLOSURE_TYPE), false);
             finishVisitingMethod(methodVisitor);
@@ -527,7 +530,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeSetter(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
-        WeaklyTypeReferencingMethod<?, Void> weakSetter = property.getSetter();
+        WeaklyTypeReferencingMethod<?, ?> weakSetter = property.getAccessor(SETTER);
         // There is no setter for this property
         if (weakSetter == null) {
             return;
@@ -562,7 +565,12 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     // the overload of type Object for Groovy coercions:  public void setFoo(Object foo)
     private void writeTypeConvertingSetter(ClassVisitor visitor, Type generatedType, Class<?> viewClass, ModelProperty<?> property) {
-        if (!property.isWritable() || !(property.getSchema() instanceof ScalarValueSchema)) {
+        WeaklyTypeReferencingMethod<?, ?> weakSetter = property.getAccessor(SETTER);
+        // There is no setter for this property
+        if (weakSetter == null) {
+            return;
+        }
+        if (!(property.getSchema() instanceof ScalarValueSchema)) {
             return;
         }
 
@@ -571,7 +579,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         Class<?> boxedClass = propertyClass.isPrimitive() ? BOXED_TYPES.get(propertyClass) : propertyClass;
         Type boxedType = Type.getType(boxedClass);
 
-        Method setter = property.getSetter().getMethod();
+        Method setter = weakSetter.getMethod();
         MethodVisitor methodVisitor = declareMethod(visitor, setter.getName(), SET_OBJECT_PROPERTY_DESCRIPTOR, SET_OBJECT_PROPERTY_DESCRIPTOR);
 
         putThisOnStack(methodVisitor);
@@ -750,25 +758,29 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private void writeGetters(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
         Class<?> propertyClass = property.getType().getConcreteClass();
-        Type propertyType = Type.getType(propertyClass);
-        Set<String> processedNames = Sets.newHashSet();
-        for (WeaklyTypeReferencingMethod<?, ?> weakGetter : property.getGetters()) {
-            Method getter = weakGetter.getMethod();
-            if (!processedNames.add(getter.getName())) {
-                continue;
-            }
-            MethodVisitor methodVisitor = declareMethod(
-                visitor,
-                getter.getName(),
-                Type.getMethodDescriptor(propertyType),
-                AsmClassGeneratorUtils.signature(getter));
+        String propertyName = property.getName();
+        writeGetter(visitor, generatedType, propertyName, propertyClass, property.getAccessor(GET_GETTER));
+        writeGetter(visitor, generatedType, propertyName, propertyClass, property.getAccessor(IS_GETTER));
+    }
 
-            putStateFieldValueOnStack(methodVisitor, generatedType);
-            putConstantOnStack(methodVisitor, property.getName());
-            invokeStateGetMethod(methodVisitor);
-            castFirstStackElement(methodVisitor, propertyClass);
-            finishVisitingMethod(methodVisitor, returnCode(propertyType));
+    private void writeGetter(ClassVisitor visitor, Type generatedType, String propertyName, Class<?> propertyClass, WeaklyTypeReferencingMethod<?, ?> weakGetter) {
+        if (weakGetter == null) {
+            return;
         }
+
+        Method getter = weakGetter.getMethod();
+        Type propertyType = Type.getType(propertyClass);
+        MethodVisitor methodVisitor = declareMethod(
+            visitor,
+            getter.getName(),
+            Type.getMethodDescriptor(propertyType),
+            AsmClassGeneratorUtils.signature(getter));
+
+        putStateFieldValueOnStack(methodVisitor, generatedType);
+        putConstantOnStack(methodVisitor, propertyName);
+        invokeStateGetMethod(methodVisitor);
+        castFirstStackElement(methodVisitor, propertyClass);
+        finishVisitingMethod(methodVisitor, returnCode(propertyType));
     }
 
     private int returnCode(Type returnType) {

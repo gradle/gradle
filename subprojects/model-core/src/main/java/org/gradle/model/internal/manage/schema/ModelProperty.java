@@ -17,16 +17,19 @@
 package org.gradle.model.internal.manage.schema;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
+import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
-import java.util.List;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 @ThreadSafe
@@ -48,19 +51,18 @@ public class ModelProperty<T> {
     private final ModelType<T> type;
     private final StateManagementType stateManagementType;
     private final Set<ModelType<?>> declaredBy;
-    private final List<WeaklyTypeReferencingMethod<?, T>> getters;
-    private final WeaklyTypeReferencingMethod<?, Void> setter;
+    private final ImmutableMap<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors;
     private final boolean declaredAsHavingUnmanagedType;
     private ModelSchema<T> schema;
 
     public ModelProperty(ModelType<T> type, String name, StateManagementType stateManagementType, Set<ModelType<?>> declaredBy,
-                         List<WeaklyTypeReferencingMethod<?, T>> getters, @Nullable WeaklyTypeReferencingMethod<?, Void> setter, boolean declaredAsHavingUnmanagedType) {
+                         Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors,
+                         boolean declaredAsHavingUnmanagedType) {
         this.name = name;
         this.type = type;
         this.stateManagementType = stateManagementType;
         this.declaredBy = ImmutableSet.copyOf(declaredBy);
-        this.getters = ImmutableList.copyOf(getters);
-        this.setter = setter;
+        this.accessors = Maps.immutableEnumMap(accessors);
         this.declaredAsHavingUnmanagedType = declaredAsHavingUnmanagedType;
     }
 
@@ -84,34 +86,49 @@ public class ModelProperty<T> {
         return stateManagementType;
     }
 
+    public boolean isReadable() {
+        return accessors.containsKey(PropertyAccessorType.IS_GETTER) || accessors.containsKey(PropertyAccessorType.GET_GETTER);
+    }
+
     public boolean isWritable() {
-        return setter != null;
+        return accessors.containsKey(PropertyAccessorType.SETTER);
     }
 
     public Set<ModelType<?>> getDeclaredBy() {
         return declaredBy;
     }
 
-    private WeaklyTypeReferencingMethod<?, T> firstGetter() {
-        return getters.get(0);
-    }
-
     @Nullable
-    public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-        return firstGetter().getMethod().getAnnotation(annotationType);
+    public WeaklyTypeReferencingMethod<?, ?> getAccessor(PropertyAccessorType accessorType) {
+        return accessors.get(accessorType);
     }
 
-    public List<WeaklyTypeReferencingMethod<?, T>> getGetters() {
-        return getters;
+    public Collection<WeaklyTypeReferencingMethod<?, ?>> getAccessors() {
+        return accessors.values();
     }
 
-    @Nullable
-    public WeaklyTypeReferencingMethod<?, Void> getSetter() {
-        return setter;
+    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+        return isAnnotationPresent(annotationType, getAccessor(PropertyAccessorType.GET_GETTER))
+            || isAnnotationPresent(annotationType, getAccessor(PropertyAccessorType.IS_GETTER));
+    }
+
+    private boolean isAnnotationPresent(Class<? extends Annotation> annotationType, WeaklyTypeReferencingMethod<?, ?> getter) {
+        return getter != null && getter.getMethod().isAnnotationPresent(annotationType);
     }
 
     public <I> T getPropertyValue(I instance) {
-        return Cast.<WeaklyTypeReferencingMethod<I, T>>uncheckedCast(firstGetter()).invoke(instance);
+        return Cast.<WeaklyTypeReferencingMethod<I, T>>uncheckedCast(getGetter()).invoke(instance);
+    }
+
+    public WeaklyTypeReferencingMethod<?, ?> getGetter() {
+        WeaklyTypeReferencingMethod<?, ?> getter = getAccessor(PropertyAccessorType.GET_GETTER);
+        if (getter == null) {
+            getter = getAccessor(PropertyAccessorType.IS_GETTER);
+        }
+        if (getter == null) {
+            throw new IllegalStateException("No getter for property" + this);
+        }
+        return getter;
     }
 
     public boolean isDeclaredAsHavingUnmanagedType() {
