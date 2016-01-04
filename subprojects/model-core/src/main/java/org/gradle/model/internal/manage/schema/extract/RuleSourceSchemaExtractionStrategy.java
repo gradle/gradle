@@ -16,18 +16,18 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.RuleSourceSchema;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Set;
 
 public class RuleSourceSchemaExtractionStrategy extends StructSchemaExtractionStrategySupport {
     public RuleSourceSchemaExtractionStrategy(ModelSchemaAspectExtractor aspectExtractor) {
@@ -75,13 +75,7 @@ public class RuleSourceSchemaExtractionStrategy extends StructSchemaExtractionSt
     }
 
     @Override
-    protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects) {
-        Iterable<ModelProperty<?>> properties = Iterables.transform(propertyResults, new Function<ModelPropertyExtractionResult<?>, ModelProperty<?>>() {
-            @Override
-            public ModelProperty<?> apply(ModelPropertyExtractionResult<?> propertyResult) {
-                return propertyResult.getProperty();
-            }
-        });
+    protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods, Iterable<ModelSchemaAspect> aspects) {
         return new RuleSourceSchema<R>(extractionContext.getType(), properties, aspects);
     }
 }

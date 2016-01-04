@@ -22,6 +22,7 @@ import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
 import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
@@ -43,7 +44,13 @@ public class JavaUtilCollectionStrategy implements ModelSchemaExtractionStrategy
             if (typeVariables.size() > 0 && ScalarTypes.isScalarType(typeVariables.get(0))) {
                 extractionContext.found(createSchema(extractionContext, type, typeVariables.get(0)));
             } else {
-                extractionContext.found(new UnmanagedImplStructSchema<T>(type, Collections.<ModelProperty<?>>emptySet(), Collections.<ModelSchemaAspect>emptySet(), false));
+                extractionContext.found(new UnmanagedImplStructSchema<T>(
+                    type,
+                    Collections.<ModelProperty<?>>emptySet(),
+                    Collections.<WeaklyTypeReferencingMethod<?, ?>>emptySet(),
+                    Collections.<ModelSchemaAspect>emptySet(),
+                    false
+                ));
             }
         }
     }

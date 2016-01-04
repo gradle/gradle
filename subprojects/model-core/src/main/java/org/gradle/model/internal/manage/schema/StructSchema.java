@@ -18,8 +18,10 @@ package org.gradle.model.internal.manage.schema;
 
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.SortedSet;
 
 /**
@@ -34,6 +36,10 @@ public interface StructSchema<T> extends ModelSchema<T> {
     ModelProperty<?> getProperty(String name);
 
     Collection<ModelProperty<?>> getProperties();
+
+    Set<WeaklyTypeReferencingMethod<?, ?>> getNonPropertyMethods();
+
+    Set<WeaklyTypeReferencingMethod<?, ?>> getAllMethods();
 
     boolean hasAspect(Class<? extends ModelSchemaAspect> aspectType);
 

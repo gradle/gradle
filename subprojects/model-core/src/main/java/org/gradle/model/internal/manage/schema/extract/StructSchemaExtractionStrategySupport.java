@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.*;
+import com.google.common.base.Equivalence.Wrapper;
 import com.google.common.collect.*;
 import org.gradle.api.Action;
 import org.gradle.model.internal.manage.schema.ModelProperty;
@@ -28,6 +29,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class StructSchemaExtractionStrategySupport implements ModelSchemaExtractionStrategy {
 
@@ -57,12 +59,40 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         List<ModelPropertyExtractionResult<?>> extractedProperties = extractProperties(extractionContext, candidateProperties);
         List<ModelSchemaAspect> aspects = aspectExtractor.extract(extractionContext, extractedProperties);
 
-        ModelSchema<R> schema = createSchema(extractionContext, extractedProperties, aspects);
+        Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods = getNonPropertyMethods(candidateMethods, extractedProperties);
+        Iterable<ModelProperty<?>> properties = Iterables.transform(extractedProperties, new Function<ModelPropertyExtractionResult<?>, ModelProperty<?>>() {
+            @Override
+            public ModelProperty<?> apply(ModelPropertyExtractionResult<?> propertyResult) {
+                return propertyResult.getProperty();
+            }
+        });
+
+        ModelSchema<R> schema = createSchema(extractionContext, properties, nonPropertyMethods, aspects);
         for (ModelPropertyExtractionResult<?> propertyResult : extractedProperties) {
             toPropertyExtractionContext(extractionContext, propertyResult);
         }
 
         extractionContext.found(schema);
+    }
+
+    private Set<WeaklyTypeReferencingMethod<?, ?>> getNonPropertyMethods(CandidateMethods candidateMethods, List<ModelPropertyExtractionResult<?>> extractedProperties) {
+        Set<Method> nonPropertyMethods = Sets.newLinkedHashSet(Iterables.transform(candidateMethods.allMethods().keySet(), new Function<Wrapper<Method>, Method>() {
+            @Override
+            public Method apply(Wrapper<Method> method) {
+                return method.get();
+            }
+        }));
+        for (ModelPropertyExtractionResult<?> extractedProperty : extractedProperties) {
+            for (PropertyAccessorExtractionContext accessor : extractedProperty.getAccessors()) {
+                nonPropertyMethods.removeAll(accessor.getDeclaringMethods());
+            }
+        }
+        return Sets.newLinkedHashSet(Iterables.transform(nonPropertyMethods, new Function<Method, WeaklyTypeReferencingMethod<?, ?>>() {
+            @Override
+            public WeaklyTypeReferencingMethod<?, ?> apply(Method method) {
+                return WeaklyTypeReferencingMethod.of(method);
+            }
+        }));
     }
 
     protected abstract boolean isTarget(ModelType<?> type);
@@ -73,7 +103,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     private Iterable<ModelPropertyExtractionContext> selectProperties(final ModelSchemaExtractionContext<?> context, CandidateMethods candidateMethods) {
         Map<String, ModelPropertyExtractionContext> propertiesMap = Maps.newTreeMap();
-        for (Map.Entry<Equivalence.Wrapper<Method>, Collection<Method>> entry : candidateMethods.allMethods().entrySet()) {
+        for (Map.Entry<Wrapper<Method>, Collection<Method>> entry : candidateMethods.allMethods().entrySet()) {
             Method method = entry.getKey().get();
             PropertyAccessorType propertyAccessorType = PropertyAccessorType.of(method);
             Collection<Method> methodsWithEqualSignature = entry.getValue();
@@ -191,5 +221,5 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     protected abstract <P> Action<ModelSchema<P>> createPropertyValidator(ModelSchemaExtractionContext<?> extractionContext, ModelPropertyExtractionResult<P> propertyResult);
 
-    protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects);
+    protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods, Iterable<ModelSchemaAspect> aspects);
 }

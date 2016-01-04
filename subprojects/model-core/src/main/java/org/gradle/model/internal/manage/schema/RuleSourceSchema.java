@@ -17,13 +17,16 @@
 package org.gradle.model.internal.manage.schema;
 
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
+
+import java.util.Collections;
 
 /**
  * The schema for a {@link org.gradle.model.RuleSource}.
  */
 public class RuleSourceSchema<T> extends AbstractStructSchema<T> {
     public RuleSourceSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
-        super(type, properties, aspects);
+        super(type, properties, Collections.<WeaklyTypeReferencingMethod<?, ?>>emptySet(), aspects);
     }
 }

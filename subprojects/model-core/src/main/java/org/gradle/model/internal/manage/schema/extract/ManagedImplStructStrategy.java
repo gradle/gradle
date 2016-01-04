@@ -26,16 +26,14 @@ import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.manage.schema.*;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.*;
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.*;
@@ -306,15 +304,8 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
     }
 
     @Override
-    protected <R> ManagedImplStructSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects) {
-        ModelType<R> type = extractionContext.getType();
-        Iterable<ModelProperty<?>> properties = Iterables.transform(propertyResults, new Function<ModelPropertyExtractionResult<?>, ModelProperty<?>>() {
-            @Override
-            public ModelProperty<?> apply(ModelPropertyExtractionResult<?> propertyResult) {
-                return propertyResult.getProperty();
-            }
-        });
-        return new ManagedImplStructSchema<R>(type, properties, aspects);
+    protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods, Iterable<ModelSchemaAspect> aspects) {
+        return new ManagedImplStructSchema<R>(extractionContext.getType(), properties, nonPropertyMethods, aspects);
     }
 
     private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Method method) {
