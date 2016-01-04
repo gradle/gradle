@@ -16,61 +16,99 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.Iterables;
+import com.google.common.collect.*;
 import org.gradle.api.Nullable;
+import org.gradle.model.Unmanaged;
+import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 public class ModelPropertyExtractionContext {
 
     private final String propertyName;
-    private PropertyAccessorExtractionContext getGetter;
-    private PropertyAccessorExtractionContext isGetter;
-    private PropertyAccessorExtractionContext setter;
+    private Map<PropertyAccessorType, PropertyAccessorExtractionContext> accessors;
 
     public ModelPropertyExtractionContext(String propertyName) {
         this.propertyName = propertyName;
+        this.accessors = Maps.newEnumMap(PropertyAccessorType.class);
     }
 
     public String getPropertyName() {
         return propertyName;
     }
 
-    public void setGetGetter(PropertyAccessorExtractionContext getGetterContext) {
-        this.getGetter = getGetterContext;
+    public boolean isReadable() {
+        return accessors.containsKey(PropertyAccessorType.IS_GETTER) || accessors.containsKey(PropertyAccessorType.GET_GETTER);
+    }
+
+    public boolean isWritable() {
+        return accessors.containsKey(PropertyAccessorType.SETTER);
+    }
+
+    public void addAccessor(PropertyAccessorExtractionContext accessor) {
+        PropertyAccessorType type = accessor.getAccessorType();
+        if (accessors.containsKey(type)) {
+            throw new IllegalStateException("Accessor already registered: " + type + " " + accessor);
+        }
+        accessors.put(type, accessor);
     }
 
     @Nullable
-    public PropertyAccessorExtractionContext getGetGetter() {
-        return getGetter;
+    public PropertyAccessorExtractionContext getAccessor(PropertyAccessorType type) {
+        return accessors.get(type);
     }
 
-    public void setIsGetter(PropertyAccessorExtractionContext isGetterContext) {
-        this.isGetter = isGetterContext;
+    public Collection<PropertyAccessorExtractionContext> getAccessors() {
+        return accessors.values();
     }
 
-    @Nullable
-    public PropertyAccessorExtractionContext getIsGetter() {
-        return isGetter;
+    public void dropInvalidAccessor(PropertyAccessorType type, ImmutableCollection.Builder<Method> droppedMethods) {
+        PropertyAccessorExtractionContext removedAccessor = accessors.remove(type);
+        if (removedAccessor != null) {
+            droppedMethods.add(removedAccessor.getMostSpecificDeclaration());
+        }
     }
 
-    public void setSetter(PropertyAccessorExtractionContext setterGetterContext) {
-        this.setter = setterGetterContext;
+    public Set<ModelType<?>> getDeclaredBy() {
+        ImmutableSortedSet.Builder<ModelType<?>> declaredBy = new ImmutableSortedSet.Builder<ModelType<?>>(Ordering.usingToString());
+        for (PropertyAccessorExtractionContext accessor : accessors.values()) {
+            for (Method method : accessor.getDeclaringMethods()) {
+                declaredBy.add(ModelType.declaringType(method));
+            }
+        }
+        return declaredBy.build();
     }
 
-    @Nullable
-    public PropertyAccessorExtractionContext getSetter() {
-        return setter;
+    public boolean isDeclaredAsUnmanaged() {
+        return isDeclaredAsUnmanaged(getAccessor(PropertyAccessorType.GET_GETTER))
+            || isDeclaredAsUnmanaged(getAccessor(PropertyAccessorType.IS_GETTER));
+    }
+
+    private boolean isDeclaredAsUnmanaged(PropertyAccessorExtractionContext accessor) {
+        if (accessor == null) {
+            return false;
+        }
+        for (Method method : accessor.getDeclaringMethods()) {
+            if (method.isAnnotationPresent(Unmanaged.class)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Nullable
     public PropertyAccessorExtractionContext mergeGetters() {
+        PropertyAccessorExtractionContext getGetter = getAccessor(PropertyAccessorType.GET_GETTER);
+        PropertyAccessorExtractionContext isGetter = getAccessor(PropertyAccessorType.IS_GETTER);
         if (getGetter == null && isGetter == null) {
             return null;
         }
         Iterable<Method> getMethods = getGetter != null ? getGetter.getDeclaringMethods() : Collections.<Method>emptyList();
         Iterable<Method> isMethods = isGetter != null ? isGetter.getDeclaringMethods() : Collections.<Method>emptyList();
-        return new PropertyAccessorExtractionContext(Iterables.concat(getMethods, isMethods));
+        return new PropertyAccessorExtractionContext(PropertyAccessorType.GET_GETTER, Iterables.concat(getMethods, isMethods));
     }
 }

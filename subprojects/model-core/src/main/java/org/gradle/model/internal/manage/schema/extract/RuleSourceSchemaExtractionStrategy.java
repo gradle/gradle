@@ -58,7 +58,7 @@ public class RuleSourceSchemaExtractionStrategy extends StructSchemaExtractionSt
 
     @Override
     protected boolean selectProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property) {
-        return !(property.getGetGetter() == null && property.getIsGetter() == null);
+        return property.isReadable();
     }
 
     @Override

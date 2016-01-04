@@ -55,7 +55,7 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
 
     @Override
     protected boolean selectProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property) {
-        return !(property.getGetGetter() == null && property.getIsGetter() == null);
+        return property.isReadable();
     }
 
     @Override
