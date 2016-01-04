@@ -27,6 +27,7 @@ import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.internal.DefaultCSourceSet;
 import org.gradle.language.c.tasks.CCompile;
 import org.gradle.language.c.tasks.CPreCompiledHeaderCompile;
+import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
@@ -55,6 +56,7 @@ public class CLangPlugin implements Plugin<Project> {
         void registerLanguage(LanguageTypeBuilder<CSourceSet> builder) {
             builder.setLanguageName("c");
             builder.defaultImplementation(DefaultCSourceSet.class);
+            builder.internalView(DependentSourceSetInternal.class);
         }
 
         @Mutate
