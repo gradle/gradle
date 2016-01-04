@@ -17,11 +17,8 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.model.internal.core.ModelPredicate;
-import org.gradle.model.internal.core.MutableModelNode;
 
 abstract class ModelListener extends ModelPredicate {
-    public abstract boolean matches(MutableModelNode node);
-
     /**
      * Invoked once for each node when the node reaches the {@link org.gradle.model.internal.core.ModelNode.State#Discovered} state
      * if the node matches the criteria specified by this listener.

@@ -19,7 +19,6 @@ package org.gradle.model.internal.registry
 import org.gradle.model.internal.core.ModelNode.State
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.MutableModelNode
-import org.gradle.model.internal.type.ModelType
 
 class ModelGraphTest extends RegistrySpec {
     def graph = new ModelGraph(root())
@@ -164,77 +163,6 @@ class ModelGraphTest extends RegistrySpec {
             matches(_) >> true
             getParent() >> a.path
         }
-        a.addLink b
-
-        when:
-        graph.add(a)
-        graph.add(b)
-        graph.addListener(listener)
-
-        then:
-        1 * listener.onDiscovered(b)
-        0 * listener.onDiscovered(_)
-
-        when:
-        graph.add(c)
-        graph.add(d)
-
-        then:
-        1 * listener.onDiscovered(c)
-        0 * listener.onDiscovered(_)
-    }
-
-    def "notifies listener of node with matching type"() {
-        def a = node("a", Integer)
-        def b = node("b", String)
-        def c = node("c", String)
-        def d = node("d", Long)
-
-        given:
-        def listener = Mock(ModelListener) {
-            matches(_) >> { MutableModelNode node -> node.canBeViewedAs(ModelType.of(String))}
-        }
-
-        when:
-        graph.add(a)
-        graph.add(b)
-
-        then:
-        0 * listener.onDiscovered(_)
-
-        when:
-        graph.addListener(listener)
-
-        then:
-        1 * listener.onDiscovered(b)
-        0 * listener.onDiscovered(_)
-
-        when:
-        graph.add(c)
-
-        then:
-        1 * listener.onDiscovered(c)
-        0 * listener.onDiscovered(_)
-
-        when:
-        graph.add(d)
-
-        then:
-        0 * listener.onDiscovered(_)
-    }
-
-    def "notifies listener of node with matching parent and type"() {
-        def a = node("a", String)
-        def b = node("a.b", String)
-        def c = node("a.c", String)
-        def d = node("a.d", Long)
-
-        given:
-        def listener = Mock(ModelListener) {
-            matches(_) >> { MutableModelNode node -> node.canBeViewedAs(ModelType.of(String)) }
-            getParent() >> a.path
-        }
-
         a.addLink b
 
         when:

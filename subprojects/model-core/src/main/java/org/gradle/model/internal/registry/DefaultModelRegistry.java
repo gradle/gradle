@@ -93,27 +93,23 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
-    public ModelRegistry configureMatching(final ModelSpec predicate, final ModelActionRole role, final ModelAction action) {
+    public ModelRegistry configureMatching(final ModelSpec spec, final ModelActionRole role, final ModelAction action) {
         if (action.getSubject().getPath() != null) {
             throw new IllegalArgumentException("Linked element action reference must have null path.");
         }
 
         final ModelType<?> subjectType = action.getSubject().getType();
-        registerListener(new DelegatingListener(predicate) {
+        registerListener(new DelegatingListener(spec) {
             @Override
             public String toString() {
-                return "configure matching " + predicate + " using " + action.getDescriptor();
-            }
-
-            @Override
-            public boolean matches(MutableModelNode node) {
-                node.ensureAtLeast(Discovered);
-                return node.canBeViewedAs(subjectType) && super.matches(node);
+                return "configure matching " + spec + " using " + action.getDescriptor();
             }
 
             @Override
             public void onDiscovered(ModelNodeInternal node) {
-                bind(ModelReference.of(node.getPath(), subjectType), role, action);
+                if (node.canBeViewedAs(subjectType) && spec.matches(node)) {
+                    bind(ModelReference.of(node.getPath(), subjectType), role, action);
+                }
             }
         });
         return this;
@@ -129,7 +125,9 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
             @Override
             public void onDiscovered(ModelNodeInternal node) {
-                node.applyToSelf(rules);
+                if (predicate.matches(node)) {
+                    node.applyToSelf(rules);
+                }
             }
         });
         return this;
@@ -1190,10 +1188,6 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         @Nullable
         public ModelPath getAncestor() {
             return spec.getAncestor();
-        }
-
-        public boolean matches(MutableModelNode node) {
-            return spec.matches(node);
         }
     }
 }

@@ -208,9 +208,6 @@ class ModelGraph {
         if (!node.isAtLeast(ModelNode.State.Discovered)) {
             return;
         }
-        if (!listener.matches(node)) {
-            return;
-        }
         listener.onDiscovered(node);
     }
 
