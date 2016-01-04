@@ -51,7 +51,7 @@ public class IncompatibleTypeReferenceReporter {
         ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
         return new IncompatibleTypeReferenceReporter(
             creatorDescriptor.toString(), path.toString(), type.toString(), description, writable,
-            writable ? node.getWritableTypeDescriptions() : node.getReadableTypeDescriptions()
+            node.getTypeDescriptions()
         );
     }
 

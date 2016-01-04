@@ -45,10 +45,8 @@ class InstanceBackedModelRegistrationTest extends Specification {
         def foo = registry.atStateOrLater(fooReference.path, ModelNode.State.Discovered)
 
         then:
-        !foo.promise.canBeViewedAsImmutable(ModelType.of(String))
-        !foo.promise.canBeViewedAsMutable(ModelType.of(String))
-        foo.promise.canBeViewedAsImmutable(ModelType.of(List))
-        foo.promise.canBeViewedAsMutable(ModelType.of(List))
+        !foo.promise.canBeViewedAs(ModelType.of(String))
+        foo.promise.canBeViewedAs(ModelType.of(List))
 
         registry.realize(fooReference.path, fooReference.type).is(fooList)
         registry.realize(barReference.path, barReference.type).is(barList)

@@ -76,7 +76,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         }
 
         public ScalarCollectionModelProjection(ModelType<E> type, ModelViewFactory<E> viewFactory) {
-            super(type, viewFactory, true, true);
+            super(type, viewFactory);
         }
 
         @Override

@@ -25,11 +25,11 @@ public class TypedModelProjection<M> extends TypeCompatibilityModelProjectionSup
     private final ModelViewFactory<M> viewFactory;
 
     public static <M> ModelProjection of(ModelType<M> type, ModelViewFactory<M> viewFactory) {
-        return new TypedModelProjection<M>(type, viewFactory, true, true);
+        return new TypedModelProjection<M>(type, viewFactory);
     }
 
-    public TypedModelProjection(ModelType<M> type, ModelViewFactory<M> viewFactory, boolean canBeViewedAsReadOnly, boolean canBeViewedAsWritable) {
-        super(type, canBeViewedAsReadOnly, canBeViewedAsWritable);
+    public TypedModelProjection(ModelType<M> type, ModelViewFactory<M> viewFactory) {
+        super(type);
         this.viewFactory = viewFactory;
     }
 

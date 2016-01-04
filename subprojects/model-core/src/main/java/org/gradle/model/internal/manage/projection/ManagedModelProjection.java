@@ -50,7 +50,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     public ManagedModelProjection(StructSchema<M> schema, StructSchema<? extends M> delegateSchema,
                                   ManagedProxyFactory proxyFactory,
                                   TypeConverter typeConverter) {
-        super(schema.getType(), true, true);
+        super(schema.getType());
         this.schema = schema;
         this.delegateSchema = delegateSchema;
         this.proxyFactory = proxyFactory;

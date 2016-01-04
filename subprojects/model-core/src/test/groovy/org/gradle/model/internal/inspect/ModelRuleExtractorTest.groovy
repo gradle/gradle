@@ -243,10 +243,10 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         extractor.extract(ParameterizedModel).apply(registry, node())
 
         then:
-        registry.realizeNode(ModelPath.path("strings")).promise.canBeViewedAsImmutable(new ModelType<List<String>>() {})
-        registry.realizeNode(ModelPath.path("superStrings")).promise.canBeViewedAsImmutable(new ModelType<List<? super String>>() {})
-        registry.realizeNode(ModelPath.path("extendsStrings")).promise.canBeViewedAsImmutable(new ModelType<List<? extends String>>() {})
-        registry.realizeNode(ModelPath.path("wildcard")).promise.canBeViewedAsImmutable(new ModelType<List<?>>() {})
+        registry.realizeNode(ModelPath.path("strings")).promise.canBeViewedAs(new ModelType<List<String>>() {})
+        registry.realizeNode(ModelPath.path("superStrings")).promise.canBeViewedAs(new ModelType<List<? super String>>() {})
+        registry.realizeNode(ModelPath.path("extendsStrings")).promise.canBeViewedAs(new ModelType<List<? extends String>>() {})
+        registry.realizeNode(ModelPath.path("wildcard")).promise.canBeViewedAs(new ModelType<List<?>>() {})
     }
 
     static class HasGenericModelRule extends RuleSource {

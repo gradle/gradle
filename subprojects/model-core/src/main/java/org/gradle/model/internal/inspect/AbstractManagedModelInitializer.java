@@ -84,7 +84,7 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
                 }
             }
         } else {
-            ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
+            ModelProjection projection = new UnmanagedModelProjection<P>(propertyType);
             ModelRegistrations.Builder registrationBuilder;
             if (shouldHaveANodeInitializer(property, propertySchema)) {
                 registrationBuilder = ModelRegistrations.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertyType, property, schema.getType())));

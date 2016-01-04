@@ -232,7 +232,8 @@ public abstract class ModelType<T> {
     /**
      * Returns a human-readable name for the given type.
      */
-    public static String getDisplayName(ModelType<?> type) {
+    @Nullable
+    public static String getDisplayName(@Nullable ModelType<?> type) {
         return type == null ? null : type.getDisplayName();
     }
 
@@ -269,7 +270,7 @@ public abstract class ModelType<T> {
 
         @SuppressWarnings("unchecked")
         public <I> Builder<T> where(Parameter<I> parameter, ModelType<I> type) {
-            TypeResolver resolver = new TypeResolver().where(parameter.typeVariable, type.getTypeToken().getType());
+            TypeResolver resolver = new TypeResolver().where(parameter.typeVariable, type.getType());
             typeToken = (TypeToken<T>) TypeToken.of(resolver.resolveType(typeToken.getType()));
             return this;
         }

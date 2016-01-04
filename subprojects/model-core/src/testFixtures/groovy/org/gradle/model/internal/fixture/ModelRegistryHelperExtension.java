@@ -235,7 +235,7 @@ public class ModelRegistryHelperExtension {
                 }
             }
         )
-            .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
+            .withProjection(new UnmanagedModelProjection<C>(modelType))
             .build();
     }
 
@@ -253,7 +253,7 @@ public class ModelRegistryHelperExtension {
                     mutableModelNode.setPrivateData(modelType, action.transform(input));
                 }
             })
-            .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
+            .withProjection(new UnmanagedModelProjection<C>(modelType))
             .build();
     }
 
@@ -283,7 +283,7 @@ public class ModelRegistryHelperExtension {
 
     public static <C> ModelRegistration unmanagedNode(ModelRegistrations.Builder builder, ModelType<C> modelType, Action<? super MutableModelNode> action) {
         return builder.action(ModelActionRole.Create, action)
-            .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
+            .withProjection(new UnmanagedModelProjection<C>(modelType))
             .build();
     }
 

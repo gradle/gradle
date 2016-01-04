@@ -83,10 +83,6 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         return sb.toString();
     }
 
-    public Iterable<String> getReadableTypeDescriptions(MutableModelNode node) {
-        return getWritableTypeDescriptions(node);
-    }
-
     private Class<? extends I> itemType(ModelType<?> targetType) {
         Class<?> targetClass = targetType.getRawClass();
         if (targetClass.equals(ModelMap.class)) {
@@ -105,12 +101,9 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         return null;
     }
 
-    public <T> boolean canBeViewedAsMutable(ModelType<T> targetType) {
+    @Override
+    public <T> boolean canBeViewedAs(ModelType<T> targetType) {
         return itemType(targetType) != null || targetType.equals(MANAGED_INSTANCE_TYPE);
-    }
-
-    public <T> boolean canBeViewedAsImmutable(ModelType<T> type) {
-        return canBeViewedAsMutable(type);
     }
 
     public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode modelNode, @Nullable ModelRuleDescriptor ruleDescriptor) {
@@ -145,7 +138,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     }
 
     @Override
-    public Iterable<String> getWritableTypeDescriptions(final MutableModelNode node) {
+    public Iterable<String> getTypeDescriptions(MutableModelNode node) {
         final Collection<? extends Class<?>> creatableTypes = getCreatableTypes();
         return Collections.singleton(getContainerTypeDescription(ModelMap.class, creatableTypes));
     }

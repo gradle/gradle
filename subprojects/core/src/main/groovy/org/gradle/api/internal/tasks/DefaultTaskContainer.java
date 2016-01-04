@@ -235,7 +235,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             modelNode.addLink(
                 ModelRegistrations.of(path)
                     .action(ModelActionRole.Create, new TaskCreator<T>(placeholderName, taskType, configure, taskModelType))
-                    .withProjection(new UnmanagedModelProjection<T>(taskModelType, true, true))
+                    .withProjection(new UnmanagedModelProjection<T>(taskModelType))
                     .descriptor(new SimpleModelRuleDescriptor("tasks.addPlaceholderAction(" + placeholderName + ")"))
                     .build()
             );

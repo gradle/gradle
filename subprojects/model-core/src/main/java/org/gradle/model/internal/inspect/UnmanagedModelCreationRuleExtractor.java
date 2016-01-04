@@ -97,7 +97,7 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
             ModelReference<Object> subjectReference = ModelReference.of(modelPath);
             registration.action(ModelActionRole.Create,
                     context.contextualize(ruleDefinition, new UnmanagedElementCreationAction<R>(descriptor, subjectReference, inputs, modelType)));
-            registration.withProjection(new UnmanagedModelProjection<R>(modelType, true, true));
+            registration.withProjection(new UnmanagedModelProjection<R>(modelType));
         }
     }
 }

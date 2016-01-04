@@ -47,19 +47,14 @@ public class SpecializedModelMapProjection<P, E> implements ModelProjection {
     }
 
     @Override
-    public Iterable<String> getReadableTypeDescriptions(MutableModelNode node) {
-        return getWritableTypeDescriptions(node);
-    }
-
-    @Override
-    public Iterable<String> getWritableTypeDescriptions(MutableModelNode node) {
+    public Iterable<String> getTypeDescriptions(MutableModelNode node) {
         return Collections.singleton(publicType.toString());
     }
 
     @Nullable
     @Override
     public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
-        if (canBeViewedAsImmutable(type)) {
+        if (canBeViewedAs(type)) {
             return Cast.uncheckedCast(toView(node, ruleDescriptor, false));
         } else {
             return null;
@@ -69,7 +64,7 @@ public class SpecializedModelMapProjection<P, E> implements ModelProjection {
     @Nullable
     @Override
     public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
-        if (canBeViewedAsMutable(type)) {
+        if (canBeViewedAs(type)) {
             return Cast.uncheckedCast(toView(node, ruleDescriptor, true));
         } else {
             return null;
@@ -109,13 +104,8 @@ public class SpecializedModelMapProjection<P, E> implements ModelProjection {
     }
 
     @Override
-    public <T> boolean canBeViewedAsMutable(ModelType<T> targetType) {
+    public <T> boolean canBeViewedAs(ModelType<T> targetType) {
         return targetType.equals(publicType) || targetType.equals(ModelType.UNTYPED) || targetType.equals(MANAGED_INSTANCE_TYPE);
-    }
-
-    @Override
-    public <T> boolean canBeViewedAsImmutable(ModelType<T> targetType) {
-        return canBeViewedAsMutable(targetType);
     }
 
     @Override

@@ -25,7 +25,7 @@ import org.gradle.model.internal.type.ModelType;
  */
 public class EmptyReferenceProjection<T> extends TypeCompatibilityModelProjectionSupport<T> {
     public EmptyReferenceProjection(ModelType<T> type) {
-        super(type, true, true);
+        super(type);
     }
 
     @Override

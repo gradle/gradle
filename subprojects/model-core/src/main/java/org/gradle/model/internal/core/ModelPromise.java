@@ -20,16 +20,12 @@ import org.gradle.model.internal.type.ModelType;
 
 public interface ModelPromise {
 
-    <T> boolean canBeViewedAsMutable(ModelType<T> type);
-
-    <T> boolean canBeViewedAsImmutable(ModelType<T> type);
+    <T> boolean canBeViewedAs(ModelType<T> type);
 
     // These methods return strings rather than types because it may be more complicated than what is able to be expressed via a ModelType.
     // Also, we don't want to encourage compatibility checking occurring by looping through such types as we have more options for optimising the compatibility check internally.
     // Also also, these methods are only called for reporting so values should typically not be precomputed.
-    Iterable<String> getWritableTypeDescriptions(MutableModelNode node);
-
-    Iterable<String> getReadableTypeDescriptions(MutableModelNode node);
+    Iterable<String> getTypeDescriptions(MutableModelNode node);
 
     @Override
         // must implement logical equality

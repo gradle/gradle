@@ -119,17 +119,12 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     @Override
     public boolean canBeViewedAs(ModelType<?> type) {
-        return getPromise().canBeViewedAsImmutable(type) || getPromise().canBeViewedAsMutable(type);
+        return getPromise().canBeViewedAs(type);
     }
 
     @Override
-    public Iterable<String> getReadableTypeDescriptions() {
-        return getPromise().getReadableTypeDescriptions(this);
-    }
-
-    @Override
-    public Iterable<String> getWritableTypeDescriptions() {
-        return getPromise().getWritableTypeDescriptions(this);
+    public Iterable<String> getTypeDescriptions() {
+        return getPromise().getTypeDescriptions(this);
     }
 
     public ModelPromise getPromise() {

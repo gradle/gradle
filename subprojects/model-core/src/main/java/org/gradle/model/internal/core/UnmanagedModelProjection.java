@@ -37,11 +37,7 @@ public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectio
     }
 
     public UnmanagedModelProjection(ModelType<M> type) {
-        super(type, true, true);
-    }
-
-    public UnmanagedModelProjection(ModelType<M> type, boolean canBeViewedAsReadOnly, boolean canBeViewedAsWritable) {
-        super(type, canBeViewedAsReadOnly, canBeViewedAsWritable);
+        super(type);
     }
 
     @Override
