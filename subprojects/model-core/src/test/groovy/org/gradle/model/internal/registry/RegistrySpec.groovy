@@ -128,7 +128,6 @@ abstract class RegistrySpec extends Specification {
 
         }
 
-
         @Override
         def <T> T getPrivateData(ModelType<T> type) {
             return null
