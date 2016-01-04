@@ -74,23 +74,29 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         Map<String, ModelPropertyExtractionContext> propertiesMap = Maps.newTreeMap();
         for (Map.Entry<Equivalence.Wrapper<Method>, Collection<Method>> entry : candidateMethods.allMethods().entrySet()) {
             Method method = entry.getKey().get();
-            MethodType methodType = MethodType.of(method);
+            PropertyAccessorType propertyAccessorType = PropertyAccessorType.of(method);
             Collection<Method> methodsWithEqualSignature = entry.getValue();
-            if (MethodType.NON_PROPERTY == methodType) {
+            if (propertyAccessorType == null) {
                 handleNonPropertyMethod(context, methodsWithEqualSignature);
             } else {
-                String propertyName = methodType.propertyNameFor(method);
+                String propertyName = propertyAccessorType.propertyNameFor(method);
                 ModelPropertyExtractionContext propertyContext = propertiesMap.get(propertyName);
                 if (propertyContext == null) {
                     propertyContext = new ModelPropertyExtractionContext(propertyName);
                     propertiesMap.put(propertyName, propertyContext);
                 }
-                if (MethodType.GET_GETTER == methodType) {
-                    propertyContext.setGetGetter(new PropertyAccessorExtractionContext(methodsWithEqualSignature));
-                } else if (MethodType.IS_GETTER == methodType) {
-                    propertyContext.setIsGetter(new PropertyAccessorExtractionContext(methodsWithEqualSignature));
-                } else {
-                    propertyContext.setSetter(new PropertyAccessorExtractionContext(methodsWithEqualSignature));
+                switch (propertyAccessorType) {
+                    case GET_GETTER:
+                        propertyContext.setGetGetter(new PropertyAccessorExtractionContext(methodsWithEqualSignature));
+                        break;
+                    case IS_GETTER:
+                        propertyContext.setIsGetter(new PropertyAccessorExtractionContext(methodsWithEqualSignature));
+                        break;
+                    case SETTER:
+                        propertyContext.setSetter(new PropertyAccessorExtractionContext(methodsWithEqualSignature));
+                        break;
+                    default:
+                        throw new AssertionError();
                 }
             }
         }

@@ -17,23 +17,25 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Nullable;
 
 import java.lang.reflect.Method;
 
 /**
  * Distinguish get getters, is getters and setters from non-property methods.
  */
-public enum MethodType {
-    IS_GETTER, GET_GETTER, SETTER, NON_PROPERTY;
+public enum PropertyAccessorType {
+    IS_GETTER, GET_GETTER, SETTER;
 
     public String propertyNameFor(Method method) {
         String methodName = method.getName();
-        int prefixLength = this == MethodType.IS_GETTER ? 2 : 3;
+        int prefixLength = this == PropertyAccessorType.IS_GETTER ? 2 : 3;
         String methodNamePrefixRemoved = methodName.substring(prefixLength);
         return StringUtils.uncapitalize(methodNamePrefixRemoved);
     }
 
-    public static MethodType of(Method method) {
+    @Nullable
+    public static PropertyAccessorType of(Method method) {
         String methodName = method.getName();
         if (!hasVoidReturnType(method) && takesNoParameter(method)) {
             if (isGetGetterName(methodName)) {
@@ -46,7 +48,7 @@ public enum MethodType {
         if (hasVoidReturnType(method) && takesSingleParameter(method) && isSetterName(methodName)) {
             return SETTER;
         }
-        return NON_PROPERTY;
+        return null;
     }
 
     public static boolean hasVoidReturnType(Method method) {

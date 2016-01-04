@@ -37,7 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.model.internal.manage.schema.extract.MethodType.*;
+import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.*;
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.*;
 
 public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySupport {
@@ -119,7 +119,7 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
     protected void validateMethodDeclarationHierarchy(ModelSchemaExtractionContext<?> context, CandidateMethods candidateMethods) {
         for (String methodName : candidateMethods.methodNames()) {
             Collection<Equivalence.Wrapper<Method>> handledOverridden = Lists.newArrayList();
-            if (!MethodType.isPropertyMethodName(methodName)) {
+            if (!PropertyAccessorType.isPropertyMethodName(methodName)) {
                 Map<Equivalence.Wrapper<Method>, Collection<Method>> overridden = candidateMethods.overriddenMethodsNamed(methodName);
                 if (!overridden.isEmpty()) {
                     handleOverriddenMethods(context, overridden.values());
