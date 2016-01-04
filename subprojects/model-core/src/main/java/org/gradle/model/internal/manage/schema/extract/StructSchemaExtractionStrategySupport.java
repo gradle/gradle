@@ -85,7 +85,19 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
                     propertyContext = new ModelPropertyExtractionContext(propertyName);
                     propertiesMap.put(propertyName, propertyContext);
                 }
-                propertyContext.addAccessor(new PropertyAccessorExtractionContext(propertyAccessorType, methodsWithEqualSignature));
+                switch (propertyAccessorType) {
+                    case GET_GETTER:
+                        propertyContext.setGetGetter(new PropertyAccessorExtractionContext(methodsWithEqualSignature));
+                        break;
+                    case IS_GETTER:
+                        propertyContext.setIsGetter(new PropertyAccessorExtractionContext(methodsWithEqualSignature));
+                        break;
+                    case SETTER:
+                        propertyContext.setSetter(new PropertyAccessorExtractionContext(methodsWithEqualSignature));
+                        break;
+                    default:
+                        throw new AssertionError();
+                }
             }
         }
         return Collections2.filter(propertiesMap.values(), new Predicate<ModelPropertyExtractionContext>() {
@@ -102,8 +114,8 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     private void validateProperties(ModelSchemaExtractionContext<?> context, Iterable<ModelPropertyExtractionContext> properties) {
         for (ModelPropertyExtractionContext property : properties) {
-            PropertyAccessorExtractionContext getGetter = property.getAccessor(PropertyAccessorType.GET_GETTER);
-            PropertyAccessorExtractionContext isGetter = property.getAccessor(PropertyAccessorType.IS_GETTER);
+            PropertyAccessorExtractionContext getGetter = property.getGetGetter();
+            PropertyAccessorExtractionContext isGetter = property.getIsGetter();
             if (getGetter != null && isGetter != null) {
                 Method getMethod = getGetter.getMostSpecificDeclaration();
                 Method isMethod = isGetter.getMostSpecificDeclaration();
@@ -140,7 +152,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         final ModelType<R> returnType = ModelType.returnType(gettersContext.getMostSpecificDeclaration());
 
         WeaklyTypeReferencingMethod<?, Void> setterRef;
-        PropertyAccessorExtractionContext setterContext = property.getAccessor(PropertyAccessorType.SETTER);
+        PropertyAccessorExtractionContext setterContext = property.getSetter();
         if (setterContext != null) {
             Method mostSpecificDeclaration = setterContext.getMostSpecificDeclaration();
             setterRef = WeaklyTypeReferencingMethod.of(ModelType.of(mostSpecificDeclaration.getDeclaringClass()), ModelType.of(void.class), mostSpecificDeclaration);

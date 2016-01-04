@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 
 public class PropertyAccessorExtractionContext {
-    private final PropertyAccessorType accessorType;
     private final Collection<Method> declaringMethods;
     private final Method mostSpecificDeclaration;
     private final String mostSpecificSignature;
@@ -40,9 +39,8 @@ public class PropertyAccessorExtractionContext {
     private final boolean declaredAsAbstract;
     private final Map<Class<? extends Annotation>, Annotation> annotations;
 
-    public PropertyAccessorExtractionContext(PropertyAccessorType accessorType, Iterable<Method> declaringMethods) {
+    public PropertyAccessorExtractionContext(Iterable<Method> declaringMethods) {
         Method mostSpecificDeclaration = ModelSchemaUtils.findMostSpecificMethod(declaringMethods);
-        this.accessorType = accessorType;
         this.declaringMethods = ImmutableList.copyOf(declaringMethods);
         this.mostSpecificDeclaration = mostSpecificDeclaration;
         this.mostSpecificSignature = AsmClassGeneratorUtils.signature(mostSpecificDeclaration);
@@ -62,10 +60,6 @@ public class PropertyAccessorExtractionContext {
             }
         }
         return Collections.unmodifiableMap(annotations);
-    }
-
-    public PropertyAccessorType getAccessorType() {
-        return accessorType;
     }
 
     public Collection<Method> getDeclaringMethods() {

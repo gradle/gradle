@@ -193,7 +193,7 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
     @Override
     protected void validateProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property) {
         PropertyAccessorExtractionContext mergedGetter = property.mergeGetters();
-        PropertyAccessorExtractionContext setter = property.getAccessor(SETTER);
+        PropertyAccessorExtractionContext setter = property.getSetter();
         if (setter != null) {
             Method mostSpecificSetter = setter.getMostSpecificDeclaration();
             if (mergedGetter == null) {
