@@ -893,7 +893,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         }
     }
 
-    @Managed static abstract class PublicTypeAsAbstractClassWithMethod extends UnmanagedSuperType {
+    @Managed static abstract class PublicTypeAsAbstractClassWithMethod implements UnmanagedSuperType {
         String getSomeValue() {
             "from abstract class"
         }
