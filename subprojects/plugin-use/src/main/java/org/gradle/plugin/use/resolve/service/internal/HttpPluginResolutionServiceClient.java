@@ -24,34 +24,33 @@ import com.google.gson.JsonSyntaxException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
+import org.gradle.authentication.Authentication;
 import org.gradle.internal.Actions;
 import org.gradle.internal.resource.ResourceException;
-import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
-import org.gradle.internal.resource.transport.http.HttpResponseResource;
+import org.gradle.internal.resource.transport.http.*;
 import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.util.GradleVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 
 public class HttpPluginResolutionServiceClient implements PluginResolutionServiceClient {
     private static final Escaper PATH_SEGMENT_ESCAPER = UrlEscapers.urlPathSegmentEscaper();
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpPluginResolutionServiceClient.class);
     private static final String CLIENT_REQUEST_BASE = String.format("%s", PATH_SEGMENT_ESCAPER.escape(GradleVersion.current().getVersion()));
     private static final String PLUGIN_USE_REQUEST_URL = "/plugin/use/%s/%s";
     private static final String JSON = "application/json";
 
     public static final String CLIENT_STATUS_CHECKSUM_HEADER = "X-Gradle-Client-Status-Checksum";
 
-    private final HttpResourceAccessor resourceAccessor;
+    private final SslContextFactory sslContextFactory;
+    private HttpResourceAccessor resourceAccessor;
 
-    public HttpPluginResolutionServiceClient(HttpResourceAccessor resourceAccessor) {
-        this.resourceAccessor = resourceAccessor;
+    public HttpPluginResolutionServiceClient(SslContextFactory sslContextFactory) {
+        this.sslContextFactory = sslContextFactory;
     }
 
     @Nullable
@@ -79,7 +78,7 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
         final URI requestUri = toUri(requestUrl, "plugin request");
 
         try {
-            HttpResponseResource response = resourceAccessor.getRawResource(requestUri);
+            HttpResponseResource response = getResourceAccessor().getRawResource(requestUri);
             try {
                 final int statusCode = response.getStatusCode();
                 String contentType = response.getContentType();
@@ -156,6 +155,13 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
         } catch (URISyntaxException e) {
             throw new GradleException(String.format("Invalid %s URL: %s", kind, url), e);
         }
+    }
+
+    private HttpResourceAccessor getResourceAccessor() {
+        if (resourceAccessor == null) {
+            resourceAccessor = new HttpResourceAccessor(new HttpClientHelper(new DefaultHttpSettings(Collections.<Authentication>emptyList(), sslContextFactory)));
+        }
+        return resourceAccessor;
     }
 
     private static class OutOfProtocolException extends GradleException {
