@@ -21,6 +21,9 @@ import com.google.common.base.Predicates;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.type.ModelType;
 
+/**
+ * Criteria for selecting the descendants of a particular node.
+ */
 public abstract class NodePredicate {
     private final Predicate<? super MutableModelNode> matcher;
 
@@ -28,11 +31,11 @@ public abstract class NodePredicate {
         this.matcher = matcher;
     }
 
-    public ModelPredicate scope(ModelPath scope) {
+    public ModelSpec scope(ModelPath scope) {
         return scope(scope, matcher);
     }
 
-    protected abstract ModelPredicate scope(ModelPath scope, Predicate<? super MutableModelNode> matcher);
+    protected abstract ModelSpec scope(ModelPath scope, Predicate<? super MutableModelNode> matcher);
 
     public static NodePredicate allLinks() {
         return allLinks(Predicates.<MutableModelNode>alwaysTrue());
@@ -41,7 +44,7 @@ public abstract class NodePredicate {
     public static NodePredicate allLinks(Predicate<? super MutableModelNode> predicate) {
         return new NodePredicate(predicate) {
             @Override
-            protected ModelPredicate scope(ModelPath scope, Predicate<? super MutableModelNode> matcher) {
+            protected ModelSpec scope(ModelPath scope, Predicate<? super MutableModelNode> matcher) {
                 return new BasicPredicate(null, scope, null, matcher);
             }
         };
@@ -54,7 +57,7 @@ public abstract class NodePredicate {
     public static NodePredicate allDescendants(Predicate<? super MutableModelNode> predicate) {
         return new NodePredicate(predicate) {
             @Override
-            protected ModelPredicate scope(ModelPath scope, Predicate<? super MutableModelNode> matcher) {
+            protected ModelSpec scope(ModelPath scope, Predicate<? super MutableModelNode> matcher) {
                 return new BasicPredicate(null, null, scope, matcher);
             }
         };
@@ -69,13 +72,13 @@ public abstract class NodePredicate {
         final NodePredicate parent = this;
         return new NodePredicate(matcher) {
             @Override
-            protected ModelPredicate scope(ModelPath scope, Predicate<? super MutableModelNode> matcher) {
+            protected ModelSpec scope(ModelPath scope, Predicate<? super MutableModelNode> matcher) {
                 return parent.scope(scope, matcher);
             }
         };
     }
 
-    private static class BasicPredicate extends ModelPredicate {
+    private static class BasicPredicate extends ModelSpec {
         private final ModelPath path;
         private final ModelPath parent;
         private final ModelPath ancestor;

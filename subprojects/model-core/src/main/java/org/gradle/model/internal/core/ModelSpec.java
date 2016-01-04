@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.registry;
+package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.ModelPredicate;
-import org.gradle.model.internal.core.MutableModelNode;
-
-abstract class ModelListener extends ModelPredicate {
-    public abstract boolean matches(MutableModelNode node);
-
+/**
+ * An open set of criteria that selects model nodes. A node must satisfy all of the criteria defined by {@link ModelPredicate} plus
+ * those defined by {@link #matches(MutableModelNode)}.
+ */
+public abstract class ModelSpec extends ModelPredicate {
     /**
-     * Invoked once for each node when the node reaches the {@link org.gradle.model.internal.core.ModelNode.State#Discovered} state
-     * if the node matches the criteria specified by this listener.
+     * Returns if the node matches this predicate.
      */
-    public abstract void onDiscovered(ModelNodeInternal node);
+    public boolean matches(MutableModelNode node) {
+        return true;
+    }
 }

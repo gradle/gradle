@@ -45,19 +45,12 @@ public abstract class ModelPredicate {
     }
 
     /**
-     * Return the path of the scope of the nodes to select, or null if scope is not relevant.
+     * Return the path of the scope of the nodes to select, or null if ancestor is not relevant.
      *
-     * <p>A node will be selected if its path or its parent's path equals the specified path.</p>
+     * <p>A node will be selected if its path or one of its ancestor's path equals the specified path.</p>
      */
     @Nullable
     public ModelPath getAncestor() {
         return null;
-    }
-
-    /**
-     * Returns if the node matches this predicate.
-     */
-    public boolean matches(MutableModelNode node) {
-        return true;
     }
 }

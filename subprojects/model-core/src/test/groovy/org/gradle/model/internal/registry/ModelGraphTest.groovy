@@ -111,43 +111,6 @@ class ModelGraphTest extends RegistrySpec {
         0 * listener.onDiscovered(_)
     }
 
-    def "stops notifying listener of new nodes after listener signals it is done"() {
-        def listener = allAcceptingListener()
-        def a = node("a")
-        def b = node("b")
-
-        given:
-        graph.addListener(listener)
-
-        when:
-        graph.add(a)
-        graph.add(b)
-
-        then:
-        1 * listener.onDiscovered(a) >> true
-        0 * listener.onDiscovered(_)
-    }
-
-    def "stops notifying listener of existing nodes after listener signals it is done"() {
-        def listener = allAcceptingListener()
-        def a = node("a")
-        def b = node("b")
-        def c = node("c")
-
-        given:
-        graph.add(a)
-        graph.add(b)
-
-        when:
-        graph.addListener(listener)
-        graph.add(c)
-
-        then:
-        1 * listener.onDiscovered(graph.root)
-        1 * listener.onDiscovered(a) >> true
-        0 * listener.onDiscovered(_)
-    }
-
     def "notifies listener of new node with matching path"() {
         def listener = allAcceptingListener()
 
@@ -410,33 +373,9 @@ class ModelGraphTest extends RegistrySpec {
         1 * listener1.onDiscovered(b) >> { graph.add(c); false }
         1 * listener1.onDiscovered(c) >> { graph.add(d); false }
         1 * listener1.onDiscovered(d)
-        1 * listener2.onDiscovered(b) >> true
+        1 * listener2.onDiscovered(b)
         0 * listener1.onDiscovered(_)
         0 * listener2.onDiscovered(_)
-    }
-
-    def "listener is not notified of nodes it creates after it signals it is done"() {
-        def listener1 = allAcceptingListener()
-        def listener2 = allAcceptingListener()
-        def a = node("a")
-        def b = node("b")
-        def c = node("c")
-        def d = node("d")
-
-        given:
-        graph.addListener(listener1)
-        graph.addListener(listener2)
-        listener2.onDiscovered(b) >> { graph.add(c); graph.add(d) }
-
-        when:
-        graph.add(a)
-
-        then:
-        1 * listener1.onDiscovered(a) >> {
-            graph.add(b);
-            true
-        }
-        0 * listener1.onDiscovered(_)
     }
 
     def node(String path, Class<?> type = String, State state = State.Discovered) {

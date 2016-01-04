@@ -93,7 +93,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
-    public ModelRegistry configureMatching(final ModelPredicate predicate, final ModelActionRole role, final ModelAction action) {
+    public ModelRegistry configureMatching(final ModelSpec predicate, final ModelActionRole role, final ModelAction action) {
         if (action.getSubject().getPath() != null) {
             throw new IllegalArgumentException("Linked element action reference must have null path.");
         }
@@ -112,16 +112,15 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             }
 
             @Override
-            public boolean onDiscovered(ModelNodeInternal node) {
+            public void onDiscovered(ModelNodeInternal node) {
                 bind(ModelReference.of(node.getPath(), subjectType), role, action);
-                return false;
             }
         });
         return this;
     }
 
     @Override
-    public ModelRegistry configureMatching(final ModelPredicate predicate, final Class<? extends RuleSource> rules) {
+    public ModelRegistry configureMatching(final ModelSpec predicate, final Class<? extends RuleSource> rules) {
         registerListener(new DelegatingListener(predicate) {
             @Override
             public String toString() {
@@ -129,9 +128,8 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             }
 
             @Override
-            public boolean onDiscovered(ModelNodeInternal node) {
+            public void onDiscovered(ModelNodeInternal node) {
                 node.applyToSelf(rules);
-                return false;
             }
         });
         return this;
@@ -1170,33 +1168,32 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     private abstract static class DelegatingListener extends ModelListener {
-        private final ModelPredicate predicate;
+        private final ModelSpec spec;
 
-        public DelegatingListener(ModelPredicate predicate) {
-            this.predicate = predicate;
+        public DelegatingListener(ModelSpec spec) {
+            this.spec = spec;
         }
 
         @Override
         @Nullable
         public ModelPath getPath() {
-            return predicate.getPath();
+            return spec.getPath();
         }
 
         @Override
         @Nullable
         public ModelPath getParent() {
-            return predicate.getParent();
+            return spec.getParent();
         }
 
         @Override
         @Nullable
         public ModelPath getAncestor() {
-            return predicate.getAncestor();
+            return spec.getAncestor();
         }
 
-        @Override
         public boolean matches(MutableModelNode node) {
-            return predicate.matches(node);
+            return spec.matches(node);
         }
     }
 }

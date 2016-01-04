@@ -101,12 +101,8 @@ class ModelGraph {
     }
 
     private void notifyListeners(ModelNodeInternal node, Iterable<ModelListener> listeners) {
-        Iterator<ModelListener> iterator = listeners.iterator();
-        while (iterator.hasNext()) {
-            ModelListener listener = iterator.next();
-            if (maybeNotify(node, listener)) {
-                iterator.remove();
-            }
+        for (ModelListener listener : listeners) {
+            maybeNotify(node, listener);
         }
     }
 
@@ -143,9 +139,7 @@ class ModelGraph {
 
     private void addEverythingListener(ModelListener listener) {
         for (ModelNodeInternal node : flattened.values()) {
-            if (maybeNotify(node, listener)) {
-                return;
-            }
+            maybeNotify(node, listener);
         }
         listeners.add(listener);
     }
@@ -164,9 +158,7 @@ class ModelGraph {
             while (!queue.isEmpty()) {
                 ModelNodeInternal parent = queue.removeFirst();
                 for (ModelNodeInternal node : parent.getLinks()) {
-                    if (maybeNotify(node, listener)) {
-                        return;
-                    }
+                    maybeNotify(node, listener);
                     queue.addFirst(node);
                 }
             }
@@ -178,9 +170,7 @@ class ModelGraph {
         ModelNodeInternal parent = flattened.get(listener.getParent());
         if (parent != null) {
             for (ModelNodeInternal node : parent.getLinks()) {
-                if (maybeNotify(node, listener)) {
-                    return;
-                }
+                maybeNotify(node, listener);
             }
         }
         parentListeners.put(listener.getParent(), listener);
@@ -189,9 +179,7 @@ class ModelGraph {
     private void addPathListener(ModelListener listener) {
         ModelNodeInternal node = flattened.get(listener.getPath());
         if (node != null) {
-            if (maybeNotify(node, listener)) {
-                return;
-            }
+            maybeNotify(node, listener);
         }
         pathListeners.put(listener.getPath(), listener);
     }
@@ -216,15 +204,14 @@ class ModelGraph {
         }
     }
 
-    @SuppressWarnings("SimplifiableIfStatement")
-    private boolean maybeNotify(ModelNodeInternal node, ModelListener listener) {
+    private void maybeNotify(ModelNodeInternal node, ModelListener listener) {
         if (!node.isAtLeast(ModelNode.State.Discovered)) {
-            return false;
+            return;
         }
         if (!listener.matches(node)) {
-            return false;
+            return;
         }
-        return listener.onDiscovered(node);
+        listener.onDiscovered(node);
     }
 
     @Nullable

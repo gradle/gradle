@@ -28,9 +28,9 @@ interface ModelRegistryInternal extends ModelRegistry {
 
     <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction mutator);
 
-    ModelRegistry configureMatching(ModelPredicate predicate, ModelActionRole role, ModelAction action);
+    ModelRegistry configureMatching(ModelSpec spec, ModelActionRole role, ModelAction action);
 
-    ModelRegistry configureMatching(ModelPredicate predicate, Class<? extends RuleSource> rules);
+    ModelRegistry configureMatching(ModelSpec spec, Class<? extends RuleSource> rules);
 
     void transition(ModelNodeInternal node, ModelNode.State desired, boolean laterOk);
 }

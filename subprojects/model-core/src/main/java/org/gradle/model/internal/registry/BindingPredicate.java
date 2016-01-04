@@ -20,6 +20,9 @@ import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
 
+/**
+ * A fixed set of criteria to use to bind a single model element.
+ */
 public class BindingPredicate extends ModelPredicate {
     private final ModelReference<?> reference;
 
@@ -46,7 +49,6 @@ public class BindingPredicate extends ModelPredicate {
         return reference.getType();
     }
 
-    @Override
     public boolean matches(MutableModelNode node) {
         return reference.isUntyped() || node.canBeViewedAs(reference.getType());
     }
