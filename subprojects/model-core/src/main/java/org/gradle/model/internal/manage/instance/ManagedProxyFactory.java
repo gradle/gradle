@@ -70,13 +70,8 @@ public class ManagedProxyFactory {
             } else {
                 ModelType<?> delegateType = delegateSchema.getType();
                 Object delegate = state.getBackingNode().getPrivateData(delegateType);
-                try {
-                    Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class, TypeConverter.class, delegateType.getConcreteClass());
-                    return constructor.newInstance(state, typeConverter, delegate);
-                } catch (NoSuchMethodException e) {
-                    System.out.println("Fuck");
-                    throw e;
-                }
+                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class, TypeConverter.class, delegateType.getConcreteClass());
+                return constructor.newInstance(state, typeConverter, delegate);
             }
         } catch (InvocationTargetException e) {
             throw UncheckedException.throwAsUncheckedException(e.getTargetException());
