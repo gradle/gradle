@@ -210,16 +210,11 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
     @Override
     public Optional<String> getValueDescription(MutableModelNode modelNode) {
-        ModelView<?> modelView = modelNode.asImmutable(ModelType.untyped(), null);
-        Object instance = modelView.getInstance();
+        Object instance = modelNode.asImmutable(ModelType.untyped(), null).getInstance();
         if (instance == null || hasDefaultToString(instance)) {
             return Optional.absent();
         }
-        String valueDescription = instance.toString();
-        if (valueDescription != null) {
-            return Optional.of(valueDescription);
-        }
-        return Optional.of(toStringReturnedNullValueDescription());
+        return Optional.of(toStringValueDescription(instance));
     }
 
     @Override

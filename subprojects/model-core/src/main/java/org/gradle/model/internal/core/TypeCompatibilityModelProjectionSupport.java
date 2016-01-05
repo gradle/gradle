@@ -71,7 +71,11 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
         return Collections.singleton(description(type));
     }
 
-    protected String toStringReturnedNullValueDescription() {
+    protected String toStringValueDescription(Object instance) {
+        String valueDescription = instance.toString();
+        if (valueDescription != null) {
+            return valueDescription;
+        }
         return new StringBuilder(type.toString()).append("#toString() returned null").toString();
     }
 
