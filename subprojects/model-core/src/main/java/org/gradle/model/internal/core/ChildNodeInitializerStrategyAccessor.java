@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-/**
- * Collection oriented types and utilities.
- */
-package org.gradle.model.collection;
+package org.gradle.model.internal.core;
+
+public interface ChildNodeInitializerStrategyAccessor<T> {
+    ChildNodeInitializerStrategy<T> getStrategy(MutableModelNode node);
+}

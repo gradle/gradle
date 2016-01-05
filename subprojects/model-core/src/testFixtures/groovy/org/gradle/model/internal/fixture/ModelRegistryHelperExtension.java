@@ -29,8 +29,6 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
-import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.DefaultModelRegistry;

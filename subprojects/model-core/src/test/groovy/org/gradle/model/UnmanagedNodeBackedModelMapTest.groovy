@@ -23,8 +23,6 @@ import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.ObjectInstantiationException
-import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors
-import org.gradle.model.collection.internal.ModelMapModelProjection
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType

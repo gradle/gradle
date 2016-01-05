@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.collection.internal;
+package org.gradle.model.internal.core;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -22,8 +22,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Nullable;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;

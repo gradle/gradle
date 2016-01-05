@@ -21,8 +21,6 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.internal.BiAction;
 import org.gradle.model.ModelMap;
-import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
-import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.CollectionSchema;

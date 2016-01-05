@@ -18,8 +18,6 @@ package org.gradle.model.internal.core;
 
 import org.gradle.internal.BiAction;
 import org.gradle.model.ModelMap;
-import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
-import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.internal.registry.RuleContext;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
