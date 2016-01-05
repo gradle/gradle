@@ -243,8 +243,8 @@ Previously, you could directly set the `archiveName`.  `version`, `appendix` and
 - The `assemble` task now builds only those binaries for components defined in `components`. It does not build binaries for test suites defined in `testSuites`.
 - The `LanguageBasePlugin` has been split into two separate plugins: `LanguageBasePlugin` and `BinaryBasePlugin`.
 - The `LanguageBasePlugin` no longer applies the full component model.
-- The `@LanguageType` annotation implicitly applies only the `LanguageBasePlugin`. 
-- The `@BinaryType` annotation implicitly applies only the `BinaryBasePlugin`. 
+- The `@LanguageType` annotation implicitly applies only the `LanguageBasePlugin`.
+- The `@BinaryType` annotation implicitly applies only the `BinaryBasePlugin`.
 
 ### TestKit indicates compatibility for target Gradle version
 
@@ -265,6 +265,7 @@ We would like to thank the following community members for making contributions 
 * [Christopher O'Connell](https://github.com/lordoku) - Remove 'scalaConsole' task
 * [Tobias Riemenschneider](https://github.com/riemenschneider) - Add support for TestNG's preserveOrder and groupByInstances options
 * [Jochen Schalanda](https://github.com/joschi) - Support for configuring Twirl source sets to use Java default imports
+* [Sebastian Schuberth](https://github.com/sschuberth) - Simplify LoggingCommandLineConverter
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
