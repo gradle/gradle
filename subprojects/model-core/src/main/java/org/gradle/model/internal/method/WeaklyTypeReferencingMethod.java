@@ -17,6 +17,7 @@
 package org.gradle.model.internal.method;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -146,5 +147,19 @@ public class WeaklyTypeReferencingMethod<T, R> {
                 .append(name, other.name)
                 .append(paramTypes, other.paramTypes)
                 .isEquals();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s.%s(%s)",
+            declaringType.getDisplayName(),
+            name,
+            Joiner.on(", ").join(Iterables.transform(paramTypes, new Function<ModelType<?>, String>() {
+                @Override
+                public String apply(ModelType<?> paramType) {
+                    return paramType.getDisplayName();
+                }
+            }))
+        );
     }
 }

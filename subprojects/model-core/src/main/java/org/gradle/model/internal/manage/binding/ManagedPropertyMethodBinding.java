@@ -33,4 +33,9 @@ public class ManagedPropertyMethodBinding extends AbstractStructMethodBinding {
     public PropertyAccessorType getAccessorType() {
         return accessorType;
     }
+
+    @Override
+    public String toString() {
+        return getSource() + "/" + accessorType.name();
+    }
 }

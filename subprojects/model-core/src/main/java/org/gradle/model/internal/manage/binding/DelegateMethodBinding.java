@@ -32,4 +32,9 @@ public class DelegateMethodBinding extends AbstractStructMethodBinding {
     public WeaklyTypeReferencingMethod<?, ?> getTarget() {
         return target;
     }
+
+    @Override
+    public String toString() {
+        return getSource() + " -> " + target;
+    }
 }

@@ -25,4 +25,9 @@ public class DirectMethodBinding extends AbstractStructMethodBinding {
     public DirectMethodBinding(WeaklyTypeReferencingMethod<?, ?> source) {
         super(source);
     }
+
+    @Override
+    public String toString() {
+        return getSource() + " (direct)";
+    }
 }

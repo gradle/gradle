@@ -31,4 +31,7 @@ public abstract class AbstractStructMethodBinding {
     public WeaklyTypeReferencingMethod<?, ?> getSource() {
         return source;
     }
+
+    @Override
+    abstract public String toString();
 }
