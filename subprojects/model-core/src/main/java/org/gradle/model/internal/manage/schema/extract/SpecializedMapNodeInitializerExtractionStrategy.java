@@ -18,7 +18,7 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;

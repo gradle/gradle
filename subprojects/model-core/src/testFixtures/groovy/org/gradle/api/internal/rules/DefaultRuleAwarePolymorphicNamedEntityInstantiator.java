@@ -18,7 +18,7 @@ package org.gradle.api.internal.rules;
 
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.ModelRuleDescriptor;
 
 import java.util.Set;
 

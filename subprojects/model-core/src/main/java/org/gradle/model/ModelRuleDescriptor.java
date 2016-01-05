@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core.rule.describe;
+package org.gradle.model;
+
+import org.gradle.api.Incubating;
 
 /**
  * Describes a method rule.
  * All implementations of this class are expected to implement the equals and hashCode method
  */
+@Incubating
 public interface ModelRuleDescriptor {
     /**
      * This method is expected to be idempotent.

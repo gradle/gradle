@@ -23,9 +23,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.logging.StyledTextOutput;
+import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelReferenceNode;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.reporting.ReportRenderer;
@@ -38,7 +38,7 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
 public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuilder> {
 
     private static final int LABEL_LENGTH = 7;
-    
+
     private final boolean showHidden;
 
     public ModelNodeRenderer(boolean showHidden) {

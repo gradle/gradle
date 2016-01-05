@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
+import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;

@@ -16,10 +16,9 @@
 
 package org.gradle.api.reporting.model.internal
 
+import org.gradle.model.ModelRuleDescriptor
 import org.gradle.model.internal.core.ModelNode
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import spock.lang.Specification
-
 
 class ModelNodeRendererTest extends Specification {
 

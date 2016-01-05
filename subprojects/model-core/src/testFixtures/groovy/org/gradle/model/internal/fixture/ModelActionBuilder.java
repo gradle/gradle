@@ -19,8 +19,8 @@ package org.gradle.model.internal.fixture;
 import org.gradle.api.Action;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.TriAction;
+import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 

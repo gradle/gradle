@@ -21,7 +21,6 @@ import org.gradle.api.Named
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.internal.BiAction
 import org.gradle.model.internal.core.*
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.instance.ManagedInstance

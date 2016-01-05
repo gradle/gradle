@@ -17,8 +17,8 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Action;
+import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 class OneOfTypeBinderCreationListener extends ModelBinding {
     private final Action<ModelBinding> bindAction;

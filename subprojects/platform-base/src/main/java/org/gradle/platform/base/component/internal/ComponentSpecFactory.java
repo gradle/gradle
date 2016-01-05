@@ -18,10 +18,10 @@ package org.gradle.platform.base.component.internal;
 
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.Cast;
+import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.model.internal.core.InstanceFactory;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;

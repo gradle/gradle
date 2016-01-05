@@ -17,7 +17,7 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.api.Action;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.ModelRuleDescriptor;
 
 import java.util.Collections;
 import java.util.List;

@@ -18,7 +18,7 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.ModelRuleDescriptor;
 
 import java.util.Deque;
 

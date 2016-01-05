@@ -24,10 +24,10 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.file.RelativeFilePathResolver;
+import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.dsl.internal.inputs.PotentialInput;
 import org.gradle.model.dsl.internal.inputs.PotentialInputs;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 

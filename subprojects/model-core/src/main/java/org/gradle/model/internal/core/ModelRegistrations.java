@@ -28,7 +28,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 

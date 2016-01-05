@@ -20,9 +20,9 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
+import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
