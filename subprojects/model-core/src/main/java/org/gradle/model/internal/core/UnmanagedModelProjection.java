@@ -19,11 +19,13 @@ package org.gradle.model.internal.core;
 import com.google.common.base.Optional;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.manage.schema.extract.PrimitiveTypes;
-import org.gradle.model.internal.manage.schema.extract.ScalarTypes;
 import org.gradle.model.internal.type.ModelType;
+
+import static org.gradle.internal.reflect.JavaReflectionUtil.hasDefaultToString;
+import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.defaultValueOf;
+import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.isPrimitiveType;
+import static org.gradle.model.internal.manage.schema.extract.ScalarTypes.isScalarType;
 
 @ThreadSafe
 public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
@@ -47,19 +49,25 @@ public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectio
     }
 
     @Override
-    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
-        ModelView<?> modelView = this.asImmutable(ModelType.untyped(), modelNodeInternal, null);
-        Object instance = modelView.getInstance();
+    public Optional<String> getValueDescription(MutableModelNode modelNode) {
+        Object instance = instanceFrom(modelNode);
         if (instance == null) {
-            if (PrimitiveTypes.isPrimitiveType(getType())) {
-                return Optional.of(String.valueOf(PrimitiveTypes.defaultValueOf(getType())));
+            if (isPrimitiveType(getType())) {
+                return Optional.of(String.valueOf(defaultValueOf(getType())));
             }
-            if (ScalarTypes.isScalarType(getType())) {
+            if (isScalarType(getType())) {
                 return Optional.of("null");
             }
-        } else if (!JavaReflectionUtil.hasDefaultToString(instance)) {
-            return Optional.fromNullable(instance.toString());
+            return Optional.absent();
         }
-        return Optional.absent();
+        if (hasDefaultToString(instance)) {
+            return Optional.absent();
+        }
+        return Optional.fromNullable(instance.toString());
+    }
+
+    private Object instanceFrom(MutableModelNode modelNodeInternal) {
+        ModelView<?> modelView = this.asImmutable(ModelType.untyped(), modelNodeInternal, null);
+        return modelView.getInstance();
     }
 }
