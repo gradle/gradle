@@ -27,8 +27,7 @@ import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 
 class RuleBindingsTest extends RegistrySpec {
-    final ModelGraph graph = new ModelGraph(node(""))
-    final RuleBindings bindings = new RuleBindings(graph)
+    final RuleBindings bindings = new RuleBindings()
 
     def "locates the subject of a rule by-path when rule added after node type information is available"() {
         when:
@@ -157,7 +156,7 @@ class RuleBindingsTest extends RegistrySpec {
         rule.subjectBinding.boundTo == node
     }
 
-    def "locates the subject of a rule by-type when projection is defined later"() {
+    def "locates the subject of a rule by-type when rule added before type information available"() {
         given:
         def node = node("a", Long)
         def rule = rule(Long, ModelNode.State.Mutated)
@@ -167,14 +166,14 @@ class RuleBindingsTest extends RegistrySpec {
         bindings.add(rule)
 
         then:
-        rule.bound == false
+        !rule.bound
         bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == []
 
         when:
         addProjections(node)
 
         then:
-        rule.bound == true
+        rule.bound
 
         expect:
         rule.subjectBinding.boundTo == node
@@ -207,18 +206,6 @@ class RuleBindingsTest extends RegistrySpec {
         rule.subjectBinding.boundTo == node
         rule.bound
         bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == [rule]
-    }
-
-    def "locates the subject of a rule by-type when subject added after rule"() {
-        given:
-        def node = node("a", Long)
-        def rule = rule(Long, ModelNode.State.Mutated)
-        bindings.add(rule)
-        addNode(node)
-
-        expect:
-        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == [rule]
-        rule.subjectBinding.boundTo == node
     }
 
     def "locates dependents of a node by-path"() {
@@ -269,7 +256,23 @@ class RuleBindingsTest extends RegistrySpec {
         bindings.getRulesWithInput(nodeAtState("path", ModelNode.State.Created)) as List == []
     }
 
-    def "binds rules to target state"() {
+    def "matches rules on path"() {
+        given:
+        def node1 = node("a")
+        def node2 = node("b")
+        def rule1 = rule("a", ModelNode.State.Mutated)
+        def rule2 = rule("b", ModelNode.State.Mutated)
+        bindings.add(rule1)
+        addNode(node1)
+        addNode(node2)
+        bindings.add(rule2)
+
+        expect:
+        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == [rule1]
+        bindings.getRulesWithSubject(nodeAtState("b", ModelNode.State.Mutated)) as List == [rule2]
+    }
+
+    def "matches rules on target state"() {
         given:
         def node = node("a", Long)
         def rule1 = rule(Long, ModelNode.State.Mutated)
@@ -277,14 +280,68 @@ class RuleBindingsTest extends RegistrySpec {
         def rule3 = rule(Long, ModelNode.State.Finalized)
         bindings.add(rule1)
         bindings.add(rule2)
-        bindings.add(rule3)
         addNode(node)
+        bindings.add(rule3)
 
         expect:
         bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Created)).empty
         bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == [rule1]
         bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.DefaultsApplied)) as List == [rule2]
         bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Finalized)) as List == [rule3]
+    }
+
+    def "matches rules on scope and type"() {
+        given:
+        def node1 = node("a", Long)
+        def node2 = node("a.1", Integer)
+        def node3 = node("a.2", String)
+        def node4 = node("b", Long)
+        def rule1 = rule(Long, ModelNode.State.Mutated, ModelPath.path("a"))
+        def rule2 = rule(String, ModelNode.State.Mutated, ModelPath.path("a"))
+        def rule3 = rule(Integer, ModelNode.State.Mutated, ModelPath.path("a"))
+        bindings.add(rule1)
+        bindings.add(rule2)
+        addNode(node1)
+        addNode(node2)
+        addNode(node3)
+        addNode(node4)
+        bindings.add(rule3)
+
+        expect:
+        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == [rule1]
+        bindings.getRulesWithSubject(nodeAtState("a.1", ModelNode.State.Mutated)) as List == [rule3]
+        bindings.getRulesWithSubject(nodeAtState("a.2", ModelNode.State.Mutated)) as List == [rule2]
+        bindings.getRulesWithSubject(nodeAtState("b", ModelNode.State.Mutated)).empty
+    }
+
+    def "binds multiple by-path rules to subject"() {
+        given:
+        def node = node("a")
+        def rule1 = rule("a", ModelNode.State.Mutated)
+        def rule2 = rule("a", ModelNode.State.Mutated)
+        def rule3 = rule("a", ModelNode.State.Mutated)
+        bindings.add(rule1)
+        bindings.add(rule2)
+        addNode(node)
+        bindings.add(rule3)
+
+        expect:
+        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == [rule1, rule2, rule3]
+    }
+
+    def "binds multiple by-path and by-type rules to subject"() {
+        given:
+        def node = node("a", Long)
+        def rule1 = rule("a", Long, ModelNode.State.Mutated)
+        def rule2 = rule("a", Number, ModelNode.State.Mutated)
+        def rule3 = rule("a", Object, ModelNode.State.Mutated)
+        bindings.add(rule1)
+        bindings.add(rule2)
+        addNode(node)
+        bindings.add(rule3)
+
+        expect:
+        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == [rule1, rule2, rule3]
     }
 
     def "binds multiple by-type rules to subject"() {
@@ -366,7 +423,7 @@ class RuleBindingsTest extends RegistrySpec {
         rule2.inputBindings.every { it.bound }
     }
 
-    def "can replace by-path subject"() {
+    def "can replace by-path subject when bound"() {
         def node1 = node("a")
         def node2 = node("a")
         def rule = rule("a", ModelNode.State.Finalized)
@@ -385,7 +442,7 @@ class RuleBindingsTest extends RegistrySpec {
         removeNode(node1)
 
         then:
-        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Finalized)) as List == []
+        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Finalized)).empty
         !rule.subjectBinding.bound
 
         when:
@@ -396,7 +453,25 @@ class RuleBindingsTest extends RegistrySpec {
         rule.subjectBinding.boundTo == node2
     }
 
-    def "can replace by-type subject"() {
+    def "can replace by-path subject when not bound"() {
+        def node1 = node("a")
+        def node2 = node("a")
+        def rule = rule("a", ModelNode.State.Finalized)
+
+        given:
+        addNode(node1)
+        removeNode(node1)
+        bindings.add(rule)
+
+        when:
+        addNode(node2)
+
+        then:
+        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Finalized)) as List == [rule]
+        rule.subjectBinding.boundTo == node2
+    }
+
+    def "can replace by-type subject when bound"() {
         def node1 = node("a", Long)
         def node2 = node("a", Long)
         def rule1 = rule(Long, ModelNode.State.Finalized)
@@ -427,6 +502,24 @@ class RuleBindingsTest extends RegistrySpec {
         bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Finalized)) as List == [rule1, rule2]
         rule1.subjectBinding.boundTo == node2
         rule2.subjectBinding.boundTo == node2
+    }
+
+    def "can replace by-type subject when not bound"() {
+        def node1 = node("a", Long)
+        def node2 = node("a", Long)
+        def rule = rule(Long, ModelNode.State.Finalized)
+
+        given:
+        addNode(node1)
+        removeNode(node1)
+        bindings.add(rule)
+
+        when:
+        addNode(node2)
+
+        then:
+        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Finalized)) as List == [rule]
+        rule.subjectBinding.boundTo == node2
     }
 
     def "can replace by-path input"() {
@@ -521,6 +614,22 @@ class RuleBindingsTest extends RegistrySpec {
   - b (created by: test)'''
     }
 
+    def "cannot add child node that would make a by-type subject ambiguous"() {
+        given:
+        addNode(node("a", Long))
+        bindings.add(rule(Long, ModelNode.State.Mutated, ModelPath.path("a")))
+
+        when:
+        addNode(node("a.2", Long))
+
+        then:
+        InvalidModelRuleException e = thrown()
+        e.cause instanceof ModelRuleBindingException
+        TextUtil.normaliseLineSeparators(e.cause.message) == '''Type-only model reference of type java.lang.Long is ambiguous as multiple model elements are available for this type:
+  - a (created by: test)
+  - a.2 (created by: test)'''
+    }
+
     def "cannot add rule with ambiguous by-type subject"() {
         given:
         addNode(node("a", Long))
@@ -607,8 +716,6 @@ class RuleBindingsTest extends RegistrySpec {
     }
 
     private void addUntypedNode(TestNode node) {
-        ((TestNode) graph.get(node.path.parent)).addLink(node)
-        graph.add(node)
         bindings.nodeCreated(node)
     }
 
@@ -619,7 +726,6 @@ class RuleBindingsTest extends RegistrySpec {
     }
 
     void removeNode(TestNode node) {
-        graph.remove(node)
         bindings.remove(node)
     }
 
@@ -631,6 +737,13 @@ class RuleBindingsTest extends RegistrySpec {
         def builder = new RuleBinderTestBuilder()
         builder.subjectReference(ModelReference.of(null, ModelType.of(subjectType), targetState).inScope(ModelPath.ROOT))
         builder.descriptor("rule with subject of type $subjectType.simpleName")
+        return builder.build()
+    }
+
+    RuleBinder rule(Class subjectType, ModelNode.State targetState, ModelPath scope) {
+        def builder = new RuleBinderTestBuilder()
+        builder.subjectReference(ModelReference.of(null, ModelType.of(subjectType), targetState).inScope(scope))
+        builder.descriptor("rule with subject of type $subjectType.simpleName in $scope")
         return builder.build()
     }
 

@@ -51,7 +51,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         ModelRegistration rootRegistration = ModelRegistrations.of(ModelPath.ROOT).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
         modelGraph = new ModelGraph(new ModelElementNode(this, rootRegistration, null));
         modelGraph.getRoot().setState(Created);
-        ruleBindings = new RuleBindings(modelGraph);
+        ruleBindings = new RuleBindings();
     }
 
     @Override
@@ -942,7 +942,6 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             ModelReferenceNode childNode = new ModelReferenceNode(DefaultModelRegistry.this, registration, parent);
             childNode.setTarget(childTarget);
             registerNode(childNode, ImmutableMultimap.<ModelActionRole, ModelAction>of());
-            ruleBindings.nodeDiscovered(childNode);
         }
 
         @Override
