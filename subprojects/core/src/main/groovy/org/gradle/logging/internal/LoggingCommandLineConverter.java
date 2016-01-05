@@ -18,7 +18,7 @@ package org.gradle.logging.internal;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
@@ -73,8 +73,9 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
 
         if (commandLine.hasOption(CONSOLE)) {
             String value = commandLine.option(CONSOLE).getValue();
+            String consoleValue = StringUtils.capitalize(value.toLowerCase());
             try {
-                ConsoleOutput colorOutput = ConsoleOutput.valueOf(WordUtils.capitalizeFully(value));
+                ConsoleOutput colorOutput = ConsoleOutput.valueOf(consoleValue);
                 loggingConfiguration.setConsoleOutput(colorOutput);
             } catch (IllegalArgumentException e) {
                 throw new CommandLineArgumentException(String.format("Unrecognized value '%s' for %s.", value, CONSOLE));
