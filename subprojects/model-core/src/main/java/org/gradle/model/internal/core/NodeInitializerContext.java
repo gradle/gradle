@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Optional;
+import org.gradle.model.internal.manage.binding.ManagedProperty;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.type.ModelType;
 
@@ -40,7 +41,7 @@ public class NodeInitializerContext<T> {
     }
 
     public static <T> NodeInitializerContext<T> forProperty(ModelType<T> type, ModelProperty<?> property, ModelType<?> containingType) {
-        return new NodeInitializerContext<T>(type, ModelType.UNTYPED, Optional.of(new PropertyContext(property, containingType)));
+        return new NodeInitializerContext<T>(type, ModelType.UNTYPED, Optional.of(new PropertyContext(property.getName(), property.getType(), property.isDeclaredAsHavingUnmanagedType(), containingType)));
     }
 
     public ModelType<T> getModelType() {
@@ -56,16 +57,28 @@ public class NodeInitializerContext<T> {
     }
 
     static class PropertyContext {
-        private final ModelProperty<?> modelProperty;
+        private final String name;
+        private final ModelType<?> type;
+        private final boolean declaredAsHavingUnmanagedType;
         private final ModelType<?> declaringType;
 
-        private PropertyContext(ModelProperty<?> modelProperty, ModelType<?> declaringType) {
-            this.modelProperty = modelProperty;
+        private PropertyContext(String name, ModelType<?> type, boolean declaredAsHavingUnmanagedType, ModelType<?> declaringType) {
+            this.name = name;
+            this.type = type;
+            this.declaredAsHavingUnmanagedType = declaredAsHavingUnmanagedType;
             this.declaringType = declaringType;
         }
 
-        public ModelProperty<?> getModelProperty() {
-            return modelProperty;
+        public String getName() {
+            return name;
+        }
+
+        public ModelType<?> getType() {
+            return type;
+        }
+
+        public boolean isDeclaredAsHavingUnmanagedType() {
+            return declaredAsHavingUnmanagedType;
         }
 
         public ModelType<?> getDeclaringType() {
