@@ -35,14 +35,15 @@ public abstract class PrimitiveTypes {
         .build();
 
     public static boolean isPrimitiveType(ModelType<?> modelType) {
-        return TYPES_DEFAULT_VALUES.keySet().contains(modelType);
+        return TYPES_DEFAULT_VALUES.containsKey(modelType);
     }
 
     public static Object defaultValueOf(ModelType<?> primitiveModelType) {
-        if (!isPrimitiveType(primitiveModelType)) {
+        Object defaultValue = TYPES_DEFAULT_VALUES.get(primitiveModelType);
+        if (defaultValue == null) {
             throw new IllegalArgumentException(primitiveModelType + " is not a primitive type.");
         }
-        return TYPES_DEFAULT_VALUES.get(primitiveModelType);
+        return defaultValue;
     }
 
 }
