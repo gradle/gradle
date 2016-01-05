@@ -74,7 +74,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         if (superTestClassFile != null) {
             return superTestClassFile;
         } else { // super test class file not in test class directories
-            return classFileExtractionManager.getLibraryClassFile(superClassName);
+            return superClassName.startsWith("java/") || superClassName.startsWith("javax/") ? null : classFileExtractionManager.getLibraryClassFile(superClassName);
         }
     }
 
