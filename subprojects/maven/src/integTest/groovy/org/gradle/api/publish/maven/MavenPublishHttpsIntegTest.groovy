@@ -84,7 +84,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         failure.error.contains("javax.net.ssl.SSLHandshakeException")
     }
 
-    def "decent error message when server can't authenticate client"() {
+    def "build fails when server can't authenticate client"() {
         keyStore.enableSslWithServerAndBadClientCert(server)
         initBuild()
 

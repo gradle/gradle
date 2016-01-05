@@ -75,7 +75,7 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
         failure.error.contains("javax.net.ssl.SSLHandshakeException")
     }
 
-    def "decent error message when server can't authenticate client"() {
+    def "build fails when server can't authenticate client"() {
         keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerAndBadClientCert(server)
 

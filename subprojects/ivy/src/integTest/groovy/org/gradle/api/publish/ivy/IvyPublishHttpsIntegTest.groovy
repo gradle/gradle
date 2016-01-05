@@ -87,7 +87,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @LeaksFileHandles
-    def "decent error message when server can't authenticate client"() {
+    def "build fails when server can't authenticate client"() {
         keyStore.enableSslWithServerAndBadClientCert(server)
         initBuild()
 
