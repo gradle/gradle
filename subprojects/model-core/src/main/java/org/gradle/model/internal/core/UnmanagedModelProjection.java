@@ -66,8 +66,8 @@ public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectio
         return Optional.fromNullable(instance.toString());
     }
 
-    private Object instanceFrom(MutableModelNode modelNodeInternal) {
-        ModelView<?> modelView = this.asImmutable(ModelType.untyped(), modelNodeInternal, null);
+    private Object instanceFrom(MutableModelNode modelNode) {
+        ModelView<?> modelView = this.asImmutable(ModelType.untyped(), modelNode, null);
         return modelView.getInstance();
     }
 }
