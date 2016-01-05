@@ -40,6 +40,10 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ':diagnostics', sourceSet: 'testFixtures')
-//Re-enable classycle after removal of CollectionBuilder
-//useClassycle()
+useClassycle(exclude: [
+    'org/gradle/model/internal/core/**',
+    'org/gradle/model/internal/inspect/**',
+    'org/gradle/model/internal/manage/schema/**',
+    'org/gradle/model/internal/type/**'
+])
 strictCompileIgnoreDeprecations()
