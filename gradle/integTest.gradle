@@ -156,7 +156,7 @@ def forEachJavaProcess(Closure action) {
         }
         pidPattern = /([0-9]+)/
     }
-    if (result.exitValue >= 0) {
+    if (result.exitValue != 0) {
         def errorLog = file("${rootProject.buildDir}/errorLogs/process-list-${System.currentTimeMillis()}.log")
         project.mkdir(errorLog.parent)
         errorLog.text = "[Output]\n${output.toString()}\n[Error Output]\n${error.toString()}"
