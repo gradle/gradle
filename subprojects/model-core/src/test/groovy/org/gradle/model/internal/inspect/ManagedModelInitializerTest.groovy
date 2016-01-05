@@ -16,21 +16,17 @@
 
 package org.gradle.model.internal.inspect
 
-import org.gradle.api.credentials.Credentials
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
 import org.gradle.model.Unmanaged
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.ModelTypeInitializationException
-import org.gradle.model.internal.core.NodeInitializer
 import org.gradle.model.internal.core.NodeInitializerRegistry
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.binding.StructBindingsStore
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
-import org.gradle.model.internal.manage.schema.extract.DefaultConstructibleTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
-import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
@@ -63,30 +59,6 @@ A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T
     @Managed
     interface ManagedWithInvalidModelMap {
         ModelMap<FileInputStream> getMap()
-    }
-
-    def "should fail with a contextual exception for a managed model element with an unknown property type"() {
-        when:
-        def constructibleTypesRegistry = new DefaultConstructibleTypesRegistry()
-        NodeInitializer nodeInitializer = Mock()
-        constructibleTypesRegistry.registerConstructibleType(ModelType.of(Credentials), nodeInitializer)
-        nodeInitializerRegistry.registerStrategy(constructibleTypesRegistry)
-        realizeNodeOfType(ManagedWithUnsupportedType)
-
-        then:
-        def ex = thrown(ModelRuleExecutionException)
-        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedWithUnsupportedType.name' can not be constructed.
-Its property 'java.io.FileInputStream stream' can not be constructed
-It must be one of:
-    - A managed type (annotated with @Managed)
-    - A managed collection. A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:
-        - A managed type (annotated with @Managed)
-        - or a type which Gradle is capable of constructing:
-            - org.gradle.api.credentials.Credentials
-    - A scalar collection. A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)
-    - An unmanaged property (i.e. annotated with @Unmanaged)
-    - or a type which Gradle is capable of constructing:
-        - org.gradle.api.credentials.Credentials""")
     }
 
     @Managed

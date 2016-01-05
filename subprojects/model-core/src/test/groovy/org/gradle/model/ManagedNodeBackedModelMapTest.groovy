@@ -18,14 +18,9 @@ package org.gradle.model
 
 import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.core.NodeInitializer
-import org.gradle.model.internal.core.NodeInitializerRegistry
-import org.gradle.model.internal.manage.schema.extract.DefaultConstructibleTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
-import org.gradle.model.internal.type.ModelType
 
 import static org.gradle.model.internal.core.NodeInitializerContext.forType
-import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInterface, SpecialNamedThingInterface> {
 
@@ -89,32 +84,4 @@ class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInt
         e.cause.message == """Type $Invalid.name is not a valid model element type:
 - Cannot be a parameterized type."""
     }
-
-    abstract class ConstructibleNamedThing implements NamedThingInterface {}
-    abstract class NonConstructibleNamedThing implements NamedThingInterface {}
-
-    def "reasonable error message when creating a non-constructible type"() {
-        registry.mutate(NodeInitializerRegistry) { nodeInitializerRegistry ->
-            def constructibleTypesRegistry = new DefaultConstructibleTypesRegistry()
-            // This should not show up in the error message on account of not being a subtype of NamedThingInterface
-            constructibleTypesRegistry.registerConstructibleType(ModelType.of(Serializable), Mock(NodeInitializer))
-            // This should show up in the error message
-            constructibleTypesRegistry.registerConstructibleType(ModelType.of(ConstructibleNamedThing), Mock(NodeInitializer))
-            nodeInitializerRegistry.registerStrategy(constructibleTypesRegistry)
-        }
-        when:
-        mutate {
-            create("foo", NonConstructibleNamedThing)
-        }
-        realize()
-
-        then:
-        ModelRuleExecutionException e = thrown()
-        normaliseLineSeparators(e.cause.message) == """A model element of type: '$NonConstructibleNamedThing.name' can not be constructed.
-It must be one of:
-    - A managed type (annotated with @Managed)
-    - or a type which Gradle is capable of constructing:
-        - $ConstructibleNamedThing.name"""
-    }
-
 }
