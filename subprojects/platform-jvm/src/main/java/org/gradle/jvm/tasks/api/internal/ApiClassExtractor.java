@@ -20,10 +20,6 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
@@ -58,24 +54,12 @@ public class ApiClassExtractor {
      *
      * <p>For these reasons, this method should be called as a test on every original
      * .class file prior to invoking processed through
-     * {@link #extractApiClassFrom(File)}.</p>
+     * {@link #extractApiClassFrom(ClassReader)}.</p>
      *
-     * @param originalClassFile the file containing the original class to evaluate
+     * @param originalClassReader the reader containing the original class to evaluate
      * @return whether the given class is a candidate for API extraction
      */
-    public boolean shouldExtractApiClassFrom(File originalClassFile) throws IOException {
-        if (!originalClassFile.getName().endsWith(".class")) {
-            return false;
-        }
-        InputStream inputStream = new FileInputStream(originalClassFile);
-        try {
-            return shouldExtractApiClassFrom(new ClassReader(inputStream));
-        } finally {
-            inputStream.close();
-        }
-    }
-
-    boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
+    public boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
         final AtomicBoolean shouldExtract = new AtomicBoolean();
         originalClassReader.accept(new ClassVisitor(ASM5) {
             @Override
@@ -91,19 +75,10 @@ public class ApiClassExtractor {
     /**
      * Extracts an API class from a given original class.
      *
-     * @param originalClassFile the file containing the original class
+     * @param originalClassReader the reader containing the original class
      * @return bytecode of the API class extracted from the original class
      */
-    public byte[] extractApiClassFrom(File originalClassFile) throws IOException {
-        InputStream inputStream = new FileInputStream(originalClassFile);
-        try {
-            return extractApiClassFrom(new ClassReader(inputStream));
-        } finally {
-            inputStream.close();
-        }
-    }
-
-    byte[] extractApiClassFrom(ClassReader originalClassReader) {
+    public byte[] extractApiClassFrom(ClassReader originalClassReader) {
         ClassWriter apiClassWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         originalClassReader.accept(
             new ApiMemberSelector(new MethodStubbingApiMemberAdapter(apiClassWriter), apiIncludesPackagePrivateMembers),

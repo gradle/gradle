@@ -47,7 +47,6 @@ import java.util.Set;
 import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.gradle.model.internal.core.ModelNodes.withType;
 import static org.gradle.model.internal.core.NodePredicate.allDescendants;
-import static org.gradle.util.CollectionUtils.single;
 
 /**
  * Base plugin for JVM component support. Applies the
@@ -185,16 +184,20 @@ public class JvmComponentPlugin implements Plugin<Project> {
             tasks.create(apiJarTaskName, ApiJar.class, new Action<ApiJar>() {
                 @Override
                 public void execute(ApiJar apiJarTask) {
-                    final File apiClassesDir = binary.getNamingScheme().getOutputDirectory(buildDir, "apiClasses");
                     apiJarTask.setDescription(String.format("Creates the API binary file for %s.", binary));
-                    apiJarTask.setRuntimeClassesDir(single(assembly.getClassDirectories()));
-                    apiJarTask.setExportedPackages(exportedPackages);
-                    apiJarTask.setApiClassesDir(apiClassesDir);
                     apiJarTask.setOutputFile(apiJarFile.getFile());
+                    apiJarTask.setExportedPackages(exportedPackages);
+                    setInputsOf(apiJarTask, assembly);
                     apiJarTask.dependsOn(assembly);
                     apiJarFile.setBuildTask(apiJarTask);
                 }
             });
+        }
+
+        private void setInputsOf(ApiJar apiJarTask, JvmAssembly assembly) {
+            for (File classDir : assembly.getClassDirectories()) {
+                apiJarTask.getInputs().sourceDir(classDir);
+            }
         }
 
         private String apiJarTaskName(JarBinarySpecInternal binary) {
