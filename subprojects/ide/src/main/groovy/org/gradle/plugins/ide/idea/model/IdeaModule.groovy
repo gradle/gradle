@@ -20,6 +20,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
+import org.gradle.plugins.ide.internal.resolver.LoggingUnresolvedIdeDependencyHandler
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -309,7 +310,9 @@ class IdeaModule {
      * @return dependencies
      */
     Set<Dependency> resolveDependencies() {
-        return new IdeaDependenciesProvider().provide(this)
+        def ideaDependenciesProvider = new IdeaDependenciesProvider()
+        new LoggingUnresolvedIdeDependencyHandler().handle(ideaDependenciesProvider.getUnresolvedDependencies(this))
+        return ideaDependenciesProvider.provide(this)
     }
 
     /**

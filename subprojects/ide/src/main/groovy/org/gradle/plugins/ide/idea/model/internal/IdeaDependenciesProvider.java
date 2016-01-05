@@ -32,6 +32,7 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeDependencyKey;
 import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
+import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -91,6 +92,10 @@ public class IdeaDependenciesProvider {
         }
         result.addAll(provideFromScopeRuleMappings(ideaModule));
         return result;
+    }
+
+    Collection<UnresolvedIdeRepoFileDependency> getUnresolvedDependencies(IdeaModule ideaModule) {
+        return dependenciesExtractor.unresolvedExternalDependencies(ideaConfigurations(ideaModule), Collections.<Configuration>emptyList());
     }
 
     private Set<Dependency> provideFromScopeRuleMappings(IdeaModule ideaModule) {

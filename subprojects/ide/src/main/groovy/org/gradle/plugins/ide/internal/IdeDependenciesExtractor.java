@@ -88,6 +88,7 @@ public class IdeDependenciesExtractor {
         Collection<IdeExtendedRepoFileDependency> resolvedAndUnresolved = new ArrayList<IdeExtendedRepoFileDependency>(unresolvedDependencies.size() + resolvedDependencies.size());
         resolvedAndUnresolved.addAll(resolvedDependencies);
         resolvedAndUnresolved.addAll(unresolvedDependencies);
+
         return resolvedAndUnresolved;
     }
 
@@ -123,7 +124,7 @@ public class IdeDependenciesExtractor {
         }
     }
 
-    private Collection<UnresolvedIdeRepoFileDependency> unresolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+    public Collection<UnresolvedIdeRepoFileDependency> unresolvedExternalDependencies(Iterable<Configuration> plusConfigurations, Iterable<Configuration> minusConfigurations) {
         final LinkedHashMap<File, UnresolvedIdeRepoFileDependency> unresolved = new LinkedHashMap<File, UnresolvedIdeRepoFileDependency>();
 
         for (Configuration c : plusConfigurations) {

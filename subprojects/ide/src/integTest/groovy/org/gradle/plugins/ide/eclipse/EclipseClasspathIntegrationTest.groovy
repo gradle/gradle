@@ -16,8 +16,10 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Rule
 import org.junit.Test
+
 import spock.lang.Issue
 
 class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
@@ -69,6 +71,51 @@ dependencies {
         libraries[2].assertHasNoSource()
         libraries[2].assertHasNoJavadoc()
     }
+
+    @Test
+    @Issue("GRADLE-1945")
+    void logUnresolvedDependencies() {
+        //given
+        def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
+        module.artifact(classifier: 'sources')
+        module.artifact(classifier: 'javadoc')
+        module.publish()
+
+        //when
+        ExecutionResult result = runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+configurations {
+    myConfig
+}
+
+dependencies {
+    myConfig group: 'myGroup', name: 'myCustomName', version: '1.0'
+    runtime  group: 'myGroup', name: 'myRuntimeName', version: '1.0'
+    compile  group: 'coolGroup', name: 'niceArtifact', version: '1.0'
+
+    eclipse {
+        classpath {
+            plusConfigurations += [ configurations.myConfig ]
+        }
+    }
+} 
+"""
+        String expected = """:eclipseClasspath
+Could not resolve: myGroup:myRuntimeName:1.0 (configuration ':testRuntime')
+Could not resolve: myGroup:myCustomName:1.0 (configuration ':myConfig')
+:eclipseJdt
+:eclipseProject
+:eclipse
+"""
+        result.assertOutputEquals(expected, true, false)
+    }
+
 
     @Test
     @Issue("GRADLE-1622")
