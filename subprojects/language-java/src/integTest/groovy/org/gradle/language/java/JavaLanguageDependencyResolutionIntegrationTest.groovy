@@ -561,8 +561,8 @@ model {
                     create('checkClasspath') {
                         doLast {
                             def cp = compileMainJarMainJava.classpath.files
-                            assert cp.contains(new File(project(':b').mainApiJar.destinationDir, "main.jar"))
-                            def cJar = new File(project(':c').mainApiJar.destinationDir, 'main.jar')
+                            assert cp.contains(project(':b').mainApiJar.outputFile)
+                            def cJar = project(':c').mainApiJar.outputFile
                             assert ${excludesOrIncludes == 'excludes' ? '!' : ''}cp.contains(cJar)
                         }
                     }
@@ -640,7 +640,7 @@ class DependencyResolutionObserver extends RuleSource {
             doLast {
                 def task = tasks.get('compileMainJarMainJava')
                 def cp = task.classpath.files
-                assert cp == [new File(task.project.project(':b').modelRegistry.find(ModelPath.path('tasks.mainApiJar'), ModelType.of(Task)).destinationDir, 'main.jar')] as Set
+                assert cp == [task.project.project(':b').tasks.mainApiJar.outputFile] as Set
             }
         }
     }
@@ -743,8 +743,8 @@ model {
         create('checkClasspath') {
             doLast {
                 def cp = compileMainJarMainJava.classpath.files
-                assert cp.contains(new File(project(':b').mainApiJar.destinationDir, 'main.jar'))
-                assert !cp.contains(new File(project(':c').mainApiJar.destinationDir, 'main.jar'))
+                assert cp.contains(project(':b').mainApiJar.outputFile)
+                assert !cp.contains(project(':c').mainApiJar.outputFile)
             }
         }
         mainJar.finalizedBy('checkClasspath')

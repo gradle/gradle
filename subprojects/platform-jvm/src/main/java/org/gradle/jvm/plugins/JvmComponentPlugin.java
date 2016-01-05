@@ -190,8 +190,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     apiJarTask.setRuntimeClassesDir(single(assembly.getClassDirectories()));
                     apiJarTask.setExportedPackages(exportedPackages);
                     apiJarTask.setApiClassesDir(apiClassesDir);
-                    apiJarTask.setDestinationDir(apiJarFile.getFile().getParentFile());
-                    apiJarTask.setArchiveName(apiJarFile.getFile().getName());
+                    apiJarTask.setOutputFile(apiJarFile.getFile());
                     apiJarTask.dependsOn(assembly);
                     apiJarFile.setBuildTask(apiJarTask);
                 }

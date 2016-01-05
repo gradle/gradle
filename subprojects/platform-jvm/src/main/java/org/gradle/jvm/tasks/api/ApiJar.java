@@ -70,9 +70,8 @@ public class ApiJar extends DefaultTask {
 
     private Set<String> exportedPackages;
     private File runtimeClassesDir;
-    private File destinationDir;
-    private String archiveName;
     private File apiClassesDir;
+    private File outputFile;
 
     @Input
     public Set<String> getExportedPackages() {
@@ -83,13 +82,13 @@ public class ApiJar extends DefaultTask {
         this.exportedPackages = exportedPackages;
     }
 
-    @OutputDirectory
-    public File getDestinationDir() {
-        return destinationDir;
+    @OutputFile
+    public File getOutputFile() {
+       return outputFile;
     }
 
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile;
     }
 
     // Not an @OutputDirectory in order to avoid up-to-date checks
@@ -111,23 +110,13 @@ public class ApiJar extends DefaultTask {
         this.runtimeClassesDir = runtimeClassesDir;
     }
 
-    @Input
-    public String getArchiveName() {
-        return archiveName;
-    }
-
-    public void setArchiveName(String archiveName) {
-        this.archiveName = archiveName;
-    }
-
     @TaskAction
     public void createApiJar(final IncrementalTaskInputs inputs) throws Exception {
-        final File archivePath = new File(destinationDir, archiveName);
         if (!inputs.isIncremental()) {
-            deleteQuietly(archivePath);
+            deleteQuietly(outputFile);
             deleteDirectory(apiClassesDir);
         }
-        destinationDir.mkdirs();
+        outputFile.getParentFile().mkdirs();
         apiClassesDir.mkdirs();
 
         final ApiClassExtractor apiClassExtractor = new ApiClassExtractor(exportedPackages);
@@ -162,15 +151,15 @@ public class ApiJar extends DefaultTask {
         });
 
         if (updated.get()) {
-            updateApiJarFile(archivePath, apiClasses);
+            updateApiJarFile(apiClasses);
         }
     }
 
-    private void updateApiJarFile(File file, Map<File, byte[]> apiClasses) throws IOException {
+    private void updateApiJarFile(Map<File, byte[]> apiClasses) throws IOException {
         // Make sure all entries are always written in the same order
         final SortedMap<String, File> sortedJarEntries = newTreeMap();
         collectFiles(null, apiClassesDir, sortedJarEntries);
-        writeJarFile(file, sortedJarEntries, apiClasses);
+        writeJarFile(outputFile, sortedJarEntries, apiClasses);
     }
 
     private static void writeJarFile(File file, final Map<String, File> entries, final Map<File, byte[]> cache) throws IOException {
