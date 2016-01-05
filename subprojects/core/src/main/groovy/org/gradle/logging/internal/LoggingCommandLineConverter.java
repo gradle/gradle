@@ -17,6 +17,8 @@ package org.gradle.logging.internal;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+
+import org.apache.commons.lang.WordUtils;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
@@ -43,7 +45,6 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
     public static final String STACKTRACE_LONG = "stacktrace";
     private final BiMap<String, LogLevel> logLevelMap = HashBiMap.create();
     private final BiMap<String, ShowStacktrace> showStacktraceMap = HashBiMap.create();
-    private final Map<String, ConsoleOutput> consoleOutputMap = new HashMap<String, ConsoleOutput>();
 
     public LoggingCommandLineConverter() {
         logLevelMap.put(QUIET, LogLevel.QUIET);
@@ -51,9 +52,6 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         logLevelMap.put(DEBUG, LogLevel.DEBUG);
         showStacktraceMap.put(FULL_STACKTRACE, ShowStacktrace.ALWAYS_FULL);
         showStacktraceMap.put(STACKTRACE, ShowStacktrace.ALWAYS);
-        consoleOutputMap.put("plain", ConsoleOutput.Plain);
-        consoleOutputMap.put("auto", ConsoleOutput.Auto);
-        consoleOutputMap.put("rich", ConsoleOutput.Rich);
     }
 
     public LoggingConfiguration convert(ParsedCommandLine commandLine, LoggingConfiguration loggingConfiguration) throws CommandLineArgumentException {
@@ -75,11 +73,12 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
 
         if (commandLine.hasOption(CONSOLE)) {
             String value = commandLine.option(CONSOLE).getValue();
-            ConsoleOutput colorOutput = consoleOutputMap.get(value.toLowerCase());
-            if (colorOutput == null) {
+            try {
+                ConsoleOutput colorOutput = ConsoleOutput.valueOf(WordUtils.capitalizeFully(value));
+                loggingConfiguration.setConsoleOutput(colorOutput);
+            } catch (IllegalArgumentException e) {
                 throw new CommandLineArgumentException(String.format("Unrecognized value '%s' for %s.", value, CONSOLE));
             }
-            loggingConfiguration.setConsoleOutput(colorOutput);
         }
 
         return loggingConfiguration;
