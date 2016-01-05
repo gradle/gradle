@@ -16,58 +16,33 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
+import java.util.Map;
 
 public abstract class PrimitiveTypes {
 
-    public final static List<ModelType<?>> TYPES = ImmutableList.<ModelType<?>>of(
-        ModelType.of(boolean.class),
-        ModelType.of(char.class),
-        ModelType.of(byte.class),
-        ModelType.of(short.class),
-        ModelType.of(int.class),
-        ModelType.of(float.class),
-        ModelType.of(long.class),
-        ModelType.of(double.class)
-    );
+    public static final Map<ModelType<?>, Object> TYPES_DEFAULT_VALUES = ImmutableMap.<ModelType<?>, Object>builder()
+        .put(ModelType.of(boolean.class), false)
+        .put(ModelType.of(char.class), '\u0000')
+        .put(ModelType.of(byte.class), (byte) 0)
+        .put(ModelType.of(short.class), (short) 0)
+        .put(ModelType.of(int.class), 0)
+        .put(ModelType.of(float.class), 0.0F)
+        .put(ModelType.of(long.class), 0L)
+        .put(ModelType.of(double.class), 0.0D)
+        .build();
 
     public static boolean isPrimitiveType(ModelType<?> modelType) {
-        return TYPES.contains(modelType);
+        return TYPES_DEFAULT_VALUES.keySet().contains(modelType);
     }
 
     public static Object defaultValueOf(ModelType<?> primitiveModelType) {
         if (!isPrimitiveType(primitiveModelType)) {
             throw new IllegalArgumentException(primitiveModelType + " is not a primitive type.");
         }
-        Class<?> primitiveClass = primitiveModelType.getRawClass();
-        if (primitiveClass.equals(boolean.class)) {
-            return false;
-        }
-        if (primitiveClass.equals(char.class)) {
-            return '\u0000';
-        }
-        if (primitiveClass.equals(byte.class)) {
-            return (byte) 0;
-        }
-        if (primitiveClass.equals(short.class)) {
-            return (short) 0;
-        }
-        if (primitiveClass.equals(int.class)) {
-            return 0;
-        }
-        if (primitiveClass.equals(float.class)) {
-            return 0.0F;
-        }
-        if (primitiveClass.equals(long.class)) {
-            return 0L;
-        }
-        if (primitiveClass.equals(double.class)) {
-            return 0.0D;
-        }
-        throw new IllegalStateException("This should never happen, internal PrimitiveTypes must be broken, please report.");
+        return TYPES_DEFAULT_VALUES.get(primitiveModelType);
     }
 
 }
