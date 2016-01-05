@@ -18,12 +18,11 @@ package org.gradle.play.integtest.continuous
 
 import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
+import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
-import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.test.fixtures.file.TestFile
-
 
 class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinuousBuildIntegrationTest {
     PlayApp playApp = new PlayMultiProject()
@@ -150,7 +149,9 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
     }
 
     def addBadScala(path) {
-        file("$path/models/NewType.scala") << """
+        def file = file("$path/models/NewType.scala")
+        waitBeforeModification file
+        file << """
 package models
 
 object NewType {
@@ -158,7 +159,9 @@ object NewType {
     }
 
     def fixBadScala(path) {
-        file("$path/models/NewType.scala") << """
+        def file = file("$path/models/NewType.scala")
+        waitBeforeModification file
+        file << """
 }
 """
     }
