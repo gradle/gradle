@@ -75,7 +75,7 @@ public interface StructBindings<T> {
     /**
      * Returns the managed properties declared by the struct.
      */
-    Map<String, ManagedProperty> getManagedProperties();
+    Map<String, ManagedProperty<?>> getManagedProperties();
 
     /**
      * Returns the methods that are implemented by the public view.

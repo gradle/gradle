@@ -25,13 +25,13 @@ import java.util.Map;
 /**
  * A managed property of a struct.
  */
-public class ManagedProperty {
+public class ManagedProperty<T> {
     private final String name;
-    private final ModelType<?> type;
+    private final ModelType<T> type;
     private final boolean internal;
     private final Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors;
 
-    public ManagedProperty(String name, ModelType<?> type, boolean internal, Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors) {
+    public ManagedProperty(String name, ModelType<T> type, boolean internal, Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors) {
         this.name = name;
         this.type = type;
         this.internal = internal;
@@ -42,7 +42,7 @@ public class ManagedProperty {
         return name;
     }
 
-    public ModelType<?> getType() {
+    public ModelType<T> getType() {
         return type;
     }
 

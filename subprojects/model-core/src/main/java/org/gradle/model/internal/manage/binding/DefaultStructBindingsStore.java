@@ -126,7 +126,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             }
         }
 
-        ImmutableSortedMap.Builder<String, ManagedProperty> generatedPropertiesBuilder = ImmutableSortedMap.naturalOrder();
+        ImmutableSortedMap.Builder<String, ManagedProperty<?>> generatedPropertiesBuilder = ImmutableSortedMap.naturalOrder();
         for (Map.Entry<String, Collection<AbstractStructMethodBinding>> entry : propertyMethodBindings.asMap().entrySet()) {
             String propertyName = entry.getKey();
             Collection<AbstractStructMethodBinding> bindings = entry.getValue();
@@ -164,7 +164,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
                 if (foundSetter && !foundGetter) {
                     throw new IllegalArgumentException(String.format("Managed property '%s' must both have an abstract getter as well as a setter.", propertyName));
                 }
-                ManagedProperty managedProperty = new ManagedProperty(propertyName, propertyType, !publicSchema.hasProperty(propertyName), accessorsBuilder.build());
+                ManagedProperty<?> managedProperty = createProperty(propertyName, propertyType, !publicSchema.hasProperty(propertyName), accessorsBuilder.build());
                 generatedPropertiesBuilder.put(propertyName, managedProperty);
             }
         }
@@ -177,6 +177,10 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             viewBindingsBuilder.build(),
             delegateBindingsBuilder.build()
         );
+    }
+
+    private static <T> ManagedProperty<T> createProperty(String propertyName, ModelType<T> propertyType, boolean internal, ImmutableMap<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors) {
+        return new ManagedProperty<T>(propertyName, propertyType, internal, accessors);
     }
 
     private static class CacheKey {

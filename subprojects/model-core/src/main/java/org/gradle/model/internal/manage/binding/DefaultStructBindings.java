@@ -34,7 +34,7 @@ public class DefaultStructBindings<T> implements StructBindings<T> {
     private final Set<StructSchema<?>> viewSchemas;
     private final StructSchema<?> delegateSchema;
 
-    private final Map<String, ManagedProperty> managedProperties;
+    private final Map<String, ManagedProperty<?>> managedProperties;
     private final Collection<DirectMethodBinding> viewBindings;
     private final Collection<DelegateMethodBinding> delegateBindings;
 
@@ -43,7 +43,7 @@ public class DefaultStructBindings<T> implements StructBindings<T> {
         Iterable<? extends StructSchema<?>> internalViewSchemas,
         @Nullable StructSchema<?> delegateSchema,
 
-        Map<String, ManagedProperty> managedProperties,
+        Map<String, ManagedProperty<?>> managedProperties,
         Iterable<DirectMethodBinding> viewBindings,
         Iterable<DelegateMethodBinding> delegateBindings
     ) {
@@ -78,7 +78,7 @@ public class DefaultStructBindings<T> implements StructBindings<T> {
         return delegateSchema;
     }
 
-    public Map<String, ManagedProperty> getManagedProperties() {
+    public Map<String, ManagedProperty<?>> getManagedProperties() {
         return managedProperties;
     }
 
