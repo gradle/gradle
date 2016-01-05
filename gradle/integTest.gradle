@@ -136,19 +136,32 @@ project(":") {
 def forEachJavaProcess(Closure action) {
     String queryString = "(?i)${Pattern.quote(File.separator)}(java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProject.projectDir.absolutePath)}.+?org\\.gradle\\.)|(?:-classpath.+${Pattern.quote(rootProject.buildDir.absolutePath)}.+?org\\.gradle\\.)).+)"
     def output = new ByteArrayOutputStream()
+    def error = new ByteArrayOutputStream()
     def pidPattern
+    def result
     if (org.gradle.internal.os.OperatingSystem.current().windows) {
-        exec {
+        result = exec {
             commandLine('wmic', 'process', 'get', 'processid,commandline')
             standardOutput = output
+            errorOutput = error
+            ignoreExitValue = true
         }
         pidPattern = /([0-9]+)\s*$/
     } else {
-        exec {
-            commandLine('ps', 'x')
+        result = exec {
+            commandLine('ps', 'f')
             standardOutput = output
+            errorOutput = output
+            ignoreExitValue = true
         }
         pidPattern = /([0-9]+)/
+    }
+    if (result.exitValue >= 0) {
+        def errorLog = file("${rootProject.buildDir}/errorLogs/process-list-${System.currentTimeMillis()}.log")
+        project.mkdir(errorLog.parent)
+        errorLog.text = "[Output]\n${output.toString()}\n[Error Output]\n${error.toString()}"
+        logger.quiet "Error obtaining process list, output log created at $errorLog"
+        result.assertNormalExitValue()
     }
     output.toString().readLines().each { String line ->
         if(isCiServer && line.contains('java')) {
