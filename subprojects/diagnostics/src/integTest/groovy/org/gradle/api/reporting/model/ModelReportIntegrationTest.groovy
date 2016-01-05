@@ -652,6 +652,25 @@ apply plugin: ClassHolder.InnerRules
         modelNode.father.father[0].nodeValue == "reference to element 'father'"
     }
 
+    def "renders sensible value for node whose toString() method returns null"() {
+        given:
+        buildFile << """
+            @Managed abstract class SomeType {
+                String toString() { null }
+            }
+            model {
+                something(SomeType)
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'model'
+
+        then:
+        def modelNode = ModelReportOutput.from(output).modelNode
+        modelNode.something[0].nodeValue == 'SomeType#toString() returned null'
+    }
+
     private String managedNumbers() {
         return """@Managed
         public interface Numbers {

@@ -71,6 +71,10 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
         return Collections.singleton(description(type));
     }
 
+    protected String toStringReturnedNullValueDescription() {
+        return new StringBuilder(type.toString()).append("#toString() returned null").toString();
+    }
+
     public static String description(ModelType<?> type) {
         if (type.getRawClass().getSuperclass() == null && type.getRawClass().getInterfaces().length == 0) {
             return type.toString();

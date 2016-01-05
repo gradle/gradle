@@ -50,7 +50,8 @@ public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectio
 
     @Override
     public Optional<String> getValueDescription(MutableModelNode modelNode) {
-        Object instance = instanceFrom(modelNode);
+        ModelView<?> modelView = this.asImmutable(ModelType.untyped(), modelNode, null);
+        Object instance = modelView.getInstance();
         if (instance == null) {
             if (isPrimitiveType(getType())) {
                 return Optional.of(String.valueOf(defaultValueOf(getType())));
@@ -63,11 +64,10 @@ public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectio
         if (hasDefaultToString(instance)) {
             return Optional.absent();
         }
-        return Optional.fromNullable(instance.toString());
-    }
-
-    private Object instanceFrom(MutableModelNode modelNode) {
-        ModelView<?> modelView = this.asImmutable(ModelType.untyped(), modelNode, null);
-        return modelView.getInstance();
+        String valueDescription = instance.toString();
+        if (valueDescription == null) {
+            return Optional.of(toStringReturnedNullValueDescription());
+        }
+        return Optional.of(valueDescription);
     }
 }
