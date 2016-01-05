@@ -16,12 +16,13 @@
 
 package org.gradle.language.base.internal;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Cast;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
+import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.NamedLanguageRegistration;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.BaseInstanceFactory;
@@ -32,11 +33,13 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet> {
 
-    private final LanguageRegistry languageRegistry = new DefaultLanguageRegistry();
+    private final List<LanguageRegistration<?>> languageRegistrations = Lists.newArrayList();
     private final FileResolver fileResolver;
 
     public LanguageSourceSetFactory(String displayName, FileResolver fileResolver) {
@@ -59,12 +62,12 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
             registration.withInternalView(ModelType.of(internalView));
         }
         if (!StringUtils.isEmpty(languageName)) {
-            languageRegistry.add(new NamedLanguageRegistration<T>(languageName, type));
+            languageRegistrations.add(new NamedLanguageRegistration<T>(languageName, type));
         }
     }
 
-    public LanguageRegistry getRegistrations() {
-        return languageRegistry;
+    public Collection<LanguageRegistration<?>> getRegistrations() {
+        return ImmutableList.copyOf(languageRegistrations);
     }
 
     private String determineParentName(MutableModelNode modelNode) {

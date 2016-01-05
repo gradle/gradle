@@ -39,8 +39,8 @@ abstract class AbstractLanguagePluginSpec extends Specification {
 
 
         then:
-        def languageRegistry = project.modelRegistry.realize("languageSourceSetFactory", LanguageSourceSetFactory).registrations
-        def languageRegistration = languageRegistry.find { it.name == language }
+        def languageRegistrations = project.modelRegistry.realize("languageSourceSetFactory", LanguageSourceSetFactory).registrations
+        def languageRegistration = languageRegistrations.find { it.name == language }
 
         languageRegistration != null
         languageRegistration.sourceSetType == ModelType.of(languageSourceSet)
