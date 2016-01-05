@@ -52,18 +52,15 @@ public class ModelProperty<T> {
     private final StateManagementType stateManagementType;
     private final Set<ModelType<?>> declaredBy;
     private final ImmutableMap<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors;
-    private final boolean declaredAsHavingUnmanagedType;
     private ModelSchema<T> schema;
 
     public ModelProperty(ModelType<T> type, String name, StateManagementType stateManagementType, Set<ModelType<?>> declaredBy,
-                         Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors,
-                         boolean declaredAsHavingUnmanagedType) {
+                         Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors) {
         this.name = name;
         this.type = type;
         this.stateManagementType = stateManagementType;
         this.declaredBy = ImmutableSet.copyOf(declaredBy);
         this.accessors = Maps.immutableEnumMap(accessors);
-        this.declaredAsHavingUnmanagedType = declaredAsHavingUnmanagedType;
     }
 
     public String getName() {
@@ -131,10 +128,6 @@ public class ModelProperty<T> {
         return getter;
     }
 
-    public boolean isDeclaredAsHavingUnmanagedType() {
-        return declaredAsHavingUnmanagedType;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -149,7 +142,6 @@ public class ModelProperty<T> {
         return Objects.equal(this.name, that.name)
             && Objects.equal(this.type, that.type)
             && Objects.equal(this.stateManagementType, that.stateManagementType)
-            && this.declaredAsHavingUnmanagedType == that.declaredAsHavingUnmanagedType
             && isWritable() == that.isWritable();
     }
 
@@ -159,7 +151,6 @@ public class ModelProperty<T> {
         result = 31 * result + type.hashCode();
         result = 31 * result + stateManagementType.hashCode();
         result = 31 * result + Boolean.valueOf(isWritable()).hashCode();
-        result = 31 * result + Boolean.valueOf(declaredAsHavingUnmanagedType).hashCode();
         return result;
     }
 

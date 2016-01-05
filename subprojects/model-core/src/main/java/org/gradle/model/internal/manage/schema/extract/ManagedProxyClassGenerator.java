@@ -18,20 +18,24 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.ReadOnlyPropertyException;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.internal.reflect.UnsupportedPropertyValueException;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.manage.binding.StructBindings;
 import org.gradle.model.internal.manage.instance.GeneratedViewState;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
@@ -44,9 +48,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.GET_GETTER;
-import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.IS_GETTER;
-import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.SETTER;
+import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.*;
 import static org.objectweb.asm.Opcodes.*;
 
 public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
@@ -126,9 +128,9 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
      *     <li>methods that call through to the delegate instance</li>
      * </ul>
      */
-    public <T, M extends T, D extends T> Class<? extends M> generate(Class<? extends GeneratedViewState> backingStateType, StructSchema<M> viewSchema, @Nullable StructSchema<D> delegateSchema) {
-        if (delegateSchema != null && Modifier.isAbstract(delegateSchema.getType().getConcreteClass().getModifiers())) {
-            throw new IllegalArgumentException("Delegate type must be null or a non-abstract type");
+    public <T, M extends T, D extends T> Class<? extends M> generate(Class<? extends GeneratedViewState> backingStateType, StructSchema<M> viewSchema, StructBindings<?> structBindings) {
+        if (!structBindings.getAllViewSchemas().contains(viewSchema)) {
+            throw new IllegalArgumentException(String.format("View '%s' is not supported by struct '%s'", viewSchema.getType(), structBindings.getPublicSchema().getType()));
         }
         ClassWriter visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 
@@ -140,6 +142,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         } else {
             generatedTypeNameBuilder.append("$NodeView");
         }
+        StructSchema<D> delegateSchema = Cast.uncheckedCast(structBindings.getDelegateSchema());
         if (delegateSchema != null) {
             generatedTypeNameBuilder.append("$").append(delegateSchema.getType().getName().replaceAll("\\.", "_"));
         }

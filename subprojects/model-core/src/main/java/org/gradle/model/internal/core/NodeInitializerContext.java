@@ -18,7 +18,6 @@ package org.gradle.model.internal.core;
 
 import com.google.common.base.Optional;
 import org.gradle.model.internal.manage.binding.ManagedProperty;
-import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.type.ModelType;
 
 public class NodeInitializerContext<T> {
@@ -40,7 +39,7 @@ public class NodeInitializerContext<T> {
         return new NodeInitializerContext<T>(type, baseType, Optional.<PropertyContext>absent());
     }
 
-    public static <T> NodeInitializerContext<T> forProperty(ModelType<T> type, ModelProperty<?> property, ModelType<?> containingType) {
+    public static <T> NodeInitializerContext<T> forProperty(ModelType<T> type, ManagedProperty<?> property, ModelType<?> containingType) {
         return new NodeInitializerContext<T>(type, ModelType.UNTYPED, Optional.of(new PropertyContext(property.getName(), property.getType(), property.isDeclaredAsHavingUnmanagedType(), containingType)));
     }
 

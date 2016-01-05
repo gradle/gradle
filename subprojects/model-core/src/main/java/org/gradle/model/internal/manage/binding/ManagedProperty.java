@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.binding;
 
+import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
@@ -56,5 +57,18 @@ public class ManagedProperty<T> {
 
     public boolean isWritable() {
         return accessors.containsKey(PropertyAccessorType.SETTER);
+    }
+
+    public boolean isDeclaredAsHavingUnmanagedType() {
+        return isDeclaredAsHavingUnmanagedType(PropertyAccessorType.GET_GETTER)
+            || isDeclaredAsHavingUnmanagedType(PropertyAccessorType.IS_GETTER);
+    }
+
+    private boolean isDeclaredAsHavingUnmanagedType(PropertyAccessorType accessorType) {
+        WeaklyTypeReferencingMethod<?, ?> accessor = accessors.get(accessorType);
+        if (accessor != null && accessor.getMethod().isAnnotationPresent(Unmanaged.class)) {
+            return true;
+        }
+        return false;
     }
 }

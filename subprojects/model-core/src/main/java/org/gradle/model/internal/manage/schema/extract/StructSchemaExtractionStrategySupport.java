@@ -185,8 +185,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             propertyContext.getPropertyName(),
             stateManagementType,
             propertyContext.getDeclaredBy(),
-            accessors.build(),
-            propertyContext.isDeclaredAsUnmanaged()
+            accessors.build()
         );
         return new ModelPropertyExtractionResult<P>(property, propertyContext.getAccessors());
     }

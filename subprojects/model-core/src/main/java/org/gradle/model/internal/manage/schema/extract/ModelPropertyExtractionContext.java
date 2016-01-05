@@ -18,7 +18,6 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.*;
 import org.gradle.api.Nullable;
-import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
@@ -82,23 +81,6 @@ public class ModelPropertyExtractionContext {
             }
         }
         return declaredBy.build();
-    }
-
-    public boolean isDeclaredAsUnmanaged() {
-        return isDeclaredAsUnmanaged(getAccessor(PropertyAccessorType.GET_GETTER))
-            || isDeclaredAsUnmanaged(getAccessor(PropertyAccessorType.IS_GETTER));
-    }
-
-    private boolean isDeclaredAsUnmanaged(PropertyAccessorExtractionContext accessor) {
-        if (accessor == null) {
-            return false;
-        }
-        for (Method method : accessor.getDeclaringMethods()) {
-            if (method.isAnnotationPresent(Unmanaged.class)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Nullable

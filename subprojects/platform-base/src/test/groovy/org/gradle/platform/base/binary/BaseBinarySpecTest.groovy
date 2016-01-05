@@ -63,12 +63,12 @@ class BaseBinarySpecTest extends PlatformBaseSpecification {
 
     def "create fails if subtype does not have a public no-args constructor"() {
         when:
-        create(MyConstructedBinary, MyConstructedBinary, "sampleBinary")
+        create(SampleBinary, MyConstructedBinary, "sampleBinary")
 
         then:
         def e = thrown ModelRuleExecutionException
         e.cause instanceof ModelInstantiationException
-        e.cause.message == "Could not create binary of type MyConstructedBinary"
+        e.cause.message == "Could not create binary of type SampleBinary"
         e.cause.cause instanceof IllegalArgumentException
         e.cause.cause.message.startsWith "Could not find any public constructor for class"
     }
@@ -116,7 +116,7 @@ class BaseBinarySpecTest extends PlatformBaseSpecification {
 
     static class MySampleBinary extends BaseBinarySpec implements SampleBinary {
     }
-    static class MyConstructedBinary extends BaseBinarySpec {
+    static class MyConstructedBinary extends BaseBinarySpec implements SampleBinary {
         MyConstructedBinary(String arg) {}
     }
 

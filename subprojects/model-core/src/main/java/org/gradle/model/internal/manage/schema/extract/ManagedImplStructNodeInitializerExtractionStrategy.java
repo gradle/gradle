@@ -20,12 +20,20 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.Cast;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.inspect.ManagedModelInitializer;
+import org.gradle.model.internal.inspect.StructNodeInitializer;
+import org.gradle.model.internal.manage.binding.StructBindings;
+import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.ManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
 public class ManagedImplStructNodeInitializerExtractionStrategy implements NodeInitializerExtractionStrategy {
+
+    private final StructBindingsStore bindingsStore;
+
+    public ManagedImplStructNodeInitializerExtractionStrategy(StructBindingsStore bindingsStore) {
+        this.bindingsStore = bindingsStore;
+    }
 
     protected boolean isTarget(ModelType<?> type) {
         return type.isAnnotationPresent(Managed.class);
@@ -39,8 +47,10 @@ public class ManagedImplStructNodeInitializerExtractionStrategy implements NodeI
         if (!isTarget(schema.getType())) {
             return null;
         }
+
         ManagedImplStructSchema<T> managedSchema = Cast.<ManagedImplStructSchema<T>>uncheckedCast(schema);
-        return new ManagedModelInitializer<T>(managedSchema);
+        StructBindings<T> bindings = bindingsStore.getBindings(managedSchema);
+        return new StructNodeInitializer<T>(bindings);
     }
 
     @Override

@@ -33,7 +33,9 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.Validate;
 import org.gradle.model.internal.core.Hidden;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
+import org.gradle.model.internal.manage.binding.StructBindingsStore;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeInitializerExtractionStrategy;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 
@@ -64,8 +66,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void registerSourceSetNodeInitializer(NodeInitializerRegistry nodeInitializerRegistry, LanguageSourceSetFactory languageSourceSetFactory) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<LanguageSourceSet>(languageSourceSetFactory));
+        void registerSourceSetNodeInitializer(NodeInitializerRegistry nodeInitializerRegistry, LanguageSourceSetFactory languageSourceSetFactory, ModelSchemaStore schemaStore, StructBindingsStore bindingsStore) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<LanguageSourceSet>(languageSourceSetFactory, schemaStore, bindingsStore));
         }
 
         @Model

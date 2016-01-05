@@ -27,6 +27,7 @@ import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.TypeCompatibilityModelProjectionSupport;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.binding.StructBindings;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelElementState;
@@ -44,16 +45,17 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     private static final ModelType<? extends Collection<?>> COLLECTION_MODEL_TYPE = new ModelType<Collection<?>>() {
     };
     private final StructSchema<M> schema;
-    private final StructSchema<? extends M> delegateSchema;
+    private final StructBindings<?> bindings;
     private final ManagedProxyFactory proxyFactory;
     private final TypeConverter typeConverter;
 
-    public ManagedModelProjection(StructSchema<M> schema, StructSchema<? extends M> delegateSchema,
+    public ManagedModelProjection(StructSchema<M> schema,
+                                  StructBindings<?> bindings,
                                   ManagedProxyFactory proxyFactory,
                                   TypeConverter typeConverter) {
         super(schema.getType());
         this.schema = schema;
-        this.delegateSchema = delegateSchema;
+        this.bindings = bindings;
         this.proxyFactory = proxyFactory;
         this.typeConverter = typeConverter;
     }
@@ -75,7 +77,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
             }
 
             public M getInstance() {
-                return proxyFactory.createProxy(new State(), schema, delegateSchema, typeConverter);
+                return proxyFactory.createProxy(new State(), schema, bindings, typeConverter);
             }
 
             public void close() {

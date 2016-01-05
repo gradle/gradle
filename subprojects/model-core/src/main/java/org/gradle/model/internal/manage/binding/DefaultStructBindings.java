@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.binding;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
@@ -90,5 +91,25 @@ public class DefaultStructBindings<T> implements StructBindings<T> {
     @Override
     public Collection<DelegateMethodBinding> getDelegateBindings() {
         return delegateBindings;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultStructBindings<?> that = (DefaultStructBindings<?>) o;
+        return Objects.equal(publicSchema, that.publicSchema)
+            && Objects.equal(internalViewSchemas, that.internalViewSchemas)
+            && Objects.equal(viewSchemas, that.viewSchemas)
+            && Objects.equal(delegateSchema, that.delegateSchema);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(publicSchema, internalViewSchemas, viewSchemas, delegateSchema);
     }
 }

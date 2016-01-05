@@ -30,7 +30,9 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
+import org.gradle.model.internal.manage.binding.StructBindingsStore;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.component.BaseComponentSpec;
@@ -86,8 +88,8 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory));
+        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, ModelSchemaStore schemaStore, StructBindingsStore bindingsStore) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, schemaStore, bindingsStore));
         }
 
         @Hidden @Model
