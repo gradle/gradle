@@ -46,6 +46,7 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -142,7 +143,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
             RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
             List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-            return new DependencyResolvingClasspath(binary, javaSourceSet, dependencies, dependencyResolver, schemaStore, resolutionAwareRepositories);
+            return new DependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, schemaStore, resolutionAwareRepositories);
         }
 
         private Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {
