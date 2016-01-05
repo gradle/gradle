@@ -149,7 +149,7 @@ def forEachJavaProcess(Closure action) {
         pidPattern = /([0-9]+)\s*$/
     } else {
         result = exec {
-            commandLine('ps', 'f')
+            commandLine('ps', 'x')
             standardOutput = output
             errorOutput = output
             ignoreExitValue = true
