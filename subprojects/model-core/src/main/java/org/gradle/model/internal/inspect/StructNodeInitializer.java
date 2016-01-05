@@ -120,37 +120,41 @@ public class StructNodeInitializer<T> implements NodeInitializer {
 
         validateProperty(propertySchema, property, nodeInitializerRegistry);
 
-        ModelRuleDescriptor descriptor = modelNode.getDescriptor();
         ModelPath childPath = modelNode.getPath().child(property.getName());
         if (propertySchema instanceof ManagedImplSchema) {
             if (!property.isWritable()) {
-                ModelRegistration registration = ModelRegistrations.of(childPath, nodeInitializerRegistry.getNodeInitializer(forProperty(propertyType, property, publicType)))
-                    .descriptor(descriptor)
-                    .build();
-                modelNode.addLink(registration);
+                ModelRegistrations.Builder builder = managedRegistrationBuilder(childPath, property, nodeInitializerRegistry, publicType);
+                addLink(modelNode, builder, property.isInternal());
             } else {
                 if (propertySchema instanceof ScalarCollectionSchema) {
-                    ModelRegistration registration = ModelRegistrations.of(childPath, nodeInitializerRegistry.getNodeInitializer(forProperty(propertyType, property, publicType)))
-                        .descriptor(descriptor)
-                        .build();
-                    modelNode.addLink(registration);
+                    ModelRegistrations.Builder builder = managedRegistrationBuilder(childPath, property, nodeInitializerRegistry, publicType);
+                    addLink(modelNode, builder, property.isInternal());
                 } else {
-                    modelNode.addReference(property.getName(), propertyType, descriptor);
+                    modelNode.addReference(property.getName(), propertyType, modelNode.getDescriptor());
                 }
             }
         } else {
-            ModelProjection projection = new UnmanagedModelProjection<P>(propertyType);
             ModelRegistrations.Builder registrationBuilder;
             if (shouldHaveANodeInitializer(property, propertySchema)) {
-                registrationBuilder = ModelRegistrations.of(childPath, nodeInitializerRegistry.getNodeInitializer(forProperty(propertyType, property, publicType)));
+                registrationBuilder = managedRegistrationBuilder(childPath, property, nodeInitializerRegistry, publicType);
             } else {
                 registrationBuilder = ModelRegistrations.of(childPath);
             }
-            registrationBuilder
-                .withProjection(projection)
-                .descriptor(descriptor);
-            modelNode.addLink(registrationBuilder.build());
+            registrationBuilder.withProjection(new UnmanagedModelProjection<P>(propertyType));
+            addLink(modelNode, registrationBuilder, property.isInternal());
         }
+    }
+
+    private static <P> ModelRegistrations.Builder managedRegistrationBuilder(ModelPath childPath, ManagedProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry, ModelType<?> publicType) {
+        return ModelRegistrations.of(childPath, nodeInitializerRegistry.getNodeInitializer(forProperty(property.getType(), property, publicType)));
+    }
+
+    private void addLink(MutableModelNode modelNode, ModelRegistrations.Builder builder, boolean internal) {
+        ModelRegistration registration = builder
+            .descriptor(modelNode.getDescriptor())
+            .hidden(internal)
+            .build();
+        modelNode.addLink(registration);
     }
 
     private <P> void validateProperty(ModelSchema<P> propertySchema, ManagedProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry) {

@@ -143,7 +143,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             if (allBindingsType == ManagedPropertyMethodBinding.class) {
                 boolean foundGetter = false;
                 boolean foundSetter = false;
-                ImmutableMap.Builder<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessorsBuilder = ImmutableMap.builder();
+                EnumMap<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors = Maps.newEnumMap(PropertyAccessorType.class);
                 ModelType<?> propertyType = null;
                 for (AbstractStructMethodBinding binding : bindings) {
                     ManagedPropertyMethodBinding propertyBinding = (ManagedPropertyMethodBinding) binding;
@@ -154,7 +154,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
                         foundGetter = true;
                     }
                     WeaklyTypeReferencingMethod<?, ?> accessor = propertyBinding.getSource();
-                    accessorsBuilder.put(accessorType, accessor);
+                    accessors.put(accessorType, accessor);
                     if (propertyType == null) {
                         propertyType = accessorType.propertyTypeFor(accessor.getMethod());
                     } else if (!propertyType.equals(accessorType.propertyTypeFor(accessor.getMethod()))) {
@@ -164,7 +164,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
                 if (foundSetter && !foundGetter) {
                     throw new IllegalArgumentException(String.format("Managed property '%s' must both have an abstract getter as well as a setter.", propertyName));
                 }
-                ManagedProperty<?> managedProperty = createProperty(propertyName, propertyType, !publicSchema.hasProperty(propertyName), accessorsBuilder.build());
+                ManagedProperty<?> managedProperty = createProperty(propertyName, propertyType, !publicSchema.hasProperty(propertyName), accessors);
                 generatedPropertiesBuilder.put(propertyName, managedProperty);
             }
         }
@@ -179,7 +179,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         );
     }
 
-    private static <T> ManagedProperty<T> createProperty(String propertyName, ModelType<T> propertyType, boolean internal, ImmutableMap<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors) {
+    private static <T> ManagedProperty<T> createProperty(String propertyName, ModelType<T> propertyType, boolean internal, Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors) {
         return new ManagedProperty<T>(propertyName, propertyType, internal, accessors);
     }
 
