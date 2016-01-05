@@ -19,6 +19,7 @@ package org.gradle.model.internal.core;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
+import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
@@ -34,7 +35,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     private final List<NodeInitializerExtractionStrategy> additionalStrategies;
     private final ModelSchemaStore schemaStore;
 
-    public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore) {
+    public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
         this.schemaStore = schemaStore;
         this.allStrategies = Lists.newArrayList(
             new ModelSetNodeInitializerExtractionStrategy(),

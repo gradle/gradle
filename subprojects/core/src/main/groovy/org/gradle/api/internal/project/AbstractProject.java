@@ -68,6 +68,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -206,8 +207,13 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         }
 
         @Hidden @Model
-        NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore) {
-            return new DefaultNodeInitializerRegistry(schemaStore);
+        StructBindingsStore structBindingsStore(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(StructBindingsStore.class);
+        }
+
+        @Hidden @Model
+        NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
+            return new DefaultNodeInitializerRegistry(schemaStore, structBindingsStore);
         }
 
         @Hidden @Model

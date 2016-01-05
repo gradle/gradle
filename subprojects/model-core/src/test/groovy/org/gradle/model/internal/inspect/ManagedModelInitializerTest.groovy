@@ -26,6 +26,8 @@ import org.gradle.model.internal.core.ModelTypeInitializationException
 import org.gradle.model.internal.core.NodeInitializer
 import org.gradle.model.internal.core.NodeInitializerRegistry
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
+import org.gradle.model.internal.manage.binding.StructBindingsStore
+import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.DefaultConstructibleTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
 import org.gradle.model.internal.type.ModelType
@@ -40,9 +42,9 @@ class ManagedModelInitializerTest extends ProjectRegistrySpec {
     static final List<Class<?>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
     @Override
-    protected NodeInitializerRegistry createNodeInitializerRegistry() {
+    protected NodeInitializerRegistry createNodeInitializerRegistry(ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
         // Not shared across tests as test may add constructible types only applying to that particular test
-        return new DefaultNodeInitializerRegistry(SCHEMA_STORE)
+        return new DefaultNodeInitializerRegistry(schemaStore, structBindingsStore)
     }
 
     def "should fail with a contextual exception for managed collections properties"() {
