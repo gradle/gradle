@@ -36,7 +36,7 @@ public class LayoutToPropertiesConverter {
     public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {
         configureFromBuildDir(layout.getSearchDir(), layout.getSearchUpwards(), properties);
         configureFromGradleUserHome(layout.getGradleUserHomeDir(), properties);
-        properties.putAll(Maps.filterEntries((Map) System.getProperties(), new Predicate<Map.Entry<?, ?>>() {
+        properties.putAll(Maps.filterEntries(Maps.fromProperties(System.getProperties()), new Predicate<Map.Entry<?, ?>>() {
             public boolean apply(Map.Entry<?, ?> input) {
                 return input.getKey() instanceof Serializable
                         && (input.getValue() instanceof Serializable || input.getValue() == null);
