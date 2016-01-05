@@ -22,7 +22,7 @@ import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import spock.lang.Unroll
 
 class ClassModelRuleSourceValidationTest extends ProjectRegistrySpec {
-    def extractor = new ModelRuleExtractor([], proxyFactory, schemaStore)
+    def extractor = new ModelRuleExtractor([], proxyFactory, schemaStore, structBindingsStore)
 
     @Unroll
     def "invalid #type - #reason"() {

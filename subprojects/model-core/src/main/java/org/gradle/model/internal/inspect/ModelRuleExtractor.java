@@ -35,6 +35,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.RuleTarget;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.instance.GeneratedViewState;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -62,11 +63,13 @@ public class ModelRuleExtractor {
     private final Iterable<MethodModelRuleExtractor> handlers;
     private final ManagedProxyFactory proxyFactory;
     private final ModelSchemaStore schemaStore;
+    private final StructBindingsStore structBindingsStore;
 
-    public ModelRuleExtractor(Iterable<MethodModelRuleExtractor> handlers, ManagedProxyFactory proxyFactory, ModelSchemaStore schemaStore) {
+    public ModelRuleExtractor(Iterable<MethodModelRuleExtractor> handlers, ManagedProxyFactory proxyFactory, ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
         this.handlers = handlers;
         this.proxyFactory = proxyFactory;
         this.schemaStore = schemaStore;
+        this.structBindingsStore = structBindingsStore;
     }
 
     private String describeHandlers() {

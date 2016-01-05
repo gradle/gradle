@@ -30,7 +30,7 @@ import spock.lang.Unroll
 import java.beans.Introspector
 
 class ModelRuleExtractorTest extends ProjectRegistrySpec {
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(SCHEMA_STORE), MANAGED_PROXY_FACTORY, SCHEMA_STORE)
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(SCHEMA_STORE), MANAGED_PROXY_FACTORY, SCHEMA_STORE, STRUCT_BINDINGS_STORE)
     ModelRegistry registry = new DefaultModelRegistry(extractor)
 
     static class ModelThing {
@@ -684,7 +684,7 @@ ${ManagedWithNonManageableParents.name}
 
     def "rule method can imply plugin dependency"() {
         def ruleExtractor = Stub(MethodModelRuleExtractor)
-        def extractor = new ModelRuleExtractor([ruleExtractor], proxyFactory, schemaStore)
+        def extractor = new ModelRuleExtractor([ruleExtractor], proxyFactory, schemaStore, structBindingsStore)
 
         given:
         ruleExtractor.isSatisfiedBy(_) >> { MethodRuleDefinition method -> method.isAnnotationPresent(Mutate) }
@@ -700,7 +700,7 @@ ${ManagedWithNonManageableParents.name}
 
     def "can assert no plugin dependencies"() {
         def ruleExtractor = Stub(MethodModelRuleExtractor)
-        def extractor = new ModelRuleExtractor([ruleExtractor], proxyFactory, schemaStore)
+        def extractor = new ModelRuleExtractor([ruleExtractor], proxyFactory, schemaStore, structBindingsStore)
 
         given:
         ruleExtractor.isSatisfiedBy(_) >> { MethodRuleDefinition method -> method.isAnnotationPresent(Mutate) }
