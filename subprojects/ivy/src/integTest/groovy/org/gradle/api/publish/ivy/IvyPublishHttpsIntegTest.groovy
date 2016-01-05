@@ -99,6 +99,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
+        failure.error.contains("at org.apache.http.conn.ssl.SSLConnectionSocketFactory.createLayeredSocket")
     }
 
     def expectPublication() {
