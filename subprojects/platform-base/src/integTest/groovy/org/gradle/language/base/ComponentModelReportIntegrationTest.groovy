@@ -21,7 +21,7 @@ import spock.lang.Unroll
 
 class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
 
-    def "model report for unmanaged software components show them all"() {
+    def "model report for unmanaged software components shows them all"() {
         given:
         buildFile << """
             ${registerAllTypes()}
@@ -183,7 +183,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains """
             $componentType 'myComponent'
-            ${'-'.multiply((componentType+" 'myComponent'").length())}
+            ${'-'.multiply("$componentType 'myComponent'".length())}
 
             Source sets
                 $sourceType 'myComponent:myComponentSource'
@@ -202,8 +202,8 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
         'UnmanagedComponent' | 'UnmanagedBinary' | 'UnmanagedLanguageSourceSet'
         'UnmanagedComponent' | 'UnmanagedBinary' | 'ManagedLanguageSourceSet'
         'UnmanagedComponent' | 'ManagedBinary'   | 'UnmanagedLanguageSourceSet'
-        'ManagedComponent'   | 'UnmanagedBinary' | 'UnmanagedLanguageSourceSet'
         'UnmanagedComponent' | 'ManagedBinary'   | 'ManagedLanguageSourceSet'
+        'ManagedComponent'   | 'UnmanagedBinary' | 'UnmanagedLanguageSourceSet'
         'ManagedComponent'   | 'UnmanagedBinary' | 'ManagedLanguageSourceSet'
         'ManagedComponent'   | 'ManagedBinary'   | 'UnmanagedLanguageSourceSet'
         'ManagedComponent'   | 'ManagedBinary'   | 'ManagedLanguageSourceSet'
@@ -337,7 +337,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
             }
             class UnmanagedLanguageSourceSetPlugin extends RuleSource {
                 @LanguageType
-                void registerUnamanagedLanguageSourceSet(LanguageTypeBuilder<UnmanagedLanguageSourceSet> builder) {
+                void registerUnmanagedLanguageSourceSet(LanguageTypeBuilder<UnmanagedLanguageSourceSet> builder) {
                     builder.setLanguageName("lang")
                     builder.defaultImplementation(DefaultUnmanagedLanguageSourceSet)
                 }
@@ -354,7 +354,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
             }
             class ManagedLanguageSourceSetPlugin extends RuleSource {
                 @LanguageType
-                void registerUnamanagedLanguageSourceSet(LanguageTypeBuilder<ManagedLanguageSourceSet> builder) {\n\
+                void registerUnmanagedLanguageSourceSet(LanguageTypeBuilder<ManagedLanguageSourceSet> builder) {
                     builder.setLanguageName("lang")
                 }
             }
