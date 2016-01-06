@@ -17,7 +17,6 @@
 /buildSrc/*.ipr
 /buildSrc/*.iws
 /buildSrc/out
-/intellij
 /out
 /subprojects/*/*.iml
 /subprojects/*/ide
