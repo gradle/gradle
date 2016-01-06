@@ -271,6 +271,7 @@ We would like to thank the following community members for making contributions 
 * [Sebastian Schuberth](https://github.com/sschuberth) - Simplify LoggingCommandLineConverter
 * [Martin Steiger](https://github.com/msteiger) - Eclipse and Idea tasks warn on missing dependencies
 * [Günther Grill](https://github.com/guenhter) - Internal service registry improvements
+* [Chris Purcell](https://github.com/cjp39) - Documentation improvements
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
