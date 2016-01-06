@@ -24,6 +24,8 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 public class JarFilePackageLister {
     public void listJarPackages(File jarFile, JarFilePackageListener listener) {
         if (jarFile == null) {
@@ -38,7 +40,7 @@ public class JarFilePackageLister {
         if (!jarFile.isFile()) {
             throw new IllegalArgumentException("jarFile is not a file! (" + jarFileAbsolutePath + ")");
         }
-        if (!jarFile.getName().endsWith(".jar")) {
+        if (!hasExtension(jarFile, ".jar")) {
             throw new IllegalArgumentException("jarFile is not a jarFile! (" + jarFileAbsolutePath + ")");
         }
 

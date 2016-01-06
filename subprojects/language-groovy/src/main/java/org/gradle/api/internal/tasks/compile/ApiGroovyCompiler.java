@@ -49,6 +49,8 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
     private final Compiler<JavaCompileSpec> javaCompiler;
 
@@ -146,7 +148,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
                         spec.setSource(spec.getSource().filter(new Spec<File>() {
                             public boolean isSatisfiedBy(File file) {
-                                return file.getName().endsWith(".java");
+                                return hasExtension(file, ".java");
                             }
                         }));
 

@@ -42,6 +42,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 public class DistributionFactory {
     private final Factory<? extends ExecutorService> executorFactory;
     private File distributionBaseDir;
@@ -235,7 +237,7 @@ public class DistributionFactory {
             }
             LinkedHashSet<File> files = new LinkedHashSet<File>();
             for (File file : libDir.listFiles()) {
-                if (file.getName().endsWith(".jar")) {
+                if (hasExtension(file, ".jar")) {
                     files.add(file);
                 }
             }

@@ -31,6 +31,8 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.*;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> implements TestFrameworkDetector {
     protected static final String TEST_CASE = "junit/framework/TestCase";
     protected static final String GROOVY_TEST_CASE = "groovy/util/GroovyTestCase";
@@ -92,7 +94,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             for (File file : testClasspath) {
                 if (file.isDirectory()) {
                     testClassDirectories.add(file);
-                } else if (file.isFile() && file.getName().endsWith(".jar")) {
+                } else if (file.isFile() && hasExtension(file, ".jar")) {
                     classFileExtractionManager.addLibraryJar(file);
                 }
             }

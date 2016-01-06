@@ -35,6 +35,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
 import static org.apache.commons.io.FileUtils.readFileToByteArray;
+import static org.gradle.internal.FileUtils.hasExtension;
 import static org.gradle.internal.IoActions.withResource;
 
 /**
@@ -145,7 +146,7 @@ public class ApiJar extends DefaultTask {
     }
 
     private boolean isClassFile(File file) {
-        return file.getName().endsWith(".class");
+        return hasExtension(file, ".class");
     }
 
     private File[] sortedSourceFiles() {

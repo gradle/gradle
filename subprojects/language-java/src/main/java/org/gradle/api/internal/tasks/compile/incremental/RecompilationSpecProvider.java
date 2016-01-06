@@ -25,6 +25,8 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpe
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 public class RecompilationSpecProvider {
 
     private final SourceToNameConverter sourceToNameConverter;
@@ -67,10 +69,10 @@ public class RecompilationSpecProvider {
             if (spec.getFullRebuildCause() != null) {
                 return;
             }
-            if (input.getFile().getName().endsWith(".java")) {
+            if (hasExtension(input.getFile(), ".java")) {
                 javaChangeProcessor.processChange(input, spec);
             }
-            if (input.getFile().getName().endsWith(".jar")) {
+            if (hasExtension(input.getFile(), ".jar")) {
                 jarChangeProcessor.processChange(input, spec);
             }
         }

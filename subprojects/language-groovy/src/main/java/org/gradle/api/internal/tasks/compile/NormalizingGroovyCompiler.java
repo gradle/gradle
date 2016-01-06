@@ -31,6 +31,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 /**
  * A Groovy {@link Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
  */
@@ -55,7 +57,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
         FileCollection filtered = spec.getSource().filter(new Spec<File>() {
             public boolean isSatisfiedBy(File element) {
                 for (String fileExtension : spec.getGroovyCompileOptions().getFileExtensions()) {
-                    if (element.getName().endsWith("." + fileExtension)) {
+                    if (hasExtension(element, "." + fileExtension)) {
                         return true;
                     }
                 }

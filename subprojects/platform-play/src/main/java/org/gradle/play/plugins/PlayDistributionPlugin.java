@@ -55,6 +55,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 /**
  * A plugin that adds a distribution zip to a Play application build.
  */
@@ -336,7 +338,7 @@ public class PlayDistributionPlugin extends RuleSource {
         }
 
         static boolean shouldBeRenamed(File file) {
-            return file.getName().endsWith(".jar");
+            return hasExtension(file, ".jar");
         }
     }
 }
