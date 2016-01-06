@@ -329,6 +329,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     private void transitionTo(GoalGraph goalGraph, ModelGoal targetGoal) {
         LinkedList<ModelGoal> queue = new LinkedList<ModelGoal>();
         queue.add(targetGoal);
+        List<ModelGoal> newDependencies = new ArrayList<ModelGoal>();
         while (!queue.isEmpty()) {
             ModelGoal goal = queue.getFirst();
 
@@ -354,7 +355,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             }
 
             // Add dependencies for this goal
-            List<ModelGoal> newDependencies = new ArrayList<ModelGoal>();
+            newDependencies.clear();
             goal.attachNode();
             boolean done = goal.calculateDependencies(goalGraph, newDependencies);
             goal.state = done || newDependencies.isEmpty() ? ModelGoal.State.VisitingDependencies : ModelGoal.State.DiscoveringDependencies;
