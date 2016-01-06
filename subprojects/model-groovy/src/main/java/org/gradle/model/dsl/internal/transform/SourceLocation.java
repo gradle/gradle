@@ -17,7 +17,7 @@
 package org.gradle.model.dsl.internal.transform;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 import java.net.URI;

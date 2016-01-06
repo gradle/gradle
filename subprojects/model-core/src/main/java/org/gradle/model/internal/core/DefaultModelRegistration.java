@@ -20,7 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimap;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 @ThreadSafe
 public class DefaultModelRegistration implements ModelRegistration {

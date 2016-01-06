@@ -20,7 +20,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.model.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Map;
 

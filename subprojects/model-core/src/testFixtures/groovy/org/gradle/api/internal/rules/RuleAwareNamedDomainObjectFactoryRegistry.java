@@ -17,7 +17,7 @@
 package org.gradle.api.internal.rules;
 
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.model.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 public interface RuleAwareNamedDomainObjectFactoryRegistry<T> extends NamedDomainObjectFactoryRegistry<T> {
 

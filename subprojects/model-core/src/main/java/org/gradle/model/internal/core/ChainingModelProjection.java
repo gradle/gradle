@@ -20,7 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Nullable;
-import org.gradle.model.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 public class ChainingModelProjection implements ModelProjection {

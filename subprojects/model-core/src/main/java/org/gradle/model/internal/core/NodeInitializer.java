@@ -17,7 +17,7 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.collect.Multimap;
-import org.gradle.model.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 /**
  * A standalone strategy for initializing a node.

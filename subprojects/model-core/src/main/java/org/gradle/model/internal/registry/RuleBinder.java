@@ -18,8 +18,8 @@ package org.gradle.model.internal.registry;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
-import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.ArrayList;
 import java.util.Collection;

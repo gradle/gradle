@@ -16,8 +16,8 @@
 
 package org.gradle.model.internal.registry
 
-import org.gradle.model.ModelRuleDescriptor
 import org.gradle.model.internal.core.ModelRegistration
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import spock.lang.Unroll
 
 class ModelNodeInternalTest extends RegistrySpec {

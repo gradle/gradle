@@ -18,7 +18,7 @@ package org.gradle.model.internal.core;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.model.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 @Contextual
 // TODO should include some context on what the rule was trying to do (create vs. mutate)

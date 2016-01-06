@@ -19,7 +19,7 @@ package org.gradle.model.internal.core;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.TriAction;
-import org.gradle.model.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 

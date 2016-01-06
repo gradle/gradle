@@ -17,8 +17,8 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 

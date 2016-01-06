@@ -19,8 +19,8 @@ package org.gradle.model.internal.registry;
 import org.gradle.api.Action;
 import org.gradle.model.InvalidModelRuleException;
 import org.gradle.model.ModelRuleBindingException;
-import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 
 class PathBinderCreationListener extends ModelBinding {

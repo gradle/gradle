@@ -16,10 +16,10 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 

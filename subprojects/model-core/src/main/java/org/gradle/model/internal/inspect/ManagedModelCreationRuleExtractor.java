@@ -18,8 +18,8 @@ package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.BiAction;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.ModelRuleDescriptor;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;

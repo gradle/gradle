@@ -24,7 +24,7 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.dsl.internal.transform.ClosureBackedRuleFactory;
 import org.gradle.model.dsl.internal.transform.RulesBlock;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
