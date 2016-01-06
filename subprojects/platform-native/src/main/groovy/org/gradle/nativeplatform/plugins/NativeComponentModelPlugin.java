@@ -100,6 +100,11 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             builder.defaultImplementation(DefaultNativeLibrarySpec.class);
         }
 
+        @ComponentType
+        void registerTargetedNativeComponent(ComponentTypeBuilder<TargetedNativeComponent> builder) {
+            builder.internalView(TargetedNativeComponentInternal.class);
+        }
+
         @Model
         Repositories repositories(ServiceRegistry serviceRegistry, FlavorContainer flavors, PlatformContainer platforms, BuildTypeContainer buildTypes) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);

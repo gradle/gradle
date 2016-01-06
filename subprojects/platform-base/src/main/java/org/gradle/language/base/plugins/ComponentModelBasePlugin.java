@@ -83,6 +83,11 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
             builder.internalView(ComponentSpecInternal.class);
         }
 
+        @ComponentType
+        void registerPlatformAwareComponet(ComponentTypeBuilder<PlatformAwareComponentSpec> builder) {
+            builder.internalView(PlatformAwareComponentSpecInternal.class);
+        }
+
         @Model
         void components(ComponentSpecContainer componentSpecs) {
         }
