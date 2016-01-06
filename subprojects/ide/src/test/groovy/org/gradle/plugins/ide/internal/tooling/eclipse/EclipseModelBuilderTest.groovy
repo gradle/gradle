@@ -137,12 +137,12 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.javaSourceSettings."$languageLevelProperty" == JavaVersion.current()
 
         where:
-        type     | compatibilityProperty | languageLevelProperty     | projectType | pluginType
-        "source" | "sourceCompatibility" | "sourceLanguageLevel"     | "java"      | JavaBasePlugin
+        type     | compatibilityProperty | languageLevelProperty | projectType | pluginType
+        "source" | "sourceCompatibility" | "sourceLanguageLevel" | "java"      | JavaBasePlugin
         "target" | "targetCompatibility" | "targetBytecodeLevel" | "java"      | JavaBasePlugin
-        "source" | "sourceCompatibility" | "sourceLanguageLevel"     | "scala"     | ScalaBasePlugin
+        "source" | "sourceCompatibility" | "sourceLanguageLevel" | "scala"     | ScalaBasePlugin
         "target" | "targetCompatibility" | "targetBytecodeLevel" | "scala"     | ScalaBasePlugin
-        "source" | "sourceCompatibility" | "sourceLanguageLevel"     | "groovy"    | GroovyBasePlugin
+        "source" | "sourceCompatibility" | "sourceLanguageLevel" | "groovy"    | GroovyBasePlugin
         "target" | "targetCompatibility" | "targetBytecodeLevel" | "groovy"    | GroovyBasePlugin
     }
 
