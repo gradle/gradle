@@ -31,13 +31,13 @@ import spock.lang.Shared
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@NonCrossVersion
 @Requires(TestPrecondition.ONLINE)
 class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
     @Shared
     DistributionLocator locator = new DistributionLocator()
 
-    @NonCrossVersion
     @CaptureExecutedTasks
     def "execute build with different distribution types"(Action<GradleRunner> configurer) {
         given:
@@ -59,7 +59,6 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerCompa
         ]
     }
 
-    @NonCrossVersion
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "distributions are not stored in the test kit dir"() {
         given:
