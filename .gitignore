@@ -3,7 +3,6 @@
 .gradle
 /build
 /buildSrc/build
-/performanceTest/build
 /subprojects/*/build
 /subprojects/docs/src/samples/*/*/build
 
@@ -67,4 +66,3 @@ atlassian-ide-plugin.xml
 /buildSrc/lib
 /incoming-distributions
 /intTestHomeDir
-/performanceTest/lib
