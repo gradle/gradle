@@ -225,11 +225,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .build()
 
                     then:
-                    result.output.contains('Hello world!')
-                    result.taskPaths(SUCCESS) == [':helloWorld']
-                    result.taskPaths(SKIPPED).empty
-                    result.taskPaths(UP_TO_DATE).empty
-                    result.taskPaths(FAILED).empty
+                    noExceptionThrown()
                 }
             }
         """
@@ -397,11 +393,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .build()
 
                     then:
-                    result.output.contains('Hello world!')
-                    result.taskPaths(SUCCESS) == [':helloWorld']
-                    result.taskPaths(SKIPPED).empty
-                    result.taskPaths(UP_TO_DATE).empty
-                    result.taskPaths(FAILED).empty
+                    noExceptionThrown()
                 }
             }
         """
@@ -535,12 +527,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .build()
 
                     then:
-                    result.output.contains('Hello world!')
-                    result.output.contains('Bye world!')
-                    result.taskPaths(SUCCESS) == [':helloWorld', ':byeWorld']
-                    result.taskPaths(SKIPPED).empty
-                    result.taskPaths(UP_TO_DATE).empty
-                    result.taskPaths(FAILED).empty
+                    noExceptionThrown()
                 }
             }
         """
@@ -598,11 +585,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
                     then:
                     gradleRunner.debug == $GradleRunnerIntegTestRunner.debug
-                    result.output.contains('Hello world!')
-                    result.taskPaths(SUCCESS) == [':helloWorld']
-                    result.taskPaths(SKIPPED).empty
-                    result.taskPaths(UP_TO_DATE).empty
-                    result.taskPaths(FAILED).empty
+                    noExceptionThrown()
                 }
             }
         """
@@ -658,11 +641,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     def result = gradleRunner.build()
 
                     then:
-                    result.output.contains('Hello world!')
-                    result.taskPaths(SUCCESS) == [':helloWorld']
-                    result.taskPaths(SKIPPED).empty
-                    result.taskPaths(UP_TO_DATE).empty
-                    result.taskPaths(FAILED).empty
+                    noExceptionThrown()
                 }
             }
         """
@@ -726,11 +705,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         def result = gradleRunner.build()
 
                         then:
-                        result.output.contains('Hello world!')
-                        result.taskPaths(SUCCESS) == [':helloWorld']
-                        result.taskPaths(SKIPPED).empty
-                        result.taskPaths(UP_TO_DATE).empty
-                        result.taskPaths(FAILED).empty
+                        noExceptionThrown()
                     }
                 }
             """, testClassName
@@ -834,11 +809,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .build()
 
                     then:
-                    result.output.contains('Hello world!')
-                    result.taskPaths(SUCCESS) == [':tasks']
-                    result.taskPaths(SKIPPED).empty
-                    result.taskPaths(UP_TO_DATE).empty
-                    result.taskPaths(FAILED).empty
+                    noExceptionThrown()
                 }
             }
         """
@@ -986,11 +957,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .build()
 
                     then:
-                    result.output.contains('Hello world!')
-                    result.taskPaths(SUCCESS) == [':helloWorld']
-                    result.taskPaths(SKIPPED).empty
-                    result.taskPaths(UP_TO_DATE).empty
-                    result.taskPaths(FAILED).empty
+                    noExceptionThrown()
                 }
             }
         """
