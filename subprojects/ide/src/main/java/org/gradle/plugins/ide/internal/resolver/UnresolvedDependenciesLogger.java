@@ -18,9 +18,17 @@ package org.gradle.plugins.ide.internal.resolver;
 
 import java.util.Collection;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
 
-public interface UnresolvedIdeDependencyHandler {
+public class UnresolvedDependenciesLogger {
 
-    void handle(Collection<UnresolvedIdeRepoFileDependency> dep);
+    private final Logger logger = Logging.getLogger(UnresolvedDependenciesLogger.class);
+
+    public void log(Collection<UnresolvedIdeRepoFileDependency> deps) {
+        for (UnresolvedIdeRepoFileDependency dep : deps) {
+            logger.warn("Could not resolve: " + dep.getDisplayName() + " (" + dep.getDeclaredConfiguration() + ")");
+        }
+    }
 }

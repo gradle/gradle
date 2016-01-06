@@ -19,7 +19,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
-import org.gradle.plugins.ide.internal.resolver.LoggingUnresolvedIdeDependencyHandler
+import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.DeprecationLogger
 
@@ -209,7 +209,7 @@ class EclipseClasspath {
     public List<ClasspathEntry> resolveDependencies() {
         def classpathFactory = new ClasspathFactory()
         def entries = classpathFactory.createEntries(this)
-        new LoggingUnresolvedIdeDependencyHandler().handle(classpathFactory.getUnresolvedDependencies(this))
+        new UnresolvedDependenciesLogger().log(classpathFactory.getUnresolvedDependencies(this))
         return entries
     }
 
