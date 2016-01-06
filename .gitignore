@@ -1,42 +1,74 @@
-*~
+# Gradle
+# ------
 .gradle
 /build
-/out
-/intTestHomeDir
-/subprojects/*/out
-/intellij
-/buildSrc/lib
 /buildSrc/build
+/performanceTest/build
 /subprojects/*/build
 /subprojects/docs/src/samples/*/*/build
 /website/build
-/website/website.iml
-/website/website.ipr
-/website/website.iws
-/performanceTest/build
-/subprojects/*/ide
+
+# IDEA
+# ----
+.idea
+.shelf
 /*.iml
 /*.ipr
 /*.iws
-/subprojects/*/*.iml
+/buildSrc/*.iml
 /buildSrc/*.ipr
 /buildSrc/*.iws
-/buildSrc/*.iml
 /buildSrc/out
+/intellij
+/out
+/subprojects/*/*.iml
+/subprojects/*/ide
+/subprojects/*/out
+/website/website.iml
+/website/website.ipr
+/website/website.iws
+
+# Eclipse
+# -------
 *.classpath
 *.project
 *.settings
 /bin
 /subprojects/*/bin
-.DS_Store
-/performanceTest/lib
-.textmate
-/incoming-distributions
-.idea
 atlassian-ide-plugin.xml
-*.sublime-*
+
+# NetBeans
+# --------
 .nb-gradle
 .nb-gradle-properties
+
+# Emacs
+# -----
+*~
+
+# Textmate
+# --------
+.textmate
+
+# Sublime Text
+# ------------
+*.sublime-*
+
+# jEnv
+# ----
 .java-version
-.shelf
+
+# OS X
+# ----
+.DS_Store
+
+# HPROF
+# -----
 *.hprof
+
+# Work dirs
+# ---------
+/buildSrc/lib
+/incoming-distributions
+/intTestHomeDir
+/performanceTest/lib
