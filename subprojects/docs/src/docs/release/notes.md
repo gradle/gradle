@@ -121,19 +121,20 @@ The `IdeaProject` and the `IdeaModule` model now exposes the Java source languag
 <a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
 IDE providers use this method to automatically determine the source language level of a Idea project and its associated Modules.
 
-#### Tooling API exposes java runtime and target bytecode level on Idea model
+#### Tooling API exposes java runtime and target bytecode level on IDE models
 
 The `IdeaProject` and the `IdeaModule` model now exposes the target java runtime and the target bytecode level via the
 <a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-IDE providers use this method to determine the target runtime and bytecode level information. The target bytecode level
-for `IdeaModule` is derived from the
-<a href="javadoc/org/gradle/api/plugins/JavaPluginConvention.html#getTargetCompatibilityLevel">`targetCompatibilityLevel`</a>
+The target bytecode level for `IdeaModule` is derived from the
+<a href="groovydoc/org/gradle/api/plugins/JavaPluginConvention.html#getTargetCompatibilityLevel">`targetCompatibilityLevel`</a>
 convention property.
 
-#### TODO
+The `EclipseProject` model now exposes the target java runtime and the target bytecode level via the
+<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
+The target bytecode level is derived from the <a href="groovydoc/org/gradle/plugins/ide/eclipse/model/EclipseJdt.html#getTargetCompatibility">`eclipse.jdt.targetCompatibility`</a>
+property.
 
-- Target Java version and JVM for Eclipse
-- Generated `.classpath` project references correct JVM version
+IDE providers use these new introduced methods to determine the target runtime and bytecode level information.
 
 ### Continuous build improvements
 
