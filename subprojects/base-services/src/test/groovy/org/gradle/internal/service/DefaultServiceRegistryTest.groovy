@@ -372,10 +372,12 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceLookupException e = thrown()
-        e.message.matches(/Cannot use decorator method TestDecoratingProviderWith.*\..*Long\(\) when no parent registry is provided\./)
+        e.message == "Cannot use decorator method ${decoratorProvider.class.simpleName}.${methodName}Long() when no parent registry is provided."
 
         where:
-        decoratorProvider << [ new TestDecoratingProviderWithCreate(), new TestDecoratingProviderWithDecorate() ]
+        decoratorProvider                        | methodName
+        new TestDecoratingProviderWithCreate()   | 'create'
+        new TestDecoratingProviderWithDecorate() | 'decorate'
     }
 
     def failsWhenProviderDecoratorMethodRequiresUnknownService() {
@@ -392,10 +394,12 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message.matches(/Cannot create service of type Long using TestDecoratingProviderWith.*\..*Long\(\) as required service of type Long is not available in parent registries./)
+        e.message == "Cannot create service of type Long using ${decoratorProvider.class.simpleName}.${methodName}Long() as required service of type Long is not available in parent registries."
 
         where:
-        decoratorProvider << [ new TestDecoratingProviderWithCreate(), new TestDecoratingProviderWithDecorate() ]
+        decoratorProvider                        | methodName
+        new TestDecoratingProviderWithCreate()   | 'create'
+        new TestDecoratingProviderWithDecorate() | 'decorate'
     }
 
     def failsWhenProviderDecoratorMethodThrowsException() {
@@ -412,11 +416,13 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message.matches(/Could not create service of type Long using BrokenDecoratingProviderWith.*\..*Long\(\)\./)
+        e.message == "Could not create service of type Long using ${decoratorProvider.class.simpleName}.${methodName}Long()."
         e.cause == decoratorProvider.failure
 
         where:
-        decoratorProvider << [ new BrokenDecoratingProviderWithCreate(), new BrokenDecoratingProviderWithDecorate() ]
+        decoratorProvider                          | methodName
+        new BrokenDecoratingProviderWithCreate()   | 'create'
+        new BrokenDecoratingProviderWithDecorate() | 'decorate'
     }
 
     def failsWhenThereIsACycleInDependenciesForProviderFactoryMethods() {
@@ -470,14 +476,16 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message.matches(/Could not create service of type String using NullDecoratorWith.*\..*String\(\) as this method returned null\./)
+        e.message == "Could not create service of type String using ${decoratorProvider.class.simpleName}.${methodName}String() as this method returned null."
 
         where:
-        decoratorProvider << [ new NullDecoratorWithCreate(), new NullDecoratorWithDecorate() ]
+        decoratorProvider               | methodName
+        new NullDecoratorWithCreate()   | 'create'
+        new NullDecoratorWithDecorate() | 'decorate'
     }
 
     def usesFactoryMethodToCreateServiceInstance() {
-        expect:
+        expect:c
         registry.get(String.class) == "12"
         registry.get(Integer.class) == 12
     }
@@ -564,7 +572,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceLookupException e = thrown()
-        e.message.matches(/Cannot use decorator method RegistryWithDecoratorMethodsWith.*\..*\(\) when no parent registry is provided./)
+        e.message.matches(/Cannot use decorator method RegistryWithDecoratorMethodsWith(Create|Decorate)\..*\(\) when no parent registry is provided./)
 
         where:
         decoratorCreator << [ { new RegistryWithDecoratorMethodsWithCreate() }, { new RegistryWithDecoratorMethodsWithDecorate() } ]
