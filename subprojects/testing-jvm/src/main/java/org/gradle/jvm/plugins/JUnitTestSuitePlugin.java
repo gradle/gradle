@@ -19,19 +19,14 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.*;
-import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.internal.Transformers;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.internal.AbstractDependencyResolvingClasspath;
 import org.gradle.jvm.internal.JvmAssembly;
@@ -47,10 +42,8 @@ import org.gradle.jvm.test.internal.JUnitTestSuiteRules;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
-import org.gradle.language.base.internal.model.VariantsMetaData;
-import org.gradle.language.base.internal.resolve.LocalLibraryResolveContext;
+import org.gradle.language.base.internal.resolve.LocalComponentResolveContext;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
@@ -190,53 +183,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
             ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
             RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
             List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-            return new JUnitDependencyResolvingClasspath(test, "test suite", dependencyResolver, resolutionAwareRepositories, new LocalLibraryResolveContext() {
-
-                @Override
-                public VariantsMetaData getVariants() {
-                    return DefaultVariantsMetaData.extractFrom(test, schemaStore);
-                }
-
-                private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy();
-
-                @Override
-                public String getName() {
-                    return "API";
-                }
-
-                @Override
-                public String getDisplayName() {
-                    return test.getDisplayName();
-                }
-
-                @Override
-                public ResolutionStrategyInternal getResolutionStrategy() {
-                    return resolutionStrategy;
-                }
-
-                @Override
-                public ComponentResolveMetaData toRootComponentMetaData() {
-                    LibraryBinaryIdentifier binaryIdentifier = ((BinarySpecInternal) test).getId();
-                    DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-                    return DefaultLibraryLocalComponentMetaData.newDefaultLibraryLocalComponentMetadata(
-                        binaryIdentifier,
-                        buildDependencies,
-                        collectDependencies(test),
-                        binaryIdentifier.getProjectPath());
-                }
-
-                private List<DependencySpec> collectDependencies(JUnitTestSuiteBinarySpec binary) {
-                    final List<DependencySpec> dependencies = Lists.newArrayList();
-                    Iterable<LanguageSourceSet> sourceSets = Iterables.concat(binary.getTestSuite().getSources().values(), binary.getSources().values());
-                    for (LanguageSourceSet sourceSet : sourceSets) {
-                        if (sourceSet instanceof DependentSourceSet) {
-                            dependencies.addAll(((DependentSourceSet) sourceSet).getDependencies().getDependencies());
-                        }
-                    }
-                    dependencies.addAll(((WithDependencies) binary).getDependencies());
-                    return dependencies;
-                }
-            });
+            return new JUnitDependencyResolvingClasspath(test, "test suite", dependencyResolver, resolutionAwareRepositories, schemaStore);
         }
     }
 
@@ -248,14 +195,37 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
         private final JvmAssembly assembly;
 
-        protected JUnitDependencyResolvingClasspath(JUnitTestSuiteBinarySpec binarySpec, String descriptor, ArtifactDependencyResolver dependencyResolver, List<ResolutionAwareRepository> remoteRepositories, ResolveContext resolveContext) {
-            super((BinarySpecInternal) binarySpec, descriptor, dependencyResolver, remoteRepositories, resolveContext);
-            this.assembly = ((WithJvmAssembly) binarySpec).getAssembly();
+        protected JUnitDependencyResolvingClasspath(
+            JUnitTestSuiteBinarySpec testSuiteBinarySpec,
+            String descriptor,
+            ArtifactDependencyResolver dependencyResolver,
+            List<ResolutionAwareRepository> remoteRepositories,
+            ModelSchemaStore schemaStore) {
+            super((BinarySpecInternal) testSuiteBinarySpec, descriptor, dependencyResolver, remoteRepositories, new LocalComponentResolveContext(
+                ((BinarySpecInternal) testSuiteBinarySpec).getId(),
+                DefaultVariantsMetaData.extractFrom(testSuiteBinarySpec, schemaStore),
+                collectDependencies(testSuiteBinarySpec),
+                DefaultLibraryBinaryIdentifier.CONFIGURATION_API,
+                testSuiteBinarySpec.getDisplayName()
+            ));
+            this.assembly = ((WithJvmAssembly) testSuiteBinarySpec).getAssembly();
         }
 
         @Override
         public Set<File> getFiles() {
             return Sets.union(super.getFiles(), Sets.union(assembly.getClassDirectories(), assembly.getResourceDirectories()));
+        }
+
+        private static List<DependencySpec> collectDependencies(JUnitTestSuiteBinarySpec binary) {
+            final List<DependencySpec> dependencies = Lists.newArrayList();
+            Iterable<LanguageSourceSet> sourceSets = Iterables.concat(binary.getTestSuite().getSources().values(), binary.getSources().values());
+            for (LanguageSourceSet sourceSet : sourceSets) {
+                if (sourceSet instanceof DependentSourceSet) {
+                    dependencies.addAll(((DependentSourceSet) sourceSet).getDependencies().getDependencies());
+                }
+            }
+            dependencies.addAll(((WithDependencies) binary).getDependencies());
+            return dependencies;
         }
     }
 }

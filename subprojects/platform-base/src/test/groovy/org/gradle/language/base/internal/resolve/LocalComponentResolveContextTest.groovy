@@ -15,55 +15,35 @@
  */
 
 package org.gradle.language.base.internal.resolve
-
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
-import org.gradle.language.base.DependentSourceSet
 import org.gradle.language.base.internal.model.VariantsMetaData
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DependentSourceSetResolveContextTest extends Specification {
+class LocalComponentResolveContextTest extends Specification {
     private final static String COMPONENT_NAME = 'lib'
     private final static String VARIANT = 'api'
 
-    def "resolve context can be created from a java source set"() {
-        given:
-        def project = ':foo'
-        def sourceset = Mock(DependentSourceSet)
-        def id = new DefaultLibraryBinaryIdentifier(project, COMPONENT_NAME, VARIANT)
-
-        when:
-        1 * sourceset.displayName >> "ss-display"
-
-        def context = resolveContext(id, sourceset)
-
-        then:
-        context.displayName == "ss-display"
-    }
-
     @Unroll
     def "context name for project #path and library #library is #contextName"() {
-        // keeping this test in case we need to change the context name again
         given:
-        def sourceset = Mock(DependentSourceSet)
         def id = new DefaultLibraryBinaryIdentifier(path, COMPONENT_NAME, VARIANT)
 
         when:
-        sourceset.parentName >> library
-        def context = resolveContext(id, sourceset)
+        def context = resolveContext(id, contextName)
 
         then:
         context.name == contextName
 
         where:
         path       | library  | contextName
-        ':myPath'  | 'myLib'  | DefaultLibraryBinaryIdentifier.CONFIGURATION_API
-        ':myPath'  | 'myLib2' | DefaultLibraryBinaryIdentifier.CONFIGURATION_API
-        ':myPath2' | 'myLib'  | DefaultLibraryBinaryIdentifier.CONFIGURATION_API
+        ':myPath'  | 'myLib'  | 'API'
+        ':myPath'  | 'myLib2' | 'runtime'
+        ':myPath2' | 'myLib'  | 'API'
     }
 
-    private DependentSourceSetResolveContext resolveContext(DefaultLibraryBinaryIdentifier id, DependentSourceSet sourceset) {
-        new DependentSourceSetResolveContext(id, sourceset, Mock(VariantsMetaData), Collections.emptyList())
+    private LocalComponentResolveContext resolveContext(DefaultLibraryBinaryIdentifier id, String usage) {
+        new LocalComponentResolveContext(id, Mock(VariantsMetaData), Collections.emptyList(), usage, 'test source set')
     }
 
 }
