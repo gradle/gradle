@@ -27,6 +27,17 @@ import java.io.File;
  */
 @Incubating
 public interface JavaRuntime {
+
+    /***
+     * The java version of the Java Runtime.
+     * @return The java version. Never returns {@code null}.
+     */
     JavaVersion getJavaVersion();
+
+    /**
+     * The java home directory of the Java Runtime.
+     *
+     * @return The java home directory. Never returns {@code null}.
+     * */
     File getHomeDirectory();
 }
