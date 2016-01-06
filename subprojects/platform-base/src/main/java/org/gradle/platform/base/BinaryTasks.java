@@ -30,9 +30,8 @@ import java.lang.annotation.Target;
  * {@link org.gradle.platform.base.BinaryTasks} annotation.
  *
  * <pre autoTested='true'>
- * interface SampleComponent extends ComponentSpec {}
- * interface SampleBinary extends BinarySpec {}
- * class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
+ * @Managed interface SampleComponent extends ComponentSpec {}
+ * @Managed interface SampleBinary extends BinarySpec {}
  *
  * apply plugin: MyCustomBinariesPlugin
  *
@@ -44,9 +43,7 @@ import java.lang.annotation.Target;
  *
  * class MyCustomBinariesPlugin extends RuleSource {
  *     {@literal @}BinaryType
- *     void register(BinaryTypeBuilder&lt;SampleBinary&gt; builder) {
- *         builder.defaultImplementation(DefaultSampleBinary)
- *     }
+ *     void register(BinaryTypeBuilder&lt;SampleBinary&gt; builder) {}
  *
  *     {@literal @}BinaryTasks
  *     void createBinaryTasks(ModelMap&lt;Task&gt; tasks, SampleBinary binary) {
