@@ -201,7 +201,9 @@ can explicitly configure a [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html) 
 ### Eclipse Plugin adds explicit java target runtime to Classpath
 
 The `.classpath` file generated via `eclipseClasspath` task provided by the Eclipse Plugin now points to an explicit Java Runtime Version instead of
-using the default JRE configured in the Eclipse IDE. The naming convention follows the Eclipse defaults.
+using the default JRE configured in the Eclipse IDE. The naming convention follows the Eclipse defaults and uses `targetCompatibility`  convention property to
+calculate the default java runtime name.
+
 To tweak the name of the Java runtime to use, the name can be configured via
 
     eclipse {
