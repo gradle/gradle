@@ -103,7 +103,13 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
     @Override
     public Set<ModelType<? extends T>> getSupportedTypes() {
-        return ImmutableSortedSet.copyOf(ModelTypes.<T>displayOrder(), registrations.keySet());
+        ImmutableSortedSet.Builder<ModelType<? extends T>> supportedTypes = ImmutableSortedSet.orderedBy(ModelTypes.<T>displayOrder());
+        for (TypeRegistration<?> registration : registrations.values()) {
+            if (registration.isConstructible()) {
+                supportedTypes.add(registration.publicType);
+            }
+        }
+        return supportedTypes.build();
     }
 
     private String getConstructibleTypeNames() {
@@ -223,6 +229,10 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
             } else {
                 validateUnmanaged();
             }
+        }
+
+        public boolean isConstructible() {
+            return managedPublicType || implementationRegistration != null;
         }
 
         private void validateManaged() {
