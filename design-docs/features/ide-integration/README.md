@@ -9,4 +9,4 @@ One goal of this overall feature is to make it possible to import Gradle project
 - [Expose source and target platforms of JVM language projects](source-and-target-jvm)
 - [Developer uses projects from multiple Gradle builds from IDE](ide-multiple-build)
 - [Developer uses subset of a multi-project Gradle build from IDE](ide-subset-build)
-- [Provide smooth upgrade from STS Gradle to Buildship] (upgrade-to-buildship)
+- [Provide smooth upgrade from STS Gradle to Buildship](upgrade-to-buildship)
