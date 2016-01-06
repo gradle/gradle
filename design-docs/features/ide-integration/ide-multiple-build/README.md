@@ -114,7 +114,7 @@ For example, application A and library B might normally be built separately, as 
 
 ### Story - Eclipse model for a workspace does not include duplicate project names
 
-Selected projects in a workspace might have the same project name. This story implements a du-duping mechanism for the Eclipse model.
+Selected projects in a workspace might have the same project name. This story implements a de-duping mechanism for the Eclipse model.
 
 ##### Estimate
 
