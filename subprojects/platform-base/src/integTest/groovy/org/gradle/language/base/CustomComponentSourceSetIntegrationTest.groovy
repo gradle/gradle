@@ -226,7 +226,7 @@ model {
         succeeds "validate"
     }
 
-    def "fails on registration when model type extends `LanguageSourceSet` without a default implementation"() {
+    def "fails on creation when model type extends `LanguageSourceSet` without a default implementation"() {
         given:
         buildFile << """
             interface HaxeSourceSet extends LanguageSourceSet {}
@@ -237,13 +237,23 @@ model {
                 }
             }
             apply plugin: HaxeRules
+
+            model {
+                components {
+                    myComponent(ComponentSpec) {
+                        sources {
+                            haxe(HaxeSourceSet)
+                        }
+                    }
+                }
+            }
         """
 
         when:
         fails "model"
 
         then:
-        failure.assertHasCause("Factory registration for 'HaxeSourceSet' is invalid because no implementation was registered")
+        failure.assertHasCause("Cannot create a 'HaxeSourceSet' because this type does not have an implementation registered.")
     }
 
     def "user can declare and use a custom managed LanguageSourceSet"() {

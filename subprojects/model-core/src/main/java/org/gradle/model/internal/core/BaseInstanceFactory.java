@@ -250,7 +250,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
         private void validateUnmanaged() {
             if (implementationRegistration == null) {
-                throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because no implementation was registered", publicType));
+                return;
             }
 
             ModelType<? extends S> implementationType = implementationRegistration.getImplementationType();

@@ -228,18 +228,6 @@ class BaseInstanceFactoryTest extends Specification {
         ex.message == "Factory registration for '$ManagedThingSpec.name' is invalid because it doesn't extend an interface with a default implementation"
     }
 
-    def "fails validation if unmanaged type extends interface with default implementation"() {
-        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
-        instanceFactory.register(ModelType.of(UnmanagedThingSpec), new SimpleModelRuleDescriptor("unmanaged thing"))
-
-        when:
-        instanceFactory.validateRegistrations()
-        then:
-        def ex = thrown IllegalStateException
-        ex.message == "Factory registration for '$UnmanagedThingSpec.name' is invalid because no implementation was registered"
-    }
-
     @Ignore("This would be hard to check, and we only use this internally, so we'll just be careful")
     def "fails validation if unmanaged type extends two interface with a default implementation"() {
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("impl rule"))
