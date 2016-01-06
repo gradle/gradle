@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.TestExecutionResult
 class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "src/main/java/Library.java"
-    public static final String SAMPLE_JUNIT_LIBRARY_TEST_CLASS = "src/test/java/LibraryTest.java"
+    public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/java/LibraryTest.java"
     public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "src/test/groovy/LibraryTest.groovy"
 
     final wrapper = new WrapperTestFixture(testDirectory)
@@ -35,7 +35,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
-        file(SAMPLE_JUNIT_LIBRARY_TEST_CLASS).exists()
+        file(SAMPLE_LIBRARY_TEST_CLASS).exists()
         buildFile.exists()
         settingsFile.exists()
         wrapper.generated()
@@ -69,6 +69,26 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         testResult.testClass("LibraryTest").assertTestPassed("someLibraryMethod returns true")
     }
 
+    def "creates sample source using testng instead of junit"() {
+        when:
+        succeeds('init', '--type', 'java-library', '--with', 'testng')
+
+        then:
+        file(SAMPLE_LIBRARY_CLASS).exists()
+        file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        buildFile.exists()
+        settingsFile.exists()
+        wrapper.generated()
+
+        when:
+        succeeds("build")
+
+        then:
+        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
+        testResult.assertTestClassesExecuted("LibraryTest")
+        testResult.testClass("LibraryTest").assertTestPassed("testSomeLibraryMethod")
+    }
+
     def "setupProjectLayout is skipped when java sources detected"() {
         setup:
         file("src/main/java/org/acme/SampleMain.java") << """
@@ -88,7 +108,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()
-        !file(SAMPLE_JUNIT_LIBRARY_TEST_CLASS).exists()
+        !file(SAMPLE_LIBRARY_TEST_CLASS).exists()
         buildFile.exists()
         settingsFile.exists()
         wrapper.generated()
