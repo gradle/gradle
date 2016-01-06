@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
@@ -562,5 +563,54 @@ dependencies {
         //then
         def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.isEmpty()
+    }
+
+    @Test
+    @Issue("GRADLE-1945")
+    void unresolvedDependenciesAreLogged() {
+        //given
+        def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
+        module.artifact(classifier: 'sources')
+        module.artifact(classifier: 'javadoc')
+        module.publish()
+
+        //when
+        ExecutionResult result = runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+configurations {
+    myPlusConfig
+    myMinusConfig
+}
+
+dependencies {
+    myPlusConfig group: 'myGroup', name: 'myCustomName', version: '1.0'
+    myPlusConfig group: 'myGroup', name: 'myOtherCustomName', version: '1.0'
+    myMinusConfig group: 'myGroup', name: 'myOtherCustomName', version: '1.0'
+    runtime  group: 'myGroup', name: 'myRuntimeName', version: '1.0'
+    compile  group: 'coolGroup', name: 'niceArtifact', version: '1.0'
+
+    idea {
+        module {
+            scopes.COMPILE.plus += [ configurations.myPlusConfig ]
+            scopes.COMPILE.minus += [ configurations.myMinusConfig ]
+        }
+    }
+}
+"""
+        String expected = """:ideaModule
+Could not resolve: myGroup:myCustomName:1.0 (configuration ':myPlusConfig')
+Could not resolve: myGroup:myOtherCustomName:1.0 (configuration ':myMinusConfig')
+Could not resolve: myGroup:myRuntimeName:1.0 (configuration ':runtime')
+:ideaProject
+:ideaWorkspace
+:idea
+"""
+        result.assertOutputEquals(expected, true, false)
     }
 }
