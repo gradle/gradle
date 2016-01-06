@@ -18,17 +18,12 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
+import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.fixtures.GradleRunnerCompatibilityIntegTestRunner
 import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
-import org.gradle.testkit.runner.internal.dist.GradleDistribution
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution
 import org.gradle.util.SetSystemProperties
@@ -73,13 +68,13 @@ class AbstractGradleRunnerCompatibilityIntegrationTest extends Specification {
     }
 
     GradleRunner runner(String... arguments) {
-        GradleRunner gradleRunner = GradleRunner.create()
-            .withGradleInstallation(buildContext.gradleHomeDir)
+        def gradleRunner = GradleRunner.create()
             .withTestKitDir(testKitDir)
             .withProjectDir(testProjectDir.testDirectory)
             .withArguments(arguments)
             .withDebug(GradleRunnerIntegTestRunner.debug)
-        GradleDistribution gradleDistribution = GradleRunnerCompatibilityIntegTestRunner.distribution
+
+        def gradleDistribution = GradleRunnerCompatibilityIntegTestRunner.distribution
 
         if (gradleDistribution instanceof InstalledGradleDistribution) {
             gradleRunner.withGradleInstallation(((InstalledGradleDistribution) gradleDistribution).gradleHome)
@@ -100,25 +95,19 @@ class AbstractGradleRunnerCompatibilityIntegrationTest extends Specification {
         """
     }
 
-    DaemonsFixture daemons(File gradleUserHomeDir, String daemonDir = 'daemon', String version = buildContext.version.version) {
-        DaemonLogsAnalyzer.newAnalyzer(new File(gradleUserHomeDir, daemonDir), version)
+    DaemonsFixture daemons(String version = GradleRunnerCompatibilityIntegTestRunner.gradleVersion.version) {
+        daemons(testKitDir, TEST_KIT_DAEMON_DIR_NAME, version)
     }
 
-    DaemonsFixture daemons() {
-        GradleDistribution gradleDistribution = GradleRunnerCompatibilityIntegTestRunner.distribution
-
-        if (gradleDistribution instanceof InstalledGradleDistribution) {
-            return daemons(testKitDir, TEST_KIT_DAEMON_DIR_NAME)
-        } else if (gradleDistribution instanceof VersionBasedGradleDistribution) {
-            return daemons(testKitDir, TEST_KIT_DAEMON_DIR_NAME, ((VersionBasedGradleDistribution) gradleDistribution).gradleVersion)
-        } else {
-            throw unsupportedGradleDistributionException()
-        }
+    DaemonsFixture daemons(File gradleUserHomeDir, String daemonDir, String version) {
+        DaemonLogsAnalyzer.newAnalyzer(new File(gradleUserHomeDir, daemonDir), version)
     }
 
     def cleanup() {
         if (requireIsolatedTestKitDir) {
-            daemons().killAll()
+            def daemonDir = new File(testKitDir, TEST_KIT_DAEMON_DIR_NAME)
+            def versions = daemonDir.listFiles({ it.name ==~ /\d.+/ } as FileFilter)*.name
+            versions.each { daemons(it).killAll() }
         }
     }
 

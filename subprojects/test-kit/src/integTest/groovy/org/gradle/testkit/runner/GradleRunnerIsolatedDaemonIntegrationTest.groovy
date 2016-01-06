@@ -126,7 +126,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerComp
 
     def "user daemon process does not reuse existing daemon process intended for test execution even when using same gradle user home"() {
         given:
-        def nonTestKitDaemons = daemons(testKitDir)
+        def nonTestKitDaemons = daemons(testKitDir, "daemon", buildContext.version.version)
 
         when:
         runner().build()
