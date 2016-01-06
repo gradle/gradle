@@ -19,12 +19,11 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.platform.base.DependencySpec;
 
-import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData.newDefaultLibraryLocalComponentMetadata;
+import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData.newResolvingLocalComponentMetadata;
 
 public class LocalComponentResolveContext implements ResolveContext {
     private final LibraryBinaryIdentifier libraryBinaryIdentifier;
@@ -68,7 +67,7 @@ public class LocalComponentResolveContext implements ResolveContext {
 
     @Override
     public ComponentResolveMetaData toRootComponentMetaData() {
-        return newDefaultLibraryLocalComponentMetadata(libraryBinaryIdentifier, new DefaultTaskDependency(), dependencies, libraryBinaryIdentifier.getProjectPath());
+        return newResolvingLocalComponentMetadata(libraryBinaryIdentifier, usage, dependencies);
     }
 
 }

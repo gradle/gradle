@@ -24,7 +24,7 @@ import org.gradle.platform.base.BinarySpec;
 import java.util.Collections;
 
 import static org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier.CONFIGURATION_API;
-import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData.newDefaultLibraryLocalComponentMetadata;
+import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData.newResolvedLibraryMetadata;
 
 public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapter {
 
@@ -33,7 +33,7 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
         JarBinarySpecInternal jarBinarySpec = (JarBinarySpecInternal) selectedBinary;
         DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
         buildDependencies.add(jarBinarySpec.getApiJar());
-        DefaultLibraryLocalComponentMetaData metadata = newDefaultLibraryLocalComponentMetadata(jarBinarySpec.getId(), buildDependencies, jarBinarySpec.getApiDependencies(), projectPath);
+        DefaultLibraryLocalComponentMetaData metadata = newResolvedLibraryMetadata(jarBinarySpec.getId(), buildDependencies, jarBinarySpec.getApiDependencies(), projectPath);
         LibraryPublishArtifact jarBinary = new LibraryPublishArtifact("jar", jarBinarySpec.getApiJar().getFile());
         metadata.addArtifacts(CONFIGURATION_API, Collections.singleton(jarBinary));
         return metadata;
