@@ -604,9 +604,9 @@ dependencies {
 }
 """
         String expected = """:ideaModule
+Could not resolve: myGroup:myOtherCustomName:1.0 (configuration ':myPlusConfig')
 Could not resolve: myGroup:myCustomName:1.0 (configuration ':myPlusConfig')
-Could not resolve: myGroup:myOtherCustomName:1.0 (configuration ':myMinusConfig')
-Could not resolve: myGroup:myRuntimeName:1.0 (configuration ':runtime')
+Could not resolve: myGroup:myRuntimeName:1.0 (configuration ':testRuntime')
 :ideaProject
 :ideaWorkspace
 :idea

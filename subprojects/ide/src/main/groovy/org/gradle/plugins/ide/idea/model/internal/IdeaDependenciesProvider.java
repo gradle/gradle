@@ -213,7 +213,7 @@ public class IdeaDependenciesProvider {
     }
 
     private Iterable<Configuration> ideaConfigurations(final IdeaModule ideaModule) {
-        Set<Configuration> configurations = Sets.newHashSet(ideaModule.getProject().getConfigurations());
+        Set<Configuration> configurations = Sets.newLinkedHashSet(ideaModule.getProject().getConfigurations());
         for (Map<String, Collection<Configuration>> scopeMap : ideaModule.getScopes().values()) {
             for (Configuration cfg : Iterables.concat(scopeMap.values())) {
                 configurations.add(cfg);
