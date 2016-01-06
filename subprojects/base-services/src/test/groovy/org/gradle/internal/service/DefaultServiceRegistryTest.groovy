@@ -485,7 +485,7 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def usesFactoryMethodToCreateServiceInstance() {
-        expect:c
+        expect:
         registry.get(String.class) == "12"
         registry.get(Integer.class) == 12
     }
