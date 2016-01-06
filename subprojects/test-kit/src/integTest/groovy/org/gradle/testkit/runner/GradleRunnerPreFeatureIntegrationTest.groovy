@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.fixtures.annotations.Debug
 import org.gradle.testkit.runner.fixtures.annotations.NoDebug
+import org.gradle.testkit.runner.fixtures.annotations.NonCrossVersion
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.util.GradleVersion
@@ -30,7 +31,8 @@ import org.gradle.util.TestPrecondition
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+@NonCrossVersion
+class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
     private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
 
@@ -188,9 +190,9 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
 
         when:
         def result = runner('helloWorld')
-                .withGradleVersion(getMaxUnsupportedVersion(TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since))
-                .forwardOutput()
-                .build()
+            .withGradleVersion(getMaxUnsupportedVersion(TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since))
+            .forwardOutput()
+            .build()
 
         then:
         result.task(":helloWorld").outcome == SUCCESS
@@ -203,8 +205,8 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerIntegrat
     private void compilePluginProjectSources() {
         createPluginProjectSourceFiles()
         new ForkingGradleExecuter(new UnderDevelopmentGradleDistribution(), testProjectDir)
-                .withArguments('classes', "--no-daemon")
-                .run()
+            .withArguments('classes', "--no-daemon")
+            .run()
     }
 
     static String pluginDeclaration() {

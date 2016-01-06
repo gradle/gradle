@@ -20,7 +20,8 @@ import org.gradle.api.Action
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
-import org.gradle.testkit.runner.fixtures.annotations.NoDebug
+import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
+import org.gradle.testkit.runner.fixtures.annotations.NonCrossVersion
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
@@ -31,11 +32,13 @@ import spock.lang.Shared
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @Requires(TestPrecondition.ONLINE)
-class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
     @Shared
     DistributionLocator locator = new DistributionLocator()
 
+    @NonCrossVersion
+    @CaptureExecutedTasks
     def "execute build with different distribution types"(Action<GradleRunner> configurer) {
         given:
         buildFile << helloWorldTaskWithLoggerOutput()
@@ -56,23 +59,7 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerInteg
         ]
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    def "execute build for multiple Gradle versions of the same distribution type"() {
-        given:
-        buildFile << helloWorldTaskWithLoggerOutput()
-
-        when:
-        def result = runner('helloWorld')
-            .withGradleVersion(gradleVersion)
-            .build()
-
-        then:
-        result.taskPaths(SUCCESS) == [':helloWorld']
-
-        where:
-        gradleVersion << ['2.6', '2.7']
-    }
-
+    @NonCrossVersion
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "distributions are not stored in the test kit dir"() {
         given:
@@ -104,30 +91,6 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerInteg
             DaemonsFixture gradleVersionUnderTest = daemons(testKitDir, ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME, version)
             gradleVersionUnderTest.killAll()
         }
-    }
-
-    @NoDebug
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    def "fails a build that uses unsupported APIs for a Gradle version"() {
-        given:
-        buildFile << """
-            configurations {
-                functionalTestCompile
-            }
-
-            dependencies {
-                // method was introduced in Gradle 2.6
-                functionalTestCompile gradleTestKit()
-            }
-        """
-
-        when:
-        def result = runner('dependencies')
-            .withGradleVersion("2.5")
-            .buildAndFail()
-
-        then:
-        result.output.contains("Could not find method gradleTestKit() for arguments [] on root project '$rootProjectName'")
     }
 
     static String helloWorldTaskWithLoggerOutput() {

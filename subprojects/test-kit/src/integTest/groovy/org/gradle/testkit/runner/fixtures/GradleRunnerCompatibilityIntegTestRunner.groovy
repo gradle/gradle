@@ -24,6 +24,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
 import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
+import org.gradle.testkit.runner.fixtures.annotations.NonCrossVersion
 import org.gradle.testkit.runner.fixtures.annotations.PluginClasspathInjection
 import org.gradle.testkit.runner.internal.dist.GradleDistribution
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
@@ -80,6 +81,10 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
     }
 
     private Set<TestedGradleDistribution> determineTestedGradleDistributions() {
+        if (target.getAnnotation(NonCrossVersion)) {
+            return [TestedGradleDistribution.underDevelopment()] as Set
+        }
+
         String version = System.getProperty(COMPATIBILITY_SYSPROP_NAME, 'all')
 
         switch(version) {
@@ -113,6 +118,9 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
     @TupleConstructor
     @Sortable(includes = ['gradleVersion'])
     private static class TestedGradleDistribution {
+
+        private static final TestedGradleDistribution underDevelopmentTestedGradleDistribution = new TestedGradleDistribution(BUILD_CONTEXT.version, new InstalledGradleDistribution(BUILD_CONTEXT.gradleHomeDir))
+
         final GradleVersion gradleVersion
         final GradleDistribution gradleDistribution
 
@@ -126,7 +134,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
         }
 
         static TestedGradleDistribution underDevelopment() {
-            new TestedGradleDistribution(BUILD_CONTEXT.version, new InstalledGradleDistribution(BUILD_CONTEXT.gradleHomeDir))
+            underDevelopmentTestedGradleDistribution
         }
     }
 
@@ -174,6 +182,10 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
 
         @Override
         protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
+            if (testDetails.getAnnotation(NonCrossVersion) && testedGradleDistribution != TestedGradleDistribution.underDevelopment()) {
+                return false
+            }
+
             if (isDebugModeAndBuildOutputCapturedButVersionUnsupported(testDetails)) {
                 return false
             }
