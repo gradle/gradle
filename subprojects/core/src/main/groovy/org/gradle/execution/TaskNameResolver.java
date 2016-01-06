@@ -23,17 +23,11 @@ import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-
-import static org.gradle.api.internal.tasks.TaskContainerInternal.TASK_MODEL_TYPE;
 
 public class TaskNameResolver {
 
@@ -58,11 +52,12 @@ public class TaskNameResolver {
     public TaskSelectionResult selectWithName(final String taskName, final ProjectInternal project, boolean includeSubProjects) {
         if (includeSubProjects) {
             Set<Task> tasks = Sets.newLinkedHashSet();
-            new MultiProjectTaskSelectionResult(taskName, project).collectTasks(tasks);
+            new MultiProjectTaskSelectionResult(taskName, project, false).collectTasks(tasks);
             if (!tasks.isEmpty()) {
                 return new FixedTaskSelectionResult(tasks);
             }
         } else {
+            discoverTasks(project);
             if (hasTask(taskName, project)) {
                 return new TaskSelectionResult() {
                     @Override
@@ -86,9 +81,10 @@ public class TaskNameResolver {
             Set<String> taskNames = Sets.newLinkedHashSet();
             collectTaskNames(project, taskNames);
             for (String taskName : taskNames) {
-                selected.put(taskName, new MultiProjectTaskSelectionResult(taskName, project));
+                selected.put(taskName, new MultiProjectTaskSelectionResult(taskName, project, true));
             }
         } else {
+            discoverTasks(project);
             for (String taskName : getTaskNames(project)) {
                 selected.put(taskName, new SingleProjectTaskSelectionResult(taskName, project.getTasks()));
             }
@@ -97,50 +93,32 @@ public class TaskNameResolver {
         return selected;
     }
 
-    private static ModelNode selfClose(ModelRegistry modelRegistry, ModelPath modelPath) {
-        return modelRegistry.atStateOrLater(modelPath, ModelNode.State.SelfClosed);
-    }
-
-    private static ModelNode selfClosedTasksNode(ProjectInternal project) {
-        ModelRegistry modelRegistry = project.getModelRegistry();
-        ModelNode modelNode;
+    private static void discoverTasks(ProjectInternal project) {
         try {
-            project.fireDeferredConfiguration();
-            modelNode = selfClose(modelRegistry, TaskContainerInternal.MODEL_PATH);
+            project.getTasks().discoverTasks();
         } catch (Throwable e) {
             throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
         }
-        return modelNode;
     }
 
     private static Set<String> getTaskNames(ProjectInternal project) {
-        return selfClosedTasksNode(project).getLinkNames(TASK_MODEL_TYPE);
+        return project.getTasks().getNames();
     }
 
     private static boolean hasTask(String taskName, ProjectInternal project) {
-        // ask registry first as tasks.findByName will fully realise the task if it is defined through the registry
-        // i.e. avoid configuring tasks defined through the registry at this point, because we just need to know if it exists
-        return selfClosedTasksNode(project).hasLink(taskName, TASK_MODEL_TYPE) || project.getTasks().findByName(taskName) != null; // look at task container to trigger rules / placeholders
+        return project.getTasks().getNames().contains(taskName) || project.getTasks().findByName(taskName) != null;
     }
 
     private static TaskInternal getExistingTask(ProjectInternal project, String taskName) {
-        ModelRegistry modelRegistry = project.getModelRegistry();
-        ModelPath path = TaskContainerInternal.MODEL_PATH.child(taskName);
         try {
-            if (modelRegistry.state(path) == null) {
-                // The tasks exists but isn't in the model registry, was created after the registry was closed
-                // This can happen for a few reasons, use of task container rules being a common one
-                return (TaskInternal) project.getTasks().getByName(taskName);
-            } else {
-                // pull through the registry, even for tasks defined via legacy DSL, to ensure all configuration rules get applied
-                return (TaskInternal) modelRegistry.realize(path, TASK_MODEL_TYPE);
-            }
+            return (TaskInternal) project.getTasks().getByName(taskName);
         } catch (Throwable e) {
             throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
         }
     }
 
     private void collectTaskNames(ProjectInternal project, Set<String> result) {
+        discoverTasks(project);
         result.addAll(getTaskNames(project));
         for (Project subProject : project.getChildProjects().values()) {
             collectTaskNames((ProjectInternal) subProject, result);
@@ -176,10 +154,12 @@ public class TaskNameResolver {
     private static class MultiProjectTaskSelectionResult implements TaskSelectionResult {
         private final ProjectInternal project;
         private final String taskName;
+        private final boolean discovered;
 
-        MultiProjectTaskSelectionResult(String taskName, ProjectInternal project) {
+        MultiProjectTaskSelectionResult(String taskName, ProjectInternal project, boolean discovered) {
             this.project = project;
             this.taskName = taskName;
+            this.discovered = discovered;
         }
 
         public void collectTasks(Collection<? super Task> tasks) {
@@ -187,6 +167,9 @@ public class TaskNameResolver {
         }
 
         private void collect(ProjectInternal project, Collection<? super Task> tasks) {
+            if (!discovered) {
+                discoverTasks(project);
+            }
             if (hasTask(taskName, project)) {
                 TaskInternal task = getExistingTask(project, taskName);
                 tasks.add(task);
