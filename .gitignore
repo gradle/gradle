@@ -19,7 +19,6 @@
 /buildSrc/out
 /out
 /subprojects/*/*.iml
-/subprojects/*/ide
 /subprojects/*/out
 
 # Eclipse
