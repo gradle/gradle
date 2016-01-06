@@ -19,7 +19,9 @@ package org.gradle.model.internal.manage.binding
 import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultStructBindingsStoreTest extends Specification {
     def schemaStore = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
@@ -109,7 +111,7 @@ class DefaultStructBindingsStoreTest extends Specification {
         extract(TypeWithInconsistentPropertyType)
         then:
         def ex = thrown Exception
-        ex.message.contains "Managed property 'z' must have a consistent type."
+        ex.message.contains "Managed property 'z' must have a consistent type, but it's defined as String, int."
     }
 
     static interface OverloadingNumber {
@@ -154,5 +156,21 @@ class DefaultStructBindingsStoreTest extends Specification {
             viewTypes.collect { (StructSchema) schemaStore.getSchema(it) },
             delegateType == null ? null : (StructSchema) schemaStore.getSchema(delegateType)
         )
+    }
+
+    @Unroll
+    def "finds #results.simpleName as the converging types among #types.simpleName"() {
+        expect:
+        DefaultStructBindingsStore.findConvergingTypes(types.collect { ModelType.of(it) }) as List == results.collect { ModelType.of(it) }
+
+        where:
+        types                                 | results
+        [Object]                              | [Object]
+        [Object, Serializable]                | [Serializable]
+        [Object, Number, Comparable, Integer] | [Integer]
+        [Integer, Object, Number, Comparable] | [Integer]
+        [Integer, Double]                     | [Integer, Double]
+        [Integer, Object, Double]             | [Integer, Double]
+        [Integer, Object, Comparable, Double] | [Integer, Double]
     }
 }

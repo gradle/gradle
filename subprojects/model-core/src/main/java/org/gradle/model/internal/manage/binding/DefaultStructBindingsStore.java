@@ -19,6 +19,7 @@ package org.gradle.model.internal.manage.binding;
 import com.google.common.base.Equivalence;
 import com.google.common.base.Equivalence.Wrapper;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -144,7 +145,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
                 boolean foundGetter = false;
                 boolean foundSetter = false;
                 EnumMap<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors = Maps.newEnumMap(PropertyAccessorType.class);
-                ModelType<?> propertyType = null;
+                Set<ModelType<?>> potentialPropertyTypes = Sets.newLinkedHashSet();
                 for (AbstractStructMethodBinding binding : bindings) {
                     ManagedPropertyMethodBinding propertyBinding = (ManagedPropertyMethodBinding) binding;
                     PropertyAccessorType accessorType = propertyBinding.getAccessorType();
@@ -155,15 +156,17 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
                     }
                     WeaklyTypeReferencingMethod<?, ?> accessor = propertyBinding.getSource();
                     accessors.put(accessorType, accessor);
-                    if (propertyType == null) {
-                        propertyType = accessorType.propertyTypeFor(accessor.getMethod());
-                    } else if (!propertyType.equals(accessorType.propertyTypeFor(accessor.getMethod()))) {
-                        throw new IllegalStateException(String.format("Managed property '%s' must have a consistent type.", propertyName));
-                    }
+                    potentialPropertyTypes.add(accessorType.propertyTypeFor(accessor.getMethod()));
                 }
                 if (foundSetter && !foundGetter) {
                     throw new IllegalArgumentException(String.format("Managed property '%s' must both have an abstract getter as well as a setter.", propertyName));
                 }
+                Collection<ModelType<?>> convergingPropertyTypes = findConvergingTypes(potentialPropertyTypes);
+                if (convergingPropertyTypes.size() != 1) {
+                    throw new IllegalArgumentException(String.format("Managed property '%s' must have a consistent type, but it's defined as %s.", propertyName,
+                        Joiner.on(", ").join(ModelType.getDisplayNames(convergingPropertyTypes))));
+                }
+                ModelType<?> propertyType = Iterables.getOnlyElement(convergingPropertyTypes);
                 ManagedProperty<?> managedProperty = createProperty(propertyName, propertyType, !publicSchema.hasProperty(propertyName), accessors);
                 generatedPropertiesBuilder.put(propertyName, managedProperty);
             }
@@ -212,5 +215,37 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         public int hashCode() {
             return Objects.hashCode(publicSchema, viewSchemas, delegateSchema);
         }
+    }
+
+    /**
+     * Finds the types in the given collection that cannot be assigned from any other type in the collection.
+     */
+    static Collection<ModelType<?>> findConvergingTypes(Collection<ModelType<?>> allTypes) {
+        if (allTypes.size() == 0) {
+            throw new IllegalArgumentException("No types given");
+        }
+        if (allTypes.size() == 1) {
+            return allTypes;
+        }
+
+        Set<ModelType<?>> typesToCheck = Sets.newLinkedHashSet(allTypes);
+        Set<ModelType<?>> convergingTypes = Sets.newLinkedHashSet(allTypes);
+
+        while (!typesToCheck.isEmpty()) {
+            Iterator<ModelType<?>> iTypeToCheck = typesToCheck.iterator();
+            ModelType<?> typeToCheck = iTypeToCheck.next();
+            iTypeToCheck.remove();
+
+            Iterator<ModelType<?>> iRemainingType = convergingTypes.iterator();
+            while (iRemainingType.hasNext()) {
+                ModelType<?> remainingType = iRemainingType.next();
+                if (!remainingType.equals(typeToCheck) && remainingType.isAssignableFrom(typeToCheck)) {
+                    iRemainingType.remove();
+                    typesToCheck.remove(remainingType);
+                }
+            }
+        }
+
+        return convergingTypes;
     }
 }
