@@ -72,12 +72,80 @@ Implementation details can be planned further after spiking the changes in the a
       - a new build gets triggered
 
 
+### Story: Developer is able to easily determine the file(s) that triggered a rebuild
 
-## Story: Developer is able to easily determine the task/file that triggered a rebuild
+The path of the changed files should be printed to the console when a new build gets triggered. The individual file paths are suppressed when more than 3 files change in each change type group (new/modified/deleted). The count of changed files in each change type group is shown in that case.
 
-This is an extension to the story "Continuous build will trigger a rebuild when an input file is changed during build execution". When a change is detected, the path of the task whose input changed should be printed to the console.
+#### Examples of the desired console output
 
-This helps the user find out the reason which triggered the build. It is possible that a continuous build keeps re-triggering new builds when the user isn't doing any changes. This happens when a task changes it's own inputs during execution or when a task changes the inputs of a task that has been executed in the build before it. The user should fix such builds since continuous build will not prevent such loops.
+A)
+```
+Waiting for changes to input files of tasks... (ctrl-d to exit)
+new file: /full/path/to/file
+modified: /full/path/to/file2
+modified: /full/path/to/file3
+deleted: /full/path/to/file4
+Change detected, executing build...
+```
+B)
+```
+Waiting for changes to input files of tasks... (ctrl-d to exit)
+4 new files
+5 files modified
+10 files deleted
+Change detected, executing build...
+```
+C)
+```
+Waiting for changes to input files of tasks... (ctrl-d to exit)
+4 new files
+5 files modified
+deleted: /full/path/to/file
+Change detected, executing build...
+```
+
+#### Special cases
+
+When a file has been added, it should not be listed in the modifications. Usually both an addition and a modification event get reported in the file system events for each new file.
+
+Directories are handled as ordinary files in the reporting with the exception that modified directories aren't reported at all since a directory modification is usually caused by a file change in that directory and that file change is the actual reason for the change.
+
+#### Out of scope
+ 
+It is possible that a continuous build keeps re-triggering new builds when the user isn't doing any changes. This happens when a task changes it's own inputs during execution or when a task changes the inputs of a task that has been executed in the build before it. Build users can use info or debug level logging in finding the problematic task in such problematic builds. It was decided that this story doesn't add any specific features to debug such problems.
+
+It's also out of scope to report the path of the task whose input file the changed file is. It was decided to leave that out of the scope of this story.
+
+#### Implementation plan
+
+A new build gets triggered in continuous build after there is a quiet period in the file system event reception. The plan is to aggregate the events during the event reception and filter the events when the report of changes gets printed out just before the new build gets triggered. To clarify, changes won't be printed out until there has been a "quiet period" and the new build has been triggered.
+
+#### Test coverage
+
+Main scenario:
+
+- add a test scenario with a build with tasks A, B, C, D each having it's own directory as input. Tasks have dependencies so that B depends on A, C on B and D on C. Request building task D.
+
+Test cases:
+
+- should report the full file path of the file added when 1 file is added to the input directory of each task (A, B, C, D).
+
+- should report the full file path of the files added when 3 files are added to the input directory of each task (A, B, C, D).
+
+- should report the count of added files when more than 4 files (11 files) are added to the input directory of each task (A, B, C, D).
+
+Variations:
+- vary the tests by removing 1, 3 or 11 files from an input directory
+- vary the tests by modifying 1, 3 or 11 files in the input directory
+- vary the tests by adding, removing and modifying 3 or 11 files in the input directory
+- vary the tests by adding new directories 
+- vary the tests by removing directories
+- vary the test by making changes in multiple task input directories (tasks A,B,C,D)
+
+Special considerations:
+
+- check that directories aren't reported as modified
+- check that new files aren't reported as modified
 
 ## Story: Continuous build will trigger a rebuild when build configuration file changes
 
