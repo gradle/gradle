@@ -270,6 +270,7 @@ We would like to thank the following community members for making contributions 
 * [Jochen Schalanda](https://github.com/joschi) - Support for configuring Twirl source sets to use Java default imports
 * [Sebastian Schuberth](https://github.com/sschuberth) - Simplify LoggingCommandLineConverter
 * [Martin Steiger](https://github.com/msteiger) - Eclipse and Idea tasks warn on missing dependencies
+* [Günther Grill](https://github.com/guenhter) - Internal service registry improvements
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
