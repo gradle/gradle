@@ -204,7 +204,6 @@ class EclipseModelBuilderTest extends Specification {
         "target" | "targetCompatibility" | "targetBytecodeLevel"
     }
 
-
     @Unroll
     def "multi-project build can have different #type language level per project"() {
         given:

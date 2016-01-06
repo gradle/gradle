@@ -201,13 +201,13 @@ language levels for each module in a project.
 
 - ~~move EclipseJavaSourceSettings.getTargetRuntime() into JavaSourceSettings~~
 - ~~move EclipseJavaSourceSettings.getTargetBytecodeLevel() into JavaSourceSettings~~
+- ~~remove `EclipseJavaSourceSettings`~~
 - for each module set `IdeaModuleJavaSourceSettings.targetRuntime` to current runtime in use and `IdeaModuleJavaSourceSettings.targetRuntimeInherited = true`
 - set `IdeaProjectJavaSourceSettings.targetRuntime` to current runtime
 - for each module set `IdeaModuleJavaSourceSettings.targetBytecodeLevel` to `JavaConvention.targetCompatibilityLevel`
 - set `IdeaProjectJavaSourceSettings.targetBytecodeLevel` to highest bytecode level found among the modules
 - set `IdeaModuleJavaSourceSettings.targetBytecodeLevelInherited = true` for modules with same target bytecode level as in `IdeaProjectJavaSourceSettings.targetBytecodeLevel`
 - for modules having same `targetBytecodeLevel` as `IdeaProjectJavaSourceSettings.targetBytecodeLevel` set `IdeaModuleJavaSourceSettings.targetBytecodeLevelInherited = true`
-- returns the value of `eclipse.jdt.targetCompatibility` when `java-base` project is applied.~~
 
 ##### Test cases
 
