@@ -71,7 +71,7 @@ public class IdeaDependenciesProvider {
                 Lists.newArrayList(new IdeaScopeMappingRule("testCompile"), new IdeaScopeMappingRule("testRuntime")));
     }
 
-    Set<Dependency> provide(final IdeaModule ideaModule) {
+    public Set<Dependency> provide(final IdeaModule ideaModule) {
         getPath = new Transformer<FilePath, File>() {
             @Nullable
             public FilePath transform(File file) {
@@ -94,7 +94,7 @@ public class IdeaDependenciesProvider {
         return result;
     }
 
-    Collection<UnresolvedIdeRepoFileDependency> getUnresolvedDependencies(IdeaModule ideaModule) {
+    public Collection<UnresolvedIdeRepoFileDependency> getUnresolvedDependencies(IdeaModule ideaModule) {
         return dependenciesExtractor.unresolvedExternalDependencies(ideaConfigurations(ideaModule), Collections.<Configuration>emptyList());
     }
 
