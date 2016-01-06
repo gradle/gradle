@@ -32,11 +32,11 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
         // note to the reader: we cannot rely on @Unroll because the report aggregation works by test execution, so all need
         // to be executed as part of a single test method
         def scenarios = [
-            // nonApiChanges, abiCompatibleChanges and abiBreakingChanges are expressed in percentage of projects that are going to be
-            // updated in the test
-                'internal API changes': [10, 0, 0],
-                'ABI compatible changes': [0, 10, 0],
-                'ABI breaking changes': [0, 0, 10]
+            // nonApiChanges, abiCompatibleChanges and abiBreakingChanges are expressed in percentage of projects that are
+            // going to be updated in the test
+            'internal API changes': [10, 0, 0],
+            'ABI compatible changes': [0, 10, 0],
+            'ABI breaking changes': [0, 0, 10]
         ]
 
         def apiTypes = [
