@@ -51,10 +51,10 @@ class BaseInstanceFactoryTest extends Specification {
     def factoryMock = Mock(InstanceFactory.ImplementationFactory)
 
     def "can register public type"() {
-        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
+        instanceFactory.register(ModelType.of(ManagedThingSpec), new SimpleModelRuleDescriptor("thing"))
 
         expect:
-        instanceFactory.getSupportedTypes() == ([ModelType.of(ThingSpec)] as Set)
+        instanceFactory.getSupportedTypes() == ([ModelType.of(ManagedThingSpec)] as Set)
     }
 
     def "can register implementation"() {
