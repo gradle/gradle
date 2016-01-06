@@ -110,7 +110,7 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
             }
         });
         ModelPath path = pathAnnotation == null ? null : ModelPath.path(pathAnnotation.value());
-        ModelType<?> cast = ModelType.of(method.getGenericParameterTypes()[i]);
+        ModelType<?> cast = method.getGenericParameterTypes().get(i);
         return ModelReference.of(path, cast, String.format("parameter %s", i + 1));
     }
 }

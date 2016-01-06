@@ -32,6 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.List;
 
 public class WeaklyTypeReferencingMethod<T, R> {
 
@@ -86,12 +87,8 @@ public class WeaklyTypeReferencingMethod<T, R> {
         return getMethod().getAnnotations();
     }
 
-    public Type[] getGenericParameterTypes() {
-        return Iterables.toArray(Iterables.transform(paramTypes, new Function<ModelType<?>, Type>() {
-            public Type apply(ModelType<?> modelType) {
-                return modelType.getType();
-            }
-        }), Type.class);
+    public List<ModelType<?>> getGenericParameterTypes() {
+        return paramTypes;
     }
 
     public R invoke(T target, Object... args) {

@@ -122,7 +122,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
 
     String getStringDescription(WeaklyTypeReferencingMethod<?, ?> method) {
         return MethodDescription.name(method.getName())
-                .takes(method.getGenericParameterTypes())
+                .takes(method.method.getGenericParameterTypes())
                 .toString();
     }
 }
