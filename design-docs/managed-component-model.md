@@ -381,9 +381,35 @@ A decision was made during the implementation of other stories on this theme to 
 until all or most of the stories were complete. This card ensures we pay off this debt before calling the overall theme
 complete.
 
-- Update user guide and samples to show how to implement a custom `@Managed` `ComponentSpec` and `BinarySpec` type
-- Update user guide to show how to attach an internal view to the custom type
-- TBD
+Proposed table of content:
+
+*Extending the software model*
+
+- Concepts
+    - Public type and base interfaces
+    - Internal views
+    - The component -> binary -> task chain
+- Components
+  (extending `ComponentSpec`, mention `LibrarySpec` and `ApplicationSpec`)
+- Binaries
+  (extending `BinarySpec`)
+- Source sets
+  (extending `LanguageSourceSet`, language name)
+- Putting it all together
+    - Generating binaries from components
+      (`@ComponentBinaries`)
+    - Generating tasks from binaries
+      (`@BinaryTasks`)
+- Wrap up
+
+The documentation should focus on how to use `@Managed` types (e.g. how to declare a `@Managed` subtype of an extensible
+type) and `@Managed` internal views. The unmanaged infrastructure should be treated as internal to Gradle, and should
+only be documented where it is necessary for clarity. The goal is for users to be able to play around with the managed
+infrastructure, and exposing the unmanaged infrastructure is not required to reach that goal.
+
+- Insert a new user guide section titled "Extending the software model" last in the "The Software model" chapter.
+- Update/Create samples to show how to implement a custom `@Managed` `ComponentSpec`, `BinarySpec` and `LanguageSourceSet` type
+- Eventually create samples to support the user guide content.
 
 ## Model report does not show internal properties of an element
 
