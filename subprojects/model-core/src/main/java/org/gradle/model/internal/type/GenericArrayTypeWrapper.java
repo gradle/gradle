@@ -47,9 +47,9 @@ class GenericArrayTypeWrapper implements GenericArrayType, TypeWrapper {
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof GenericArrayType) {
-            GenericArrayType that = (GenericArrayType) o;
-            return this == that || getGenericComponentType().equals(that.getGenericComponentType());
+        if (o instanceof GenericArrayTypeWrapper) {
+            GenericArrayTypeWrapper that = (GenericArrayTypeWrapper) o;
+            return this == that || componentType.equals(that.componentType);
         } else {
             return false;
         }

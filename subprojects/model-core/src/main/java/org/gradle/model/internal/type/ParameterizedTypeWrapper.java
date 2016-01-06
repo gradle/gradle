@@ -67,18 +67,14 @@ class ParameterizedTypeWrapper implements ParameterizedType, TypeWrapper {
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof ParameterizedType) {
-            ParameterizedType that = (ParameterizedType) o;
+        if (o instanceof ParameterizedTypeWrapper) {
+            ParameterizedTypeWrapper that = (ParameterizedTypeWrapper) o;
             if (this == that) {
                 return true;
             } else {
-                Type ownerType = getOwnerType();
-                Type rawType = getRawType();
-                Type thatOwner = that.getOwnerType();
-                Type thatRawType = that.getRawType();
-                return (ownerType == null ? thatOwner == null : ownerType.equals(thatOwner))
-                        && (rawType == null ? thatRawType == null : rawType.equals(thatRawType))
-                        && Arrays.equals(getActualTypeArguments(), that.getActualTypeArguments());
+                return (ownerType == null ? that.ownerType == null : ownerType.equals(that.ownerType))
+                        && (rawType == null ? that.rawType == null : rawType.equals(that.rawType))
+                        && Arrays.equals(actualTypeArguments, that.actualTypeArguments);
             }
         } else {
             return false;

@@ -22,14 +22,33 @@ import java.lang.ref.WeakReference;
 
 class ClassTypeWrapper implements TypeWrapper {
     private final WeakReference<Class<?>> reference;
+    private final int hashCode;
 
     public ClassTypeWrapper(Class<?> clazz) {
         this.reference = new WeakReference<Class<?>>(clazz);
+        hashCode = clazz.hashCode();
     }
 
     @Override
     public Class<?> unwrap() {
         return reference.get();
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        ClassTypeWrapper other = (ClassTypeWrapper) obj;
+        return unwrap().equals(other.unwrap());
     }
 
     @Override

@@ -61,11 +61,11 @@ class WildcardTypeWrapper implements WildcardType, TypeWrapper {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof WildcardType)) {
+        if (!(o instanceof WildcardTypeWrapper)) {
             return false;
         } else {
-            WildcardType var2 = (WildcardType) o;
-            return Arrays.equals(this.getLowerBounds(), var2.getLowerBounds()) && Arrays.equals(this.getUpperBounds(), var2.getUpperBounds());
+            WildcardTypeWrapper var2 = (WildcardTypeWrapper) o;
+            return Arrays.equals(this.lowerBounds, var2.lowerBounds) && Arrays.equals(this.upperBounds, var2.upperBounds);
         }
     }
 

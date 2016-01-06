@@ -90,6 +90,13 @@ public abstract class ModelType<T> {
         return Simple.typed(type);
     }
 
+    /**
+     * Returns true if this type represents a class.
+     */
+    public boolean isClass() {
+        return wrapper instanceof ClassTypeWrapper;
+    }
+
     public Class<? super T> getRawClass() {
         return getTypeToken().getRawType();
     }
@@ -103,7 +110,7 @@ public abstract class ModelType<T> {
         return type instanceof Class && ((Class) type).getTypeParameters().length > 0;
     }
 
-    public Type getType() {
+    private Type getType() {
         return wrapper.unwrap();
     }
 
@@ -112,12 +119,12 @@ public abstract class ModelType<T> {
     }
 
     public boolean isParameterized() {
-        return getType() instanceof ParameterizedType;
+        return wrapper instanceof ParameterizedTypeWrapper;
     }
 
     public List<ModelType<?>> getTypeVariables() {
         if (isParameterized()) {
-            Type[] typeArguments = ((ParameterizedType) getType()).getActualTypeArguments();
+            Type[] typeArguments = ((ParameterizedTypeWrapper) wrapper).getActualTypeArguments();
             ImmutableList.Builder<ModelType<?>> builder = ImmutableList.builder();
             for (Type typeArgument : typeArguments) {
                 builder.add(of(typeArgument));
@@ -248,12 +255,12 @@ public abstract class ModelType<T> {
 
         ModelType<?> modelType = (ModelType<?>) o;
 
-        return getType().equals(modelType.getType());
+        return wrapper.equals(modelType.wrapper);
     }
 
     @Override
     public int hashCode() {
-        return getTypeToken().hashCode();
+        return wrapper.hashCode();
     }
 
     abstract public static class Builder<T> {

@@ -71,12 +71,12 @@ class TypeVariableTypeWrapper<D extends GenericDeclaration> implements TypeWrapp
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof TypeVariable)) {
+        if (!(o instanceof TypeVariableTypeWrapper)) {
             return false;
         } else {
-            TypeVariable<?> var2 = (TypeVariable<?>) o;
+            TypeVariableTypeWrapper<?> var2 = (TypeVariableTypeWrapper<?>) o;
             return Objects.equal(this.getName(), var2.getName())
-                && Arrays.equals(this.getBounds(), var2.getBounds());
+                && Arrays.equals(this.bounds, var2.bounds);
         }
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core
 
 import org.gradle.model.internal.type.ModelType
+import org.gradle.util.Matchers
 import spock.lang.Specification
 
 class ModelTypeTest extends Specification {
@@ -26,6 +27,11 @@ class ModelTypeTest extends Specification {
     def "represents classes"() {
         expect:
         def type = ModelType.of(String)
+
+        type.isClass()
+        type.rawClass == String
+        type.concreteClass == String
+
         type.toString() == String.name
         type.displayName == String.simpleName
 
@@ -34,10 +40,24 @@ class ModelTypeTest extends Specification {
         nested.displayName == "ModelTypeTest.Nested"
     }
 
+    def "class is equal to itself"() {
+        expect:
+        def type = ModelType.of(String)
+        def same = ModelType.of(String)
+        def different = ModelType.of(Number)
+
+        Matchers.strictlyEqual(same)
+        type != different
+    }
+
     def "represents nested interfaces"() {
         def nestedInterface = ModelType.of(NestedInterface)
 
         expect:
+        nestedInterface.isClass()
+        nestedInterface.rawClass == NestedInterface
+        nestedInterface.concreteClass == NestedInterface
+
         nestedInterface.toString() == NestedInterface.name
         nestedInterface.displayName == "ModelTypeTest.NestedInterface"
     }
@@ -47,6 +67,8 @@ class ModelTypeTest extends Specification {
         def type = new ModelType<Map<String, Map<Integer, Float>>>() {}
 
         then:
+        !type.isClass()
+
         type.typeVariables[0] == ModelType.of(String)
         type.typeVariables[1] == new ModelType<Map<Integer, Float>>() {}
         type.typeVariables[1].typeVariables[0] == ModelType.of(Integer)
@@ -55,6 +77,24 @@ class ModelTypeTest extends Specification {
         and:
         type.toString() == "java.util.Map<java.lang.String, java.util.Map<java.lang.Integer, java.lang.Float>>"
         type.displayName == "Map<String, Map<Integer, Float>>"
+    }
+
+    def "parameterized type is equal when its raw type and all type parameters are equal"() {
+        expect:
+        def type = new ModelType<List<Integer>>() {}
+        def same = new ModelType<List<Integer>>() {}
+        def raw = ModelType.of(List)
+        def superType = new ModelType<Collection<Integer>>() {}
+        def differentTypeParam = new ModelType<List<String>>() {}
+        def upperBound = new ModelType<List<? extends Number>>() {}
+        def lowerBound = new ModelType<List<? super Integer>>() {}
+
+        Matchers.strictlyEquals(type, same)
+        type != raw
+        type != superType
+        type != differentTypeParam
+        type != upperBound
+        type != lowerBound
     }
 
     def "generic type compatibility"() {
@@ -105,6 +145,11 @@ class ModelTypeTest extends Specification {
         objects.wildcard
         anything.wildcard
 
+        !extendsString.isClass()
+        !superString.isClass()
+        !objects.isClass()
+        !anything.isClass()
+
         extendsString.upperBound == ModelType.of(String)
         extendsString.lowerBound == null
 
@@ -126,6 +171,43 @@ class ModelTypeTest extends Specification {
         superString.displayName == "? super String"
         objects.displayName == "?"
         anything.displayName == "?"
+    }
+
+    def "upper bound wildcards are equal when upper bounds are equal"() {
+        expect:
+        def type = new ModelType<List<? extends Integer>>() {}
+        def same = new ModelType<List<? extends Integer>>() {}
+        def parameterized = new ModelType<List<? extends List<? extends Number>>>() {}
+        def sameParameterized = new ModelType<List<? extends List<? extends Number>>>() {}
+        def wildcard = new ModelType<List<?>>() {}
+        def extendsObject = new ModelType<List<? extends Object>>() {}
+        def notWildcard = new ModelType<List<List>>() {}
+        def superType = new ModelType<List<? extends Number>>() {}
+
+        Matchers.strictlyEquals(type, same)
+        Matchers.strictlyEquals(wildcard, extendsObject)
+        Matchers.strictlyEquals(parameterized, sameParameterized)
+        type != wildcard
+        type != parameterized
+        type != extendsObject
+        type != notWildcard
+        type != superType
+    }
+
+    def "lower bound wildcards are equal when lower bounds are equal"() {
+        expect:
+        def type = new ModelType<List<? super Integer>>() {}
+        def same = new ModelType<List<? super Integer>>() {}
+        def parameterized = new ModelType<List<? super List<? extends Number>>>() {}
+        def sameParameterized = new ModelType<List<? super List<? extends Number>>>() {}
+        def notWildcard = new ModelType<List<List>>() {}
+        def superType = new ModelType<List<? super Number>>() {}
+
+        Matchers.strictlyEquals(type, same)
+        Matchers.strictlyEquals(parameterized, sameParameterized)
+        type != parameterized
+        type != notWildcard
+        type != superType
     }
 
     def "asSubtype"() {
