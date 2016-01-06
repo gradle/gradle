@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -36,13 +37,19 @@ public class LayoutToPropertiesConverter {
     public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {
         configureFromBuildDir(layout.getSearchDir(), layout.getSearchUpwards(), properties);
         configureFromGradleUserHome(layout.getGradleUserHomeDir(), properties);
-        properties.putAll(Maps.filterEntries((Map) System.getProperties(), new Predicate<Map.Entry<?, ?>>() {
+        Map<Object, Object> systemProperties = new HashMap<Object, Object>(System.getProperties());
+        Map filteredSystemProperties = filterNonSerializableEntries(systemProperties);
+        properties.putAll(filteredSystemProperties);
+        return properties;
+    }
+
+    private Map filterNonSerializableEntries(Map<Object, Object> properties) {
+        return Maps.filterEntries(properties, new Predicate<Map.Entry<?, ?>>() {
             public boolean apply(Map.Entry<?, ?> input) {
                 return input.getKey() instanceof Serializable
                         && (input.getValue() instanceof Serializable || input.getValue() == null);
             }
-        }));
-        return properties;
+        });
     }
 
     private void configureFromGradleUserHome(File gradleUserHomeDir, Map<String, String> result) {
