@@ -30,8 +30,8 @@ import java.lang.annotation.Target;
  * {@link org.gradle.platform.base.BinaryTasks} annotation.
  *
  * <pre autoTested='true'>
- * @Managed interface SampleComponent extends ComponentSpec {}
- * @Managed interface SampleBinary extends BinarySpec {}
+ * {@literal @}Managed interface SampleComponent extends ComponentSpec {}
+ * {@literal @}Managed interface SampleBinary extends BinarySpec {}
  *
  * apply plugin: MyCustomBinariesPlugin
  *
