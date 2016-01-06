@@ -84,7 +84,7 @@ class EclipseJdt {
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
-    String javaRuntimeName;
+    String javaRuntimeName
 
     void setJavaRuntimeName(String javaRuntimeName) {
         this.javaRuntimeName = javaRuntimeName
