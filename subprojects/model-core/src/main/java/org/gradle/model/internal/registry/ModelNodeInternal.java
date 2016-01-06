@@ -176,11 +176,14 @@ abstract class ModelNodeInternal implements MutableModelNode {
         this.ensureUsable();
         ModelView<?> modelView = getAdapter().asImmutable(ModelType.untyped(), this, null);
         if (modelView != null) {
-            ModelType<?> type = modelView.getType();
-            if (type != null) {
-                return Optional.of(type.toString());
+            try {
+                ModelType<?> type = modelView.getType();
+                if (type != null) {
+                    return Optional.of(type.toString());
+                }
+            } finally {
+                modelView.close();
             }
-            modelView.close();
         }
         return Optional.absent();
     }
