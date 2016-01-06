@@ -16,7 +16,6 @@
 package org.gradle.language.base.internal.resolve;
 
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
@@ -27,7 +26,7 @@ import org.gradle.platform.base.DependencySpec;
 
 import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData.newDefaultLibraryLocalComponentMetadata;
 
-public class DependentSourceSetResolveContext implements ResolveContext {
+public class DependentSourceSetResolveContext implements LocalLibraryResolveContext {
     private final LibraryBinaryIdentifier libraryBinaryIdentifier;
     private final LanguageSourceSet sourceSet;
     private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy();

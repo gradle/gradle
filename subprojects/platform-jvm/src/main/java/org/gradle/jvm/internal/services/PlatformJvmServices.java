@@ -20,7 +20,10 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
-import org.gradle.api.internal.resolve.*;
+import org.gradle.api.internal.resolve.DefaultLibraryResolutionErrorMessageBuilder;
+import org.gradle.api.internal.resolve.JvmLocalLibraryMetaDataAdapter;
+import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -31,7 +34,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.model.DefaultVariantAxisCompatibilityFactory;
 import org.gradle.language.base.internal.model.VariantAxisCompatibilityFactory;
 import org.gradle.language.base.internal.model.VariantsMetaData;
-import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
+import org.gradle.language.base.internal.resolve.LocalLibraryResolveContext;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 public class PlatformJvmServices implements PluginServiceRegistry {
@@ -70,13 +73,13 @@ public class PlatformJvmServices implements PluginServiceRegistry {
 
         @Override
         public boolean canCreate(ResolveContext context) {
-            return context instanceof DependentSourceSetResolveContext;
+            return context instanceof LocalLibraryResolveContext;
         }
 
         @Override
         public ComponentResolvers create(ResolveContext context) {
             final ModelSchemaStore schemaStore = registry.get(ModelSchemaStore.class);
-            VariantsMetaData variants = ((DependentSourceSetResolveContext) context).getVariants();
+            VariantsMetaData variants = ((LocalLibraryResolveContext) context).getVariants();
             JvmLocalLibraryMetaDataAdapter libraryMetaDataAdapter = new JvmLocalLibraryMetaDataAdapter();
             LocalLibraryDependencyResolver<JarBinarySpec> delegate =
                     new LocalLibraryDependencyResolver<JarBinarySpec>(

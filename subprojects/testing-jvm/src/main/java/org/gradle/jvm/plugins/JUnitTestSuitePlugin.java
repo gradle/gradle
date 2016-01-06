@@ -15,12 +15,25 @@
  */
 package org.gradle.jvm.plugins;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.*;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
+import org.gradle.internal.Transformers;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.jvm.internal.AbstractDependencyResolvingClasspath;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.internal.WithDependencies;
 import org.gradle.jvm.internal.WithJvmAssembly;
@@ -32,15 +45,21 @@ import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteSpec;
 import org.gradle.jvm.test.internal.JUnitTestSuiteRules;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
-import org.gradle.language.java.tasks.PlatformJavaCompile;
+import org.gradle.language.base.DependentSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
+import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
+import org.gradle.language.base.internal.model.VariantsMetaData;
+import org.gradle.language.base.internal.resolve.LocalLibraryResolveContext;
 import org.gradle.model.ModelMap;
-import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
+import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -94,7 +113,9 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
         void createTestSuiteTask(final ModelMap<Task> tasks,
                                  final JUnitTestSuiteBinarySpec binary,
                                  final FileOperations fileOperations,
-                                 final @Path("buildDir") File buildDir) {
+                                 final @Path("buildDir") File buildDir,
+                                 final ServiceRegistry registry,
+                                 final ModelSchemaStore schemaStore) {
 
             final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
             tasks.create(testTaskNameFor(binary), Test.class, new Action<Test>() {
@@ -102,7 +123,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                 public void execute(final Test test) {
                     test.dependsOn(jvmAssembly);
                     test.setTestClassesDir(binary.getClassesDir());
-                    test.setClasspath(classpathFor(jvmAssembly, fileOperations));
+                    test.setClasspath(classpathFor(binary, registry, schemaStore));
                     configureReports(test);
                 }
 
@@ -116,16 +137,6 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                     reports.getHtml().setDestination(htmlDir);
                     reports.getJunitXml().setDestination(xmlDir);
                     test.setBinResultsDir(binDir);
-                }
-            });
-        }
-
-        @Mutate
-        void configureClasspath(final ModelMap<Test> testTasks) {
-            testTasks.all(new Action<Test>() {
-                @Override
-                public void execute(Test test) {
-                    test.setClasspath(classpathFor(test));
                 }
             });
         }
@@ -175,26 +186,76 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                 .withVariantDimension(platform, selectedPlatforms);
         }
 
-        private FileCollection classpathFor(JvmAssembly jvmAssembly, FileOperations fileOperations) {
-            return fileOperations.files(jvmAssembly.getClassDirectories(), jvmAssembly.getResourceDirectories());
-        }
+        private JUnitDependencyResolvingClasspath classpathFor(final JUnitTestSuiteBinarySpec test, final ServiceRegistry serviceRegistry, final ModelSchemaStore schemaStore) {
+            ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
+            RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
+            List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
+            return new JUnitDependencyResolvingClasspath(test, "test suite", dependencyResolver, resolutionAwareRepositories, new LocalLibraryResolveContext() {
 
-        private FileCollection classpathFor(Test test) {
-            UnionFileCollection testClasspath = new UnionFileCollection(test.getClasspath());
-            Set<? extends Task> tasks = test.getTaskDependencies().getDependencies(test);
-            for (Task task : tasks) {
-                if (task instanceof PlatformJavaCompile) {
-                    FileCollection cp = ((PlatformJavaCompile) task).getClasspath();
-                    if (cp != null) {
-                        testClasspath.add(cp);
-                    }
+                @Override
+                public VariantsMetaData getVariants() {
+                    return DefaultVariantsMetaData.extractFrom(test, schemaStore);
                 }
-            }
-            return testClasspath;
+
+                private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy();
+
+                @Override
+                public String getName() {
+                    return "API";
+                }
+
+                @Override
+                public String getDisplayName() {
+                    return test.getDisplayName();
+                }
+
+                @Override
+                public ResolutionStrategyInternal getResolutionStrategy() {
+                    return resolutionStrategy;
+                }
+
+                @Override
+                public ComponentResolveMetaData toRootComponentMetaData() {
+                    LibraryBinaryIdentifier binaryIdentifier = ((BinarySpecInternal) test).getId();
+                    DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
+                    return DefaultLibraryLocalComponentMetaData.newDefaultLibraryLocalComponentMetadata(
+                        binaryIdentifier,
+                        buildDependencies,
+                        collectDependencies(test),
+                        binaryIdentifier.getProjectPath());
+                }
+
+                private List<DependencySpec> collectDependencies(JUnitTestSuiteBinarySpec binary) {
+                    final List<DependencySpec> dependencies = Lists.newArrayList();
+                    Iterable<LanguageSourceSet> sourceSets = Iterables.concat(binary.getTestSuite().getSources().values(), binary.getSources().values());
+                    for (LanguageSourceSet sourceSet : sourceSets) {
+                        if (sourceSet instanceof DependentSourceSet) {
+                            dependencies.addAll(((DependentSourceSet) sourceSet).getDependencies().getDependencies());
+                        }
+                    }
+                    dependencies.addAll(((WithDependencies) binary).getDependencies());
+                    return dependencies;
+                }
+            });
         }
     }
 
     private static String testTaskNameFor(JUnitTestSuiteBinarySpec binary) {
         return ((BinarySpecInternal) binary).getProjectScopedName() + "Test";
+    }
+
+    private static class JUnitDependencyResolvingClasspath extends AbstractDependencyResolvingClasspath {
+
+        private final JvmAssembly assembly;
+
+        protected JUnitDependencyResolvingClasspath(JUnitTestSuiteBinarySpec binarySpec, String descriptor, ArtifactDependencyResolver dependencyResolver, List<ResolutionAwareRepository> remoteRepositories, ResolveContext resolveContext) {
+            super((BinarySpecInternal) binarySpec, descriptor, dependencyResolver, remoteRepositories, resolveContext);
+            this.assembly = ((WithJvmAssembly) binarySpec).getAssembly();
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            return Sets.union(super.getFiles(), Sets.union(assembly.getClassDirectories(), assembly.getResourceDirectories()));
+        }
     }
 }
