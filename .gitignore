@@ -6,7 +6,6 @@
 /performanceTest/build
 /subprojects/*/build
 /subprojects/docs/src/samples/*/*/build
-/website/build
 
 # IDEA
 # ----
@@ -24,9 +23,6 @@
 /subprojects/*/*.iml
 /subprojects/*/ide
 /subprojects/*/out
-/website/website.iml
-/website/website.ipr
-/website/website.iws
 
 # Eclipse
 # -------
