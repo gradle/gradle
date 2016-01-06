@@ -1,6 +1,6 @@
 # Continuous build: Improved change detection
 
-- [x] Continuous build will trigger a rebuild when an input file is changed during build execution
+- [ ] Continuous build will trigger a rebuild when an input file is changed during build execution
 - [ ] Developer is able to easily determine the task/file that triggered a rebuild
 - [ ] Continuous build will trigger a rebuild when build configuration file changes
 
@@ -71,9 +71,7 @@ Implementation details can be planned further after spiking the changes in the a
     - change input file of task C
       - a new build gets triggered
 
-#### Open issues
 
-- Jar task needs this fix to prevent looping: https://github.com/gradle/gradle/commit/d629a86afbc25c6d1814b1c4e66f9a39a343df0c
 
 ## Story: Developer is able to easily determine the task/file that triggered a rebuild
 
