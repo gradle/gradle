@@ -112,4 +112,9 @@ public class DefaultStructBindings<T> implements StructBindings<T> {
     public int hashCode() {
         return Objects.hashCode(publicSchema, internalViewSchemas, viewSchemas, delegateSchema);
     }
+
+    @Override
+    public String toString() {
+        return "StructBindings[" + publicSchema.getType().getDisplayName() + "]";
+    }
 }
