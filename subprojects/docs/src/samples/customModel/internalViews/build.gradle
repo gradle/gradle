@@ -37,7 +37,7 @@ class MyPlugin extends RuleSource {
 // START SNIPPET internal-view-mutation
     @Mutate
     void mutateMyComponents(ModelMap<MyComponentInternal> components) {
-        components.beforeEach({ component ->
+        components.all({ component ->
             component.publicData = "Some PUBLIC data"
             component.internalData = "Some INTERNAL data"
         })
