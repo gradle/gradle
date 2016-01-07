@@ -89,7 +89,7 @@ class ClasspathFactory {
     }
 
     Collection<UnresolvedIdeRepoFileDependency> getUnresolvedDependencies(EclipseClasspath classpath) {
-        return dependenciesExtractor.unresolvedExternalDependencies(classpath.plusConfigurations, classpath.minusConfigurations);
+        return DEPENDENCIES_EXTRACTOR.unresolvedExternalDependencies(classpath.plusConfigurations, classpath.minusConfigurations);
     }
 
     private AbstractLibrary createLibraryEntry(
