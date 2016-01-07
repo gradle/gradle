@@ -23,12 +23,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
-import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
-import org.gradle.testkit.runner.fixtures.annotations.Debug
-import org.gradle.testkit.runner.fixtures.annotations.NoDebug
-import org.gradle.testkit.runner.fixtures.annotations.NonCrossVersion
-import org.gradle.testkit.runner.fixtures.annotations.PluginClasspathInjection
+import org.gradle.testkit.runner.fixtures.annotations.*
 import org.gradle.testkit.runner.internal.dist.GradleDistribution
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution
@@ -37,45 +32,16 @@ import org.gradle.wrapper.GradleUserHomeLookup
 
 import java.lang.annotation.Annotation
 
-/**
- * Verifies GradleRunner functionality against "supported" Gradle versions.
- *
- * Compatibility testing is performed against a subset of Gradle versions to limit the (growing) number of required test executions:
- *
- * - The minimum Gradle version a feature is compatible with (if no specific feature is provided, then the minimum Gradle version is used that supports TestKit)
- * - The most recent released Gradle version
- * - The Gradle version under development
- *
- * The range of versions used for compatibility testing can be controlled with the system property "org.gradle.integtest.testkit.compatibility".
- */
 class GradleRunnerCompatibilityIntegTestRunner extends AbstractMultiTestRunner {
-    /**
-     * Read by tests to configure themselves to determine the Gradle version used for test execution.
-     */
-    public static GradleVersion gradleVersion
 
-    /**
-     * Read by tests to configure themselves to determine the Gradle distribution used for test execution.
-     */
-    public static GradleDistribution distribution
-
-    /**
-     * TestKit features annotations read by tests to determine the minimum compatible Gradle version.
-     */
-    private static final List<Class<? extends Annotation>> TESTKIT_FEATURES = [CaptureExecutedTasks, PluginClasspathInjection]
-
-    /**
-     * Read by tests to configure themselves for debug or not.
-     */
-    public static boolean debug
-
-    public static final IntegrationTestBuildContext BUILD_CONTEXT = new IntegrationTestBuildContext()
-
-    /**
-     * The minimum Gradle version used for testing TestKit if no other features require an earlier version.
-     */
     public static final GradleVersion MIN_TESTED_VERSION = GradleVersion.version('1.0')
 
+    public static GradleVersion gradleVersion
+    public static GradleDistribution distribution
+    public static boolean debug
+
+    private static final List<Class<? extends Annotation>> TESTKIT_FEATURES = [CaptureExecutedTasks, PluginClasspathInjection]
+    private static final IntegrationTestBuildContext BUILD_CONTEXT = new IntegrationTestBuildContext()
     private static final String COMPATIBILITY_SYSPROP_NAME = 'org.gradle.integtest.testkit.compatibility'
     private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
 
