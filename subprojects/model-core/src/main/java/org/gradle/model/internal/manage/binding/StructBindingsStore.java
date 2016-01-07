@@ -16,10 +16,10 @@
 
 package org.gradle.model.internal.manage.binding;
 
-import org.gradle.model.internal.manage.schema.StructSchema;
+import org.gradle.model.internal.type.ModelType;
 
 public interface StructBindingsStore {
-    <T> StructBindings<T> getBindings(StructSchema<T> publicSchema);
+    <T> StructBindings<T> getBindings(ModelType<T> publicType);
 
-    <T> StructBindings<T> getBindings(StructSchema<T> publicSchema, Iterable<? extends StructSchema<?>> internalViewSchemas, StructSchema<?> delegateSchema);
+    <T> StructBindings<T> getBindings(ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<?> delegateType);
 }

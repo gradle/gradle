@@ -17,7 +17,6 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.Cast;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.inspect.StructNodeInitializer;
@@ -48,8 +47,7 @@ public class ManagedImplStructNodeInitializerExtractionStrategy implements NodeI
             return null;
         }
 
-        ManagedImplStructSchema<T> managedSchema = Cast.<ManagedImplStructSchema<T>>uncheckedCast(schema);
-        StructBindings<T> bindings = bindingsStore.getBindings(managedSchema);
+        StructBindings<T> bindings = bindingsStore.getBindings(schema.getType());
         return new StructNodeInitializer<T>(bindings);
     }
 

@@ -789,8 +789,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         Class<?> generatedClass = generated[key] as Class<? extends T>
         if (generatedClass == null) {
             def managedSchema = (StructSchema) schemaStore.getSchema(managedType)
-            def delegateSchema = delegateType == null ? null : (StructSchema) schemaStore.getSchema(delegateType)
-            def bindings = structBindingsStore.getBindings(managedSchema, [], delegateSchema)
+            def bindings = structBindingsStore.getBindings(ModelType.of(managedType), [], delegateType == null ? null : ModelType.of(delegateType))
             generatedClass = generator.generate(backingStateType, managedSchema, bindings)
             generated[key] = generatedClass
         }

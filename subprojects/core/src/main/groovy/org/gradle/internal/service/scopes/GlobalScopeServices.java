@@ -242,8 +242,8 @@ public class GlobalScopeServices {
         return new DefaultModelSchemaStore(modelSchemaExtractor);
     }
 
-    protected StructBindingsStore createStructBindingsStore() {
-        return new DefaultStructBindingsStore();
+    protected StructBindingsStore createStructBindingsStore(ModelSchemaStore schemaStore) {
+        return new DefaultStructBindingsStore(schemaStore);
     }
 
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {

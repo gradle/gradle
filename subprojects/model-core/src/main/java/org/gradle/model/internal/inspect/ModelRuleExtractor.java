@@ -138,7 +138,7 @@ public class ModelRuleExtractor {
             throw new InvalidModelRuleDeclarationException(context.problems.format());
         }
 
-        StructBindings<T> bindings = structBindingsStore.getBindings(schema);
+        StructBindings<T> bindings = structBindingsStore.getBindings(schema.getType());
 
         if (schema.getProperties().isEmpty()) {
             return new StatelessRuleSource(rules.build(), Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema, bindings, proxyFactory) : new ConcreteRuleSourceFactory<T>(type));

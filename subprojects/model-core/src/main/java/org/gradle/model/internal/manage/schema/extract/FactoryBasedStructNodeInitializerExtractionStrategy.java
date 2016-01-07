@@ -16,9 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.InstanceFactory;
 import org.gradle.model.internal.core.NodeInitializer;
@@ -63,28 +61,8 @@ public class FactoryBasedStructNodeInitializerExtractionStrategy<T> implements N
         }
         Set<ModelType<?>> internalViews = instanceFactory.getInternalViews(publicType);
         ModelType<? extends T> delegateType = implementationInfo.getDelegateType();
-        StructBindings<S> bindings = bindingsStore.getBindings(publicSchema, getSchemas(internalViews), getSchema(delegateType));
+        StructBindings<S> bindings = bindingsStore.getBindings(publicSchema.getType(), internalViews, delegateType);
         return new FactoryBasedStructNodeInitializer<T, S>(bindings, implementationInfo);
-    }
-
-    private Iterable<StructSchema<?>> getSchemas(Iterable<ModelType<?>> types) {
-        return Iterables.transform(types, new Function<ModelType<?>, StructSchema<?>>() {
-            @Override
-            public StructSchema<?> apply(ModelType<?> type) {
-                return getSchema(type);
-            }
-        });
-    }
-
-    private <S> StructSchema<S> getSchema(ModelType<S> type) {
-        if (type == null) {
-            return null;
-        }
-        ModelSchema<S> schema = schemaStore.getSchema(type);
-        if (!(schema instanceof StructSchema)) {
-            throw new IllegalArgumentException("Not a struct type: " + type);
-        }
-        return Cast.uncheckedCast(schema);
     }
 
     @Override

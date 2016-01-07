@@ -28,6 +28,8 @@ import com.google.common.collect.*;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
@@ -46,28 +48,38 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         .build(new CacheLoader<CacheKey, StructBindings<?>>() {
             @Override
             public StructBindings<?> load(CacheKey key) throws Exception {
-                return extract(key.publicSchema, key.viewSchemas, key.delegateSchema);
+                return extract(key.publicType, key.viewTypes, key.delegateType);
             }
         });
 
-    @Override
-    public <T> StructBindings<T> getBindings(StructSchema<T> publicSchema) {
-        return getBindings(publicSchema, Collections.<StructSchema<?>>emptySet(), null);
+    private final ModelSchemaStore schemaStore;
+
+    public DefaultStructBindingsStore(ModelSchemaStore schemaStore) {
+        this.schemaStore = schemaStore;
     }
 
     @Override
-    public <T> StructBindings<T> getBindings(StructSchema<T> publicSchema, Iterable<? extends StructSchema<?>> internalViewSchemas, StructSchema<?> delegateSchema) {
+    public <T> StructBindings<T> getBindings(ModelType<T> publicType) {
+        return getBindings(publicType, Collections.<ModelType<?>>emptySet(), null);
+    }
+
+    @Override
+    public <T> StructBindings<T> getBindings(ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<?> delegateType) {
         try {
-            return Cast.uncheckedCast(bindings.get(new CacheKey(publicSchema, internalViewSchemas, delegateSchema)));
+            return Cast.uncheckedCast(bindings.get(new CacheKey(publicType, internalViewTypes, delegateType)));
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
-    <T> StructBindings<T> extract(StructSchema<T> publicSchema, Iterable<? extends StructSchema<?>> internalViewSchemas, StructSchema<?> delegateSchema) {
-        if (delegateSchema != null && Modifier.isAbstract(delegateSchema.getType().getConcreteClass().getModifiers())) {
-            throw new IllegalArgumentException(String.format("Delegate '%s' type must be null or a non-abstract type", delegateSchema.getType()));
+    <T> StructBindings<T> extract(ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<?> delegateType) {
+        if (delegateType != null && Modifier.isAbstract(delegateType.getConcreteClass().getModifiers())) {
+            throw new IllegalArgumentException(String.format("Delegate '%s' type must be null or a non-abstract type", delegateType));
         }
+
+        StructSchema<T> publicSchema = getStructSchema(publicType);
+        Iterable<StructSchema<?>> internalViewSchemas = getStructSchemas(internalViewTypes);
+        StructSchema<?> delegateSchema = delegateType == null ? null : getStructSchema(delegateType);
 
         // TODO:LPTR Validate view types have no fields
         ImmutableSet.Builder<WeaklyTypeReferencingMethod<?, ?>> allViewMethodsBuilder = ImmutableSet.builder();
@@ -182,19 +194,36 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         );
     }
 
+    private <T> Iterable<StructSchema<? extends T>> getStructSchemas(Iterable<? extends ModelType<? extends T>> types) {
+        return Iterables.transform(types, new Function<ModelType<? extends T>, StructSchema<? extends T>>() {
+            @Override
+            public StructSchema<? extends T> apply(ModelType<? extends T> type) {
+                return  getStructSchema(type);
+            }
+        });
+    }
+
+    private <T> StructSchema<T> getStructSchema(ModelType<T> type) {
+        ModelSchema<T> schema = schemaStore.getSchema(type);
+        if (!(schema instanceof StructSchema)) {
+            throw new IllegalArgumentException(String.format("Type '%s' is not a struct.", type.getDisplayName()));
+        }
+        return Cast.uncheckedCast(schema);
+    }
+
     private static <T> ManagedProperty<T> createProperty(String propertyName, ModelType<T> propertyType, boolean internal, Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors) {
         return new ManagedProperty<T>(propertyName, propertyType, internal, accessors);
     }
 
     private static class CacheKey {
-        private final StructSchema<?> publicSchema;
-        private final Set<StructSchema<?>> viewSchemas;
-        private final StructSchema<?> delegateSchema;
+        private final ModelType<?> publicType;
+        private final Set<ModelType<?>> viewTypes;
+        private final ModelType<?> delegateType;
 
-        public CacheKey(StructSchema<?> publicSchema, Iterable<? extends StructSchema<?>> viewSchemas, StructSchema<?> delegateSchema) {
-            this.publicSchema = publicSchema;
-            this.viewSchemas = ImmutableSortedSet.copyOf(Ordering.usingToString(), viewSchemas);
-            this.delegateSchema = delegateSchema;
+        public CacheKey(ModelType<?> publicType, Iterable<? extends ModelType<?>> viewTypes, ModelType<?> delegateType) {
+            this.publicType = publicType;
+            this.viewTypes = ImmutableSet.copyOf(viewTypes);
+            this.delegateType = delegateType;
         }
 
         @Override
@@ -206,14 +235,14 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
                 return false;
             }
             CacheKey cacheKey = (CacheKey) o;
-            return Objects.equal(publicSchema, cacheKey.publicSchema)
-                && Objects.equal(viewSchemas, cacheKey.viewSchemas)
-                && Objects.equal(delegateSchema, cacheKey.delegateSchema);
+            return Objects.equal(publicType, cacheKey.publicType)
+                && Objects.equal(viewTypes, cacheKey.viewTypes)
+                && Objects.equal(delegateType, cacheKey.delegateType);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(publicSchema, viewSchemas, delegateSchema);
+            return Objects.hashCode(publicType, viewTypes, delegateType);
         }
     }
 

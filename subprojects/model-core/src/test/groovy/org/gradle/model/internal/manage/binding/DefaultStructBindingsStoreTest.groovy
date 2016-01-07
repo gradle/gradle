@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.manage.binding
 
-import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
@@ -25,7 +24,7 @@ import spock.lang.Unroll
 
 class DefaultStructBindingsStoreTest extends Specification {
     def schemaStore = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
-    def bindingStore = new DefaultStructBindingsStore()
+    def bindingStore = new DefaultStructBindingsStore(schemaStore)
 
     def "extracts empty"() {
         def bindings = extract(Object)
@@ -152,9 +151,9 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
     def extract(Class<?> type, List<Class<?>> viewTypes, Class<?> delegateType = null) {
         return bindingStore.getBindings(
-            (StructSchema) schemaStore.getSchema(type),
-            viewTypes.collect { (StructSchema) schemaStore.getSchema(it) },
-            delegateType == null ? null : (StructSchema) schemaStore.getSchema(delegateType)
+            ModelType.of(type),
+            viewTypes.collect { ModelType.of(it) },
+            delegateType == null ? null : ModelType.of(delegateType)
         )
     }
 

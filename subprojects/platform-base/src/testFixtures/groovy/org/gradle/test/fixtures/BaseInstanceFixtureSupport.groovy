@@ -41,8 +41,7 @@ public class BaseInstanceFixtureSupport {
 
         def publicTypeSchema = (StructSchema<T>) SCHEMA_STORE.getSchema(publicType)
         def internalViewSchema = (StructSchema<? extends T>) SCHEMA_STORE.getSchema(internalView)
-        def delegateSchema = (StructSchema<? extends T>) SCHEMA_STORE.getSchema(implType)
-        def bindings = STRUCT_BINDINGS_STORE.getBindings(publicTypeSchema, [internalViewSchema], delegateSchema)
+        def bindings = STRUCT_BINDINGS_STORE.getBindings(ModelType.of(publicType), [ModelType.of(internalView)], ModelType.of(implType))
 
         def registration = ModelRegistrations.of(ModelPath.path(name))
             .action(ModelActionRole.Create) { MutableModelNode node ->
