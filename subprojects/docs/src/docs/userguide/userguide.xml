@@ -116,6 +116,7 @@
         <xi:include href='buildingJavaLibraries.xml'/>
         <xi:include href='playPlugin.xml'/>
         <xi:include href='nativeBinaries.xml'/>
+        <xi:include href='softwareModelExtend.xml'/>
     </part>
     <part>
         <title>Appendix</title>
