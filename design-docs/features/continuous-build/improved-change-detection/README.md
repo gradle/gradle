@@ -74,7 +74,7 @@ Implementation details can be planned further after spiking the changes in the a
 
 ### Story: Developer is able to easily determine the file(s) that triggered a rebuild
 
-The absolute path of the first 3 changed files should be printed to the console when a new build gets triggered. When there is more than 3 changes, the number of other changes is shown.
+The absolute path of the first 3 changed files should be printed to the console when a new build gets triggered. When there are more than 3 changes, the number of remaining changes is shown.
 
 #### Examples of the desired console output
 
