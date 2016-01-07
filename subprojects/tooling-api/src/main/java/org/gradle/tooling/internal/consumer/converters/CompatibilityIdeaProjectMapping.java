@@ -31,7 +31,7 @@ public class CompatibilityIdeaProjectMapping {
         this.ideaProject = ideaProject;
     }
 
-    public Object getJavaSourceSettings() {
+    public CompatibilityIdeaProjectJavaSourceSettings getJavaSourceSettings() {
         return new CompatibilityIdeaProjectJavaSourceSettings(ideaProject);
     }
 
@@ -46,7 +46,7 @@ public class CompatibilityIdeaProjectMapping {
             return JavaVersion.valueOf(ideaProject.getLanguageLevel().getLevel().replaceFirst("JDK", "VERSION"));
         }
 
-        public Object getTargetRuntime() {
+        public CompatibilityJavaRuntime getTargetRuntime() {
             return new CompatibilityJavaRuntime();
         }
 
