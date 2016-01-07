@@ -435,6 +435,35 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
 
     }
 
+    def "runtime transitive dependencies should not be on compile classpath of test suite"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        testSuiteWithDependencyOnLocalLibraryWithExternalTransitiveDependency('core')
+
+        and:
+        file('src/myTest/java/MyTest.java').write """
+            import org.junit.Test;
+            import static org.junit.Assert.*;
+
+            public class MyTest {
+                @Test
+                public void test() {
+                    assertEquals(Utils.pretty("hello world"), "Hello World");
+                }
+            }
+        """
+
+        when:
+        fails ':myTestBinaryTest'
+
+        then:
+        failure.assertHasCause 'Compilation failed; see the compiler error output for details'
+        errorOutput.contains 'variable Utils'
+
+    }
+
     private testSuiteWithDependencyOnLocalLibraryWithExternalTransitiveDependency(String dependencyOn='utils') {
         buildFile << """
             model {
