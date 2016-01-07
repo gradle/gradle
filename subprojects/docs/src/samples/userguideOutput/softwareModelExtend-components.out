@@ -1,0 +1,14 @@
+:components
+
+DocumentationComponent 'docs'
+-----------------------------
+
+Source sets
+    MarkdownSourceSet 'docs:userguide'
+        srcDir: src/docs/userguide
+    TextSourceSet 'docs:reference'
+        srcDir: src/docs/reference
+
+Binaries
+    DocumentationBinary 'docs:exploded'
+        build using task: :docsExploded
