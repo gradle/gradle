@@ -73,6 +73,31 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         executedAndNotSkipped ':processMyTestBinaryMyTestResources', ':myTestBinaryTest'
     }
 
+    def "re-executes test when local library dependency changes"() {
+        given:
+        utilsLibrary()
+        dependencyOnUtilsLibrary()
+
+        when:
+        succeeds ':myTestBinaryTest'
+
+        then:
+        executedAndNotSkipped ':createMyUtilsJar', ':myTestBinaryTest'
+
+        when:
+        succeeds ':myTestBinaryTest'
+
+        then:
+        skipped ':createMyUtilsJar', ':myTestBinaryTest'
+
+        when:
+        updateUtilsLibrary()
+
+        then:
+        succeeds ':myTestBinaryTest'
+        executedAndNotSkipped ':createMyUtilsJar', ':myTestBinaryTest'
+    }
+
     def changeTestSource() {
         writeTestSource("differentTestMethodName")
     }
@@ -102,5 +127,46 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
 
     def writeFile(String path, String content) {
         file(path).createFile().write(content)
+    }
+
+    void utilsLibrary() {
+        buildFile << '''
+            model {
+                components {
+                    myUtils(JvmLibrarySpec)
+                }
+            }
+        '''
+        file('src/myUtils/java/Utils.java') << '''
+            public class Utils {
+                public static void foo(int x) { }
+            }
+        '''
+    }
+
+    void dependencyOnUtilsLibrary() {
+        buildFile << '''
+            model {
+                testSuites {
+                    myTest {
+                        sources {
+                            java {
+                                dependencies {
+                                    library 'myUtils'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        '''
+    }
+
+    void updateUtilsLibrary() {
+        file('src/myUtils/java/Utils.java').write '''
+            public class Utils {
+                public static void foo(int x, int y) { } // change public API
+            }
+        '''
     }
 }
