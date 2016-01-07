@@ -86,7 +86,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         then:
         TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
         testResult.assertTestClassesExecuted("LibraryTest")
-        testResult.testClass("LibraryTest").assertTestPassed("testSomeLibraryMethod")
+        testResult.testClass("LibraryTest").assertTestPassed("someLibraryMethodReturnsTrue")
     }
 
     def "setupProjectLayout is skipped when java sources detected"() {

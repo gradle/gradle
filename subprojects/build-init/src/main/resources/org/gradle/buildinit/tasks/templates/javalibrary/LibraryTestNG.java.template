@@ -7,7 +7,7 @@ import org.testng.annotations.*;
  * @author ${genUser.groovyComment}, @date ${genDate.groovyComment}
  */
 public class LibraryTest {
-    @Test public void testSomeLibraryMethod() {
+    @Test public void someLibraryMethodReturnsTrue() {
         Library classUnderTest = new Library();
         assert classUnderTest.someLibraryMethod() : "someLibraryMethod should return 'true'";
     }
