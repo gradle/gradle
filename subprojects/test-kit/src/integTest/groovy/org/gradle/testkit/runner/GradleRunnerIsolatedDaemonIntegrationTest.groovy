@@ -137,8 +137,8 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerComp
         nonTestKitDaemons.visible.empty
 
         when:
-        new DaemonGradleExecuter(new UnderDevelopmentGradleDistribution(), testProjectDir)
-            .usingProjectDirectory(testProjectDir.testDirectory)
+        new DaemonGradleExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider)
+            .usingProjectDirectory(testDirectory)
             .withGradleUserHomeDir(testKitDir)
             .withDaemonBaseDir(testKitDir.file("daemon")) // simulate default, our fixtures deviate from the default
             .run()

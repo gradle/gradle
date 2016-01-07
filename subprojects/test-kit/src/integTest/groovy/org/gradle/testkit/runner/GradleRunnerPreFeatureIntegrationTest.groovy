@@ -204,7 +204,7 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerCompatib
 
     private void compilePluginProjectSources() {
         createPluginProjectSourceFiles()
-        new ForkingGradleExecuter(new UnderDevelopmentGradleDistribution(), testProjectDir)
+        new ForkingGradleExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider)
             .withArguments('classes', "--no-daemon")
             .run()
     }
@@ -260,7 +260,7 @@ class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerCompatib
     }
 
     private TestFile pluginProjectFile(String path) {
-        testProjectDir.file(path)
+        file(path)
     }
 
     private List<File> getPluginClasspath() {

@@ -22,10 +22,7 @@ import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
-import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
-import org.gradle.testkit.runner.fixtures.annotations.NonCrossVersion
-import org.gradle.testkit.runner.fixtures.annotations.PluginClasspathInjection
+import org.gradle.testkit.runner.fixtures.annotations.*
 import org.gradle.testkit.runner.internal.dist.GradleDistribution
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution
@@ -87,7 +84,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
 
         String version = System.getProperty(COMPATIBILITY_SYSPROP_NAME, 'all')
 
-        switch(version) {
+        switch (version) {
             case 'all': return [TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
                                 TestedGradleDistribution.mostRecentFinalRelease(),
                                 TestedGradleDistribution.underDevelopment()] as SortedSet
@@ -104,8 +101,12 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
         } else if (releasedDist && !releasedDist.worksWith(OperatingSystem.current())) {
             add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current OS'))
         } else {
-            [true, false].each { debug ->
-                add(new GradleRunnerExecution(testedGradleDistribution, debug))
+            if (target.getAnnotation(NoDebug)) {
+                add(new GradleRunnerExecution(testedGradleDistribution, false))
+            } else if (target.getAnnotation(Debug)) {
+                add(new GradleRunnerExecution(testedGradleDistribution, true))
+            } else {
+                [true, false].each { add(new GradleRunnerExecution(testedGradleDistribution, it)) }
             }
         }
     }
@@ -119,7 +120,8 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
     @Sortable(includes = ['gradleVersion'])
     private static class TestedGradleDistribution {
 
-        private static final TestedGradleDistribution underDevelopmentTestedGradleDistribution = new TestedGradleDistribution(BUILD_CONTEXT.version, new InstalledGradleDistribution(BUILD_CONTEXT.gradleHomeDir))
+        private static
+        final TestedGradleDistribution underDevelopmentTestedGradleDistribution = new TestedGradleDistribution(BUILD_CONTEXT.version, new InstalledGradleDistribution(BUILD_CONTEXT.gradleHomeDir))
 
         final GradleVersion gradleVersion
         final GradleDistribution gradleDistribution
@@ -130,7 +132,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends GradleRunnerIntegTestRunn
 
         static TestedGradleDistribution mostRecentFinalRelease() {
             new TestedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version,
-                                         new VersionBasedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version.version))
+                new VersionBasedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version.version))
         }
 
         static TestedGradleDistribution underDevelopment() {

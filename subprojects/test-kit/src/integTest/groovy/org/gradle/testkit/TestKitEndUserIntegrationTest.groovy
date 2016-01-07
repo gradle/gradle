@@ -20,7 +20,7 @@ import com.google.common.math.IntMath
 import groovy.io.FileType
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.executer.*
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.AbstractGradleRunnerCompatibilityIntegrationTest
 import org.gradle.testkit.runner.GradleRunner
@@ -37,50 +37,14 @@ import spock.lang.Unroll
 @UsesNativeServices
 class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
 
-    GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
-    GradleExecuter executer = new GradleContextualExecuter(distribution, testProjectDir)
-
-    ExecutionResult result
-    ExecutionFailure failure
-
     def setup() {
         executer.requireGradleHome().withStackTraceChecksDisabled()
         executer.withEnvironmentVars(GRADLE_USER_HOME: executer.gradleUserHomeDir.absolutePath)
         buildFile << buildFileForGroovyProject()
     }
 
-    protected ExecutionResult succeeds(String... tasks) {
-        result = executer.inDirectory(testProjectDir.testDirectory).withTasks(*tasks).run()
-    }
-
-    protected ExecutionFailure fails(String... tasks) {
-        failure = executer.inDirectory(testProjectDir.testDirectory).withTasks(*tasks).runWithFailure()
-        result = failure
-    }
-
-    private assertHasResult() {
-        assert result != null: "result is null, you haven't run succeeds()"
-    }
-
-    protected List<String> getExecutedTasks() {
-        assertHasResult()
-        result.executedTasks
-    }
-
-    protected void executedAndNotSkipped(String... tasks) {
-        tasks.each {
-            assert it in executedTasks
-            assert !skippedTasks.contains(it)
-        }
-    }
-
-    protected Set<String> getSkippedTasks() {
-        assertHasResult()
-        result.skippedTasks
-    }
-
     private TestFile writeTest(String content, String className = 'BuildLogicFunctionalTest') {
-        testProjectDir.file("src/test/groovy/org/gradle/test/${className}.groovy") << content
+        file("src/test/groovy/org/gradle/test/${className}.groovy") << content
     }
 
     @NoDebug
@@ -99,7 +63,7 @@ class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityInt
 
     @NoDebug
     def "attempt to use implicit gradle version fails if test kit is not being used from a distribution"() {
-        def jarsDir = testProjectDir.createDir('jars')
+        def jarsDir = file('jars').createDir()
 
         new File(distribution.gradleHomeDir, 'lib').eachFileRecurse(FileType.FILES) { f ->
             if (f.name.contains("test-kit")) {

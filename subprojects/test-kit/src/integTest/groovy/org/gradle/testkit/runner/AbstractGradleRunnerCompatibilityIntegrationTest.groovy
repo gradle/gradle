@@ -16,12 +16,12 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.fixtures.GradleRunnerCompatibilityIntegTestRunner
 import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
@@ -30,17 +30,14 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.runner.RunWith
 import spock.lang.Shared
-import spock.lang.Specification
 
 import static org.gradle.testkit.runner.internal.ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME
 
 @RunWith(GradleRunnerCompatibilityIntegTestRunner)
-class AbstractGradleRunnerCompatibilityIntegrationTest extends Specification {
+class AbstractGradleRunnerCompatibilityIntegrationTest extends AbstractIntegrationSpec {
+
     @Shared
     IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-
-    @Rule
-    TestNameTestDirectoryProvider testProjectDir = new TestNameTestDirectoryProvider()
 
     @Rule
     SetSystemProperties setSystemProperties = new SetSystemProperties((NativeServices.NATIVE_DIR_OVERRIDE): buildContext.gradleUserHomeDir.file("native").absolutePath)
@@ -48,19 +45,11 @@ class AbstractGradleRunnerCompatibilityIntegrationTest extends Specification {
     boolean requireIsolatedTestKitDir
 
     TestFile getTestKitDir() {
-        requireIsolatedTestKitDir ? testProjectDir.file("test-kit-workspace") : buildContext.gradleUserHomeDir
-    }
-
-    TestFile getBuildFile() {
-        file('build.gradle')
-    }
-
-    TestFile file(String path) {
-        testProjectDir.file(path)
+        requireIsolatedTestKitDir ? file("test-kit-workspace") : buildContext.gradleUserHomeDir
     }
 
     String getRootProjectName() {
-        testProjectDir.testDirectory.name
+        testDirectory.name
     }
 
     GradleRunner runner(List<String> arguments) {
@@ -70,7 +59,7 @@ class AbstractGradleRunnerCompatibilityIntegrationTest extends Specification {
     GradleRunner runner(String... arguments) {
         def gradleRunner = GradleRunner.create()
             .withTestKitDir(testKitDir)
-            .withProjectDir(testProjectDir.testDirectory)
+            .withProjectDir(testDirectory)
             .withArguments(arguments)
             .withDebug(GradleRunnerIntegTestRunner.debug)
 

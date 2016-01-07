@@ -438,7 +438,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerCom
 
     private void compilePluginProjectSources(int counter = 1) {
         createPluginProjectSourceFiles(counter)
-        new ForkingGradleExecuter(new UnderDevelopmentGradleDistribution(), testProjectDir)
+        new ForkingGradleExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider)
             .usingProjectDirectory(file(counter.toString()))
             .withArguments('classes', "--no-daemon")
             .run()
@@ -487,7 +487,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerCom
     }
 
     private TestFile pluginProjectFile(int counter = 1, String path) {
-        testProjectDir.file(counter.toString()).file(path)
+        file(counter.toString()).file(path)
     }
 
     private List<File> getPluginClasspath(int counter = 1) {

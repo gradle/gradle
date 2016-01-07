@@ -108,7 +108,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerC
     @NoDebug
     def "build execution with invalid JVM arguments"() {
         given:
-        testProjectDir.file('gradle.properties') << 'org.gradle.jvmargs=-unknown'
+        file('gradle.properties') << 'org.gradle.jvmargs=-unknown'
         buildFile << helloWorldTask()
 
         when:
@@ -143,7 +143,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerC
         t.cause.cause.class.name == DaemonDisappearedException.name // not the same class because it's coming from the tooling client
 
         and:
-        normaliseLineSeparators(t.message) == """An error occurred executing build with args 'helloWorld' in directory '$testProjectDir.testDirectory.canonicalPath'. Output before error:
+        normaliseLineSeparators(t.message) == """An error occurred executing build with args 'helloWorld' in directory '$testDirectory.canonicalPath'. Output before error:
 :helloWorld
 Hello world!
 """.toString()

@@ -75,16 +75,15 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerCompatibility
 
     def "execute build with buildSrc project"() {
         given:
-        File buildSrcJavaSrcDir = testProjectDir.createDir('buildSrc', 'src', 'main', 'java', 'org', 'gradle', 'test')
-        GFileUtils.writeFile("""package org.gradle.test;
+        file('buildSrc/src/main/java/org/gradle/test/MyApp.java') << """
+            package org.gradle.test;
 
-public class MyApp {
-    public static void main(String args[]) {
-       System.out.println("Hello world!");
-    }
-}
-""", new File(buildSrcJavaSrcDir, 'MyApp.java'))
-
+            public class MyApp {
+                public static void main(String args[]) {
+                   System.out.println("Hello world!");
+                }
+            }
+        """
 
         buildFile << helloWorldTask()
 

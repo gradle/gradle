@@ -54,7 +54,7 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerCompatibilit
     @CaptureBuildOutputInDebug
     def "executed buildSrc tasks are not part of tasks in result object"() {
         given:
-        testProjectDir.createDir('buildSrc')
+        file('buildSrc').mkdirs()
         buildFile << helloWorldTask()
 
         when:
