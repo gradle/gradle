@@ -1,4 +1,3 @@
-[...]
 + components
       | Type:   	org.gradle.platform.base.ComponentSpecContainer
       | Creator: 	ComponentModelBasePlugin.Rules#components
@@ -26,4 +25,3 @@
         + sources
               | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
               | Creator: 	components { ... } @ build.gradle line 44, column 5 > create(my)
-[...]
