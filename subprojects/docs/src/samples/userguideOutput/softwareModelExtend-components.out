@@ -1,4 +1,7 @@
-:components
+
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
 
 DocumentationComponent 'docs'
 -----------------------------
@@ -12,3 +15,5 @@ Source sets
 Binaries
     DocumentationBinary 'docs:exploded'
         build using task: :docsExploded
+
+Note: currently not all plugins register their components, so some components may not be visible here.
