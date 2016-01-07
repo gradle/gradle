@@ -74,7 +74,7 @@ Implementation details can be planned further after spiking the changes in the a
 
 ### Story: Developer is able to easily determine the file(s) that triggered a rebuild
 
-The path of the changed files should be printed to the console when a new build gets triggered. The individual file paths are suppressed when more than 3 files change in each change type group (new/modified/deleted). The count of changed files in each change type group is shown in that case.
+The absolute path of the first 3 changed files should be printed to the console when a new build gets triggered. When there is more than 3 changes, the number of other changes is shown.
 
 #### Examples of the desired console output
 
