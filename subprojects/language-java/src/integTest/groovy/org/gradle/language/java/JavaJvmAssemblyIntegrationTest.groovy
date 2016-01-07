@@ -39,7 +39,7 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         '''
-        file('src/main/java/myorg/Main.java')       << 'package myorg; class Main {}'
+        file('src/main/java/myorg/Main.java')       << 'package myorg; public class Main {}'
         file('src/main/resources/myorg/answer.txt') << '# yadda\n42'
     }
 
@@ -110,6 +110,45 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
         def (question, answer) = textForEntriesOf(jar, 'myorg/question.txt', 'myorg/answer.txt')
         question == '# the ultimate question'
         answer   == '42'
+    }
+
+    def "can specify additional class directory with precompiled classes"() {
+        given:
+        buildFile << '''
+            def precompiledClassesDir = file("$buildDir/precompiled/classes")
+            model {
+                components {
+                    precompiledClasses(JvmLibrarySpec) {
+                        binaries.jar {
+                            assembly.classDirectories.clear()
+                            assembly.classDirectories << precompiledClassesDir
+                        }
+                    }
+                    main.binaries.jar {
+                        assert !assembly.classDirectories.empty // conventional class directory should already be there
+                        assembly.classDirectories << precompiledClassesDir
+                    }
+                    mainConsumer(JvmLibrarySpec) {
+                        dependencies {
+                            library 'main'
+                        }
+                    }
+                }
+            }
+        '''
+        file('src/precompiledClasses/java/myorg/Precompiled.java') << 'package myorg; public class Precompiled {}'
+        file('src/mainConsumer/java/consumer/MainConsumer.java')   <<  '''
+            package consumer;
+            import myorg.Main;
+            import myorg.Precompiled;
+            class MainConsumer {}
+        '''
+
+        expect:
+        succeeds 'precompiledClassesJar'
+
+        and:
+        succeeds 'mainConsumerJar'
     }
 
     def textForEntriesOf(File zipFile, String... entryPaths) {
