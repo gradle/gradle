@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.AbstractGradleRunnerCompatibilityIntegrationTest
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
+import org.gradle.testkit.runner.fixtures.GradleRunnerCompatibilityIntegTestRunner
 import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.testkit.runner.fixtures.annotations.NonCrossVersion
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
@@ -223,7 +223,7 @@ class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityInt
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
                         .withTestKitDir(testGradleUserHomeDir.root)
-                        .withDebug($GradleRunnerIntegTestRunner.debug)
+                        .withDebug($GradleRunnerCompatibilityIntegTestRunner.debug)
                         .build()
 
                     then:
@@ -339,7 +339,7 @@ class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityInt
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
-                        .withDebug($GradleRunnerIntegTestRunner.debug)
+                        .withDebug($GradleRunnerCompatibilityIntegTestRunner.debug)
                         .build()
 
                     then:
@@ -473,7 +473,7 @@ class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityInt
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld', 'byeWorld')
                         .withPluginClasspath(pluginClasspath)
-                        .withDebug($GradleRunnerIntegTestRunner.debug)
+                        .withDebug($GradleRunnerCompatibilityIntegTestRunner.debug)
                         .build()
 
                     then:
@@ -497,7 +497,7 @@ class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityInt
         buildFile << gradleTestKitDependency()
         buildFile << """
             test {
-                systemProperty '$DefaultGradleRunner.DEBUG_SYS_PROP', '$GradleRunnerIntegTestRunner.debug'
+                systemProperty '$DefaultGradleRunner.DEBUG_SYS_PROP', '$GradleRunnerCompatibilityIntegTestRunner.debug'
             }
         """
         writeTest """
@@ -534,7 +534,7 @@ class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityInt
                     def result = gradleRunner.build()
 
                     then:
-                    gradleRunner.debug == $GradleRunnerIntegTestRunner.debug
+                    gradleRunner.debug == $GradleRunnerCompatibilityIntegTestRunner.debug
                     noExceptionThrown()
                 }
             }
@@ -680,7 +680,7 @@ class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityInt
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
 
-                        .withDebug($GradleRunnerIntegTestRunner.debug)
+                        .withDebug($GradleRunnerCompatibilityIntegTestRunner.debug)
                         .build()
 
                     then:

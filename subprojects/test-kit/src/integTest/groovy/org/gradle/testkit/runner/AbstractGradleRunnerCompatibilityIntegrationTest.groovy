@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.fixtures.GradleRunnerCompatibilityIntegTestRunner
-import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution
 import org.gradle.util.SetSystemProperties
@@ -61,7 +60,7 @@ class AbstractGradleRunnerCompatibilityIntegrationTest extends AbstractIntegrati
             .withTestKitDir(testKitDir)
             .withProjectDir(testDirectory)
             .withArguments(arguments)
-            .withDebug(GradleRunnerIntegTestRunner.debug)
+            .withDebug(GradleRunnerCompatibilityIntegTestRunner.debug)
 
         def gradleDistribution = GradleRunnerCompatibilityIntegTestRunner.distribution
 
