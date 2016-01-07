@@ -83,24 +83,16 @@ A)
 Waiting for changes to input files of tasks... (ctrl-d to exit)
 new file: /full/path/to/file
 modified: /full/path/to/file2
-modified: /full/path/to/file3
-deleted: /full/path/to/file4
+deleted: /full/path/to/file3
 Change detected, executing build...
 ```
 B)
 ```
 Waiting for changes to input files of tasks... (ctrl-d to exit)
-4 new files
-5 files modified
-10 files deleted
-Change detected, executing build...
-```
-C)
-```
-Waiting for changes to input files of tasks... (ctrl-d to exit)
-4 new files
-5 files modified
-deleted: /full/path/to/file
+new file: /full/path/to/file
+new file: /full/path/to/file2
+new file: /full/path/to/file3
+and 15 more changes
 Change detected, executing build...
 ```
 
@@ -128,11 +120,11 @@ Main scenario:
 
 Test cases:
 
-- should report the full file path of the file added when 1 file is added to the input directory of each task (A, B, C, D).
+- should report the absolute file path of the file added when 1 file is added to the input directory of each task (A, B, C, D). 
 
-- should report the full file path of the files added when 3 files are added to the input directory of each task (A, B, C, D).
+- should report the absolute file path of the files added when 3 files are added to the input directory of each task (A, B, C, D).
 
-- should report the count of added files when more than 4 files (11 files) are added to the input directory of each task (A, B, C, D).
+- should report the absolute file path of the first 3 changes and report the number of other changes when more that 3 files are added to the input directory of each task (A, B, C, D).
 
 Variations:
 - vary the tests by removing 1, 3 or 11 files from an input directory
