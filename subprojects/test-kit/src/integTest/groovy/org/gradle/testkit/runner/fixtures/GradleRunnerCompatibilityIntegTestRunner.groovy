@@ -63,13 +63,17 @@ class GradleRunnerCompatibilityIntegTestRunner extends AbstractMultiTestRunner {
         }
 
         String version = System.getProperty(COMPATIBILITY_SYSPROP_NAME, 'all')
-
         switch (version) {
-            case 'all': return [TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
-                                TestedGradleDistribution.mostRecentFinalRelease(),
-                                TestedGradleDistribution.underDevelopment()] as SortedSet
-            case 'current': return [TestedGradleDistribution.underDevelopment()] as Set
-            default: throw new IllegalArgumentException("Invalid value for $COMPATIBILITY_SYSPROP_NAME system property: $version (valid values: 'all', 'current')")
+            case 'all': return [
+                TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
+                TestedGradleDistribution.mostRecentFinalRelease(),
+                TestedGradleDistribution.underDevelopment()
+            ] as SortedSet
+            case 'current': return [
+                TestedGradleDistribution.underDevelopment()
+            ] as Set
+            default:
+                throw new IllegalArgumentException("Invalid value for $COMPATIBILITY_SYSPROP_NAME system property: $version (valid values: 'all', 'current')")
         }
     }
 
