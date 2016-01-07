@@ -69,7 +69,7 @@ import org.gradle.util.ConfigureUtil
  *     outputDir = file('muchBetterOutputDir')
  *     testOutputDir = file('muchBetterTestOutputDir')
  *
- *     //if you prefer different SDK than that sourceLanguageLevelInherited from IDEA project
+ *     //if you prefer different SDK than the one inherited from IDEA project
  *     jdkName = '1.6'
  *
  *     //if you need to put 'provided' dependencies on the classpath
@@ -265,8 +265,8 @@ class IdeaModule {
     Map<String, File> pathVariables = [:]
 
     /**
-     * The JDK to use for this module. If {@code null}, the value of the existing or default ipr XML (sourceLanguageLevelInherited)
-     * is used. If it is set to <code>sourceLanguageLevelInherited</code>, the project SDK is used. Otherwise the SDK for the corresponding
+     * The JDK to use for this module. If {@code null}, the value of the existing or default ipr XML (inherited)
+     * is used. If it is set to <code>inherited</code>, the project SDK is used. Otherwise the SDK for the corresponding
      * value of java version is used for this module
      * <p>
      * For example see docs for {@link IdeaModule}
