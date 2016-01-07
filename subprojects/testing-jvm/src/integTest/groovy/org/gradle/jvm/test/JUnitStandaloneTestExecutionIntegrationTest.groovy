@@ -431,7 +431,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         executedAndNotSkipped ':createUtilsJar', ':myTestBinaryTest'
 
         where:
-        library << ['utils', 'core']
+        library << ['utils', 'core', 'coreBis']
 
     }
 
@@ -445,6 +445,13 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
                                 dependencies {
                                     library 'utils'
                                 }
+                            }
+                        }
+                    }
+                    coreBis(JvmLibrarySpec) {
+                        api {
+                            dependencies {
+                                library 'utils'
                             }
                         }
                     }
@@ -474,6 +481,11 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         """
         file('src/core/java/Core.java') << '''
             public class Core {
+                public static String pretty(String str) { return Utils.pretty(str); }
+            }
+        '''
+        file('src/coreBis/java/CoreBis.java') << '''
+            public class CoreBis extends Utils {
                 public static String pretty(String str) { return Utils.pretty(str); }
             }
         '''

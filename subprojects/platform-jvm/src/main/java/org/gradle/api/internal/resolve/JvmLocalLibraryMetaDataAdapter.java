@@ -64,7 +64,7 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
     }
 
     private static List<DependencySpec> collectDependencies(JarBinarySpecInternal binary) {
-        final List<DependencySpec> dependencies = Lists.newArrayList();
+        final List<DependencySpec> dependencies = Lists.newArrayList(binary.getApiDependencies());
         Iterable<LanguageSourceSet> sourceSets = Iterables.concat(binary.getLibrary().getSources().values(), binary.getSources().values());
         for (LanguageSourceSet sourceSet : sourceSets) {
             if (sourceSet instanceof DependentSourceSet) {
