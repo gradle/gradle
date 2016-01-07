@@ -171,7 +171,7 @@ language levels for each module in a project.
 - ~~Java project defining custom target compatibility via `project.targetCompatibility`~~
 - ~~Java project, with 'eclipse' plugin defining eclipse specific target compatibility via `eclipse.jdt.targetCompatibility`~~
 - ~~Multiproject java project build with different target levels per subproject.~~
-- Project that is not a Java project.
+- ~~Project that is not a Java project.~~
 - ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetRuntime()~~
 - ~~throws meaningful error for older Gradle provider versions when requesting EclipseProject.getJavaSourceSettings().getTargetCompatibilityLevel()~~
 - ~~custom java runtime name for eclipse classpath generation~~
@@ -202,12 +202,12 @@ language levels for each module in a project.
 - ~~move EclipseJavaSourceSettings.getTargetRuntime() into JavaSourceSettings~~
 - ~~move EclipseJavaSourceSettings.getTargetBytecodeLevel() into JavaSourceSettings~~
 - ~~remove `EclipseJavaSourceSettings`~~
-- for each module set `IdeaModuleJavaSourceSettings.targetRuntime` to current runtime in use and `IdeaModuleJavaSourceSettings.targetRuntimeInherited = true`
-- set `IdeaProjectJavaSourceSettings.targetRuntime` to current runtime
-- for each module set `IdeaModuleJavaSourceSettings.targetBytecodeLevel` to `JavaConvention.targetCompatibilityLevel`
-- set `IdeaProjectJavaSourceSettings.targetBytecodeLevel` to highest bytecode level found among the modules
-- set `IdeaModuleJavaSourceSettings.targetBytecodeLevelInherited = true` for modules with same target bytecode level as in `IdeaProjectJavaSourceSettings.targetBytecodeLevel`
-- for modules having same `targetBytecodeLevel` as `IdeaProjectJavaSourceSettings.targetBytecodeLevel` set `IdeaModuleJavaSourceSettings.targetBytecodeLevelInherited = true`
+- ~~for each module set `IdeaModuleJavaSourceSettings.targetRuntime` to current runtime in use and `IdeaModuleJavaSourceSettings.targetRuntimeInherited = true`~~
+- ~~set `IdeaProjectJavaSourceSettings.targetRuntime` to current runtime~~
+- ~~for each module set `IdeaModuleJavaSourceSettings.targetBytecodeLevel` to `JavaConvention.targetCompatibilityLevel`~~
+- ~~set `IdeaProjectJavaSourceSettings.targetBytecodeLevel` to highest bytecode level found among the modules~~
+- ~~set `IdeaModuleJavaSourceSettings.targetBytecodeLevelInherited = true` for modules with same target bytecode level as in `IdeaProjectJavaSourceSettings.targetBytecodeLevel`~~
+- ~~for modules having same `targetBytecodeLevel` as `IdeaProjectJavaSourceSettings.targetBytecodeLevel` set `IdeaModuleJavaSourceSettings.targetBytecodeLevelInherited = true` ~~
 
 ##### Test cases
 
@@ -215,7 +215,7 @@ language levels for each module in a project.
 - ~~Multiproject build with mix of target Java versions~~
 - ~~Multiproject build with mix of Java and non-Java projects~~
 - ~~Multiproject build with no Java projects~~
-- meaningful error for older gradle providers
+- ~~meaningful error for older gradle providers~~
 
 ### Story - Expose Idea module specific source level in IdeaPlugin
 
