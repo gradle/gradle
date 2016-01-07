@@ -81,7 +81,7 @@ class EclipseWtpPlugin extends IdePlugin {
                 }
                 def libDeployPath = eclipseModel.wtp.component.libDeployPath
                 def depFiles = WtpComponentFactory.resolveDependenciesFor(eclipseModel.wtp.component.plusConfigurations,
-                        eclipseModel.wtp.component.minusConfigurations, true)*.file
+                        eclipseModel.wtp.component.minusConfigurations, false)*.file
 
                 for (entry in classpath.entries) {
                     if (!(entry instanceof AbstractLibrary)) {
