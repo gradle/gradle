@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+// START SNIPPET build-script
 import sample.documentation.DocumentationComponent
 import sample.documentation.TextSourceSet
 import sample.markdown.MarkdownSourceSet
@@ -25,12 +26,13 @@ model {
     components {
         docs(DocumentationComponent) {
             sources {
+                reference(TextSourceSet)
                 userguide(MarkdownSourceSet) {
                     generateIndex = true
                     smartQuotes = true
                 }
-                reference(TextSourceSet)
             }
         }
     }
 }
+// END SNIPPET build-script

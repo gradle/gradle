@@ -21,29 +21,42 @@ import org.gradle.model.Path
 import org.gradle.model.RuleSource
 import org.gradle.platform.base.*
 
+// START SNIPPET component-registration
+// START SNIPPET binary-registration
+// START SNIPPET binaries-generation
+// START SNIPPET text-tasks-generation
 class DocumentationPlugin extends RuleSource {
+// END SNIPPET binary-registration
+// END SNIPPET binaries-generation
+// END SNIPPET text-tasks-generation
     @ComponentType
-    void register(ComponentTypeBuilder<DocumentationComponent> builder) {
-    }
+    void register(ComponentTypeBuilder<DocumentationComponent> builder) {}
+// END SNIPPET component-registration
 
+// START SNIPPET binary-registration
     @BinaryType
-    void register(BinaryTypeBuilder<DocumentationBinary> builder) {
-    }
+    void register(BinaryTypeBuilder<DocumentationBinary> builder) {}
+// END SNIPPET binary-registration
 
+// START SNIPPET text-lang-registration
     @LanguageType
     void registerText(LanguageTypeBuilder<TextSourceSet> builder) {
         builder.languageName = "text"
     }
+// END SNIPPET text-lang-registration
 
+// START SNIPPET binaries-generation
     @ComponentBinaries
-    void configureExplodedDocs(ModelMap<DocumentationBinary> binaries, DocumentationComponent component, @Path("buildDir") File buildDir) {
+    void generateDocBinaries(ModelMap<DocumentationBinary> binaries, DocumentationComponent component, @Path("buildDir") File buildDir) {
         binaries.create("exploded") { binary ->
             outputDir = new File(buildDir, "${component.name}/${binary.name}")
         }
     }
+// END SNIPPET binaries-generation
 
+// START SNIPPET text-tasks-generation
     @BinaryTasks
-    void copyTextDocumentation(ModelMap<Task> tasks, final DocumentationBinary binary) {
+    void generateTextTasks(ModelMap<Task> tasks, final DocumentationBinary binary) {
         binary.inputs.withType(TextSourceSet.class) { textSourceSet ->
             def taskName = binary.tasks.taskName("compile", name)
             def outputDir = new File(binary.outputDir, name)
@@ -53,4 +66,11 @@ class DocumentationPlugin extends RuleSource {
             }
         }
     }
+// START SNIPPET component-registration
+// START SNIPPET binary-registration
+// START SNIPPET binaries-generation
 }
+// END SNIPPET component-registration
+// END SNIPPET binary-registration
+// END SNIPPET binaries-generation
+// END SNIPPET text-tasks-generation

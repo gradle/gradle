@@ -19,5 +19,7 @@ package sample.documentation
 import org.gradle.model.Managed
 import org.gradle.platform.base.ComponentSpec
 
+// START SNIPPET component-declaration
 @Managed
 interface DocumentationComponent extends ComponentSpec {}
+// END SNIPPET component-declaration
