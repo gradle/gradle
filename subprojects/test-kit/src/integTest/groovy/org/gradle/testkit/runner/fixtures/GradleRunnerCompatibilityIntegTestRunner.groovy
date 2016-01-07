@@ -62,7 +62,7 @@ class GradleRunnerCompatibilityIntegTestRunner extends AbstractMultiTestRunner {
     /**
      * TestKit features annotations read by tests to determine the minimum compatible Gradle version.
      */
-    private static final List<? extends Annotation> TESTKIT_FEATURES = [CaptureExecutedTasks, PluginClasspathInjection]
+    private static final List<Class<? extends Annotation>> TESTKIT_FEATURES = [CaptureExecutedTasks, PluginClasspathInjection]
 
     /**
      * Read by tests to configure themselves for debug or not.
