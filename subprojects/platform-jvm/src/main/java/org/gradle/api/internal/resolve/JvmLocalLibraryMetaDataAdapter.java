@@ -16,14 +16,11 @@
 
 package org.gradle.api.internal.resolve;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.internal.JarFile;
-import org.gradle.language.base.DependentSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
@@ -31,15 +28,16 @@ import org.gradle.platform.base.DependencySpec;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 import static org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier.CONFIGURATION_API;
 import static org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier.CONFIGURATION_RUNTIME;
+import static org.gradle.jvm.internal.DefaultJvmBinarySpec.collectDependencies;
 import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData.newResolvedLibraryMetadata;
 
 public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapter {
 
     @Override
+    @SuppressWarnings("unchecked")
     public DefaultLibraryLocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, String usage, String projectPath) {
         JarBinarySpecInternal jarBinarySpec = (JarBinarySpecInternal) selectedBinary;
         DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
@@ -54,7 +52,8 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
             JarFile runtimeJar = jarBinarySpec.getRuntimeJar();
             buildDependencies.add(runtimeJar);
             jarBinary = new LibraryPublishArtifact("jar", runtimeJar.getFile());
-            dependencies = collectDependencies(jarBinarySpec);
+            JvmLibrarySpec library = jarBinarySpec.getLibrary();
+            dependencies = collectDependencies(jarBinarySpec, library, library.getDependencies().getDependencies(), jarBinarySpec.getApiDependencies());
         } else {
             throw new GradleException("Unrecognized usage found: '" + usage + "'. Should be one of " + Arrays.asList(CONFIGURATION_API, CONFIGURATION_RUNTIME));
         }
@@ -63,15 +62,4 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
         return metadata;
     }
 
-    private static List<DependencySpec> collectDependencies(JarBinarySpecInternal binary) {
-        final List<DependencySpec> dependencies = Lists.newArrayList(binary.getApiDependencies());
-        Iterable<LanguageSourceSet> sourceSets = Iterables.concat(binary.getLibrary().getSources().values(), binary.getSources().values());
-        for (LanguageSourceSet sourceSet : sourceSets) {
-            if (sourceSet instanceof DependentSourceSet) {
-                dependencies.addAll(((DependentSourceSet) sourceSet).getDependencies().getDependencies());
-            }
-        }
-        dependencies.addAll(binary.getDependencies());
-        return dependencies;
-    }
 }

@@ -15,8 +15,6 @@
  */
 package org.gradle.jvm.plugins;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -40,8 +38,6 @@ import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteSpec;
 import org.gradle.jvm.test.internal.JUnitTestSuiteRules;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
-import org.gradle.language.base.DependentSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.resolve.LocalComponentResolveContext;
 import org.gradle.model.ModelMap;
@@ -60,6 +56,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static org.gradle.jvm.internal.DefaultJvmBinarySpec.collectDependencies;
 import static org.gradle.model.internal.core.ModelNodes.withType;
 import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 
@@ -195,6 +192,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
         private final JvmAssembly assembly;
 
+        @SuppressWarnings("unchecked")
         protected JUnitDependencyResolvingClasspath(
             JUnitTestSuiteBinarySpec testSuiteBinarySpec,
             String descriptor,
@@ -204,7 +202,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
             super((BinarySpecInternal) testSuiteBinarySpec, descriptor, dependencyResolver, remoteRepositories, new LocalComponentResolveContext(
                 ((BinarySpecInternal) testSuiteBinarySpec).getId(),
                 DefaultVariantsMetaData.extractFrom(testSuiteBinarySpec, schemaStore),
-                collectDependencies(testSuiteBinarySpec),
+                collectDependencies(testSuiteBinarySpec, testSuiteBinarySpec.getTestSuite(), testSuiteBinarySpec.getTestSuite().getDependencies().getDependencies()),
                 DefaultLibraryBinaryIdentifier.CONFIGURATION_RUNTIME,
                 testSuiteBinarySpec.getDisplayName()
             ));
@@ -214,18 +212,6 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
         @Override
         public Set<File> getFiles() {
             return Sets.union(super.getFiles(), Sets.union(assembly.getClassDirectories(), assembly.getResourceDirectories()));
-        }
-
-        public static List<DependencySpec> collectDependencies(JUnitTestSuiteBinarySpec binary) {
-            final List<DependencySpec> dependencies = Lists.newArrayList();
-            Iterable<LanguageSourceSet> sourceSets = Iterables.concat(binary.getTestSuite().getSources().values(), binary.getSources().values());
-            for (LanguageSourceSet sourceSet : sourceSets) {
-                if (sourceSet instanceof DependentSourceSet) {
-                    dependencies.addAll(((DependentSourceSet) sourceSet).getDependencies().getDependencies());
-                }
-            }
-            dependencies.addAll(((WithDependencies) binary).getDependencies());
-            return dependencies;
         }
     }
 }

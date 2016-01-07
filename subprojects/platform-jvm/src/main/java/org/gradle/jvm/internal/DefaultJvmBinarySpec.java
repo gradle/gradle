@@ -16,11 +16,20 @@
 
 package org.gradle.jvm.internal;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.language.base.DependentSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.List;
 
 import static org.gradle.util.CollectionUtils.findSingle;
 
@@ -69,5 +78,22 @@ public class DefaultJvmBinarySpec extends BaseBinarySpec implements JvmBinarySpe
 
     public JvmAssembly getAssembly() {
         return assembly;
+    }
+
+    public static List<DependencySpec> collectDependencies(final BinarySpec binary, final ComponentSpec owner, final Collection<DependencySpec>... specificDependencies) {
+        List<DependencySpec> dependencies = Lists.newArrayList();
+        if (specificDependencies!=null) {
+            for (Collection<DependencySpec> deps : specificDependencies) {
+                dependencies.addAll(deps);
+            }
+        }
+        Collection<LanguageSourceSet> binarySources = binary.getSources().values();
+        Iterable<LanguageSourceSet> sourceSets = owner != null ? Iterables.concat(owner.getSources().values(), binarySources) : binarySources;
+        for (LanguageSourceSet sourceSet : sourceSets) {
+            if (sourceSet instanceof DependentSourceSet) {
+                dependencies.addAll(((DependentSourceSet) sourceSet).getDependencies().getDependencies());
+            }
+        }
+        return dependencies;
     }
 }
