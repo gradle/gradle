@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.tooling.model.java.JavaSourceSettings;
 
 /**
- * Describes Java source settings for an an IDEA module.
+ * Describes Java source settings for an IDEA module.
  *
  * @since 2.11
  */
