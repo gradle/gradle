@@ -166,6 +166,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             final String runtimeJarArchiveName = binary.getJarFile().getName();
             final String createRuntimeJar = "create" + capitalize(binary.getProjectScopedName());
             final JvmAssembly assembly = binary.getAssembly();
+            final JarFile runtimeJarFile = binary.getRuntimeJar();
             tasks.create(createRuntimeJar, Jar.class, new Action<Jar>() {
                 @Override
                 public void execute(Jar jar) {
@@ -175,6 +176,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     jar.setDestinationDir(runtimeJarDestDir);
                     jar.setArchiveName(runtimeJarArchiveName);
                     jar.dependsOn(assembly);
+                    runtimeJarFile.setBuildTask(jar);
                 }
             });
 

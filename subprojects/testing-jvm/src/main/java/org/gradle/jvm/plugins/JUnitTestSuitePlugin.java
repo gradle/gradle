@@ -205,7 +205,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                 ((BinarySpecInternal) testSuiteBinarySpec).getId(),
                 DefaultVariantsMetaData.extractFrom(testSuiteBinarySpec, schemaStore),
                 collectDependencies(testSuiteBinarySpec),
-                DefaultLibraryBinaryIdentifier.CONFIGURATION_API,
+                DefaultLibraryBinaryIdentifier.CONFIGURATION_RUNTIME,
                 testSuiteBinarySpec.getDisplayName()
             ));
             this.assembly = ((WithJvmAssembly) testSuiteBinarySpec).getAssembly();

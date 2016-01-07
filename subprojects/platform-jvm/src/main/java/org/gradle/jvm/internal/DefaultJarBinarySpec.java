@@ -32,7 +32,7 @@ import java.util.Set;
 
 public class DefaultJarBinarySpec extends DefaultJvmBinarySpec implements JarBinarySpecInternal {
     private final JarFile apiJar = new DefaultJarFile();
-    private File jarFile;
+    private final JarFile jarFile = new DefaultJarFile();
     private Set<String> exportedPackages = ImmutableSet.of();
     private Set<DependencySpec> apiDependencies = ImmutableSet.of();
     private Set<DependencySpec> componentLevelDependencies = ImmutableSet.of();
@@ -59,13 +59,18 @@ public class DefaultJarBinarySpec extends DefaultJvmBinarySpec implements JarBin
     }
 
     @Override
-    public File getJarFile() {
+    public JarFile getRuntimeJar() {
         return jarFile;
     }
 
     @Override
+    public File getJarFile() {
+        return jarFile.getFile();
+    }
+
+    @Override
     public void setJarFile(File jarFile) {
-        this.jarFile = jarFile;
+        this.jarFile.setFile(jarFile);
     }
 
     @Override

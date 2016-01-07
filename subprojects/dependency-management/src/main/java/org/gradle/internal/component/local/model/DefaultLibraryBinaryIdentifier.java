@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 
 public class DefaultLibraryBinaryIdentifier implements LibraryBinaryIdentifier {
     public static final String CONFIGURATION_API = "API";
+    public static final String CONFIGURATION_RUNTIME = "runtime";
 
     private final String projectPath;
     private final String libraryName;

@@ -16,26 +16,40 @@
 
 package org.gradle.api.internal.resolve;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
+import org.gradle.jvm.internal.JarFile;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.platform.base.BinarySpec;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier.CONFIGURATION_API;
+import static org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier.CONFIGURATION_RUNTIME;
 import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData.newResolvedLibraryMetadata;
 
 public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapter {
 
     @Override
-    public DefaultLibraryLocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, String projectPath) {
+    public DefaultLibraryLocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, String usage, String projectPath) {
         JarBinarySpecInternal jarBinarySpec = (JarBinarySpecInternal) selectedBinary;
         DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-        buildDependencies.add(jarBinarySpec.getApiJar());
-        DefaultLibraryLocalComponentMetaData metadata = newResolvedLibraryMetadata(jarBinarySpec.getId(), buildDependencies, jarBinarySpec.getApiDependencies(), projectPath);
-        LibraryPublishArtifact jarBinary = new LibraryPublishArtifact("jar", jarBinarySpec.getApiJar().getFile());
-        metadata.addArtifacts(CONFIGURATION_API, Collections.singleton(jarBinary));
+        LibraryPublishArtifact jarBinary;
+        if (CONFIGURATION_API.equals(usage)) {
+            JarFile apiJar = jarBinarySpec.getApiJar();
+            buildDependencies.add(apiJar);
+            jarBinary = new LibraryPublishArtifact("jar", apiJar.getFile());
+        } else if (CONFIGURATION_RUNTIME.equals(usage)) {
+            JarFile runtimeJar = jarBinarySpec.getRuntimeJar();
+            buildDependencies.add(runtimeJar);
+            jarBinary = new LibraryPublishArtifact("jar", runtimeJar.getFile());
+        } else {
+            throw new GradleException("Unrecognized usage found: '" + usage + "'. Should be one of " + Arrays.asList(CONFIGURATION_API, CONFIGURATION_RUNTIME));
+        }
+        DefaultLibraryLocalComponentMetaData metadata = newResolvedLibraryMetadata(jarBinarySpec.getId(), usage, buildDependencies, jarBinarySpec.getApiDependencies(), projectPath);
+        metadata.addArtifacts(usage, Collections.singleton(jarBinary));
         return metadata;
     }
 

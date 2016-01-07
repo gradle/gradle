@@ -20,5 +20,5 @@ import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.platform.base.BinarySpec;
 
 public interface LocalLibraryMetaDataAdapter {
-    LocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, String projectPath);
+    LocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, String usage, String projectPath);
 }

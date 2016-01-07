@@ -559,13 +559,10 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
 
     private void standaloneTestCase(boolean passing, boolean hasLibraryDependency, boolean hasExternalDependency, String name='myTest') {
 
-        // todo: the value '0' is used, where it should in reality be 42, because we're using the API jar when resolving dependencies
-        // where we should be using the runtime jar instead. This will be fixed in another story.
-        // Meanwhile this will ensure that we can depend on a local library for building a test suite.
         String libraryDependencyTest = """
             @Test
             public void testLibDependency() {
-                assertEquals(utils.Utils.MAGIC, ${passing ? '0' : '666'});
+                assertEquals(utils.Utils.MAGIC, ${passing ? '42' : '666'});
             }
         """
 

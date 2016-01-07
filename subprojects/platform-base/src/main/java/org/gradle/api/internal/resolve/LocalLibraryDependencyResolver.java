@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData;
 import org.gradle.internal.component.model.*;
@@ -97,7 +98,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
                     result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName, compatibleBinaries)));
                 } else {
                     BinarySpec selectedBinary = compatibleBinaries.iterator().next();
-                    LocalComponentMetaData metaData = libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary, selectorProjectPath);
+                    LocalComponentMetaData metaData = libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary, findTargetConfigurationName(dependency), selectorProjectPath);
                     result.resolved(metaData);
                 }
             }
@@ -107,6 +108,24 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
                 result.failed(failure);
             }
         }
+    }
+
+    // This method tries to extract "dependency configuration" from the dependency metadata, knowing that in our case
+    // there should be only one target configuration. However for backwards compatibility with Ivy we cannot simplify the API yet.
+    private String findTargetConfigurationName(DependencyMetaData dependency) {
+        String targetConfigurationName = DefaultLibraryBinaryIdentifier.CONFIGURATION_API;
+        String[] moduleConfigurations = dependency.getModuleConfigurations();
+        if (moduleConfigurations==null) {
+            return targetConfigurationName;
+        }
+        for (String moduleConfig : moduleConfigurations) {
+            String[] dependencyConfigurations = dependency.getDependencyConfigurations(moduleConfig, null);
+            if (dependencyConfigurations.length==1) {
+                targetConfigurationName = dependencyConfigurations[0];
+                break;
+            }
+        }
+        return targetConfigurationName;
     }
 
     private LibraryResolutionErrorMessageBuilder.LibraryResolutionResult doResolve(String projectPath,
