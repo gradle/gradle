@@ -216,7 +216,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
             return Sets.union(super.getFiles(), Sets.union(assembly.getClassDirectories(), assembly.getResourceDirectories()));
         }
 
-        private static List<DependencySpec> collectDependencies(JUnitTestSuiteBinarySpec binary) {
+        public static List<DependencySpec> collectDependencies(JUnitTestSuiteBinarySpec binary) {
             final List<DependencySpec> dependencies = Lists.newArrayList();
             Iterable<LanguageSourceSet> sourceSets = Iterables.concat(binary.getTestSuite().getSources().values(), binary.getSources().values());
             for (LanguageSourceSet sourceSet : sourceSets) {

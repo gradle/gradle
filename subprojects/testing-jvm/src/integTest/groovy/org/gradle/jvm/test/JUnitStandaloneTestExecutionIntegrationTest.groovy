@@ -416,6 +416,85 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':processMyTestBinaryMyTestResources', ':myTestBinaryTest'
     }
 
+    @Unroll("Test should execute test suite with dependency on local library #library")
+    def "test should execute with transitive dependencies of local libraries"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        testSuiteWithDependencyOnLocalLibraryWithExternalTransitiveDependency(library)
+
+        when:
+        succeeds ':myTestBinaryTest'
+
+        then:
+        executedAndNotSkipped ':createUtilsJar', ':myTestBinaryTest'
+
+        where:
+        library << ['utils', 'core']
+
+    }
+
+    private testSuiteWithDependencyOnLocalLibraryWithExternalTransitiveDependency(String dependencyOn='utils') {
+        buildFile << """
+            model {
+                components {
+                    core(JvmLibrarySpec) {
+                        sources {
+                            java {
+                                dependencies {
+                                    library 'utils'
+                                }
+                            }
+                        }
+                    }
+                    utils(JvmLibrarySpec) {
+                        sources {
+                            java {
+                                dependencies {
+                                    module 'org.apache.commons:commons-lang3:3.4'
+                                }
+                            }
+                        }
+                    }
+                }
+                testSuites {
+                    myTest(JUnitTestSuiteSpec) {
+                        jUnitVersion '4.12'
+                        dependencies {
+                            sources {
+                                java {
+                                    library '$dependencyOn'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        file('src/core/java/Core.java') << '''
+            public class Core {
+                public static String pretty(String str) { return Utils.pretty(str); }
+            }
+        '''
+        file('src/utils/java/Utils.java') << '''import static org.apache.commons.lang3.text.WordUtils.capitalize;
+            public class Utils {
+                public static String pretty(String str) { return capitalize(str); }
+            }
+        '''
+        file('src/myTest/java/MyTest.java') << """
+            import org.junit.Test;
+            import static org.junit.Assert.*;
+
+            public class MyTest {
+                @Test
+                public void test() {
+                    assertEquals(${dependencyOn.capitalize()}.pretty("hello world"), "Hello World");
+                }
+            }
+        """
+    }
+
     private void testCaseReadingResourceFile() {
         file('src/myTest/java/MyTest.java') << """
         import org.junit.Test;
