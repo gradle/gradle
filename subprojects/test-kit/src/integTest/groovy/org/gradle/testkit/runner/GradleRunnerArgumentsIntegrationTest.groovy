@@ -22,7 +22,7 @@ import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @CaptureExecutedTasks
-class GradleRunnerArgumentsIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
+class GradleRunnerArgumentsIntegrationTest extends GradleRunnerIntegrationTest {
 
     def "can execute build without specifying any arguments"() {
         when:

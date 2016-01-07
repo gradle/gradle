@@ -32,7 +32,7 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @NonCrossVersion
-class GradleRunnerPreFeatureIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
+class GradleRunnerPreFeatureIntegrationTest extends GradleRunnerIntegrationTest {
 
     private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
 

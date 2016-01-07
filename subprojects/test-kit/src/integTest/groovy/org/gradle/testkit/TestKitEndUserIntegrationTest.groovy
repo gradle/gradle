@@ -22,9 +22,9 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.AbstractGradleRunnerCompatibilityIntegrationTest
+import org.gradle.testkit.runner.GradleRunnerIntegrationTest
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.fixtures.GradleRunnerCompatibilityIntegTestRunner
+
 import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.testkit.runner.fixtures.annotations.NonCrossVersion
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
@@ -35,7 +35,7 @@ import spock.lang.Unroll
 
 @NonCrossVersion
 @UsesNativeServices
-class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
+class TestKitEndUserIntegrationTest extends GradleRunnerIntegrationTest {
 
     def setup() {
         executer.requireGradleHome().withStackTraceChecksDisabled()
@@ -223,7 +223,7 @@ class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityInt
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
                         .withTestKitDir(testGradleUserHomeDir.root)
-                        .withDebug($GradleRunnerCompatibilityIntegTestRunner.debug)
+                        .withDebug($debug)
                         .build()
 
                     then:
@@ -339,7 +339,7 @@ class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityInt
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
-                        .withDebug($GradleRunnerCompatibilityIntegTestRunner.debug)
+                        .withDebug($debug)
                         .build()
 
                     then:
@@ -473,7 +473,7 @@ class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityInt
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld', 'byeWorld')
                         .withPluginClasspath(pluginClasspath)
-                        .withDebug($GradleRunnerCompatibilityIntegTestRunner.debug)
+                        .withDebug($debug)
                         .build()
 
                     then:
@@ -497,7 +497,7 @@ class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityInt
         buildFile << gradleTestKitDependency()
         buildFile << """
             test {
-                systemProperty '$DefaultGradleRunner.DEBUG_SYS_PROP', '$GradleRunnerCompatibilityIntegTestRunner.debug'
+                systemProperty '$DefaultGradleRunner.DEBUG_SYS_PROP', '$debug'
             }
         """
         writeTest """
@@ -534,7 +534,7 @@ class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityInt
                     def result = gradleRunner.build()
 
                     then:
-                    gradleRunner.debug == $GradleRunnerCompatibilityIntegTestRunner.debug
+                    gradleRunner.debug == $debug
                     noExceptionThrown()
                 }
             }
@@ -680,7 +680,7 @@ class TestKitEndUserIntegrationTest extends AbstractGradleRunnerCompatibilityInt
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
 
-                        .withDebug($GradleRunnerCompatibilityIntegTestRunner.debug)
+                        .withDebug($debug)
                         .build()
 
                     then:

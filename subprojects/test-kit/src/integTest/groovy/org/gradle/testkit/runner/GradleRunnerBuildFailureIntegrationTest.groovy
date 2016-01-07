@@ -23,7 +23,7 @@ import org.gradle.util.TextUtil
 import static org.gradle.testkit.runner.TaskOutcome.*
 
 @CaptureExecutedTasks
-class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
+class GradleRunnerBuildFailureIntegrationTest extends GradleRunnerIntegrationTest {
 
     @CaptureBuildOutputInDebug
     def "execute build for expected failure"() {

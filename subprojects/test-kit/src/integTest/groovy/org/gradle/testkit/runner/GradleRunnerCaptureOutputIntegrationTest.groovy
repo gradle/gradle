@@ -17,7 +17,7 @@
 package org.gradle.testkit.runner
 
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
-import org.gradle.testkit.runner.fixtures.GradleRunnerCompatibilityIntegTestRunner
+
 import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
 import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.tooling.GradleConnectionException
@@ -26,7 +26,7 @@ import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 
 @CaptureBuildOutputInDebug
-class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
+class GradleRunnerCaptureOutputIntegrationTest extends GradleRunnerIntegrationTest {
 
     static final String OUT = "-- out --"
     static final String ERR = "-- err --"
@@ -138,6 +138,6 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerCompa
     }
 
     private boolean isCompatibleVersion(String minCompatibleVersion) {
-        GradleRunnerCompatibilityIntegTestRunner.gradleVersion.compareTo(GradleVersion.version(minCompatibleVersion)) >= 0
+        gradleVersion.compareTo(GradleVersion.version(minCompatibleVersion)) >= 0
     }
 }

@@ -31,7 +31,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 @PluginClasspathInjection
 @CaptureBuildOutputInDebug
 @UsesNativeServices
-class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
+class GradleRunnerPluginInjectionIntegrationTest extends GradleRunnerIntegrationTest {
 
     def "unresolvable plugin for provided empty classpath fails build and indicates searched locations"() {
         when:

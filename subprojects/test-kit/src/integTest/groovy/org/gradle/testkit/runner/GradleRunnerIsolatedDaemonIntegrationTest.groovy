@@ -31,7 +31,7 @@ import static org.gradle.testkit.runner.TaskOutcome.*
 
 @CaptureExecutedTasks
 @NoDebug
-class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
+class GradleRunnerIsolatedDaemonIntegrationTest extends GradleRunnerIntegrationTest {
 
     def setup() {
         requireIsolatedTestKitDir = true

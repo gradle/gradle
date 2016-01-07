@@ -25,7 +25,7 @@ import static org.gradle.testkit.runner.TaskOutcome.*
  * Tests more intricate aspects of the BuildResult object
  */
 @CaptureExecutedTasks
-class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
+class GradleRunnerResultIntegrationTest extends GradleRunnerIntegrationTest {
 
     def "execute task actions marked as up-to-date or skipped"() {
         given:

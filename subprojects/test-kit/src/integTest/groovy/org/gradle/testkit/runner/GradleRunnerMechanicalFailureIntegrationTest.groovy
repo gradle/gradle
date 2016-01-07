@@ -26,7 +26,7 @@ import org.gradle.tooling.GradleConnectionException
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @CaptureExecutedTasks
-class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
+class GradleRunnerMechanicalFailureIntegrationTest extends GradleRunnerIntegrationTest {
 
     @CaptureBuildOutputInDebug
     def "build execution for script with invalid Groovy syntax"() {

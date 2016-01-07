@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner.fixtures
 
+import org.gradle.testkit.runner.GradleRunnerIntegrationTest
 import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
 import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
 import org.gradle.testkit.runner.fixtures.annotations.PluginClasspathInjection
@@ -35,7 +36,7 @@ enum FeatureCompatibility {
     private FeatureCompatibility(Class<? extends Annotation> feature, GradleVersion since) {
         this.feature = feature
         this.since = since
-        assert isValidVersion(since, GradleRunnerCompatibilityIntegTestRunner.MIN_TESTED_VERSION) : "Feature version $since needs to be later than $GradleRunnerCompatibilityIntegTestRunner.MIN_TESTED_VERSION"
+        assert isValidVersion(since, GradleRunnerIntegrationTest.MIN_TESTED_VERSION) : "Feature version $since needs to be later than $GradleRunnerIntegrationTest.MIN_TESTED_VERSION"
     }
 
     private static boolean isValidVersion(GradleVersion comparedVersion, GradleVersion minVersion) {

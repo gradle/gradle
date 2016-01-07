@@ -28,7 +28,7 @@ import spock.lang.Shared
 @NonCrossVersion
 @NoDebug
 @Requires(TestPrecondition.ONLINE)
-class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerCompatibilityIntegrationTest {
+class GradleRunnerGradleVersionIntegrationTest extends GradleRunnerIntegrationTest {
 
     @Shared
     DistributionLocator locator = new DistributionLocator()
@@ -79,7 +79,7 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerCompa
         file("gradleVersion.txt").text == version
 
         and:
-        // Note: GradleRunnerIntegTestRunner configures the test env to use this gradle user home dir
+        // Note: AbstractGradleRunnerIntegTest configures the test env to use this gradle user home dir
         file("gradleHomeDir.txt").text.startsWith(buildContext.gradleUserHomeDir.absolutePath)
 
         and:
