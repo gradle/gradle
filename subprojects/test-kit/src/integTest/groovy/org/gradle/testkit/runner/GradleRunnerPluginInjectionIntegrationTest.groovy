@@ -102,7 +102,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerCom
         buildFile << echoClassNameTask()
 
         when:
-        def result = runner('echo1')
+        def result = runner('echo1', "-S")
             .withPluginClasspath(getPluginClasspath())
             .buildAndFail()
 
@@ -135,13 +135,13 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerCom
         file("child/build.gradle") << pluginDeclaration() << echoClassNameTask()
 
         when:
-        def result = runner("child:echo1").withPluginClasspath(getPluginClasspath()).build()
+        def result = runner("child:echo1", "-S").withPluginClasspath(getPluginClasspath()).build()
 
         then:
         result.output.contains("class name: org.gradle.test.HelloWorld1")
 
         when:
-        result = runner("echo1").withPluginClasspath(getPluginClasspath()).buildAndFail()
+        result = runner("echo1", "-S").withPluginClasspath(getPluginClasspath()).buildAndFail()
 
         then:
         // This is how the class not being visible will manifest
@@ -156,13 +156,13 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerCom
         file("child/build.gradle") << pluginDeclaration() << echoClassNameTask()
 
         when:
-        def result = runner("child:echo1").withPluginClasspath(getPluginClasspath()).build()
+        def result = runner("child:echo1", "-S").withPluginClasspath(getPluginClasspath()).build()
 
         then:
         result.output.contains("class name: org.gradle.test.HelloWorld1")
 
         when:
-        result = runner("echo1").withPluginClasspath(getPluginClasspath()).buildAndFail()
+        result = runner("echo1", "-S").withPluginClasspath(getPluginClasspath()).buildAndFail()
 
         then:
         execFailure(result).assertHasCause("failed to load class org.gradle.test.HelloWorld1")
