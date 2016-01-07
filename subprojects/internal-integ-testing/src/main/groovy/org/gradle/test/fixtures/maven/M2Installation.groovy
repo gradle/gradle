@@ -24,11 +24,11 @@ import org.gradle.test.fixtures.file.TestFile
 class M2Installation implements Action<GradleExecuter> {
     private final TestDirectoryProvider temporaryFolder
     private boolean initialized = false
-    TestFile userHomeDir
-    TestFile userM2Directory
-    TestFile userSettingsFile
-    TestFile globalMavenDirectory
-    TestFile globalSettingsFile
+    private TestFile userHomeDir
+    private TestFile userM2Directory
+    private TestFile userSettingsFile
+    private TestFile globalMavenDirectory
+    private TestFile globalSettingsFile
 
     public M2Installation(TestDirectoryProvider temporaryFolder) {
         this.temporaryFolder = temporaryFolder
@@ -45,6 +45,31 @@ class M2Installation implements Action<GradleExecuter> {
 
             initialized = true
         }
+    }
+
+    TestFile getUserHomeDir() {
+        init()
+        return userHomeDir
+    }
+
+    TestFile getUserM2Directory() {
+        init()
+        return userM2Directory
+    }
+
+    TestFile getUserSettingsFile() {
+        init()
+        return userSettingsFile
+    }
+
+    TestFile getGlobalMavenDirectory() {
+        init()
+        return globalMavenDirectory
+    }
+
+    TestFile getGlobalSettingsFile() {
+        init()
+        return globalSettingsFile
     }
 
     MavenLocalRepository mavenRepo() {
