@@ -18,29 +18,42 @@
 package org.gradle.test.fixtures.maven
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 
 class M2Installation implements Action<GradleExecuter> {
-    final TestFile userHomeDir
-    final TestFile userM2Directory
-    final TestFile userSettingsFile
-    final TestFile globalMavenDirectory
-    final TestFile globalSettingsFile
+    private final TestDirectoryProvider temporaryFolder
+    private boolean initialized = false
+    TestFile userHomeDir
+    TestFile userM2Directory
+    TestFile userSettingsFile
+    TestFile globalMavenDirectory
+    TestFile globalSettingsFile
 
-    public M2Installation(TestFile testDirectory) {
-        userHomeDir = testDirectory.createDir("maven_home")
-        userM2Directory = userHomeDir.createDir(".m2")
-        userSettingsFile = userM2Directory.file("settings.xml")
-        globalMavenDirectory = userHomeDir.createDir("m2_home")
-        globalSettingsFile = globalMavenDirectory.file("conf/settings.xml")
-        println "M2 home: " + userHomeDir
+    public M2Installation(TestDirectoryProvider temporaryFolder) {
+        this.temporaryFolder = temporaryFolder
+    }
+
+    private void init() {
+        if (!initialized) {
+            userHomeDir = temporaryFolder.testDirectory.createDir("maven_home")
+            userM2Directory = userHomeDir.createDir(".m2")
+            userSettingsFile = userM2Directory.file("settings.xml")
+            globalMavenDirectory = userHomeDir.createDir("m2_home")
+            globalSettingsFile = globalMavenDirectory.file("conf/settings.xml")
+            println "M2 home: " + userHomeDir
+
+            initialized = true
+        }
     }
 
     MavenLocalRepository mavenRepo() {
+        init()
         new MavenLocalRepository(userM2Directory.file("repository"))
     }
 
     M2Installation generateUserSettingsFile(MavenLocalRepository userRepository) {
+        init()
         userSettingsFile.text = """
 <settings>
     <localRepository>${userRepository.rootDir.absolutePath}</localRepository>
@@ -49,6 +62,7 @@ class M2Installation implements Action<GradleExecuter> {
     }
 
     M2Installation generateGlobalSettingsFile(MavenLocalRepository globalRepository = mavenRepo()) {
+        init()
         globalSettingsFile.createFile().text = """
 <settings>
     <localRepository>${globalRepository.rootDir.absolutePath}</localRepository>
@@ -77,6 +91,7 @@ class M2Installation implements Action<GradleExecuter> {
 //    }
 
     void execute(GradleExecuter gradleExecuter) {
+        init()
         gradleExecuter.withUserHomeDir(userHomeDir)
         if (globalMavenDirectory?.exists()) {
             gradleExecuter.withEnvironmentVars(M2_HOME: globalMavenDirectory.absolutePath)

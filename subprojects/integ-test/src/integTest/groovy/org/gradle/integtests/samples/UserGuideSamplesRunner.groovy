@@ -136,7 +136,7 @@ class UserGuideSamplesRunner extends Runner {
     private void runSample(GradleRun run) {
         try {
             println("Test Id: $run.id, dir: $run.subDir, execution dir: $run.executionDir args: $run.args")
-            def m2 = new M2Installation(temporaryFolder.getTestDirectory())
+            def m2 = new M2Installation(temporaryFolder)
             m2.execute(executer)
             executer.noExtraLogging()
                 .inDirectory(run.executionDir)

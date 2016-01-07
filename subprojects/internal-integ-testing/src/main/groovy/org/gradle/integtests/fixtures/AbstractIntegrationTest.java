@@ -33,7 +33,7 @@ public abstract class AbstractIntegrationTest {
     public final GradleExecuter executer = new GradleContextualExecuter(distribution, testDirectoryProvider);
 
 //    @Rule
-    public final M2Installation m2 = new M2Installation(testDirectoryProvider.getTestDirectory());
+    public final M2Installation m2 = new M2Installation(testDirectoryProvider);
 
     private MavenFileRepository mavenRepo;
     private IvyFileRepository ivyRepo;
