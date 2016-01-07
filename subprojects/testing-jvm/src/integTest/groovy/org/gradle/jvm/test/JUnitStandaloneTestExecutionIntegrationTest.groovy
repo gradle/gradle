@@ -497,6 +497,68 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
 
     }
 
+    def "test should execute with transitive dependencies of a dependency binary specific source set"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        buildFile << """
+            model {
+                components {
+                    utils(JvmLibrarySpec) {
+                        binaries.all {
+                            sources {
+                                alternate(JavaSourceSet) {
+                                    source.srcDir 'src/alternate/java'
+                                    dependencies {
+                                        module 'org.apache.commons:commons-lang3:3.4'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                testSuites {
+                    myTest(JUnitTestSuiteSpec) {
+                        jUnitVersion '4.12'
+                        sources {
+                            java {
+                                dependencies {
+                                    library 'utils'
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+            }
+        """
+        file('src/alternate/java/Utils.java') << '''import static org.apache.commons.lang3.text.WordUtils.capitalize;
+            public class Utils {
+                public static String pretty(String str) { return capitalize(str); }
+            }
+        '''
+        file('src/myTest/java/MyTest.java') << """
+            import org.junit.Test;
+            import static org.junit.Assert.*;
+
+            public class MyTest {
+                @Test
+                public void test() {
+                    assertEquals(Utils.pretty("hello world"), "Hello World");
+                }
+            }
+        """
+
+        when:
+        succeeds ':myTestBinaryTest'
+
+        then:
+        executedAndNotSkipped ':createUtilsJar', ':myTestBinaryTest'
+
+    }
+
     def "runtime transitive dependencies should not be on compile classpath of test suite"() {
         given:
         applyJUnitPlugin()
