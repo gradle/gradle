@@ -184,7 +184,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         ]
         if (useLib) {
             testCount++
-            tests.testLibDependency = 'java.lang.AssertionError: expected:<0> but was:<666>'
+            tests.testLibDependency = 'java.lang.AssertionError: expected:<42> but was:<666>'
         }
         if (useExternalDep) {
             testCount++
