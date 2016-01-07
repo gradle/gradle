@@ -57,9 +57,9 @@ class DocumentationPlugin extends RuleSource {
 // START SNIPPET text-tasks-generation
     @BinaryTasks
     void generateTextTasks(ModelMap<Task> tasks, final DocumentationBinary binary) {
-        binary.inputs.withType(TextSourceSet.class) { textSourceSet ->
-            def taskName = binary.tasks.taskName("compile", name)
-            def outputDir = new File(binary.outputDir, name)
+        binary.inputs.withType(TextSourceSet) { textSourceSet ->
+            def taskName = binary.tasks.taskName("compile", textSourceSet.name)
+            def outputDir = new File(binary.outputDir, textSourceSet.name)
             tasks.create(taskName, Copy) {
                 from textSourceSet.source
                 destinationDir = outputDir

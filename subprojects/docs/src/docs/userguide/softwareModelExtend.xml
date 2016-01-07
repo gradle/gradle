@@ -73,6 +73,7 @@
             <para>
                 Adding internal views to your model type, you can make some data visible to build logic via a public
                 type, while hiding the rest of the data behind the internal view types.
+                This is covered in a <link linkend='software-model-extend-internal-views'>dedicated section</link> below.
             </para>
         </section>
         <section>
@@ -86,7 +87,7 @@
     <section>
         <title>Components</title>
         <para>
-            To declare a custom component type one must extends
+            To declare a custom component type one must extend
             <apilink class="org.gradle.platform.base.ComponentSpec"/>.
             <apilink class="org.gradle.platform.base.LibrarySpec"/> and
             <apilink class="org.gradle.platform.base.ApplicationSpec"/> can also be extended in this manner.
@@ -107,7 +108,7 @@
     <section>
         <title>Binaries</title>
         <para>
-            To declare a custom binary type one must extends
+            To declare a custom binary type one must extend
             <apilink class="org.gradle.platform.base.BinarySpec"/>.
         </para>
         <sample id="binary-declaration" title="Declare a custom binary"
@@ -126,7 +127,7 @@
     <section>
         <title>Source sets</title>
         <para>
-            To declare a custom binary type one must extends
+            To declare a custom binary type one must extend
             <apilink class="org.gradle.language.base.LanguageSourceSet"/>.
         </para>
         <sample id="markdown-lang-declaration" title="Declare a custom source set"
@@ -203,12 +204,12 @@
             </sample>
         </section>
     </section>
-    <section>
+    <section id='software-model-extend-internal-views'>
         <title>About internal views</title>
         <para>
             Internal views can be added to an already registered type or to a new custom type.
-            In other words, using internal views, you can attach extra properties to already registered component,
-            binary and source set types like <literal>JvmLibrarySpec</literal>, <literal>JarBinarySpec</literal>
+            In other words, using internal views, you can attach extra properties to already registered components,
+            binaries and source sets types like <literal>JvmLibrarySpec</literal>, <literal>JarBinarySpec</literal>
             or <literal>JavaSourceSet</literal> and to the custom types you write.
         </para>
         <para>

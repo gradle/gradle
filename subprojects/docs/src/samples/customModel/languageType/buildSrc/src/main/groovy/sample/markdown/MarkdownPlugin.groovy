@@ -36,9 +36,9 @@ class MarkdownPlugin extends RuleSource {
 // START SNIPPET markdown-tasks-generation
     @BinaryTasks
     void processMarkdownDocumentation(ModelMap<Task> tasks, final DocumentationBinary binary) {
-        binary.inputs.withType(MarkdownSourceSet.class) { markdownSourceSet ->
-            def taskName = binary.tasks.taskName("compile", name)
-            def outputDir = new File(binary.outputDir, name)
+        binary.inputs.withType(MarkdownSourceSet) { markdownSourceSet ->
+            def taskName = binary.tasks.taskName("compile", markdownSourceSet.name)
+            def outputDir = new File(binary.outputDir, markdownSourceSet.name)
             tasks.create(taskName, MarkdownHtmlCompile) { compileTask ->
                 compileTask.source = markdownSourceSet.source
                 compileTask.destinationDir = outputDir
