@@ -26,6 +26,7 @@ import org.gradle.testkit.runner.fixtures.GradleRunnerCompatibilityIntegTestRunn
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution
 import org.gradle.util.SetSystemProperties
+import org.gradle.wrapper.GradleUserHomeLookup
 import org.junit.Rule
 import org.junit.runner.RunWith
 import spock.lang.Shared
@@ -39,7 +40,10 @@ class AbstractGradleRunnerCompatibilityIntegrationTest extends AbstractIntegrati
     IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     @Rule
-    SetSystemProperties setSystemProperties = new SetSystemProperties((NativeServices.NATIVE_DIR_OVERRIDE): buildContext.gradleUserHomeDir.file("native").absolutePath)
+    SetSystemProperties setSystemProperties = new SetSystemProperties(
+        (NativeServices.NATIVE_DIR_OVERRIDE): buildContext.gradleUserHomeDir.file("native").absolutePath,
+        (GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY): buildContext.gradleUserHomeDir.absolutePath
+    )
 
     boolean requireIsolatedTestKitDir
 

@@ -28,7 +28,6 @@ import org.gradle.testkit.runner.internal.dist.GradleDistribution
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution
 import org.gradle.util.GradleVersion
-import org.gradle.wrapper.GradleUserHomeLookup
 
 import java.lang.annotation.Annotation
 
@@ -148,7 +147,6 @@ class GradleRunnerCompatibilityIntegTestRunner extends AbstractMultiTestRunner {
     private static class GradleRunnerExecution extends AbstractMultiTestRunner.Execution {
 
         protected final boolean debug
-        private String gradleUserHomeSetting
         private final TestedGradleDistribution testedGradleDistribution
 
         GradleRunnerExecution(TestedGradleDistribution testedGradleDistribution, boolean debug) {
@@ -165,16 +163,8 @@ class GradleRunnerCompatibilityIntegTestRunner extends AbstractMultiTestRunner {
         protected void before() {
             super.before()
             GradleRunnerCompatibilityIntegTestRunner.debug = debug
-            gradleUserHomeSetting = System.setProperty(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY, BUILD_CONTEXT.gradleUserHomeDir.absolutePath)
             gradleVersion = testedGradleDistribution.gradleVersion
             distribution = testedGradleDistribution.gradleDistribution
-        }
-
-        @Override
-        protected void after() {
-            if (gradleUserHomeSetting) {
-                System.setProperty(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY, gradleUserHomeSetting)
-            }
         }
 
         @Override
