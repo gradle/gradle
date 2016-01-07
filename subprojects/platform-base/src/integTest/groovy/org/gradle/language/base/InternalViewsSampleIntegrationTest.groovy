@@ -40,11 +40,11 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
                   | Type:   	org.gradle.platform.base.ComponentSpecContainer
                   | Creator: 	ComponentModelBasePlugin.Rules#components
                   | Rules:
-                     ⤷ components { ... } @ build.gradle line 44, column 5
+                     ⤷ components { ... } @ build.gradle line 42, column 5
                      ⤷ MyPlugin#mutateMyComponents
                 + my
                       | Type:   	MyComponent
-                      | Creator: 	components { ... } @ build.gradle line 44, column 5 > create(my)
+                      | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
                       | Rules:
                          ⤷ MyPlugin#mutateMyComponents > beforeEach()
                          ⤷ ComponentRules#addSourcesSetsToProjectSourceSet
@@ -53,16 +53,16 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
                          ⤷ ComponentRules#inputRules
                     + binaries
                           | Type:   	org.gradle.model.ModelMap<org.gradle.platform.base.BinarySpec>
-                          | Creator: 	components { ... } @ build.gradle line 44, column 5 > create(my)
+                          | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
                           | Rules:
                              ⤷ ComponentRules.AttachInputs#initializeBinarySourceSets
                     + publicData
                           | Type:   	java.lang.String
                           | Value:  	Some PUBLIC data
-                          | Creator: 	components { ... } @ build.gradle line 44, column 5 > create(my)
+                          | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
                     + sources
                           | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
-                          | Creator: 	components { ... } @ build.gradle line 44, column 5 > create(my)
-        """.stripIndent()
+                          | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
+        """.stripIndent().trim()
     }
 }
