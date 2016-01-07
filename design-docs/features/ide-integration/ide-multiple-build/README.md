@@ -41,6 +41,7 @@ The `EclipseWorkspace` provides a lightweight mechanism to query the set of all 
     interface EclipseWorkspace {
         /**
          * A set of lightweight project references for every Eclipse project that is built for the set of connected Gradle builds.
+         * This set should not be expensive to calculate.
          */
         Set<EclipseProjectIdentifier> getAvailableProjects();
 
@@ -158,11 +159,9 @@ The algorithm for which projects will substitute in for which external dependenc
 
 ##### Implementation
 
-For the initial story, dependency substitution will be performed within the Tooling API client: the remote Gradle processes will simply provide the separate EclipseProject model for each connected build, and will have no involvement in the substitution.
+- For the initial story, dependency substitution will be performed within the Tooling API client: the remote Gradle processes will simply provide the separate EclipseProject model for each connected build, and will have no involvement in the substitution.
 
 ##### Test cases
-
-More TBD
 
 - Projects that are part of a workspace can be built together based on established project dependencies.
 - When the coordinates of a substituted module dependency are changed, Buildship can refresh and recieve the updated model:
@@ -171,10 +170,12 @@ More TBD
     - Eclipse project synchronization is initiated.
 - Closing and re-opening Buildship will re-establish a workspace.
 
+More TBD
+
 ## Open issues
 
-- Out-of-scope for this feature would be the ability to run builds using the workspace definition from the IDE or from
-the command-line. This would be an additional feature.
+- Out-of-scope for this feature would be the ability to run builds using the workspace definition from the IDE or the command-line.
+the command-line.
 - The [concept of workspace exists in Eclipse](http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.user/concepts/cworkset.htm?cp=0_2_1_6) which could be used to define a [custom extension point](http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.isv/reference/extension-points/org_eclipse_ui_workingSets.html?cp=2_1_1_202).
  However, investigation is needed if and how can we use them.
 
