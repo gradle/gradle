@@ -29,6 +29,7 @@ class ChangesDuringBuildContinuousIntegrationTest extends Java7RequiringContinuo
 apply plugin: 'java'
 gradle.taskGraph.afterTask { Task task ->
     if(task.path == ':classes' && !file('changetrigged').exists()) {
+       sleep(500) // attempt to workaround JDK-8145981
        file("src/main/java/Thing.java").text = "class Thing { private static final boolean CHANGED=true; }"
        file('changetrigged').text = 'done'
     }
@@ -78,6 +79,7 @@ gradle.taskGraph.afterTask { Task task ->
 
             gradle.taskGraph.afterTask { Task task ->
                 if(task.path == ':$changingInput' && !file('changetrigged').exists()) {
+                   sleep(500) // attempt to workaround JDK-8145981
                    file('$changingInput/input.txt').text = 'New input file'
                    file('changetrigged').text = 'done'
                 }
@@ -102,6 +104,7 @@ gradle.taskGraph.afterTask { Task task ->
         buildFile << """
             def taskAction = { Task task ->
                 if(task.path == ':$changingInput' && !file('changetrigged').exists()) {
+                   sleep(500) // attempt to workaround JDK-8145981
                    file('$changingInput/input.txt').text = 'New input file'
                    file('changetrigged').text = 'done'
                 }
