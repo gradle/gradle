@@ -62,7 +62,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         runner.tasksToRun = ['clean', 'assemble']
         runner.maxExecutionTimeRegression = maxTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
-        runner.targetVersions = ['2.9', 'last']
+        runner.targetVersions = ['2.9', '2.10', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
 
@@ -74,8 +74,8 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
 
         where:
         testProject                                  | maxTimeRegression | maxMemoryRegression
-        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(1000)      | mbytes(5)
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(10000)      | mbytes(50)
+        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(500)       | mbytes(5)
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(4000)      | mbytes(50)
     }
 
     @Unroll("Project '#testProject' measuring incremental build when no API is declared")
@@ -86,7 +86,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         runner.tasksToRun = ['assemble']
         runner.maxExecutionTimeRegression = maxTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
-        runner.targetVersions = ['2.9', 'last']
+        runner.targetVersions = ['2.10', '2.11', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
         runner.buildExperimentListener = new JavaSoftwareModelSourceFileUpdater(10, 0, 0)
@@ -100,7 +100,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         where:
         testProject                                  | maxTimeRegression | maxMemoryRegression
         "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(500)       | mbytes(5)
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(14000)     | mbytes(50)
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(2000)      | mbytes(50)
     }
 
     @Unroll("Checking overhead of API stubbing when #cardinality.description")
@@ -111,7 +111,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         runner.tasksToRun = ['project1:mainApiJar']
         runner.maxExecutionTimeRegression = maxTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
-        runner.targetVersions = ['last']
+        runner.targetVersions = ['2.10', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
         def updater = new JavaSoftwareModelSourceFileUpdater(100, 0, 0, cardinality)

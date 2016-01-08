@@ -31,7 +31,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.testProject = testProject
         runner.tasksToRun = ['eclipse']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '2.0', '2.2.1', '2.8', 'last']
+        runner.targetVersions = ['1.0', '2.0', '2.8', 'last']
         runner.useDaemon = true
 
         when:

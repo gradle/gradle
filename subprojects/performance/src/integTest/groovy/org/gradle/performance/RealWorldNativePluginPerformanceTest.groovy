@@ -69,7 +69,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.tasksToRun = ['build']
         runner.args = ["--parallel", "--max-workers=4"]
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.8', '2.9', 'last']
+        runner.targetVersions = ['2.10', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
         runner.warmUpRuns = 2
