@@ -259,9 +259,9 @@ for an overview of known TestKit limitations.
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Dylan Cali](https://github.com/calid) - Add support for Spock and TestNG frameworks for Java projects in [Build Init Plugin](userguide/build_init_plugin.html)
 * [Niklas Baudy](https://github.com/vanniktech) - PMD plugin code cleanup
 * [Richard Bergoin](https://github.com/kenji21) - Test coverage for NTLM support
-* [Dylan Cali](https://github.com/calid) - Add support for Spock framework for Java projects in [Build Init Plugin](userguide/build_init_plugin.html)
 * [Illya Gerasymchuk](https://github.com/iluxonchik) - Fix typos in Windows batch scripts
 * [Eike Kohnert](https://github.com/andrena-eike-kohnert) - Support for publishing dependency exclusions in Ivy descriptors
 * [Johnny Lim](https://github.com/izeye) - Documentation improvements
