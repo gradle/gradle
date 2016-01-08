@@ -16,8 +16,6 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.api.Action;
-import org.gradle.internal.Actions;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -32,11 +30,6 @@ import java.util.Set;
 public class RuleSourceSchemaExtractionStrategy extends StructSchemaExtractionStrategySupport {
     public RuleSourceSchemaExtractionStrategy(ModelSchemaAspectExtractor aspectExtractor) {
         super(aspectExtractor);
-    }
-
-    @Override
-    protected <P> Action<ModelSchema<P>> createPropertyValidator(ModelSchemaExtractionContext<?> extractionContext, ModelPropertyExtractionResult<P> propertyResult) {
-        return Actions.doNothing();
     }
 
     @Override
@@ -67,11 +60,6 @@ public class RuleSourceSchemaExtractionStrategy extends StructSchemaExtractionSt
 
     @Override
     protected void validateProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property) {
-    }
-
-    @Override
-    protected ModelProperty.StateManagementType determineStateManagementType(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getterContext) {
-        return ModelProperty.StateManagementType.MANAGED;
     }
 
     @Override

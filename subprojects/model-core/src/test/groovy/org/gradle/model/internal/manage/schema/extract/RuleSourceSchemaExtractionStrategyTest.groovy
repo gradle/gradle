@@ -17,7 +17,10 @@
 package org.gradle.model.internal.manage.schema.extract
 
 import org.gradle.model.RuleSource
-import org.gradle.model.internal.manage.schema.*
+import org.gradle.model.internal.manage.schema.CompositeSchema
+import org.gradle.model.internal.manage.schema.ManagedImplSchema
+import org.gradle.model.internal.manage.schema.RuleSourceSchema
+import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import spock.lang.Specification
@@ -51,7 +54,6 @@ class RuleSourceSchemaExtractionStrategyTest extends Specification {
         schema instanceof StructSchema
         schema.propertyNames == ['readOnlyString', 'strings'] as SortedSet
         schema.properties*.name == ['readOnlyString', 'strings']
-        schema.properties.every { it.stateManagementType == ModelProperty.StateManagementType.MANAGED }
         schema.getProperty('readOnlyString').schema == store.getSchema(ModelType.of(String))
         schema.getProperty('strings').schema == store.getSchema(ModelTypes.list(ModelType.of(String)))
     }

@@ -35,30 +35,16 @@ import java.util.Set;
 @ThreadSafe
 public class ModelProperty<T> {
 
-    public enum StateManagementType {
-        /**
-         * The state of the property is stored as child nodes in the model.
-         */
-        MANAGED,
-
-        /**
-         * The state of the property is handled by the view.
-         */
-        UNMANAGED,
-    }
-
     private final String name;
     private final ModelType<T> type;
-    private final StateManagementType stateManagementType;
     private final Set<ModelType<?>> declaredBy;
     private final ImmutableMap<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors;
     private ModelSchema<T> schema;
 
-    public ModelProperty(ModelType<T> type, String name, StateManagementType stateManagementType, Set<ModelType<?>> declaredBy,
+    public ModelProperty(ModelType<T> type, String name, Set<ModelType<?>> declaredBy,
                          Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors) {
         this.name = name;
         this.type = type;
-        this.stateManagementType = stateManagementType;
         this.declaredBy = ImmutableSet.copyOf(declaredBy);
         this.accessors = Maps.immutableEnumMap(accessors);
     }
@@ -77,10 +63,6 @@ public class ModelProperty<T> {
 
     public void setSchema(ModelSchema<T> schema) {
         this.schema = schema;
-    }
-
-    public StateManagementType getStateManagementType() {
-        return stateManagementType;
     }
 
     public boolean isReadable() {
@@ -141,7 +123,6 @@ public class ModelProperty<T> {
 
         return Objects.equal(this.name, that.name)
             && Objects.equal(this.type, that.type)
-            && Objects.equal(this.stateManagementType, that.stateManagementType)
             && isWritable() == that.isWritable();
     }
 
@@ -149,13 +130,12 @@ public class ModelProperty<T> {
     public int hashCode() {
         int result = name.hashCode();
         result = 31 * result + type.hashCode();
-        result = 31 * result + stateManagementType.hashCode();
         result = 31 * result + Boolean.valueOf(isWritable()).hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return stateManagementType.name().toLowerCase() + " " + getName() + "(" + getType().getDisplayName() + ")";
+        return getName() + "(" + getType().getDisplayName() + ")";
     }
 }

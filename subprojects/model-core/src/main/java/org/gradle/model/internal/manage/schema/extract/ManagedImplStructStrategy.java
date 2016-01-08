@@ -20,12 +20,12 @@ import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
-import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.Managed;
-import org.gradle.model.Unmanaged;
-import org.gradle.model.internal.manage.schema.*;
+import org.gradle.model.internal.manage.schema.ManagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
@@ -35,8 +35,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.*;
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.*;
+import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.*;
 
 public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySupport {
 
@@ -227,80 +227,6 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
                 throw invalidMethod(context, message, mostSpecificSetter);
             }
         }
-    }
-
-    @Override
-    protected ModelProperty.StateManagementType determineStateManagementType(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getterContext) {
-        // Named.getName() needs to be handled specially
-        if (getterContext.getMostSpecificDeclaration().getName().equals("getName")
-            && Named.class.isAssignableFrom(extractionContext.getType().getRawClass())) {
-            return ModelProperty.StateManagementType.MANAGED;
-        }
-
-        if (getterContext.isDeclaredInManagedType()) {
-            if (getterContext.isDeclaredAsAbstract()) {
-                return ModelProperty.StateManagementType.MANAGED;
-            } else {
-                return ModelProperty.StateManagementType.UNMANAGED;
-            }
-        } else {
-            return ModelProperty.StateManagementType.UNMANAGED;
-        }
-    }
-
-    @Override
-    protected <P> Action<ModelSchema<P>> createPropertyValidator(final ModelSchemaExtractionContext<?> parentContext, final ModelPropertyExtractionResult<P> propertyResult) {
-        return new Action<ModelSchema<P>>() {
-            @Override
-            public void execute(ModelSchema<P> propertySchema) {
-                ModelProperty<P> property = propertyResult.getProperty();
-                // Do not validate unmanaged properties
-                if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
-                    return;
-                }
-
-                // The "name" property is handled differently if type implements Named
-                if (property.getName().equals("name") && Named.class.isAssignableFrom(parentContext.getType().getRawClass())) {
-                    return;
-                }
-
-                // Only managed implementation and value types are allowed as a managed property type unless marked with @Unmanaged
-                boolean isAllowedPropertyTypeOfManagedType = propertySchema instanceof ManagedImplSchema
-                    || propertySchema instanceof ScalarValueSchema;
-
-                boolean isDeclaredAsHavingUnmanagedType = false;
-                for (PropertyAccessorExtractionContext accessorContext : propertyResult.getAccessors()) {
-                    if (accessorContext.getAccessorType() != SETTER && accessorContext.isAnnotationPresent(Unmanaged.class)) {
-                        isDeclaredAsHavingUnmanagedType = true;
-                        break;
-                    }
-                }
-
-                if (isAllowedPropertyTypeOfManagedType && isDeclaredAsHavingUnmanagedType) {
-                    throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                        "property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remove the @Managed annotation.%n",
-                        property.getName(), property.getType()
-                    ));
-                }
-
-                if (!property.isWritable()) {
-                    if (isDeclaredAsHavingUnmanagedType) {
-                        throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                            "unmanaged property '%s' cannot be read only, unmanaged properties must have setters",
-                            property.getName())
-                        );
-                    }
-                }
-
-                if (propertySchema instanceof CollectionSchema) {
-                    if (!(propertySchema instanceof ScalarCollectionSchema) && property.isWritable()) {
-                        throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                            "property '%s' cannot have a setter (%s properties must be read only).",
-                            property.getName(), property.getType().toString()));
-                    }
-                }
-            }
-        };
     }
 
     @Override

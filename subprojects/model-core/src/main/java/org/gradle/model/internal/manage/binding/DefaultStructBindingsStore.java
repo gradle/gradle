@@ -25,12 +25,12 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.*;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import org.gradle.api.Named;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.Unmanaged;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.StructSchema;
+import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
 import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
@@ -73,6 +73,8 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             return Cast.uncheckedCast(bindings.get(new CacheKey(publicType, internalViewTypes, delegateType)));
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        } catch (UncheckedExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
         }
     }
 
@@ -99,7 +101,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         );
     }
 
-    private static <T> ImmutableSortedMap<String, ManagedProperty<?>> collectManagedProperties(StructSchema<T> publicSchema, Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings) {
+    private <T> ImmutableSortedMap<String, ManagedProperty<?>> collectManagedProperties(StructSchema<T> publicSchema, Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings) {
         ImmutableSortedMap.Builder<String, ManagedProperty<?>> managedPropertiesBuilder = ImmutableSortedMap.naturalOrder();
         for (Map.Entry<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyEntry : propertyBindings.entrySet()) {
             String propertyName = propertyEntry.getKey();
@@ -113,11 +115,8 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
                 }
 
                 ModelType<?> propertyType = determinePropertyType(propertyName, accessorBindings);
-                boolean writable = accessorBindings.containsKey(SETTER);
-                boolean declaredAsUnmanaged = isDeclaredAsHavingUnmanagedType(accessorBindings.get(GET_GETTER))
-                    || isDeclaredAsHavingUnmanagedType(accessorBindings.get(IS_GETTER));
-                boolean internal = !publicSchema.hasProperty(propertyName);
-                managedPropertiesBuilder.put(propertyName, createProperty(propertyName, propertyType, writable, declaredAsUnmanaged, internal));
+                ModelSchema<?> propertySchema = schemaStore.getSchema(propertyType);
+                managedPropertiesBuilder.put(propertyName, createManagedProperty(publicSchema, propertyName, propertySchema, accessorBindings));
             }
         }
         return managedPropertiesBuilder.build();
@@ -281,8 +280,53 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         return implementedMethodsBuilder.values();
     }
 
-    private static <T> ManagedProperty<T> createProperty(String propertyName, ModelType<T> propertyType, boolean writable, boolean declaredAsUnmanaged, boolean internal) {
-        return new ManagedProperty<T>(propertyName, propertyType, writable, declaredAsUnmanaged, internal);
+    private static <T> ManagedProperty<T> createManagedProperty(StructSchema<?> publicSchema, String propertyName, ModelSchema<T> propertySchema, Multimap<PropertyAccessorType, StructMethodBinding> accessors) {
+        boolean writable = accessors.containsKey(SETTER);
+        boolean declaredAsUnmanaged = isDeclaredAsHavingUnmanagedType(accessors.get(GET_GETTER))
+            || isDeclaredAsHavingUnmanagedType(accessors.get(IS_GETTER));
+        boolean internal = !publicSchema.hasProperty(propertyName);
+
+        validateManagedProperty(publicSchema, propertyName, propertySchema, writable, declaredAsUnmanaged);
+
+        return new ManagedProperty<T>(propertyName, propertySchema.getType(), writable, declaredAsUnmanaged, internal);
+    }
+
+    private static void validateManagedProperty(StructSchema<?> publicSchema, String propertyName, ModelSchema<?> propertySchema, boolean writable, boolean isDeclaredAsHavingUnmanagedType) {
+        ModelType<?> publicType = publicSchema.getType();
+
+        // The "name" property is handled differently if type implements Named
+        if (propertyName.equals("name") && Named.class.isAssignableFrom(publicType.getRawClass())) {
+            return;
+        }
+
+        // Only managed implementation and value types are allowed as a managed property type unless marked with @Unmanaged
+        boolean isAllowedPropertyTypeOfManagedType = propertySchema instanceof ManagedImplSchema
+            || propertySchema instanceof ScalarValueSchema;
+
+        ModelType<?> propertyType = propertySchema.getType();
+
+        if (isAllowedPropertyTypeOfManagedType && isDeclaredAsHavingUnmanagedType) {
+            throw new InvalidManagedPropertyException(publicType, propertyName, String.format(
+                "is marked as @Unmanaged, but is of @Managed type '%s'. Please remove the @Managed annotation",
+                propertyType.getDisplayName()
+            ));
+        }
+
+        if (!writable && isDeclaredAsHavingUnmanagedType) {
+            throw new InvalidManagedPropertyException(publicType, propertyName,
+                "must not be read only, because it is marked as @Unmanaged"
+            );
+        }
+
+        if (!(publicSchema instanceof RuleSourceSchema)) {
+            if (propertySchema instanceof CollectionSchema) {
+                if (!(propertySchema instanceof ScalarCollectionSchema) && writable) {
+                    throw new InvalidManagedPropertyException(publicType, propertyName, String.format(
+                        "cannot have a setter (%s properties must be read only)",
+                        propertyType.getRawClass().getSimpleName()));
+                }
+            }
+        }
     }
 
     private static boolean isDeclaredAsHavingUnmanagedType(Collection<StructMethodBinding> accessorBindings) {

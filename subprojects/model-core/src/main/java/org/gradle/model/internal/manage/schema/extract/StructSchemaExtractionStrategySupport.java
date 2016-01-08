@@ -16,8 +16,11 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.*;
 import com.google.common.base.Equivalence.Wrapper;
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import org.gradle.api.Action;
 import org.gradle.model.internal.manage.schema.ModelProperty;
@@ -158,7 +161,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     protected abstract void validateProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property);
 
-    private List<ModelPropertyExtractionResult<?>> extractProperties(ModelSchemaExtractionContext<?> context, Iterable<ModelPropertyExtractionContext> properties) {
+    private static List<ModelPropertyExtractionResult<?>> extractProperties(ModelSchemaExtractionContext<?> context, Iterable<ModelPropertyExtractionContext> properties) {
         ImmutableList.Builder<ModelPropertyExtractionResult<?>> builder = ImmutableList.builder();
         for (ModelPropertyExtractionContext propertyContext : properties) {
             builder.add(extractProperty(context, propertyContext));
@@ -166,15 +169,13 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         return builder.build();
     }
 
-    private <R> ModelPropertyExtractionResult<R> extractProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property) {
+    private static <R> ModelPropertyExtractionResult<R> extractProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property) {
         PropertyAccessorExtractionContext gettersContext = property.mergeGetters();
         final ModelType<R> returnType = ModelType.returnType(gettersContext.getMostSpecificDeclaration());
-
-        ModelProperty.StateManagementType stateManagementType = determineStateManagementType(context, gettersContext);
-        return createProperty(returnType, stateManagementType, property);
+        return createProperty(returnType, property);
     }
 
-    private static <P> ModelPropertyExtractionResult<P> createProperty(ModelType<P> propertyType, ModelProperty.StateManagementType stateManagementType, ModelPropertyExtractionContext propertyContext) {
+    private static <P> ModelPropertyExtractionResult<P> createProperty(ModelType<P> propertyType, ModelPropertyExtractionContext propertyContext) {
         ImmutableMap.Builder<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors = ImmutableMap.builder();
         for (PropertyAccessorExtractionContext accessor : propertyContext.getAccessors()) {
             WeaklyTypeReferencingMethod<?, ?> accessorMethod = WeaklyTypeReferencingMethod.of(accessor.getMostSpecificDeclaration());
@@ -183,33 +184,28 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         ModelProperty<P> property = new ModelProperty<P>(
             propertyType,
             propertyContext.getPropertyName(),
-            stateManagementType,
             propertyContext.getDeclaredBy(),
             accessors.build()
         );
         return new ModelPropertyExtractionResult<P>(property, propertyContext.getAccessors());
     }
 
-    protected abstract ModelProperty.StateManagementType determineStateManagementType(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getterContext);
-
-    private <R, P> void toPropertyExtractionContext(ModelSchemaExtractionContext<R> parentContext, ModelPropertyExtractionResult<P> propertyResult) {
+    private static <R, P> void toPropertyExtractionContext(ModelSchemaExtractionContext<R> parentContext, ModelPropertyExtractionResult<P> propertyResult) {
         ModelProperty<P> property = propertyResult.getProperty();
         String propertyDescription = propertyDescription(parentContext, property);
-        Action<ModelSchema<P>> propertyValidator = createPropertyValidator(parentContext, propertyResult);
-        parentContext.child(property.getType(), propertyDescription, attachSchema(property, propertyValidator));
+        parentContext.child(property.getType(), propertyDescription, attachSchema(property));
     }
 
-    private <P> Action<? super ModelSchema<P>> attachSchema(final ModelProperty<P> property, final Action<ModelSchema<P>> propertyValidator) {
+    private static <P> Action<? super ModelSchema<P>> attachSchema(final ModelProperty<P> property) {
         return new Action<ModelSchema<P>>() {
             @Override
             public void execute(ModelSchema<P> propertySchema) {
                 property.setSchema(propertySchema);
-                propertyValidator.execute(propertySchema);
             }
         };
     }
 
-    private String propertyDescription(ModelSchemaExtractionContext<?> parentContext, ModelProperty<?> property) {
+    private static String propertyDescription(ModelSchemaExtractionContext<?> parentContext, ModelProperty<?> property) {
         if (property.getDeclaredBy().size() == 1 && property.getDeclaredBy().contains(parentContext.getType())) {
             return String.format("property '%s'", property.getName());
         } else {
@@ -217,8 +213,6 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             return String.format("property '%s' declared by %s", property.getName(), Joiner.on(", ").join(declaredBy));
         }
     }
-
-    protected abstract <P> Action<ModelSchema<P>> createPropertyValidator(ModelSchemaExtractionContext<?> extractionContext, ModelPropertyExtractionResult<P> propertyResult);
 
     protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods, Iterable<ModelSchemaAspect> aspects);
 }

@@ -15,8 +15,7 @@
  */
 
 package org.gradle.model.internal.manage.binding
-
-import com.google.common.util.concurrent.UncheckedExecutionException
+import org.gradle.model.*
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
@@ -83,9 +82,8 @@ class DefaultStructBindingsStoreTest extends Specification {
         when:
         extract(TypeWithImplementedProperty, DelegateTypeWithImplementedProperty)
         then:
-        def ex = thrown UncheckedExecutionException
-        ex.cause instanceof IllegalArgumentException
-        ex.cause.message == "Method '${DefaultStructBindingsStoreTest.simpleName}.${TypeWithImplementedProperty.simpleName}.getZ()' is both implemented by the view and the delegate type '${DefaultStructBindingsStoreTest.simpleName}.${DelegateTypeWithImplementedProperty.simpleName}.getZ()'"
+        def ex = thrown IllegalArgumentException
+        ex.message == "Method '${DefaultStructBindingsStoreTest.simpleName}.${TypeWithImplementedProperty.simpleName}.getZ()' is both implemented by the view and the delegate type '${DefaultStructBindingsStoreTest.simpleName}.${DelegateTypeWithImplementedProperty.simpleName}.getZ()'"
     }
 
     static abstract class TypeWithAbstractWriteOnlyProperty {
@@ -96,8 +94,8 @@ class DefaultStructBindingsStoreTest extends Specification {
         when:
         extract(TypeWithAbstractWriteOnlyProperty)
         then:
-        def ex = thrown Exception
-        ex.message.contains "Managed property 'z' must both have an abstract getter as well as a setter."
+        def ex = thrown IllegalArgumentException
+        ex.message == "Managed property 'z' must both have an abstract getter as well as a setter."
     }
 
     static abstract class TypeWithInconsistentPropertyType {
@@ -145,6 +143,70 @@ class DefaultStructBindingsStoreTest extends Specification {
         bindings.methodBindings*.implementor*.method*.returnType == [Integer, Integer]
     }
 
+    static enum MyEnum {
+        A, B, C
+    }
+
+    @Managed
+    static interface HasUnmanagedOnManaged {
+        @Unmanaged
+        MyEnum getMyEnum();
+        void setMyEnum(MyEnum myEnum)
+    }
+
+    def "cannot annotate managed type property with unmanaged"() {
+        when: extract HasUnmanagedOnManaged
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'myEnum' of type '${getName(HasUnmanagedOnManaged)}' is marked as @Unmanaged, but is of @Managed type '${getName(MyEnum)}'. Please remove the @Managed annotation."
+    }
+
+    @Managed
+    static interface NoSetterForUnmanaged {
+        @Unmanaged
+        InputStream getThing();
+    }
+
+    def "must have setter for unmanaged"() {
+        when: extract NoSetterForUnmanaged
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'thing' of type '${getName(NoSetterForUnmanaged)}' must not be read only, because it is marked as @Unmanaged."
+    }
+
+    @Managed
+    static interface AddsSetterToNoSetterForUnmanaged extends NoSetterForUnmanaged {
+        void setThing(InputStream inputStream);
+    }
+
+    def "subtype can add unmanaged setter"() {
+        def bindings = extract(AddsSetterToNoSetterForUnmanaged)
+        expect:
+        bindings.getManagedProperty("thing").type == ModelType.of(InputStream)
+    }
+
+    @Managed
+    static abstract class WritableMapProperty {
+        abstract void setMap(ModelMap<NamedThingInterface> map)
+        abstract ModelMap<NamedThingInterface> getMap()
+    }
+
+    @Managed
+    static abstract class WritableSetProperty {
+        abstract void setSet(ModelSet<NamedThingInterface> set)
+        abstract ModelSet<NamedThingInterface> getSet()
+    }
+
+    def "map cannot be writable"() {
+        when: extract WritableMapProperty
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'map' of type '${getName(WritableMapProperty)}' cannot have a setter (ModelMap properties must be read only)."
+    }
+
+    def "set cannot be writable"() {
+        when: extract WritableSetProperty
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'set' of type '${getName(WritableSetProperty)}' cannot have a setter (ModelSet properties must be read only)."
+    }
+
 
     def extract(Class<?> type, Class<?> delegateType = null) {
         return extract(type, [], delegateType)
@@ -171,5 +233,13 @@ class DefaultStructBindingsStoreTest extends Specification {
         [Integer, Double]                     | [Integer, Double]
         [Integer, Object, Double]             | [Integer, Double]
         [Integer, Object, Comparable, Double] | [Integer, Double]
+    }
+
+    String getName(ModelType<?> type) {
+        type.displayName
+    }
+
+    String getName(Class<?> type) {
+        getName(ModelType.of(type))
     }
 }

@@ -31,9 +31,6 @@ import spock.lang.Unroll
 import java.beans.Introspector
 import java.util.regex.Pattern
 
-import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.MANAGED
-import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.UNMANAGED
-
 @SuppressWarnings("GroovyPointlessBoolean")
 class DefaultModelSchemaExtractorTest extends Specification {
     def store = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
@@ -726,19 +723,6 @@ $type
         extract(MyEnum) instanceof ScalarValueSchema
     }
 
-    @Managed
-    static interface HasUnmanagedOnManaged {
-        @Unmanaged
-        MyEnum getMyEnum();
-
-        void setMyEnum(MyEnum myEnum)
-    }
-
-    def "cannot annotate managed type property with unmanaged"() {
-        expect:
-        fail HasUnmanagedOnManaged, Pattern.quote("property 'myEnum' is marked as @Unmanaged, but is of @Managed type")
-    }
-
     private void fail(extractType, String msgPattern) {
         fail(extractType, extractType, msgPattern)
     }
@@ -756,26 +740,6 @@ $type
         void setThing(InputStream inputStream);
     }
 
-    @Managed
-    static interface NoSetterForUnmanaged {
-        @Unmanaged
-        InputStream getThing();
-    }
-
-    def "must have setter for unmanaged"() {
-        expect:
-        fail NoSetterForUnmanaged, Pattern.quote("unmanaged property 'thing' cannot be read only, unmanaged properties must have setters")
-    }
-
-    @Managed
-    static interface AddsSetterToNoSetterForUnmanaged extends NoSetterForUnmanaged {
-        void setThing(InputStream inputStream);
-    }
-
-    def "subtype can add unmanaged setter"() {
-        expect:
-        extract(AddsSetterToNoSetterForUnmanaged).getProperty("thing").type.rawClass == InputStream
-    }
 
     @Managed
     static abstract class NonAbstractGetterWithSetter {
@@ -1120,13 +1084,9 @@ interface Managed${typeName} {
         assert schema instanceof UnmanagedImplStructSchema
         schema.properties*.name == ["buildable", "time", "unmanagedCalculatedProp", "unmanagedProp"]
 
-        schema.getProperty("unmanagedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedProp").isWritable() == true
-        schema.getProperty("unmanagedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedCalculatedProp").isWritable() == false
-        schema.getProperty("buildable").stateManagementType == UNMANAGED
         schema.getProperty("buildable").isWritable() == false
-        schema.getProperty("time").stateManagementType == UNMANAGED
         schema.getProperty("time").isWritable() == false
     }
 
@@ -1170,22 +1130,11 @@ interface Managed${typeName} {
         assert schema instanceof ManagedImplStructSchema
         schema.properties*.name == ["buildable", "managedCalculatedProp", "managedProp", "time", "unmanagedCalculatedProp", "unmanagedProp"]
 
-        schema.getProperty("unmanagedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedProp").isWritable() == true
-
-        schema.getProperty("unmanagedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedCalculatedProp").isWritable() == false
-
-        schema.getProperty("managedProp").stateManagementType == MANAGED
         schema.getProperty("managedProp").isWritable() == true
-
-        schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
-
-        schema.getProperty("buildable").stateManagementType == UNMANAGED
         schema.getProperty("buildable").isWritable() == false
-
-        schema.getProperty("time").stateManagementType == UNMANAGED
         schema.getProperty("time").isWritable() == false
     }
 
@@ -1211,10 +1160,7 @@ interface Managed${typeName} {
         assert schema instanceof ManagedImplStructSchema
         schema.properties*.name == ["managedCalculatedProp", "managedProp"]
 
-        schema.getProperty("managedProp").stateManagementType == MANAGED
         schema.getProperty("managedProp").isWritable() == true
-
-        schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
     }
 
@@ -1238,10 +1184,7 @@ interface Managed${typeName} {
         assert schema instanceof ManagedImplStructSchema
         schema.properties*.name == ["managedCalculatedProp", "managedProp"]
 
-        schema.getProperty("managedProp").stateManagementType == MANAGED
         schema.getProperty("managedProp").isWritable() == true
-
-        schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
     }
 
@@ -1411,7 +1354,6 @@ interface Managed${typeName} {
         assert schema instanceof ManagedImplStructSchema
         schema.properties*.name == ["items"]
 
-        schema.getProperty("items").stateManagementType == MANAGED
         schema.getProperty("items").isWritable() == false
 
         where:
@@ -1437,7 +1379,6 @@ interface Managed${typeName} {
         assert schema instanceof ManagedImplStructSchema
         schema.properties*.name == ["items"]
 
-        schema.getProperty("items").stateManagementType == MANAGED
         schema.getProperty("items").isWritable() == true
 
         where:
@@ -1482,7 +1423,6 @@ interface Managed${typeName} {
         assert schema instanceof UnmanagedImplStructSchema
         schema.properties*.name == ["items"]
 
-        schema.getProperty("items").stateManagementType == UNMANAGED
         schema.getProperty("items").isWritable() == false
 
         where:
