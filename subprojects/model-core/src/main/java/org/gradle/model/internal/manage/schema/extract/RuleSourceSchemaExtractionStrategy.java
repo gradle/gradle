@@ -40,10 +40,6 @@ public class RuleSourceSchemaExtractionStrategy extends StructSchemaExtractionSt
     }
 
     @Override
-    protected void validateMethodDeclarationHierarchy(ModelSchemaExtractionContext<?> context, CandidateMethods candidateMethods) {
-    }
-
-    @Override
     protected boolean selectProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property) {
         return property.isReadable();
     }

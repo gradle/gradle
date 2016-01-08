@@ -16,11 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Equivalence;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.*;
-import org.gradle.internal.reflect.MethodDescription;
+import com.google.common.collect.Ordering;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.manage.schema.ManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelProperty;
@@ -32,9 +28,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
-import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.isMethodDeclaredInManagedType;
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.walkTypeHierarchy;
 
 public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySupport {
@@ -113,43 +110,6 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
     }
 
     @Override
-    protected void validateMethodDeclarationHierarchy(ModelSchemaExtractionContext<?> context, CandidateMethods candidateMethods) {
-        for (String methodName : candidateMethods.methodNames()) {
-            Collection<Equivalence.Wrapper<Method>> handledOverridden = Lists.newArrayList();
-            if (!PropertyAccessorType.isPropertyMethodName(methodName)) {
-                Map<Equivalence.Wrapper<Method>, Collection<Method>> overridden = candidateMethods.overriddenMethodsNamed(methodName);
-                if (!overridden.isEmpty()) {
-                    handleOverriddenMethods(context, overridden.values());
-                    handledOverridden.addAll(overridden.keySet());
-                }
-            }
-            Map<Equivalence.Wrapper<Method>, Collection<Method>> overloaded = candidateMethods.overloadedMethodsNamed(methodName, handledOverridden);
-            if (!overloaded.isEmpty()) {
-                handleOverloadedMethods(context, Iterables.concat(overloaded.values()));
-            }
-        }
-    }
-
-    private void handleOverriddenMethods(ModelSchemaExtractionContext<?> extractionContext, Iterable<Collection<Method>> overriddenMethods) {
-        ImmutableSet.Builder<Method> rejectedBuilder = ImmutableSet.builder();
-        for (Collection<Method> methods : overriddenMethods) {
-            if (methods.size() <= 1 || isMethodDeclaredInManagedType(Iterables.getLast(methods))) {
-                rejectedBuilder.addAll(methods);
-            }
-        }
-        ImmutableSet<Method> rejectedOverrides = rejectedBuilder.build();
-        if (!rejectedOverrides.isEmpty() && isMethodDeclaredInManagedType(rejectedOverrides)) {
-            throw invalidMethods(extractionContext, "overridden methods not supported", rejectedOverrides);
-        }
-    }
-
-    private void handleOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, Iterable<Method> overloadedMethods) {
-        if (isMethodDeclaredInManagedType(overloadedMethods)) {
-            throw invalidMethods(extractionContext, "overloaded methods are not supported", overloadedMethods);
-        }
-    }
-
-    @Override
     protected boolean selectProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property) {
         return true;
     }
@@ -157,14 +117,5 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
     @Override
     protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods, Iterable<ModelSchemaAspect> aspects) {
         return new ManagedImplStructSchema<R>(extractionContext.getType(), properties, nonPropertyMethods, aspects);
-    }
-
-    private InvalidManagedModelElementTypeException invalidMethods(ModelSchemaExtractionContext<?> extractionContext, String message, Iterable<Method> methods) {
-        final ImmutableSortedSet<String> descriptions = ImmutableSortedSet.copyOf(Iterables.transform(methods, new Function<Method, String>() {
-            public String apply(Method method) {
-                return MethodDescription.of(method).toString();
-            }
-        }));
-        return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid methods: " + Joiner.on(", ").join(descriptions) + ").");
     }
 }

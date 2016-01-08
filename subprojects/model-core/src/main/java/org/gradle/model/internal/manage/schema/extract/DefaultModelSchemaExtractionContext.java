@@ -35,7 +35,7 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
     private final DefaultModelSchemaExtractionContext<?> parent;
     private final ModelType<T> type;
     private final String description;
-    private final List<Action<? super ModelSchema<T>>> validators;
+    private final Action<? super ModelSchema<T>> validator;
     private ModelSchema<T> result;
     private final List<DefaultModelSchemaExtractionContext<?>> children = Lists.newArrayList();
     private final FormattingValidationProblemCollector problems;
@@ -45,10 +45,7 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
         this.type = type;
         this.description = description;
         this.problems = new FormattingValidationProblemCollector("model element type", type);
-        this.validators = Lists.newArrayListWithCapacity(2);
-        if (validator != null) {
-            validators.add(validator);
-        }
+        this.validator = validator;
     }
 
     public static <T> DefaultModelSchemaExtractionContext<T> root(ModelType<T> type) {
@@ -134,12 +131,8 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
     }
 
     public void validate(ModelSchema<T> schema) {
-        for (Action<? super ModelSchema<T>> validator : validators) {
+        if (validator != null) {
             validator.execute(schema);
         }
-    }
-
-    public void addValidator(Action<? super ModelSchema<T>> validator) {
-        validators.add(validator);
     }
 }

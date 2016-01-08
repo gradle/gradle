@@ -18,7 +18,6 @@ package org.gradle.model.internal.manage.schema.extract
 
 import groovy.transform.NotYetImplemented
 import org.gradle.api.Action
-import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
 import org.gradle.model.ModelSet
@@ -29,7 +28,6 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.beans.Introspector
-import java.util.regex.Pattern
 
 @SuppressWarnings("GroovyPointlessBoolean")
 class DefaultModelSchemaExtractorTest extends Specification {
@@ -363,32 +361,13 @@ class DefaultModelSchemaExtractorTest extends Specification {
     @Managed
     static interface SingleStringValueProperty {
         String getValue()
-
         void setValue(String value)
     }
 
     @Managed
     static interface SingleFloatValueProperty {
         Float getValue()
-
         void setValue(Float value)
-    }
-
-    @Managed
-    static interface ConflictingPropertiesInParents extends SingleIntegerValueProperty, SingleStringValueProperty, SingleFloatValueProperty {
-    }
-
-    def "conflicting properties of super types are detected"() {
-        given:
-        def invalidMethods = [
-            MethodDescription.name("getValue").owner(SingleFloatValueProperty).returns(Float).takes(),
-            MethodDescription.name("getValue").owner(SingleIntegerValueProperty).returns(Integer).takes(),
-            MethodDescription.name("getValue").owner(SingleStringValueProperty).returns(String).takes(),
-        ]
-        def message = Pattern.quote("overloaded methods are not supported (invalid methods: ${invalidMethods.join(", ")})")
-
-        expect:
-        fail ConflictingPropertiesInParents, message
     }
 
     @Managed
@@ -832,8 +811,7 @@ interface Managed${typeName} {
         then:
         1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(CustomThing)
-            extractionContext.addValidator(validator)
-            extractionContext.child(ModelType.of(UnmanagedThing), "child")
+            extractionContext.child(ModelType.of(UnmanagedThing), "child", validator)
             extractionContext.found(new ScalarValueSchema<CustomThing>(extractionContext.type))
         }
         1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
@@ -1243,48 +1221,6 @@ interface Managed${typeName} {
     def "accept non-property overloaded methods from unmanaged supertype overridden in managed type"() {
         expect:
         extract(ManagedTypeExtendingUnmanagedTypeWithOverloadedMethod) instanceof ManagedImplStructSchema
-    }
-
-    @Managed
-    interface ManagedSuperTypeWithMethod {
-        InputStream doSomething(Object param)
-    }
-
-    @Managed
-    interface ManagedTypeWithOverriddenMethodExtendingManagedTypeWithMethod extends ManagedSuperTypeWithMethod {
-        @Override InputStream doSomething(Object param)
-    }
-
-    def "reject non-property methods from managed supertype overridden in managed type"() {
-        expect:
-        fail ManagedTypeWithOverriddenMethodExtendingManagedTypeWithMethod, "overridden methods not supported"
-    }
-
-    @Managed
-    interface ManagedTypeWithCovarianceOverriddenMethodExtendingMangedTypeWithMethod extends ManagedSuperTypeWithMethod {
-        @Override ByteArrayInputStream doSomething(Object param)
-    }
-
-    def "reject non-property methods from managed supertype with covariance overridden in managed type"() {
-        expect:
-        fail ManagedTypeWithCovarianceOverriddenMethodExtendingMangedTypeWithMethod, "overridden methods not supported"
-    }
-
-    @Managed
-    interface ManagedSuperTypeWithOverloadedMethod {
-        InputStream doSomething(Object param)
-        InputStream doSomething(Object param, Object other)
-    }
-
-    @Managed
-    interface ManagedTypeExtendingManagedTypeWithOverloadedMethod extends ManagedSuperTypeWithOverloadedMethod {
-        @Override ByteArrayInputStream doSomething(Object param)
-        @Override ByteArrayInputStream doSomething(Object param, Object other)
-    }
-
-    def "reject overloaded non-property methods from managed supertype overridden in managed type"() {
-        expect:
-        fail ManagedTypeExtendingManagedTypeWithOverloadedMethod, "overridden methods not supported"
     }
 
     static abstract class MultipleProblemsSuper {

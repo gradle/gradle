@@ -54,7 +54,6 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         }
 
         CandidateMethods candidateMethods = ModelSchemaUtils.getCandidateMethods(type.getRawClass());
-        validateMethodDeclarationHierarchy(extractionContext, candidateMethods);
 
         Iterable<ModelPropertyExtractionContext> candidateProperties = selectProperties(extractionContext, candidateMethods);
 
@@ -100,8 +99,6 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
     protected abstract boolean isTarget(ModelType<?> type);
 
     protected abstract <R> void validateTypeHierarchy(ModelSchemaExtractionContext<R> extractionContext, ModelType<R> type);
-
-    protected abstract void validateMethodDeclarationHierarchy(ModelSchemaExtractionContext<?> context, CandidateMethods candidateMethods);
 
     private Iterable<ModelPropertyExtractionContext> selectProperties(final ModelSchemaExtractionContext<?> context, CandidateMethods candidateMethods) {
         Map<String, ModelPropertyExtractionContext> propertiesMap = Maps.newTreeMap();
