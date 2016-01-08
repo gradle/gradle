@@ -285,7 +285,6 @@ public abstract class ModelType<T> {
         }
     }
 
-    private static final Type[] EMPTY_TYPE_ARRAY = new Type[0];
     private static final TypeWrapper[] EMPTY_TYPE_WRAPPER_ARRAY = new TypeWrapper[0];
 
     @Nullable
