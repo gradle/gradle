@@ -44,9 +44,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         succeeds("build")
 
         then:
-        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted("LibraryTest")
-        testResult.testClass("LibraryTest").assertTestPassed("testSomeLibraryMethod")
+        assertTestPassed("testSomeLibraryMethod")
     }
 
     def "creates sample source using spock instead of junit"() {
@@ -64,9 +62,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         succeeds("build")
 
         then:
-        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted("LibraryTest")
-        testResult.testClass("LibraryTest").assertTestPassed("someLibraryMethod returns true")
+        assertTestPassed("someLibraryMethod returns true")
     }
 
     def "creates sample source using testng instead of junit"() {
@@ -84,9 +80,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         succeeds("build")
 
         then:
-        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted("LibraryTest")
-        testResult.testClass("LibraryTest").assertTestPassed("someLibraryMethodReturnsTrue")
+        assertTestPassed("someLibraryMethodReturnsTrue")
     }
 
     def "setupProjectLayout is skipped when java sources detected"() {
@@ -112,5 +106,11 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         buildFile.exists()
         settingsFile.exists()
         wrapper.generated()
+    }
+
+    def assertTestPassed(String name) {
+        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
+        testResult.assertTestClassesExecuted("LibraryTest")
+        testResult.testClass("LibraryTest").assertTestPassed(name)
     }
 }

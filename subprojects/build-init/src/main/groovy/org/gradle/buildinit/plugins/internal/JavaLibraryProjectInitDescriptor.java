@@ -72,12 +72,6 @@ public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInit
 
     @Override
     public boolean supports(BuildInitModifier modifier) {
-        switch (modifier) {
-            case SPOCK:
-            case TESTNG:
-                return true;
-            default:
-                return false;
-        }
+        return modifier == SPOCK || modifier == TESTNG;
     }
 }
