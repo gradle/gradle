@@ -45,6 +45,20 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         failure.assertHasCause "Component 'greeter' declared under test 'JUnitTestSuiteSpec 'myTest'' does not exist"
     }
 
+    def "can test a JVM library that declares an external dependency"() {
+        given:
+        applyJUnitPlugin()
+        jvmLibraryWithExternalDependency()
+        myTestSuiteSpec('greeter')
+        greeterTestCase()
+
+        when:
+        succeeds ':myTestGreeterJarBinaryTest'
+
+        then:
+        executedAndNotSkipped ':compileGreeterJarGreeterJava', ':myTestGreeterJarBinaryTest'
+    }
+
     private void jvmLibrary() {
         buildFile << '''
             model {
@@ -57,6 +71,33 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
             public class Greeter {
                 public String greet(String name) {
                     return "Hello, " + name + "!";
+                }
+            }
+        '''
+    }
+
+    private void jvmLibraryWithExternalDependency() {
+        buildFile << '''
+            model {
+                components {
+                    greeter(JvmLibrarySpec) {
+                        sources {
+                            java {
+                                dependencies {
+                                    module 'org.apache.commons:commons-lang3:3.4'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        '''
+        file('src/greeter/java/com/acme/Greeter.java') << '''package com.acme;
+            import static org.apache.commons.lang3.text.WordUtils.capitalize;
+
+            public class Greeter {
+                public String greet(String name) {
+                    return "Hello, " + capitalize(name) + "!";
                 }
             }
         '''
