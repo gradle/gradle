@@ -48,7 +48,6 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         return new ModelMapModelProjection<T>(itemType, true, creatorStrategyAccessor);
     }
 
-    protected final Class<I> baseItemType;
     protected final ModelType<I> baseItemModelType;
     private final ChildNodeInitializerStrategyAccessor<? super I> creatorStrategyAccessor;
     private final boolean managed;
@@ -56,12 +55,11 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     private ModelMapModelProjection(ModelType<I> baseItemModelType, boolean managed, ChildNodeInitializerStrategyAccessor<? super I> creatorStrategyAccessor) {
         this.baseItemModelType = baseItemModelType;
         this.managed = managed;
-        this.baseItemType = baseItemModelType.getConcreteClass();
         this.creatorStrategyAccessor = creatorStrategyAccessor;
     }
 
     private Collection<? extends Class<?>> getCreatableTypes() {
-        return Collections.singleton(baseItemType);
+        return Collections.singleton(baseItemModelType.getConcreteClass());
     }
 
     private String getContainerTypeDescription(Class<?> containerType, Collection<? extends Class<?>> creatableTypes) {
@@ -82,20 +80,20 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         return sb.toString();
     }
 
-    private Class<? extends I> itemType(ModelType<?> targetType) {
+    private ModelType<? extends I> itemType(ModelType<?> targetType) {
         Class<?> targetClass = targetType.getRawClass();
         if (targetClass.equals(ModelMap.class)) {
-            Class<?> targetItemClass = targetType.getTypeVariables().get(0).getRawClass();
-            if (targetItemClass.isAssignableFrom(baseItemType)) {
-                return baseItemType;
+            ModelType<?> targetItemClass = targetType.getTypeVariables().get(0);
+            if (targetItemClass.isAssignableFrom(baseItemModelType)) {
+                return baseItemModelType;
             }
-            if (baseItemType.isAssignableFrom(targetItemClass)) {
-                return targetItemClass.asSubclass(baseItemType);
+            if (baseItemModelType.isAssignableFrom(targetItemClass)) {
+                return targetItemClass.asSubtype(baseItemModelType);
             }
             return null;
         }
         if (targetClass.isAssignableFrom(ModelMap.class)) {
-            return baseItemType;
+            return baseItemModelType;
         }
         return null;
     }
@@ -115,23 +113,22 @@ public class ModelMapModelProjection<I> implements ModelProjection {
 
     @Nullable
     private <T> ModelView<? extends T> doAs(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
-        Class<? extends I> itemType = itemType(targetType);
+        ModelType<? extends I> itemType = itemType(targetType);
         if (itemType != null) {
             return uncheckedCast(toView(targetType, ruleDescriptor, node, itemType, mutable, !managed || !mutable));
         }
         return null;
     }
 
-    private <T, S extends I> ModelView<ModelMap<S>> toView(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass, boolean mutable, boolean canReadChildren) {
+    private <T, S extends I> ModelView<ModelMap<S>> toView(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, MutableModelNode node, ModelType<S> itemType, boolean mutable, boolean canReadChildren) {
         ChildNodeInitializerStrategy<? super I> creatorStrategy = creatorStrategyAccessor.getStrategy(node);
         DefaultModelViewState state = new DefaultModelViewState(targetType, sourceDescriptor, mutable, canReadChildren);
-        ModelType<S> itemType = ModelType.of(itemClass);
         ModelMap<I> builder = new NodeBackedModelMap<I>(baseItemModelType, sourceDescriptor, node, state, creatorStrategy);
 
         return InstanceModelView.of(
             node.getPath(),
             ModelTypes.modelMap(itemType),
-            builder.withType(itemClass),
+            builder.withType(itemType.getConcreteClass()),
             state.closer()
         );
     }
@@ -153,14 +150,12 @@ public class ModelMapModelProjection<I> implements ModelProjection {
 
         ModelMapModelProjection<?> that = (ModelMapModelProjection<?>) o;
 
-        return baseItemType.equals(that.baseItemType) && baseItemModelType.equals(that.baseItemModelType);
+        return baseItemModelType.equals(that.baseItemModelType);
     }
 
     @Override
     public int hashCode() {
-        int result = baseItemType.hashCode();
-        result = 31 * result + baseItemModelType.hashCode();
-        return result;
+        return baseItemModelType.hashCode();
     }
 
     @Override
