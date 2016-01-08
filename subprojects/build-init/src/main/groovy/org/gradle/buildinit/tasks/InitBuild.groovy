@@ -55,7 +55,7 @@ class InitBuild extends DefaultTask {
      * This property can be set via command-line option '--with'
      */
     String getWith() {
-        with ?: null
+        with
     }
 
     ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
