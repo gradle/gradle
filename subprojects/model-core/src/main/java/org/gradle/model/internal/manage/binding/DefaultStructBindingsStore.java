@@ -158,6 +158,15 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
     }
 
     private static ModelType<?> determineManagedPropertyType(ModelType<?> publicType, String propertyName, Multimap<PropertyAccessorType, StructMethodBinding> accessorBindings) {
+        Collection<StructMethodBinding> isGetter = accessorBindings.get(IS_GETTER);
+        for (StructMethodBinding isGetterBinding : isGetter) {
+            if (!((ManagedPropertyMethodBinding) isGetterBinding).getDeclaredPropertyType().equals(ModelType.of(Boolean.TYPE))) {
+                WeaklyTypeReferencingMethod<?, ?> isGetterMethod = isGetterBinding.getSource();
+                throw new InvalidManagedPropertyException(publicType, propertyName,
+                    String.format("has invalid getter '%s': it should either return 'boolean', or its name should be '%s()'",
+                        isGetterMethod, "get" + isGetterMethod.getName().substring(2)));
+            }
+        }
         Set<ModelType<?>> potentialPropertyTypes = Sets.newLinkedHashSet();
         for (StructMethodBinding binding : accessorBindings.values()) {
             if (binding.getAccessorType() == SETTER) {
@@ -169,7 +178,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         Collection<ModelType<?>> convergingPropertyTypes = findConvergingTypes(potentialPropertyTypes);
         if (convergingPropertyTypes.size() != 1) {
             throw new InvalidManagedPropertyException(publicType, propertyName,
-                String.format("must have a consistent type, but it's defined as %s.",
+                String.format("must have a consistent type, but it's defined as %s",
                     Joiner.on(", ").join(ModelTypes.getDisplayNames(convergingPropertyTypes))));
         }
         ModelType<?> propertyType = Iterables.getOnlyElement(convergingPropertyTypes);

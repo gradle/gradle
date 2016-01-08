@@ -57,7 +57,6 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         validateMethodDeclarationHierarchy(extractionContext, candidateMethods);
 
         Iterable<ModelPropertyExtractionContext> candidateProperties = selectProperties(extractionContext, candidateMethods);
-        validateProperties(extractionContext, candidateProperties);
 
         List<ModelPropertyExtractionResult<?>> extractedProperties = extractProperties(candidateProperties);
         List<ModelSchemaAspect> aspects = aspectExtractor.extract(extractionContext, extractedProperties);
@@ -110,9 +109,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             Method method = entry.getKey().get();
             PropertyAccessorType propertyAccessorType = PropertyAccessorType.of(method);
             Collection<Method> methodsWithEqualSignature = entry.getValue();
-            if (propertyAccessorType == null) {
-                handleNonPropertyMethod(context, methodsWithEqualSignature);
-            } else {
+            if (propertyAccessorType != null) {
                 String propertyName = propertyAccessorType.propertyNameFor(method);
                 ModelPropertyExtractionContext propertyContext = propertiesMap.get(propertyName);
                 if (propertyContext == null) {
@@ -130,33 +127,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         });
     }
 
-    protected abstract void handleNonPropertyMethod(ModelSchemaExtractionContext<?> context, Collection<Method> nonPropertyMethodsWithEqualSignature);
-
     protected abstract boolean selectProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property);
-
-    private void validateProperties(ModelSchemaExtractionContext<?> context, Iterable<ModelPropertyExtractionContext> properties) {
-        for (ModelPropertyExtractionContext property : properties) {
-            PropertyAccessorExtractionContext getGetter = property.getAccessor(PropertyAccessorType.GET_GETTER);
-            PropertyAccessorExtractionContext isGetter = property.getAccessor(PropertyAccessorType.IS_GETTER);
-            if (getGetter != null && isGetter != null) {
-                Method getMethod = getGetter.getMostSpecificDeclaration();
-                Method isMethod = isGetter.getMostSpecificDeclaration();
-                if (getMethod.getReturnType() != boolean.class || isMethod.getReturnType() != boolean.class) {
-                    handleInvalidGetter(context, isMethod,
-                        String.format("property '%s' has both '%s()' and '%s()' getters, but they don't both return a boolean",
-                            property.getPropertyName(), isMethod.getName(), getMethod.getName()));
-                }
-            }
-            if (isGetter != null) {
-                Method isMethod = isGetter.getMostSpecificDeclaration();
-                if (isMethod.getReturnType() != boolean.class) {
-                    handleInvalidGetter(context, isMethod, "getter method name must start with 'get'");
-                }
-            }
-        }
-    }
-
-    protected abstract void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, Method getter, String message);
 
     private static List<ModelPropertyExtractionResult<?>> extractProperties(Iterable<ModelPropertyExtractionContext> properties) {
         ImmutableList.Builder<ModelPropertyExtractionResult<?>> builder = ImmutableList.builder();

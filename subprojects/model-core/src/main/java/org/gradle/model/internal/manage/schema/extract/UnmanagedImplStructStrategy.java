@@ -23,8 +23,6 @@ import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
-import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.Set;
 
 public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategySupport {
@@ -48,16 +46,8 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
     }
 
     @Override
-    protected void handleNonPropertyMethod(ModelSchemaExtractionContext<?> context, Collection<Method> nonPropertyMethodsWithEqualSignature) {
-    }
-
-    @Override
     protected boolean selectProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property) {
         return property.isReadable();
-    }
-
-    @Override
-    protected void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, Method getter, String message) {
     }
 
     @Override

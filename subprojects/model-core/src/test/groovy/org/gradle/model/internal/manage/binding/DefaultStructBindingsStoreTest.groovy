@@ -412,6 +412,40 @@ class DefaultStructBindingsStoreTest extends Specification {
         e.message == "Property 'name' of type '${getName(MutableName)}' must not have a setter, because the type implements '$Named.name'."
     }
 
+    @Managed
+    static interface HasIsAndGetPropertyWithDifferentTypes {
+        boolean isValue()
+        String getValue()
+    }
+
+    def "handles is/get property with non-matching type"() {
+        when: extract HasIsAndGetPropertyWithDifferentTypes
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'value' of type '${getName(HasIsAndGetPropertyWithDifferentTypes)}' must have a consistent type, but it's defined as String, boolean."
+    }
+
+    @Managed
+    interface IsNotAllowedForOtherTypeThanBoolean {
+        String isThing()
+        void setThing(String thing)
+    }
+
+    @Managed
+    interface IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean {
+        Boolean isThing()
+        void setThing(Boolean thing)
+    }
+
+    @Unroll
+    def "should not allow 'is' as a prefix for getter on non primitive boolean in #managedType"() {
+        when: extract managedType
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'thing' of type '${getName(managedType)}' has invalid getter '${getName(managedType)}.isThing()': it should either return 'boolean', or its name should be 'getThing()'."
+
+        where:
+        managedType << [IsNotAllowedForOtherTypeThanBoolean, IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean]
+    }
+
 
     def extract(Class<?> type, Class<?> delegateType = null) {
         return extract(type, [], delegateType)

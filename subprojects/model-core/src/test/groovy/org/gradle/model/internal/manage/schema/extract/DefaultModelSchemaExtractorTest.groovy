@@ -1080,36 +1080,9 @@ interface Managed${typeName} {
         redundant.getAccessor(PropertyAccessorType.GET_GETTER) != null
     }
 
-    @Managed
-    interface IsNotAllowedForOtherTypeThanBoolean {
-        String isThing()
-
-        void setThing(String thing)
-    }
-
-    @Managed
-    interface IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean {
-        Boolean isThing()
-
-        void setThing(Boolean thing)
-    }
-
     def "supports a boolean property with an is style getter"() {
         expect:
         store.getSchema(ModelType.of(HasIsTypeGetter))
-    }
-
-    @Unroll
-    def "should not allow 'is' as a prefix for getter on non primitive boolean"() {
-        when:
-        store.getSchema(IsNotAllowedForOtherTypeThanBoolean)
-
-        then:
-        def ex = thrown(InvalidManagedModelElementTypeException)
-        ex.message =~ /getter method name must start with 'get'/
-
-        where:
-        managedType << [IsNotAllowedForOtherTypeThanBoolean, IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean]
     }
 
     abstract class HasStaticProperties {
@@ -1133,22 +1106,6 @@ interface Managed${typeName} {
         def schema = store.getSchema(HasProtectedAndPrivateProperties)
         expect:
         schema.properties*.name == ["value"]
-    }
-
-    @Managed
-    interface HasIsAndGetPropertyWithDifferentTypes {
-        boolean isValue()
-
-        String getValue()
-    }
-
-    def "handles is/get property with non-matching type"() {
-        when:
-        store.getSchema(HasIsAndGetPropertyWithDifferentTypes)
-
-        then:
-        def ex = thrown InvalidManagedModelElementTypeException
-        ex.message.contains "property 'value' has both 'isValue()' and 'getValue()' getters, but they don't both return a boolean"
     }
 
     @Unroll
