@@ -54,10 +54,6 @@ public abstract class ModelType<T> {
         }.getType());
     }
 
-    private TypeToken<T> getTypeToken() {
-        return Cast.uncheckedCast(TypeToken.of(getType()));
-    }
-
     public static <T> ModelType<T> of(Class<T> clazz) {
         return new Simple<T>(clazz);
     }
@@ -98,11 +94,11 @@ public abstract class ModelType<T> {
     }
 
     public Class<? super T> getRawClass() {
-        return getTypeToken().getRawType();
+        return Cast.uncheckedCast(wrapper.getRawClass());
     }
 
     public Class<T> getConcreteClass() {
-        return Cast.uncheckedCast(getRawClass());
+        return Cast.uncheckedCast(wrapper.getRawClass());
     }
 
     public boolean isRawClassOfParameterizedType() {
@@ -161,7 +157,7 @@ public abstract class ModelType<T> {
     }
 
     public boolean isAssignableFrom(ModelType<?> modelType) {
-        return getTypeToken().isAssignableFrom(modelType.getTypeToken());
+        return modelType == this || wrapper.isAssignableFrom(modelType.wrapper);
     }
 
     public boolean isAnnotationPresent(Class<? extends Annotation> annotation) {
@@ -172,41 +168,39 @@ public abstract class ModelType<T> {
         return getWildcardType() != null;
     }
 
+    @Nullable
     public ModelType<?> getUpperBound() {
-        WildcardType wildcardType = getWildcardType();
+        WildcardWrapper wildcardType = getWildcardType();
         if (wildcardType == null) {
             return null;
         } else {
-            ModelType<?> upperBoundType = ModelType.of(wildcardType.getUpperBounds()[0]);
-            if (upperBoundType.equals(UNTYPED)) {
+            ModelType<?> upperBound = Simple.typed(wildcardType.getUpperBound());
+            if (upperBound.equals(UNTYPED)) {
                 return null;
-            } else {
-                return upperBoundType;
             }
+            return upperBound;
         }
     }
 
+    @Nullable
     public ModelType<?> getLowerBound() {
-        WildcardType wildcardType = getWildcardType();
+        WildcardWrapper wildcardType = getWildcardType();
         if (wildcardType == null) {
             return null;
         } else {
-            Type[] lowerBounds = wildcardType.getLowerBounds();
-            if (lowerBounds.length == 0) {
+            TypeWrapper lowerBound = wildcardType.getLowerBound();
+            if (lowerBound == null) {
                 return null;
-            } else {
-                return ModelType.of(lowerBounds[0]);
             }
+            return Simple.typed(lowerBound);
         }
     }
 
-    private WildcardType getWildcardType() {
-        Type type = getType();
-        if (type instanceof WildcardType) {
-            return (WildcardType) type;
-        } else {
-            return null;
+    private WildcardWrapper getWildcardType() {
+        if (wrapper instanceof WildcardWrapper) {
+            return (WildcardWrapper) wrapper;
         }
+        return null;
     }
 
     public boolean isHasWildcardTypeVariables() {
@@ -368,8 +362,16 @@ public abstract class ModelType<T> {
             return new Simple<T>(type);
         }
 
+        public static <T> ModelType<T> typed(TypeWrapper wrapper) {
+            return new Simple<T>(wrapper);
+        }
+
         public Simple(Type type) {
             super(wrap(type));
+        }
+
+        public Simple(TypeWrapper type) {
+            super(type);
         }
     }
 

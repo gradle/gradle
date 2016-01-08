@@ -35,6 +35,16 @@ class ClassTypeWrapper implements TypeWrapper {
     }
 
     @Override
+    public Class<?> getRawClass() {
+        return unwrap();
+    }
+
+    @Override
+    public boolean isAssignableFrom(TypeWrapper wrapper) {
+        return unwrap().isAssignableFrom(wrapper.getRawClass());
+    }
+
+    @Override
     public int hashCode() {
         return hashCode;
     }

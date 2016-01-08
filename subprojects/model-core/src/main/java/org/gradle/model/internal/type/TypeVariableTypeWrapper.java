@@ -19,6 +19,7 @@ package org.gradle.model.internal.type;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -31,7 +32,7 @@ import java.util.Arrays;
  * on the type variable, and throws an {@link UnsupportedOperationException} if
  * {@link #getGenericDeclaration()} is called.
  */
-class TypeVariableTypeWrapper<D extends GenericDeclaration> implements TypeWrapper {
+class TypeVariableTypeWrapper<D extends GenericDeclaration> implements WildcardWrapper {
     private static final Class<?>[] TYPE_VARIABLE_INTERFACE = {TypeVariable.class};
 
     private final String name;
@@ -50,6 +51,20 @@ class TypeVariableTypeWrapper<D extends GenericDeclaration> implements TypeWrapp
     }
 
     @Override
+    public Class<?> getRawClass() {
+        if (bounds.length > 0) {
+            return bounds[0].getRawClass();
+        } else {
+            return Object.class;
+        }
+    }
+
+    @Override
+    public boolean isAssignableFrom(TypeWrapper wrapper) {
+        return false;
+    }
+
+    @Override
     public void collectClasses(ImmutableList.Builder<Class<?>> builder) {
         for (TypeWrapper bound : bounds) {
             bound.collectClasses(builder);
@@ -63,6 +78,17 @@ class TypeVariableTypeWrapper<D extends GenericDeclaration> implements TypeWrapp
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public TypeWrapper getUpperBound() {
+        return bounds[0];
+    }
+
+    @Nullable
+    @Override
+    public TypeWrapper getLowerBound() {
+        return null;
     }
 
     public Type[] getBounds() {

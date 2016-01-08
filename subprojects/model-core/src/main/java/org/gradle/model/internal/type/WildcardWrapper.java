@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,11 @@
 
 package org.gradle.model.internal.type;
 
-import com.google.common.collect.ImmutableList;
+import org.gradle.api.Nullable;
 
-import java.lang.reflect.Type;
+public interface WildcardWrapper extends TypeWrapper {
+    TypeWrapper getUpperBound();
 
-interface TypeWrapper {
-    Type unwrap();
-
-    void collectClasses(ImmutableList.Builder<Class<?>> builder);
-
-    String getRepresentation(boolean full);
-
-    Class<?> getRawClass();
-
-    /**
-     * Is this type assignable from the given type?
-     */
-    boolean isAssignableFrom(TypeWrapper wrapper);
+    @Nullable
+    TypeWrapper getLowerBound();
 }

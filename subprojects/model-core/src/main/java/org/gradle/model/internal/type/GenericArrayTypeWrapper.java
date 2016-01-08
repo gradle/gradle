@@ -18,6 +18,7 @@ package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Type;
 
@@ -38,6 +39,21 @@ class GenericArrayTypeWrapper implements GenericArrayType, TypeWrapper {
     @Override
     public Type unwrap() {
         return this;
+    }
+
+    @Override
+    public Class<?> getRawClass() {
+        // This could probably be more efficient
+        return Array.newInstance(componentType.getRawClass(), 0).getClass();
+    }
+
+    @Override
+    public boolean isAssignableFrom(TypeWrapper wrapper) {
+        if (wrapper instanceof GenericArrayTypeWrapper) {
+            GenericArrayTypeWrapper arrayType = (GenericArrayTypeWrapper) wrapper;
+            return componentType.isAssignableFrom(arrayType.componentType);
+        }
+        return false;
     }
 
     @Override

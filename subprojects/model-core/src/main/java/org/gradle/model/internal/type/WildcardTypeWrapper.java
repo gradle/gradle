@@ -17,13 +17,13 @@
 package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Nullable;
 
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 
-class WildcardTypeWrapper implements WildcardType, TypeWrapper {
-
+class WildcardTypeWrapper implements WildcardType, WildcardWrapper {
     private final TypeWrapper[] upperBounds;
     private final TypeWrapper[] lowerBounds;
     private final int hashCode;
@@ -32,6 +32,30 @@ class WildcardTypeWrapper implements WildcardType, TypeWrapper {
         this.upperBounds = upperBounds;
         this.lowerBounds = lowerBounds;
         this.hashCode = hashCode;
+    }
+
+    @Override
+    public Class<?> getRawClass() {
+        if (upperBounds.length > 0) {
+            return upperBounds[0].getRawClass();
+        }
+        return Object.class;
+    }
+
+    @Override
+    public boolean isAssignableFrom(TypeWrapper wrapper) {
+        return ParameterizedTypeWrapper.contains(this, wrapper);
+    }
+
+    @Override
+    public TypeWrapper getUpperBound() {
+        return upperBounds[0];
+    }
+
+    @Nullable
+    @Override
+    public TypeWrapper getLowerBound() {
+        return lowerBounds.length > 0 ? lowerBounds[0] : null;
     }
 
     @Override
