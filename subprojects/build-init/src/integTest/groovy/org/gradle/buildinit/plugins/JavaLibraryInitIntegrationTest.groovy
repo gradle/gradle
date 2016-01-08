@@ -20,7 +20,9 @@ import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
-import spock.lang.Ignore
+import org.gradle.util.Requires
+
+import static org.gradle.util.TestPrecondition.JDK7_OR_LATER
 
 class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
@@ -66,7 +68,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         assertTestPassed("someLibraryMethod returns true")
     }
 
-    @Ignore
+    @Requires(JDK7_OR_LATER)
     def "creates sample source using testng instead of junit"() {
         when:
         succeeds('init', '--type', 'java-library', '--with', 'testng')
