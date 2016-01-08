@@ -16,12 +16,7 @@
 
 package org.gradle.model.internal.manage.binding;
 
-import org.gradle.model.Unmanaged;
-import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
-import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
-
-import java.util.Map;
 
 /**
  * A managed property of a struct.
@@ -29,14 +24,16 @@ import java.util.Map;
 public class ManagedProperty<T> {
     private final String name;
     private final ModelType<T> type;
+    private final boolean writable;
+    private final boolean declaredAsHavingUnmanagedType;
     private final boolean internal;
-    private final Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors;
 
-    public ManagedProperty(String name, ModelType<T> type, boolean internal, Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors) {
+    public ManagedProperty(String name, ModelType<T> type, boolean writable, boolean declaredAsHavingUnmanagedType, boolean internal) {
         this.name = name;
         this.type = type;
+        this.writable = writable;
+        this.declaredAsHavingUnmanagedType = declaredAsHavingUnmanagedType;
         this.internal = internal;
-        this.accessors = accessors;
     }
 
     public String getName() {
@@ -51,24 +48,11 @@ public class ManagedProperty<T> {
         return internal;
     }
 
-    public Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> getAccessors() {
-        return accessors;
-    }
-
     public boolean isWritable() {
-        return accessors.containsKey(PropertyAccessorType.SETTER);
+        return writable;
     }
 
     public boolean isDeclaredAsHavingUnmanagedType() {
-        return isDeclaredAsHavingUnmanagedType(PropertyAccessorType.GET_GETTER)
-            || isDeclaredAsHavingUnmanagedType(PropertyAccessorType.IS_GETTER);
-    }
-
-    private boolean isDeclaredAsHavingUnmanagedType(PropertyAccessorType accessorType) {
-        WeaklyTypeReferencingMethod<?, ?> accessor = accessors.get(accessorType);
-        if (accessor != null && accessor.getMethod().isAnnotationPresent(Unmanaged.class)) {
-            return true;
-        }
-        return false;
+        return declaredAsHavingUnmanagedType;
     }
 }

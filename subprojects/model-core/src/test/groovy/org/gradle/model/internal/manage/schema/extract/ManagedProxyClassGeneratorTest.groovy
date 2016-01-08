@@ -106,7 +106,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
     }
 
     @Unroll
-    def "only generates the requested boolean getter methods"() {
+    def "only generates the requested boolean getter methods for type #type.simpleName"() {
         given:
         def impl = newNodeBackedInstance(type)
 

@@ -16,24 +16,8 @@
 
 package org.gradle.model.internal.manage.binding;
 
-import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 
-/**
- * Method binding for methods implemented by the view.
- */
-public class DirectMethodBinding extends AbstractStructMethodBinding implements StructMethodImplementationBinding {
-    public DirectMethodBinding(WeaklyTypeReferencingMethod<?, ?> source, PropertyAccessorType accessorType) {
-        super(source, accessorType);
-    }
-
-    @Override
-    public WeaklyTypeReferencingMethod<?, ?> getImplementor() {
-        return getSource();
-    }
-
-    @Override
-    public String toString() {
-        return getSource() + " (direct)";
-    }
+public interface StructMethodImplementationBinding extends StructMethodBinding {
+    WeaklyTypeReferencingMethod<?, ?> getImplementor();
 }

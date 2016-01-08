@@ -44,6 +44,7 @@ import java.util.Set;
  *
  * <ul>
  *     <li>non-abstract methods on the public view are implemented by the view itself (see {@link DirectMethodBinding})</li>
+ *     <li>abstract methods that are present in the public type are bridged to the public implementation (see {@link BridgeMethodBinding})</li>
  *     <li>abstract methods that are present in the delegate type are delegated to an instance of the delegate type (see {@link DelegateMethodBinding})</li>
  *     <li>abstract property-accessor methods are implemented by a generated property (the value of the property stored in a child-node, see {@link ManagedPropertyMethodBinding})</li>
  * </ul>
@@ -57,14 +58,14 @@ public interface StructBindings<T> {
     StructSchema<T> getPublicSchema();
 
     /**
-     * Returns schemas for the internal views.
-     */
-    Iterable<StructSchema<?>> getInternalViewSchemas();
-
-    /**
      * Returns schemas for both the public and internal views.
      */
-    Set<StructSchema<?>> getAllViewSchemas();
+    Set<StructSchema<?>> getDeclaredViewSchemas();
+
+    /**
+     * Returns all schemas that are implemented by this view.
+     */
+    Set<StructSchema<?>> getImplementedViewSchemas();
 
     /**
      * Returns the delegate schema, or {@code null} if a delegate schema is not defined.
@@ -78,12 +79,12 @@ public interface StructBindings<T> {
     Map<String, ManagedProperty<?>> getManagedProperties();
 
     /**
-     * Returns the methods that are implemented by the public view.
+     * Returns the managed property with the given name, or {@code null} if such a property is not found.
      */
-    Collection<DirectMethodBinding> getViewBindings();
+    ManagedProperty<?> getManagedProperty(String name);
 
     /**
-     * Returns the methods that are implemented by the delegate.
+     * Returns the method bindings required to implement the struct.
      */
-    Collection<DelegateMethodBinding> getDelegateBindings();
+    Collection<StructMethodBinding> getMethodBindings();
 }

@@ -18,29 +18,12 @@ package org.gradle.model.internal.manage.binding;
 
 import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
-import org.gradle.model.internal.type.ModelType;
 
 /**
- * Method binding for methods implemented by a managed property.
+ * Method binding for bridge methods calling through to other view methods.
  */
-public class ManagedPropertyMethodBinding extends AbstractStructMethodBinding {
-    private final String propertyName;
-
-    public ManagedPropertyMethodBinding(WeaklyTypeReferencingMethod<?, ?> source, String propertyName, PropertyAccessorType accessorType) {
-        super(source, accessorType);
-        this.propertyName = propertyName;
-    }
-
-    public String getPropertyName() {
-        return propertyName;
-    }
-
-    public ModelType<?> getDeclaredPropertyType() {
-        return getAccessorType().propertyTypeFor(getSource().getMethod());
-    }
-
-    @Override
-    public String toString() {
-        return getSource() + "/" + getAccessorType().name();
+public class BridgeMethodBinding extends AbstractDelegationBinding {
+    public BridgeMethodBinding(WeaklyTypeReferencingMethod<?, ?> source, WeaklyTypeReferencingMethod<?, ?> target, PropertyAccessorType accessorType) {
+        super(source, target, accessorType);
     }
 }

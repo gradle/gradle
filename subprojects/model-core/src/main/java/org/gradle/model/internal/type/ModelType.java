@@ -16,9 +16,7 @@
 
 package org.gradle.model.internal.type;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
 import net.jcip.annotations.ThreadSafe;
@@ -233,23 +231,6 @@ public abstract class ModelType<T> {
      */
     public String getDisplayName() {
         return wrapper.getRepresentation(false);
-    }
-
-    /**
-     * Returns a human-readable name for the given type.
-     */
-    @Nullable
-    public static String getDisplayName(@Nullable ModelType<?> type) {
-        return type == null ? null : type.getDisplayName();
-    }
-
-    public static Iterable<String> getDisplayNames(Iterable<? extends ModelType<?>> types) {
-        return Iterables.transform(types, new Function<ModelType<?>, String>() {
-            @Override
-            public String apply(ModelType<?> type) {
-                return getDisplayName(type);
-            }
-        });
     }
 
     public String toString() {

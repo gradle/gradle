@@ -16,25 +16,14 @@
 
 package org.gradle.model.internal.manage.binding;
 
+import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 
 /**
  * Method binding for methods implemented by the delegate object.
  */
-public class DelegateMethodBinding extends AbstractStructMethodBinding {
-    private final WeaklyTypeReferencingMethod<?, ?> target;
-
-    public DelegateMethodBinding(WeaklyTypeReferencingMethod<?, ?> source, WeaklyTypeReferencingMethod<?, ?> target) {
-        super(source);
-        this.target = target;
-    }
-
-    public WeaklyTypeReferencingMethod<?, ?> getTarget() {
-        return target;
-    }
-
-    @Override
-    public String toString() {
-        return getSource() + " -> " + target;
+public class DelegateMethodBinding extends AbstractDelegationBinding {
+    public DelegateMethodBinding(WeaklyTypeReferencingMethod<?, ?> source, WeaklyTypeReferencingMethod<?, ?> target, PropertyAccessorType accessorType) {
+        super(source, target, accessorType);
     }
 }

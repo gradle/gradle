@@ -16,20 +16,29 @@
 
 package org.gradle.model.internal.manage.binding;
 
+import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 
 /**
  * Binds a method declared in views to its actual implementation.
  */
-public abstract class AbstractStructMethodBinding {
+public abstract class AbstractStructMethodBinding implements StructMethodBinding {
     private final WeaklyTypeReferencingMethod<?, ?> source;
+    private final PropertyAccessorType accessorType;
 
-    public AbstractStructMethodBinding(WeaklyTypeReferencingMethod<?, ?> source) {
+    public AbstractStructMethodBinding(WeaklyTypeReferencingMethod<?, ?> source, PropertyAccessorType accessorType) {
         this.source = source;
+        this.accessorType = accessorType;
     }
 
+    @Override
     public WeaklyTypeReferencingMethod<?, ?> getSource() {
         return source;
+    }
+
+    @Override
+    public PropertyAccessorType getAccessorType() {
+        return accessorType;
     }
 
     @Override

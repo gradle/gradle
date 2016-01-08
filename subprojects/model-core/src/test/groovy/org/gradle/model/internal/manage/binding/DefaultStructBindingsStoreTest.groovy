@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.binding
 
+import com.google.common.util.concurrent.UncheckedExecutionException
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
@@ -29,11 +30,10 @@ class DefaultStructBindingsStoreTest extends Specification {
     def "extracts empty"() {
         def bindings = extract(Object)
         expect:
-        bindings.allViewSchemas*.type*.rawClass as List == [Object]
+        bindings.declaredViewSchemas*.type*.rawClass as List == [Object]
         bindings.delegateSchema == null
         bindings.managedProperties.isEmpty()
-        bindings.viewBindings.isEmpty()
-        bindings.delegateBindings.isEmpty()
+        bindings.methodBindings.isEmpty()
     }
 
     static abstract class TypeWithAbstractProperty {
@@ -44,11 +44,11 @@ class DefaultStructBindingsStoreTest extends Specification {
     def "extracts simple type with a managed property"() {
         def bindings = extract(TypeWithAbstractProperty)
         expect:
-        bindings.allViewSchemas*.type*.rawClass as List == [TypeWithAbstractProperty]
+        bindings.declaredViewSchemas*.type*.rawClass as List == [TypeWithAbstractProperty]
         bindings.delegateSchema == null
         bindings.managedProperties.values()*.name as List == ["z"]
-        bindings.viewBindings.isEmpty()
-        bindings.delegateBindings.isEmpty()
+        bindings.methodBindings*.getClass() == [ManagedPropertyMethodBinding, ManagedPropertyMethodBinding]
+        bindings.methodBindings*.source*.name == ["getZ", "setZ"]
     }
 
     static abstract class TypeWithImplementedProperty {
@@ -58,11 +58,11 @@ class DefaultStructBindingsStoreTest extends Specification {
     def "extracts simple type with an implemented property"() {
         def bindings = extract(TypeWithImplementedProperty)
         expect:
-        bindings.allViewSchemas*.type*.rawClass as List == [TypeWithImplementedProperty]
+        bindings.declaredViewSchemas*.type*.rawClass as List == [TypeWithImplementedProperty]
         bindings.delegateSchema == null
         bindings.managedProperties.isEmpty()
-        bindings.viewBindings*.source*.name == ["getZ", "setZ"]
-        bindings.delegateBindings.isEmpty()
+        bindings.methodBindings*.source*.name == ["getZ", "setZ"]
+        bindings.methodBindings*.getClass() == [DirectMethodBinding, DirectMethodBinding]
     }
 
     static class DelegateTypeWithImplementedProperty {
@@ -72,20 +72,20 @@ class DefaultStructBindingsStoreTest extends Specification {
     def "extracts simple type with a delegated property"() {
         def bindings = extract(TypeWithAbstractProperty, DelegateTypeWithImplementedProperty)
         expect:
-        bindings.allViewSchemas*.type*.rawClass as List == [TypeWithAbstractProperty]
+        bindings.declaredViewSchemas*.type*.rawClass as List == [TypeWithAbstractProperty]
         bindings.delegateSchema.type.rawClass == DelegateTypeWithImplementedProperty
         bindings.managedProperties.isEmpty()
-        bindings.viewBindings.isEmpty()
-        bindings.delegateBindings*.source*.name == ["getZ", "setZ"]
-        bindings.delegateBindings*.target*.name == ["getZ", "setZ"]
+        bindings.methodBindings*.source*.name == ["getZ", "setZ"]
+        bindings.methodBindings*.getClass() == [DelegateMethodBinding, DelegateMethodBinding]
     }
 
     def "fails when implemented property is present in delegate"() {
         when:
         extract(TypeWithImplementedProperty, DelegateTypeWithImplementedProperty)
         then:
-        def ex = thrown Exception
-        ex.message.contains "Method 'public int ${TypeWithImplementedProperty.name}.getZ()' is both implemented by the view and the delegate type 'public int ${DelegateTypeWithImplementedProperty.name}.getZ()'"
+        def ex = thrown UncheckedExecutionException
+        ex.cause instanceof IllegalArgumentException
+        ex.cause.message == "Method '${DefaultStructBindingsStoreTest.simpleName}.${TypeWithImplementedProperty.simpleName}.getZ()' is both implemented by the view and the delegate type '${DefaultStructBindingsStoreTest.simpleName}.${DelegateTypeWithImplementedProperty.simpleName}.getZ()'"
     }
 
     static abstract class TypeWithAbstractWriteOnlyProperty {
@@ -135,14 +135,14 @@ class DefaultStructBindingsStoreTest extends Specification {
     def "detects overloads"() {
         def bindings = extract(OverloadingNumber, OverloadingIntegerImpl)
         expect:
-        bindings.allViewSchemas*.type*.rawClass as List == [OverloadingNumber]
+        bindings.declaredViewSchemas*.type*.rawClass as List == [OverloadingNumber]
         bindings.delegateSchema.type.rawClass == OverloadingIntegerImpl
         bindings.managedProperties.isEmpty()
-        bindings.viewBindings.isEmpty()
-        bindings.delegateBindings*.source*.name == ["getValue"]
-        bindings.delegateBindings*.source*.method*.returnType == [Number]
-        bindings.delegateBindings*.target*.name == ["getValue"]
-        bindings.delegateBindings*.target*.method*.returnType == [Integer]
+        bindings.methodBindings*.getClass() == [DelegateMethodBinding, DelegateMethodBinding]
+        bindings.methodBindings*.source*.name == ["getValue", "getValue"]
+        bindings.methodBindings*.source*.method*.returnType == [Number, Integer]
+        bindings.methodBindings*.implementor*.name == ["getValue", "getValue"]
+        bindings.methodBindings*.implementor*.method*.returnType == [Integer, Integer]
     }
 
 

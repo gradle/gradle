@@ -22,7 +22,6 @@ import com.google.common.collect.*;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.Managed;
 
 import java.lang.reflect.Method;
@@ -30,8 +29,9 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.*;
 
+import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
+
 public class ModelSchemaUtils {
-    private static final Equivalence<Method> METHOD_EQUIVALENCE = new MethodSignatureEquivalence();
 
     private static final Set<Equivalence.Wrapper<Method>> IGNORED_METHODS = ImmutableSet.copyOf(
         Iterables.transform(
@@ -40,7 +40,7 @@ public class ModelSchemaUtils {
                 Arrays.asList(GroovyObject.class.getMethods())
             ), new Function<Method, Equivalence.Wrapper<Method>>() {
                 public Equivalence.Wrapper<Method> apply(@Nullable Method input) {
-                    return METHOD_EQUIVALENCE.wrap(input);
+                    return SIGNATURE_EQUIVALENCE.wrap(input);
                 }
             }
         )
@@ -85,7 +85,7 @@ public class ModelSchemaUtils {
             ListMultimap<Equivalence.Wrapper<Method>, Method> equivalenceIndex = Multimaps.index(methodsWithSameName, new Function<Method, Equivalence.Wrapper<Method>>() {
                 @Override
                 public Equivalence.Wrapper<Method> apply(Method method) {
-                    return METHOD_EQUIVALENCE.wrap(method);
+                    return SIGNATURE_EQUIVALENCE.wrap(method);
                 }
             });
             candidatesBuilder.put(methodName, equivalenceIndex.asMap());
@@ -107,7 +107,7 @@ public class ModelSchemaUtils {
      * Is defined by Object or GroovyObject?
      */
     public static boolean isObjectMethod(Method method) {
-        return IGNORED_METHODS.contains(METHOD_EQUIVALENCE.wrap(method));
+        return IGNORED_METHODS.contains(SIGNATURE_EQUIVALENCE.wrap(method));
     }
 
     /**

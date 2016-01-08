@@ -57,7 +57,7 @@ public class StructNodeInitializer<T> implements NodeInitializer {
                     public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
                         ManagedProxyFactory proxyFactory = getInstance(modelViews.get(0), ManagedProxyFactory.class);
                         TypeConverter typeConverter = getInstance(modelViews, 1, TypeConverter.class);
-                        for (StructSchema<?> viewSchema : bindings.getAllViewSchemas()) {
+                        for (StructSchema<?> viewSchema : bindings.getDeclaredViewSchemas()) {
                             addProjection(modelNode, viewSchema, proxyFactory, typeConverter);
                         }
                     }

@@ -17,45 +17,42 @@
 package org.gradle.model.internal.manage.binding;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.manage.schema.StructSchema;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultStructBindings<T> implements StructBindings<T> {
     private final StructSchema<T> publicSchema;
-    private final Iterable<StructSchema<?>> internalViewSchemas;
-    private final Set<StructSchema<?>> viewSchemas;
+    private final Set<StructSchema<?>> declaredViewSchemas;
+    private final Set<StructSchema<?>> implementedViewSchemas;
     private final StructSchema<?> delegateSchema;
 
     private final Map<String, ManagedProperty<?>> managedProperties;
-    private final Collection<DirectMethodBinding> viewBindings;
-    private final Collection<DelegateMethodBinding> delegateBindings;
+    private final Collection<StructMethodBinding> methodBindings;
 
     protected DefaultStructBindings(
         StructSchema<T> publicSchema,
-        Iterable<? extends StructSchema<?>> internalViewSchemas,
+        Iterable<? extends StructSchema<?>> declaredViewSchemas,
+        Iterable<? extends StructSchema<?>> implementedViewSchemas,
         @Nullable StructSchema<?> delegateSchema,
 
         Map<String, ManagedProperty<?>> managedProperties,
-        Iterable<DirectMethodBinding> viewBindings,
-        Iterable<DelegateMethodBinding> delegateBindings
+        Iterable<StructMethodBinding> methodBindings
     ) {
         this.publicSchema = publicSchema;
-        this.internalViewSchemas = ImmutableSet.copyOf(internalViewSchemas);
-        this.viewSchemas = ImmutableSet.copyOf(Iterables.concat(Collections.singleton(publicSchema), internalViewSchemas));
+        this.declaredViewSchemas = ImmutableSet.copyOf(declaredViewSchemas);
+        this.implementedViewSchemas = ImmutableSet.copyOf(implementedViewSchemas);
         this.delegateSchema = delegateSchema;
 
         this.managedProperties = ImmutableSortedMap.copyOf(managedProperties, Ordering.natural());
-        this.viewBindings = ImmutableSet.copyOf(viewBindings);
-        this.delegateBindings = ImmutableSet.copyOf(delegateBindings);
+        this.methodBindings = ImmutableList.copyOf(methodBindings);
     }
 
     @Override
@@ -64,13 +61,13 @@ public class DefaultStructBindings<T> implements StructBindings<T> {
     }
 
     @Override
-    public Set<StructSchema<?>> getAllViewSchemas() {
-        return viewSchemas;
+    public Set<StructSchema<?>> getDeclaredViewSchemas() {
+        return declaredViewSchemas;
     }
 
     @Override
-    public Iterable<StructSchema<?>> getInternalViewSchemas() {
-        return internalViewSchemas;
+    public Set<StructSchema<?>> getImplementedViewSchemas() {
+        return implementedViewSchemas;
     }
 
     @Override
@@ -79,18 +76,19 @@ public class DefaultStructBindings<T> implements StructBindings<T> {
         return delegateSchema;
     }
 
+    @Override
     public Map<String, ManagedProperty<?>> getManagedProperties() {
         return managedProperties;
     }
 
     @Override
-    public Collection<DirectMethodBinding> getViewBindings() {
-        return viewBindings;
+    public ManagedProperty<?> getManagedProperty(String name) {
+        return managedProperties.get(name);
     }
 
     @Override
-    public Collection<DelegateMethodBinding> getDelegateBindings() {
-        return delegateBindings;
+    public Collection<StructMethodBinding> getMethodBindings() {
+        return methodBindings;
     }
 
     @Override
@@ -103,14 +101,13 @@ public class DefaultStructBindings<T> implements StructBindings<T> {
         }
         DefaultStructBindings<?> that = (DefaultStructBindings<?>) o;
         return Objects.equal(publicSchema, that.publicSchema)
-            && Objects.equal(internalViewSchemas, that.internalViewSchemas)
-            && Objects.equal(viewSchemas, that.viewSchemas)
+            && Objects.equal(declaredViewSchemas, that.declaredViewSchemas)
             && Objects.equal(delegateSchema, that.delegateSchema);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(publicSchema, internalViewSchemas, viewSchemas, delegateSchema);
+        return Objects.hashCode(publicSchema, declaredViewSchemas, delegateSchema);
     }
 
     @Override
