@@ -20,9 +20,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.comparators.BooleanComparator;
 import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.JointCompileTaskConfig;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -107,12 +107,14 @@ public class BinarySourceTransformations {
     }
 
     private Set<LanguageSourceSetInternal> getSourcesToCompile(BinarySpecInternal binary) {
-        return Sets.newLinkedHashSet(binary.getInputs().withType(LanguageSourceSetInternal.class).matching(new Spec<LanguageSourceSetInternal>() {
-                        @Override
-                        public boolean isSatisfiedBy(LanguageSourceSetInternal element) {
-                            return element.getMayHaveSources();
-                        }
-                    }));
+        LinkedHashSet<LanguageSourceSetInternal> sourceSets = Sets.newLinkedHashSet();
+        for (LanguageSourceSet languageSourceSet : binary.getInputs()) {
+            LanguageSourceSetInternal languageSourceSetInternal = (LanguageSourceSetInternal) languageSourceSet;
+            if (languageSourceSetInternal.getMayHaveSources()) {
+                sourceSets.add(languageSourceSetInternal);
+            }
+        }
+        return sourceSets;
     }
 
     private String getTransformTaskName(LanguageTransform<?, ?> transform, SourceTransformTaskConfig taskConfig, BinarySpecInternal binary, LanguageSourceSetInternal sourceSetToCompile) {
