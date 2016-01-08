@@ -253,7 +253,7 @@ language levels for each module in a project.
 - if all java modules have same value for `project.targetCompatibility`
     - when differs from `org.gradle.plugins.ide.idea.model.IdeaProject.jdkName` set bytecode level explicitly in .ipr file
 - if java modules have different value for `project.targetCompatibility`
-    -  set module bytecode level according to `project.targetCompatibility` in `.ipr` file
+    -  For any module where `project.targetCompatibility` doesn't match `IdeaProject.jdkName`, specify the 'bytecode level' for that module in the .ipr file.
 
 ##### Test coverage
 
