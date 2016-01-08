@@ -16,7 +16,6 @@
 
 package org.gradle.model
 
-import org.gradle.api.Named
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.schema.ModelMapSchema
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
@@ -66,19 +65,5 @@ class ManagedModelMapTypesTest extends ProjectRegistrySpec {
 
         expect:
         schemaStore.getSchema(type) instanceof ModelMapSchema
-    }
-
-    @Managed
-    abstract static class MutableName implements Named {
-        abstract void setName(String name)
-    }
-
-    def "element cannot have setName"() {
-        when:
-        schemaStore.getSchema(ModelTypes.modelMap(MutableName))
-
-        then:
-        def e = thrown InvalidManagedModelElementTypeException
-        e.message.startsWith "Invalid managed model type $MutableName.name: @Managed types implementing $Named.name must not declare a setter for the name property"
     }
 }

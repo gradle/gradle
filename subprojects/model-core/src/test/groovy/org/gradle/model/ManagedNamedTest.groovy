@@ -16,11 +16,9 @@
 
 package org.gradle.model
 
-import org.gradle.api.Named
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.inspect.ReadonlyImmutableManagedPropertyException
-import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 
 class ManagedNamedTest extends ProjectRegistrySpec {
 
@@ -69,20 +67,5 @@ class ManagedNamedTest extends ProjectRegistrySpec {
         then:
         def ex = thrown(ModelRuleExecutionException)
         ex.cause instanceof ReadonlyImmutableManagedPropertyException
-    }
-
-    @Managed
-    static abstract class NamedThingWithSetter implements Named {
-        abstract String getName()
-
-        abstract void setName(String name)
-    }
-
-    def "named cannot have setter"() {
-        when:
-        schemaStore.getSchema(NamedThingWithSetter)
-
-        then:
-        thrown InvalidManagedModelElementTypeException
     }
 }

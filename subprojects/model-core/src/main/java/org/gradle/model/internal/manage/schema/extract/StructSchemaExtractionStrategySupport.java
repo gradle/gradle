@@ -59,7 +59,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         Iterable<ModelPropertyExtractionContext> candidateProperties = selectProperties(extractionContext, candidateMethods);
         validateProperties(extractionContext, candidateProperties);
 
-        List<ModelPropertyExtractionResult<?>> extractedProperties = extractProperties(extractionContext, candidateProperties);
+        List<ModelPropertyExtractionResult<?>> extractedProperties = extractProperties(candidateProperties);
         List<ModelSchemaAspect> aspects = aspectExtractor.extract(extractionContext, extractedProperties);
 
         Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods = getNonPropertyMethods(candidateMethods, extractedProperties);
@@ -153,26 +153,32 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
                     handleInvalidGetter(context, isMethod, "getter method name must start with 'get'");
                 }
             }
-            validateProperty(context, property);
         }
     }
 
     protected abstract void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, Method getter, String message);
 
-    protected abstract void validateProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property);
-
-    private static List<ModelPropertyExtractionResult<?>> extractProperties(ModelSchemaExtractionContext<?> context, Iterable<ModelPropertyExtractionContext> properties) {
+    private static List<ModelPropertyExtractionResult<?>> extractProperties(Iterable<ModelPropertyExtractionContext> properties) {
         ImmutableList.Builder<ModelPropertyExtractionResult<?>> builder = ImmutableList.builder();
         for (ModelPropertyExtractionContext propertyContext : properties) {
-            builder.add(extractProperty(context, propertyContext));
+            builder.add(extractProperty(propertyContext));
         }
         return builder.build();
     }
 
-    private static <R> ModelPropertyExtractionResult<R> extractProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property) {
-        PropertyAccessorExtractionContext gettersContext = property.mergeGetters();
-        final ModelType<R> returnType = ModelType.returnType(gettersContext.getMostSpecificDeclaration());
-        return createProperty(returnType, property);
+    private static ModelPropertyExtractionResult<?> extractProperty(ModelPropertyExtractionContext property) {
+        ModelType<?> propertyType = determinePropertyType(property.getAccessor(PropertyAccessorType.GET_GETTER));
+        if (propertyType == null) {
+            propertyType = determinePropertyType(property.getAccessor(PropertyAccessorType.IS_GETTER));
+        }
+        if (propertyType == null) {
+            propertyType = determinePropertyType(property.getAccessor(PropertyAccessorType.SETTER));
+        }
+        return createProperty(propertyType, property);
+    }
+
+    private static ModelType<?> determinePropertyType(PropertyAccessorExtractionContext accessor) {
+        return accessor == null ? null : accessor.getAccessorType().propertyTypeFor(accessor.getMostSpecificDeclaration());
     }
 
     private static <P> ModelPropertyExtractionResult<P> createProperty(ModelType<P> propertyType, ModelPropertyExtractionContext propertyContext) {

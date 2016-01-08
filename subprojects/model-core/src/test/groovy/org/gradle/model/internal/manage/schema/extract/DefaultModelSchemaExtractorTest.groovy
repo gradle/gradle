@@ -71,26 +71,6 @@ class DefaultModelSchemaExtractorTest extends Specification {
     }
 
     @Managed
-    static interface NoGettersOrSetters {
-        void foo(String bar)
-    }
-
-    @Managed
-    static interface HasExtraNonPropertyMethods {
-        String getName()
-
-        void setName(String name)
-
-        void foo(String bar)
-    }
-
-    def "can only have getters and setters"() {
-        expect:
-        fail NoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").returns(void.class).owner(NoGettersOrSetters).takes(String)})")
-        fail HasExtraNonPropertyMethods, Pattern.quote("nly paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").returns(void.class).owner(HasExtraNonPropertyMethods).takes(String)})")
-    }
-
-    @Managed
     static interface SingleStringNameProperty {
         String getName()
 
@@ -104,65 +84,6 @@ class DefaultModelSchemaExtractorTest extends Specification {
         then:
         properties*.name == ["name"]
         properties*.type == [ModelType.of(String)]
-    }
-
-    @Managed
-    static interface GetterWithParams {
-        String getName(String name)
-
-        void setName(String name)
-
-    }
-
-    def "malformed getter"() {
-        expect:
-        fail GetterWithParams, "getter methods cannot take parameters"
-    }
-
-    @Managed
-    static interface NonVoidSetter {
-        String getName()
-
-        String setName(String name)
-    }
-
-    def "non void setter"() {
-        expect:
-        fail NonVoidSetter, "setter method must have void return type"
-    }
-
-    @Managed
-    static interface SetterWithExtraParams {
-        String getName()
-
-        void setName(String name, String otherName)
-    }
-
-    def "setter with extra params"() {
-        expect:
-        fail SetterWithExtraParams, "setter method must have exactly one parameter"
-    }
-
-    @Managed
-    static interface MisalignedSetterType {
-        String getName()
-
-        void setName(Object name)
-    }
-
-    def "misaligned setter type"() {
-        expect:
-        fail MisalignedSetterType, "setter method param must be of exactly the same type"
-    }
-
-    @Managed
-    static interface SetterOnly {
-        void setName(String name);
-    }
-
-    def "setter only"() {
-        expect:
-        fail SetterOnly, "only paired getter/setter methods are supported"
     }
 
     interface SetterOnlyUnmanaged {
@@ -208,43 +129,6 @@ class DefaultModelSchemaExtractorTest extends Specification {
             short,
             int,
             double]
-    }
-
-    @Unroll
-    def "Misaligned types #firstType and #secondType"() {
-        when:
-        def interfaceWithPrimitiveProperty = new GroovyClassLoader(getClass().classLoader).parseClass """
-            import org.gradle.model.Managed
-
-            @Managed
-            interface PrimitiveProperty {
-                $firstType.name getPrimitiveProperty()
-
-                void setPrimitiveProperty($secondType.name value)
-            }
-        """
-
-        then:
-        fail(interfaceWithPrimitiveProperty, "(expected: ${firstType.name}, found: ${secondType.name})")
-
-        where:
-        firstType | secondType
-        byte      | Byte
-        boolean   | Boolean
-        char      | Character
-        float     | Float
-        long      | Long
-        short     | Short
-        int       | Integer
-        double    | Double
-        Byte      | byte
-        Boolean   | boolean
-        Character | char
-        Float     | float
-        Long      | long
-        Short     | short
-        Integer   | int
-        Double    | double
     }
 
     @Managed
@@ -350,47 +234,6 @@ class DefaultModelSchemaExtractorTest extends Specification {
         def url = schema.properties[0]
         assert url instanceof ModelProperty
         url.name == Introspector.decapitalize('URL')
-    }
-
-    @Managed
-    interface HasTwoFirstsCharLowercaseGetter {
-        String getccCompiler()
-        void setccCompiler(String ccCompiler)
-    }
-
-    def "reject two firsts char lowercase getters"() {
-        expect:
-        fail HasTwoFirstsCharLowercaseGetter, "only paired getter/setter methods are supported"
-    }
-
-    @Managed
-    interface HasGetGetterLikeMethod {
-        String gettingStarted()
-    }
-
-    def "get-getters-like methods not considered as getters"() {
-        expect:
-        fail HasGetGetterLikeMethod, "only paired getter/setter methods are supported"
-    }
-
-    @Managed
-    interface HasIsGetterLikeMethod {
-        boolean isidore()
-    }
-
-    def "is-getters-like methods not considered as getters"() {
-        expect:
-        fail HasIsGetterLikeMethod, "only paired getter/setter methods are supported"
-    }
-
-    @Managed
-    interface HasSetterLikeMethod {
-        void settings(String settings)
-    }
-
-    def "setters-like methods not considered as setters"() {
-        expect:
-        fail HasSetterLikeMethod, "only paired getter/setter methods are supported"
     }
 
     @Managed
@@ -585,15 +428,6 @@ class DefaultModelSchemaExtractorTest extends Specification {
         properties*.writable == [true]
     }
 
-    @Managed
-    static interface ChildWithNoGettersOrSetters extends NoGettersOrSetters {
-    }
-
-    def "invalid methods of super types are reported"() {
-        expect:
-        fail ChildWithNoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").returns(void.class).owner(NoGettersOrSetters).takes(String)})")
-    }
-
     def "type argument of a model set has to be specified"() {
         given:
         def type = ModelType.of(ModelSet.class)
@@ -653,18 +487,19 @@ class DefaultModelSchemaExtractorTest extends Specification {
 
     def "type argument of a model set has to be a valid managed type"() {
         given:
-        def type = new ModelType<ModelSet<SetterOnly>>() {}
+        def type = new ModelType<ModelSet<ModelMap>>() {}
 
         when:
         extract(type)
 
         then:
         InvalidManagedModelElementTypeException e = thrown()
-        def invalidMethodDescription = MethodDescription.name("setName").returns(void.class).owner(SetterOnly).takes(String)
-        e.message == """Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: ${invalidMethodDescription}).
+        e.message == """Type $ModelMap.name is not a valid model element type:
+- type parameter of $ModelMap.name has to be specified.
+
 The type was analyzed due to the following dependencies:
-$type
-  \\--- element type ($SetterOnly.name)"""
+$ModelSet.name<$ModelMap.name>
+  \\--- element type ($ModelMap.name)"""
     }
 
     def "specializations of model set are not supported"() {
@@ -740,26 +575,6 @@ $type
         void setThing(InputStream inputStream);
     }
 
-
-    @Managed
-    static abstract class NonAbstractGetterWithSetter {
-        String getName() {}
-
-        abstract void setName(String name)
-    }
-
-    @Managed
-    static abstract class NonAbstractSetter {
-        abstract String getName()
-
-        void setName(String name) {}
-    }
-
-    def "non-abstract mutator methods are not allowed"() {
-        expect:
-        fail NonAbstractGetterWithSetter, Pattern.quote("setters are not allowed for non-abstract getters (invalid method: ${MethodDescription.name("setName").owner(NonAbstractGetterWithSetter).returns(void.class).takes(String)})")
-        fail NonAbstractSetter, Pattern.quote("non-abstract setters are not allowed (invalid method: ${MethodDescription.name("setName").owner(NonAbstractSetter).takes(String).returns(void.class)})")
-    }
 
     @Managed
     static abstract class ConstructorWithArguments {
@@ -1383,26 +1198,6 @@ interface Managed${typeName} {
 
         where:
         type << JDK_SCALAR_TYPES
-    }
-
-    def "displays a reasonable error message when getter and setter of a property of collection of scalar types do not use the same generic type"() {
-        given:
-        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
-            import org.gradle.model.Managed
-
-            @Managed
-            interface CollectionType {
-                List<String> getItems()
-                void setItems(List<Integer> integers)
-            }
-        """
-
-        when:
-        extract(managedType)
-
-        then:
-        InvalidManagedModelElementTypeException ex = thrown()
-        ex.message.contains 'setter method param must be of exactly the same type as the getter returns (expected: java.util.List<java.lang.String>, found: java.util.List<java.lang.Integer>)'
     }
 
     @Unroll

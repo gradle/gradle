@@ -53,7 +53,11 @@ public enum PropertyAccessorType {
     }
 
     public String propertyNameFor(Method method) {
-        String methodNamePrefixRemoved = method.getName().substring(prefixLength);
+        return propertyNameFor(method.getName());
+    }
+
+    public String propertyNameFor(String methodName) {
+        String methodNamePrefixRemoved = methodName.substring(prefixLength);
         return StringUtils.uncapitalize(methodNamePrefixRemoved);
     }
 
@@ -70,6 +74,19 @@ public enum PropertyAccessorType {
             }
         }
         if (hasVoidReturnType(method) && takesSingleParameter(method) && isSetterName(methodName)) {
+            return SETTER;
+        }
+        return null;
+    }
+
+    public static PropertyAccessorType fromName(String methodName) {
+        if (isGetGetterName(methodName)) {
+            return GET_GETTER;
+        }
+        if (isIsGetterName(methodName)) {
+            return IS_GETTER;
+        }
+        if (isSetterName(methodName)) {
             return SETTER;
         }
         return null;

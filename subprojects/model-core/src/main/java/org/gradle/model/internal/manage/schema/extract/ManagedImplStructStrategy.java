@@ -20,7 +20,6 @@ import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
-import org.gradle.api.Named;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.manage.schema.ManagedImplStructSchema;
@@ -35,8 +34,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.*;
-import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.*;
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.isMethodDeclaredInManagedType;
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.walkTypeHierarchy;
 
 public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySupport {
 
@@ -152,28 +151,6 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
 
     @Override
     protected void handleNonPropertyMethod(ModelSchemaExtractionContext<?> context, Collection<Method> nonPropertyMethodsWithEqualSignature) {
-        Method mostSpecificMethod = findMostSpecificMethod(nonPropertyMethodsWithEqualSignature);
-        if (isMethodDeclaredInManagedType(mostSpecificMethod)) {
-            String methodName = mostSpecificMethod.getName();
-            if (isGetterName(methodName)) {
-                if (!takesNoParameter(mostSpecificMethod)) {
-                    throw invalidMethods(context, "getter methods cannot take parameters", nonPropertyMethodsWithEqualSignature);
-                }
-            }
-            if (isSetterName(methodName)) {
-                if (!hasVoidReturnType(mostSpecificMethod)) {
-                    throw invalidMethods(context, "setter method must have void return type", nonPropertyMethodsWithEqualSignature);
-                }
-                if (!takesSingleParameter(mostSpecificMethod)) {
-                    throw invalidMethods(context, "setter method must have exactly one parameter", nonPropertyMethodsWithEqualSignature);
-                }
-            }
-            if (nonPropertyMethodsWithEqualSignature.size() > 1 && !isMethodDeclaredInManagedType(Iterables.getLast(nonPropertyMethodsWithEqualSignature))) {
-                // TODO:PM here we allows unmanaged non-property methods overridden in managed type as their implementation should be provided by an unmanaged super-type default implementation, not enough context to validate this here
-                return;
-            }
-            throw invalidMethods(context, "only paired getter/setter methods are supported", nonPropertyMethodsWithEqualSignature);
-        }
     }
 
     @Override
@@ -185,47 +162,6 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
     protected void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, Method getter, String message) {
         if (ModelSchemaUtils.isMethodDeclaredInManagedType(getter)) {
             throw invalidMethod(extractionContext, message, getter);
-        }
-    }
-
-    @Override
-    protected void validateProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property) {
-        PropertyAccessorExtractionContext mergedGetter = property.mergeGetters();
-        PropertyAccessorExtractionContext setter = property.getAccessor(SETTER);
-        if (setter != null) {
-            Method mostSpecificSetter = setter.getMostSpecificDeclaration();
-            if (mergedGetter == null) {
-                throw invalidMethods(context, "only paired getter/setter methods are supported", setter.getDeclaringMethods());
-            }
-            if (setter.isDeclaredAsAbstract()) {
-                if (!mergedGetter.isDeclaredAsAbstract()) {
-                    throw invalidMethod(context, "setters are not allowed for non-abstract getters", mostSpecificSetter);
-                }
-            }
-            if (mostSpecificSetter.getName().equals("setName") && Named.class.isAssignableFrom(context.getType().getRawClass())) {
-                throw new InvalidManagedModelElementTypeException(context, String.format(
-                    "@Managed types implementing %s must not declare a setter for the name property",
-                    Named.class.getName()
-                ));
-            }
-            if (mergedGetter.isDeclaredInManagedType() && !setter.isDeclaredInManagedType()) {
-                throw invalidMethods(context, "unmanaged setter for managed getter", mergedGetter.getDeclaringMethods());
-            }
-            if (!mergedGetter.isDeclaredInManagedType() && setter.isDeclaredInManagedType()) {
-                throw invalidMethods(context, "managed setter for unmanaged getter", mergedGetter.getDeclaringMethods());
-            }
-            if (!setter.isDeclaredInManagedType()) {
-                return;
-            }
-            if (!Modifier.isAbstract(mostSpecificSetter.getModifiers())) {
-                throw invalidMethod(context, "non-abstract setters are not allowed", mostSpecificSetter);
-            }
-            ModelType<?> propertyType = ModelType.returnType(mergedGetter.getMostSpecificDeclaration());
-            ModelType<?> setterType = ModelType.paramType(mostSpecificSetter, 0);
-            if (!propertyType.equals(setterType)) {
-                String message = "setter method param must be of exactly the same type as the getter returns (expected: " + propertyType + ", found: " + setterType + ")";
-                throw invalidMethod(context, message, mostSpecificSetter);
-            }
         }
     }
 

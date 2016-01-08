@@ -107,14 +107,15 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             String propertyName = propertyEntry.getKey();
             Multimap<PropertyAccessorType, StructMethodBinding> accessorBindings = propertyEntry.getValue();
 
-            if (isManagedProperty(propertyName, accessorBindings)) {
+            if (isManagedProperty(publicSchema.getType(), propertyName, accessorBindings)) {
                 boolean foundGetter = accessorBindings.containsKey(GET_GETTER) || accessorBindings.containsKey(IS_GETTER);
                 boolean foundSetter = accessorBindings.containsKey(SETTER);
                 if (foundSetter && !foundGetter) {
-                    throw new IllegalArgumentException(String.format("Managed property '%s' must both have an abstract getter as well as a setter.", propertyName));
+                    throw new InvalidManagedPropertyException(publicSchema.getType(), propertyName,
+                        "must both have an abstract getter as well as a setter");
                 }
 
-                ModelType<?> propertyType = determinePropertyType(propertyName, accessorBindings);
+                ModelType<?> propertyType = determineManagedPropertyType(publicSchema.getType(), propertyName, accessorBindings);
                 ModelSchema<?> propertySchema = schemaStore.getSchema(propertyType);
                 managedPropertiesBuilder.put(propertyName, createManagedProperty(publicSchema, propertyName, propertySchema, accessorBindings));
             }
@@ -122,7 +123,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         return managedPropertiesBuilder.build();
     }
 
-    private static boolean isManagedProperty(String propertyName, Multimap<PropertyAccessorType, StructMethodBinding> accessorBindings) {
+    private static boolean isManagedProperty(ModelType<?> publicType, String propertyName, Multimap<PropertyAccessorType, StructMethodBinding> accessorBindings) {
         Boolean managed = null;
         for (Map.Entry<PropertyAccessorType, Collection<StructMethodBinding>> accessorEntry : accessorBindings.asMap().entrySet()) {
             Collection<StructMethodBinding> bindings = accessorEntry.getValue();
@@ -130,8 +131,8 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             if (managed == null) {
                 managed = managedPropertyAccessor;
             } else if (managed != managedPropertyAccessor) {
-                throw new IllegalArgumentException(String.format("The accessor methods belonging to property '%s' should either all have an implementation "
-                    + "provided by the view itself or a default implementation, or they should all be abstract.", propertyName));
+                throw new InvalidManagedPropertyException(publicType, propertyName,
+                    "must have either only abstract accessor methods or only implemented accessor methods");
             }
         }
         assert managed != null;
@@ -156,19 +157,33 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         }
     }
 
-    private static ModelType<?> determinePropertyType(String propertyName, Multimap<PropertyAccessorType, StructMethodBinding> accessorBindings) {
-        // TODO:LPTR Figure out property type from getters, and validated it against setter
+    private static ModelType<?> determineManagedPropertyType(ModelType<?> publicType, String propertyName, Multimap<PropertyAccessorType, StructMethodBinding> accessorBindings) {
         Set<ModelType<?>> potentialPropertyTypes = Sets.newLinkedHashSet();
         for (StructMethodBinding binding : accessorBindings.values()) {
+            if (binding.getAccessorType() == SETTER) {
+                continue;
+            }
             ManagedPropertyMethodBinding propertyBinding = (ManagedPropertyMethodBinding) binding;
             potentialPropertyTypes.add(propertyBinding.getDeclaredPropertyType());
         }
         Collection<ModelType<?>> convergingPropertyTypes = findConvergingTypes(potentialPropertyTypes);
         if (convergingPropertyTypes.size() != 1) {
-            throw new IllegalArgumentException(String.format("Managed property '%s' must have a consistent type, but it's defined as %s.", propertyName,
-                Joiner.on(", ").join(ModelTypes.getDisplayNames(convergingPropertyTypes))));
+            throw new InvalidManagedPropertyException(publicType, propertyName,
+                String.format("must have a consistent type, but it's defined as %s.",
+                    Joiner.on(", ").join(ModelTypes.getDisplayNames(convergingPropertyTypes))));
         }
-        return Iterables.getOnlyElement(convergingPropertyTypes);
+        ModelType<?> propertyType = Iterables.getOnlyElement(convergingPropertyTypes);
+
+        for (StructMethodBinding setterBinding : accessorBindings.get(SETTER)) {
+            ManagedPropertyMethodBinding propertySetterBinding = (ManagedPropertyMethodBinding) setterBinding;
+            ModelType<?> declaredSetterType = propertySetterBinding.getDeclaredPropertyType();
+            if (!declaredSetterType.equals(propertyType)) {
+                throw new InvalidManagedPropertyException(publicType, propertyName,
+                    String.format("must have setter accepting parameter with type '%s' instead of '%s'",
+                        propertyType.getDisplayName(), declaredSetterType.getDisplayName()));
+            }
+        }
+        return propertyType;
     }
 
     private static <T, D> Set<ModelType<?>> collectImplementedViews(ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<D> delegateType) {
@@ -197,8 +212,8 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         Map<Wrapper<Method>, WeaklyTypeReferencingMethod<?, ?>> delegateMethods = collectDelegateMethods(delegateSchema);
 
         ImmutableSet.Builder<StructMethodBinding> methodBindingsBuilder = ImmutableSet.builder();
-        for (WeaklyTypeReferencingMethod<?, ?> weakViewMethod : implementedMethods) {
-            Method implementedMethod = weakViewMethod.getMethod();
+        for (WeaklyTypeReferencingMethod<?, ?> weakImplementedMethod : implementedMethods) {
+            Method implementedMethod = weakImplementedMethod.getMethod();
             PropertyAccessorType accessorType = PropertyAccessorType.of(implementedMethod);
 
             Wrapper<Method> methodKey = SIGNATURE_EQUIVALENCE.wrap(implementedMethod);
@@ -206,28 +221,22 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             WeaklyTypeReferencingMethod<?, ?> weakPublicImplMethod = publicViewImplMethods.get(methodKey);
             if (weakDelegateImplMethod != null && weakPublicImplMethod != null) {
                 throw new IllegalArgumentException(String.format("Method '%s' is both implemented by the view and the delegate type '%s'",
-                    weakViewMethod, weakDelegateImplMethod));
+                    weakImplementedMethod, weakDelegateImplMethod));
             }
 
             String propertyName = accessorType == null ? null : accessorType.propertyNameFor(implementedMethod);
 
             StructMethodBinding binding;
             if (!Modifier.isAbstract(implementedMethod.getModifiers())) {
-                binding = new DirectMethodBinding(weakViewMethod, accessorType);
+                binding = new DirectMethodBinding(weakImplementedMethod, accessorType);
             } else if (weakPublicImplMethod != null) {
-                binding = new BridgeMethodBinding(weakViewMethod, weakPublicImplMethod, accessorType);
+                binding = new BridgeMethodBinding(weakImplementedMethod, weakPublicImplMethod, accessorType);
             } else if (weakDelegateImplMethod != null) {
-                binding = new DelegateMethodBinding(weakViewMethod, weakDelegateImplMethod, accessorType);
+                binding = new DelegateMethodBinding(weakImplementedMethod, weakDelegateImplMethod, accessorType);
             } else if (propertyName != null) {
-                binding = new ManagedPropertyMethodBinding(weakViewMethod, propertyName, accessorType);
+                binding = new ManagedPropertyMethodBinding(weakImplementedMethod, propertyName, accessorType);
             } else {
-                if (delegateSchema == null) {
-                    throw new IllegalArgumentException(String.format("Method '%s' is not a property accessor, and it has no implementation",
-                        implementedMethod.toGenericString()));
-                } else {
-                    throw new IllegalArgumentException(String.format("Method '%s' is not a property accessor, and it has no implementation or a delegate in type '%s'",
-                        implementedMethod.toGenericString(), delegateSchema.getType().getDisplayName()));
-                }
+                throw handleNoMethodImplementation(publicSchema.getType(), weakImplementedMethod);
             }
             methodBindingsBuilder.add(binding);
 
@@ -241,6 +250,36 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             }
         }
         return methodBindingsBuilder.build();
+    }
+
+    private static RuntimeException handleNoMethodImplementation(ModelType<?> publicType, WeaklyTypeReferencingMethod<?, ?> method) {
+        String methodName = method.getName();
+        PropertyAccessorType accessorType = PropertyAccessorType.fromName(methodName);
+        if (accessorType != null) {
+            String propertyName = accessorType.propertyNameFor(methodName);
+            switch (accessorType) {
+                case GET_GETTER:
+                case IS_GETTER:
+                    if (!PropertyAccessorType.takesNoParameter(method.getMethod())) {
+                        return new InvalidManagedPropertyException(publicType, propertyName,
+                            String.format("is invalid: getter method '%s' must not take parameters", method));
+                    }
+                    break;
+                case SETTER:
+                    if (!hasVoidReturnType(method.getMethod())) {
+                        return new InvalidManagedPropertyException(publicType, propertyName,
+                            String.format("is invalid: setter method '%s' must have void return type", method));
+                    }
+                    if (!takesSingleParameter(method.getMethod())) {
+                        return new InvalidManagedPropertyException(publicType, propertyName,
+                            String.format("is invalid: setter method '%s' must have exactly one parameter", method));
+                    }
+                    break;
+                default:
+                    throw new AssertionError();
+            }
+        }
+        return new IllegalArgumentException(String.format("Abstract method '%s' is not a property accessor, and it has no implementation.", method));
     }
 
     private static Map<Wrapper<Method>, WeaklyTypeReferencingMethod<?, ?>> collectDelegateMethods(StructSchema<?> delegateSchema) {
@@ -294,8 +333,11 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
     private static void validateManagedProperty(StructSchema<?> publicSchema, String propertyName, ModelSchema<?> propertySchema, boolean writable, boolean isDeclaredAsHavingUnmanagedType) {
         ModelType<?> publicType = publicSchema.getType();
 
-        // The "name" property is handled differently if type implements Named
         if (propertyName.equals("name") && Named.class.isAssignableFrom(publicType.getRawClass())) {
+            if (writable) {
+                throw new InvalidManagedPropertyException(publicType, propertyName,
+                    String.format("must not have a setter, because the type implements '%s'", Named.class.getName()));
+            }
             return;
         }
 

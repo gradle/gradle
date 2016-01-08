@@ -15,6 +15,8 @@
  */
 
 package org.gradle.model.internal.manage.binding
+
+import org.gradle.api.Named
 import org.gradle.model.*
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
@@ -94,8 +96,8 @@ class DefaultStructBindingsStoreTest extends Specification {
         when:
         extract(TypeWithAbstractWriteOnlyProperty)
         then:
-        def ex = thrown IllegalArgumentException
-        ex.message == "Managed property 'z' must both have an abstract getter as well as a setter."
+        def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'z' of type '${getName(TypeWithAbstractWriteOnlyProperty)}' must both have an abstract getter as well as a setter."
     }
 
     static abstract class TypeWithInconsistentPropertyType {
@@ -107,8 +109,8 @@ class DefaultStructBindingsStoreTest extends Specification {
         when:
         extract(TypeWithInconsistentPropertyType)
         then:
-        def ex = thrown Exception
-        ex.message.contains "Managed property 'z' must have a consistent type, but it's defined as String, int."
+        def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'z' of type '${getName(TypeWithInconsistentPropertyType)}' must have setter accepting parameter with type 'String' instead of 'int'."
     }
 
     static interface OverloadingNumber {
@@ -205,6 +207,209 @@ class DefaultStructBindingsStoreTest extends Specification {
         when: extract WritableSetProperty
         then: def ex = thrown InvalidManagedPropertyException
         ex.message == "Property 'set' of type '${getName(WritableSetProperty)}' cannot have a setter (ModelSet properties must be read only)."
+    }
+
+    @Managed
+    static interface GetterWithParams {
+        String getName(String name)
+        void setName(String name)
+    }
+
+    def "malformed getter"() {
+        when: extract GetterWithParams
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'name' of type '${getName(GetterWithParams)}' is invalid: getter method '${getName(GetterWithParams)}.getName(String)' must not take parameters."
+    }
+
+    @Managed
+    static interface NonVoidSetter {
+        String getName()
+        String setName(String name)
+    }
+
+    def "non void setter"() {
+        when: extract NonVoidSetter
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'name' of type '${getName(NonVoidSetter)}' is invalid: setter method '${getName(NonVoidSetter)}.setName(String)' must have void return type."
+    }
+
+    @Managed
+    static interface SetterWithExtraParams {
+        String getName()
+        void setName(String name, String otherName)
+    }
+
+    def "setter with extra params"() {
+        when: extract SetterWithExtraParams
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'name' of type '${getName(SetterWithExtraParams)}' is invalid: setter method '${getName(SetterWithExtraParams)}.setName(String, String)' must have exactly one parameter."
+    }
+
+    @Managed
+    static interface HasExtraNonPropertyMethods {
+        String getName()
+
+        void setName(String name)
+
+        void foo(String bar)
+    }
+
+    @Managed
+    static interface ChildWithExtraNonPropertyMethods extends HasExtraNonPropertyMethods {
+    }
+
+    @Unroll
+    def "can only have abstract getters and setters in #type"() {
+        when: extract type
+        then: def ex = thrown IllegalArgumentException
+        ex.message == "Abstract method '${getName(HasExtraNonPropertyMethods)}.foo(String)' is not a property accessor, and it has no implementation."
+
+        where:
+        type                             | _
+        HasExtraNonPropertyMethods       | _
+        ChildWithExtraNonPropertyMethods | _
+    }
+
+    @Managed
+    interface HasTwoFirstsCharLowercaseGetter {
+        String getccCompiler()
+    }
+
+    def "reject two firsts char lowercase getters"() {
+        when: extract HasTwoFirstsCharLowercaseGetter
+        then: def ex = thrown IllegalArgumentException
+        ex.message == "Abstract method '${getName(HasTwoFirstsCharLowercaseGetter)}.getccCompiler()' is not a property accessor, and it has no implementation."
+    }
+
+    @Managed
+    interface HasGetGetterLikeMethod {
+        String gettingStarted()
+    }
+
+    def "get-getters-like methods not considered as getters"() {
+        when: extract HasGetGetterLikeMethod
+        then: def ex = thrown IllegalArgumentException
+        ex.message == "Abstract method '${getName(HasGetGetterLikeMethod)}.gettingStarted()' is not a property accessor, and it has no implementation."
+    }
+
+    @Managed
+    interface HasIsGetterLikeMethod {
+        boolean isidore()
+    }
+
+    def "is-getters-like methods not considered as getters"() {
+        when: extract HasIsGetterLikeMethod
+        then: def ex = thrown IllegalArgumentException
+        ex.message == "Abstract method '${getName(HasIsGetterLikeMethod)}.isidore()' is not a property accessor, and it has no implementation."
+    }
+
+    @Managed
+    interface HasSetterLikeMethod {
+        void settings(String settings)
+    }
+
+    def "setters-like methods not considered as setters"() {
+        when: extract HasSetterLikeMethod
+        then: def ex = thrown IllegalArgumentException
+        ex.message == "Abstract method '${getName(HasSetterLikeMethod)}.settings(String)' is not a property accessor, and it has no implementation."
+    }
+
+    @Managed
+    static interface MisalignedSetterType {
+        String getThing()
+        void setThing(Object name)
+    }
+
+    def "misaligned setter type"() {
+        when: def bindings = extract MisalignedSetterType
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'thing' of type '${getName(MisalignedSetterType)}' must have setter accepting parameter with type 'String' instead of 'Object'."
+    }
+
+    @Managed
+    static abstract class NonAbstractGetterWithSetter {
+        String getName() {}
+        abstract void setName(String name)
+    }
+
+    @Managed
+    static abstract class NonAbstractSetter {
+        abstract String getName()
+        void setName(String name) {}
+    }
+
+    def "non-abstract getter with abstract setter is not allowed"() {
+        when: extract NonAbstractGetterWithSetter
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'name' of type '${getName(NonAbstractGetterWithSetter)}' must have either only abstract accessor methods or only implemented accessor methods."
+    }
+
+    def "non-abstract setter without getter is not allowed"() {
+        when: extract NonAbstractSetter
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'name' of type '${getName(NonAbstractSetter)}' must have either only abstract accessor methods or only implemented accessor methods."
+    }
+
+    @Managed
+    static interface CollectionType {
+        List<String> getItems()
+        void setItems(List<Integer> integers)
+    }
+
+    def "displays a reasonable error message when getter and setter of a property of collection of scalar types do not use the same generic type"() {
+        given: when: extract CollectionType
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'items' of type '${getName(CollectionType)}' must have setter accepting parameter with type 'List<String>' instead of 'List<Integer>'."
+    }
+
+    @Unroll
+    def "misaligned types #firstType.simpleName and #secondType.simpleName"() {
+        def interfaceWithPrimitiveProperty = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
+
+            @Managed
+            interface PrimitiveProperty {
+                $firstType.name getPrimitiveProperty()
+
+                void setPrimitiveProperty($secondType.name value)
+            }
+        """
+        when: extract interfaceWithPrimitiveProperty
+        then: def ex = thrown InvalidManagedPropertyException
+        ex.message == "Property 'primitiveProperty' of type 'PrimitiveProperty' must have setter accepting parameter with type '$firstType.simpleName' instead of '$secondType.simpleName'."
+
+        where:
+        firstType | secondType
+        byte      | Byte
+        boolean   | Boolean
+        char      | Character
+        float     | Float
+        long      | Long
+        short     | Short
+        int       | Integer
+        double    | Double
+        Byte      | byte
+        Boolean   | boolean
+        Character | char
+        Float     | float
+        Long      | long
+        Short     | short
+        Integer   | int
+        Double    | double
+    }
+
+    @Managed
+    abstract static class MutableName implements Named {
+        abstract void setName(String name)
+    }
+
+    def "Named cannot have setName"() {
+        when:
+        extract MutableName
+
+        then:
+        def e = thrown Exception
+        e.message == "Property 'name' of type '${getName(MutableName)}' must not have a setter, because the type implements '$Named.name'."
     }
 
 
