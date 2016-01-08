@@ -41,7 +41,7 @@
             The
             <literal>gradleTestKit()</literal>
             encompasses the classes of the TestKit, as well as the <link linkend="embedding">Gradle Tooling API client</link>.
-            It does not include a version of<ulink url="http://junit.org">JUnit</ulink>,<ulink url="http://testng.org">TestNG</ulink>, or any other test execution framework.
+            It does not include a version of <ulink url="http://junit.org">JUnit</ulink>, <ulink url="http://testng.org">TestNG</ulink>, or any other test execution framework.
             Such a dependency must be explicitly declared.
         </para>
         <sample id="junitDependency" dir="testKit/testKitJunit" title="Declaring the JUnit dependency">
