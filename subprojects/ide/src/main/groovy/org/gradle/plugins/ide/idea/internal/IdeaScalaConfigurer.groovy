@@ -17,73 +17,133 @@ package org.gradle.plugins.ide.idea.internal
 
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
+import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.api.resources.MissingResourceException
 import org.gradle.plugins.ide.idea.IdeaPlugin
-import org.gradle.plugins.ide.idea.model.FilePath
-import org.gradle.plugins.ide.idea.model.IdeaModule
-import org.gradle.plugins.ide.idea.model.ModuleLibrary
-import org.gradle.plugins.ide.idea.model.ProjectLibrary
+import org.gradle.plugins.ide.idea.model.*
 
 class IdeaScalaConfigurer {
-    private final Project rootProject
+    // More information: http://blog.jetbrains.com/scala/2014/10/30/scala-plugin-update-for-intellij-idea-14-rc-is-out/
+    private static final int IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED = 14;
 
-    IdeaScalaConfigurer(Project rootProject) {
+    private final Project rootProject
+    private final int ideaTargetVersion
+
+    IdeaScalaConfigurer(Project rootProject, int ideaTargetVersion) {
         this.rootProject = rootProject
+        this.ideaTargetVersion = ideaTargetVersion
     }
 
     void configure() {
         rootProject.gradle.projectsEvaluated {
             def scalaProjects = findProjectsApplyingIdeaAndScalaPlugins()
-            Map<String, ProjectLibrary> scalaCompilerLibraries = [:]
-
+            def scalaCompilerLibrary
             rootProject.ideaProject.doFirst {
-                scalaCompilerLibraries = resolveScalaCompilerLibraries(scalaProjects)
-                declareUniqueProjectLibraries(scalaCompilerLibraries.values() as Set)
+                if (scalaProjects.size() > 0) {
+                    def scalaProject = findScalaProjectWithHighestLibraryVersion(scalaProjects)
+                    if (this.ideaTargetVersion < IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED) {
+                        scalaCompilerLibrary = declareScalaFacetOnRootProject(scalaProject)
+                    } else {
+                        declareScalaSdkOnRootProject(scalaProject)
+                    }
+                }
             }
 
-            rootProject.configure(scalaProjects) { org.gradle.api.Project prj ->
+            rootProject.configure(scalaProjects) { Project project ->
                 idea.module.iml.withXml { XmlProvider xmlProvider ->
-                    declareScalaFacet(scalaCompilerLibraries[prj.path], xmlProvider.asNode())
+                    if (this.ideaTargetVersion < IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED) {
+                        declareScalaFacet(scalaCompilerLibrary, xmlProvider.asNode())
+                    } else {
+                        declareScalaSdk(xmlProvider.asNode())
+                    }
                 }
             }
         }
     }
 
-    private Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Collection<Project> scalaProjects) {
-        def scalaCompilerLibraries = [:]
+    private Project findScalaProjectWithHighestLibraryVersion(Collection<Project> scalaProjects) {
+        def scalaProjectWithHighestLibraryVersion = null
+        def highestVersion = 0
 
         for (scalaProject in scalaProjects) {
-            IdeaModule ideaModule = scalaProject.idea.module
+            def IdeaModule ideaModule = scalaProject.idea.module
 
             // could make resolveDependencies() cache its result for later use by GenerateIdeaModule
             def dependencies = ideaModule.resolveDependencies()
             def moduleLibraries = dependencies.findAll { it instanceof ModuleLibrary }
-            def filePaths = moduleLibraries.collectMany { it.classes.findAll { it instanceof FilePath } }
-            def files = filePaths.collect { it.file }
 
-            def runtime = scalaProject.scalaRuntime
-            def scalaClasspath = runtime.inferScalaClasspath(files)
-            def compilerJar = runtime.findScalaJar(scalaClasspath, "compiler")
-            def version = compilerJar == null ? "?" : runtime.getScalaVersion(compilerJar)
-            def library = createProjectLibrary("scala-compiler-$version", scalaClasspath)
-            def duplicate = scalaCompilerLibraries.values().find { it.classes == library.classes }
-            scalaCompilerLibraries[scalaProject.path] = duplicate ?: library
+            for (moduleLibrary in moduleLibraries) {
+                def moduleVersion = moduleLibrary.moduleVersion
+                if (moduleVersion != null) {
+                    def moduleName = moduleVersion.name
+                    if (moduleName == "scala-library") {
+                        def version = moduleVersion.version.replaceAll("[^0-9]", "").replace(".", "").toInteger()
+                        if (version > highestVersion) {
+                            scalaProjectWithHighestLibraryVersion = scalaProject
+                            highestVersion = version
+                        }
+                    }
+                }
+            }
         }
 
-        return scalaCompilerLibraries
+        if (scalaProjectWithHighestLibraryVersion == null) {
+            throw new MissingResourceException("Unable to find Scala project. Most likely this is due to a missing 'scala-library' dependency." +
+                " Make sure your maven repos are accessible and that your dependencies exists in the local Gradle cache.")
+        }
+
+        return scalaProjectWithHighestLibraryVersion
     }
 
-    private void declareUniqueProjectLibraries(Set<ProjectLibrary> projectLibraries) {
+    private FileCollection resolveScalaClasspath(Project scalaProject) {
+        def IdeaModule ideaModule = scalaProject.idea.module
+
+        // could make resolveDependencies() cache its result for later use by GenerateIdeaModule
+        def dependencies = ideaModule.resolveDependencies()
+        def moduleLibraries = dependencies.findAll { it instanceof ModuleLibrary }
+        def filePaths = moduleLibraries.collectMany { it.classes.findAll { it instanceof FilePath } }
+        def files = filePaths.collect { it.file }
+
+        return scalaProject.scalaRuntime.inferScalaClasspath(files)
+    }
+
+    private void addLibraryToRootProjectLibraries(ProjectLibrary library) {
         def existingLibraries = rootProject.idea.project.projectLibraries
-        def newLibraries = projectLibraries - existingLibraries
-        for (newLibrary in newLibraries) {
-            def originalName = newLibrary.name
-            def suffix = 1
-            while (existingLibraries.find { it.name == newLibrary.name }) {
-                newLibrary.name = "$originalName-${suffix++}"
+        def suffix = 1
+        for (existingLibrary in existingLibraries) {
+            if (existingLibrary.name == library.name) {
+                existingLibrary.name = "$existingLibrary.name-${suffix++}"
             }
-            existingLibraries << newLibrary
         }
+        existingLibraries << library
+    }
+
+    private void declareScalaSdkOnRootProject(Project scalaProject) {
+        def scalaClasspath = resolveScalaClasspath(scalaProject)
+        def library = createRootProjectLibrary("scala-sdk", "Scala", scalaClasspath)
+        addLibraryToRootProjectLibraries(library)
+    }
+
+    private void declareScalaSdk(Node iml) {
+        def newModuleRootManager = iml.component.find { it.@name == "NewModuleRootManager" }
+        if (!newModuleRootManager) {
+            newModuleRootManager = iml.appendNode("component", [name: "NewModuleRootManager"])
+        }
+
+        def sdkLibrary = newModuleRootManager.orderEntry.find { it.@name == "scala-sdk" }
+        if (!sdkLibrary) {
+            newModuleRootManager.appendNode("orderEntry", [type: "library", name: "scala-sdk", level: "project"])
+        }
+    }
+
+    private ProjectLibrary declareScalaFacetOnRootProject(Project scalaProject) {
+        def scalaClasspath = resolveScalaClasspath(scalaProject)
+        def compilerJar = scalaProject.scalaRuntime.findScalaJar(scalaClasspath, "compiler")
+        def version = compilerJar == null ? "?" : scalaProject.scalaRuntime.getScalaVersion(compilerJar)
+        def library = createProjectLibrary("scala-compiler-$version", scalaClasspath)
+        addLibraryToRootProjectLibraries(library)
+        return library
     }
 
     private void declareScalaFacet(ProjectLibrary scalaCompilerLibrary, Node iml) {
@@ -124,5 +184,9 @@ class IdeaScalaConfigurer {
 
     private ProjectLibrary createProjectLibrary(String name, Iterable<File> jars) {
         new ProjectLibrary(name: name, classes: jars as Set)
+    }
+
+    private RootProjectLibrary createRootProjectLibrary(String name, String type, Iterable<File> jars) {
+        new RootProjectLibrary(name: name, type: type, compilerClasses: jars as Set)
     }
 }
