@@ -226,25 +226,25 @@ language levels for each module in a project.
 
 ##### Test coverage
 
-* Multiproject build with same source compatibility (`1.7`) and different value for `IdeaProject.languageLevel` (`1.6`)
-** all *.iml files have `LANGUAGE_LEVEL="JDK_1_7"` set in component definition
-** all *.ipr file has `ProjectRootManager` component configured with `languageLevel="JDK_1_6"` .
-* Multiproject build with same module source compatibility (`1.7`) and  `IdeaProject.languageLevel` (`1.7`)
-** *.ipr file has `ProjectRootManager` component configured with `languageLevel="JDK_1_7"`.
-** all *.iml files have no specific `LANGUAGE_LEVEL` property set.
-* Multiproject build with mix of source compatibility level (subA `1.6`, subB `1.7` and subC `1.8`) and explicit configured `IdeaProject.languageLevel` (`1.7`)
-** *.ipr file has `ProjectRootManager` component configured with `languageLevel="JDK_1_7"`.
-** subA *.iml file has `LANGUAGE_LEVEL` explicitly set to `JDK_1_6`.
-** subB *.iml file has no explicit `LANGUAGE_LEVEL` property set.
-** subC *.iml file has `LANGUAGE_LEVEL` explicitly set to `JDK_1_8`.
-* Multiproject build with mix of source compatibility level (subA `1.6`, subB `1.7` and subC `1.8`) and no explicit configured value for `IdeaProject.languageLevel`
-** *.ipr file has `ProjectRootManager` component configured with `languageLevel="JDK_1_6"`.
-** subA *.iml file has no explicit `LANGUAGE_LEVEL` property set.
-** subB *.iml file has `LANGUAGE_LEVEL` explicitly set to `JDK_1_7`.
-** subC *.iml file has `LANGUAGE_LEVEL` explicitly set to `JDK_1_8`.
-* Multiproject build with mix of Java and non-Java projects
-** *.ipr file has `ProjectRootManager` component configured with `languageLevel="JDK_1_6"`.
-** non java projects have no `LANGUAGE_LEVEL` property set. (current behaviour)
+- Multiproject build with same source compatibility (`1.7`) and different value for `IdeaProject.languageLevel` (`1.6`)
+    -  all `.iml` files have `LANGUAGE_LEVEL="JDK_1_7"` set in component definition
+    - all `.ipr` file has `ProjectRootManager` component configured with `languageLevel="JDK_1_6"` .
+- Multiproject build with same module source compatibility (`1.7`) and  `IdeaProject.languageLevel` (`1.7`)
+    - `.ipr` file has `ProjectRootManager` component configured with `languageLevel="JDK_1_7"`.
+    - all `.iml` files have no specific `LANGUAGE_LEVEL` property set.
+- Multiproject build with mix of source compatibility level (subA `1.6`, subB `1.7` and subC `1.8`) and explicit configured `IdeaProject.languageLevel` (`1.7`)
+    - `.ipr` file has `ProjectRootManager` component configured with `languageLevel="JDK_1_7"`.
+    - subA `.iml` file has `LANGUAGE_LEVEL` explicitly set to `JDK_1_6`.
+    - subB `.iml` file has no explicit `LANGUAGE_LEVEL` property set.
+    - subC `.iml` file has `LANGUAGE_LEVEL` explicitly set to `JDK_1_8`.
+- Multiproject build with mix of source compatibility level (subA `1.6`, subB `1.7` and subC `1.8`) and no explicit configured value for `IdeaProject.languageLevel`
+    - `.ipr` file has `ProjectRootManager` component configured with `languageLevel="JDK_1_6"`.
+    - subA `.iml` file has no explicit `LANGUAGE_LEVEL` property set.
+    - subB `.iml` file has `LANGUAGE_LEVEL` explicitly set to `JDK_1_7`.
+    - subC `.iml` file has `LANGUAGE_LEVEL` explicitly set to `JDK_1_8`.
+- Multiproject build with mix of Java and non-Java projects
+    - `.ipr` file has `ProjectRootManager` component configured with `languageLevel="JDK_1_6"`.
+    - non java projects have no `LANGUAGE_LEVEL` property set. (current behaviour)
 
 ### Story - Expose Idea module specific bytecode level in IdeaPlugin
 
