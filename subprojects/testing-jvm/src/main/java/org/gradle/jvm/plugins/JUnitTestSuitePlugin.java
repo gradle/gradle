@@ -20,7 +20,6 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.internal.Transformers;
@@ -102,7 +101,6 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
         @BinaryTasks
         void createTestSuiteTask(final ModelMap<Task> tasks,
                                  final JUnitTestSuiteBinarySpec binary,
-                                 final FileOperations fileOperations,
                                  final @Path("buildDir") File buildDir,
                                  final ServiceRegistry registry,
                                  final ModelSchemaStore schemaStore) {
