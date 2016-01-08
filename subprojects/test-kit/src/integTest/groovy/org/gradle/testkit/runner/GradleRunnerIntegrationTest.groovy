@@ -153,7 +153,7 @@ class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
         private Set<TestedGradleDistribution> determineTestedGradleDistributions() {
             if (target.getAnnotation(NonCrossVersion)) {
-                return [TestedGradleDistribution.underDevelopment()] as Set
+                return [TestedGradleDistribution.UNDER_DEVELOPMENT] as Set
             }
 
             String version = System.getProperty(COMPATIBILITY_SYSPROP_NAME, 'all')
@@ -161,10 +161,10 @@ class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                 case 'all': return [
                     TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
                     TestedGradleDistribution.mostRecentFinalRelease(),
-                    TestedGradleDistribution.underDevelopment()
+                    TestedGradleDistribution.UNDER_DEVELOPMENT
                 ] as SortedSet
                 case 'current': return [
-                    TestedGradleDistribution.underDevelopment()
+                    TestedGradleDistribution.UNDER_DEVELOPMENT
                 ] as Set
                 default:
                     throw new IllegalArgumentException("Invalid value for $COMPATIBILITY_SYSPROP_NAME system property: $version (valid values: 'all', 'current')")
@@ -199,7 +199,7 @@ class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         private static class TestedGradleDistribution {
 
             private static
-            final TestedGradleDistribution underDevelopmentTestedGradleDistribution = new TestedGradleDistribution(BUILD_CONTEXT.version, new InstalledGradleDistribution(BUILD_CONTEXT.gradleHomeDir))
+            final TestedGradleDistribution UNDER_DEVELOPMENT = new TestedGradleDistribution(BUILD_CONTEXT.version, new InstalledGradleDistribution(BUILD_CONTEXT.gradleHomeDir))
 
             final GradleVersion gradleVersion
             final org.gradle.testkit.runner.internal.dist.GradleDistribution gradleDistribution
@@ -213,9 +213,6 @@ class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                     new VersionBasedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version.version))
             }
 
-            static TestedGradleDistribution underDevelopment() {
-                underDevelopmentTestedGradleDistribution
-            }
         }
 
         private static class IgnoredGradleRunnerExecution extends AbstractMultiTestRunner.Execution {
@@ -264,7 +261,7 @@ class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
             @Override
             protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
-                if (testDetails.getAnnotation(NonCrossVersion) && testedGradleDistribution != TestedGradleDistribution.underDevelopment()) {
+                if (testDetails.getAnnotation(NonCrossVersion) && testedGradleDistribution != TestedGradleDistribution.UNDER_DEVELOPMENT) {
                     return false
                 }
 
