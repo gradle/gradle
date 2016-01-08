@@ -29,7 +29,6 @@ class ClassTypeWrapper implements TypeWrapper {
         hashCode = clazz.hashCode();
     }
 
-    @Override
     public Class<?> unwrap() {
         return reference.get();
     }

@@ -19,11 +19,9 @@ package org.gradle.model.internal.type;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Nullable;
 
-import java.lang.reflect.Type;
-import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 
-class WildcardTypeWrapper implements WildcardType, WildcardWrapper {
+class WildcardTypeWrapper implements WildcardWrapper {
     private final TypeWrapper[] upperBounds;
     private final TypeWrapper[] lowerBounds;
     private final int hashCode;
@@ -56,21 +54,6 @@ class WildcardTypeWrapper implements WildcardType, WildcardWrapper {
     @Override
     public TypeWrapper getLowerBound() {
         return lowerBounds.length > 0 ? lowerBounds[0] : null;
-    }
-
-    @Override
-    public Type[] getUpperBounds() {
-        return ModelType.unwrap(upperBounds);
-    }
-
-    @Override
-    public Type[] getLowerBounds() {
-        return ModelType.unwrap(lowerBounds);
-    }
-
-    @Override
-    public Type unwrap() {
-        return this;
     }
 
     @Override
@@ -112,8 +95,7 @@ class WildcardTypeWrapper implements WildcardType, WildcardWrapper {
         if (lowerBounds.length > 0) {
             sb.append("? super ");
         } else {
-            Type[] upperBounds = getUpperBounds();
-            if (upperBounds.length > 0 && !upperBounds[0].equals(Object.class)) {
+            if (upperBounds.length > 0 && !upperBounds[0].getRawClass().equals(Object.class)) {
                 bounds = this.upperBounds;
                 sb.append("? extends ");
             } else {

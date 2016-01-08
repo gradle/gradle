@@ -19,26 +19,14 @@ package org.gradle.model.internal.type;
 import com.google.common.collect.ImmutableList;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.Type;
 
-class GenericArrayTypeWrapper implements GenericArrayType, TypeWrapper {
+class GenericArrayTypeWrapper implements TypeWrapper {
     private final TypeWrapper componentType;
     private final int hashCode;
 
     public GenericArrayTypeWrapper(TypeWrapper componentType, int hashCode) {
         this.componentType = componentType;
         this.hashCode = hashCode;
-    }
-
-    @Override
-    public Type getGenericComponentType() {
-        return componentType.unwrap();
-    }
-
-    @Override
-    public Type unwrap() {
-        return this;
     }
 
     @Override

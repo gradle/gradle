@@ -19,32 +19,32 @@ package org.gradle.model.internal.type;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Nullable;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
 
-class ParameterizedTypeWrapper implements ParameterizedType, TypeWrapper {
+class ParameterizedTypeWrapper implements TypeWrapper {
 
     private final TypeWrapper[] actualTypeArguments;
     private final ClassTypeWrapper rawType;
     private final TypeWrapper ownerType;
     private final int hashCode;
 
-    public ParameterizedTypeWrapper(TypeWrapper[] actualTypeArguments, ClassTypeWrapper rawType, @Nullable TypeWrapper ownerType, int hashCode) {
+    public ParameterizedTypeWrapper(TypeWrapper[] actualTypeArguments, ClassTypeWrapper rawType, @Nullable TypeWrapper ownerType) {
         this.actualTypeArguments = actualTypeArguments;
         this.rawType = rawType;
         this.ownerType = ownerType;
-        this.hashCode = hashCode;
+        this.hashCode = hashCode(actualTypeArguments, rawType, ownerType);
     }
 
-    @Override
-    public Type[] getActualTypeArguments() {
-        return ModelType.unwrap(actualTypeArguments);
-    }
-
-    @Override
-    public Type getRawType() {
-        return rawType.unwrap();
+    private int hashCode(TypeWrapper[] actualTypeArguments, ClassTypeWrapper rawType, TypeWrapper ownerType) {
+        int hashCode = rawType.hashCode();
+        for (TypeWrapper actualTypeArgument : actualTypeArguments) {
+            hashCode ^= actualTypeArgument.hashCode();
+        }
+        if (ownerType != null) {
+            hashCode ^= ownerType.hashCode();
+        }
+        return hashCode;
     }
 
     @Override
@@ -119,16 +119,6 @@ class ParameterizedTypeWrapper implements ParameterizedType, TypeWrapper {
     }
 
     @Override
-    public Type getOwnerType() {
-        return ownerType == null ? null : ownerType.unwrap();
-    }
-
-    @Override
-    public Type unwrap() {
-        return this;
-    }
-
-    @Override
     public void collectClasses(ImmutableList.Builder<Class<?>> builder) {
         rawType.collectClasses(builder);
         for (TypeWrapper actualTypeArgument : actualTypeArguments) {
@@ -186,5 +176,25 @@ class ParameterizedTypeWrapper implements ParameterizedType, TypeWrapper {
         }
 
         return sb.toString();
+    }
+
+    public ParameterizedTypeWrapper substitute(TypeVariable<?> typeVariable, TypeWrapper type) {
+        TypeWrapper[] newArguments = new TypeWrapper[actualTypeArguments.length];
+        for (int i = 0; i < newArguments.length; i++) {
+            TypeWrapper argument = actualTypeArguments[i];
+            if (argument instanceof TypeVariableTypeWrapper) {
+                TypeVariableTypeWrapper candidate = (TypeVariableTypeWrapper) argument;
+                if (candidate.getName().equals(typeVariable.getName())) {
+                    newArguments[i] = type;
+                    continue;
+                }
+            }
+            newArguments[i] = argument;
+        }
+        return new ParameterizedTypeWrapper(newArguments, rawType, ownerType);
+    }
+
+    public TypeWrapper[] getActualTypeArguments() {
+        return actualTypeArguments;
     }
 }

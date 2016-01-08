@@ -58,6 +58,7 @@ public class ModelTypeJavaTest {
     @Test
     public void testBuildType() throws Exception {
         assertEquals(new ModelType<Map<String, Integer>>() {}, buildMap(ModelType.of(String.class), ModelType.of(Integer.class)));
+        assertEquals(new ModelType<Map<String, Integer>>() {}.hashCode(), buildMap(ModelType.of(String.class), ModelType.of(Integer.class)).hashCode());
     }
 
     static <K, V> ModelType<Map<K, V>> buildMap(ModelType<K> k, ModelType<V> v) {

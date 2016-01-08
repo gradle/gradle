@@ -17,7 +17,6 @@
 package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
@@ -102,12 +101,7 @@ public abstract class ModelType<T> {
     }
 
     public boolean isRawClassOfParameterizedType() {
-        Type type = getType();
-        return type instanceof Class && ((Class) type).getTypeParameters().length > 0;
-    }
-
-    private Type getType() {
-        return wrapper.unwrap();
+        return wrapper instanceof ClassTypeWrapper && ((ClassTypeWrapper) wrapper).unwrap().getTypeParameters().length > 0;
     }
 
     public static ModelType<Object> untyped() {
@@ -120,10 +114,10 @@ public abstract class ModelType<T> {
 
     public List<ModelType<?>> getTypeVariables() {
         if (isParameterized()) {
-            Type[] typeArguments = ((ParameterizedTypeWrapper) wrapper).getActualTypeArguments();
+            TypeWrapper[] typeArguments = ((ParameterizedTypeWrapper) wrapper).getActualTypeArguments();
             ImmutableList.Builder<ModelType<?>> builder = ImmutableList.builder();
-            for (Type typeArgument : typeArguments) {
-                builder.add(of(typeArgument));
+            for (TypeWrapper typeArgument : typeArguments) {
+                builder.add(Simple.typed(typeArgument));
             }
             return builder.build();
         } else {
@@ -258,22 +252,21 @@ public abstract class ModelType<T> {
     }
 
     abstract public static class Builder<T> {
-        private TypeToken<T> typeToken;
+        private ParameterizedTypeWrapper wrapper;
 
         public Builder() {
-            typeToken = new TypeToken<T>(getClass()) {
-            };
+            wrapper = (ParameterizedTypeWrapper) wrap(new TypeToken<T>(getClass()) {
+            }.getType());
         }
 
         @SuppressWarnings("unchecked")
         public <I> Builder<T> where(Parameter<I> parameter, ModelType<I> type) {
-            TypeResolver resolver = new TypeResolver().where(parameter.typeVariable, type.getType());
-            typeToken = (TypeToken<T>) TypeToken.of(resolver.resolveType(typeToken.getType()));
+            wrapper = wrapper.substitute(parameter.typeVariable, type.wrapper);
             return this;
         }
 
         public ModelType<T> build() {
-            return Simple.typed(typeToken.getType());
+            return Simple.typed((TypeWrapper) wrapper);
         }
     }
 
@@ -306,8 +299,7 @@ public abstract class ModelType<T> {
             return new ParameterizedTypeWrapper(
                     toWrappers(parameterizedType.getActualTypeArguments()),
                     (ClassTypeWrapper) wrap(parameterizedType.getRawType()),
-                    wrap(parameterizedType.getOwnerType()),
-                    type.hashCode()
+                    wrap(parameterizedType.getOwnerType())
             );
         } else if (type instanceof WildcardType) {
             WildcardType wildcardType = (WildcardType) type;
@@ -318,7 +310,7 @@ public abstract class ModelType<T> {
             );
         } else if (type instanceof TypeVariable) {
             TypeVariable<?> typeVariable = (TypeVariable<?>) type;
-            return new TypeVariableTypeWrapper<GenericDeclaration>(
+            return new TypeVariableTypeWrapper(
                 typeVariable.getName(),
                 toWrappers(typeVariable.getBounds()),
                 type.hashCode()
@@ -341,19 +333,6 @@ public abstract class ModelType<T> {
                 wrappers[i++] = wrap(type);
             }
             return wrappers;
-        }
-    }
-
-    static Type[] unwrap(TypeWrapper[] wrappers) {
-        if (wrappers.length == 0) {
-            return EMPTY_TYPE_ARRAY;
-        } else {
-            Type[] types = new Type[wrappers.length];
-            int i = 0;
-            for (TypeWrapper wrapper : wrappers) {
-                types[i++] = wrapper.unwrap();
-            }
-            return types;
         }
     }
 
