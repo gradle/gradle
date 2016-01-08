@@ -20,11 +20,10 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Nullable;
 
-import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
 
 /**
- * Wrapper for a {@link TypeVariable}.
+ * Wrapper for a {@link java.lang.reflect.TypeVariable}.
  */
 class TypeVariableTypeWrapper implements WildcardWrapper {
     private final String name;
