@@ -66,7 +66,7 @@ public interface ModelRegistry {
     /**
      * Returns the node at the given path at the desired state or later, if it exists.
      * <p>
-     * If there is no known node at that path, {@code null} is returned.
+     * If there is no known node at that path, an {@link IllegalStateException} is thrown.
      * <p>
      * If the node is at an earlier state than desired it will be irrevocably transitioned to the desired state and returned.
      * If it is at the desired state or later it is returned.

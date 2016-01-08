@@ -43,6 +43,8 @@ import java.util.List;
  */
 public class JvmTestSuites {
 
+    private static final ModelType<JvmComponentSpec> JVM_COMPONENT_SPEC_MODEL_TYPE = ModelType.of(JvmComponentSpec.class);
+
     public static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinaries(
         ModelMap<BinarySpec> testBinaries,
         ServiceRegistry registry,
@@ -103,7 +105,12 @@ public class JvmTestSuites {
 
     public static JvmComponentSpec getTestedComponent(ServiceRegistry registry, String testedComponent) {
         ModelRegistry model = registry.get(ModelRegistry.class);
-        return model.realize(ModelPath.path(Arrays.asList("components", testedComponent)), ModelType.of(JvmComponentSpec.class));
+        ModelPath path = ModelPath.path(Arrays.asList("components", testedComponent));
+        JvmComponentSpec jvmComponentSpec = model.find(path, JVM_COMPONENT_SPEC_MODEL_TYPE);
+        if (jvmComponentSpec ==null) {
+            return null;
+        }
+        return jvmComponentSpec;
     }
 
     private static BinaryNamingScheme namingSchemeFor(JvmTestSuiteSpec testSuiteSpec, JvmBinarySpec testedBinary, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {

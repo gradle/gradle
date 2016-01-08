@@ -32,6 +32,19 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         executedAndNotSkipped ':compileGreeterJarGreeterJava', ':myTestGreeterJarBinaryTest'
     }
 
+    def "reasonable error message when component under test does not exist"() {
+        given:
+        applyJUnitPlugin()
+        myTestSuiteSpec('greeter')
+        greeterTestCase()
+
+        when:
+        fails 'components'
+
+        then:
+        failure.assertHasCause "Component 'greeter' declared under test 'JUnitTestSuiteSpec 'myTest'' does not exist"
+    }
+
     private void jvmLibrary() {
         buildFile << '''
             model {
