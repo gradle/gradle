@@ -202,8 +202,8 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
         """
 
         expect:
-        def ex = fails "components"
-        ex.assertHasCause "Invalid managed model type IllegalJarBinarySpec: only paired getter/setter methods are supported (invalid methods: void IllegalJarBinarySpec#sayHello(java.lang.String))."
+        fails "components"
+        failure.assertHasCause "Abstract method 'IllegalJarBinarySpec.sayHello(String)' is not a property accessor, and it has no implementation."
     }
 
     def registerCustomJarBinaryType() {
