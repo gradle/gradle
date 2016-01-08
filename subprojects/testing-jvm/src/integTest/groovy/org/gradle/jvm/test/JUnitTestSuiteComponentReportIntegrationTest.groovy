@@ -33,7 +33,7 @@ repositories {
 }
 
 model {
-    components {
+    testSuites {
         test(JUnitTestSuiteSpec) {
             JUnitVersion = 4.12
         }

@@ -37,15 +37,16 @@ class AbstractJUnitTestExecutionIntegrationSpec extends AbstractIntegrationSpec 
         }
     }
 
-    protected void myTestSuiteSpec() {
-        buildFile << '''
+    protected void myTestSuiteSpec(String testedComponent=null) {
+        buildFile << """
             model {
                 testSuites {
                     myTest(JUnitTestSuiteSpec) {
                         jUnitVersion '4.12'
+                        ${testedComponent?"testing '$testedComponent'":''}
                     }
                 }
             }
-        '''
+        """
     }
 }

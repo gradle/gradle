@@ -15,22 +15,22 @@
  */
 package org.gradle.nativeplatform.test.googletest.internal;
 
-import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.AbstractNativeComponentSpec;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 
 public class DefaultGoogleTestTestSuiteSpec extends AbstractNativeComponentSpec implements GoogleTestTestSuiteSpec {
-    private NativeComponentSpec testedComponent;
+    private String testedComponent;
 
     public String getDisplayName() {
         return String.format("googleTest test suite '%s'", getName());
     }
 
-    public NativeComponentSpec getTestedComponent() {
+    public String getTestedComponent() {
         return testedComponent;
     }
 
-    public void setTestedComponent(NativeComponentSpec testedComponent) {
+    @Override
+    public void testing(String testedComponent) {
         this.testedComponent = testedComponent;
     }
 }

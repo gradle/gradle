@@ -18,12 +18,15 @@ package org.gradle.nativeplatform.test.internal;
 
 import org.gradle.api.Action;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.model.ModelMap;
 import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
+import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
@@ -37,10 +40,11 @@ import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.ins
  */
 public class NativeTestSuites {
 
-    public static void createNativeTestSuiteBinaries(NativeTestSuiteSpec testSuite,
+    public static void createNativeTestSuiteBinaries(ModelMap<NativeComponentSpec> nativeComponents,
+                                                     NativeTestSuiteSpec testSuite,
                                                      final Class<? extends NativeTestSuiteBinarySpec> testSuiteBinaryClass,
                                                      final String typeString, final File buildDir, final ServiceRegistry serviceRegistry) {
-        for (final NativeBinarySpec testedBinary : testedBinariesOf(testSuite)) {
+        for (final NativeBinarySpec testedBinary : testedBinariesOf(nativeComponents, testSuite)) {
             if (testedBinary instanceof SharedLibraryBinary) {
                 // TODO:DAZ For now, we only create test suites for static library variants
                 continue;
@@ -50,9 +54,9 @@ public class NativeTestSuites {
     }
 
     private static void createNativeTestSuiteBinary(NativeTestSuiteSpec testSuite,
-                                                   Class<? extends NativeTestSuiteBinarySpec> testSuiteBinaryClass,
-                                                   String typeString, final NativeBinarySpec testedBinary,
-                                                   final File buildDir, ServiceRegistry serviceRegistry) {
+                                                    Class<? extends NativeTestSuiteBinarySpec> testSuiteBinaryClass,
+                                                    String typeString, final NativeBinarySpec testedBinary,
+                                                    final File buildDir, ServiceRegistry serviceRegistry) {
 
         final BinaryNamingScheme namingScheme = namingSchemeFor(testSuite, (NativeBinarySpecInternal) testedBinary, typeString);
         final NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
@@ -72,12 +76,17 @@ public class NativeTestSuites {
         });
     }
 
-    public static Collection<NativeBinarySpec> testedBinariesOf(NativeTestSuiteSpec testSuite) {
-        return testedBinariesWithType(NativeBinarySpec.class, testSuite);
+    public static Collection<NativeBinarySpec> testedBinariesOf(ModelMap<NativeComponentSpec> nativeComponents, NativeTestSuiteSpec testSuite) {
+        return testedBinariesWithType(nativeComponents, NativeBinarySpec.class, testSuite);
     }
 
-    public static <S> Collection<S> testedBinariesWithType(Class<S> type, NativeTestSuiteSpec testSuite) {
-        return testSuite.getTestedComponent().getBinaries().withType(type).values();
+    public static <S> Collection<S> testedBinariesWithType(ModelMap<NativeComponentSpec> nativeComponents, Class<S> type, NativeTestSuiteSpec testSuite) {
+        String testedComponent = testSuite.getTestedComponent();
+        NativeComponentSpec spec = nativeComponents.get(testedComponent);
+        if (spec == null) {
+            throw new InvalidModelException(String.format("Component '%s' declared under test '%s' does not exist", testedComponent, testSuite.getDisplayName()));
+        }
+        return spec.getBinaries().withType(type).values();
     }
 
     private static BinaryNamingScheme namingSchemeFor(NativeTestSuiteSpec testSuite, NativeBinarySpecInternal testedBinary, String typeString) {

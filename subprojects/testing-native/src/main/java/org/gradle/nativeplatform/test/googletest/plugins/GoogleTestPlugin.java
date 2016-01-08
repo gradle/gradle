@@ -59,7 +59,8 @@ public class GoogleTestPlugin implements Plugin<Project> {
                 testSuites.create(suiteName, GoogleTestTestSuiteSpec.class, new Action<GoogleTestTestSuiteSpec>() {
                     @Override
                     public void execute(GoogleTestTestSuiteSpec testSuite) {
-                        testSuite.setTestedComponent(component);
+                        // TODO Cedric: remove automatic test suite creation altogether
+                        testSuite.testing(component.getName());
                     }
                 });
             }
@@ -85,9 +86,10 @@ public class GoogleTestPlugin implements Plugin<Project> {
         }
 
         @ComponentBinaries
-        public void createGoogleTestTestBinaries(ModelMap<GoogleTestTestSuiteBinarySpec> binaries, GoogleTestTestSuiteSpec testSuite, @Path("buildDir") final File buildDir,
+        public void createGoogleTestTestBinaries(ModelMap<GoogleTestTestSuiteBinarySpec> binaries, ModelMap<NativeComponentSpec> nativeComponents,
+                                                 GoogleTestTestSuiteSpec testSuite, @Path("buildDir") final File buildDir,
                                                  LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
-            createNativeTestSuiteBinaries(testSuite, GoogleTestTestSuiteBinarySpec.class, "GoogleTestExe", buildDir, serviceRegistry);
+            createNativeTestSuiteBinaries(nativeComponents, testSuite, GoogleTestTestSuiteBinarySpec.class, "GoogleTestExe", buildDir, serviceRegistry);
        }
    }
 

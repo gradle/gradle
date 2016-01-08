@@ -15,27 +15,31 @@
  */
 package org.gradle.jvm.plugins;
 
+import com.beust.jcommander.internal.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.jvm.JvmComponentSpec;
 import org.gradle.jvm.internal.AbstractDependencyResolvingClasspath;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.internal.WithDependencies;
 import org.gradle.jvm.internal.WithJvmAssembly;
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
+import org.gradle.jvm.test.JvmTestSuiteSpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteSpec;
 import org.gradle.jvm.test.internal.JUnitTestSuiteRules;
+import org.gradle.jvm.test.internal.JvmTestSuites;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.resolve.LocalComponentResolveContext;
@@ -45,13 +49,13 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.*;
+import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
 import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -86,7 +90,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    static class Rules extends RuleSource {
+    static class PluginRules extends RuleSource {
 
         @ComponentType
         public void register(ComponentTypeBuilder<JUnitTestSuiteSpec> builder) {
@@ -100,6 +104,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
         @BinaryTasks
         void createTestSuiteTask(final ModelMap<Task> tasks,
+                                 final ModelMap<JvmComponentSpec> jvmComponents,
                                  final JUnitTestSuiteBinarySpec binary,
                                  final @Path("buildDir") File buildDir,
                                  final ServiceRegistry registry,
@@ -111,7 +116,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                 public void execute(final Test test) {
                     test.dependsOn(jvmAssembly);
                     test.setTestClassesDir(binary.getClassesDir());
-                    test.setClasspath(classpathFor(binary, registry, schemaStore));
+                    test.setClasspath(classpathFor(binary, jvmComponents, registry, schemaStore));
                     configureReports(test);
                 }
 
@@ -133,52 +138,40 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
          * Create binaries for test suites.
          */
         @ComponentBinaries
-        void createJUnitComponentBinaries(ModelMap<BinarySpec> testBinaries, PlatformResolvers platformResolver, final JUnitTestSuiteSpec testSuite, final JavaToolChainRegistry toolChains) {
-            final List<JavaPlatform> javaPlatforms = resolvePlatforms(platformResolver);
-            final JavaPlatform platform = javaPlatforms.get(0);
-            final BinaryNamingScheme namingScheme = namingSchemeFor(testSuite, javaPlatforms, platform);
-            testBinaries.create(namingScheme.getBinaryName(), JUnitTestSuiteBinarySpec.class, new Action<JUnitTestSuiteBinarySpec>() {
+        void createJUnitComponentBinaries(ModelMap<BinarySpec> testBinaries,
+                                          ServiceRegistry registry,
+                                          PlatformResolvers platformResolver,
+                                          JUnitTestSuiteSpec testSuite,
+                                          JavaToolChainRegistry toolChains) {
+            final String jUnitVersion = testSuite.getJUnitVersion();
+            final DependencySpecContainer dependencies = testSuite.getDependencies();
+            addJUnitDependencyTo(dependencies, jUnitVersion);
+            JvmTestSuites.createJvmTestSuiteBinaries(testBinaries, registry, testSuite, JUnitTestSuiteBinarySpec.class, toolChains, platformResolver, new Action<JUnitTestSuiteBinarySpec>() {
 
                 @Override
                 public void execute(JUnitTestSuiteBinarySpec jUnitTestSuiteBinarySpec) {
-                    final String jUnitVersion = testSuite.getJUnitVersion();
-                    ((BinarySpecInternal) jUnitTestSuiteBinarySpec).setNamingScheme(namingScheme);
                     jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);
-                    jUnitTestSuiteBinarySpec.setTargetPlatform(platform);
-                    jUnitTestSuiteBinarySpec.setToolChain(toolChains.getForPlatform(platform));
-
-                    DependencySpecContainer dependencies = testSuite.getDependencies();
-                    addJUnitDependencyTo(dependencies, jUnitVersion);
                     setDependenciesOf(jUnitTestSuiteBinarySpec, dependencies);
                 }
             });
         }
 
         private void setDependenciesOf(JUnitTestSuiteBinarySpec binary, DependencySpecContainer dependencies) {
-            ((WithDependencies) binary).setDependencies(dependencies.getDependencies());
+            ((WithDependencies) binary).setDependencies(Lists.newArrayList(dependencies.getDependencies()));
         }
 
         private void addJUnitDependencyTo(DependencySpecContainer dependencies, String jUnitVersion) {
             dependencies.group("junit").module("junit").version(jUnitVersion);
         }
 
-        private static List<JavaPlatform> resolvePlatforms(final PlatformResolvers platformResolver) {
-            PlatformRequirement defaultPlatformRequirement = DefaultPlatformRequirement.create(DefaultJavaPlatform.current().getName());
-            return Collections.singletonList(platformResolver.resolve(JavaPlatform.class, defaultPlatformRequirement));
-        }
-
-        private BinaryNamingScheme namingSchemeFor(JUnitTestSuiteSpec testSuiteSpec, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
-            return DefaultBinaryNamingScheme.component(testSuiteSpec.getName())
-                .withBinaryType("binary") // not a 'Jar', not a 'test'
-                .withRole("assembly", true)
-                .withVariantDimension(platform, selectedPlatforms);
-        }
-
-        private JUnitDependencyResolvingClasspath classpathFor(final JUnitTestSuiteBinarySpec test, final ServiceRegistry serviceRegistry, final ModelSchemaStore schemaStore) {
+        private JUnitDependencyResolvingClasspath classpathFor(JUnitTestSuiteBinarySpec test,
+                                                               ModelMap<JvmComponentSpec> jvmComponents,
+                                                               ServiceRegistry serviceRegistry,
+                                                               ModelSchemaStore schemaStore) {
             ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
             RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
             List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-            return new JUnitDependencyResolvingClasspath(test, "test suite", dependencyResolver, resolutionAwareRepositories, schemaStore);
+            return new JUnitDependencyResolvingClasspath(test, jvmComponents, "test suite", dependencyResolver, resolutionAwareRepositories, schemaStore);
         }
     }
 
@@ -188,11 +181,14 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
     private static class JUnitDependencyResolvingClasspath extends AbstractDependencyResolvingClasspath {
 
+        private final JvmTestSuiteSpec testSuite;
+        private final ModelMap<JvmComponentSpec> components;
         private final JvmAssembly assembly;
 
         @SuppressWarnings("unchecked")
         protected JUnitDependencyResolvingClasspath(
             JUnitTestSuiteBinarySpec testSuiteBinarySpec,
+            ModelMap<JvmComponentSpec> jvmComponents,
             String descriptor,
             ArtifactDependencyResolver dependencyResolver,
             List<ResolutionAwareRepository> remoteRepositories,
@@ -200,16 +196,77 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
             super((BinarySpecInternal) testSuiteBinarySpec, descriptor, dependencyResolver, remoteRepositories, new LocalComponentResolveContext(
                 ((BinarySpecInternal) testSuiteBinarySpec).getId(),
                 DefaultVariantsMetaData.extractFrom(testSuiteBinarySpec, schemaStore),
-                collectDependencies(testSuiteBinarySpec, testSuiteBinarySpec.getTestSuite(), testSuiteBinarySpec.getTestSuite().getDependencies().getDependencies()),
+                collectAllDependencies(testSuiteBinarySpec),
                 DefaultLibraryBinaryIdentifier.CONFIGURATION_RUNTIME,
                 testSuiteBinarySpec.getDisplayName()
             ));
             this.assembly = ((WithJvmAssembly) testSuiteBinarySpec).getAssembly();
+            this.components = jvmComponents;
+            this.testSuite = testSuiteBinarySpec.getTestSuite();
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            DefaultTaskDependency dependencies = new DefaultTaskDependency();
+            dependencies.add(super.getBuildDependencies());
+            JvmComponentSpec testedComponent = getTestedComponent(components, testSuite);
+            if (testedComponent !=null) {
+                dependencies.add(testedComponent.getBinaries());
+            }
+            return dependencies;
+        }
+
+        private static JvmComponentSpec getTestedComponent(ModelMap<JvmComponentSpec> components, JvmTestSuiteSpec testSuite) {
+            String testedComponent = testSuite.getTestedComponent();
+            if (testedComponent == null) {
+                return null;
+            }
+            JvmComponentSpec jvmComponentSpec = components.get(testedComponent);
+            if (jvmComponentSpec == null) {
+                throw new InvalidModelException(String.format("Component '%s' declared under test '%s' does not exist", testedComponent, testSuite.getDisplayName()));
+            }
+            return jvmComponentSpec;
+        }
+
+
+        private static List<DependencySpec> collectAllDependencies(JUnitTestSuiteBinarySpec testSuiteBinarySpec) {
+            JUnitTestSuiteSpec testSuite = testSuiteBinarySpec.getTestSuite();
+            List<DependencySpec> deps = collectDependencies(testSuiteBinarySpec, testSuite, testSuite.getDependencies().getDependencies());
+            return deps;
         }
 
         @Override
         public Set<File> getFiles() {
-            return Sets.union(super.getFiles(), Sets.union(assembly.getClassDirectories(), assembly.getResourceDirectories()));
+            // classpath order should not matter, but in practice, it is often the case that you can have multiple
+            // instances of the same class on classpath. So we will use a linked hash set and add the elements in that
+            // order:
+            // 1. classes of the test suite
+            // 2. classes of the tested component
+            // 3. classes of dependencies of the test suite
+            // 4. classes of dependencies of the tested component
+            Set<File> classpath = Sets.newLinkedHashSet();
+            addAssemblyToClasspath(classpath, assembly);
+            addTestedComponentAssemblyToClasspath(classpath);
+            addTestDependenciesToClassPath(classpath, super.getFiles());
+            // TODO: 4!
+            return classpath;
+        }
+
+        private void addTestDependenciesToClassPath(Set<File> classpath, Set<File> dependencies) {
+            classpath.addAll(dependencies);
+        }
+
+        private void addTestedComponentAssemblyToClasspath(Set<File> classpath) {
+            JvmComponentSpec testedComponent = getTestedComponent(components, testSuite);
+            if (testedComponent instanceof WithJvmAssembly) {
+                JvmAssembly testedComponentAssembly = ((WithJvmAssembly) testedComponent).getAssembly();
+                addAssemblyToClasspath(classpath, testedComponentAssembly);
+            }
+        }
+
+        private void addAssemblyToClasspath(Set<File> classpath, JvmAssembly assembly) {
+            classpath.addAll(assembly.getClassDirectories());
+            classpath.addAll(assembly.getResourceDirectories());
         }
     }
 }

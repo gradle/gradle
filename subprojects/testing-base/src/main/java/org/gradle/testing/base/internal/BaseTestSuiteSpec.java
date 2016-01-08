@@ -16,19 +16,20 @@
 
 package org.gradle.testing.base.internal;
 
-import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
 public class BaseTestSuiteSpec extends BaseComponentSpec implements TestSuiteSpec {
-    private ComponentSpec testedComponent;
+    private String testedComponent;
 
     @Override
-    public ComponentSpec getTestedComponent() {
+    public String getTestedComponent() {
         return testedComponent;
     }
 
-    public void setTestedComponent(ComponentSpec testedComponent) {
+    @Override
+    public void testing(String testedComponent) {
         this.testedComponent = testedComponent;
     }
+
 }

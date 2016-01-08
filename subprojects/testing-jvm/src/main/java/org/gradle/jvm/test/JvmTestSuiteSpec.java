@@ -26,6 +26,4 @@ import org.gradle.platform.base.test.TestSuiteSpec;
  */
 @Incubating
 public interface JvmTestSuiteSpec extends TestSuiteSpec, JvmComponentSpec {
-    @Override
-    JvmComponentSpec getTestedComponent();
 }

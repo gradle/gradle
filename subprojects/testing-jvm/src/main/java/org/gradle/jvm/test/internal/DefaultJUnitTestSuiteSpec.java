@@ -47,11 +47,6 @@ public class DefaultJUnitTestSuiteSpec extends BaseTestSuiteSpec implements JUni
     }
 
     @Override
-    public JvmComponentSpec getTestedComponent() {
-        throw new UnsupportedOperationException("JUnit test suite does not support components under test yet");
-    }
-
-    @Override
     public Set<? extends Class<? extends TransformationFileType>> getInputTypes() {
         return inputTypes;
     }

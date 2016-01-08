@@ -65,12 +65,13 @@ public class CUnitPlugin implements Plugin<Project> {
                 testSuites.create(suiteName, CUnitTestSuiteSpec.class, new Action<CUnitTestSuiteSpec>() {
                     @Override
                     public void execute(CUnitTestSuiteSpec testSuite) {
-                        testSuite.setTestedComponent(component);
+                        // TODO Cedric: remove automatic test suite declaration altogether
+                        testSuite.testing(component.getName());
                     }
                 });
             }
         }
-        
+
         @ComponentType
         public void registerCUnitTestSuiteSpecType(ComponentTypeBuilder<CUnitTestSuiteSpec> builder) {
             builder.defaultImplementation(DefaultCUnitTestSuiteSpec.class);
@@ -123,9 +124,9 @@ public class CUnitPlugin implements Plugin<Project> {
         }
 
         @ComponentBinaries
-        public void createCUnitTestBinaries(ModelMap<CUnitTestSuiteBinarySpec> binaries, CUnitTestSuiteSpec testSuite, @Path("buildDir") final File buildDir,
+        public void createCUnitTestBinaries(ModelMap<CUnitTestSuiteBinarySpec> binaries, ModelMap<NativeComponentSpec> nativeComponents, CUnitTestSuiteSpec testSuite, @Path("buildDir") final File buildDir,
                                             LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
-            createNativeTestSuiteBinaries(testSuite, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
+            createNativeTestSuiteBinaries(nativeComponents, testSuite, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
         }
     }
 
