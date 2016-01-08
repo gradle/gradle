@@ -16,6 +16,7 @@
 
 package org.gradle.model.managed
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -263,9 +264,10 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         fails "tasks"
 
         and:
-        failure.assertHasCause("Invalid managed model type Person: non-abstract setters are not allowed (invalid method: void Person#setName(java.lang.String))")
+        failure.assertHasCause "Property 'name' of type 'Person' must have either only abstract accessor methods or only implemented accessor methods."
     }
 
+    @NotYetImplemented
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "non-mutative non-abstract methods implemented as default interface methods are not allowed"() {
         when:
