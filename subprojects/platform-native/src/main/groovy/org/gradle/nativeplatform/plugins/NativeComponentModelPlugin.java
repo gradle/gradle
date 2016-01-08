@@ -374,6 +374,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                     installTask.setDescription("Installs a development image of " + binary.getDisplayName());
                     installTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                     installTask.setToolChain(executable.getToolChain());
+                    installTask.setPlatform(binary.getTargetPlatform());
                     installTask.setExecutable(executable.getFile());
                     installTask.setDestinationDir(installation.getDirectory());
                     //TODO:HH wire binary libs via executable
