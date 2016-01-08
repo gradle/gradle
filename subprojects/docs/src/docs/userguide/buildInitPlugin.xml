@@ -104,9 +104,9 @@
         <para>
             Different build setup types may support different setup <firstterm>modifiers</firstterm>.  The modifier is specified by supplying a
             <literal>--with</literal> argument value.
-            Currently the only supported modifier is  “<literal>spock</literal>” that can be used to
-            create a Java library project that uses Spock testing framework instead of JUnit.
-            To use it execute: <literal>gradle init --type java-library --with spock</literal>
+            For example you can use the "<literal>spock</literal>" modifier to create a Java library
+            that uses the Spock testing framework instead of JUnit.
+            Just execute: <literal>gradle init --type java-library --with spock</literal>
         </para>
     </section>
     <section>
@@ -172,8 +172,8 @@
                 Supported setup modifiers:
             </para>
             <itemizedlist>
-                <listitem><literal>--with spock</literal>: Uses <ulink url="http://code.google.com/p/spock/">Spock</ulink> for testing instead of JUnit
-                </listitem>
+                <listitem><literal>--with spock</literal>: Uses <ulink url="http://code.google.com/p/spock/">Spock</ulink> for testing instead of JUnit</listitem>
+                <listitem><literal>--with testng</literal>: Uses <ulink url="http://testng.org/doc/index.html">TestNG</ulink> for testing instead of JUnit</listitem>
             </itemizedlist>
         </section>
         <section>

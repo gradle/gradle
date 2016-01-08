@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.GUtil;
 
 import static org.gradle.buildinit.plugins.internal.BuildInitModifier.SPOCK;
+import static org.gradle.buildinit.plugins.internal.BuildInitModifier.TESTNG;
 
 public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
@@ -41,21 +42,42 @@ public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInit
             .withBindings(GUtil.map("slf4jVersion", libraryVersionProvider.getVersion("slf4j")))
             .withBindings(GUtil.map("groovyVersion", libraryVersionProvider.getVersion("groovy")))
             .withBindings(GUtil.map("spockVersion", libraryVersionProvider.getVersion("spock")))
+            .withBindings(GUtil.map("testngVersion", libraryVersionProvider.getVersion("testng")))
             .create().generate();
         TemplateOperation javalibraryTemplateOperation = fromClazzTemplate("javalibrary/Library.java.template", "main");
         whenNoSourcesAvailable(javalibraryTemplateOperation, testTemplateOperation(modifier)).generate();
     }
 
     private String gradleBuildTemplate(BuildInitModifier modifier) {
-        return modifier == SPOCK ? "javalibrary/spock-build.gradle.template" : "javalibrary/build.gradle.template";
+        switch (modifier) {
+            case SPOCK:
+                return "javalibrary/spock-build.gradle.template";
+            case TESTNG:
+                return "javalibrary/testng-build.gradle.template";
+            default:
+                return "javalibrary/build.gradle.template";
+        }
     }
 
     private TemplateOperation testTemplateOperation(BuildInitModifier modifier) {
-        return modifier == SPOCK ? fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", "test", "groovy") : fromClazzTemplate("javalibrary/LibraryTest.java.template", "test");
+        switch (modifier) {
+            case SPOCK:
+                return fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", "test", "groovy");
+            case TESTNG:
+                return fromClazzTemplate("javalibrary/LibraryTestNG.java.template", "test", "java", "LibraryTest.java");
+            default:
+                return fromClazzTemplate("javalibrary/LibraryTest.java.template", "test");
+        }
     }
 
     @Override
     public boolean supports(BuildInitModifier modifier) {
-        return modifier == SPOCK;
+        switch (modifier) {
+            case SPOCK:
+            case TESTNG:
+                return true;
+            default:
+                return false;
+        }
     }
 }

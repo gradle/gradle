@@ -21,7 +21,8 @@ import org.gradle.api.GradleException;
 public enum BuildInitModifier {
 
     NONE,
-    SPOCK;
+    SPOCK,
+    TESTNG;
 
     public static BuildInitModifier fromName(String name) {
         if (name == null) {
