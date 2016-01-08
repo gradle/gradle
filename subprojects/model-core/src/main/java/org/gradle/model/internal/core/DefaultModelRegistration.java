@@ -17,7 +17,6 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimap;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -34,7 +33,7 @@ public class DefaultModelRegistration implements ModelRegistration {
         this.path = Preconditions.checkNotNull(path, "path");
         this.descriptor = Preconditions.checkNotNull(descriptor, "descriptor");
         this.hidden = hidden;
-        this.actions = ImmutableListMultimap.copyOf(Preconditions.checkNotNull(actions, "actions"));
+        this.actions = Preconditions.checkNotNull(actions, "actions");
     }
 
     public ModelPath getPath() {
