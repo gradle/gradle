@@ -21,7 +21,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
     def "can test a JVM library"() {
         given:
         applyJUnitPlugin()
-        jvmLibrary()
+        greeterLibrary()
         myTestSuiteSpec('greeter')
         greeterTestCase()
 
@@ -48,7 +48,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
     def "can test a JVM library that declares an external dependency"() {
         given:
         applyJUnitPlugin()
-        jvmLibraryWithExternalDependency()
+        greeterLibraryWithExternalDependency()
         myTestSuiteSpec('greeter')
         greeterTestCase()
 
@@ -59,7 +59,22 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         executedAndNotSkipped ':compileGreeterJarGreeterJava', ':myTestGreeterJarBinaryTest'
     }
 
-    private void jvmLibrary() {
+    def "can test a JVM library that declares an API dependency"() {
+        given:
+        applyJUnitPlugin()
+        greeterLibraryWithExternalDependency()
+        superGreeterLibraryWithApiDependencyOnGreeter()
+        myTestSuiteSpec('superGreeter')
+        superGreeterTestCase()
+
+        when:
+        succeeds ':myTestSuperGreeterJarBinaryTest'
+
+        then:
+        executedAndNotSkipped ':compileGreeterJarGreeterJava', ':compileSuperGreeterJarSuperGreeterJava', ':myTestSuperGreeterJarBinaryTest'
+    }
+
+    private void greeterLibrary() {
         buildFile << '''
             model {
                 components {
@@ -76,7 +91,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         '''
     }
 
-    private void jvmLibraryWithExternalDependency() {
+    private void greeterLibraryWithExternalDependency() {
         buildFile << '''
             model {
                 components {
@@ -103,6 +118,30 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         '''
     }
 
+    private void superGreeterLibraryWithApiDependencyOnGreeter() {
+        buildFile << '''
+            model {
+                components {
+                    superGreeter(JvmLibrarySpec) {
+                        api {
+                            dependencies {
+                                library 'greeter'
+                            }
+                        }
+                    }
+                }
+            }
+        '''
+        file('src/superGreeter/java/com/acme/SuperGreeter.java') << '''package com.acme;
+
+            public class SuperGreeter extends Greeter {
+                public String greet(String name) {
+                    return super.greet(name).toUpperCase();
+                }
+            }
+        '''
+    }
+
     private void greeterTestCase() {
         file('src/myTest/java/com/acme/GreeterTest.java') << '''package com.acme;
             import org.junit.Test;
@@ -114,6 +153,22 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
                 public void testGreeting() {
                     Greeter greeter = new Greeter();
                     assertEquals("Hello, Amanda!", greeter.greet("Amanda"));
+                }
+            }
+        '''
+    }
+
+    private void superGreeterTestCase() {
+        file('src/myTest/java/com/acme/SuperGreeterTest.java') << '''package com.acme;
+            import org.junit.Test;
+
+            import static org.junit.Assert.*;
+
+            public class SuperGreeterTest {
+                @Test
+                public void testGreeting() {
+                    SuperGreeter greeter = new SuperGreeter();
+                    assertEquals("HELLO, AMANDA!", greeter.greet("Amanda"));
                 }
             }
         '''

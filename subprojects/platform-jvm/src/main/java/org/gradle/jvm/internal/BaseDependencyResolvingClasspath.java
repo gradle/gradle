@@ -47,7 +47,7 @@ import java.util.Set;
 
 import static org.gradle.util.CollectionUtils.collect;
 
-public abstract class AbstractDependencyResolvingClasspath extends AbstractFileCollection {
+public class BaseDependencyResolvingClasspath extends AbstractFileCollection {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
     private final List<ResolutionAwareRepository> remoteRepositories;
     private final BinarySpecInternal binary;
@@ -57,7 +57,7 @@ public abstract class AbstractDependencyResolvingClasspath extends AbstractFileC
 
     private ResolveResult resolveResult;
 
-    protected AbstractDependencyResolvingClasspath(
+    public BaseDependencyResolvingClasspath(
             BinarySpecInternal binarySpec,
             String descriptor,
             ArtifactDependencyResolver dependencyResolver,

@@ -31,6 +31,7 @@ import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmComponentSpec;
 import org.gradle.jvm.JvmLibrarySpec;
@@ -48,7 +49,10 @@ import org.gradle.language.base.internal.resolve.LocalComponentResolveContext;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.plugins.JavaLanguagePlugin;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
-import org.gradle.model.*;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Mutate;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
@@ -96,7 +100,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
     static class PluginRules extends RuleSource {
 
         @Mutate
-        public void registerClasspathConfigurer(LanguageTransformContainer languages) {
+        public void registerClasspathConfigurer(LanguageTransformContainer languages, final ServiceRegistry serviceRegistry, final ModelSchemaStore schemaStore) {
             languages.withType(JavaLanguagePlugin.Java.class).all(new Action<JavaLanguagePlugin.Java>() {
                 @Override
                 public void execute(JavaLanguagePlugin.Java java) {
@@ -104,12 +108,30 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                         @Override
                         public void configureJavaCompile(BinarySpec spec, JavaSourceSet sourceSet, PlatformJavaCompile javaCompile) {
                             if (spec instanceof JUnitTestSuiteBinarySpec) {
-                                JvmBinarySpec testedBinary = ((JUnitTestSuiteBinarySpec) spec).getTestedBinary();
-                                if (testedBinary instanceof WithJvmAssembly) {
+                                JUnitTestSuiteBinarySpec testSuiteBinary = (JUnitTestSuiteBinarySpec) spec;
+                                JvmBinarySpec testedBinary = testSuiteBinary.getTestedBinary();
+                                if (testedBinary instanceof WithJvmAssembly && testedBinary instanceof JarBinarySpec) {
                                     FileCollection classpath = javaCompile.getClasspath();
                                     JvmAssembly assembly = ((WithJvmAssembly) testedBinary).getAssembly();
+                                    ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
+                                    RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
+                                    List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
+                                    JvmComponentSpec testedComponent = JvmTestSuites.getTestedComponent(serviceRegistry, testSuiteBinary.getTestSuite().getTestedComponent());
+                                    JvmLibrarySpec jvmLibrarySpec = (JvmLibrarySpec) testedComponent;
+                                    BaseDependencyResolvingClasspath transitiveCompileClasspath = new BaseDependencyResolvingClasspath(
+                                        (BinarySpecInternal) testedBinary,
+                                        "test suite",
+                                        dependencyResolver,
+                                        resolutionAwareRepositories,
+                                        new LocalComponentResolveContext(((BinarySpecInternal) testedBinary).getId(),
+                                            DefaultVariantsMetaData.extractFrom(testedBinary, schemaStore),
+                                            collectDependencies(testedBinary, testedComponent, ((JarBinarySpecInternal)testedBinary).getApiDependencies()),
+                                            DefaultLibraryBinaryIdentifier.CONFIGURATION_RUNTIME,
+                                            testedBinary.getDisplayName()
+                                        ));
                                     FileCollection fullClasspath = new UnionFileCollection(
                                         classpath,
+                                        transitiveCompileClasspath,
                                         new SimpleFileCollection(assembly.getClassDirectories()),
                                         new SimpleFileCollection(assembly.getResourceDirectories()));
                                     javaCompile.setClasspath(fullClasspath);
@@ -210,7 +232,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
         return ((BinarySpecInternal) binary).getProjectScopedName() + "Test";
     }
 
-    private static class JUnitDependencyResolvingClasspath extends AbstractDependencyResolvingClasspath {
+    private static class JUnitDependencyResolvingClasspath extends BaseDependencyResolvingClasspath {
 
         private final JvmBinarySpec testedBinary;
         private final JvmAssembly assembly;
@@ -250,8 +272,8 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
         private static List<DependencySpec> collectAllDependencies(JUnitTestSuiteBinarySpec testSuiteBinarySpec, JvmComponentSpec testedComponent, JvmBinarySpec testedBinary) {
             JUnitTestSuiteSpec testSuite = testSuiteBinarySpec.getTestSuite();
             List<DependencySpec> deps = collectDependencies(testSuiteBinarySpec, testSuite, testSuite.getDependencies().getDependencies());
-            if (testedBinary != null && testedComponent instanceof JvmLibrarySpec) {
-                List<DependencySpec> testedBinaryDeps = collectDependencies(testedBinary, testedComponent, ((JvmLibrarySpec) testedComponent).getDependencies().getDependencies());
+            if (testedBinary instanceof JarBinarySpec && testedComponent instanceof JvmLibrarySpec) {
+                List<DependencySpec> testedBinaryDeps = collectDependencies(testedBinary, testedComponent, ((JarBinarySpecInternal)testedBinary).getApiDependencies(), ((JvmLibrarySpec) testedComponent).getDependencies().getDependencies());
                 deps.addAll(testedBinaryDeps);
             }
             return deps;

@@ -26,7 +26,7 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.util.List;
 
-public class DependencyResolvingClasspath extends AbstractDependencyResolvingClasspath {
+public class DependencyResolvingClasspath extends BaseDependencyResolvingClasspath {
 
     public DependencyResolvingClasspath(
             BinarySpecInternal binarySpec,
