@@ -34,10 +34,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmComponentSpec;
 import org.gradle.jvm.JvmLibrarySpec;
-import org.gradle.jvm.internal.AbstractDependencyResolvingClasspath;
-import org.gradle.jvm.internal.JvmAssembly;
-import org.gradle.jvm.internal.WithDependencies;
-import org.gradle.jvm.internal.WithJvmAssembly;
+import org.gradle.jvm.internal.*;
 import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteBinarySpec;
@@ -186,30 +183,6 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                 public void execute(JUnitTestSuiteBinarySpec jUnitTestSuiteBinarySpec) {
                     jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);
                     setDependenciesOf(jUnitTestSuiteBinarySpec, dependencies);
-                }
-            });
-        }
-
-        @Finalize
-        void configureCompileClasspath(ModelMap<JUnitTestSuiteBinarySpec> binaries) {
-            binaries.all(new Action<JUnitTestSuiteBinarySpec>() {
-                @Override
-                public void execute(JUnitTestSuiteBinarySpec jUnitTestSuiteBinarySpec) {
-                    JvmBinarySpec testedBinary = jUnitTestSuiteBinarySpec.getTestedBinary();
-                    if (testedBinary instanceof WithJvmAssembly) {
-                        TaskDependency buildDependencies = ((WithJvmAssembly) testedBinary).getAssembly().getBuildDependencies();
-//                        for (PlatformJavaCompile javaCompile : javaCompileTasks.values()) {
-//                            if (!testedBinary.getBuildDependencies().getDependencies(javaCompile).isEmpty()) {
-//                                FileCollection classpath = javaCompile.getClasspath();
-//                                JvmAssembly assembly = ((WithJvmAssembly) testedBinary).getAssembly();
-//                                FileCollection fullClasspath = new UnionFileCollection(
-//                                    classpath,
-//                                    new SimpleFileCollection(assembly.getClassDirectories()),
-//                                    new SimpleFileCollection(assembly.getResourceDirectories()));
-//                                javaCompile.setClasspath(fullClasspath);
-//                            }
-//                        }
-                    }
                 }
             });
         }
