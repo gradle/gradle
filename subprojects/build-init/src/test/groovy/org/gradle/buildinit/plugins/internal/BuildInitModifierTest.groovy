@@ -45,4 +45,14 @@ class BuildInitModifierTest extends Specification {
         GradleException e = thrown()
         e.message == "The requested init modifier 'unknown' is not supported."
     }
+
+    def "should list all supported modifiers"() {
+        when:
+        def result = BuildInitModifier.listSupported();
+
+        then:
+        result.size() == 2
+        result[0] == "spock"
+        result[1] == "testng"
+    }
 }

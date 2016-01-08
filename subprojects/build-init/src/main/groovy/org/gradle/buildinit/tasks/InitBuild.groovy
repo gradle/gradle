@@ -94,4 +94,9 @@ class InitBuild extends DefaultTask {
     public void setWith(String with) {
         this.with = with
     }
+
+    @OptionValues("with")
+    List<String> getAvailableModifiers() {
+        return BuildInitModifier.listSupported();
+    }
 }

@@ -18,6 +18,9 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.GradleException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum BuildInitModifier {
 
     NONE,
@@ -34,6 +37,16 @@ public enum BuildInitModifier {
             }
         }
         throw new GradleException("The requested init modifier '" + name + "' is not supported.");
+    }
+
+    public static List<String> listSupported() {
+        List<String> result = new ArrayList<String>();
+        for (BuildInitModifier modifier : values()) {
+            if (modifier != NONE) {
+                result.add(modifier.getId());
+            }
+        }
+        return result;
     }
 
     public String getId() {
