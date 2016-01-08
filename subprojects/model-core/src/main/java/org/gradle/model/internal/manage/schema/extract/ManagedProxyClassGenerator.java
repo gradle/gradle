@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.Equivalence.Wrapper;
+import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
@@ -424,17 +425,14 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             delegateType = null;
         }
 
-        Map<String, ModelProperty<?>> viewPropertiesByName = Maps.newLinkedHashMap();
+        Multimap<String, ModelProperty<?>> viewPropertiesByNameBuilder = ArrayListMultimap.create();
         Set<Wrapper<Method>> viewMethods = Sets.newLinkedHashSet();
         for (StructSchema<?> viewSchema : bindings.getImplementedViewSchemas()) {
             for (ModelType<?> viewType : viewTypes) {
                 if (viewType.equals(viewSchema.getType())) {
                     for (ModelProperty<?> property : viewSchema.getProperties()) {
                         String propertyName = property.getName();
-                        if (viewPropertiesByName.containsKey(propertyName)) {
-                            continue;
-                        }
-                        viewPropertiesByName.put(propertyName, property);
+                        viewPropertiesByNameBuilder.put(propertyName, property);
                     }
                     for (WeaklyTypeReferencingMethod<?, ?> viewMethod : viewSchema.getAllMethods()) {
                         viewMethods.add(SIGNATURE_EQUIVALENCE.wrap(viewMethod.getMethod()));
@@ -444,10 +442,9 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             }
         }
 
-        Collection<ModelProperty<?>> viewProperties = viewPropertiesByName.values();
         Class<?> viewClass = bindings.getPublicSchema().getType().getConcreteClass();
-        for (ModelProperty<?> viewProperty : viewProperties) {
-            writeViewPropertyDslMethods(visitor, generatedType, viewProperty, viewClass);
+        for (Collection<ModelProperty<?>> viewProperties : viewPropertiesByNameBuilder.asMap().values()) {
+            writeViewPropertyDslMethods(visitor, generatedType, viewProperties, viewClass);
         }
 
         for (StructMethodBinding methodBinding :  bindings.getMethodBindings()) {
@@ -496,17 +493,26 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         }
    }
 
-    private void writeViewPropertyDslMethods(ClassVisitor visitor, Type generatedType, ModelProperty<?> property, Class<?> viewClass) {
-        writeConfigureMethod(visitor, generatedType, property);
-        writeSetMethod(visitor, generatedType, property);
-        writeTypeConvertingSetter(visitor, generatedType, viewClass, property);
+    private void writeViewPropertyDslMethods(ClassVisitor visitor, Type generatedType, Collection<ModelProperty<?>> viewProperties, Class<?> viewClass) {
+        boolean writable = Iterables.any(viewProperties, new Predicate<ModelProperty<?>>() {
+            @Override
+            public boolean apply(ModelProperty<?> viewProperty) {
+                return viewProperty.isWritable();
+            }
+        });
+        // TODO:LPTR Instead of the first view property, we should figure out these parameters from the actual property
+        ModelProperty<?> firstProperty = viewProperties.iterator().next();
+
+        writeConfigureMethod(visitor, generatedType, firstProperty, writable);
+        writeSetMethod(visitor, generatedType, firstProperty);
+        writeTypeConvertingSetter(visitor, generatedType, viewClass, firstProperty);
 
         // TODO - this should be applied to all methods, including delegating methods
-        writeReadOnlySetter(visitor, viewClass, property);
+        writeReadOnlySetter(visitor, viewClass, writable, firstProperty);
     }
 
-    private void writeReadOnlySetter(ClassVisitor visitor, Class<?> viewClass, ModelProperty<?> property) {
-        if (!property.isWritable()) {
+    private void writeReadOnlySetter(ClassVisitor visitor, Class<?> viewClass, boolean writable, ModelProperty<?> property) {
+        if (!writable) {
             // Adds a void set$PropName(Object value) method that fails
             String setterName = "set" + StringUtils.capitalize(property.getName());
             MethodVisitor methodVisitor = declareMethod(visitor, setterName, SET_OBJECT_PROPERTY_DESCRIPTOR, null, ACC_PUBLIC | ACC_SYNTHETIC);
@@ -534,8 +540,8 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         }
     }
 
-    private void writeConfigureMethod(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
-        if (!property.isWritable() && property.getSchema() instanceof CompositeSchema) {
+    private void writeConfigureMethod(ClassVisitor visitor, Type generatedType, ModelProperty<?> property, boolean writable) {
+        if (!writable && property.getSchema() instanceof CompositeSchema) {
             // Adds a void $propName(Closure<?> cl) method that delegates to model state
 
             MethodVisitor methodVisitor = declareMethod(visitor, property.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE), null);
@@ -546,7 +552,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             finishVisitingMethod(methodVisitor);
             return;
         }
-        if (!property.isWritable() && property.getSchema() instanceof UnmanagedImplStructSchema) {
+        if (!writable && property.getSchema() instanceof UnmanagedImplStructSchema) {
             UnmanagedImplStructSchema<?> structSchema = (UnmanagedImplStructSchema<?>) property.getSchema();
             if (!structSchema.isAnnotated()) {
                 return;
