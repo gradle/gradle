@@ -15,7 +15,6 @@
  */
 package org.gradle.jvm.test.internal;
 
-import org.gradle.jvm.JvmComponentSpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.TransformationFileType;

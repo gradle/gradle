@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.test.cunit.internal;
 
-import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.AbstractNativeComponentSpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,10 @@
  */
 package org.gradle.jvm.test.internal;
 
-import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
+import org.gradle.jvm.JvmBinarySpec;
+import org.gradle.jvm.internal.JvmBinarySpecInternal;
+import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
 
-public interface JUnitTestSuiteBinarySpecInternal extends JUnitTestSuiteBinarySpec, JvmTestSuiteBinarySpecInternal {
+public interface JvmTestSuiteBinarySpecInternal extends JvmTestSuiteBinarySpec, JvmBinarySpecInternal {
+    void setTestedBinary(JvmBinarySpec testedBinary);
 }

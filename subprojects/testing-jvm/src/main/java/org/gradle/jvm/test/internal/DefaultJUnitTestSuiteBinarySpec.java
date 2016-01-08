@@ -17,6 +17,7 @@
 package org.gradle.jvm.test.internal;
 
 import com.google.common.collect.Lists;
+import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.internal.DefaultJvmBinarySpec;
 import org.gradle.jvm.internal.WithDependencies;
 import org.gradle.jvm.internal.WithJvmAssembly;
@@ -29,10 +30,16 @@ import java.util.Collection;
 public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implements JUnitTestSuiteBinarySpecInternal, WithJvmAssembly, WithDependencies {
     private String junitVersion;
     private Collection<DependencySpec> componentLevelDependencies = Lists.newLinkedList();
+    private JvmBinarySpec testedBinary;
 
     @Override
     public JUnitTestSuiteSpec getTestSuite() {
         return getComponentAs(JUnitTestSuiteSpec.class);
+    }
+
+    @Override
+    public JvmBinarySpec getTestedBinary() {
+        return testedBinary;
     }
 
     @Override
@@ -59,5 +66,10 @@ public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implem
     @Override
     public Collection<DependencySpec> getDependencies() {
         return componentLevelDependencies;
+    }
+
+    @Override
+    public void setTestedBinary(JvmBinarySpec testedBinary) {
+        this.testedBinary = testedBinary;
     }
 }

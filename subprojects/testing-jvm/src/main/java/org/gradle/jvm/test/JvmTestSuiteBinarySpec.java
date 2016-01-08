@@ -29,4 +29,6 @@ import org.gradle.platform.base.test.TestSuiteBinarySpec;
 public interface JvmTestSuiteBinarySpec extends TestSuiteBinarySpec, JvmBinarySpec {
     @Override
     JvmTestSuiteSpec getTestSuite();
+
+    JvmBinarySpec getTestedBinary();
 }

@@ -16,11 +16,8 @@
 
 package org.gradle.jvm.test
 
-import groovy.transform.NotYetImplemented
-
 class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionIntegrationSpec {
 
-    @NotYetImplemented
     def "can test a JVM library"() {
         given:
         applyJUnitPlugin()

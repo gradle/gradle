@@ -66,7 +66,7 @@ public class JvmTestSuites {
     private static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinary(ModelMap<BinarySpec> testBinaries,
                                                                                     Class<T> testSuiteBinaryClass,
                                                                                     JvmTestSuiteSpec testSuite,
-                                                                                    JvmBinarySpec testedBinary,
+                                                                                    final JvmBinarySpec testedBinary,
                                                                                     final JavaToolChainRegistry toolChains,
                                                                                     PlatformResolvers platformResolver,
                                                                                     final Action<? super T> configureAction) {
@@ -78,9 +78,11 @@ public class JvmTestSuites {
         testBinaries.create(namingScheme.getBinaryName(), testSuiteBinaryClass, new Action<T>() {
             @Override
             public void execute(T binary) {
-                ((BinarySpecInternal) binary).setNamingScheme(namingScheme);
-                binary.setTargetPlatform(platform);
-                binary.setToolChain(toolChains.getForPlatform(platform));
+                JvmTestSuiteBinarySpecInternal testBinary = (JvmTestSuiteBinarySpecInternal) binary;
+                testBinary.setNamingScheme(namingScheme);
+                testBinary.setTargetPlatform(platform);
+                testBinary.setToolChain(toolChains.getForPlatform(platform));
+                testBinary.setTestedBinary(testedBinary);
                 configureAction.execute(binary);
             }
         });
@@ -92,12 +94,16 @@ public class JvmTestSuites {
 
     public static <S> Collection<S> testedBinariesWithType(ServiceRegistry registry, Class<S> type, JvmTestSuiteSpec testSuite) {
         String testedComponent = testSuite.getTestedComponent();
-        ModelRegistry model = registry.get(ModelRegistry.class);
-        JvmComponentSpec spec = model.realize(ModelPath.path(Arrays.asList("components", testedComponent)), ModelType.of(JvmComponentSpec.class));
+        JvmComponentSpec spec = getTestedComponent(registry, testedComponent);
         if (spec == null) {
             throw new InvalidModelException(String.format("Component '%s' declared under test '%s' does not exist", testedComponent, testSuite.getDisplayName()));
         }
         return spec.getBinaries().withType(type).values();
+    }
+
+    public static JvmComponentSpec getTestedComponent(ServiceRegistry registry, String testedComponent) {
+        ModelRegistry model = registry.get(ModelRegistry.class);
+        return model.realize(ModelPath.path(Arrays.asList("components", testedComponent)), ModelType.of(JvmComponentSpec.class));
     }
 
     private static BinaryNamingScheme namingSchemeFor(JvmTestSuiteSpec testSuiteSpec, JvmBinarySpec testedBinary, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {

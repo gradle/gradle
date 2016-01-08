@@ -17,6 +17,7 @@
 package org.gradle.language.java.plugins;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -83,11 +84,19 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         }
     }
 
-    private static class Java implements LanguageTransform<JavaSourceSet, JvmByteCode> {
-        private final ModelSchemaStore schemaStore;
+    /**
+     * The language transform implementation for Java sources.
+     */
+    public static class Java implements LanguageTransform<JavaSourceSet, JvmByteCode> {
+        private final JavaSourceTransformTaskConfig config;
+        private final List<PlatformJavaCompileConfig> platformJavaConfigurers = Lists.newLinkedList();
 
         public Java(ModelSchemaStore schemaStore) {
-            this.schemaStore = schemaStore;
+            this.config = new JavaSourceTransformTaskConfig(schemaStore, platformJavaConfigurers);
+        }
+
+        public void registerPlatformJavaCompileConfig(PlatformJavaCompileConfig configurer) {
+            platformJavaConfigurers.add(configurer);
         }
 
         public Class<JavaSourceSet> getSourceSetType() {
@@ -103,45 +112,14 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         }
 
         public SourceTransformTaskConfig getTransformTask() {
-            return new SourceTransformTaskConfig() {
-                public String getTaskPrefix() {
-                    return "compile";
-                }
-
-                public Class<? extends DefaultTask> getTaskType() {
-                    return PlatformJavaCompile.class;
-                }
-
-                public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
-                    PlatformJavaCompile compile = (PlatformJavaCompile) task;
-                    JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
-                    JvmAssembly assembly = ((WithJvmAssembly) binary).getAssembly();
-                    assembly.builtBy(compile);
-
-                    compile.setDescription(String.format("Compiles %s.", javaSourceSet));
-                    compile.setDestinationDir(conventionalCompilationOutputDirFor(assembly));
-                    compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
-                    compile.dependsOn(javaSourceSet);
-                    compile.setSource(javaSourceSet.getSource());
-
-                    JavaPlatform targetPlatform = assembly.getTargetPlatform();
-                    String targetCompatibility = targetPlatform.getTargetCompatibility().toString();
-                    compile.setPlatform(targetPlatform);
-                    compile.setToolChain(assembly.getToolChain());
-                    compile.setTargetCompatibility(targetCompatibility);
-                    compile.setSourceCompatibility(targetCompatibility);
-
-                    DependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry);
-                    compile.setClasspath(classpath);
-                }
-            };
+            return config;
         }
 
-        private File conventionalCompilationOutputDirFor(JvmAssembly assembly) {
+        private static File conventionalCompilationOutputDirFor(JvmAssembly assembly) {
             return first(assembly.getClassDirectories());
         }
 
-        private DependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry) {
+        private static DependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore) {
             Iterable<DependencySpec> dependencies = compileDependencies(binary, javaSourceSet);
 
             ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
@@ -150,20 +128,20 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             return new DependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, schemaStore, resolutionAwareRepositories);
         }
 
-        private Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {
+        private static Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {
             return concat(
                 sourceSet.getDependencies().getDependencies(),
                 componentDependenciesOf(binary),
                 apiDependenciesOf(binary));
         }
 
-        private Iterable<DependencySpec> componentDependenciesOf(BinarySpec binary) {
+        private static Iterable<DependencySpec> componentDependenciesOf(BinarySpec binary) {
             return binary instanceof WithDependencies
                 ? ((WithDependencies) binary).getDependencies()
                 : NO_DEPENDENCIES;
         }
 
-        private Iterable<DependencySpec> apiDependenciesOf(BinarySpec binary) {
+        private static Iterable<DependencySpec> apiDependenciesOf(BinarySpec binary) {
             return binary instanceof JarBinarySpecInternal
                 ? ((JarBinarySpecInternal) binary).getApiDependencies()
                 : NO_DEPENDENCIES;
@@ -175,5 +153,64 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             return binary instanceof WithJvmAssembly;
         }
 
+        /**
+         * Interface for additional configuration to be done by plugins after the Java compile
+         * task has been configured.
+         */
+        public interface PlatformJavaCompileConfig {
+            /**
+             * Configures the generated {@link PlatformJavaCompile} tasks.
+             * @param spec the binary for which this compile task has been created
+             * @param sourceSet the source set for which this compile task has been created
+             * @param javaCompile the generated compile task
+             */
+            void configureJavaCompile(BinarySpec spec, JavaSourceSet sourceSet, PlatformJavaCompile javaCompile);
+        }
+
+        private static class JavaSourceTransformTaskConfig implements SourceTransformTaskConfig {
+
+            private final ModelSchemaStore schemaStore;
+            private final List<PlatformJavaCompileConfig> platformJavaConfigurers;
+
+            private JavaSourceTransformTaskConfig(ModelSchemaStore schemaStore, List<PlatformJavaCompileConfig> platformJavaConfigurers) {
+                this.schemaStore = schemaStore;
+                this.platformJavaConfigurers = platformJavaConfigurers;
+            }
+
+            public String getTaskPrefix() {
+                return "compile";
+            }
+
+            public Class<? extends DefaultTask> getTaskType() {
+                return PlatformJavaCompile.class;
+            }
+
+            public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+                PlatformJavaCompile compile = (PlatformJavaCompile) task;
+                JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
+                JvmAssembly assembly = ((WithJvmAssembly) binary).getAssembly();
+                assembly.builtBy(compile);
+
+                compile.setDescription(String.format("Compiles %s.", javaSourceSet));
+                compile.setDestinationDir(conventionalCompilationOutputDirFor(assembly));
+                compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
+                compile.dependsOn(javaSourceSet);
+                compile.setSource(javaSourceSet.getSource());
+
+                JavaPlatform targetPlatform = assembly.getTargetPlatform();
+                String targetCompatibility = targetPlatform.getTargetCompatibility().toString();
+                compile.setPlatform(targetPlatform);
+                compile.setToolChain(assembly.getToolChain());
+                compile.setTargetCompatibility(targetCompatibility);
+                compile.setSourceCompatibility(targetCompatibility);
+
+                DependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry, schemaStore);
+                compile.setClasspath(classpath);
+
+                for (PlatformJavaCompileConfig configurer : platformJavaConfigurers) {
+                    configurer.configureJavaCompile(binary, javaSourceSet, compile);
+                }
+            }
+        }
     }
 }
