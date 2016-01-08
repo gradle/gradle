@@ -62,10 +62,12 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
     protected static abstract class ExtractedCreationRule<R, S> implements ExtractedModelRule {
         protected final ModelPath modelPath;
         protected final MethodRuleDefinition<R, S> ruleDefinition;
+        private final boolean hidden;
 
         public ExtractedCreationRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition) {
             this.modelPath = modelPath;
             this.ruleDefinition = ruleDefinition;
+            this.hidden = ruleDefinition.isAnnotationPresent(Hidden.class);
         }
 
         protected abstract void buildRegistration(MethodModelRuleApplicationContext context, ModelRegistrations.Builder registration);
@@ -77,7 +79,7 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
             }
             ModelRegistrations.Builder registration = ModelRegistrations.of(modelPath).descriptor(ruleDefinition.getDescriptor());
             buildRegistration(context, registration);
-            registration.hidden(ruleDefinition.isAnnotationPresent(Hidden.class));
+            registration.hidden(hidden);
 
             context.getRegistry().register(registration.build());
         }
