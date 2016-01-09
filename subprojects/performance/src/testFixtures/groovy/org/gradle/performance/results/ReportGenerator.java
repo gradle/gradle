@@ -33,7 +33,7 @@ public class ReportGenerator {
 
             File testsDir = new File(outputDirectory, "tests");
             for (String testName : store.getTestNames()) {
-                TestExecutionHistory testResults = store.getTestResults(testName);
+                TestExecutionHistory testResults = store.getTestResults(testName, 100);
                 fileRenderer.render(testResults, testHtmlRenderer, new File(testsDir, testResults.getId() + ".html"));
                 fileRenderer.render(testResults, testDataRenderer, new File(testsDir, testResults.getId() + ".json"));
             }
