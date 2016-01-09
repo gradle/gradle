@@ -27,7 +27,6 @@ import java.util.List;
 
 public class CrossBuildTestExecutionHistory implements TestExecutionHistory {
     private final String name;
-
     private final List<BuildDisplayInfo> builds;
 
     private final List<CrossBuildPerformanceResults> newestFirst;
@@ -110,7 +109,7 @@ public class CrossBuildTestExecutionHistory implements TestExecutionHistory {
             return Lists.transform(builds, new Function<BuildDisplayInfo, MeasuredOperationList>() {
                 @Override
                 public MeasuredOperationList apply(@Nullable BuildDisplayInfo specification) {
-                    return results.buildResult(specification);
+                    return results.buildResult(specification.getDisplayName());
                 }
             });
         }

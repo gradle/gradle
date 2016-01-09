@@ -152,6 +152,219 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         firstSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], null, null)
     }
 
+    def "scenario settings can change over time"() {
+        given:
+        def results1 = crossBuildResults(testId: "test1", testGroup: "group1", testTime: 100)
+        def buildResults1 = results1.buildResult(
+                new BuildDisplayInfo(
+                        "project-1",
+                        "scenario 1",
+                        ["build"],
+                        ["-1"],
+                        null,
+                        null
+                )
+        )
+        buildResults1 << operation()
+        def buildResults2 = results1.buildResult(
+                new BuildDisplayInfo(
+                        "project-1",
+                        "scenario 2",
+                        ["clean", "build"],
+                        ["-1"],
+                        null,
+                        null
+                )
+        )
+        buildResults2 << operation()
+
+        def results2 = crossBuildResults(testId: "test1", testGroup: "group1", testTime: 200)
+        def buildResults3 = results2.buildResult(
+                new BuildDisplayInfo(
+                        "project-1",
+                        "scenario 1",
+                        ["build"],
+                        ["-2"],
+                        ["--new"],
+                        true
+                )
+        )
+        buildResults3 << operation()
+        def buildResults4 = results2.buildResult(
+                new BuildDisplayInfo(
+                        "project-1",
+                        "scenario 2",
+                        ["clean", "build"],
+                        ["-1"],
+                        ["--new"],
+                        true
+                )
+        )
+        buildResults4 << operation()
+
+        def results3 = crossBuildResults(testId: "test1", testGroup: "group1", testTime: 300)
+        def buildResults5 = results3.buildResult(
+                new BuildDisplayInfo(
+                        "project-1-new",
+                        "scenario 1",
+                        ["assemble"],
+                        ["-2", "-3"],
+                        ["--new", "--old"],
+                        true
+                )
+        )
+        buildResults5 << operation()
+        def buildResults6 = results3.buildResult(
+                new BuildDisplayInfo(
+                        "project-2-new",
+                        "scenario 2",
+                        ["clean", "assemble"],
+                        ["-4"],
+                        [],
+                        true
+                )
+        )
+        buildResults6 << operation()
+
+        when:
+        def writeStore = new BaseCrossBuildResultsStore(dbFile)
+        writeStore.report(results1)
+        writeStore.report(results2)
+        writeStore.report(results3)
+        writeStore.close()
+
+        then:
+        tmpDir.file("results.h2.db").exists()
+
+        when:
+        def readStore = new BaseCrossBuildResultsStore(dbFile)
+        def history = readStore.getTestResults("test1")
+
+        then:
+        history.id == "test1"
+        history.name == "test1"
+        history.experimentCount == 2
+        history.experimentLabels == ["scenario 1", "scenario 2"]
+        history.builds.size() == 2
+
+        history.performanceResults[0].experiments.size() == 2
+        history.performanceResults[0].experiments[0].name == "scenario 1"
+        history.performanceResults[0].experiments[0].size() == 1
+        history.performanceResults[0].experiments[1].name == "scenario 2"
+        history.performanceResults[0].experiments[1].size() == 1
+
+        history.performanceResults[1].experiments.size() == 2
+        history.performanceResults[1].experiments[0].name == "scenario 1"
+        history.performanceResults[1].experiments[0].size() == 1
+        history.performanceResults[1].experiments[1].name == "scenario 2"
+        history.performanceResults[1].experiments[1].size() == 1
+
+        history.performanceResults[2].experiments.size() == 2
+        history.performanceResults[2].experiments[0].name == "scenario 1"
+        history.performanceResults[2].experiments[0].size() == 1
+        history.performanceResults[2].experiments[1].name == "scenario 2"
+        history.performanceResults[2].experiments[1].size() == 1
+    }
+
+    def "reports on union of all scenarios"() {
+        given:
+        def results1 = crossBuildResults(testId: "test1", testGroup: "group1", testTime: 100)
+        def buildResults1 = results1.buildResult(
+                new BuildDisplayInfo(
+                        "project-1",
+                        "scenario 1",
+                        ["build"],
+                        ["-1"],
+                        null,
+                        null
+                )
+        )
+        buildResults1 << operation()
+        def buildResults2 = results1.buildResult(
+                new BuildDisplayInfo(
+                        "project-1",
+                        "scenario 2",
+                        ["clean", "build"],
+                        ["-1"],
+                        null,
+                        null
+                )
+        )
+        buildResults2 << operation()
+
+        def results2 = crossBuildResults(testId: "test1", testGroup: "group1", testTime: 200)
+        def buildResults3 = results2.buildResult(
+                new BuildDisplayInfo(
+                        "project-1",
+                        "scenario 1",
+                        ["build"],
+                        ["-2"],
+                        ["--new"],
+                        true
+                )
+        )
+        buildResults3 << operation()
+        def buildResults4 = results2.buildResult(
+                new BuildDisplayInfo(
+                        "project-1",
+                        "scenario 3",
+                        ["clean", "build"],
+                        ["-1"],
+                        ["--new"],
+                        true
+                )
+        )
+        buildResults4 << operation()
+
+        def results3 = crossBuildResults(testId: "test1", testGroup: "group1", testTime: 300)
+        def buildResults5 = results3.buildResult(
+                new BuildDisplayInfo(
+                        "project-1-old",
+                        "scenario 4",
+                        ["assemble"],
+                        ["-2", "-3"],
+                        ["--new", "--old"],
+                        true
+                )
+        )
+        buildResults5 << operation()
+
+        when:
+        def writeStore = new BaseCrossBuildResultsStore(dbFile)
+        writeStore.report(results1)
+        writeStore.report(results2)
+        writeStore.report(results3)
+        writeStore.close()
+
+        then:
+        tmpDir.file("results.h2.db").exists()
+
+        when:
+        def readStore = new BaseCrossBuildResultsStore(dbFile)
+        def history = readStore.getTestResults("test1")
+
+        then:
+        history.id == "test1"
+        history.name == "test1"
+        history.experimentCount == 4
+        history.experimentLabels == ["scenario 1", "scenario 2", "scenario 3", "scenario 4"]
+        history.builds.size() == 4
+
+        history.performanceResults[0].experiments.size() == 4
+        history.performanceResults[0].experiments[0].size() == 0
+        history.performanceResults[0].experiments[1].size() == 0
+        history.performanceResults[0].experiments[2].size() == 0
+        history.performanceResults[0].experiments[3].size() == 1
+
+        history.performanceResults[1].experiments.size() == 4
+
+        history.performanceResults[2].experiments.size() == 4
+        history.performanceResults[2].experiments[0].size() == 1
+        history.performanceResults[2].experiments[1].size() == 1
+        history.performanceResults[2].experiments[2].size() == 0
+        history.performanceResults[2].experiments[3].size() == 0
+    }
+
     def "returns top n results in descending date order"() {
         given:
         def results1 = crossBuildResults(testId: "test1", testTime: 1000)

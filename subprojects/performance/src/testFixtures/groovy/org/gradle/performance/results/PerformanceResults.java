@@ -27,6 +27,7 @@ public interface PerformanceResults {
     long getTestTime();
 
     List<String> getVcsCommits();
+
     /**
      * Returns the results of the experiments executed as part of this performance test.
      */

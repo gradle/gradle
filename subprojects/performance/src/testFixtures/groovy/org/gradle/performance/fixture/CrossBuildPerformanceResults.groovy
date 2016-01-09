@@ -43,6 +43,9 @@ class CrossBuildPerformanceResults extends PerformanceTestResult {
 
     MeasuredOperationList buildResult(String displayName) {
         def matches = builds.findAll { it.displayName == displayName }
+        if (matches.empty) {
+            return new MeasuredOperationList(name: displayName)
+        }
         assert matches.size() == 1
         buildResult(matches.first())
     }
