@@ -111,7 +111,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         runner.tasksToRun = ['project1:mainApiJar']
         runner.maxExecutionTimeRegression = maxTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
-        runner.targetVersions = ['2.10', 'last']
+        runner.targetVersions = ['2.10', '2.11', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
         def updater = new JavaSoftwareModelSourceFileUpdater(100, 0, 0, cardinality)
