@@ -98,6 +98,52 @@ public class CrossVersionTestExecutionHistory implements TestExecutionHistory {
     }
 
     @Override
+    public List<? extends ExperimentDefinition> getExperiments() {
+        if (newestFirst.isEmpty()) {
+            return Collections.emptyList();
+        }
+        final CrossVersionPerformanceResults mostRecent = newestFirst.get(0);
+        return Lists.transform(getKnownVersions(), new Function<String, ExperimentDefinition>() {
+            @Override
+            public ExperimentDefinition apply(final String input) {
+                return new ExperimentDefinition() {
+                    @Override
+                    public String getDisplayName() {
+                        return input;
+                    }
+
+                    @Override
+                    public String getTestProject() {
+                        return mostRecent.getTestProject();
+                    }
+
+                    @Override
+                    public List<String> getTasks() {
+                        return Arrays.asList(mostRecent.getTasks());
+                    }
+
+                    @Override
+                    public List<String> getArgs() {
+                        return Arrays.asList(mostRecent.getArgs());
+                    }
+
+                    @Nullable
+                    @Override
+                    public List<String> getGradleOpts() {
+                        return mostRecent.getGradleOpts() == null ? null : Arrays.asList(mostRecent.getGradleOpts());
+                    }
+
+                    @Nullable
+                    @Override
+                    public Boolean getDaemon() {
+                        return mostRecent.getDaemon();
+                    }
+                };
+            }
+        });
+    }
+
+    @Override
     public int getExperimentCount() {
         return getKnownVersions().size();
     }

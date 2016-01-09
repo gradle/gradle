@@ -41,7 +41,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             html();
             head();
             headSection(this);
-            title().text(String.format("Profile test %s report", testHistory.getName())).end();
+            title().text(String.format("Performance test %s", testHistory.getName())).end();
             script();
             text("$(function() {\n");
             text("$.ajax({ url:'" + testHistory.getId() + ".json\', dataType: 'json',");
@@ -101,20 +101,23 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             h3().text("Test details").end();
             table().classAttr("test-details");
             tr();
+                th().text("Experiment").end();
                 th().text("Test project").end();
                 th().text("Tasks").end();
                 th().text("Gradle args").end();
                 th().text("Gradle JVM args").end();
                 th().text("Daemon").end();
             end();
-            PerformanceResults mostRecent = testHistory.getPerformanceResults().get(0);
-            tr();
-                textCell(mostRecent.getTestProject());
-                textCell(mostRecent.getTasks());
-                textCell(mostRecent.getArgs());
-                textCell(mostRecent.getGradleOpts());
-                textCell(mostRecent.getDaemon());
-            end();
+            for (ExperimentDefinition experiment : testHistory.getExperiments()) {
+                tr();
+                    textCell(experiment.getDisplayName());
+                    textCell(experiment.getTestProject());
+                    textCell(experiment.getTasks());
+                    textCell(experiment.getArgs());
+                    textCell(experiment.getGradleOpts());
+                    textCell(experiment.getDaemon());
+                end();
+            }
             end();
 
             h3().text("Test history").end();

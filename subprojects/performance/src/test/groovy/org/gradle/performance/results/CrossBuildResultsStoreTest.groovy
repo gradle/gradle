@@ -83,15 +83,27 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         history.name == "test1"
         history.experimentCount == 2
         history.experimentLabels == ["complex display", "simple display"]
+        history.experiments.size() == 2
+        history.experiments[0].displayName == "complex display"
+        history.experiments[0].testProject == "complex"
+        history.experiments[0].tasks == []
+        history.experiments[0].args == []
+        history.experiments[0].gradleOpts == ["--go-faster"]
+        history.experiments[0].daemon == false
+        history.experiments[1].displayName == "simple display"
+        history.experiments[1].testProject == "simple"
+        history.experiments[1].tasks == ["build"]
+        history.experiments[1].args == ["-i"]
+        history.experiments[1].gradleOpts == []
+        history.experiments[1].daemon
 
         and:
         def firstSpecification = history.builds[0]
         firstSpecification == new BuildDisplayInfo("complex", "complex display", [], [], ["--go-faster"], false)
         history.results.first().buildResult(firstSpecification).size() == 2
+        history.results.first().buildResult("complex display").size() == 2
 
         and:
-        def secondSpecification = history.builds[1]
-        secondSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], [], true)
         def crossBuildPerformanceResults = history.results.first()
         crossBuildPerformanceResults.testId == "test1"
         crossBuildPerformanceResults.jvm == "java 7"
@@ -102,6 +114,8 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         crossBuildPerformanceResults.vcsCommits[0] == "abcdef"
 
         and:
+        def secondSpecification = history.builds[1]
+        secondSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], [], true)
         def operation = crossBuildPerformanceResults.buildResult(secondSpecification).first
         operation.totalTime == minutes(12)
         operation.configurationTime == minutes(1)
@@ -150,6 +164,8 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         history.experimentCount == 1
         def firstSpecification = history.builds[0]
         firstSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], null, null)
+        history.results.first().buildResult(firstSpecification).size() == 1
+        history.results.first().buildResult("simple display").size() == 1
     }
 
     def "scenario settings can change over time"() {
@@ -245,6 +261,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         history.name == "test1"
         history.experimentCount == 2
         history.experimentLabels == ["scenario 1", "scenario 2"]
+        history.experiments.size() == 2
         history.builds.size() == 2
 
         history.performanceResults[0].experiments.size() == 2
@@ -348,6 +365,12 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         history.name == "test1"
         history.experimentCount == 4
         history.experimentLabels == ["scenario 1", "scenario 2", "scenario 3", "scenario 4"]
+        history.experiments.size() == 4
+        history.experiments[0].displayName == "scenario 1"
+        history.experiments[1].displayName == "scenario 2"
+        history.experiments[2].displayName == "scenario 3"
+        history.experiments[3].displayName == "scenario 4"
+
         history.builds.size() == 4
 
         history.performanceResults[0].experiments.size() == 4

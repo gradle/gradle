@@ -86,6 +86,15 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         history.baselineVersions == ["1.0", "1.5"]
         history.experimentCount == 3
         history.experimentLabels == ["1.0", "1.5", "master"]
+        history.experiments.size() == 3
+        history.experiments[0].displayName == "1.0"
+        history.experiments[1].displayName == "1.5"
+        history.experiments[2].displayName == "master"
+        history.experiments.every { it.testProject == "test-project" }
+        history.experiments.every { it.tasks == ["clean", "build"] }
+        history.experiments.every { it.args == ["--arg1"] }
+        history.experiments.every { it.gradleOpts == ["--opt-1", "--opt-2"] }
+        history.experiments.every { it.daemon }
 
         and:
         def results = history.results
@@ -222,7 +231,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         readStore?.close()
     }
 
-    def "the known versions for a test is the union of all baseline versions in ascending order and the union of test branches"() {
+    def "the experiments for a test is the union of all baseline versions in ascending order and the union of test branches"() {
         given:
         def writeStore = new CrossVersionResultsStore(dbFile)
 
@@ -252,6 +261,19 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results.knownVersions == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10", "master", "release"]
         results.experimentCount == 7
         results.experimentLabels == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10", "master", "release"]
+        results.experiments.size() == 7
+        results.experiments[0].displayName == "1.0"
+        results.experiments[1].displayName == "1.8-rc-1"
+        results.experiments[2].displayName == "1.8-rc-2"
+        results.experiments[3].displayName == "1.8"
+        results.experiments[4].displayName == "1.10"
+        results.experiments[5].displayName == "master"
+        results.experiments[6].displayName == "release"
+        results.experiments.every { it.testProject == "test-project" }
+        results.experiments.every { it.tasks == ["clean", "build"] }
+        results.experiments.every { it.args == [] }
+        results.experiments.every { it.gradleOpts == [] }
+        results.experiments.every { !it.daemon }
 
         cleanup:
         writeStore?.close()

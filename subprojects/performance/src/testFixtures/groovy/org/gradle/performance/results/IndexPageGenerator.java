@@ -61,7 +61,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 renderHeaderForSamples(label);
                             }
                         end();
-                        List<PerformanceResults> results = testHistory.getPerformanceResults();
+                        List<? extends PerformanceResults> results = testHistory.getPerformanceResults();
                         for (PerformanceResults performanceResults : results) {
                             tr();
                                 td().text(format.timestamp(new Date(performanceResults.getTestTime()))).end();

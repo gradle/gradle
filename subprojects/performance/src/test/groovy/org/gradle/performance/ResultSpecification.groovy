@@ -31,6 +31,8 @@ abstract class ResultSpecification extends Specification {
         results.testProject = "test-project"
         results.tasks = ["clean", "build"]
         results.args = []
+        results.gradleOpts = []
+        results.daemon = false
         results.operatingSystem = "some os"
         results.jvm = "java 6"
         results.versionUnderTest = "1.7-rc-1"

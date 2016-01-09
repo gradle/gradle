@@ -18,12 +18,24 @@ package org.gradle.performance.results;
 
 import java.util.List;
 
+/**
+ * The execution history for a particular performance test.
+ */
 public interface TestExecutionHistory {
+    /**
+     * A unique id for this performance test, must be stable over time.
+     */
     String getId();
 
+    /**
+     * A human consumable display name for this performance test.
+     */
     String getName();
 
-    List<PerformanceResults> getPerformanceResults();
+    /**
+     * The results of all executions of this performance test, ordered from most recent to least recent.
+     */
+    List<? extends PerformanceResults> getPerformanceResults();
 
     /**
      * Returns the number of experiments per performance test.
@@ -34,4 +46,9 @@ public interface TestExecutionHistory {
      * Returns the labels of the experiments.
      */
     List<String> getExperimentLabels();
+
+    /**
+     * Returns the experiments that are executed for this performance test.
+     */
+    List<? extends ExperimentDefinition> getExperiments();
 }

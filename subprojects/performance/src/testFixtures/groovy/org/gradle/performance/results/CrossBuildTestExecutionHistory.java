@@ -77,6 +77,48 @@ public class CrossBuildTestExecutionHistory implements TestExecutionHistory {
         });
     }
 
+    @Override
+    public List<? extends ExperimentDefinition> getExperiments() {
+        return Lists.transform(builds, new Function<BuildDisplayInfo, ExperimentDefinition>() {
+            @Override
+            public ExperimentDefinition apply(final BuildDisplayInfo input) {
+                return new ExperimentDefinition() {
+                    @Override
+                    public String getDisplayName() {
+                        return input.getDisplayName();
+                    }
+
+                    @Override
+                    public String getTestProject() {
+                        return input.getProjectName();
+                    }
+
+                    @Override
+                    public List<String> getTasks() {
+                        return input.getTasksToRun();
+                    }
+
+                    @Override
+                    public List<String> getArgs() {
+                        return input.getArgs();
+                    }
+
+                    @org.gradle.api.Nullable
+                    @Override
+                    public List<String> getGradleOpts() {
+                        return input.getGradleOpts();
+                    }
+
+                    @org.gradle.api.Nullable
+                    @Override
+                    public Boolean getDaemon() {
+                        return input.getDaemon();
+                    }
+                };
+            }
+        });
+    }
+
     private class KnownBuildSpecificationsPerformanceResults implements PerformanceResults {
         private final CrossBuildPerformanceResults results;
 

@@ -21,6 +21,9 @@ import org.gradle.performance.fixture.MeasuredOperationList;
 
 import java.util.List;
 
+/**
+ * The result of a single execution of a performance test.
+ */
 public interface PerformanceResults {
 
     String getVersionUnderTest();

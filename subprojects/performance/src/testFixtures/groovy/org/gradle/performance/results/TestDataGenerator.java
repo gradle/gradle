@@ -33,7 +33,7 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
     @Override
     public void render(TestExecutionHistory testHistory, Writer output) throws IOException {
         PrintWriter out = new PrintWriter(output);
-        List<PerformanceResults> sortedResults = Lists.reverse(testHistory.getPerformanceResults());
+        List<? extends PerformanceResults> sortedResults = Lists.reverse(testHistory.getPerformanceResults());
         out.println("{");
         out.println("\"labels\": [");
         for (int i = 0; i < sortedResults.size(); i++) {
@@ -62,7 +62,7 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
     }
 
     void render(TestExecutionHistory testHistory, Transformer<String, MeasuredOperationList> valueRenderer, PrintWriter out) {
-        List<PerformanceResults> sortedResults = Lists.reverse(testHistory.getPerformanceResults());
+        List<? extends PerformanceResults> sortedResults = Lists.reverse(testHistory.getPerformanceResults());
         out.println("  [");
         List<String> labels = testHistory.getExperimentLabels();
         for (int i = 0; i < labels.size(); i++) {
