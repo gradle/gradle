@@ -86,7 +86,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             end();
             body();
             div().id("content");
-            h2().text(String.format("Test %s", testHistory.getName())).end();
+            h2().text(String.format("Test: %s", testHistory.getName())).end();
             h3().text("Average execution time").end();
             div().id("executionTimeChart").classAttr("chart");
             p().text("Loading...").end();
@@ -96,11 +96,31 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             p().text("Loading...").end();
             end();
             div().id("tooltip").end();
-            h3().text("Test history").end();
             div().id("controls").end();
+
+            h3().text("Test details").end();
+            table().classAttr("test-details");
+            tr();
+                th().text("Test project").end();
+                th().text("Tasks").end();
+                th().text("Gradle args").end();
+                th().text("Gradle JVM args").end();
+                th().text("Daemon").end();
+            end();
+            PerformanceResults mostRecent = testHistory.getPerformanceResults().get(0);
+            tr();
+                textCell(mostRecent.getTestProject());
+                textCell(mostRecent.getTasks());
+                textCell(mostRecent.getArgs());
+                textCell(mostRecent.getGradleOpts());
+                textCell(mostRecent.getDaemon());
+            end();
+            end();
+
+            h3().text("Test history").end();
             table().classAttr("history");
             tr().classAttr("control-groups");
-            th().colspan("4").end();
+            th().colspan("3").end();
             th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average build time").end();
             th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average configuration time").end();
             th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average execution time").end();
@@ -109,11 +129,10 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average max heap usage").end();
             th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average max uncollected heap").end();
             th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average max committed heap").end();
-            th().colspan("4").text("Details").end();
+            th().colspan("8").text("Details").end();
             end();
             tr();
             th().text("Date").end();
-            th().text("Test version").end();
             th().text("Branch").end();
             th().text("Git commit").end();
             for (int i = 0; i < 8; i++) {
@@ -121,6 +140,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                     renderHeaderForSamples(label);
                 }
             }
+            th().text("Test version").end();
             th().text("Operating System").end();
             th().text("JVM").end();
             th().text("Test project").end();
@@ -131,9 +151,8 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             end();
             for (PerformanceResults results : testHistory.getPerformanceResults()) {
                 tr();
-                td().text(format.timestamp(new Date(results.getTestTime()))).end();
-                td().text(results.getVersionUnderTest()).end();
-                td().text(results.getVcsBranch()).end();
+                textCell(format.timestamp(new Date(results.getTestTime())));
+                textCell(results.getVcsBranch());
 
                 td();
                 List<Link> vcsCommits = urlify(results.getVcsCommits());
@@ -186,6 +205,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                         return original.getMaxCommittedHeap();
                     }
                 });
+                textCell(results.getVersionUnderTest());
                 textCell(results.getOperatingSystem());
                 textCell(results.getJvm());
                 textCell(results.getTestProject());

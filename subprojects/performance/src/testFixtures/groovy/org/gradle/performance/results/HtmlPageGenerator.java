@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results;
 
+import com.google.common.base.Joiner;
 import com.googlecode.jatl.Html;
 import org.gradle.api.Transformer;
 import org.gradle.performance.fixture.MeasuredOperationList;
@@ -26,6 +27,7 @@ import org.gradle.util.GradleVersion;
 
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
@@ -75,6 +77,26 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
             td();
             if (obj != null) {
                 text(obj.toString());
+            }
+            end();
+        }
+
+        protected void textCell(Boolean obj) {
+            td();
+            if (obj != null) {
+                text(obj ? "yes" : "no");
+            }
+            end();
+        }
+
+        protected void textCell(Collection<?> obj) {
+            td();
+            if (obj != null) {
+                if (obj.isEmpty()) {
+                    span().classAttr("empty").text("-").end();
+                } else {
+                    text(Joiner.on(" ").join(obj));
+                }
             }
             end();
         }

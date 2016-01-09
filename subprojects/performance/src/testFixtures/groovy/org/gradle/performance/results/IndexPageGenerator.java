@@ -38,7 +38,6 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 end();
                 body();
                 div().id("content");
-                    h2().text("All tests").end();
                     List<String> testNames = store.getTestNames();
                     div().id("controls").end();
                     for (String testName : testNames) {
@@ -48,13 +47,12 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         end();
                         table().classAttr("history");
                         tr().classAttr("control-groups");
-                            th().colspan("3").end();
+                            th().colspan("2").end();
                             th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average execution time").end();
                             th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average heap usage").end();
                         end();
                         tr();
                             th().text("Date").end();
-                            th().text("Test version").end();
                             th().text("Branch").end();
                             for (String label : testHistory.getExperimentLabels()) {
                                 renderHeaderForSamples(label);
@@ -67,7 +65,6 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         for (PerformanceResults performanceResults : results) {
                             tr();
                                 td().text(format.timestamp(new Date(performanceResults.getTestTime()))).end();
-                                td().text(performanceResults.getVersionUnderTest()).end();
                                 td().text(performanceResults.getVcsBranch()).end();
                                 renderSamplesForExperiment(performanceResults.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                                     @Override
