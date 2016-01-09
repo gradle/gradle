@@ -26,21 +26,15 @@ table.history {
 
 th, td {
     white-space: nowrap;
-    padding-top: 4px;
-    padding-bottom: 4px;
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 12px;
+    padding-right: 12px;
     text-align: left;
 }
 
 th.numeric, td.numeric {
     text-align: right;
-    min-width: 4em;
-}
-
-th.test-execution {
-    font-size: 14pt;
-    padding-top: 1em;
 }
 
 .table-row-even {
@@ -63,6 +57,11 @@ th.test-execution {
 #controls label {
     font-weight: bold;
     cursor: pointer;
+}
+
+.details {
+    padding-top: 5px;
+    font-size: 10pt;
 }
 
 .chart {

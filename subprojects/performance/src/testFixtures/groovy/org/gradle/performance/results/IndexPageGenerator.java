@@ -41,14 +41,12 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     h2().text("All tests").end();
                     List<String> testNames = store.getTestNames();
                     div().id("controls").end();
-                    table().classAttr("history");
                     for (String testName : testNames) {
                         TestExecutionHistory testHistory = store.getTestResults(testName, 5);
-                        tr();
-                            th().colspan("6").classAttr("test-execution");
-                                text(testName);
-                            end();
+                        h2().classAttr("test-execution");
+                            text(testName);
                         end();
+                        table().classAttr("history");
                         tr().classAttr("control-groups");
                             th().colspan("3").end();
                             th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average execution time").end();
@@ -85,14 +83,12 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 });
                             end();
                         }
-                        tr();
-                            td().colspan("6");
-                                String url = "tests/" + testHistory.getId() + ".html";
-                                a().href(url).text("details...").end();
-                            end();
+                        end();
+                        div().classAttr("details");
+                            String url = "tests/" + testHistory.getId() + ".html";
+                            a().href(url).text("details...").end();
                         end();
                     }
-                    end();
                 end();
                 footer(this);
             endAll();
