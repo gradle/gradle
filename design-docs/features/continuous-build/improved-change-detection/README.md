@@ -2,7 +2,16 @@
 
 - [ ] Continuous build will trigger a rebuild when an input file is changed during build execution
 - [ ] Developer is able to easily determine the task/file that triggered a rebuild
-- [ ] Continuous build will trigger a rebuild when build configuration file changes
+ 
+## Sub-Feature: Continuous build will trigger a rebuild when build configuration changes
+
+- [ ] Continuous build will trigger a rebuild when build script changes
+- [ ] Continuous build will trigger a rebuild when `buildSrc` changes
+- [ ] Continuous build will trigger a rebuild when a script plugin changes
+- [ ] Continuous build will trigger a rebuild when `settings.gradle` changes
+- [ ] Continuous build will trigger a rebuild when `gradle.properties` or `~/.gradle/gradle.properties` changes
+- [ ] Continuous build will trigger a rebuild when any file read as input by configuration script logic changes
+
 
 ## Backlog / Open Issues / Not in scope
 
@@ -139,26 +148,18 @@ Special considerations:
 - check that directories aren't reported as modified
 - check that new files aren't reported as modified
 
-## Feature: Continuous build will trigger a rebuild when build configuration file changes
-
-### Story: Continuous build will trigger a rebuild when project build scripts change 
+### Story: Continuous build will trigger a rebuild when a build script changes
 - build.gradle / project.buildFileName of all projects in a build
 
 ### Story: Continuous build will trigger a rebuild when `buildSrc` changes
 - buildSrc itself is a gradle build. The inputs of the tasks of the buildSrc build should be monitored for changes in the same way as an ordinary Gradle build is monitored in continuous build.
 
-### Story: Continuous build will trigger a rebuild when gradle.properties, ~/.gradle/gradle.properties or settings.gradle change
-
-### Story: Continuous build will trigger a rebuild when script plugins change
+### Story: Continuous build will trigger a rebuild when a script plugin changes
 - all "apply from: '/file/path'" including nested scripts
 
-### Story: Continuous build will trigger a rebuild when configuration files read as input in configuration script logic change
-
-### Story: Continuous build will trigger a rebuild when maven/ivy configuration files change
-
-### Out of scope
-
-- dependencies of build script (including dynamic version dependencies)
+### Story: Continuous build will trigger a rebuild when `settings.gradle` changes
+### Story: Continuous build will trigger a rebuild when `gradle.properties` or `~/.gradle/gradle.properties` changes
+### Story: Continuous build will trigger a rebuild when any file read as input by configuration script logic changes
     
 
 
