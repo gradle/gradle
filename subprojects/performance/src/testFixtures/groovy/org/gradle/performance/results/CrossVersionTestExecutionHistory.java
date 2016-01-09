@@ -18,10 +18,12 @@ package org.gradle.performance.results;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import org.gradle.api.Nullable;
 import org.gradle.performance.fixture.CrossVersionPerformanceResults;
 import org.gradle.performance.fixture.MeasuredOperationList;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -145,6 +147,36 @@ public class CrossVersionTestExecutionHistory implements TestExecutionHistory {
         @Override
         public String getJvm() {
             return result.getJvm();
+        }
+
+        @Nullable
+        @Override
+        public List<String> getArgs() {
+            return Arrays.asList(result.getArgs());
+        }
+
+        @Nullable
+        @Override
+        public String getTestProject() {
+            return result.getTestProject();
+        }
+
+        @Nullable
+        @Override
+        public List<String> getTasks() {
+            return Arrays.asList(result.getTasks());
+        }
+
+        @Nullable
+        @Override
+        public List<String> getGradleOpts() {
+            return result.getGradleOpts() == null ? null : Arrays.asList(result.getGradleOpts());
+        }
+
+        @Nullable
+        @Override
+        public Boolean getDaemon() {
+            return result.getDaemon();
         }
     }
 }

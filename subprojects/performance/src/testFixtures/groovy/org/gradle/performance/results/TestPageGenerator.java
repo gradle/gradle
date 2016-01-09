@@ -123,6 +123,11 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             }
             th().text("Operating System").end();
             th().text("JVM").end();
+            th().text("Test project").end();
+            th().text("Tasks").end();
+            th().text("Gradle args").end();
+            th().text("Gradle JVM opts").end();
+            th().text("Daemon").end();
             end();
             for (PerformanceResults results : testHistory.getPerformanceResults()) {
                 tr();
@@ -181,15 +186,28 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                         return original.getMaxCommittedHeap();
                     }
                 });
-                td().text(results.getOperatingSystem()).end();
-                td().text(results.getJvm()).end();
+                textCell(results.getOperatingSystem());
+                textCell(results.getJvm());
+                textCell(results.getTestProject());
+                textCell(results.getTasks());
+                textCell(results.getArgs());
+                textCell(results.getGradleOpts());
+                textCell(results.getDaemon());
                 end();
             }
             end();
             end();
             footer(this);
             endAll();
-        }};
+        }
+            void textCell(Object obj) {
+                td();
+                if (obj != null) {
+                    text(obj.toString());
+                }
+                end();
+            }
+        };
     }
 
     private static class Link {

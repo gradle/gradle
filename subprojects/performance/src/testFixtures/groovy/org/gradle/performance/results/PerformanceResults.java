@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results;
 
+import org.gradle.api.Nullable;
 import org.gradle.performance.fixture.MeasuredOperationList;
 
 import java.util.List;
@@ -36,4 +37,35 @@ public interface PerformanceResults {
     String getOperatingSystem();
 
     String getJvm();
+
+    /**
+     * The test project name. Null if not known or not constant for all experiments
+     */
+    @Nullable
+    String getTestProject();
+
+    /**
+     * The tasks executed. Null if not known or not constant for all experiments
+     */
+    @Nullable
+    List<String> getTasks();
+
+    /**
+     * The Gradle arguments. Null if not known or not constant for all experiments
+     */
+    @Nullable
+    List<String> getArgs();
+
+    /**
+     * The Gradle JVM args. Null if not known or not constant for all experiments
+     */
+    @Nullable
+    List<String> getGradleOpts();
+
+    /**
+     * Was the daemon used. Null if not known or not constant for all experiments
+     */
+    @Nullable
+    Boolean getDaemon();
+
 }

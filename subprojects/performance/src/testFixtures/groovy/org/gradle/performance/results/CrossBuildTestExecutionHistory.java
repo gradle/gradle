@@ -123,5 +123,35 @@ public class CrossBuildTestExecutionHistory implements TestExecutionHistory {
         public String getJvm() {
             return results.getJvm();
         }
+
+        @org.gradle.api.Nullable
+        @Override
+        public String getTestProject() {
+            return null;
+        }
+
+        @org.gradle.api.Nullable
+        @Override
+        public List<String> getTasks() {
+            return null;
+        }
+
+        @org.gradle.api.Nullable
+        @Override
+        public List<String> getArgs() {
+            return null;
+        }
+
+        @org.gradle.api.Nullable
+        @Override
+        public List<String> getGradleOpts() {
+            return null;
+        }
+
+        @org.gradle.api.Nullable
+        @Override
+        public Boolean getDaemon() {
+            return null;
+        }
     }
 }
