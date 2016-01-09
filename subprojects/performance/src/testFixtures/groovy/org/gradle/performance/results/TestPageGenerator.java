@@ -41,7 +41,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             html();
             head();
             headSection(this);
-            title().text(String.format("Performance test %s", testHistory.getName())).end();
+            title().text(String.format("Performance test %s", testHistory.getDisplayName())).end();
             script();
             text("$(function() {\n");
             text("$.ajax({ url:'" + testHistory.getId() + ".json\', dataType: 'json',");
@@ -86,7 +86,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             end();
             body();
             div().id("content");
-            h2().text(String.format("Test: %s", testHistory.getName())).end();
+            h2().text(String.format("Test: %s", testHistory.getDisplayName())).end();
             h3().text("Average execution time").end();
             div().id("executionTimeChart").classAttr("chart");
             p().text("Loading...").end();
@@ -101,14 +101,14 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             h3().text("Test details").end();
             table().classAttr("test-details");
             tr();
-                th().text("Experiment").end();
+                th().text("Scenario").end();
                 th().text("Test project").end();
                 th().text("Tasks").end();
                 th().text("Gradle args").end();
                 th().text("Gradle JVM args").end();
                 th().text("Daemon").end();
             end();
-            for (ExperimentDefinition experiment : testHistory.getExperiments()) {
+            for (ExperimentDefinition experiment : testHistory.getScenarios()) {
                 tr();
                     textCell(experiment.getDisplayName());
                     textCell(experiment.getTestProject());
@@ -124,14 +124,14 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             table().classAttr("history");
             tr().classAttr("control-groups");
             th().colspan("3").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average build time").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average configuration time").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average execution time").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average heap usage (old measurement)").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average total heap usage").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average max heap usage").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average max uncollected heap").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average max committed heap").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average build time").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average configuration time").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average execution time").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average heap usage (old measurement)").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average total heap usage").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average max heap usage").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average max uncollected heap").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average max committed heap").end();
             th().colspan("8").text("Details").end();
             end();
             tr();
@@ -139,7 +139,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             th().text("Branch").end();
             th().text("Git commit").end();
             for (int i = 0; i < 8; i++) {
-                for (String label : testHistory.getExperimentLabels()) {
+                for (String label : testHistory.getScenarioLabels()) {
                     renderHeaderForSamples(label);
                 }
             }
@@ -152,7 +152,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             th().text("Gradle JVM opts").end();
             th().text("Daemon").end();
             end();
-            for (PerformanceTestExecution results : testHistory.getPerformanceResults()) {
+            for (PerformanceTestExecution results : testHistory.getExecutions()) {
                 tr();
                 textCell(format.timestamp(new Date(results.getTestTime())));
                 textCell(results.getVcsBranch());

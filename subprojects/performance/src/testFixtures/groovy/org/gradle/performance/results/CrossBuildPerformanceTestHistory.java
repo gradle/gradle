@@ -50,12 +50,12 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
         return name.replaceAll("\\s+", "-");
     }
 
-    public String getName() {
+    public String getDisplayName() {
         return name;
     }
 
     @Override
-    public List<PerformanceTestExecution> getPerformanceResults() {
+    public List<PerformanceTestExecution> getExecutions() {
         return Lists.transform(newestFirst, new Function<CrossBuildPerformanceResults, PerformanceTestExecution>() {
             public PerformanceTestExecution apply(@Nullable final CrossBuildPerformanceResults results) {
                 return new KnownBuildSpecificationsPerformanceTestExecution(results);
@@ -64,12 +64,12 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
     }
 
     @Override
-    public int getExperimentCount() {
+    public int getScenarioCount() {
         return builds.size();
     }
 
     @Override
-    public List<String> getExperimentLabels() {
+    public List<String> getScenarioLabels() {
         return Lists.transform(builds, new Function<BuildDisplayInfo, String>() {
             public String apply(@Nullable BuildDisplayInfo specification) {
                 return specification.getDisplayName();
@@ -78,7 +78,7 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
     }
 
     @Override
-    public List<? extends ExperimentDefinition> getExperiments() {
+    public List<? extends ExperimentDefinition> getScenarios() {
         return Lists.transform(builds, new Function<BuildDisplayInfo, ExperimentDefinition>() {
             @Override
             public ExperimentDefinition apply(final BuildDisplayInfo input) {

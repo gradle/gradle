@@ -30,25 +30,25 @@ public interface PerformanceTestHistory {
     /**
      * A human consumable display name for this performance test.
      */
-    String getName();
+    String getDisplayName();
 
     /**
      * The results of all executions of this performance test, ordered from most recent to least recent.
      */
-    List<? extends PerformanceTestExecution> getPerformanceResults();
+    List<? extends PerformanceTestExecution> getExecutions();
 
     /**
-     * Returns the number of experiments per performance test.
+     * Returns the number of scenarios for this performance test.
      */
-    int getExperimentCount();
+    int getScenarioCount();
 
     /**
-     * Returns the labels of the experiments.
+     * Returns the display names for the scenarios of this performance test.
      */
-    List<String> getExperimentLabels();
+    List<String> getScenarioLabels();
 
     /**
-     * Returns the experiments that are executed for this performance test.
+     * Returns the scenarios that are executed for this performance test.
      */
-    List<? extends ExperimentDefinition> getExperiments();
+    List<? extends ExperimentDefinition> getScenarios();
 }

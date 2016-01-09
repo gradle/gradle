@@ -45,9 +45,9 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     div().id("controls").end();
                     for (String testName : testNames) {
                         PerformanceTestHistory testHistory = store.getTestResults(testName, 5);
-                        List<? extends PerformanceTestExecution> results = testHistory.getPerformanceResults();
+                        List<? extends PerformanceTestExecution> results = testHistory.getExecutions();
                         if (results.isEmpty() || results.get(0).getTestTime() < expiry) {
-                            archived.put(testHistory.getId(), testHistory.getName());
+                            archived.put(testHistory.getId(), testHistory.getDisplayName());
                             continue;
                         }
                         h2().classAttr("test-execution");
@@ -56,16 +56,16 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         table().classAttr("history");
                         tr().classAttr("control-groups");
                             th().colspan("2").end();
-                            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average execution time").end();
-                            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average execution time").end();
+                            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average heap usage").end();
                         end();
                         tr();
                             th().text("Date").end();
                             th().text("Branch").end();
-                            for (String label : testHistory.getExperimentLabels()) {
+                            for (String label : testHistory.getScenarioLabels()) {
                                 renderHeaderForSamples(label);
                             }
-                            for (String label : testHistory.getExperimentLabels()) {
+                            for (String label : testHistory.getScenarioLabels()) {
                                 renderHeaderForSamples(label);
                             }
                         end();

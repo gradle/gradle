@@ -48,7 +48,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
     }
 
     @Override
-    public String getName() {
+    public String getDisplayName() {
         return name;
     }
 
@@ -89,7 +89,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
     }
 
     @Override
-    public List<PerformanceTestExecution> getPerformanceResults() {
+    public List<PerformanceTestExecution> getExecutions() {
         return Lists.transform(getResults(), new Function<CrossVersionPerformanceResults, PerformanceTestExecution>() {
             public PerformanceTestExecution apply(final CrossVersionPerformanceResults result) {
                 return new KnownVersionsPerformanceTestExecution(result);
@@ -98,7 +98,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
     }
 
     @Override
-    public List<? extends ExperimentDefinition> getExperiments() {
+    public List<? extends ExperimentDefinition> getScenarios() {
         if (newestFirst.isEmpty()) {
             return Collections.emptyList();
         }
@@ -144,12 +144,12 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
     }
 
     @Override
-    public int getExperimentCount() {
+    public int getScenarioCount() {
         return getKnownVersions().size();
     }
 
     @Override
-    public List<String> getExperimentLabels() {
+    public List<String> getScenarioLabels() {
         return getKnownVersions();
     }
 

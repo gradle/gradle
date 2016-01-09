@@ -80,22 +80,22 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
         then:
         history.id == "test1"
-        history.name == "test1"
-        history.experimentCount == 2
-        history.experimentLabels == ["complex display", "simple display"]
-        history.experiments.size() == 2
-        history.experiments[0].displayName == "complex display"
-        history.experiments[0].testProject == "complex"
-        history.experiments[0].tasks == []
-        history.experiments[0].args == []
-        history.experiments[0].gradleOpts == ["--go-faster"]
-        history.experiments[0].daemon == false
-        history.experiments[1].displayName == "simple display"
-        history.experiments[1].testProject == "simple"
-        history.experiments[1].tasks == ["build"]
-        history.experiments[1].args == ["-i"]
-        history.experiments[1].gradleOpts == []
-        history.experiments[1].daemon
+        history.displayName == "test1"
+        history.scenarioCount == 2
+        history.scenarioLabels == ["complex display", "simple display"]
+        history.scenarios.size() == 2
+        history.scenarios[0].displayName == "complex display"
+        history.scenarios[0].testProject == "complex"
+        history.scenarios[0].tasks == []
+        history.scenarios[0].args == []
+        history.scenarios[0].gradleOpts == ["--go-faster"]
+        history.scenarios[0].daemon == false
+        history.scenarios[1].displayName == "simple display"
+        history.scenarios[1].testProject == "simple"
+        history.scenarios[1].tasks == ["build"]
+        history.scenarios[1].args == ["-i"]
+        history.scenarios[1].gradleOpts == []
+        history.scenarios[1].daemon
 
         and:
         def firstSpecification = history.builds[0]
@@ -160,8 +160,8 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
         then:
         history.id == "test1"
-        history.name == "test1"
-        history.experimentCount == 1
+        history.displayName == "test1"
+        history.scenarioCount == 1
         def firstSpecification = history.builds[0]
         firstSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], null, null)
         history.results.first().buildResult(firstSpecification).size() == 1
@@ -258,29 +258,29 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
         then:
         history.id == "test1"
-        history.name == "test1"
-        history.experimentCount == 2
-        history.experimentLabels == ["scenario 1", "scenario 2"]
-        history.experiments.size() == 2
+        history.displayName == "test1"
+        history.scenarioCount == 2
+        history.scenarioLabels == ["scenario 1", "scenario 2"]
+        history.scenarios.size() == 2
         history.builds.size() == 2
 
-        history.performanceResults[0].experiments.size() == 2
-        history.performanceResults[0].experiments[0].name == "scenario 1"
-        history.performanceResults[0].experiments[0].size() == 1
-        history.performanceResults[0].experiments[1].name == "scenario 2"
-        history.performanceResults[0].experiments[1].size() == 1
+        history.executions[0].experiments.size() == 2
+        history.executions[0].experiments[0].name == "scenario 1"
+        history.executions[0].experiments[0].size() == 1
+        history.executions[0].experiments[1].name == "scenario 2"
+        history.executions[0].experiments[1].size() == 1
 
-        history.performanceResults[1].experiments.size() == 2
-        history.performanceResults[1].experiments[0].name == "scenario 1"
-        history.performanceResults[1].experiments[0].size() == 1
-        history.performanceResults[1].experiments[1].name == "scenario 2"
-        history.performanceResults[1].experiments[1].size() == 1
+        history.executions[1].experiments.size() == 2
+        history.executions[1].experiments[0].name == "scenario 1"
+        history.executions[1].experiments[0].size() == 1
+        history.executions[1].experiments[1].name == "scenario 2"
+        history.executions[1].experiments[1].size() == 1
 
-        history.performanceResults[2].experiments.size() == 2
-        history.performanceResults[2].experiments[0].name == "scenario 1"
-        history.performanceResults[2].experiments[0].size() == 1
-        history.performanceResults[2].experiments[1].name == "scenario 2"
-        history.performanceResults[2].experiments[1].size() == 1
+        history.executions[2].experiments.size() == 2
+        history.executions[2].experiments[0].name == "scenario 1"
+        history.executions[2].experiments[0].size() == 1
+        history.executions[2].experiments[1].name == "scenario 2"
+        history.executions[2].experiments[1].size() == 1
     }
 
     def "reports on union of all scenarios"() {
@@ -362,30 +362,30 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
         then:
         history.id == "test1"
-        history.name == "test1"
-        history.experimentCount == 4
-        history.experimentLabels == ["scenario 1", "scenario 2", "scenario 3", "scenario 4"]
-        history.experiments.size() == 4
-        history.experiments[0].displayName == "scenario 1"
-        history.experiments[1].displayName == "scenario 2"
-        history.experiments[2].displayName == "scenario 3"
-        history.experiments[3].displayName == "scenario 4"
+        history.displayName == "test1"
+        history.scenarioCount == 4
+        history.scenarioLabels == ["scenario 1", "scenario 2", "scenario 3", "scenario 4"]
+        history.scenarios.size() == 4
+        history.scenarios[0].displayName == "scenario 1"
+        history.scenarios[1].displayName == "scenario 2"
+        history.scenarios[2].displayName == "scenario 3"
+        history.scenarios[3].displayName == "scenario 4"
 
         history.builds.size() == 4
 
-        history.performanceResults[0].experiments.size() == 4
-        history.performanceResults[0].experiments[0].size() == 0
-        history.performanceResults[0].experiments[1].size() == 0
-        history.performanceResults[0].experiments[2].size() == 0
-        history.performanceResults[0].experiments[3].size() == 1
+        history.executions[0].experiments.size() == 4
+        history.executions[0].experiments[0].size() == 0
+        history.executions[0].experiments[1].size() == 0
+        history.executions[0].experiments[2].size() == 0
+        history.executions[0].experiments[3].size() == 1
 
-        history.performanceResults[1].experiments.size() == 4
+        history.executions[1].experiments.size() == 4
 
-        history.performanceResults[2].experiments.size() == 4
-        history.performanceResults[2].experiments[0].size() == 1
-        history.performanceResults[2].experiments[1].size() == 1
-        history.performanceResults[2].experiments[2].size() == 0
-        history.performanceResults[2].experiments[3].size() == 0
+        history.executions[2].experiments.size() == 4
+        history.executions[2].experiments[0].size() == 1
+        history.executions[2].experiments[1].size() == 1
+        history.executions[2].experiments[2].size() == 0
+        history.executions[2].experiments[3].size() == 0
     }
 
     def "returns top n results in descending date order"() {
