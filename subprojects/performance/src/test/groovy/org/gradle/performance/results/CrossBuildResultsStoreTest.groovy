@@ -268,23 +268,23 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         history.scenarios.size() == 2
         history.builds.size() == 2
 
-        history.executions[0].experiments.size() == 2
-        history.executions[0].experiments[0].name == "scenario 1"
-        history.executions[0].experiments[0].size() == 1
-        history.executions[0].experiments[1].name == "scenario 2"
-        history.executions[0].experiments[1].size() == 1
+        history.executions[0].scenarios.size() == 2
+        history.executions[0].scenarios[0].name == "scenario 1"
+        history.executions[0].scenarios[0].size() == 1
+        history.executions[0].scenarios[1].name == "scenario 2"
+        history.executions[0].scenarios[1].size() == 1
 
-        history.executions[1].experiments.size() == 2
-        history.executions[1].experiments[0].name == "scenario 1"
-        history.executions[1].experiments[0].size() == 1
-        history.executions[1].experiments[1].name == "scenario 2"
-        history.executions[1].experiments[1].size() == 1
+        history.executions[1].scenarios.size() == 2
+        history.executions[1].scenarios[0].name == "scenario 1"
+        history.executions[1].scenarios[0].size() == 1
+        history.executions[1].scenarios[1].name == "scenario 2"
+        history.executions[1].scenarios[1].size() == 1
 
-        history.executions[2].experiments.size() == 2
-        history.executions[2].experiments[0].name == "scenario 1"
-        history.executions[2].experiments[0].size() == 1
-        history.executions[2].experiments[1].name == "scenario 2"
-        history.executions[2].experiments[1].size() == 1
+        history.executions[2].scenarios.size() == 2
+        history.executions[2].scenarios[0].name == "scenario 1"
+        history.executions[2].scenarios[0].size() == 1
+        history.executions[2].scenarios[1].name == "scenario 2"
+        history.executions[2].scenarios[1].size() == 1
 
         cleanup:
         writeStore?.close()
@@ -381,19 +381,19 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
         history.builds.size() == 4
 
-        history.executions[0].experiments.size() == 4
-        history.executions[0].experiments[0].size() == 0
-        history.executions[0].experiments[1].size() == 0
-        history.executions[0].experiments[2].size() == 0
-        history.executions[0].experiments[3].size() == 1
+        history.executions[0].scenarios.size() == 4
+        history.executions[0].scenarios[0].size() == 0
+        history.executions[0].scenarios[1].size() == 0
+        history.executions[0].scenarios[2].size() == 0
+        history.executions[0].scenarios[3].size() == 1
 
-        history.executions[1].experiments.size() == 4
+        history.executions[1].scenarios.size() == 4
 
-        history.executions[2].experiments.size() == 4
-        history.executions[2].experiments[0].size() == 1
-        history.executions[2].experiments[1].size() == 1
-        history.executions[2].experiments[2].size() == 0
-        history.executions[2].experiments[3].size() == 0
+        history.executions[2].scenarios.size() == 4
+        history.executions[2].scenarios[0].size() == 1
+        history.executions[2].scenarios[1].size() == 1
+        history.executions[2].scenarios[2].size() == 0
+        history.executions[2].scenarios[3].size() == 0
 
         cleanup:
         writeStore?.close()

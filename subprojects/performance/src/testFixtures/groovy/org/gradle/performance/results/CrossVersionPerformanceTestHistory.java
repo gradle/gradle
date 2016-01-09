@@ -23,7 +23,6 @@ import org.gradle.performance.fixture.CrossVersionPerformanceResults;
 import org.gradle.performance.fixture.MeasuredOperationList;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -119,18 +118,18 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
 
                     @Override
                     public List<String> getTasks() {
-                        return Arrays.asList(mostRecent.getTasks());
+                        return mostRecent.getTasks();
                     }
 
                     @Override
                     public List<String> getArgs() {
-                        return Arrays.asList(mostRecent.getArgs());
+                        return mostRecent.getArgs();
                     }
 
                     @Nullable
                     @Override
                     public List<String> getGradleOpts() {
-                        return mostRecent.getGradleOpts() == null ? null : Arrays.asList(mostRecent.getGradleOpts());
+                        return mostRecent.getGradleOpts();
                     }
 
                     @Nullable
@@ -177,7 +176,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
             return result.getVcsCommits();
         }
 
-        public List<MeasuredOperationList> getExperiments() {
+        public List<MeasuredOperationList> getScenarios() {
             return Lists.transform(getKnownVersions(), new Function<String, MeasuredOperationList>() {
                 public MeasuredOperationList apply(String version) {
                     return result.version(version).getResults();
@@ -198,7 +197,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
         @Nullable
         @Override
         public List<String> getArgs() {
-            return Arrays.asList(result.getArgs());
+            return result.getArgs();
         }
 
         @Nullable
@@ -210,13 +209,13 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
         @Nullable
         @Override
         public List<String> getTasks() {
-            return Arrays.asList(result.getTasks());
+            return result.getTasks();
         }
 
         @Nullable
         @Override
         public List<String> getGradleOpts() {
-            return result.getGradleOpts() == null ? null : Arrays.asList(result.getGradleOpts());
+            return result.getGradleOpts();
         }
 
         @Nullable

@@ -73,13 +73,13 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             tr();
                                 td().text(format.timestamp(new Date(performanceTestExecution.getTestTime()))).end();
                                 td().text(performanceTestExecution.getVcsBranch()).end();
-                                renderSamplesForExperiment(performanceTestExecution.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(performanceTestExecution.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                                     @Override
                                     public DataSeries<Duration> transform(MeasuredOperationList measuredOperations) {
                                         return measuredOperations.getTotalTime();
                                     }
                                 });
-                                renderSamplesForExperiment(performanceTestExecution.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(performanceTestExecution.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     @Override
                                     public DataSeries<DataAmount> transform(MeasuredOperationList measuredOperations) {
                                         return measuredOperations.getTotalMemoryUsed();

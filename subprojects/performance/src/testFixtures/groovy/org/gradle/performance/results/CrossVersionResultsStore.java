@@ -74,9 +74,9 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         statement.setTimestamp(2, new Timestamp(results.getTestTime()));
                         statement.setString(3, results.getVersionUnderTest());
                         statement.setString(4, results.getTestProject());
-                        statement.setObject(5, results.getTasks());
-                        statement.setObject(6, results.getArgs());
-                        statement.setObject(7, results.getGradleOpts());
+                        statement.setObject(5, toArray(results.getTasks()));
+                        statement.setObject(6, toArray(results.getArgs()));
+                        statement.setObject(7, toArray(results.getGradleOpts()));
                         statement.setObject(8, results.getDaemon());
                         statement.setString(9, results.getOperatingSystem());
                         statement.setString(10, results.getJvm());
@@ -170,9 +170,9 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         performanceResults.setTestTime(testExecutions.getTimestamp(2).getTime());
                         performanceResults.setVersionUnderTest(testExecutions.getString(3));
                         performanceResults.setTestProject(testExecutions.getString(4));
-                        performanceResults.setTasks(toArray(testExecutions.getObject(5)));
-                        performanceResults.setArgs(toArray(testExecutions.getObject(6)));
-                        performanceResults.setGradleOpts(toArray(testExecutions.getObject(7)));
+                        performanceResults.setTasks(toList(testExecutions.getObject(5)));
+                        performanceResults.setArgs(toList(testExecutions.getObject(6)));
+                        performanceResults.setGradleOpts(toList(testExecutions.getObject(7)));
                         performanceResults.setDaemon((Boolean)testExecutions.getObject(8));
                         performanceResults.setOperatingSystem(testExecutions.getString(9));
                         performanceResults.setJvm(testExecutions.getString(10));
@@ -228,14 +228,18 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         return Collections.emptyList();
     }
 
-    private String[] toArray(Object object) {
+    private String[] toArray(List<String> list) {
+        return list == null ? null : list.toArray(new String[list.size()]);
+    }
+
+    private List<String> toList(Object object) {
         Object[] value = (Object[]) object;
         if (value == null) {
             return null;
         }
-        String[] result = new String[value.length];
-        for (int i = 0; i < value.length; i++) {
-            result[i] = value[i].toString();
+        List<String> result = new ArrayList<String>(value.length);
+        for (Object aValue : value) {
+            result.add(aValue.toString());
         }
         return result;
     }

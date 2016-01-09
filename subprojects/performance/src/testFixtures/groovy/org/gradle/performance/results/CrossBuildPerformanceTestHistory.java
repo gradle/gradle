@@ -147,7 +147,7 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
         }
 
         @Override
-        public List<MeasuredOperationList> getExperiments() {
+        public List<MeasuredOperationList> getScenarios() {
             return Lists.transform(builds, new Function<BuildDisplayInfo, MeasuredOperationList>() {
                 @Override
                 public MeasuredOperationList apply(@Nullable BuildDisplayInfo specification) {

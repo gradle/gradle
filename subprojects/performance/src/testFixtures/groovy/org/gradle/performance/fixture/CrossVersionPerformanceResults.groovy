@@ -23,9 +23,9 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
     private final static LOGGER = Logging.getLogger(CrossVersionPerformanceResults.class)
 
     String testProject
-    String[] args
-    String[] tasks
-    String[] gradleOpts
+    List<String> args
+    List<String> tasks
+    List<String> gradleOpts
     Boolean daemon
 
     private final Map<String, BaselineVersion> baselineVersions = new LinkedHashMap<>()

@@ -108,14 +108,14 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 th().text("Gradle JVM args").end();
                 th().text("Daemon").end();
             end();
-            for (ScenarioDefinition experiment : testHistory.getScenarios()) {
+            for (ScenarioDefinition scenario : testHistory.getScenarios()) {
                 tr();
-                    textCell(experiment.getDisplayName());
-                    textCell(experiment.getTestProject());
-                    textCell(experiment.getTasks());
-                    textCell(experiment.getArgs());
-                    textCell(experiment.getGradleOpts());
-                    textCell(experiment.getDaemon());
+                    textCell(scenario.getDisplayName());
+                    textCell(scenario.getTestProject());
+                    textCell(scenario.getTasks());
+                    textCell(scenario.getArgs());
+                    textCell(scenario.getGradleOpts());
+                    textCell(scenario.getDaemon());
                 end();
             }
             end();
@@ -168,42 +168,42 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 }
                 end();
 
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                         return original.getTotalTime();
                     }
                 });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                         return original.getConfigurationTime();
                     }
                 });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                         return original.getExecutionTime();
                     }
                 });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                         return original.getTotalMemoryUsed();
                     }
                 });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                         return original.getTotalHeapUsage();
                     }
                 });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                         return original.getMaxHeapUsage();
                     }
                 });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                         return original.getMaxUncollectedHeap();
                     }
                 });
-                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                         return original.getMaxCommittedHeap();
                     }

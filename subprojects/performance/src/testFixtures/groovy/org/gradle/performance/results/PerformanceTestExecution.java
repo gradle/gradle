@@ -33,9 +33,9 @@ public interface PerformanceTestExecution {
     List<String> getVcsCommits();
 
     /**
-     * Returns the results of the experiments executed as part of this performance test.
+     * Returns the results of the scenarios executed as part of this performance test.
      */
-    List<MeasuredOperationList> getExperiments();
+    List<MeasuredOperationList> getScenarios();
 
     String getOperatingSystem();
 

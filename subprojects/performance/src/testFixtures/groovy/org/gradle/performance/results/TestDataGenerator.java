@@ -75,7 +75,7 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
             boolean empty = true;
             for (int j = 0; j < sortedResults.size(); j++) {
                 PerformanceTestExecution results = sortedResults.get(j);
-                MeasuredOperationList measuredOperations = results.getExperiments().get(i);
+                MeasuredOperationList measuredOperations = results.getScenarios().get(i);
                 if (!measuredOperations.isEmpty()) {
                     if (!empty) {
                         out.print(", ");
