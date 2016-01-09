@@ -25,16 +25,12 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
     String testProject
     String[] args
     String[] tasks
-    String versionUnderTest
+    String[] gradleOpts
+    Boolean daemon
 
     private final Map<String, BaselineVersion> baselineVersions = new LinkedHashMap<>()
     final MeasuredOperationList current = new MeasuredOperationList(name: "Current Gradle")
     private final results = new CurrentVersionResults(current)
-
-    def clear() {
-        baselineVersions.values().each { it.clearResults() }
-        current.clear()
-    }
 
     @Override
     String toString() {

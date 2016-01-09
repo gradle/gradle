@@ -29,11 +29,15 @@ class BuildDisplayInfo {
     final String displayName
     final List<String> tasksToRun
     final List<String> args
+    final List<String> gradleOpts
+    final Boolean daemon
 
-    BuildDisplayInfo(String projectName, String displayName, List<String> tasksToRun, List<String> args) {
+    BuildDisplayInfo(String projectName, String displayName, List<String> tasksToRun, List<String> args, List<String> gradleOpts, Boolean daemon) {
         this.projectName = projectName
         this.displayName = displayName
         this.tasksToRun = tasksToRun
         this.args = args
+        this.gradleOpts = gradleOpts
+        this.daemon = daemon
     }
 }

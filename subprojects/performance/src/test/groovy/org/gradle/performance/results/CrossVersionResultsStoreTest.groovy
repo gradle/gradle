@@ -32,6 +32,8 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
                 testProject: "test-project",
                 tasks: ["clean", "build"],
                 args: ["--arg1"],
+                gradleOpts: ["--opt-1", "--opt-2"],
+                daemon: true,
                 operatingSystem: "some-os",
                 jvm: "java 6",
                 testTime: 10000,
@@ -74,7 +76,6 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
 
         then:
         tests == ["test1", "test2"]
-        
 
         when:
         def history = readStore.getTestResults("test1")
@@ -94,6 +95,8 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results[0].testProject == "test-project"
         results[0].tasks == ["clean", "build"]
         results[0].args == ["--arg1"]
+        results[0].gradleOpts == ["--opt-1", "--opt-2"]
+        results[0].daemon
         results[0].operatingSystem == "some-os"
         results[0].jvm == "java 6"
         results[0].testTime == 10000
@@ -129,6 +132,40 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results[0].current.size() == 2
         results[0].baselineVersions*.version == ["1.0"]
         results[0].baseline("1.0").results.size() == 1
+
+        cleanup:
+        writeStore?.close()
+        readStore?.close()
+    }
+
+    def "handles null for details that have not been collected for older test executions"() {
+        def result1 = crossVersionResults(testId: "test1",
+                gradleOpts: null,
+                daemon: null)
+        result1.current << operation()
+
+        when:
+        def writeStore = new CrossVersionResultsStore(dbFile)
+        writeStore.report(result1)
+        writeStore.close()
+
+        then:
+        tmpDir.file("results.h2.db").exists()
+
+        when:
+        def readStore = new CrossVersionResultsStore(dbFile)
+        def history = readStore.getTestResults("test1")
+
+        then:
+        history.id == "test1"
+        history.name == "test1"
+        history.experimentCount == 1
+
+        and:
+        def results = history.results
+        results.size() == 1
+        results[0].gradleOpts == null
+        results[0].daemon == null
 
         cleanup:
         writeStore?.close()

@@ -29,7 +29,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final dbFile = tmpDir.file("results")
 
-    def "persists reports"() {
+    def "persists results"() {
         given:
         def results1 = crossBuildResults(testId: "test1", testGroup: "group1")
         def buildResults1 = results1.buildResult(
@@ -37,7 +37,9 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
                         "simple",
                         "simple display",
                         ["build"],
-                        ["-i"]
+                        ["-i"],
+                        [],
+                        true
                 )
         )
         buildResults1 << operation(totalTime: minutes(12),
@@ -49,13 +51,13 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
                 maxUncollectedHeap: kbytes(45.22),
                 maxCommittedHeap: kbytes(200)
         )
-        def buildResults2 = results1.buildResult(new BuildDisplayInfo("complex", "complex display", [], []))
+        def buildResults2 = results1.buildResult(new BuildDisplayInfo("complex", "complex display", [], [], ["--go-faster"], false))
         buildResults2 << operation()
         buildResults2 << operation()
 
         and:
         def results2 = crossBuildResults(testId: "test2", testGroup: "group2")
-        results2.buildResult(new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"]))
+        results2.buildResult(new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], [], true))
 
         when:
         def writeStore = new BaseCrossBuildResultsStore(dbFile)
@@ -84,12 +86,12 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
         and:
         def firstSpecification = history.builds[0]
-        firstSpecification == new BuildDisplayInfo("complex", "complex display", [], [])
+        firstSpecification == new BuildDisplayInfo("complex", "complex display", [], [], ["--go-faster"], false)
         history.results.first().buildResult(firstSpecification).size() == 2
 
         and:
         def secondSpecification = history.builds[1]
-        secondSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"])
+        secondSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], [], true)
         def crossBuildPerformanceResults = history.results.first()
         crossBuildPerformanceResults.testId == "test1"
         crossBuildPerformanceResults.jvm == "java 7"
@@ -115,18 +117,53 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         readStore?.close()
     }
 
+    def "handles null for details that have not been collected for older test executions"() {
+        given:
+        def results1 = crossBuildResults(testId: "test1", testGroup: "group1")
+        def buildResults1 = results1.buildResult(
+                new BuildDisplayInfo(
+                        "simple",
+                        "simple display",
+                        ["build"],
+                        ["-i"],
+                        null,
+                        null
+                )
+        )
+        buildResults1 << operation()
+
+        when:
+        def writeStore = new BaseCrossBuildResultsStore(dbFile)
+        writeStore.report(results1)
+        writeStore.close()
+
+        then:
+        tmpDir.file("results.h2.db").exists()
+
+        when:
+        def readStore = new BaseCrossBuildResultsStore(dbFile)
+        def history = readStore.getTestResults("test1")
+
+        then:
+        history.id == "test1"
+        history.name == "test1"
+        history.experimentCount == 1
+        def firstSpecification = history.builds[0]
+        firstSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], null, null)
+    }
+
     def "returns top n results in descending date order"() {
         given:
         def results1 = crossBuildResults(testId: "test1", testTime: 1000)
-        results1.buildResult(new BuildDisplayInfo("simple1", "simple 1", ["build"], ["-i"]))
+        results1.buildResult(new BuildDisplayInfo("simple1", "simple 1", ["build"], ["-i"], [], true))
 
         and:
         def results2 = crossBuildResults(testId: "test1", testTime: 2000)
-        results2.buildResult(new BuildDisplayInfo("simple2", "simple 2", ["build"], ["-i"]))
+        results2.buildResult(new BuildDisplayInfo("simple2", "simple 2", ["build"], ["-i"], [], true))
 
         and:
         def results3 = crossBuildResults(testId: "test1", testTime: 3000)
-        results3.buildResult(new BuildDisplayInfo("simple3", "simple 3", ["build"], ["-i"]))
+        results3.buildResult(new BuildDisplayInfo("simple3", "simple 3", ["build"], ["-i"], [], true))
 
         and:
         def writeStore = new BaseCrossBuildResultsStore(dbFile)

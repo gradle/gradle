@@ -59,6 +59,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             testProject: testProject,
             tasks: tasksToRun,
             args: args,
+            gradleOpts: gradleOpts,
+            daemon: useDaemon,
             jvm: Jvm.current().toString(),
             operatingSystem: OperatingSystem.current().toString(),
             versionUnderTest: GradleVersion.current().getVersion(),

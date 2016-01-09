@@ -48,7 +48,7 @@ class BuildExperimentSpec {
     }
 
     BuildDisplayInfo getDisplayInfo() {
-        new BuildDisplayInfo(projectName, displayName, invocation.tasksToRun, invocation.args)
+        new BuildDisplayInfo(projectName, displayName, invocation.tasksToRun, invocation.args, invocation.jvmOpts, invocation.useDaemon)
     }
 
     static class Builder {

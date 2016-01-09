@@ -20,13 +20,8 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 
 class CrossBuildPerformanceResults extends PerformanceTestResult {
     String testGroup
-    String versionUnderTest
 
     private final Map<BuildDisplayInfo, MeasuredOperationList> buildResults = new LinkedHashMap<>()
-
-    def clear() {
-        buildResults.clear()
-    }
 
     @Override
     String toString() {

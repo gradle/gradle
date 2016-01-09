@@ -25,6 +25,7 @@ public class PerformanceTestResult {
     long testTime;
     String vcsBranch;
     List<String> vcsCommits;
+    String versionUnderTest;
 
     public String getTestId() {
         return testId;
@@ -40,6 +41,14 @@ public class PerformanceTestResult {
 
     public void setTestTime(long testTime) {
         this.testTime = testTime;
+    }
+
+    public String getVersionUnderTest() {
+        return versionUnderTest;
+    }
+
+    public void setVersionUnderTest(String versionUnderTest) {
+        this.versionUnderTest = versionUnderTest;
     }
 
     public String getVcsBranch() {

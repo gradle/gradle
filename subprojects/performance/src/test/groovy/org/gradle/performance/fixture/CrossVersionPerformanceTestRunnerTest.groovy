@@ -42,6 +42,8 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         runner.targetVersions = ['1.0', '1.1']
         runner.tasksToRun = ['clean', 'build']
         runner.args = ['--arg1', '--arg2']
+        runner.gradleOpts = ['-Xmx24']
+        runner.useDaemon = true
         runner.warmUpRuns = 1
         runner.runs = 4
         runner.maxExecutionTimeRegression = Duration.millis(100)
@@ -55,6 +57,8 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         results.testProject == 'test1'
         results.tasks == ['clean', 'build']
         results.args == ['--arg1', '--arg2']
+        results.gradleOpts == ['-Xmx24']
+        results.daemon
         results.versionUnderTest
         results.jvm
         results.operatingSystem

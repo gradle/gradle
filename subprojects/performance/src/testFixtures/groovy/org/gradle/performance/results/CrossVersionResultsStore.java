@@ -68,7 +68,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             db.withConnection(new ConnectionAction<Void>() {
                 public Void execute(Connection connection) throws Exception {
                     long testId;
-                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         statement.setString(1, results.getTestId());
                         statement.setTimestamp(2, new Timestamp(results.getTestTime()));
@@ -76,11 +76,13 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         statement.setString(4, results.getTestProject());
                         statement.setObject(5, results.getTasks());
                         statement.setObject(6, results.getArgs());
-                        statement.setString(7, results.getOperatingSystem());
-                        statement.setString(8, results.getJvm());
-                        statement.setString(9, results.getVcsBranch());
+                        statement.setObject(7, results.getGradleOpts());
+                        statement.setObject(8, results.getDaemon());
+                        statement.setString(9, results.getOperatingSystem());
+                        statement.setString(10, results.getJvm());
+                        statement.setString(11, results.getVcsBranch());
                         String vcs = results.getVcsCommits() == null ? null :  Joiner.on(",").join(results.getVcsCommits());
-                        statement.setString(10, vcs);
+                        statement.setString(12, vcs);
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
                         keys.next();
@@ -140,12 +142,12 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     }
 
     @Override
-    public TestExecutionHistory getTestResults(String testName) {
+    public CrossVersionTestExecutionHistory getTestResults(String testName) {
         return getTestResults(testName, Integer.MAX_VALUE);
     }
 
     @Override
-    public TestExecutionHistory getTestResults(final String testName, final int mostRecentN) {
+    public CrossVersionTestExecutionHistory getTestResults(final String testName, final int mostRecentN) {
         try {
             return db.withConnection(new ConnectionAction<CrossVersionTestExecutionHistory>() {
                 public CrossVersionTestExecutionHistory execute(Connection connection) throws Exception {
@@ -156,7 +158,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         }
                     });
                     Set<String> allBranches = new TreeSet<String>();
-                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
+                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
                     PreparedStatement operationsForExecution = connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
                     executionsForName.setInt(1, mostRecentN);
                     executionsForName.setString(2, testName);
@@ -170,10 +172,12 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         performanceResults.setTestProject(testExecutions.getString(4));
                         performanceResults.setTasks(toArray(testExecutions.getObject(5)));
                         performanceResults.setArgs(toArray(testExecutions.getObject(6)));
-                        performanceResults.setOperatingSystem(testExecutions.getString(7));
-                        performanceResults.setJvm(testExecutions.getString(8));
-                        performanceResults.setVcsBranch(testExecutions.getString(9).trim());
-                        performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(10)));
+                        performanceResults.setGradleOpts(toArray(testExecutions.getObject(7)));
+                        performanceResults.setDaemon((Boolean)testExecutions.getObject(8));
+                        performanceResults.setOperatingSystem(testExecutions.getString(9));
+                        performanceResults.setJvm(testExecutions.getString(10));
+                        performanceResults.setVcsBranch(testExecutions.getString(11).trim());
+                        performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(12)));
 
                         results.add(performanceResults);
                         allBranches.add(performanceResults.getVcsBranch());
@@ -226,6 +230,9 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
 
     private String[] toArray(Object object) {
         Object[] value = (Object[]) object;
+        if (value == null) {
+            return null;
+        }
         String[] result = new String[value.length];
         for (int i = 0; i < value.length; i++) {
             result[i] = value[i].toString();
@@ -245,6 +252,8 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             statement.execute("create table if not exists testOperation (testExecution bigint not null, version varchar, executionTimeMs decimal not null, heapUsageBytes decimal not null, foreign key(testExecution) references testExecution(id))");
             statement.execute("alter table testExecution add column if not exists vcsBranch varchar not null default 'master'");
             statement.execute("alter table testExecution add column if not exists vcsCommit varchar");
+            statement.execute("alter table testExecution add column if not exists gradleOpts array");
+            statement.execute("alter table testExecution add column if not exists daemon boolean");
             statement.execute("alter table testOperation add column if not exists totalHeapUsageBytes decimal");
             statement.execute("alter table testOperation add column if not exists maxHeapUsageBytes decimal");
             statement.execute("alter table testOperation add column if not exists maxUncollectedHeapBytes decimal");
