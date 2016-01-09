@@ -366,8 +366,8 @@ class ModelTypeTest extends Specification {
     def "arrays are equal when component types are equal"() {
         expect:
         def listArray = ModelType.paramType(ModelTypeJavaTest.getDeclaredMethod("m2", List[].class), 0)
-        def rawArray = ModelType.paramType(ModelTypeJavaTest.getDeclaredMethod("m3", List[].class), 0)
-        def numberListArray = ModelType.paramType(ModelTypeJavaTest.getDeclaredMethod("m3", List[].class), 0)
+        def rawArray = ModelType.of(List[].class)
+        def numberListArray = ModelType.paramType(ModelTypeJavaTest.getDeclaredMethod("m4", List[].class), 0)
 
         Matchers.strictlyEquals(listArray, listArray)
         listArray != rawArray
@@ -377,7 +377,7 @@ class ModelTypeTest extends Specification {
     def "array compatibility"() {
         expect:
         def listArray = ModelType.paramType(ModelTypeJavaTest.getDeclaredMethod("m2", List[].class), 0)
-        def rawArray = ModelType.paramType(ModelTypeJavaTest.getDeclaredMethod("m3", List[].class), 0)
+        def rawArray = ModelType.of(List[].class)
         def numberListArray = ModelType.paramType(ModelTypeJavaTest.getDeclaredMethod("m4", List[].class), 0)
         def collectionArray = ModelType.paramType(ModelTypeJavaTest.getDeclaredMethod("m5", Collection[].class), 0)
 

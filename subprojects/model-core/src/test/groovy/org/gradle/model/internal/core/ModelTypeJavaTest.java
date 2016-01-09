@@ -36,7 +36,6 @@ public class ModelTypeJavaTest {
     <T extends Number, S extends T, R> void m1(T t, S s, R r) { }
     <T extends Number & Runnable, S extends T> void m1(S s) { }
     void m2(List<String>... lists) { }
-    void m3(List... lists) { }
     void m4(List<? super Number>... lists) { }
     void m5(Collection<String>... collections) { }
 
