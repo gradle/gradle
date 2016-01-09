@@ -24,8 +24,7 @@ import org.gradle.performance.measure.Duration;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     @Override
@@ -38,12 +37,21 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 end();
                 body();
                 div().id("content");
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.add(Calendar.DAY_OF_YEAR, -14);
+                    long expiry = calendar.getTime().getTime();
+                    Map<String, String> archived = new LinkedHashMap<String, String>();
                     List<String> testNames = store.getTestNames();
                     div().id("controls").end();
                     for (String testName : testNames) {
                         TestExecutionHistory testHistory = store.getTestResults(testName, 5);
+                        List<? extends PerformanceResults> results = testHistory.getPerformanceResults();
+                        if (results.isEmpty() || results.get(0).getTestTime() < expiry) {
+                            archived.put(testHistory.getId(), testHistory.getName());
+                            continue;
+                        }
                         h2().classAttr("test-execution");
-                            text(testName);
+                            text("Test: " + testName);
                         end();
                         table().classAttr("history");
                         tr().classAttr("control-groups");
@@ -61,7 +69,6 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 renderHeaderForSamples(label);
                             }
                         end();
-                        List<? extends PerformanceResults> results = testHistory.getPerformanceResults();
                         for (PerformanceResults performanceResults : results) {
                             tr();
                                 td().text(format.timestamp(new Date(performanceResults.getTestTime()))).end();
@@ -84,6 +91,17 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         div().classAttr("details");
                             String url = "tests/" + testHistory.getId() + ".html";
                             a().href(url).text("details...").end();
+                        end();
+                    }
+                    if (!archived.isEmpty()) {
+                        h2().text("Archived tests").end();
+                        div();
+                            ul();
+                                for (Map.Entry<String, String> entry : archived.entrySet()) {
+                                    String url = "tests/" + entry.getKey() + ".html";
+                                    li().a().href(url).text(entry.getValue()).end().end();
+                                }
+                            end();
                         end();
                     }
                 end();
